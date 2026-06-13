@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useState } from "react";
 import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
@@ -59,7 +60,7 @@ const DeanAttendanceRecords = () => {
               <thead>
                 <tr className={`text-left text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                   <th className="px-6 py-3 font-semibold">Date</th>
-                  <th className="px-6 py-3 font-semibold">Branch</th>
+                  <th className="px-6 py-3 font-semibold">{translateTerminology("Branch")}</th>
                   <th className="px-6 py-3 font-semibold">Total</th>
                   <th className="px-6 py-3 font-semibold">Present</th>
                 </tr>

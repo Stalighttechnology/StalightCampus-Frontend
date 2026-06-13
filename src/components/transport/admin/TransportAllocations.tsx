@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Swal from "sweetalert2";
@@ -315,13 +316,13 @@ const TransportAllocations: React.FC = () => {
           {/* Eligible Student Filters */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
             <div>
-              <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Branch</label>
+              <label className="block text-xs font-semibold uppercase opacity-70 mb-2">{translateTerminology("Branch")}</label>
               <Select
                 value={eligibleFilters.branch}
                 onValueChange={(val) => setEligibleFilters(f => ({ ...f, branch: val, semester: "", section: "" }))}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Branch" />
+                  <SelectValue placeholder={translateTerminology("Branch")} />
                 </SelectTrigger>
                 <SelectContent>
                   {filterOptions.branches.map((b: any) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
@@ -346,7 +347,7 @@ const TransportAllocations: React.FC = () => {
               </Select>
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Semester</label>
+              <label className="block text-xs font-semibold uppercase opacity-70 mb-2">{translateTerminology("Semester")}</label>
               <Select
                 value={eligibleFilters.semester}
                 disabled={!eligibleFilters.branch || !eligibleFilters.batch || branchSemesters.length === 0}
@@ -355,7 +356,7 @@ const TransportAllocations: React.FC = () => {
                 onValueChange={(val) => setEligibleFilters(f => ({ ...f, semester: val, section: "" }))}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Semester" />
+                  <SelectValue placeholder={translateTerminology("Semester")} />
                 </SelectTrigger>
                 <SelectContent>
                   {branchSemesters.map((s: any) => <SelectItem key={s.id} value={s.id.toString()}>Sem {s.number}</SelectItem>)}

@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
 import { FaUserGraduate, FaChalkboardTeacher, FaUserTie, FaUserCheck, FaBuilding } from "react-icons/fa";
 import { FiDownload, FiSearch } from "react-icons/fi";
@@ -204,7 +205,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
 
   };
 
-  const roleLabels = ["Students", "Faculty", "HODs", "Principals"];
+  const roleLabels = ["Students", "Faculty", translateTerminology("HODs"), "Principals"];
   const roleData = [
     stats?.role_distribution?.students || 0,
     stats?.role_distribution?.faculty || 0,
@@ -273,7 +274,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
         {/* Dashboard Cards */}
         <div id="admin-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <DashboardCard
-            title="Branches"
+            title={translateTerminology("Branches")}
             value={stats.total_branches || 0}
             description="Active branches"
             icon={<FaBuilding className={theme === 'dark' ? "text-indigo-400 text-3xl" : "text-indigo-500 text-3xl"} />} />
@@ -291,7 +292,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
             icon={<FaChalkboardTeacher className={theme === 'dark' ? "text-purple-400 text-3xl" : "text-purple-500 text-3xl"} />} />
 
           <DashboardCard
-            title="HODs"
+            title={translateTerminology("HODs")}
             value={stats.total_hods || 0}
             description="Dept heads"
             icon={<FaUserTie className={theme === 'dark' ? "text-yellow-400 text-3xl" : "text-yellow-500 text-3xl"} />} />
@@ -511,7 +512,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
             <table className="w-full text-sm text-left">
               <thead>
                 <tr className={`border-b ${theme === 'dark' ? 'border-border text-foreground' : 'border-gray-200 text-gray-900'}`}>
-                  <th className="py-3 px-4">Branch</th>
+                  <th className="py-3 px-4">{translateTerminology("Branch")}</th>
                   <th className="py-3 px-4">Student Count</th>
                   <th className="py-3 px-4">Faculty Count</th>
                 </tr>
@@ -563,7 +564,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
 
         <DashboardCard
           id="manage-branches-card"
-          title="Manage Branches"
+          title={translateTerminology("Manage Branches")}
           description="View or edit branches"
           icon={<GitBranch size={20} />}
           onClick={() => handleCardClick("branches")} />
@@ -594,7 +595,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
         {userTier >= 3 && (
           <DashboardCard
             id="hod-leaves-card"
-            title="HOD Leaves"
+            title={translateTerminology("HOD Leaves")}
             description="Manage HOD leave requests"
             icon={<UserCheck size={20} />}
             onClick={() => handleCardClick("hod-leaves")} />

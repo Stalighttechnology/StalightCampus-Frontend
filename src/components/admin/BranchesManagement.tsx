@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Input } from "../ui/input";
@@ -533,7 +534,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
             <div className="px-2 sm:px-4 pt-3 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="relative w-full sm:w-64">
                 <Input
-                  placeholder="Search by branch name..."
+                  placeholder={translateTerminology("Search by branch name...")}
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                   className={theme === 'dark' ? 'w-full bg-card text-foreground py-1 pr-12' : 'w-full bg-white text-gray-900 py-1 pr-12'} />
@@ -559,8 +560,8 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
                   <table className="branches-table w-full text-base md:text-sm text-left table-auto border-collapse">
                     <thead className={`sticky top-0 z-10 border-b text-sm md:text-xs uppercase ${theme === 'dark' ? 'bg-slate-900' : 'bg-gray-50'} text-muted-foreground border-border shadow-sm`}>
                       <tr>
-                        <th className="branch-name-col py-3 px-3 text-left font-bold">Branch Name</th>
-                        <th className="py-3 px-3 hidden sm:table-cell font-bold">Branch Code</th>
+                        <th className="branch-name-col py-3 px-3 text-left font-bold">{translateTerminology("Branch Name")}</th>
+                        <th className="py-3 px-3 hidden sm:table-cell font-bold">{translateTerminology("Branch Code")}</th>
                         <th className="hod-col py-3 px-3 font-bold">Assigned HOD</th>
                         <th className="py-3 px-3 hidden sm:table-cell font-bold">HOD Contact</th>
                         {!isReadOnly && <th className="actions-col py-3 px-3 text-right w-24 font-bold">Actions</th>}
@@ -656,10 +657,10 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
 
         <Dialog open={editingId !== null} onOpenChange={(open) => !open && (setEditingId(null) || setEditData(null))}>
           <DialogContent className={theme === 'dark' ? 'bg-card text-foreground max-w-[90vw] sm:max-w-md rounded-xl' : 'bg-white text-gray-900 max-w-[90vw] sm:max-w-md rounded-xl'}>
-            <DialogHeader><DialogTitle>Edit Branch Details</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{translateTerminology("Edit Branch Details")}</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Branch Name</label>
+                <label className="text-sm font-semibold">{translateTerminology("Branch Name")}</label>
                 <Input
                   name="name"
                   value={editData?.name || ""}
@@ -668,7 +669,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Branch Code</label>
+                <label className="text-sm font-semibold">{translateTerminology("Branch Code")}</label>
                 <Input
                   name="branch_code"
                   value={editData?.branch_code || ""}
@@ -682,7 +683,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
                   value={editData?.hod || "none"}
                   onValueChange={(val) => setEditData((prev) => prev ? { ...prev, hod: val === "none" ? null : val } : null)}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select HOD" />
+                    <SelectValue placeholder={translateTerminology("Select HOD")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">-- Unassign --</SelectItem>
@@ -706,10 +707,10 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogContent className={theme === 'dark' ? 'bg-card text-foreground max-w-[90vw] sm:max-w-md rounded-xl' : 'bg-white text-gray-900 max-w-[90vw] sm:max-w-md rounded-xl'}>
-            <DialogHeader><DialogTitle>Add New Branch</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{translateTerminology("Add New Branch")}</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Branch Name</label>
+                <label className="text-sm font-semibold">{translateTerminology("Branch Name")}</label>
                 <Input
                   placeholder="e.g. Computer Science"
                   value={newBranch.name}
@@ -717,7 +718,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
 
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Branch Code</label>
+                <label className="text-sm font-semibold">{translateTerminology("Branch Code")}</label>
                 <Input
                   placeholder="e.g. CSE"
                   value={newBranch.branch_code}
@@ -728,7 +729,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
             <DialogFooter className="flex gap-3">
               <Button variant="ghost" onClick={() => setIsAddDialogOpen(false)} className="flex-1">Cancel</Button>
               <Button onClick={handleAddBranch} disabled={loading} className="flex-1 bg-primary text-white">
-                {loading ? "Adding..." : "Create Branch"}
+                {loading ? "Adding..." : translateTerminology("Create Branch")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -766,7 +767,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
                   onValueChange={setNewHodId}>
 
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select HOD" />
+                    <SelectValue placeholder={translateTerminology("Select HOD")} />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {users.length === 0 ? (
@@ -801,7 +802,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
         }}>
           <DialogContent className={theme === 'dark' ? 'bg-card text-foreground max-w-[90vw] sm:max-w-md rounded-xl' : 'bg-white text-gray-900 max-w-[90vw] sm:max-w-md rounded-xl'}>
             <DialogHeader>
-              <DialogTitle className="text-destructive">Delete Branch</DialogTitle>
+              <DialogTitle className="text-destructive">{translateTerminology("Delete Branch")}</DialogTitle>
             </DialogHeader>
             <div className="py-4 space-y-4">
               <div>
@@ -841,7 +842,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
                 disabled={loading || confirmName !== branchToDelete?.name}
                 className="flex-1"
               >
-                {loading ? "Deleting..." : "Delete Branch"}
+                {loading ? "Deleting..." : translateTerminology("Delete Branch")}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Pencil, Trash2, BookOpen, FileDown, Loader2 } from "lucide-react";
@@ -362,7 +363,7 @@ const SubjectManagement = () => {
                   }}>
                   
                   <SelectTrigger className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
-                    <SelectValue placeholder="Choose Semester" />
+                    <SelectValue placeholder={translateTerminology("Choose Semester")} />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {state.semesters.length === 0 ? (
@@ -390,7 +391,7 @@ const SubjectManagement = () => {
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
                     <SelectItem value="regular">Regular</SelectItem>
-                    <SelectItem value="elective">Elective</SelectItem>
+                    <SelectItem value="elective">{translateTerminology("Elective")}</SelectItem>
                     <SelectItem value="open_elective">Open Elective</SelectItem>
                   </SelectContent>
                 </Select>
@@ -411,7 +412,7 @@ const SubjectManagement = () => {
               </div>
               <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Incomplete</h3>
               <p className="max-w-xs text-base leading-relaxed text-gray-500 dark:text-gray-400">
-                Please select both <strong className="font-semibold text-foreground">Semester</strong> and <strong className="font-semibold text-foreground">Course Type</strong> above to load and view the courses.
+                Please select both <strong className="font-semibold text-foreground">{translateTerminology("Semester")}</strong> and <strong className="font-semibold text-foreground">Course Type</strong> above to load and view the courses.
               </p>
             </div>
           ) : (
@@ -467,7 +468,7 @@ const SubjectManagement = () => {
                           <div className="flex-1 pr-3">
                             <div className="text-xs text-gray-500 mb-1">{subject.subject_code} • {getSemesterNumber(subject.semester_id)}</div>
                             <div className="font-medium text-sm mb-1">{subject.name}</div>
-                            <div className="text-sm text-gray-500">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? 'Elective' : 'Open Elective'} • {subject.credits ?? 0} credits</div>
+                            <div className="text-sm text-gray-500">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? translateTerminology("Elective") : 'Open Elective'} • {subject.credits ?? 0} credits</div>
                           </div>
                           <div className="flex items-start gap-3">
                             <Pencil
@@ -584,14 +585,14 @@ const SubjectManagement = () => {
 
             {/* Semester */}
             <div className="mb-4">
-              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester</label>
+              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Semester")}</label>
               <Select
               value={state.newSubject.semester_id}
               onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, semester_id: val } })}
               disabled={state.loading}>
               
                 <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
-                  <SelectValue placeholder="Select Semester" />
+                  <SelectValue placeholder={translateTerminology("Select Semester")} />
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                   {state.semesters.map((semester) =>

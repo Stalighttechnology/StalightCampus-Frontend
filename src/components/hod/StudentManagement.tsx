@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useRef, useState, useEffect } from "react";
 import {
   Card,
@@ -1649,7 +1650,7 @@ const StudentManagement = () => {
                       <th className="hidden sm:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Phone</th>
                       <th className="hidden md:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Section</th>
                       <th className="hidden lg:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Mode</th>
-                      <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Semester</th>
+                      <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">{translateTerminology("Semester")}</th>
                       <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Actions</th>
                     </tr>
                   </thead>
@@ -2104,7 +2105,7 @@ const StudentManagement = () => {
               </Select>
             </div>
             <div className="col-span-1 space-y-1">
-              <label className="text-[15px] font-medium ml-1">Semester</label>
+              <label className="text-[15px] font-medium ml-1">{translateTerminology("Semester")}</label>
               <Select
                 value={state.editForm.semester}
                 onValueChange={(value) =>

@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
@@ -561,7 +562,7 @@ const DeanFacultyProfile = ({
                         theme === "dark" ? "text-foreground" : "text-gray-700"
                       }`}
                     >
-                      Branch
+                      {translateTerminology("Branch")}
                     </Label>
                     <Select
                       value={selectedBranch || ""}

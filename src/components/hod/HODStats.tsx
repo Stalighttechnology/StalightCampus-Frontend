@@ -82,7 +82,7 @@ export default function HODStats({ setError, setPage, onBootstrapData }: HODStat
   const [errors, setErrors] = useState<string[]>([]);
   const navigate = useNavigate();
   const [branchId, setBranchId] = useState<string | null>(null);
-  const [hodName, setHodName] = useState("HOD");
+  const [hodName, setHodName] = useState(translateTerminology("HOD"));
   const [branchName, setBranchName] = useState("your");
   const { theme } = useTheme();
 
@@ -111,7 +111,7 @@ export default function HODStats({ setError, setPage, onBootstrapData }: HODStat
       if (res.success && res.data) {
         // Set profile data
         setBranchId(res.data.profile.branch_id);
-        setHodName(res.data.profile.first_name || "HOD");
+        setHodName(res.data.profile.first_name || translateTerminology("HOD"));
         setBranchName(res.data.profile.branch || "your");
 
         // Set stats data

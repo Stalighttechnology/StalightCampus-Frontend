@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -231,7 +232,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
             </div>
 
             <div>
-              <Label htmlFor="branch">Branch</Label>
+              <Label htmlFor="branch">{translateTerminology("Branch")}</Label>
               <Select value={branchId} onValueChange={(value) => {
                 setBranchId(value);
                 setSemesterId('');
@@ -252,7 +253,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
             </div>
 
             <div>
-              <Label htmlFor="semester">Semester</Label>
+              <Label htmlFor="semester">{translateTerminology("Semester")}</Label>
               <Select value={semesterId} onValueChange={(value) => {
                 setSemesterId(value);
                 setSearch('');

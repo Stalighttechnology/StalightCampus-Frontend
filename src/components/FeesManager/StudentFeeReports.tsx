@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from 'react';
 import { useTheme } from "@/context/ThemeContext";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -491,7 +492,7 @@ const StudentFeeReports: React.FC = () => {
                             <p className="font-mono font-semibold text-lg text-primary">{studentReport.student.usn}</p>
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-[14px] font-semibold uppercase tracking-widest text-muted-foreground">Branch</Label>
+                            <Label className="text-[14px] font-semibold uppercase tracking-widest text-muted-foreground">{translateTerminology("Branch")}</Label>
                             <p className="font-semibold text-md">{studentReport.student.branch}</p>
                           </div>
                           <div className="space-y-1.5">
@@ -790,7 +791,7 @@ const StudentFeeReports: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[16px] sm:text-[14px] font-semibold uppercase tracking-[0.1em] ml-1">Branch <span className="text-red-500">*</span></Label>
+                  <Label className="text-[16px] sm:text-[14px] font-semibold uppercase tracking-[0.1em] ml-1">{translateTerminology("Branch")} <span className="text-red-500">*</span></Label>
                   <Select
                     value={selectedBranch || undefined}
                     onValueChange={(val) => {
@@ -802,7 +803,7 @@ const StudentFeeReports: React.FC = () => {
                     disabled={selectedBatch === ''}>
 
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
-                      <SelectValue placeholder="Choose Branch" />
+                      <SelectValue placeholder={translateTerminology("Choose Branch")} />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
                       {loadingInitialFilters ? (
@@ -825,7 +826,7 @@ const StudentFeeReports: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[16px] sm:text-[14px] font-semibold uppercase tracking-[0.1em] ml-1">Semester <span className="text-red-500">*</span></Label>
+                  <Label className="text-[16px] sm:text-[14px] font-semibold uppercase tracking-[0.1em] ml-1">{translateTerminology("Semester")} <span className="text-red-500">*</span></Label>
                   <Select
                     value={selectedSemester || undefined}
                     onValueChange={(val) => {
@@ -837,7 +838,7 @@ const StudentFeeReports: React.FC = () => {
                     disabled={selectedBranch === ''}>
 
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
-                      <SelectValue placeholder="Choose Semester" />
+                      <SelectValue placeholder={translateTerminology("Choose Semester")} />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
                       {loadingSemesters ? (
@@ -1021,8 +1022,8 @@ const StudentFeeReports: React.FC = () => {
                       <TableRow>
                         <TableHead>USN</TableHead>
                         <TableHead>Name</TableHead>
-                        <TableHead>Branch</TableHead>
-                        <TableHead>Semester</TableHead>
+                        <TableHead>{translateTerminology("Branch")}</TableHead>
+                        <TableHead>{translateTerminology("Semester")}</TableHead>
                         <TableHead>Section</TableHead>
                         <TableHead>Total Fee</TableHead>
                         <TableHead>Paid</TableHead>

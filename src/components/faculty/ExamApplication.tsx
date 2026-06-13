@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -517,7 +518,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
 
                     <div className="flex items-center gap-4 mb-4 text-xs">
                       <div className="px-2 py-1 bg-muted rounded">
-                        <span className="text-muted-foreground mr-1">Semester:</span>
+                        <span className="text-muted-foreground mr-1">{translateTerminology("Semester")}:</span>
                         <span className="font-medium">{student.semester}</span>
                       </div>
                     </div>
@@ -579,7 +580,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                   <tr>
                     <th className="px-4 py-3 text-center text-sm font-semibold">USN</th>
                     <th className="px-4 py-3 text-center text-sm font-semibold">Name</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold">Semester</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold">{translateTerminology("Semester")}</th>
                     <th className="px-4 py-3 text-center text-sm font-semibold">Status</th>
                     <th className="px-4 py-3 text-center text-sm font-semibold">Action</th>
                   </tr>
@@ -795,7 +796,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                       <div>
                         <div className="text-xs text-muted-foreground">Department</div>
                         <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.branch || ''}</div>
-                        <div className="text-xs text-muted-foreground">Semester</div>
+                        <div className="text-xs text-muted-foreground">{translateTerminology("Semester")}</div>
                         <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.semester || ''}</div>
                       </div>
                     </div>

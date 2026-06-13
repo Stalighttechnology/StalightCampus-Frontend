@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { Switch } from "@/components/ui/switch";
 import { requestForToken } from "@/lib/firebase";
 // FacultyProfile.tsx
@@ -416,8 +417,8 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 <Input value={formData.qualification} onChange={(e) => handleChange("qualification", e.target.value)} disabled={true} placeholder="Qualification" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
               </div>
               <div className="w-full">
-                <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch</label>
-                <Input value={formData.branch} onChange={(e) => handleChange("branch", e.target.value)} disabled={true} placeholder="Branch" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Branch")}</label>
+                <Input value={formData.branch} onChange={(e) => handleChange("branch", e.target.value)} disabled={true} placeholder={translateTerminology("Branch")} className="text-sm h-8 sm:h-9 md:h-10 w-full" />
               </div>
             </div>
 

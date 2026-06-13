@@ -1,4 +1,5 @@
 import * as React from "react"
+import { translateChildren, translateTerminology } from "@/utils/institutionConfig";
 
 import { cn } from "@/lib/utils"
 
@@ -12,7 +13,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           className
         )}
         ref={ref}
-        {...props}
+        {...props} placeholder={props.placeholder ? translateTerminology(props.placeholder) : undefined}
       />
     )
   }

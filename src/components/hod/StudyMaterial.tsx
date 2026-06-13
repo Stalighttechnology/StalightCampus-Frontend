@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
@@ -748,7 +749,7 @@ const StudyMaterials = () => {
                     }}>
 
                     <SelectTrigger className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                      <SelectValue placeholder="Select Branch" />
+                      <SelectValue placeholder={translateTerminology("Select Branch")} />
                     </SelectTrigger>
                     <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
                       {branches.length > 0 ? (
@@ -776,7 +777,7 @@ const StudyMaterials = () => {
                     disabled={!selectedBranchFilter}>
 
                     <SelectTrigger className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                      <SelectValue placeholder="Select Semester" />
+                      <SelectValue placeholder={translateTerminology("Select Semester")} />
                     </SelectTrigger>
                     <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
                       {pageSemesters && pageSemesters.length > 0 ? (
@@ -948,7 +949,7 @@ const StudyMaterials = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Branch *</Label>
+                <Label>{translateTerminology("Branch")} *</Label>
                 <Select
                   open={isModalBranchOpen}
                   onOpenChange={setIsModalBranchOpen}
@@ -960,7 +961,7 @@ const StudyMaterials = () => {
                   disabled={uploading}>
 
                   <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
-                    <SelectValue placeholder="Select Branch" />
+                    <SelectValue placeholder={translateTerminology("Select Branch")} />
                   </SelectTrigger>
                   <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900')}>
                     {branches.length > 0 ? (
@@ -978,7 +979,7 @@ const StudyMaterials = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Semester *</Label>
+                  <Label>{translateTerminology("Semester")} *</Label>
                   <Select
                     open={isModalSemesterOpen}
                     onOpenChange={setIsModalSemesterOpen}

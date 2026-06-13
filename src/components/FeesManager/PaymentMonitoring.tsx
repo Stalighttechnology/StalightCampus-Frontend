@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -752,7 +753,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                       <p className="text-sm font-medium mt-1 text-slate-700">{selectedPayment.invoice.student.department}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Semester</p>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">{translateTerminology("Semester")}</p>
                       <p className="text-sm font-semibold mt-1 text-primary">Semester {selectedPayment.invoice.student.semester || 'N/A'}</p>
                     </div>
                   </div>

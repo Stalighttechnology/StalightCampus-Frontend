@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -134,14 +135,14 @@ const HODSemesterMonitor = () => {
 
             {/* Semester Filter */}
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs font-semibold uppercase opacity-80 shrink-0">Semester</span>
+              <span className="text-xs font-semibold uppercase opacity-80 shrink-0">{translateTerminology("Semester")}</span>
               <Select 
                 value={semesterId?.toString() || ""} 
                 onValueChange={(v) => setSemesterId(Number(v))}
                 disabled={bootstrapLoading}
               >
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Select Semester" />
+                  <SelectValue placeholder={translateTerminology("Select Semester")} />
                 </SelectTrigger>
                 <SelectContent>
                   {semesters.map(s => (

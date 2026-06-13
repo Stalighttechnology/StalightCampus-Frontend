@@ -1,4 +1,5 @@
 import * as React from "react"
+import { translateChildren, translateTerminology } from "@/utils/institutionConfig";
 
 import { cn } from "@/lib/utils"
 

@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm, hasFeature } from "@/utils/institutionConfig";
 //sidebar.tsx
 
 import { useState, useEffect } from "react";
@@ -297,7 +298,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Billing & Plans", page: "billing" },
 
       // Academic Structure
-      { name: "Branches", page: "branches" },
+      { name: getTerm("branches"), page: "branches" },
       { name: "Faculty Assignments", page: "teacher-assignments" },
       { name: "Question Paper Approvals", page: "qp-approvals" },
       { name: "Batches", page: "batches" },
@@ -325,7 +326,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Enroll Staff", page: "enroll-user" },
       { name: "Billing & Plans", page: "billing" },
       { name: "Scan for Student Info", page: "scan-student-info" },
-      { name: "Branches", page: "branches" },
+      { name: getTerm("branches"), page: "branches" },
       { name: "Batches", page: "batches" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Today's Attendance", page: "attendance" },
@@ -347,7 +348,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Billing & Plans", page: "billing" },
 
       // Academic Structure
-      { name: "Branches", page: "branches" },
+      { name: getTerm("branches"), page: "branches" },
       { name: "Faculty Assignments", page: "teacher-assignments" },
       { name: "Question Paper Approvals", page: "qp-approvals" },
       { name: "Batches", page: "batches" },
@@ -385,13 +386,13 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Faculty Assignments", page: "faculty-assignments" },
       { name: "Question Paper Approvals", page: "qp-approvals" },
       { name: "Timetable", page: "timetable" },
-      { name: "Proctors", page: "proctors" },
+      { name: translateTerminology("Proctors"), page: "proctors" },
 
       // Attendance & Marks
       // { name: "Attendance", page: "attendance" },
 
       { name: "Low Attendance", page: "low-attendance" },
-      { name: "CO Attainment", page: "co-attainment" },
+      { name: translateTerminology("CO Attainment"), page: "co-attainment" },
       { name: "Exam Applications", page: "exam-applications" },
       { name: "Faculty Attendance", page: "faculty-attendance" },
       { name: "My Attendance", page: "my-attendance" },
@@ -404,7 +405,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       // Resources & Communication
       { name: "Study Material", page: "study-materials" },
       { name: "Scan for Student Info", page: "scan-student-info" },
-      { name: "Branch Announcements", page: "hod-announcement-management" },
+      { name: `${getTerm("branch")} Announcements`, page: "hod-announcement-management" },
       { name: "Syllabus Status", page: "syllabus-status" },
       { name: "Syllabus Monitor", page: "syllabus-monitor" },
 
@@ -422,7 +423,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "My Attendance", page: "faculty-attendance" },
       { name: "Upload Marks", page: "upload-marks" },
       { name: "Upload QP", page: "upload-qp" },
-      { name: "CO Attainment", page: "co-attainment" },
+      { name: translateTerminology("CO Attainment"), page: "co-attainment" },
       { name: "Generate Statistics", page: "statistics" },
 
       // Leave Management
@@ -678,7 +679,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       >
         <div className="space-y-1 px-3">
           {isRoleAllowed && menuItems[role]
-            ?.filter(item => isPageAllowed(item.page, orgPlan, role))
+            ?.filter(item => isPageAllowed(item.page, orgPlan, role) && (item.page === 'co-attainment' ? hasFeature('coAttainment') : true) && (item.page === 'student-enrollment' ? hasFeature('electives') : true))
             ?.map((item, index) => (
               <motion.div
                 key={item.page}

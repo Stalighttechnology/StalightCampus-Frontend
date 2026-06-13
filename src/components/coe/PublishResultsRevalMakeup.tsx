@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -318,7 +319,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
           </Select>
         </div>
         <div>
-          <label htmlFor="reval-branch" className="block text-sm mb-1">Branch</label>
+          <label htmlFor="reval-branch" className="block text-sm mb-1">{translateTerminology("Branch")}</label>
           <Select value={selected.branch} onValueChange={(v) => {
             setSelected((s) => ({ ...s, branch: v, semester: '' }));
             fetchSemesters(v);
@@ -333,7 +334,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
           </Select>
         </div>
         <div>
-          <label htmlFor="reval-semester" className="block text-sm mb-1">Semester</label>
+          <label htmlFor="reval-semester" className="block text-sm mb-1">{translateTerminology("Semester")}</label>
           <Select value={selected.semester} onValueChange={(v) => {
             setSelected((s) => ({ ...s, semester: v }));
             setTimeout(() => setIsExamPeriodOpen(true), 150);

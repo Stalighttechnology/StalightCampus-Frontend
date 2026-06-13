@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from "react";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -618,7 +619,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
         <div id="admin-faculty-attendance-branch-select" className="flex items-center gap-2">
           <Select value={selectedBranch} onValueChange={setSelectedBranch}>
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select Branch" />
+              <SelectValue placeholder={translateTerminology("Select Branch")} />
             </SelectTrigger>
             <SelectContent>
               {branches.map(b => (

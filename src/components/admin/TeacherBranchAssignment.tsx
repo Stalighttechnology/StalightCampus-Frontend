@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect, forwardRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import {
@@ -385,7 +386,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             <div className="filter-container sm:w-48">
               <Select value={branchFilter || undefined} onValueChange={(value) => setBranchFilter(value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose Branch" />
+                  <SelectValue placeholder={translateTerminology("Choose Branch")} />
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                   {branches.length === 0 ? (

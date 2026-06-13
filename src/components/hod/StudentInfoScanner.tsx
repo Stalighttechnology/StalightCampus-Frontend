@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
@@ -788,12 +789,12 @@ const StudentInfoScanner = () => {
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">Branch:</span>
+                    <span className="text-sm font-semibold w-24">{translateTerminology("Branch")}:</span>
                     <span className="text-sm">{studentData.student_info.branch}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">Semester:</span>
+                    <span className="text-sm font-semibold w-24">{translateTerminology("Semester")}:</span>
                     <Badge variant="outline" className="text-xs">Semester {studentData.student_info.semester}</Badge>
                   </div>
                   <div className="flex items-center gap-3">
@@ -837,7 +838,7 @@ const StudentInfoScanner = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">Proctor:</span>
+                    <span className="text-sm font-semibold w-24">{translateTerminology("Proctor")}:</span>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{studentData.student_info.proctor?.name || 'Not assigned'}</span>
                       {studentData.student_info.proctor?.email &&

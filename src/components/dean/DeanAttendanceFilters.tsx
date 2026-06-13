@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useMemo, useState } from "react";
 import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
@@ -214,7 +215,7 @@ const DeanAttendanceFilters = () => {
                         <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="hod">HOD</SelectItem>
+                        <SelectItem value="hod">{translateTerminology("HOD")}</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
                       </SelectContent>
                     </Select>
@@ -517,7 +518,7 @@ const DeanAttendanceFilters = () => {
                 <AlertCircle className="w-10 h-10 text-primary opacity-50" />
               </div>
               <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Select a {selectedRole === "hod" ? "HOD" : "Admin"} to View Report
+                Select a {selectedRole === "hod" ? translateTerminology("HOD") : "Admin"} to View Report
               </h3>
               <p className={`text-center max-w-md ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 Choose a specific {selectedRole === "hod" ? "Head of Department" : "Administrator"} from the dropdown above to generate their detailed attendance analysis and statistics.

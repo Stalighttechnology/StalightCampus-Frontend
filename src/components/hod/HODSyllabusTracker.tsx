@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -182,10 +183,10 @@ const HODSyllabusTracker = () => {
           {/* Dropdown Filters */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase opacity-80">Semester</label>
+              <label className="text-xs font-semibold uppercase opacity-80">{translateTerminology("Semester")}</label>
               <Select value={semesterId?.toString() || ""} onValueChange={(v) => setSemesterId(Number(v))}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Semester" />
+                  <SelectValue placeholder={translateTerminology("Select Semester")} />
                 </SelectTrigger>
                 <SelectContent>
                   {semesters.map(s => <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>)}

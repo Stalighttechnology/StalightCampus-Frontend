@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect, Fragment } from "react";
 import { Pencil, Plus, Trash2, Layers, Settings2, FileDown, RotateCcw, Save, Check } from "lucide-react";
 import Swal from "sweetalert2";
@@ -998,7 +999,7 @@ const UploadMarks = () => {
               </Select>
               <Select value={selected.branch_id?.toString()} onValueChange={(value) => handleSelectChange('branch_id', Number(value))} disabled={!selected.subject_id} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
                 <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.subject_id}>
-                  <SelectValue placeholder="Select Branch" />
+                  <SelectValue placeholder={translateTerminology("Select Branch")} />
                 </SelectTrigger>
                 <SelectContent className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} max-h-[200px]`}>
                   {dropdownData.branch.length > 0 ? (
@@ -1016,7 +1017,7 @@ const UploadMarks = () => {
               </Select>
               <Select value={selected.semester_id?.toString()} onValueChange={(value) => handleSelectChange('semester_id', Number(value))} disabled={!selected.branch_id || dropdownData.semester.length === 0} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
                 <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.branch_id || dropdownData.semester.length === 0}>
-                  <SelectValue placeholder="Select Semester" />
+                  <SelectValue placeholder={translateTerminology("Select Semester")} />
                 </SelectTrigger>
                 <SelectContent className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} max-h-[200px]`}>
                   {dropdownData.semester.length > 0 ? (

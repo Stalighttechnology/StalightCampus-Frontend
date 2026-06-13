@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect, ReactNode, Component } from "react";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -755,7 +756,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
               <div className="flex flex-row gap-3 items-start md:items-end w-full sm:w-auto">
                 {/* Semester Filter */}
                 <div className="flex flex-col flex-1 sm:flex-none sm:w-56">
-                  <label className={`text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Semester</label>
+                  <label className={`text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{translateTerminology("Semester")}</label>
                   <Select
                     value={state.selectedSemester}
                     onValueChange={handleSemesterChange}

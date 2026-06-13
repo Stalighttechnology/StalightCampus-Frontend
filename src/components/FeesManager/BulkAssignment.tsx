@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -333,7 +334,7 @@ const BulkAssignment: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Branch</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">{translateTerminology("Branch")}</Label>
               <Select
                 value={selectedFilters.branchId}
                 open={openSelect === 'branch'}
@@ -345,7 +346,7 @@ const BulkAssignment: React.FC = () => {
                 disabled={!selectedFilters.batchId}>
 
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Select Branch" />
+                  <SelectValue placeholder={translateTerminology("Select Branch")} />
                 </SelectTrigger>
                 <SelectContent>
                   {loadingInitialFilters ? (
@@ -364,7 +365,7 @@ const BulkAssignment: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Semester</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">{translateTerminology("Semester")}</Label>
               <Select
                 value={selectedFilters.semesterId}
                 open={openSelect === 'semester'}
@@ -376,7 +377,7 @@ const BulkAssignment: React.FC = () => {
                 disabled={!selectedFilters.branchId}>
 
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Select Semester" />
+                  <SelectValue placeholder={translateTerminology("Select Semester")} />
                 </SelectTrigger>
                 <SelectContent>
                   {loadingSemesters ? (
@@ -477,8 +478,8 @@ const BulkAssignment: React.FC = () => {
               <div className="flex flex-wrap justify-center gap-4 sm:gap-6 w-full max-w-3xl">
                 {[
                   { label: 'Batch', active: !!selectedFilters.batchId },
-                  { label: 'Branch', active: !!selectedFilters.branchId },
-                  { label: 'Semester', active: !!selectedFilters.semesterId },
+                  { label: translateTerminology("Branch"), active: !!selectedFilters.branchId },
+                  { label: translateTerminology("Semester"), active: !!selectedFilters.semesterId },
                   { label: 'Section', active: !!selectedFilters.sectionId },
                   { label: 'Admission', active: !!selectedFilters.admissionMode }
                 ].map((step, i) => (

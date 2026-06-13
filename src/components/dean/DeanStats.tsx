@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useState } from "react";
 import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
@@ -234,7 +235,7 @@ const DeanStats = () => {
             <>
               <div id="dean-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                 <DashboardCard
-                  title="Branches"
+                  title={translateTerminology("Branches")}
                   value={totalBranches}
                   description="Active branches"
                   icon={<FaBuilding className={theme === 'dark' ? 'text-indigo-400 text-3xl' : 'text-indigo-500 text-3xl'} />}
@@ -252,7 +253,7 @@ const DeanStats = () => {
                   icon={<FaChalkboardTeacher className={theme === 'dark' ? 'text-purple-400 text-3xl' : 'text-purple-500 text-3xl'} />}
                 />
                 <DashboardCard
-                  title="HODs"
+                  title={translateTerminology("HODs")}
                   value={totalHods}
                   description="Dept heads"
                   icon={<FaUserTie className={theme === 'dark' ? 'text-yellow-400 text-3xl' : 'text-yellow-500 text-3xl'} />}
@@ -293,7 +294,7 @@ const DeanStats = () => {
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-border">
                     <thead className={theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}>
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Branch</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">{translateTerminology("Branch")}</th>
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Students</th>
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Faculty</th>
                       </tr>

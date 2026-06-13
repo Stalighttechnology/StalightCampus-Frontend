@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -387,7 +388,7 @@ const StudentManagement: React.FC = () => {
                 }
               </div>
               <div className="space-y-2">
-                <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Branch</Label>
+                <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">{translateTerminology("Branch")}</Label>
                 {skeletonMode ?
                 <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
@@ -398,7 +399,7 @@ const StudentManagement: React.FC = () => {
                   value={filters.branch || "all"}
                   onValueChange={(v) => handleFilterChange('branch', v === "all" ? '' : v)}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
-                      <SelectValue placeholder="All Branches" />
+                      <SelectValue placeholder={translateTerminology("All Branches")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Branches</SelectItem>
@@ -408,7 +409,7 @@ const StudentManagement: React.FC = () => {
                 }
               </div>
               <div className="space-y-2">
-                <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Semester</Label>
+                <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">{translateTerminology("Semester")}</Label>
                 {skeletonMode ?
                 <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
@@ -419,7 +420,7 @@ const StudentManagement: React.FC = () => {
                   value={filters.semester || "all"}
                   onValueChange={(v) => handleFilterChange('semester', v === "all" ? '' : v)}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
-                      <SelectValue placeholder="All Semesters" />
+                      <SelectValue placeholder={translateTerminology("All Semesters")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Semesters</SelectItem>
