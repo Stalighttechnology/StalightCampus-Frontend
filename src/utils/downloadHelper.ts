@@ -11,7 +11,9 @@ import { API_ENDPOINT, API_BASE_URL } from './config';
  */
 export const downloadFile = async (source: Response | string, defaultFilename: string) => {
   try {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     let response: Response;
+
     if (typeof source === 'string') {
       let finalUrl = source;
       if (source.startsWith('/')) {
@@ -20,7 +22,22 @@ export const downloadFile = async (source: Response | string, defaultFilename: s
 
       const isExternal = finalUrl.startsWith('http') && !finalUrl.includes(API_ENDPOINT);
       if (isExternal) {
-        response = await fetch(finalUrl); // Do not add auth headers for external CDN files (e.g. Cloudinary) to avoid CORS issues
+        // Since this is an external URL (e.g. Cloudflare R2), calling fetch in JavaScript
+        // violates the site's CSP (Content Security Policy) and CORS policies.
+        // We open the URL directly using the native browser to trigger download/preview.
+        if (isMobile) {
+          window.open(finalUrl, '_blank');
+        } else {
+          const link = document.createElement("a");
+          link.href = finalUrl;
+          link.setAttribute("target", "_blank");
+          link.setAttribute("rel", "noreferrer");
+          link.setAttribute("download", defaultFilename);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        }
+        return; // Exit early as we have handled the download
       } else {
         response = await fetchWithTokenRefresh(finalUrl);
       }
@@ -43,8 +60,6 @@ export const downloadFile = async (source: Response | string, defaultFilename: s
     const mimeType = defaultFilename.toLowerCase().endsWith('.pdf') ? 'application/pdf' : blob.type;
     const file = new Blob([blob], { type: mimeType });
     const downloadUrl = window.URL.createObjectURL(file);
-
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
       // For mobile devices and PWAs, try to use the Web Share API first.
