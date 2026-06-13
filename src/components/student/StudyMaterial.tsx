@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from "react";
-import { FileText, Download, AlertCircle, BookOpen, Search } from "lucide-react";
+import { FileText, Download, AlertCircle, BookOpen, Search, Loader2 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import {
   Card,
@@ -56,13 +56,22 @@ interface StudyMaterial {
 }
 
 const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme: string }) => {
+  const [downloading, setDownloading] = useState(false);
+
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!material.file_url) return;
-    if (material.file_url.includes('drive.google.com') || material.file_url.includes('docs.google.com')) {
-      window.open(material.file_url, '_blank', 'noopener,noreferrer');
-    } else {
-      await downloadFileViaBackendProxy(material.file_url, material.title);
+    if (!material.file_url || downloading) return;
+    setDownloading(true);
+    try {
+      if (material.file_url.includes('drive.google.com') || material.file_url.includes('docs.google.com')) {
+        window.open(material.file_url, '_blank', 'noopener,noreferrer');
+      } else {
+        await downloadFileViaBackendProxy(material.file_url, material.title);
+      }
+    } catch (err) {
+      console.error("Failed to download file", err);
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -106,9 +115,10 @@ const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme:
       <TableCell className="text-right">
         <button
           onClick={handleDownload}
-          className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-primary/5 text-primary hover:bg-primary/10'}`}
+          disabled={downloading}
+          className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-primary/5 text-primary hover:bg-primary/10'} ${downloading ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          <Download size={22} />
+          {downloading ? <Loader2 className="animate-spin" size={22} /> : <Download size={22} />}
         </button>
       </TableCell>
     </TableRow>
