@@ -165,9 +165,7 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
   };
 
   useEffect(() => {
-    const isWardenPath = window.location.pathname.includes('/warden');
-
-    if (role && role !== 'warden' && !isWardenPath) {
+    if (role === 'hms_admin') {
       refreshData();
     } else if (!role) {
       // Clear data on logout
