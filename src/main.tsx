@@ -148,6 +148,25 @@ if (typeof window !== 'undefined') {
     }
     return originalWindowOpen.call(window, url, target, features);
   };
+
+  // 3. Monkey-patch URL.revokeObjectURL to delay revocation on mobile devices.
+  // This prevents the system download manager from failing with "Failed - Network error"
+  // due to premature revocation of blob URLs.
+  const originalRevoke = URL.revokeObjectURL;
+  URL.revokeObjectURL = function (url: string) {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+      setTimeout(() => {
+        try {
+          originalRevoke.call(URL, url);
+        } catch (e) {
+          // Ignore if already revoked or invalid
+        }
+      }, 60000); // Delay by 60 seconds
+    } else {
+      originalRevoke.call(URL, url);
+    }
+  };
 }
 
 

@@ -1,5 +1,6 @@
 import { fetchWithTokenRefresh } from './authService';
 import { showErrorAlert } from './sweetalert';
+import { API_ENDPOINT } from './config';
 
 /**
  * Reusable utility to handle file downloads (specifically PDFs) across
@@ -12,7 +13,12 @@ export const downloadFile = async (source: Response | string, defaultFilename: s
   try {
     let response: Response;
     if (typeof source === 'string') {
-      response = await fetchWithTokenRefresh(source);
+      const isExternal = source.startsWith('http') && !source.includes(API_ENDPOINT);
+      if (isExternal) {
+        response = await fetch(source); // Do not add auth headers for external CDN files (e.g. Cloudinary) to avoid CORS issues
+      } else {
+        response = await fetchWithTokenRefresh(source);
+      }
     } else {
       response = source;
     }
