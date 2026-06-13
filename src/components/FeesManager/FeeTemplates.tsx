@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -466,7 +467,7 @@ const FeeTemplates: React.FC = () => {
                       id="templateName"
                       value={templateName}
                       onChange={(e) => setTemplateName(e.target.value)}
-                      placeholder="e.g., B.Tech Semester 1"
+                      placeholder={translateTerminology("e.g., B.Tech Semester 1")}
                       className={`${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'} mt-1`} />
                     
                   </div>
@@ -502,7 +503,7 @@ const FeeTemplates: React.FC = () => {
 
                 {feeType === 'semester' &&
                 <div>
-                    <Label htmlFor="semester">Semester</Label>
+                    <Label htmlFor="semester">{translateTerminology("Semester")}</Label>
                     <Input
                     id="semester"
                     type="number"
@@ -510,7 +511,7 @@ const FeeTemplates: React.FC = () => {
                     max="10"
                     value={semester || ''}
                     onChange={(e) => setSemester(parseInt(e.target.value) || undefined)}
-                    placeholder="Semester number"
+                    placeholder={translateTerminology("Semester number")}
                     className={`${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'} mt-1`} />
                   
                   </div>
@@ -641,7 +642,7 @@ const FeeTemplates: React.FC = () => {
               <TableRow className={theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}>
                 <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Name</TableHead>
                 <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Type</TableHead>
-                <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Semester</TableHead>
+                <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>{translateTerminology("Semester")}</TableHead>
                 <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Due Date</TableHead>
                 <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Total Amount</TableHead>
                 <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Status</TableHead>

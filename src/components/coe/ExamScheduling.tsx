@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from "react";
 import {
   Select,
@@ -418,7 +419,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[18px] sm:text-sm font-medium">Branch</label>
+                <label className="text-[18px] sm:text-sm font-medium">{translateTerminology("Branch")}</label>
                 <Select value={formData.branch_id} onValueChange={(v) => {
                   setFormData({ ...formData, branch_id: v, semester_id: '', exam_type: '', exam_period: '', subjects: [] });
                   setTimeout(() => setIsFormSemesterOpen(true), 150);
@@ -431,7 +432,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[18px] sm:text-sm font-medium">Semester</label>
+                <label className="text-[18px] sm:text-sm font-medium">{translateTerminology("Semester")}</label>
                 <Select value={formData.semester_id} onValueChange={(v) => {
                   setFormData({ ...formData, semester_id: v, exam_type: '', exam_period: '', subjects: [] });
                   setTimeout(() => setIsFormExamTypeOpen(true), 150);

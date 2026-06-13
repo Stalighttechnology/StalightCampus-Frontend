@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -502,7 +503,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Branch</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">{translateTerminology("Branch")}</Label>
               <Select
                 value={selectedFilters.branchId}
                 open={openSelect === 'branch'}
@@ -514,7 +515,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 disabled={!selectedFilters.batchId}>
                 
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Select Branch" />
+                  <SelectValue placeholder={translateTerminology("Select Branch")} />
                 </SelectTrigger>
                 <SelectContent>
                   {loadingInitialFilters ? (
@@ -533,7 +534,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Semester</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">{translateTerminology("Semester")}</Label>
               <Select
                 value={selectedFilters.semesterId}
                 open={openSelect === 'semester'}
@@ -545,7 +546,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 disabled={!selectedFilters.branchId}>
                 
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Select Semester" />
+                  <SelectValue placeholder={translateTerminology("Select Semester")} />
                 </SelectTrigger>
                 <SelectContent>
                   {loadingSemesters ? (
@@ -702,8 +703,8 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 w-full max-w-2xl">
                             {[
                         { label: 'Batch', active: !!selectedFilters.batchId },
-                        { label: 'Branch', active: !!selectedFilters.branchId },
-                        { label: 'Semester', active: !!selectedFilters.semesterId },
+                        { label: translateTerminology("Branch"), active: !!selectedFilters.branchId },
+                        { label: translateTerminology("Semester"), active: !!selectedFilters.semesterId },
                         { label: 'Section', active: !!selectedFilters.sectionId },
                         { label: 'Admission', active: !!selectedFilters.admissionMode }].
                         map((step, i) =>
@@ -884,7 +885,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 <p className="text-sm font-medium mt-1 text-slate-700">{selectedInvoice?.student?.department}</p>
               </div>
               <div className="col-span-2">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Semester</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">{translateTerminology("Semester")}</p>
                 <p className="text-sm font-semibold mt-1 text-primary">Semester {selectedInvoice?.student?.semester || 'N/A'}</p>
               </div>
             </div>

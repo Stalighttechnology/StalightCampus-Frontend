@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -596,7 +597,7 @@ const TakeAttendance = () => {
                     setTimeout(() => setIsSemesterOpen(true), 150);
                   }} disabled={!subjectId} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
                     <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`} disabled={!subjectId}>
-                      <SelectValue placeholder="Select Branch" />
+                      <SelectValue placeholder={translateTerminology("Select Branch")} />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
                       {branches.length > 0 ? (
@@ -613,7 +614,7 @@ const TakeAttendance = () => {
                     setTimeout(() => setIsSectionOpen(true), 150);
                   }} disabled={!branchId || semesters.length === 0} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
                     <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`} disabled={!branchId || semesters.length === 0}>
-                      <SelectValue placeholder="Select Semester" />
+                      <SelectValue placeholder={translateTerminology("Select Semester")} />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
                       {semesters.length > 0 ? (

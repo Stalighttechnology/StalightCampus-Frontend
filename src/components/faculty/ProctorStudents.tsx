@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -121,7 +122,7 @@ const ProctorStudents = () => {
               <tr>
                 <th className={`px-4 py-2 text-left text-md font-semibold whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>USN</th>
                 <th className={`px-4 py-2 text-left text-md font-semibold whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Name</th>
-                <th className={`px-4 py-2 text-center text-md font-semibold whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester</th>
+                <th className={`px-4 py-2 text-center text-md font-semibold whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Semester")}</th>
                 <th className={`px-4 py-2 text-center text-md font-semibold whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section</th>
                 <th className={`px-4 py-2 text-center text-md font-semibold whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Contact No</th>
               </tr>

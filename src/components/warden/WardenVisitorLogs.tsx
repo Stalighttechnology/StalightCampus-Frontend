@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../../hooks/use-toast';
 import { useTheme } from '../../context/ThemeContext';
@@ -591,7 +592,7 @@ const WardenVisitorLogs = () => {
                               </div>
 
                               <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">Branch</Label>
+                                <Label className="text-xs text-muted-foreground">{translateTerminology("Branch")}</Label>
                                 <Select
                                   value={selectedBranch}
                                   open={isBranchSelectOpen}
@@ -605,7 +606,7 @@ const WardenVisitorLogs = () => {
                                   }}
                                 >
                                   <SelectTrigger className="w-full h-9 text-xs bg-background">
-                                    <SelectValue placeholder="Select Branch" />
+                                    <SelectValue placeholder={translateTerminology("Select Branch")} />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {branches.length === 0 ? (
@@ -622,7 +623,7 @@ const WardenVisitorLogs = () => {
                               </div>
 
                               <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">Semester</Label>
+                                <Label className="text-xs text-muted-foreground">{translateTerminology("Semester")}</Label>
                                 <Select
                                   value={selectedSemester}
                                   open={isSemesterSelectOpen}
@@ -635,7 +636,7 @@ const WardenVisitorLogs = () => {
                                   }}
                                 >
                                   <SelectTrigger className="w-full h-9 text-xs bg-background">
-                                    <SelectValue placeholder="Select Semester" />
+                                    <SelectValue placeholder={translateTerminology("Select Semester")} />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {!selectedBranch ? (

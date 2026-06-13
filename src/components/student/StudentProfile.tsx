@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { Switch } from "@/components/ui/switch";
 import { requestForToken } from "@/lib/firebase";
 import React, { useEffect, useRef, useState } from "react";
@@ -1254,7 +1255,7 @@ const StudentProfile: React.FC = () => {
                     </div>
 
                     <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Proctor</Label>
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>{translateTerminology("Proctor")}</Label>
                       <Input value={form.proctor ? form.proctor.first_name || form.proctor.username ? `${form.proctor.first_name || ''} ${form.proctor.last_name || ''}`.trim() : form.proctor.username || '' : ''} readOnly className={getInputClassName(false)} />
                     </div>
 

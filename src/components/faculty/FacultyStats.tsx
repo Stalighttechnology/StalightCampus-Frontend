@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from "react";
 import {
   CalendarDays,
@@ -264,7 +265,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
         {userTier >= 2 && (
           <motion.div className="h-full" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <DashboardCard
-              title="Total Proctor Students"
+              title={translateTerminology("Total Proctor Students")}
               value={proctorStudentsCount || 0}
               description="Students under your proctoring"
               icon={<FaUserGraduate className={theme === 'dark' ? "text-blue-400 text-3xl" : "text-blue-500 text-3xl"} />}
@@ -495,7 +496,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
 
         {userTier >= 2 && (
           <DashboardCard
-            title="Mentoring"
+            title={translateTerminology("Mentoring")}
             description="Open mentoring / proctor students"
             icon={<GraduationCap size={20} />}
             onClick={() => setActivePage("proctor-students")} />

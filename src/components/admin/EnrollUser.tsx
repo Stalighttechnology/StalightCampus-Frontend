@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useRef } from "react";
 import {
   Card,
@@ -193,7 +194,7 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px]' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px]'}>
                     <SelectItem value="org_admin">Org Admin</SelectItem>
                     <SelectItem value="principal">Principal</SelectItem>
-                    <SelectItem value="hod">HOD</SelectItem>
+                    <SelectItem value="hod">{translateTerminology("HOD")}</SelectItem>
                     <SelectItem value="teacher">Faculty/Teacher</SelectItem>
                     <SelectItem value="dean">Dean</SelectItem>
                     {userTier >= 2 && (
@@ -221,7 +222,7 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
                 <Input
                   id="first_name"
                   name="first_name"
-                  placeholder="HOD/Faculty name"
+                  placeholder={translateTerminology("HOD/Faculty name")}
                   className={theme === 'dark' ? 'mt-1 bg-card text-foreground border border-border' : 'mt-1 bg-white text-gray-900 border border-gray-300'}
                   value={formData.first_name}
                   onChange={handleInputChange}

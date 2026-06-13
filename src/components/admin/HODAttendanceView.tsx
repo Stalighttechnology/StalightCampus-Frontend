@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useEffect, useState } from "react";
 import { Users, CheckCircle, XCircle, Clock } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
@@ -397,8 +398,8 @@ const AdminHODAttendance: React.FC = () => {
                 <table className="w-full table-fixed">
                     <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
                       <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                        <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Branch</th>
-                        <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">HOD</th>
+                        <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{translateTerminology("Branch")}</th>
+                        <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{translateTerminology("HOD")}</th>
                         <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hidden lg:table-cell">Contact</th>
                         <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
                         <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Location</th>
@@ -464,7 +465,7 @@ const AdminHODAttendance: React.FC = () => {
             {todayPagination.total_pages > 1 &&
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                 <div>
-                  Showing <span className="font-medium">{Math.min((todayPagination.page - 1) * todayPagination.page_size + 1, todayPagination.total_items)}</span> to <span className="font-medium">{Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)}</span> of <span className="font-medium">{todayPagination.total_items}</span> HODs
+                  Showing <span className="font-medium">{Math.min((todayPagination.page - 1) * todayPagination.page_size + 1, todayPagination.total_items)}</span> to <span className="font-medium">{Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)}</span> of <span className="font-medium">{todayPagination.total_items}</span> {translateTerminology("HODs")}
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
@@ -627,7 +628,7 @@ const AdminHODAttendance: React.FC = () => {
                   <TableHeader className={theme === 'dark' ? 'bg-card' : 'bg-gray-50'}>
                     <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
                       <TableHead className="px-6 py-3 text-left">HOD Name</TableHead>
-                      <TableHead className="px-6 py-3 text-left">Branch</TableHead>
+                      <TableHead className="px-6 py-3 text-left">{translateTerminology("Branch")}</TableHead>
                       <TableHead className="px-6 py-3 text-left">Total Days</TableHead>
                       <TableHead className="px-6 py-3 text-left">Present</TableHead>
                       <TableHead className="px-6 py-3 text-left">Absent</TableHead>

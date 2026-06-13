@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect, forwardRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
@@ -546,7 +547,7 @@ const SemesterManagement = () => {
                                 variant="ghost"
                                 onClick={() => openDeleteModal(sem)}
                                 disabled={loading}
-                                title="Delete Semester"
+                                title={translateTerminology("Delete Semester")}
                               >
                                 <Trash2 className="h-4 w-4 text-red-600" />
                               </Button>

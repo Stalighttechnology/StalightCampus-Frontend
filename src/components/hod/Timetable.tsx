@@ -858,7 +858,7 @@ const Timetable = () => {
       if (newClassDetails.isGroup) {
          const hasAssignments = state.facultyAssignments.some((a: any) => a.subject_type === newClassDetails.subject_type && a.semester_id === state.semesterId && a.section_id === state.sectionId);
          if (!hasAssignments) {
-            throw new Error(`No faculty assigned to any ${newClassDetails.subject_type === 'elective' ? 'Elective' : 'Open Elective'} subject for this section. Please assign a faculty first.`);
+            throw new Error(`No faculty assigned to any ${newClassDetails.subject_type === 'elective' ? translateTerminology("Elective") : 'Open Elective'} subject for this section. Please assign a faculty first.`);
          }
       } else {
         const subject = state.subjects.find((s) => s.name === newClassDetails.subject);
@@ -1053,8 +1053,8 @@ const Timetable = () => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        const branchName = state.branchName || "Branch";
-        const semesterNumber = state.semesters.find((s) => s.id === state.semesterId)?.number || "Semester";
+        const branchName = state.branchName || translateTerminology("Branch");
+        const semesterNumber = state.semesters.find((s) => s.id === state.semesterId)?.number || translateTerminology("Semester");
         const sectionName = state.sections.find((s) => s.id === state.sectionId)?.name || "Section";
         const safeBranch = branchName.replace(/\s+/g, "_");
         a.download = `Timetable_${safeBranch}_${semesterNumber}_${sectionName}.pdf`;

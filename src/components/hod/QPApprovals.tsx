@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -367,7 +368,7 @@ const QPApprovals = () => {
                 </p>
                 {qp.branch &&
                   <p className="text-sm flex items-center gap-2">
-                    <span className="text-muted-foreground font-medium">Branch:</span>
+                    <span className="text-muted-foreground font-medium">{translateTerminology("Branch")}:</span>
                     <span className="truncate">{qp.branch.name}</span>
                   </p>
                 }

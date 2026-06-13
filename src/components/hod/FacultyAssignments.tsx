@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect, useCallback, ReactNode, Component, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
@@ -752,7 +753,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch
+                <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Branch")}
                 <Select
                     open={isBranchOpen}
                     onOpenChange={setIsBranchOpen}
@@ -764,7 +765,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                     disabled={state.loading || state.isAssigning || state.allBranches.length === 0}>
                     
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder="Choose Branch" />
+                    <SelectValue placeholder={translateTerminology("Choose Branch")} />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {state.allBranches.map((branch) =>
@@ -907,7 +908,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                 </label>
               </div>
               <div>
-                <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester
+                <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Semester")}
                 <Select
                     open={isSemesterOpen}
                     onOpenChange={setIsSemesterOpen}
@@ -1048,7 +1049,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                   disabled={state.loading}>
                   
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder="Choose Semester" />
+                    <SelectValue placeholder={translateTerminology("Choose Semester")} />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {state.semesters.length === 0 ? (
@@ -1133,7 +1134,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                       <tr className="border-b">
                         <th className="text-left font-semibold p-2">Course</th>
                         <th className="text-left font-semibold p-2">Section</th>
-                        <th className="text-left font-semibold p-2">Semester</th>
+                        <th className="text-left font-semibold p-2">{translateTerminology("Semester")}</th>
                         <th className="text-left font-semibold p-2">Assigned Faculty</th>
                         <th className="text-left font-semibold p-2">Actions</th>
                       </tr>

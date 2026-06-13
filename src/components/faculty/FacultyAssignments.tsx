@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -949,7 +950,7 @@ const FacultyAssignments = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Branch</label>
+                  <label className="text-sm font-semibold">{translateTerminology("Branch")}</label>
                   <Select
                     required
                     value={formData.branch_id}
@@ -1013,7 +1014,7 @@ const FacultyAssignments = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Semester</label>
+                  <label className="text-sm font-semibold">{translateTerminology("Semester")}</label>
                   <Select
                     required
                     value={formData.semester_id}

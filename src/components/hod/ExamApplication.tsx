@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -470,7 +471,7 @@ const ExamApplication: React.FC = () => {
           </div>
           
           <div className="space-y-2">
-            <label className="text-sm font-medium">Semester</label>
+            <label className="text-sm font-medium">{translateTerminology("Semester")}</label>
             <Select 
               value={semesterId} 
               onValueChange={(v) => { 
@@ -553,7 +554,7 @@ const ExamApplication: React.FC = () => {
                       <tr>
                         <th className="px-4 py-3 text-center text-sm font-semibold">USN</th>
                         <th className="px-4 py-3 text-center text-sm font-semibold">Name</th>
-                        <th className="px-4 py-3 text-center text-sm font-semibold">Semester</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold">{translateTerminology("Semester")}</th>
                         <th className="px-4 py-3 text-center text-sm font-semibold">Status</th>
                         <th className="px-4 py-3 text-center text-sm font-semibold">Action</th>
                       </tr>
@@ -678,7 +679,7 @@ const ExamApplication: React.FC = () => {
                       <div>
                         <div className="text-xs text-muted-foreground">Department</div>
                         <div className="font-semibold text-base">{selectedStudent?.branch || ''}</div>
-                        <div className="text-xs text-muted-foreground">Semester</div>
+                        <div className="text-xs text-muted-foreground">{translateTerminology("Semester")}</div>
                         <div className="font-semibold text-base">{selectedStudent?.semester || ''}</div>
                       </div>
                     </div>

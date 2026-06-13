@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { cn } from "@/lib/utils";
@@ -752,7 +753,7 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
               disabled={state.isLoading}>
               
               <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
-                <SelectValue placeholder="Select Semester" />
+                <SelectValue placeholder={translateTerminology("Select Semester")} />
               </SelectTrigger>
               <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
                 {state.semesters.length === 0 ? (
@@ -1331,7 +1332,7 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
                 disabled={state.isLoading}>
                 
                 <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
-                  <SelectValue placeholder="Select Semester" />
+                  <SelectValue placeholder={translateTerminology("Select Semester")} />
                 </SelectTrigger>
                 <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
                   {state.semesters.length === 0 ? (
@@ -1510,7 +1511,7 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
           </DialogHeader>
           <div className="space-y-4">
             <div className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              <p><strong>Semester:</strong> {state.selectedSemester}</p>
+              <p><strong>{translateTerminology("Semester")}:</strong> {state.selectedSemester}</p>
               <p><strong>Section:</strong> {state.selectedSection || "All Sections"}</p>
               <p className={`mt-2 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>
                 ⚠️ This will demote {state.selectedStudents.length > 0 ? `the ${state.selectedStudents.length} selected students` : 'ALL students'} in the selected semester/section to the previous semester.

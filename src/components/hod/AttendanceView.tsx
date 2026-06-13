@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
@@ -241,7 +242,7 @@ const AttendanceView = () => {
   const handleExportPDF = () => {
     const doc = new jsPDF();
     doc.text(`All Students Attendance Report - ${state.branch.toUpperCase()} - Page ${state.pagination.page}`, 14, 16);
-    const tableColumn = ["Name", "USN", "Attendance", "Semester", "Section"];
+    const tableColumn = ["Name", "USN", "Attendance", translateTerminology("Semester"), "Section"];
     const tableRows = currentStudents.map((student) => [
       student.name,
       student.usn,
@@ -414,7 +415,7 @@ const AttendanceView = () => {
                 <tr>
                   <th className={`p-3 border w-[24%] ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>Student</th>
                   <th className={`p-3 border w-[32%] ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>Attendance</th>
-                  <th className={`p-3 border w-[12%] ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>Semester</th>
+                  <th className={`p-3 border w-[12%] ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>{translateTerminology("Semester")}</th>
                   <th className={`p-3 border w-[12%] ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>Section</th>
                   <th className={`p-3 border w-[20%] ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>Actions</th>
                 </tr>
@@ -477,8 +478,8 @@ const AttendanceView = () => {
               <p><strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Attendance:</strong> {formatAttendancePercentage(state.selectedStudent?.attendance_percentage)}</p>
               <p><strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Total Sessions:</strong> {state.selectedStudent?.total_sessions || "-"}</p>
               <p><strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Present Sessions:</strong> {state.selectedStudent?.present_sessions || "-"}</p>
-              <p><strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Branch:</strong> {state.branch.toUpperCase()}</p>
-              <p><strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Semester:</strong> {state.selectedStudent?.semester || "-"}</p>
+              <p><strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{translateTerminology("Branch")}:</strong> {state.branch.toUpperCase()}</p>
+              <p><strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{translateTerminology("Semester")}:</strong> {state.selectedStudent?.semester || "-"}</p>
               <p><strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Section:</strong> {state.selectedStudent?.section?.toUpperCase() || "-"}</p>
             </div>
 

@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -210,7 +211,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
               </Select>
             </div>
             <div>
-              <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Branch</label>
+              <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">{translateTerminology("Branch")}</label>
               <Select value={filters.branch} onValueChange={(value) => {
                 setFilters({ ...filters, branch: value, semester: "" });
                 fetchSemesters(value);
@@ -229,7 +230,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
               </Select>
             </div>
             <div>
-              <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Semester</label>
+              <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">{translateTerminology("Semester")}</label>
               <Select value={filters.semester} onValueChange={(value) => setFilters({ ...filters, semester: value })} open={isSemesterOpen} onOpenChange={setIsSemesterOpen} disabled={!filters.branch}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select semester" />

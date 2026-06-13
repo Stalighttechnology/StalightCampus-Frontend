@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -108,7 +109,7 @@ const ProctorStudents = () => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        const branchName = state.branchName || "Branch";
+        const branchName = state.branchName || translateTerminology("Branch");
         const safeBranch = branchName.replace(/\s+/g, "_");
         a.download = `Proctor_Assignments_${safeBranch}.pdf`;
         document.body.appendChild(a);
@@ -681,7 +682,7 @@ const ProctorStudents = () => {
               <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end w-full">
                 {/* Semester Filter */}
                 <div className="flex flex-col w-full sm:flex-1 lg:w-56">
-                  <label className={`text-sm sm:text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Semester</label>
+                  <label className={`text-sm sm:text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{translateTerminology("Semester")}</label>
                   <Select
                     open={isSemesterOpen}
                     onOpenChange={setIsSemesterOpen}
@@ -690,7 +691,7 @@ const ProctorStudents = () => {
                     disabled={state.loading || state.semesters.length === 0}
                   >
                     <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
-                      <SelectValue placeholder="Choose Semester" />
+                      <SelectValue placeholder={translateTerminology("Choose Semester")} />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white border border-gray-300 text-gray-900 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {state.semesters.map((semester) => (
@@ -729,7 +730,7 @@ const ProctorStudents = () => {
 
                 {/* Proctor Filter */}
                 <div className="flex flex-col w-full sm:flex-1 lg:w-56">
-                  <label className={`text-sm sm:text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Proctor</label>
+                  <label className={`text-sm sm:text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{translateTerminology("Proctor")}</label>
                   <Select
                     open={isProctorOpen}
                     onOpenChange={setIsProctorOpen}
@@ -738,7 +739,7 @@ const ProctorStudents = () => {
                     disabled={state.loading || state.proctors.length === 0 || !state.filters.section_id}
                   >
                     <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || state.proctors.length === 0 || !state.filters.section_id}>
-                      <SelectValue placeholder="Choose Proctor" />
+                      <SelectValue placeholder={translateTerminology("Choose Proctor")} />
                     </SelectTrigger>
                     <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                       <div className="p-2 border-b border-border" onPointerDown={(e) => e.stopPropagation()}>
@@ -814,7 +815,7 @@ const ProctorStudents = () => {
                       <th className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Name</th>
                       <th className={`py-3 px-4 font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Sem</th>
                       <th className={`py-3 px-4 font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section</th>
-                      <th className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor</th>
+                      <th className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Proctor")}</th>
                     </tr>
                   </thead>
                   <tbody>

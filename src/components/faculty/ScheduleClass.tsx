@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useState, useRef, useMemo } from "react";
 import Swal from "sweetalert2";
 import { Capacitor } from '@capacitor/core';
@@ -347,7 +348,7 @@ const DropdownGroup = ({ dropdowns, theme, disabled, className }: DropdownGroupP
         onOpenChange={setIsBranchOpen}
       >
         <SelectTrigger className={selectCls} disabled={!subjectId || disabled}>
-          <SelectValue placeholder="Select Branch" />
+          <SelectValue placeholder={translateTerminology("Select Branch")} />
         </SelectTrigger>
         <SelectContent className={contentCls}>
           {branches.map((b) => (
@@ -367,7 +368,7 @@ const DropdownGroup = ({ dropdowns, theme, disabled, className }: DropdownGroupP
         onOpenChange={setIsSemesterOpen}
       >
         <SelectTrigger className={selectCls} disabled={!branchId || semesters.length === 0 || disabled}>
-          <SelectValue placeholder="Select Semester" />
+          <SelectValue placeholder={translateTerminology("Select Semester")} />
         </SelectTrigger>
         <SelectContent className={contentCls}>
           {semesters.map((s) => (

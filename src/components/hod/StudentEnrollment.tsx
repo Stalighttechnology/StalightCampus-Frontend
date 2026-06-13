@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -504,14 +505,14 @@ const StudentEnrollment = () => {
             <div className="w-full">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Semester</label>
+                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">{translateTerminology("Semester")}</label>
                   <Select open={isSemesterOpen} onOpenChange={setIsSemesterOpen} value={semesterId} onValueChange={(v: string) => {
                     setSemesterId(v);
                     setSectionId("");
                     setTimeout(() => setIsSectionOpen(true), 150);
                   }}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose Semester" />
+                      <SelectValue placeholder={translateTerminology("Choose Semester")} />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {semesters.length === 0 ? (
@@ -580,7 +581,7 @@ const StudentEnrollment = () => {
                       <SelectValue placeholder="Choose Subject Type" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                      <SelectItem value="elective">Elective</SelectItem>
+                      <SelectItem value="elective">{translateTerminology("Elective")}</SelectItem>
                       <SelectItem value="open_elective">Open Elective</SelectItem>
                     </SelectContent>
                   </Select>
@@ -892,13 +893,13 @@ const StudentEnrollment = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Semester</label>
+                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">{translateTerminology("Semester")}</label>
                   <Select
                     value={newSubjectState.semester_id}
                     onValueChange={(v) => setNewSubjectState(prev => ({ ...prev, semester_id: v }))}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select Semester" />
+                      <SelectValue placeholder={translateTerminology("Select Semester")} />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {semesters.map((sem: any) => (
@@ -917,7 +918,7 @@ const StudentEnrollment = () => {
                       <SelectValue placeholder="Select Course Type" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                      <SelectItem value="elective">Elective</SelectItem>
+                      <SelectItem value="elective">{translateTerminology("Elective")}</SelectItem>
                       <SelectItem value="open_elective">Open Elective</SelectItem>
                     </SelectContent>
                   </Select>

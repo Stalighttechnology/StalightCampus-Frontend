@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from "react";
 import { FileText, Download, AlertCircle, BookOpen, Search } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
@@ -275,7 +276,7 @@ const StudyMaterialsStudent = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
               <Select value={selectedBranch || undefined} onValueChange={setSelectedBranch}>
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                  <SelectValue placeholder="Choose Branch" />
+                  <SelectValue placeholder={translateTerminology("Choose Branch")} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   {branches.map((b) => (
@@ -292,7 +293,7 @@ const StudyMaterialsStudent = () => {
                 onOpenChange={setIsSemesterOpen}
               >
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                  <SelectValue placeholder="Choose Semester" />
+                  <SelectValue placeholder={translateTerminology("Choose Semester")} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   {semesters.map((s) => (

@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "../ui/card";
 import { FileText, Download, UploadCloud, Trash2, Loader2, Search, BookOpen, X, CloudUpload } from "lucide-react";
@@ -365,7 +366,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 }
               }}>
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                  <SelectValue placeholder="Choose Branch" />
+                  <SelectValue placeholder={translateTerminology("Choose Branch")} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   {branches.length > 0 ? (
@@ -393,7 +394,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 onOpenChange={setIsSemesterOpen}>
 
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${selectedBranch === "" || semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={selectedBranch === "" || semesters.length === 0}>
-                  <SelectValue placeholder="Choose Semester" />
+                  <SelectValue placeholder={translateTerminology("Choose Semester")} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   {semesters.length > 0 ? (
@@ -475,7 +476,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                       <TableHead className="w-[100px] px-6 py-4 text-base md:text-md font-semibold text-slate-800">Type</TableHead>
                       <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800">Title</TableHead>
                       <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800">Course</TableHead>
-                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800">Semester</TableHead>
+                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800">{translateTerminology("Semester")}</TableHead>
                       <TableHead className="hidden lg:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800">Uploaded By</TableHead>
                       <TableHead className="text-right px-6 py-4 text-base md:text-md font-semibold text-slate-800">Action</TableHead>
                     </TableRow>
@@ -621,11 +622,11 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
               {uploadSubject && (
                 <div className="space-y-3 p-3 rounded-xl border border-dashed animate-in fade-in slide-in-from-top-1 duration-300 bg-primary/5 border-primary/20">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Branch:</span>
+                    <span className="text-muted-foreground">{translateTerminology("Branch")}:</span>
                     <span className="font-medium text-primary">{grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.branch_id) === uploadBranch)?.branch || 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Semester:</span>
+                    <span className="text-muted-foreground">{translateTerminology("Semester")}:</span>
                     <span className="font-medium text-primary">{uploadSemester ? `Sem ${grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.semester_id) === uploadSemester)?.semester}` : 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">

@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Plus, Trash2, Layers, Loader2, FileDown } from "lucide-react";
@@ -503,7 +504,7 @@ const UploadQP = () => {
             <CardContent className="pb-0">
               <div id="upload-qp-selectors" className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div>
-                  <label htmlFor="branch-select" className="text-sm">Branch</label>
+                  <label htmlFor="branch-select" className="text-sm">{translateTerminology("Branch")}</label>
                   <Select value={selected.branch_id ? String(selected.branch_id) : undefined} onValueChange={(v) => {
                     const branchId = Number(v);
                     // Auto-select first subject for this branch
@@ -517,7 +518,7 @@ const UploadQP = () => {
                     }
                   }}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select Branch" />
+                      <SelectValue placeholder={translateTerminology("Select Branch")} />
                     </SelectTrigger>
                     <SelectContent className="max-h-[200px]">
                       {dropdownData.branch.length > 0 ? (
