@@ -65,30 +65,16 @@ const ProtectedRoute = ({
 }) => {
   const { isAuthenticated, isInitializing, role } = useAuth();
 
-  // While the silent cookie-refresh is running, show a loading spinner
-  // to avoid briefly rendering the login page for authenticated users.
+  // While the silent cookie-refresh is running, show nothing to prevent flashes
   if (isInitializing) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <img
-            src="/applogo.png"
-            alt="Stalight Campus Logo"
-            className="w-16 h-16 rounded-full object-cover animate-pulse shadow-lg"
-          />
-          <p className="text-sm font-medium text-muted-foreground animate-pulse">
-            Loading Stalight Campus...
-          </p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   if (!isAuthenticated || !role || !allowedRoles.includes(role)) {
     if (isAuthenticated && role === "placement_officer") {
       return <Navigate to="/sync-access-restricted" replace />;
     }
-    return <Index />;
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

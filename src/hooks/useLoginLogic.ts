@@ -107,7 +107,6 @@ export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
       }
     } catch (err) {
       setError("Network error. Please try again.");
-
     } finally {
       setLoading(false);
     }
