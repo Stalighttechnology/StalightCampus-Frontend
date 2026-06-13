@@ -20,7 +20,7 @@ export const downloadFile = async (source: Response | string, defaultFilename: s
         finalUrl = `${API_BASE_URL}${source}`;
       }
 
-      const isExternal = finalUrl.startsWith('http') && !finalUrl.includes(API_ENDPOINT);
+      const isExternal = finalUrl.startsWith('http') && !finalUrl.includes(API_BASE_URL);
       if (isExternal) {
         // Since this is an external URL (e.g. Cloudflare R2), calling fetch in JavaScript
         // violates the site's CSP (Content Security Policy) and CORS policies.
@@ -39,8 +39,8 @@ export const downloadFile = async (source: Response | string, defaultFilename: s
     }
 
     const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('text/html')) {
-      throw new Error("Received HTML error page instead of PDF");
+    if (contentType && (contentType.includes('text/html') || contentType.includes('application/json'))) {
+      throw new Error("Received error response instead of document binary");
     }
 
     const blob = await response.blob();
