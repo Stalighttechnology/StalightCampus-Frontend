@@ -189,8 +189,30 @@ interface GetLeaveRequestsResponse {
   previous?: string | null;
 }
 
+interface GetUnreadCountResponse {
+  success: boolean;
+  count?: number;
+}
+
 // Export the interface so it can be imported in components
-export type { GetLeaveRequestsResponse, GetStudentAttendanceResponse, GetInternalMarksResponse, SubmitLeaveRequestRequest, UpdateProfileRequest, UploadCertificateRequest, GetCertificatesResponse, DeleteCertificateRequest, GetNotificationsResponse };
+export type { GetLeaveRequestsResponse, GetStudentAttendanceResponse, GetInternalMarksResponse, SubmitLeaveRequestRequest, UpdateProfileRequest, UploadCertificateRequest, GetCertificatesResponse, DeleteCertificateRequest, GetNotificationsResponse, GetUnreadCountResponse };
+
+// Common Unread Count API (used for all roles to prevent heavy polling)
+export const getUnreadNotificationCount = async (): Promise<GetUnreadCountResponse> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/notifications/unread-count/`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching unread notification count:', error);
+    return { success: false, message: 'Network error' };
+  }
+};
 
 interface UploadCertificateRequest {
   file: File;

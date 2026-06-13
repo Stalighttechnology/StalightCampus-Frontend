@@ -7,7 +7,7 @@ import { useIsMobile } from "../../hooks/use-mobile";
 import { useTheme } from "../../context/ThemeContext";
 import { logoutUser } from "../../utils/authService";
 import { useAuth } from "../../context/AuthContext";
-import { getDashboardOverview } from "../../utils/student_api";
+import { getDashboardOverview, getUnreadNotificationCount } from "../../utils/student_api";
 import { getFacultyDashboardBootstrap } from "../../utils/faculty_api";
 import { getHODStats } from "../../utils/hod_api";
 import { getAdminStats } from "../../utils/admin_api";
@@ -103,52 +103,47 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     queryKey: ["dashboard", "student", "overview"],
     queryFn: getDashboardOverview,
     enabled: role === 'student',
-    staleTime: 30 * 1000,
-    refetchOnWindowFocus: true
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const facultyQuery = useQuery({
     queryKey: ["dashboard", "faculty", "bootstrap"],
     queryFn: getFacultyDashboardBootstrap,
     enabled: role === 'faculty',
-    staleTime: 30 * 1000,
-    refetchOnWindowFocus: true
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const hodQuery = useQuery({
     queryKey: ["dashboard", "hod", (user as any)?.extra?.branch_id || (user as any)?.branch_id || ''],
     queryFn: () => getHODStats((user as any)?.extra?.branch_id || (user as any)?.branch_id || ''),
     enabled: role === 'hod',
-    staleTime: 30 * 1000,
-    refetchOnWindowFocus: true
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
   const adminQuery = useQuery({
     queryKey: ["dashboard", "admin", "stats"],
     queryFn: getAdminStats,
     enabled: role === 'admin' || role === 'principal' || role === 'org_admin',
-    staleTime: 30 * 1000,
-    refetchOnWindowFocus: true
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false
   });
 
-  // Derive unreadCount from whichever query is active for the role
-  useEffect(() => {
-    try {
-      let count = 0;
-      if (role === 'student' && studentQuery.data?.success && studentQuery.data.data) {
-        count = studentQuery.data.data.unread_announcement_count || 0;
-      } else if (role === 'faculty' && facultyQuery.data?.success && facultyQuery.data.data) {
-        count = facultyQuery.data.data.unread_announcement_count || 0;
-      } else if (role === 'hod' && hodQuery.data?.success && hodQuery.data.data) {
-        count = hodQuery.data.data.unread_announcement_count || 0;
-      } else if ((role === 'admin' || role === 'principal' || role === 'org_admin') && adminQuery.data?.success && adminQuery.data.data) {
-        count = adminQuery.data.data.unread_announcement_count || 0;
-      }
-      setUnreadCount(count);
-    } catch (e) {
+  // Dedicated lightweight query for the unread notification count
+  const unreadCountQuery = useQuery({
+    queryKey: ["unreadCount"],
+    queryFn: getUnreadNotificationCount,
+    refetchInterval: 30 * 1000,
+    refetchOnWindowFocus: true, // It's okay to poll this fast endpoint on focus
+  });
 
+  useEffect(() => {
+    if (unreadCountQuery.data?.success) {
+      setUnreadCount(unreadCountQuery.data.count || unreadCountQuery.data.unread_count || 0);
     }
-  }, [role, studentQuery.data, facultyQuery.data, hodQuery.data, adminQuery.data]);
+  }, [unreadCountQuery.data]);
 
   // Listen for manual refresh events AND service worker push messages — both update the bell count
   useEffect(() => {
@@ -159,7 +154,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       }
       // Immediately increment optimistically, then sync with server
       setUnreadCount((prev) => prev + 1);
-      queryClient.invalidateQueries(["dashboard"]);
+      queryClient.invalidateQueries(["unreadCount"]);
     };
     window.addEventListener('refresh-unread-count', handleRefresh);
 
@@ -167,7 +162,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     const handleSWMessage = (event: MessageEvent) => {
       if (event.data?.type === 'FCM_PUSH_RECEIVED') {
         setUnreadCount((prev) => prev + 1);
-        queryClient.invalidateQueries(["dashboard"]);
+        queryClient.invalidateQueries(["unreadCount"]);
         // Play the chime sound in the background tab
         window.dispatchEvent(new CustomEvent('play-notification-sound'));
       }
