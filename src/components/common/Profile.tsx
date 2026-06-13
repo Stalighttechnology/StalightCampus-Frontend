@@ -283,18 +283,18 @@ const Profile = ({ role, user }: ProfileProps) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div className="w-full">
                 <label htmlFor="first_name" className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</label>
-                <Input id="first_name" name="first_name" value={profile.first_name} onChange={handleChange} disabled={true} placeholder="First name" className="text-sm h-9 sm:h-10 w-full" />
+                <Input id="first_name" name="first_name" value={profile.first_name} onChange={handleChange} disabled={role === 'admission_manager' ? (!editing || loading) : true} placeholder="First name" className="text-sm h-9 sm:h-10 w-full" />
               </div>
               <div className="w-full">
                 <label htmlFor="last_name" className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</label>
-                <Input id="last_name" name="last_name" value={profile.last_name} onChange={handleChange} disabled={true} placeholder="Last name" className="text-sm h-9 sm:h-10 w-full" />
+                <Input id="last_name" name="last_name" value={profile.last_name} onChange={handleChange} disabled={role === 'admission_manager' ? (!editing || loading) : true} placeholder="Last name" className="text-sm h-9 sm:h-10 w-full" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label htmlFor="email" className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</label>
-                <Input id="email" name="email" value={profile.email} onChange={handleChange} disabled={true} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
+                <Input id="email" name="email" value={profile.email} onChange={handleChange} disabled={role === 'admission_manager' ? (!editing || loading) : true} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
               </div>
               <div>
                 <label htmlFor="mobile_number" className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</label>
@@ -472,12 +472,12 @@ const Profile = ({ role, user }: ProfileProps) => {
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
+          <div className="flex flex-row items-center gap-2 w-full sm:w-auto sm:ml-auto">
             <Button
               size="sm"
               onClick={() => {if (editing) handleSaveProfile(); else setEditing(true);}}
               variant="outline"
-              className={`text-white border transition-colors ${
+              className={`flex-1 sm:flex-none w-full sm:w-auto text-white border transition-colors ${
                 editing 
                   ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white' 
                   : 'bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white'
@@ -487,7 +487,7 @@ const Profile = ({ role, user }: ProfileProps) => {
             </Button>
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
               <DialogTrigger asChild>
-                <Button className="text-sm px-3 sm:px-4 py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
+                <Button className="flex-1 sm:flex-none w-full sm:w-auto text-sm px-3 sm:px-4 py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
               </DialogTrigger>
               <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-full max-w-[420px] rounded-xl sm:rounded-2xl">
                 <DialogHeader>

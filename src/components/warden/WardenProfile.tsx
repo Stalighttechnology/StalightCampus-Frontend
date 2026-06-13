@@ -485,12 +485,12 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
             <p className={`text-base sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
+          <div className="flex flex-row items-center gap-2 w-full sm:w-auto sm:ml-auto">
             <Button
               size="sm"
               onClick={() => { if (editing) handleSaveProfile(); else setEditing(true); }}
               variant="outline"
-              className={`w-full sm:w-auto text-sm text-white border transition-colors ${
+              className={`flex-1 sm:flex-none w-full sm:w-auto text-sm text-white border transition-colors ${
                 editing 
                   ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white' 
                   : 'bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white'
@@ -500,7 +500,7 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
             </Button>
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
               <DialogTrigger asChild>
-                <Button className="text-sm px-3 sm:px-4 py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
+                <Button className="flex-1 sm:flex-none w-full sm:w-auto text-sm px-3 sm:px-4 py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
               </DialogTrigger>
               <DialogContent ref={passwordDialogContentRef} className="w-[calc(100vw-1.5rem)] sm:w-full max-w-[420px] rounded-xl sm:rounded-2xl">
                 <DialogHeader>
