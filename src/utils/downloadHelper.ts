@@ -24,23 +24,12 @@ export const downloadFile = async (source: Response | string, defaultFilename: s
       if (isExternal) {
         // Since this is an external URL (e.g. Cloudflare R2), calling fetch in JavaScript
         // violates the site's CSP (Content Security Policy) and CORS policies.
-        // We open the URL directly using the native browser to trigger download/preview.
-        if (isMobile) {
-          window.open(finalUrl, '_blank');
-        } else {
-          const link = document.createElement("a");
-          link.href = finalUrl;
-          link.setAttribute("target", "_blank");
-          link.setAttribute("rel", "noreferrer");
-          link.setAttribute("download", defaultFilename);
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-        }
-        return; // Exit early as we have handled the download
-      } else {
-        response = await fetchWithTokenRefresh(finalUrl);
+        // We route it through our Django backend's R2 download proxy, which returns the file
+        // from our own API domain with the appropriate Content-Disposition headers.
+        finalUrl = `${API_ENDPOINT}/r2/download/?file_url=${encodeURIComponent(finalUrl)}`;
       }
+      
+      response = await fetchWithTokenRefresh(finalUrl);
     } else {
       response = source;
     }
