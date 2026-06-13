@@ -64,30 +64,30 @@ const ProctorStudents = () => {
   if (proctorStudentsLoading) {
     return (
       <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
-        <CardHeader>
-          <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Proctor Students</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SkeletonTable rows={10} cols={5} />
-        </CardContent>
-      </Card>
+      <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+        <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <SkeletonTable rows={10} cols={5} />
+      </CardContent>
+    </Card>
     );
   }
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
-      <CardHeader id="proctor-students-header" className="space-y-4">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="space-y-1.5 flex-1">
+      <CardHeader id="proctor-students-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Proctor Students</CardTitle>
+              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
               {pagination?.paginationState?.totalItems !== undefined && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
                   {pagination.paginationState.totalItems} Total
                 </span>
               )}
             </div>
-            <p className="text-sm text-muted-foreground leading-normal">
+            <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               View and export performance and attendance statistics for your proctored students
             </p>
           </div>
@@ -95,7 +95,7 @@ const ProctorStudents = () => {
             id="proctor-export-pdf-btn"
             onClick={handleExportPDF}
             disabled={downloadingPDF || proctorStudents.length === 0}
-            className="w-full md:w-auto h-9 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200 flex items-center justify-center gap-2 text-sm"
+            className="w-full sm:w-auto h-9 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200 flex items-center justify-center gap-2 text-sm"
           >
             {downloadingPDF
               ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

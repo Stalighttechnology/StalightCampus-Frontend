@@ -425,8 +425,15 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
-      <CardHeader id="exam-applications-header">
-        <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Exam Applications</CardTitle>
+      <CardHeader id="exam-applications-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
+          <div className="flex-1 min-w-0">
+            <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Exam Applications</CardTitle>
+            <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Manage and approve exam registration requests for your proctored students
+            </p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">

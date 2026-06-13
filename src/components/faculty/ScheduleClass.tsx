@@ -1217,20 +1217,18 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
       {/* ── Section 2: Class History ─────────────────────────────────────── */}
       <Card className={selectorCardCls}>
-        <CardHeader className="border-b border-border/50 pb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
-            <div className="flex items-center gap-2">
-              <div>
-                <CardTitle className="text-xl sm:text-2xl">Class History</CardTitle>
-                <CardDescription className={`${theme === "dark" ? "text-muted-foreground" : "text-gray-500"} text-md`}>
-                  Select a subject to view scheduled classes history
-                </CardDescription>
-              </div>
+        <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
+            <div className="flex-1 min-w-0">
+              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Class History</CardTitle>
+              <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Select a subject to view scheduled classes history
+              </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto self-start sm:self-auto">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-2 sm:mt-0">
               <Button
                 onClick={handleScheduleButtonClick}
-                className="bg-primary hover:bg-primary/90 text-white h-9 px-4 transition-all w-full sm:w-auto"
+                className="bg-primary hover:bg-primary/90 text-white h-9 px-4 transition-all w-full sm:w-auto text-sm"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Schedule Class

@@ -141,12 +141,17 @@ const ManageStudentLeave = () => {
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card id="manage-student-leave-card" className={`${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200 shadow-sm'}`}>
         <div id="manage-student-leave-header-section">
-          <CardHeader className="border-b">
-            <div className="flex items-center justify-between gap-4">
-              <CardTitle className="m-0 leading-none">Leave Approvals</CardTitle>
+          <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
+              <div className="flex-1 min-w-0">
+                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Approvals</CardTitle>
+                <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Review and approve leave requests submitted by your students
+                </p>
+              </div>
               
               {/* Search + Filter container */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                 {/* Search Bar (Laptop/Desktop only) */}
                 <div className="hidden lg:block w-64">
                   <Input

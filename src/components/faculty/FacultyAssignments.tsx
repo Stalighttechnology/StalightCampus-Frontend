@@ -546,18 +546,18 @@ const FacultyAssignments = () => {
   return (
     <div>
       <Card>
-        <CardHeader id="faculty-assignments-header" >
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
-              <CardTitle>Assignment Management</CardTitle>
-              <CardDescription className="text-base">Create, track, and grade student assignments with a unified view.</CardDescription>
+        <CardHeader id="faculty-assignments-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
+            <div className="flex-1 min-w-0">
+              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Assignment Management</CardTitle>
+              <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Create, track, and grade student assignments with a unified view.</p>
             </div>
             <Button
               onClick={() => {
                 loadSubjects();
                 setShowCreateModal(true);
               }}
-              className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 flex items-center gap-2 h-11 px-6 rounded-lgl transition-all">
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 flex items-center justify-center gap-2 h-11 px-6 rounded-xl transition-all">
 
               <Plus size={20} />
               <span className="font-semibold">Create Assignment</span>

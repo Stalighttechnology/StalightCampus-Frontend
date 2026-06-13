@@ -141,8 +141,8 @@ const GenerateStatistics: React.FC = () => {
       <div id="statistics-charts-container" className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
         {/* Attendance Overview */}
         <Card id="statistics-attendance-overview-card" className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg overflow-hidden`}>
-          <CardHeader>
-            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+          <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+            <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Attendance Overview
             </CardTitle>
           </CardHeader>
@@ -192,8 +192,8 @@ const GenerateStatistics: React.FC = () => {
 
         {/* Average Marks */}
         <Card id="statistics-average-marks-card" className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg overflow-hidden`}>
-          <CardHeader>
-            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+          <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+            <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Average Marks
             </CardTitle>
           </CardHeader>
@@ -247,29 +247,29 @@ const GenerateStatistics: React.FC = () => {
 
       {/* Table */}
       <Card id="statistics-table-card" className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg flex flex-col`}>
-        <CardHeader id="statistics-table-header" className="pb-2">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
+        <CardHeader id="statistics-table-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3">
+                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
                 {totalCount > 0 &&
                   <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
                     {totalCount} Total
                   </span>
                 }
               </div>
-              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 View and export performance and attendance statistics for your proctored students
               </p>
             </div>
-            <div className="w-full md:w-auto">
+            <div className="w-full sm:w-auto">
               <Button
                 variant="outline"
                 size="sm"
                 id="generate-stats-export-pdf-btn"
                 onClick={handleExportPDF}
                 disabled={downloadingPDF || proctorStudents.length === 0}
-                className="w-full md:w-auto flex items-center justify-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md gap-2 h-9"
+                className="w-full sm:w-auto flex items-center justify-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md gap-2 h-9 text-sm"
               >
                 {downloadingPDF
                   ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

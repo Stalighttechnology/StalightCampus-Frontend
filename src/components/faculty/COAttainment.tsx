@@ -370,7 +370,7 @@ const COAttainment = () => {
                 {/* Statistics Overview Card */}
                 <Card className="xl:col-span-1 border border-border/50 shadow-sm overflow-hidden bg-muted/20">
                   <CardHeader className="p-5 border-b border-border/50 bg-muted/40">
-                    <CardTitle className="text-lg font-semibold leading-none tracking-tight text-gray-900">Attainment Summary</CardTitle>
+                    <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attainment Summary</CardTitle>
                   </CardHeader>
                   <CardContent className="p-6 space-y-6">
                     <div className={`p-6 rounded-2xl text-center border-2 ${theme === 'dark' ? 'bg-background/50 border-primary/20' : 'bg-white border-primary/10'} shadow-inner`}>
@@ -416,7 +416,7 @@ const COAttainment = () => {
                 {/* Main Results Table Card */}
                 <Card className="xl:col-span-2 border border-border/50 shadow-sm">
                   <CardHeader className="p-5 border-b border-border/50">
-                    <CardTitle className="text-lg font-semibold leading-none tracking-tight text-gray-900">Course Outcome Results</CardTitle>
+                    <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Outcome Results</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="overflow-x-auto">
@@ -505,7 +505,7 @@ const COAttainment = () => {
               <div className="mt-6">
                 <Card className="border border-border/50 shadow-sm">
                   <CardHeader className="p-5 border-b border-border/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-                    <CardTitle className="text-lg font-semibold leading-none tracking-tight text-gray-900">Program Outcome (PO) Attainment</CardTitle>
+                    <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Program Outcome (PO) Attainment</CardTitle>
                     <Button
                       onClick={async () => {
                         try {
