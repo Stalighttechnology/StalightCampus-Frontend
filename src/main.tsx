@@ -20,7 +20,7 @@ if (typeof window !== 'undefined') {
   document.addEventListener('click', async (event) => {
     const target = event.target as HTMLElement;
     const anchor = target.closest('a');
-    if (!anchor) return;
+    if (!anchor || anchor.dataset.bypassIntercept === 'true') return;
 
     const href = anchor.href;
     const downloadAttr = anchor.getAttribute('download');
@@ -65,11 +65,17 @@ if (typeof window !== 'undefined') {
             text: `Download ${downloadAttr}`
           });
         } else {
-          window.open(href, '_blank');
+          // Fallback: trigger normal download by bypassing the click interceptor
+          anchor.dataset.bypassIntercept = 'true';
+          anchor.click();
+          delete anchor.dataset.bypassIntercept;
         }
       } catch (err) {
         console.error("Global mobile download intercept failed:", err);
-        window.open(href, '_blank');
+        // Fallback: trigger normal download by bypassing the click interceptor
+        anchor.dataset.bypassIntercept = 'true';
+        anchor.click();
+        delete anchor.dataset.bypassIntercept;
       }
     }
   }, true);
@@ -118,11 +124,23 @@ if (typeof window !== 'undefined') {
                 text: `View ${filename}`
               });
             } else {
-              originalWindowOpen.call(window, url, target, features);
+              // Safe fallback: simulate download instead of using window.open which reloads/crashes
+              const link = document.createElement("a");
+              link.href = urlStr;
+              link.setAttribute("download", filename);
+              document.body.appendChild(link);
+              link.click();
+              link.remove();
             }
           } catch (e) {
             console.error("Global window.open share intercept failed:", e);
-            originalWindowOpen.call(window, url, target, features);
+            // Safe fallback: simulate download instead of using window.open which reloads/crashes
+            const link = document.createElement("a");
+            link.href = urlStr;
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
           }
         })();
         return null;

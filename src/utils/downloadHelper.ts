@@ -59,8 +59,13 @@ export const downloadFile = async (source: Response | string, defaultFilename: s
         }
       }
 
-      // Fallback: Open the Blob URL directly in a new window/tab to trigger viewer
-      window.open(downloadUrl, '_blank');
+      // Fallback: Use simulated anchor click to download/save instead of window.open (which reloads WebViews)
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", defaultFilename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     } else {
       // On desktop, simulate an anchor click to save directly with the correct filename.
       const link = document.createElement("a");
