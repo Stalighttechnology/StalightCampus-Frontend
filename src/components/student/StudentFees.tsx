@@ -844,15 +844,15 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
           {/* Payment History Section */}
           <motion.div variants={cardVariants} initial="hidden" animate="visible" className="h-full">
             <Card id="fees-history-card" className={`shadow-none border h-[650px] flex flex-col ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-              <CardHeader id="fees-history-card-header" className="flex flex-row justify-between items-center space-y-0 pb-4">
-                <CardTitle className={`flex items-center gap-2 text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+              <CardHeader id="fees-history-card-header" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 space-y-0 pb-4">
+                <CardTitle className={`flex items-center gap-2 text-base sm:text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                   <CreditCard className="h-5 w-5" />
                   Payment History ({feeData?.statistics?.total_payments || 0})
                 </CardTitle>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-primary hover:bg-primary/90 text-white border-primary"
+                  className="bg-primary hover:bg-primary/90 text-white border-primary shrink-0 w-full sm:w-auto justify-center"
                   disabled={exportingPaymentsPDF}
                   onClick={handleExportPaymentsPDF}>
                   {exportingPaymentsPDF ? (
@@ -860,7 +860,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                   ) : (
                     <FileDown className="w-4 h-4 mr-2" />
                   )}
-                  {exportingPaymentsPDF ? "Exporting..." : "Export History PDF"}
+                  {exportingPaymentsPDF ? "Exporting..." : "Download Receipt"}
                 </Button>
               </CardHeader>
               <CardContent className="flex-1 overflow-y-auto custom-scrollbar pr-2">
@@ -891,13 +891,30 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                             </motion.div>
                             <motion.div variants={itemVariants} className="flex gap-2 flex-shrink-0">
                               <Badge
-                                variant={payment.status === 'success' ? 'default' : payment.status === 'failed' ? 'destructive' : 'secondary'}
-                                className={
-                                  payment.status === 'success' ? 'bg-green-600 text-white' :
-                                    payment.status === 'failed' ? '' : 'bg-yellow-100 text-yellow-800 border-yellow-300'
-                                }>
-
-                                {payment.status === 'success' ? '✓ Success' : payment.status === 'failed' ? 'Failed' : 'Pending'}
+                                variant="outline"
+                                className={`font-semibold border-none rounded-full px-3 py-1 flex items-center gap-1 ${
+                                  payment.status === 'success'
+                                    ? (theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700')
+                                    : payment.status === 'failed'
+                                    ? (theme === 'dark' ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-700')
+                                    : (theme === 'dark' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700')
+                                }`}>
+                                {payment.status === 'success' ? (
+                                  <>
+                                    <CheckCircle size={12} className="shrink-0" />
+                                    Success
+                                  </>
+                                ) : payment.status === 'failed' ? (
+                                  <>
+                                    <AlertCircle size={12} className="shrink-0" />
+                                    Failed
+                                  </>
+                                ) : (
+                                  <>
+                                    <Loader2 size={12} className="animate-spin shrink-0" />
+                                    Pending
+                                  </>
+                                )}
                               </Badge>
                               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                                 <Button

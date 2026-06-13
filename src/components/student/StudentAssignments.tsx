@@ -315,9 +315,9 @@ const StudentAssignments = () => {
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button className="bg-[#a855f7] hover:bg-[#9333ea] text-white gap-2 rounded-xl px-5 h-10 shadow-sm border-none">
+                  <Button className="bg-[#a855f7] hover:bg-[#9333ea] text-white gap-2 rounded-xl px-3 sm:px-5 h-10 shadow-sm border-none">
                     <Filter size={18} />
-                    <span className="font-semibold text-sm">Filter</span>
+                    <span className="font-semibold text-sm hidden sm:inline">Filter</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -341,13 +341,17 @@ const StudentAssignments = () => {
               )}
               </div> :
             filteredAssignments.length > 0 ?
-            <div className="divide-y divide-border/50">
+            <div className="flex flex-col gap-4">
                 {filteredAssignments.map((assignment) => {
                 const withinDeadline = isWithinDeadline(assignment);
                 return (
                   <div
                     key={assignment.id}
-                    className="p-6 hover:bg-primary/5 transition-all duration-300 group">
+                    className={`p-6 rounded-2xl border transition-all duration-300 group hover:shadow-md ${
+                      theme === 'dark'
+                        ? 'bg-white/[0.02] border-white/10 hover:bg-white/[0.04] hover:border-primary/30'
+                        : 'bg-white border-gray-200/80 hover:border-primary/30 shadow-sm'
+                    }`}>
                     
                       <div className="flex flex-col lg:flex-row justify-between gap-6">
                         <div className="flex gap-5">
@@ -375,89 +379,102 @@ const StudentAssignments = () => {
 
                         <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between lg:justify-start gap-4 shrink-0 w-full lg:w-auto">
                           {getStatusBadge(assignment)}
-                          <div className="flex items-center gap-2 flex-wrap justify-start sm:justify-end w-full lg:w-auto">
-                            {/* View assignment questions if faculty uploaded one */}
-                            {assignment.file_url && (
-                               <Button
-                                 variant="outline"
-                                 size="sm"
-                                 className="rounded-xl flex items-center gap-2"
-                                 disabled={downloadingIds[`q-${assignment.id}`]}
-                                 onClick={() => triggerDownload(`q-${assignment.id}`, assignment.file_url, `${assignment.title}_Questions.pdf`)}
-                               >
-                                 {downloadingIds[`q-${assignment.id}`] ? (
-                                   <Loader2 size={14} className="animate-spin" />
-                                 ) : (
-                                   <Download size={14} />
-                                 )}
-                                 {downloadingIds[`q-${assignment.id}`] ? "Downloading..." : "Questions"}
-                               </Button>
-                             )}
-
-                            {!assignment.is_submitted ? (
-                              /* Not yet submitted → Submit button (only if within deadline) */
-                              withinDeadline ? (
-                                <Button
-                                  size="sm"
-                                  className="bg-primary text-white gap-2 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30"
-                                  onClick={() => openSubmitModal(assignment, false)}>
-                                  
-                                    <Upload size={14} />
-                                    Submit
+                          <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+                            {/* Row 1: Questions & View */}
+                            {(assignment.file_url || (assignment.is_submitted && assignment.submission_file_url)) && (
+                              <div className="flex gap-2 w-full sm:w-auto">
+                                {assignment.file_url && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className={`rounded-xl flex items-center justify-center gap-2 flex-1 sm:flex-initial transition-all border ${
+                                      theme === 'dark'
+                                        ? 'border-blue-500/30 text-blue-400 hover:bg-blue-500/10'
+                                        : 'border-blue-200 text-blue-600 hover:bg-blue-50'
+                                    }`}
+                                    disabled={downloadingIds[`q-${assignment.id}`]}
+                                    onClick={() => triggerDownload(`q-${assignment.id}`, assignment.file_url, `${assignment.title}_Questions.pdf`)}
+                                  >
+                                    {downloadingIds[`q-${assignment.id}`] ? (
+                                      <Loader2 size={14} className="animate-spin" />
+                                    ) : (
+                                      <Download size={14} />
+                                    )}
+                                    <span className="truncate">{downloadingIds[`q-${assignment.id}`] ? "Downloading..." : "Questions"}</span>
                                   </Button>
-                              ) : null
-                            ) : (
-                              /* Already submitted → View + Details + Re-submit (if within deadline) */
-                              <>
-                                {/* View submitted file */}
-                                {assignment.submission_file_url && (
+                                )}
+
+                                {assignment.is_submitted && assignment.submission_file_url && (
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     asChild
-                                    className="gap-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all">
-                                    <a href={assignment.submission_file_url} target="_blank" rel="noreferrer">
+                                    className={`gap-2 rounded-xl transition-all flex-1 sm:flex-initial justify-center border ${
+                                      theme === 'dark'
+                                        ? 'border-green-500/30 text-green-400 hover:bg-green-500/10'
+                                        : 'border-green-200 text-green-600 hover:bg-green-50'
+                                    }`}>
+                                    <a href={assignment.submission_file_url} target="_blank" rel="noreferrer" className="flex items-center gap-2">
                                       <Eye size={14} />
                                       View
                                     </a>
                                   </Button>
                                 )}
+                              </div>
+                            )}
 
-                                {/* Details modal trigger */}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="gap-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
-                                  onClick={() => {
-                                    setSelectedAssignment(assignment);
-                                    setShowDetailsModal(true);
-                                  }}>
-                                  
+                            {/* Row 2: Submit / Details / Re-submit */}
+                            <div className="flex gap-2 w-full sm:w-auto">
+                              {!assignment.is_submitted ? (
+                                /* Not yet submitted → Submit button (only if within deadline) */
+                                withinDeadline ? (
+                                  <Button
+                                    size="sm"
+                                    className="bg-primary text-white gap-2 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 w-full sm:w-auto justify-center"
+                                    onClick={() => openSubmitModal(assignment, false)}>
+                                    <Upload size={14} />
+                                    Submit
+                                  </Button>
+                                ) : null
+                              ) : (
+                                /* Already submitted → Details + Re-submit */
+                                <div className="flex gap-2 w-full sm:w-auto">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className={`gap-2 rounded-xl transition-all flex-1 sm:flex-initial justify-center border ${
+                                      theme === 'dark'
+                                        ? 'border-purple-500/30 text-purple-400 hover:bg-purple-500/10'
+                                        : 'border-purple-200 text-purple-600 hover:bg-purple-50'
+                                    }`}
+                                    onClick={() => {
+                                      setSelectedAssignment(assignment);
+                                      setShowDetailsModal(true);
+                                    }}>
                                     <Info size={14} />
                                     Details
                                   </Button>
 
-                                {/* Re-submit button — only within deadline, not graded, and under limit */}
-                                {withinDeadline && assignment.marks_obtained === null && (assignment.resubmission_count || 0) < 3 && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className={`gap-2 rounded-xl border transition-all ${
-                                      theme === 'dark'
-                                        ? 'border-amber-500/50 text-amber-400 hover:bg-amber-500/10'
-                                        : 'border-amber-400 text-amber-600 hover:bg-amber-50'
-                                    }`}
-                                    onClick={() => openSubmitModal(assignment, true)}>
-                                    
+                                  {withinDeadline && assignment.marks_obtained === null && (assignment.resubmission_count || 0) < 3 && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className={`gap-2 rounded-xl border transition-all flex-1 sm:flex-initial justify-center ${
+                                        theme === 'dark'
+                                          ? 'border-amber-500/50 text-amber-400 hover:bg-amber-500/10'
+                                          : 'border-amber-400 text-amber-600 hover:bg-amber-50'
+                                      }`}
+                                      onClick={() => openSubmitModal(assignment, true)}>
                                       <RefreshCw size={14} />
-                                      Re-submit ({(assignment.resubmission_count || 0)}/3)
+                                      <span className="truncate">Re-submit ({(assignment.resubmission_count || 0)}/3)</span>
                                     </Button>
-                                )}
-                                {withinDeadline && assignment.marks_obtained === null && (assignment.resubmission_count || 0) >= 3 && (
-                                  <span className="text-xs text-red-500 font-semibold px-2">Limit reached</span>
-                                )}
-                              </>
-                            )}
+                                  )}
+                                  {withinDeadline && assignment.marks_obtained === null && (assignment.resubmission_count || 0) >= 3 && (
+                                    <span className="text-xs text-red-500 font-semibold px-2 flex items-center justify-center flex-1 sm:flex-initial">Limit reached</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
