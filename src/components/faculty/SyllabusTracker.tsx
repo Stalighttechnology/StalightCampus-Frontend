@@ -492,14 +492,16 @@ const SyllabusTracker = () => {
               </div>
             </div>
           ) : (
-            <div className="py-16 text-center space-y-4 border-2 border-dashed rounded-xl dark:border-border">
-              <div className="flex justify-center">
-                <BookOpen className="w-12 h-12 text-muted-foreground opacity-50" />
+            <div className={`flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+              <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-inner animate-pulse ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                <BookOpen className="w-12 h-12" />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold">No Syllabus Traced Yet</h3>
-                <p className="text-sm opacity-70 max-w-sm mx-auto mt-1">Please select the Semester, Subject, and Section to load the weekly syllabus tracing workflow.</p>
-              </div>
+              <h3 className={`text-xl md:text-xl font-semibold mb-4 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                No Syllabus Traced Yet
+              </h3>
+              <p className={`text-base md:text-md max-w-md mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Please select the Semester, Subject, and Section to load the weekly syllabus tracing workflow.
+              </p>
             </div>
           )}
         </CardContent>
