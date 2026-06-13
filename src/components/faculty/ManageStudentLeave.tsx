@@ -143,13 +143,9 @@ const ManageStudentLeave = () => {
         <div id="manage-student-leave-header-section">
           <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
             <div className="flex flex-col gap-1.5 w-full">
-              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Approvals</CardTitle>
-              
-              <div className="flex items-start justify-between gap-4 w-full">
-                <p className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} flex-1`}>
-                  Review and approve leave requests submitted by your students
-                </p>
-                
+              <div className="flex items-center justify-between gap-4 w-full">
+                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Approvals</CardTitle>
+
                 {/* Search + Filter container */}
                 <div className="flex items-center gap-3 shrink-0">
                   {/* Search Bar (Laptop/Desktop only) */}
@@ -163,7 +159,7 @@ const ManageStudentLeave = () => {
                   </div>
 
                   {/* Filter Button */}
-                  <div className="relative mt-2 sm:mt-0" ref={filterRef}>
+                  <div className="relative" ref={filterRef}>
                     <Button
                       onClick={() => setShowFilter(!showFilter)}
                       className="bg-primary hover:bg-[#9147e0] text-white flex items-center justify-center gap-1.5 h-9 w-9 sm:w-auto sm:h-10 sm:px-4 rounded-lg font-medium shadow-sm transition-colors text-xs sm:text-sm whitespace-nowrap"
@@ -192,6 +188,9 @@ const ManageStudentLeave = () => {
                   </div>
                 </div>
               </div>
+              <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Review and approve leave requests <br className="block sm:hidden" /> submitted by your students
+              </p>
             </div>
           </CardHeader>
           {/* Search Bar (Mobile/Tablet only: lg:hidden) */}
@@ -259,11 +258,10 @@ const ManageStudentLeave = () => {
 
                     <Button
                       onClick={() => setViewReason(leave.reason)}
-                      className={`w-full mb-3 h-10 rounded-xl font-medium transition-all duration-200 ${
-                        theme === 'dark'
+                      className={`w-full mb-3 h-10 rounded-xl font-medium transition-all duration-200 ${theme === 'dark'
                           ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
                           : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
-                      }`}
+                        }`}
                       variant="outline"
                     >
                       View Reason
@@ -274,8 +272,8 @@ const ManageStudentLeave = () => {
                         <Button
                           variant="outline"
                           className={`flex items-center justify-center gap-1.5 h-10 rounded-xl font-medium ${theme === 'dark'
-                              ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
-                              : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                            ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
+                            : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
                             }`}
                           onClick={() => handleApprove(leave.id)}
                           disabled={!!actionLoading}
@@ -285,8 +283,8 @@ const ManageStudentLeave = () => {
                         <Button
                           variant="outline"
                           className={`flex items-center justify-center gap-1.5 h-10 rounded-xl font-medium ${theme === 'dark'
-                              ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/40'
-                              : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                            ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/40'
+                            : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
                             }`}
                           onClick={() => setShowRejectModal(leave.id)}
                           disabled={!!actionLoading}
@@ -337,8 +335,8 @@ const ManageStudentLeave = () => {
                           <Button
                             onClick={() => setViewReason(leave.reason)}
                             className={`text-xs font-semibold px-3 py-1 rounded-lg transition-colors ${theme === 'dark'
-                                ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
-                                : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
+                              ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
+                              : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
                               }`}
                             variant="outline"
                           >
@@ -356,8 +354,8 @@ const ManageStudentLeave = () => {
                                 size="sm"
                                 variant="outline"
                                 className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
-                                    ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
-                                    : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                  ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
+                                  : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
                                   }`}
                                 disabled={!!actionLoading}
                               >
@@ -369,8 +367,8 @@ const ManageStudentLeave = () => {
                                 size="sm"
                                 variant="outline"
                                 className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
-                                    ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/40'
-                                    : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                  ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/40'
+                                  : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
                                   }`}
                                 disabled={!!actionLoading}
                               >
