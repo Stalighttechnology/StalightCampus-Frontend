@@ -52,12 +52,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const silentRefresh = async () => {
       const storedRole = sessionStorage.getItem("role");
       const storedUserRaw = sessionStorage.getItem("user");
+      const storedAccessToken = sessionStorage.getItem("access_token");
       const hasSession = localStorage.getItem("has_session");
 
       if (!hasSession && (!storedRole || !storedUserRaw)) {
         // No previous session – skip refresh attempt immediately
         setIsInitializing(false);
         return;
+      }
+
+      // Optimistic UI: If we already have the user data in sessionStorage, load it INSTANTLY
+      // so the user doesn't have to wait for the background network requests.
+      if (storedRole && storedUserRaw && storedAccessToken) {
+        setRole(storedRole);
+        setUser(JSON.parse(storedUserRaw));
+        setAccessToken(storedAccessToken);
+        setIsInitializing(false); // Stop the loading spinner immediately
       }
 
       try {
