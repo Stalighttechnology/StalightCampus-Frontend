@@ -416,7 +416,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
 
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Select value={roleFilter} onValueChange={setRoleFilter}>
-                    <SelectTrigger className="w-full sm:w-auto sm:min-w-[160px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 [&>span]:whitespace-nowrap shadow-sm font-medium text-sm">
+                    <SelectTrigger className="w-full sm:w-[150px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:block [&>span]:truncate [&>span]:max-w-[85px] shadow-sm font-medium text-sm">
                       <Filter className="h-4 w-4" />
                       <SelectValue placeholder="Role" />
                     </SelectTrigger>
@@ -427,9 +427,9 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                       <SelectItem value="hms_admin">Hostel Admin</SelectItem>
                     </SelectContent>
                   </Select>
-
+ 
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full sm:w-auto sm:min-w-[130px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 [&>span]:whitespace-nowrap shadow-sm font-medium text-sm">
+                    <SelectTrigger className="w-full sm:w-[130px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:block [&>span]:truncate [&>span]:max-w-[70px] shadow-sm font-medium text-sm">
                       <Filter className="h-4 w-4" />
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
