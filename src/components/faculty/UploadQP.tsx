@@ -120,6 +120,7 @@ const UploadQP = () => {
   const [rejectedQPs, setRejectedQPs] = useState<QuestionPaper[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [isBatchOpen, setIsBatchOpen] = useState(false);
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
   const [isSubjectOpen, setIsSubjectOpen] = useState(false);
   const [isTestTypeOpen, setIsTestTypeOpen] = useState(false);
   const [isSetNumberOpen, setIsSetNumberOpen] = useState(false);
@@ -528,7 +529,8 @@ const UploadQP = () => {
                   <Select value={selected.batch_id ? String(selected.batch_id) : undefined} onValueChange={(v) => {
                     const batchId = Number(v);
                     setSelected((s) => ({ ...s, batch_id: batchId }));
-                  }}>
+                    setTimeout(() => setIsSubjectOpen(true), 150);
+                  }} open={isBatchOpen} onOpenChange={setIsBatchOpen}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select Batch" />
                     </SelectTrigger>
@@ -544,40 +546,21 @@ const UploadQP = () => {
                   </Select>
                 </div>
                 <div>
-                  <label htmlFor="branch-select" className="text-sm">{translateTerminology("Branch")}</label>
-                  <Select value={selected.branch_id ? String(selected.branch_id) : undefined} onValueChange={(v) => {
-                    const branchId = Number(v);
-                    // Auto-select first subject for this branch
-                    const subjectsForBranch = assignments.filter((a) => a.branch_id === branchId);
-                    const firstSubject = subjectsForBranch.length > 0 ? subjectsForBranch[0].subject_id : undefined;
-                    setSelected((s) => ({ ...s, branch_id: branchId, subject_id: firstSubject }));
-                    if (firstSubject) {
-                      setTimeout(() => setIsTestTypeOpen(true), 150);
-                    } else {
-                      setTimeout(() => setIsSubjectOpen(true), 150);
-                    }
-                  }}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={translateTerminology("Select Branch")} />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[200px]">
-                      {dropdownData.branch.length > 0 ? (
-                        dropdownData.branch.map((b) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)
-                      ) : (
-                        <div className="p-2 text-sm text-center text-muted-foreground">
-                          No branch assigned
-                        </div>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
                   <label htmlFor="subject-select" className="text-sm">Subject</label>
                   <Select value={selected.subject_id ? String(selected.subject_id) : undefined} onValueChange={(v) => {
-                    setSelected((s) => ({ ...s, subject_id: Number(v) }));
-                    setTimeout(() => setIsTestTypeOpen(true), 150);
-                  }} disabled={!selected.branch_id} open={isSubjectOpen} onOpenChange={setIsSubjectOpen}>
-                    <SelectTrigger className="w-full" disabled={!selected.branch_id}>
+                    const subjIdNum = Number(v);
+                    const filteredBySubject = assignments.filter((a) => a.subject_id === subjIdNum);
+                    const branches = Array.from(new Map(filteredBySubject.filter((a) => a.branch_id).map((a) => [a.branch_id, { id: a.branch_id, name: a.branch }])).values());
+                    const autoBranchId = branches.length === 1 ? branches[0].id : undefined;
+                    setSelected((s) => ({ ...s, subject_id: subjIdNum, branch_id: autoBranchId }));
+                    setDropdownData((prev) => ({ ...prev, branch: branches }));
+                    if (autoBranchId) {
+                      setTimeout(() => setIsTestTypeOpen(true), 150);
+                    } else {
+                      setTimeout(() => setIsBranchOpen(true), 150);
+                    }
+                  }} disabled={!selected.batch_id} open={isSubjectOpen} onOpenChange={setIsSubjectOpen}>
+                    <SelectTrigger className="w-full" disabled={!selected.batch_id}>
                       <SelectValue placeholder="Select Subject" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[200px]">
@@ -592,12 +575,33 @@ const UploadQP = () => {
                   </Select>
                 </div>
                 <div>
+                  <label htmlFor="branch-select" className="text-sm">{translateTerminology("Branch")}</label>
+                  <Select value={selected.branch_id ? String(selected.branch_id) : undefined} onValueChange={(v) => {
+                    const branchId = Number(v);
+                    setSelected((s) => ({ ...s, branch_id: branchId }));
+                    setTimeout(() => setIsTestTypeOpen(true), 150);
+                  }} disabled={!selected.subject_id} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
+                    <SelectTrigger className="w-full" disabled={!selected.subject_id}>
+                      <SelectValue placeholder={translateTerminology("Select Branch")} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {dropdownData.branch.length > 0 ? (
+                        dropdownData.branch.map((b) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)
+                      ) : (
+                        <div className="p-2 text-sm text-center text-muted-foreground">
+                          No branch assigned
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <label htmlFor="test-type-select" className="text-sm">Test Type</label>
                   <Select value={selected.testType} onValueChange={(v) => {
                     setSelected((s) => ({ ...s, testType: String(v) }));
                     setTimeout(() => setIsSetNumberOpen(true), 150);
-                  }} disabled={!selected.subject_id} open={isTestTypeOpen} onOpenChange={setIsTestTypeOpen}>
-                    <SelectTrigger className="w-full" disabled={!selected.subject_id}>
+                  }} disabled={!selected.branch_id} open={isTestTypeOpen} onOpenChange={setIsTestTypeOpen}>
+                    <SelectTrigger className="w-full" disabled={!selected.branch_id}>
                       <SelectValue placeholder="Select Test Type" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[200px]">
@@ -685,7 +689,7 @@ const UploadQP = () => {
                       </div>
                       <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Required</h3>
                       <p className="max-w-xs text-base leading-relaxed">
-                        Please select Branch, Subject, Test Type, and Set Number to load or create a question paper.
+                        Please select Batch, Subject, Branch, Test Type, and Set Number to load or create a question paper.
                       </p>
                     </div> :
 
@@ -777,7 +781,7 @@ const UploadQP = () => {
                   </div>
                   <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Required</h3>
                   <p className="max-w-xs text-base leading-relaxed">
-                    Please select Branch, Subject, Test Type, and Set Number to preview the question paper.
+                    Please select Batch, Subject, Branch, Test Type, and Set Number to preview the question paper.
                   </p>
                 </div> :
 

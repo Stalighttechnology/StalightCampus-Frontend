@@ -142,6 +142,7 @@ const UploadMarks = () => {
   const [savingMarks, setSavingMarks] = useState(false);
 
   // States to control programmatic opening of subsequent select dropdowns
+  const [isSubjectOpen, setIsSubjectOpen] = useState(false);
   const [isBranchOpen, setIsBranchOpen] = useState(false);
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isSectionOpen, setIsSectionOpen] = useState(false);
@@ -914,7 +915,9 @@ const UploadMarks = () => {
     setSelected(updated);
 
     // Auto-open next dropdown based on selection flow
-    if (field === 'subject_id') {
+    if (field === 'batch_id') {
+      setTimeout(() => setIsSubjectOpen(true), 150);
+    } else if (field === 'subject_id') {
       if (updated.branch_id && updated.semester_id && updated.section_id) {
         setTimeout(() => setIsTestTypeOpen(true), 150);
       } else if (updated.branch_id && updated.semester_id) {
@@ -1014,8 +1017,8 @@ const UploadMarks = () => {
                   )}
                 </SelectContent>
               </Select>
-              <Select value={selected.subject_id?.toString()} onValueChange={(value) => handleSelectChange('subject_id', Number(value))}>
-                <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+              <Select value={selected.subject_id?.toString()} onValueChange={(value) => handleSelectChange('subject_id', Number(value))} disabled={!selected.batch_id} open={isSubjectOpen} onOpenChange={setIsSubjectOpen}>
+                <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.batch_id}>
                   <SelectValue placeholder="Select Subject" />
                 </SelectTrigger>
                 <SelectContent className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} max-h-[200px]`}>
@@ -1086,8 +1089,8 @@ const UploadMarks = () => {
                   )}
                 </SelectContent>
               </Select>
-              <Select value={selected.testType} onValueChange={(value) => handleSelectChange('testType', value)} disabled={!selected.subject_id} open={isTestTypeOpen} onOpenChange={setIsTestTypeOpen}>
-                <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.subject_id}>
+              <Select value={selected.testType} onValueChange={(value) => handleSelectChange('testType', value)} disabled={!selected.section_id} open={isTestTypeOpen} onOpenChange={setIsTestTypeOpen}>
+                <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.section_id}>
                   <SelectValue placeholder="Select TestType" />
                 </SelectTrigger>
                 <SelectContent className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} max-h-[200px]`}>
