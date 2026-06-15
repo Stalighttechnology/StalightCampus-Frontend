@@ -20,7 +20,7 @@ import { Input } from "../ui/input";
 import { useFacultyAssignmentsQuery } from "@/hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
 import { getSyllabusStatus, updateSyllabusProgress, exportSyllabusPdf } from "@/utils/faculty_api";
-import { BookOpen, CheckCircle, Clock, Save, Loader2 } from "lucide-react";
+import { BookOpen, CheckCircle, Clock, Save, Loader2, FileDown } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { showConfirmAlert } from "../../utils/sweetalert";
 
@@ -258,33 +258,51 @@ const SyllabusTracker = () => {
     <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       <Card id="faculty-syllabus-tracker-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <CardHeader id="faculty-syllabus-tracker-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
-            <div className="flex-1 min-w-0">
+          <div className="flex flex-col gap-1 w-full">
+            <div className="flex flex-row justify-between items-center w-full gap-4">
               <h1 className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Syllabus Tracing & Progress
               </h1>
-              <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                Track weekly teaching progress based on department master templates.
-              </p>
+              {syllabusData && (
+                <div className="flex gap-2 shrink-0 items-center">
+                  {/* Mobile View Export PDF Icon Button */}
+                  <Button
+                    onClick={handleExportPDF}
+                    disabled={exportingPDF}
+                    size="icon"
+                    variant="outline"
+                    className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                  >
+                    {exportingPDF ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <FileDown className="w-4 h-4" />
+                    )}
+                  </Button>
+
+                  {/* Desktop / Tablet View Export PDF Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportPDF}
+                    disabled={exportingPDF}
+                    className="hidden sm:flex bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all w-auto items-center justify-center gap-2 text-sm"
+                  >
+                    {exportingPDF ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Exporting...
+                      </>
+                    ) : (
+                      "Export PDF"
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
-            {syllabusData && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportPDF}
-                disabled={exportingPDF}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all w-full sm:w-auto self-start sm:self-auto text-sm"
-              >
-                {exportingPDF ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Exporting...
-                  </>
-                ) : (
-                  "Export PDF"
-                )}
-              </Button>
-            )}
+            <p className={`hidden sm:block text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Track weekly teaching progress based on department master templates.
+            </p>
           </div>
         </CardHeader>
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">

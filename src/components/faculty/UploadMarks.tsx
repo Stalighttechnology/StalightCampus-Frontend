@@ -832,6 +832,7 @@ const UploadMarks = () => {
   const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
   const currentStudents = students; // server returns current page items
   const totalPages = pagination ? pagination.total_pages : Math.ceil(students.length / studentsPerPage);
+  const totalCount = pagination ? pagination.total : students.length;
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const toggleExpanded = (key: string) => {
@@ -1380,36 +1381,38 @@ const UploadMarks = () => {
                       </table>
                     </div>
 
-                    <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-                      <div>
-                        Page {currentPage} of {totalPages}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                          onClick={handlePrevPage}
-                          disabled={pagination ? !pagination.has_previous : currentPage === 1}
-                        >
-                          Previous
-                        </Button>
-                        <div className="flex items-center justify-center min-w-[2rem]">
-                          <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                            {currentPage}
-                          </span>
+                    {totalPages > 1 && (
+                      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                        <div>
+                          Showing {Math.min((currentPage - 1) * studentsPerPage + 1, totalCount)} to {Math.min(currentPage * studentsPerPage, totalCount)} of {totalCount} students
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                          onClick={handleNextPage}
-                          disabled={pagination ? !pagination.has_next : currentPage === totalPages}
-                        >
-                          Next
-                        </Button>
-                      </div>
-                    </CardFooter>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                            onClick={handlePrevPage}
+                            disabled={pagination ? !pagination.has_previous : currentPage === 1}
+                          >
+                            Previous
+                          </Button>
+                          <div className="flex items-center justify-center min-w-[2rem]">
+                            <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                              {currentPage}
+                            </span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                            onClick={handleNextPage}
+                            disabled={pagination ? !pagination.has_next : currentPage === totalPages}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </CardFooter>
+                    )}
                   </div>
                 }
 

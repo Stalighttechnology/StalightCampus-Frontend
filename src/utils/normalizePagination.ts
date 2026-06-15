@@ -8,7 +8,7 @@ export function normalizePaginatedResponse(resp: any, itemsKey = 'results') {
     return {
       items: Array.isArray(items) ? items : [],
       meta: {
-        totalItems: resp.count ?? resp.total_items ?? null,
+        totalItems: resp.count ?? resp.total_items ?? resp.total ?? null,
         totalPages: resp.total_pages ?? null,
         currentPage: resp.page ?? resp.current_page ?? null,
         pageSize: resp.page_size ?? resp.pageSize ?? null,
@@ -26,8 +26,8 @@ export function normalizePaginatedResponse(resp: any, itemsKey = 'results') {
     return {
       items,
       meta: {
-        totalItems: pag.count ?? null,
-        totalPages: Math.ceil((pag.count || 0) / (pag.page_size || pag.pageSize || 1)),
+        totalItems: pag.count ?? pag.total ?? null,
+        totalPages: Math.ceil((pag.count || pag.total || 0) / (pag.page_size || pag.pageSize || 1)),
         currentPage: pag.current_page ?? pag.page ?? null,
         next: pag.next ?? null,
         previous: pag.previous ?? null,
@@ -45,7 +45,7 @@ export function normalizePaginatedResponse(resp: any, itemsKey = 'results') {
     return {
       items: Array.isArray(items) ? items : [],
       meta: {
-        totalItems: meta.total_items ?? meta.total_students ?? meta.count ?? meta.totalItems ?? null,
+        totalItems: meta.total_items ?? meta.total_students ?? meta.count ?? meta.totalItems ?? meta.total ?? null,
         totalPages: meta.total_pages ?? meta.totalPages ?? null,
         currentPage: meta.page ?? meta.current_page ?? meta.currentPage ?? null,
         pageSize: meta.page_size ?? meta.pageSize ?? null,
