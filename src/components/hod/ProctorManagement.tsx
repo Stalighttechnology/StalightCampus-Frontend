@@ -687,7 +687,15 @@ const ProctorStudents = () => {
                     <SelectValue placeholder={state.loadingProctors ? "Loading..." : (state.proctors.length === 0 ? "No proctors" : "Choose a proctor")} />
                   </SelectTrigger>
                   <SelectContent className={`max-h-[320px] overflow-hidden flex flex-col z-[9999] ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
-                    <div className={`px-3 py-2 border-b border-border sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
+                    <div 
+                      className={`px-3 py-2 border-b border-border sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      onTouchEnd={(e) => e.stopPropagation()}
+                    >
                       <div className="relative">
                         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                         <input
@@ -698,12 +706,17 @@ const ProctorStudents = () => {
                           onChange={(e) => setLocalProctorSearch(e.target.value)}
                           onKeyDown={(e) => e.stopPropagation()}
                           onMouseDown={(e) => e.stopPropagation()}
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
                           onTouchStart={(e) => e.stopPropagation()}
+                          onTouchEnd={(e) => e.stopPropagation()}
                           className={`w-full pl-8 pr-10 py-1.5 text-sm rounded border ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
                         {localProctorSearch && (
                           <button
                             onClick={(e) => { e.stopPropagation(); setLocalProctorSearch(""); }}
                             onMouseDown={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-primary hover:text-primary/80 transition-colors"
                           >
                             Clear
@@ -892,7 +905,15 @@ const ProctorStudents = () => {
                       <SelectValue placeholder={state.loadingProctors ? "Loading..." : translateTerminology("Choose Proctor")} />
                     </SelectTrigger>
                     <SelectContent className={`max-h-[320px] overflow-hidden flex flex-col z-[9999] ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
-                      <div className={`px-3 py-2 border-b border-border sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
+                      <div 
+                        className={`px-3 py-2 border-b border-border sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
+                        onTouchEnd={(e) => e.stopPropagation()}
+                      >
                         <div className="relative">
                           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                           <input
@@ -903,12 +924,17 @@ const ProctorStudents = () => {
                             onChange={(e) => setLocalProctorSearch(e.target.value)}
                             onKeyDown={(e) => e.stopPropagation()}
                             onMouseDown={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
                             onTouchStart={(e) => e.stopPropagation()}
+                            onTouchEnd={(e) => e.stopPropagation()}
                             className={`w-full pl-8 pr-10 py-1.5 text-sm rounded border ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
                         {localProctorSearch && (
                           <button
                             onClick={(e) => { e.stopPropagation(); setLocalProctorSearch(""); }}
                             onMouseDown={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-primary hover:text-primary/80 transition-colors"
                           >
                             Clear
