@@ -344,8 +344,8 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
         )}
 
         {/* Search and Export */}
-        <div className="flex justify-between items-center flex-wrap gap-4 mt-8">
-          <div id="admin-search-bar" className={`flex items-center w-full sm:w-1/2 rounded-lg px-4 py-2 shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+        <div className="flex flex-row items-center gap-2 mt-8 w-full">
+          <div id="admin-search-bar" className={`flex items-center flex-1 rounded-lg px-4 py-2 shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
             <FiSearch className={theme === 'dark' ? "text-foreground mr-3" : "text-gray-500 mr-3"} />
             <input
               type="text"
@@ -353,15 +353,31 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className={`w-full outline-none text-sm bg-transparent ${theme === 'dark' ? 'text-foreground placeholder:text-muted-foreground' : 'text-gray-900 placeholder:text-gray-500'}`} />
-
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors ml-2 whitespace-nowrap"
+              >
+                Clear
+              </button>
+            )}
           </div>
+          
+          {/* Desktop Export PDF Button */}
           <button
             onClick={handleExportPDF}
             disabled={downloadingPDF}
-            className="flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-lg shadow-md transition duration-200 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed">
-
+            className="hidden sm:flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-lg shadow-md transition duration-200 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
             {downloadingPDF ? <Loader2 className="animate-spin" size={16} /> : <FiDownload />}
             {downloadingPDF ? "Exporting..." : "Export PDF"}
+          </button>
+
+          {/* Mobile Export PDF Icon Button */}
+          <button
+            onClick={handleExportPDF}
+            disabled={downloadingPDF}
+            className="flex sm:hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-input bg-background text-foreground shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+            {downloadingPDF ? <Loader2 className="animate-spin" size={16} /> : <FiDownload />}
           </button>
         </div>
 

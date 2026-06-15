@@ -600,7 +600,7 @@ export const BillingManagement: React.FC = () => {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 flex-1 w-full">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 flex-1 w-full">
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Organization Name</p>
                   <p className="font-medium text-sm text-foreground">{org?.name || 'N/A'}</p>
@@ -617,11 +617,11 @@ export const BillingManagement: React.FC = () => {
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Tax ID / GSTIN</p>
                   <p className="font-medium text-sm text-foreground">{org?.tax_id || 'N/A'}</p>
                 </div>
-                <div className="sm:col-span-2 lg:col-span-3">
+                <div className="col-span-2 lg:col-span-3">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Institution Address</p>
                   <p className="font-medium text-sm text-foreground">{org?.address || 'N/A'}</p>
                 </div>
-                <div className="sm:col-span-2 lg:col-span-3">
+                <div className="col-span-2 lg:col-span-3">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Billing Address</p>
                   <p className="font-medium text-sm text-foreground">{org?.billing_address || 'N/A'}</p>
                 </div>
