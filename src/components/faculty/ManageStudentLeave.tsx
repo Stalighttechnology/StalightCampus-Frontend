@@ -26,10 +26,14 @@ const ManageStudentLeave = () => {
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
+  const mobileFilterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const inDesktop = filterRef.current && filterRef.current.contains(target);
+      const inMobile = mobileFilterRef.current && mobileFilterRef.current.contains(target);
+      if (!inDesktop && !inMobile) {
         setShowFilter(false);
       }
     };
@@ -141,20 +145,19 @@ const ManageStudentLeave = () => {
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card id="manage-student-leave-card" className={`${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200 shadow-sm'}`}>
         <div id="manage-student-leave-header-section">
-          <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+          <CardHeader className="px-4 sm:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
             <div className="flex flex-col gap-0.5 w-full">
               <div className="flex items-start justify-between gap-4 w-full">
                 <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Approvals</CardTitle>
 
-                {/* Search + Filter container */}
-                <div className="flex items-start gap-3 shrink-0">
-                  {/* Search Bar (Laptop/Desktop only) */}
-                  <div className="hidden lg:block w-64">
+                {/* Search + Filter container (Laptop/Desktop only) */}
+                <div className="hidden lg:flex items-start gap-3 shrink-0">
+                  <div className="w-64">
                     <Input
                       placeholder="Search student..."
                       value={search}
                       onChange={(e) => handleSearchChange(e.target.value)}
-                      className={`text-sm h-8 sm:h-10 ${theme === 'dark' ? 'bg-background border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
+                      className={`text-sm h-10 ${theme === 'dark' ? 'bg-background border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
                     />
                   </div>
 
@@ -162,10 +165,10 @@ const ManageStudentLeave = () => {
                   <div className="relative" ref={filterRef}>
                     <Button
                       onClick={() => setShowFilter(!showFilter)}
-                      className="bg-primary hover:bg-[#9147e0] text-white flex items-center justify-center gap-1.5 h-9 w-9 sm:w-auto sm:h-10 sm:px-4 rounded-lg font-medium shadow-sm transition-colors text-xs sm:text-sm whitespace-nowrap"
+                      className="bg-primary hover:bg-[#9147e0] text-white flex items-center justify-center gap-1.5 h-10 px-4 rounded-lg font-medium shadow-sm transition-colors text-sm whitespace-nowrap"
                     >
-                      <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">Filter</span>
+                      <Filter className="w-4 h-4" />
+                      <span>Filter</span>
                     </Button>
                     {showFilter && (
                       <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-xl shadow-lg z-20 overflow-hidden`}>
@@ -193,15 +196,44 @@ const ManageStudentLeave = () => {
               </p>
             </div>
           </CardHeader>
-          {/* Search Bar (Mobile/Tablet only: lg:hidden) */}
-          <div className="p-4 sm:p-6 lg:hidden">
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Search student..."
-                value={search}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className={`w-full text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
-              />
+          {/* Search + Filter Bar (Mobile/Tablet only: lg:hidden) */}
+          <div className="p-4 sm:p-6 pb-4 lg:hidden">
+            <div className="flex items-center gap-2 w-full">
+              <div className="flex-1">
+                <Input
+                  placeholder="Search student..."
+                  value={search}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className={`w-full text-sm h-10 ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
+                />
+              </div>
+              <div className="relative" ref={mobileFilterRef}>
+                <Button
+                  onClick={() => setShowFilter(!showFilter)}
+                  className="bg-primary hover:bg-[#9147e0] text-white flex items-center justify-center gap-1.5 h-10 px-3 rounded-lg font-medium shadow-sm transition-colors text-xs whitespace-nowrap"
+                >
+                  <Filter className="w-3.5 h-3.5" />
+                  <span>Filter</span>
+                </Button>
+                {showFilter && (
+                  <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-xl shadow-lg z-20 overflow-hidden`}>
+                    <div className="py-1">
+                      {statusOptions.map((status) => (
+                        <button
+                          key={status}
+                          className={`block w-full text-left px-4 py-2 text-sm hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-100'} ${filterStatus === status ? theme === 'dark' ? 'bg-accent text-accent-foreground' : 'bg-gray-100 text-gray-900 font-semibold' : theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}
+                          onClick={() => {
+                            handleFilterChange(status);
+                            setShowFilter(false);
+                          }}
+                        >
+                          {status}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

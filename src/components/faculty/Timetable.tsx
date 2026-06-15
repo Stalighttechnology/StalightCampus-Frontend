@@ -120,8 +120,24 @@ const Timetable = ({ role }: TimetableProps) => {
   return (
     <Card id="timetable-card">
       <CardHeader id="timetable-card-header" className="flex flex-row items-center justify-between bg-card px-4 py-3 rounded-t-md">
-        <CardTitle>Timetable</CardTitle>
-        <div className="flex space-x-2">
+        <div className="flex items-center justify-between w-full sm:w-auto gap-2">
+          <CardTitle>Timetable</CardTitle>
+          {/* Mobile Export PDF Icon Button */}
+          <Button
+            onClick={exportPDF}
+            disabled={downloadingPDF || loading || timetableData.length === 0 || timetableData.every((day) => day.slots.length === 0)}
+            size="icon"
+            variant="outline"
+            className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+          >
+            {downloadingPDF ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+          </Button>
+        </div>
+        <div className="hidden sm:flex space-x-2">
           <Button
             onClick={exportPDF}
             disabled={downloadingPDF || loading || timetableData.length === 0 || timetableData.every((day) => day.slots.length === 0)}
@@ -132,7 +148,7 @@ const Timetable = ({ role }: TimetableProps) => {
             ) : (
               <Download className="w-4 h-4" />
             )}
-            <span className="ml-2 hidden sm:inline">
+            <span className="ml-2">
               {downloadingPDF ? "Exporting..." : "Export PDF"}
             </span>
           </Button>

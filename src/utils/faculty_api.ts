@@ -802,11 +802,13 @@ export const getProctorStudents = async (params?: {
 export const getProctorStudentsForStats = async (params?: {
   page?: number;
   page_size?: number;
+  search?: string;
 }): Promise<GetProctorStudentsResponse> => {
   try {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.page_size) queryParams.append('page_size', params.page_size.toString());
+    if (params?.search) queryParams.append('search', params.search);
     // Ask backend to return a minimal payload optimized for statistics
     queryParams.append('minimal', 'true');
 

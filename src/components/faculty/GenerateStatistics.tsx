@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileDown, Users } from "lucide-react";
+import { FileDown, Users, Search } from "lucide-react";
+import { Input } from "../ui/input";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid, ResponsiveContainer, LabelList } from "recharts";
 import { ProctorStudent, getProctorStudentsForStats } from '../../utils/faculty_api';
 import { normalizePaginatedResponse } from '../../utils/normalizePagination';
@@ -9,7 +10,8 @@ import { paginationToUI } from '../../utils/paginationToUI';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { useTheme } from "@/context/ThemeContext";
-import { SkeletonChart, SkeletonTable, SkeletonCard } from "@/components/ui/skeleton";
+import { useDebouncedSearch } from "@/hooks/useOptimizations";
+import { SkeletonChart, SkeletonTable, SkeletonCard, Skeleton } from "@/components/ui/skeleton";
 
 const GenerateStatistics: React.FC = () => {
   const [proctorStudents, setProctorStudents] = useState<ProctorStudent[]>([]);
@@ -19,16 +21,22 @@ const GenerateStatistics: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const { value: search, debouncedValue: debouncedSearch, setValue: setSearch } = useDebouncedSearch('', 500);
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    setPage(1);
+  };
 
   // Initial fetch and subsequent refetches are handled by the effect below
 
-  // refetch when page or pageSize changes
+  // refetch when page, pageSize, or debouncedSearch changes
   useEffect(() => {
     let mounted = true;
     const refetch = async () => {
       setProctorStudentsLoading(true);
       try {
-        const res = await getProctorStudentsForStats({ page, page_size: pageSize });
+        const res = await getProctorStudentsForStats({ page, page_size: pageSize, search: debouncedSearch });
         if (res.success && res.data) {
           const norm = normalizePaginatedResponse(res, 'data');
           const items = norm.items && norm.items.length ? norm.items : res.data;
@@ -45,7 +53,7 @@ const GenerateStatistics: React.FC = () => {
     };
     refetch();
     return () => { mounted = false; };
-  }, [page, pageSize]);
+  }, [page, pageSize, debouncedSearch]);
   const { theme } = useTheme();
 
   // Helper function to format attendance percentage
@@ -73,8 +81,10 @@ const GenerateStatistics: React.FC = () => {
   const handleExportPDF = async () => {
     setDownloadingPDF(true);
     try {
+      const params = new URLSearchParams();
+      if (debouncedSearch) params.append('search', debouncedSearch);
       const response = await fetchWithTokenRefresh(
-        `${API_ENDPOINT}/faculty/proctor-students/export-pdf/`
+        `${API_ENDPOINT}/faculty/proctor-students/export-pdf/?${params.toString()}`
       );
       if (response.ok) {
         const blob = await response.blob();
@@ -121,19 +131,7 @@ const GenerateStatistics: React.FC = () => {
     })(),
   }));
 
-  if (proctorStudentsLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SkeletonChart />
-          <SkeletonChart />
-        </div>
-        <SkeletonCard className="h-[400px]">
-          <SkeletonTable rows={10} cols={4} />
-        </SkeletonCard>
-      </div>
-    );
-  }
+
 
   return (
     <div id="generate-statistics-container" className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'} space-y-4 sm:space-y-6 min-h-screen`}>
@@ -147,7 +145,9 @@ const GenerateStatistics: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2 sm:p-4">
-            {proctorStudents.length > 0 ? (
+            {proctorStudentsLoading ? (
+              <Skeleton className="h-[200px] w-full rounded-lg" />
+            ) : proctorStudents.length > 0 ? (
               <div className="overflow-x-auto custom-scrollbar pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
                 <div style={{ width: proctorStudents.length > 6 ? `${proctorStudents.length * 70}px` : "100%", minWidth: "100%" }}>
                   <ResponsiveContainer width="100%" height={200}>
@@ -198,7 +198,9 @@ const GenerateStatistics: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2 sm:p-4">
-            {proctorStudents.length > 0 ? (
+            {proctorStudentsLoading ? (
+              <Skeleton className="h-[200px] w-full rounded-lg" />
+            ) : proctorStudents.length > 0 ? (
               <div className="overflow-x-auto custom-scrollbar pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
                 <div style={{ width: proctorStudents.length > 6 ? `${proctorStudents.length * 70}px` : "100%", minWidth: "100%" }}>
                   <ResponsiveContainer width="100%" height={200}>
@@ -250,28 +252,13 @@ const GenerateStatistics: React.FC = () => {
         <CardHeader id="statistics-table-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between w-full sm:w-auto gap-2">
-                <div className="flex items-center gap-3">
-                  <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
-                  {totalCount > 0 &&
-                    <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
-                      {totalCount} Total
-                    </span>
-                  }
-                </div>
-                {/* Mobile Export PDF Icon Button */}
-                <Button
-                  onClick={handleExportPDF}
-                  disabled={downloadingPDF || proctorStudents.length === 0}
-                  size="icon"
-                  variant="outline"
-                  className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background mt-1"
-                >
-                  {downloadingPDF
-                    ? <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    : <FileDown className="h-4 w-4" />
-                  }
-                </Button>
+              <div className="flex items-center gap-3">
+                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
+                {totalCount > 0 &&
+                  <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
+                    {totalCount} Total
+                  </span>
+                }
               </div>
               <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 View and export performance and attendance statistics for your proctored students
@@ -295,8 +282,42 @@ const GenerateStatistics: React.FC = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-2 sm:p-6">
-          {proctorStudents.length > 0 ? (
+        <CardContent className="space-y-4 p-2 sm:p-6">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+              <Input
+                placeholder="Search by USN or name..."
+                value={search}
+                onChange={e => handleSearchChange(e.target.value)}
+                className={`pl-10 pr-12 ${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}
+              />
+              {search && (
+                <button
+                  onClick={() => handleSearchChange("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            {/* Mobile Export PDF Icon Button */}
+            <Button
+              onClick={handleExportPDF}
+              disabled={downloadingPDF || proctorStudents.length === 0}
+              size="icon"
+              variant="outline"
+              className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+            >
+              {downloadingPDF
+                ? <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                : <FileDown className="h-4 w-4" />
+              }
+            </Button>
+          </div>
+          {proctorStudentsLoading ? (
+            <SkeletonTable rows={10} cols={4} />
+          ) : proctorStudents.length > 0 ? (
             <div className="w-full overflow-x-auto">
               <table className="w-full text-xs sm:text-sm border-collapse">
                 <thead className={theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}>
@@ -336,7 +357,9 @@ const GenerateStatistics: React.FC = () => {
               </div>
               <h3 className="text-lg font-semibold mb-1">No students found</h3>
               <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                You don't have any students assigned for proctoring yet.
+                {debouncedSearch
+                  ? `We couldn't find any proctor students matching "${debouncedSearch}".`
+                  : "You don't have any students assigned for proctoring yet."}
               </p>
             </div>
           )}

@@ -62,46 +62,18 @@ const ProctorStudents = () => {
 
   const proctorStudents = proctorData?.data || [];
 
-  if (proctorStudentsLoading) {
-    return (
-      <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
-        <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
-          <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SkeletonTable rows={10} cols={5} />
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
       <CardHeader id="proctor-students-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between w-full sm:w-auto gap-2">
-              <div className="flex items-center gap-2">
-                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
-                {pagination?.paginationState?.totalItems !== undefined && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-                    {pagination.paginationState.totalItems} Total
-                  </span>
-                )}
-              </div>
-              {/* Mobile Export PDF Icon Button */}
-              <Button
-                onClick={handleExportPDF}
-                disabled={downloadingPDF || proctorStudents.length === 0}
-                size="icon"
-                variant="outline"
-                className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background mt-1"
-              >
-                {downloadingPDF
-                  ? <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                  : <FileDown className="w-4 h-4" />
-                }
-              </Button>
+            <div className="flex items-center gap-2">
+              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
+              {pagination?.paginationState?.totalItems !== undefined && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                  {pagination.paginationState.totalItems} Total
+                </span>
+              )}
             </div>
             <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               View and export performance and attendance statistics for your proctored students
@@ -122,16 +94,41 @@ const ProctorStudents = () => {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="relative">
-          <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-          <Input
-            placeholder="Search by USN or name..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className={`pl-10 ${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}
-          />
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+            <Input
+              placeholder="Search by USN or name..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className={`pl-10 pr-12 ${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          {/* Mobile Export PDF Icon Button */}
+          <Button
+            onClick={handleExportPDF}
+            disabled={downloadingPDF || proctorStudents.length === 0}
+            size="icon"
+            variant="outline"
+            className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+          >
+            {downloadingPDF
+              ? <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              : <FileDown className="w-4 h-4" />
+            }
+          </Button>
         </div>
-        {proctorStudents.length > 0 ? (
+        {proctorStudentsLoading ? (
+          <SkeletonTable rows={10} cols={5} />
+        ) : proctorStudents.length > 0 ? (
           <div className="max-h-max overflow-y-auto overflow-x-auto">
             <table className={`min-w-full rounded-md ${theme === 'dark' ? 'border border-border' : 'border border-gray-200'}`}>
               <thead className={theme === 'dark' ? 'bg-muted text-foreground' : 'bg-gray-100 text-gray-900'}>
