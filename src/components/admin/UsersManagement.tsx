@@ -621,20 +621,33 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
       <div className={`users-container text-sm sm:text-base max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
         <Card id="users-management-card" className={`users-card ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
           <div id="users-management-header-filters">
-            <CardHeader className="users-card-header flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
+            <CardHeader className="users-card-header flex flex-row items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
                 <CardTitle className={`users-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>User Management</CardTitle>
                 <p className={`users-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage all users in the system</p>
               </div>
+              
+              {/* Desktop Download PDF Button */}
               <Button
                 onClick={handleDownloadPDF}
                 disabled={!isAnyFilterActive || downloadingPDF}
-                className={`flex items-center gap-2 px-4 py-2 font-medium transition-all duration-200 shrink-0 w-full sm:w-auto justify-center ${
+                className={`hidden sm:flex items-center gap-2 px-4 py-2 font-medium transition-all duration-200 shrink-0 w-auto justify-center ${
                   theme === 'dark' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'
                 }`}
               >
                 {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
                 {downloadingPDF ? "Exporting..." : "Download PDF"}
+              </Button>
+
+              {/* Mobile Download PDF Icon Button */}
+              <Button
+                onClick={handleDownloadPDF}
+                disabled={!isAnyFilterActive || downloadingPDF}
+                size="icon"
+                variant="outline"
+                className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+              >
+                {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
               </Button>
             </CardHeader>
              <CardContent className="users-card-content pb-0">
