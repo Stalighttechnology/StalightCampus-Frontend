@@ -1105,14 +1105,25 @@ const Timetable = () => {
       <Card id="timetable-card" className="shadow-xl">
         <div id="timetable-header-filters-section">
           <CardHeader id="timetable-card-header" className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card px-4 py-3 rounded-t-md gap-4">
-            <CardTitle className="text-2xl font-semibold text-foreground">Timetable</CardTitle>
+            <div className="flex items-center justify-between w-full sm:w-auto">
+              <CardTitle className="text-2xl font-semibold text-foreground">Timetable</CardTitle>
+              {/* Mobile Download PDF Icon Button */}
+              <Button
+                onClick={handleExportPDF}
+                disabled={downloadingPDF || !state.semesterId || !state.sectionId}
+                size="icon"
+                variant="outline"
+                className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+              >
+                {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <DownloadIcon className="w-4 h-4" />}
+              </Button>
+            </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <Button
                 variant="outline"
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
+                className="hidden sm:flex flex-1 sm:flex-none items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
                 onClick={handleExportPDF}
                 disabled={downloadingPDF || !state.semesterId || !state.sectionId}>
-                
                 {downloadingPDF ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
