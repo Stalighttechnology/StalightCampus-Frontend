@@ -103,6 +103,7 @@ const AdminHODAttendance: React.FC = () => {
   const [endDateOpen, setEndDateOpen] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [exportingToday, setExportingToday] = useState(false);
 
   const getStatusIcon = (status: string) => {
     const s = (status || '').toLowerCase();
@@ -250,6 +251,32 @@ const AdminHODAttendance: React.FC = () => {
     }
   };
 
+  const handleExportTodayPDF = async () => {
+    setExportingToday(true);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/hod-attendance-today/export-pdf/`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const todayStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        a.download = `HOD_Attendance_Today_${todayStr.replace(/ /g, '_')}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const result = await response.json().catch(() => ({}));
+        Swal.fire("Error", result.message || "Failed to export PDF", "error");
+      }
+    } catch (err) {
+      Swal.fire("Error", "Network error while exporting PDF", "error");
+    } finally {
+      setExportingToday(false);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'today') {
       fetchToday(todayPagination.page, todayPagination.page_size);
@@ -377,10 +404,43 @@ const AdminHODAttendance: React.FC = () => {
             </div>
           </div>
           <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
-            <CardHeader className="px-6 py-4 border-b border-border">
+            <CardHeader className="px-6 py-4 border-b border-border flex flex-row justify-between items-center gap-4">
               <CardTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Today's HOD Attendance ({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})
+                Today's HOD Attendance <span className="block sm:inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
               </CardTitle>
+              {/* Desktop Export PDF Button */}
+              <Button
+                onClick={handleExportTodayPDF}
+                disabled={exportingToday}
+                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 hover:text-white transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
+              >
+                {exportingToday ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                    <span>Downloading...</span>
+                  </>
+                ) : (
+                  <>
+                    <FileDown className="w-4 h-4" />
+                    <span>Export PDF</span>
+                  </>
+                )}
+              </Button>
+
+              {/* Mobile Export PDF Icon Button */}
+              <Button
+                onClick={handleExportTodayPDF}
+                disabled={exportingToday}
+                size="icon"
+                variant="outline"
+                className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+              >
+                {exportingToday ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                ) : (
+                  <FileDown className="w-4 h-4" />
+                )}
+              </Button>
             </CardHeader>
             <CardContent className="p-0">
               <div className="hidden md:block overflow-x-auto">
@@ -589,27 +649,7 @@ const AdminHODAttendance: React.FC = () => {
                   className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 text-white">
                   Apply Filter
                 </Button>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  disabled={!hasSearched || exporting}
-                  onClick={handleExportPDF}
-                  className="flex sm:hidden h-10 w-10 shrink-0 items-center justify-center border border-input bg-background"
-                  title="Export PDF"
-                >
-                  {exporting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-                  ) : (
-                    <FileDown className="w-4 h-4 text-foreground" />
-                  )}
-                </Button>
               </div>
-              <Button
-                disabled={!hasSearched || exporting}
-                onClick={handleExportPDF}
-                className="hidden sm:flex w-full sm:w-auto bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:cursor-not-allowed">
-                {exporting ? "Exporting..." : "Export PDF"}
-              </Button>
             </div>
           </div>
           </div>
@@ -636,8 +676,41 @@ const AdminHODAttendance: React.FC = () => {
             </div> :
 
           <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
-              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <div className={`px-6 py-4 border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'} flex items-center justify-between gap-4`}>
                 <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>HOD Attendance Summary</h3>
+                {/* Desktop Export PDF Button */}
+                <Button
+                  disabled={!hasSearched || exporting}
+                  onClick={handleExportPDF}
+                  className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 hover:text-white transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
+                >
+                  {exporting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                      <span>Exporting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileDown className="w-4 h-4" />
+                      <span>Export PDF</span>
+                    </>
+                  )}
+                </Button>
+
+                {/* Mobile Export PDF Icon Button */}
+                <Button
+                  disabled={!hasSearched || exporting}
+                  onClick={handleExportPDF}
+                  size="icon"
+                  variant="outline"
+                  className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+                >
+                  {exporting ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                  ) : (
+                    <FileDown className="w-4 h-4" />
+                  )}
+                </Button>
               </div>
               <div className="overflow-x-auto">
                 <Table>
