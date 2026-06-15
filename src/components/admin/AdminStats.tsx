@@ -272,7 +272,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       <div>
 
         {/* Dashboard Cards */}
-        <div id="admin-stats-grid" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div id="admin-stats-grid" className={`grid grid-cols-2 sm:grid-cols-2 ${user?.role === "org_admin" ? "lg:grid-cols-5" : "lg:grid-cols-3"} gap-4 sm:gap-6`}>
           <DashboardCard
             title={translateTerminology("Branches")}
             value={stats.total_branches || 0}
@@ -560,7 +560,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       {/* Action Cards */}
       <div
         id="admin-action-cards"
-        className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+        className={`grid grid-cols-2 md:grid-cols-2 ${user?.role === "org_admin" ? "lg:grid-cols-5" : "lg:grid-cols-4"} gap-4 mt-8`}>
 
         <DashboardCard
           id="enroll-user-card"
@@ -569,7 +569,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
           icon={<User size={20} />}
           onClick={() => handleCardClick("enroll-user")} />
 
-        {userTier >= 3 && (
+        {user?.role !== "org_admin" && userTier >= 3 && (
           <DashboardCard
             id="bulk-upload-card"
             title="Bulk Upload Faculty"
@@ -585,7 +585,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
           icon={<GitBranch size={20} />}
           onClick={() => handleCardClick("branches")} />
 
-        {userTier >= 3 && (
+        {user?.role !== "org_admin" && userTier >= 3 && (
           <DashboardCard
             id="faculty-assignments-card"
             title="Faculty Assignments"
@@ -608,7 +608,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
           icon={<Bell size={20} />}
           onClick={() => handleCardClick("announcement-management")} />
 
-        {userTier >= 3 && (
+        {user?.role !== "org_admin" && userTier >= 3 && (
           <DashboardCard
             id="hod-leaves-card"
             title={translateTerminology("HOD Leaves")}
