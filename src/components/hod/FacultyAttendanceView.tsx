@@ -681,7 +681,7 @@ const FacultyAttendanceView: React.FC = () => {
                   </table>
                 </div>
               </CardContent>
-              {todayAttendance.length > 1 && (
+              {todayPagination.total_pages > 1 && (
                 <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                   <div>
                     Showing {todayAttendance.length > 0 ? (todayPagination.page - 1) * todayPagination.page_size + 1 : 0} to {Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)} of {todayPagination.total_items} faculty
@@ -953,7 +953,7 @@ const FacultyAttendanceView: React.FC = () => {
                   </div>
                 </CardContent>
 
-                {facultySummary.length > 0 && (
+                {recordsPagination.total_pages > 1 && (
                   <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                     <div>
                       Showing {recordsPagination.total_items > 0 ? Math.min((recordsPagination.page - 1) * recordsPagination.page_size + 1, recordsPagination.total_items) : 0} to {Math.min(recordsPagination.page * recordsPagination.page_size, recordsPagination.total_items)} of {recordsPagination.total_items} records
