@@ -678,15 +678,27 @@ const ProctorStudents = () => {
                   <label className={`block text-sm sm:text-sm mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                     Choose a Proctor
                   </label>
-                  <Select
+                  <Select 
                     open={isProctorOpen}
-                    onOpenChange={setIsProctorOpen}
+                    onOpenChange={(open) => {
+                      if (!open && document.activeElement?.tagName.toLowerCase() === 'input') {
+                        return;
+                      }
+                      setIsProctorOpen(open);
+                    }}
                     onValueChange={(value) => updateState({ selectedProctor: value })}
                     disabled={state.loading || state.proctors.length === 0}>
                     <SelectTrigger className={`text-base w-full ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                       <SelectValue placeholder={state.loadingProctors ? "Loading..." : (state.proctors.length === 0 ? "No proctors" : "Choose a proctor")} />
                     </SelectTrigger>
-                    <SelectContent className={`max-h-[320px] overflow-hidden flex flex-col z-[9999] ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
+                    <SelectContent 
+                      className={`max-h-[320px] overflow-hidden flex flex-col z-[9999] ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}
+                      onInteractOutside={() => {
+                        if (document.activeElement?.tagName.toLowerCase() === 'input') {
+                          (document.activeElement as HTMLElement).blur();
+                        }
+                      }}
+                    >
                       <div
                         className={`px-3 py-2 border-b border-border sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}
                         onKeyDown={(e) => e.stopPropagation()}
@@ -900,7 +912,12 @@ const ProctorStudents = () => {
                     <label className={`text-sm sm:text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{translateTerminology("Proctor")}</label>
                     <Select
                       open={isProctorOpen}
-                      onOpenChange={setIsProctorOpen}
+                      onOpenChange={(open) => {
+                        if (!open && document.activeElement?.tagName.toLowerCase() === 'input') {
+                          return;
+                        }
+                        setIsProctorOpen(open);
+                      }}
                       value={state.filters.proctor_id}
                       onValueChange={(value) => handleFilterChange("proctor_id", value)}
                       disabled={state.loading || state.proctors.length === 0 || !state.filters.section_id}
@@ -908,7 +925,14 @@ const ProctorStudents = () => {
                       <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || state.proctors.length === 0 || !state.filters.section_id}>
                         <SelectValue placeholder={state.loadingProctors ? "Loading..." : translateTerminology("Choose Proctor")} />
                       </SelectTrigger>
-                      <SelectContent className={`max-h-[320px] overflow-hidden flex flex-col z-[9999] ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
+                      <SelectContent 
+                        className={`max-h-[320px] overflow-hidden flex flex-col z-[9999] ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}
+                        onInteractOutside={() => {
+                          if (document.activeElement?.tagName.toLowerCase() === 'input') {
+                            (document.activeElement as HTMLElement).blur();
+                          }
+                        }}
+                      >
                         <div
                           className={`px-3 py-2 border-b border-border sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}
                           onKeyDown={(e) => e.stopPropagation()}
