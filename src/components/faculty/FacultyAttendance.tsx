@@ -601,19 +601,6 @@ const FacultyAttendance = () => {
               Attendance History
             </CardTitle>
             <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end sm:justify-start mb-3 sm:mb-0">
-              <Button
-                onClick={handleExportPdf}
-                disabled={exportingPdf}
-                className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 text-white font-semibold h-9 px-3 sm:px-4 shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 text-md sm:text-sm whitespace-nowrap"
-              >
-                {exportingPdf ? (
-                  <Loader2 className="animate-spin h-4 w-4" />
-                ) : (
-                  <FileDown className="h-4 w-4" />
-                )}
-                Export PDF
-              </Button>
-
               {historyStartDate || historyEndDate ? (
                 <Button
                   variant="outline"
@@ -638,7 +625,7 @@ const FacultyAttendance = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 sm:flex-none flex items-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-md sm:text-sm h-9 px-2.5 whitespace-nowrap"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-md sm:text-sm h-9 px-2.5 whitespace-nowrap"
                   >
                     <Filter className="w-4 h-4" />
                     <span>Filter</span>
@@ -711,6 +698,36 @@ const FacultyAttendance = () => {
                   </div>
                 </PopoverContent>
               </Popover>
+
+              {/* Desktop Export PDF Button */}
+              <Button
+                onClick={handleExportPdf}
+                disabled={exportingPdf}
+                className="hidden sm:flex bg-primary hover:bg-primary/90 text-white font-semibold h-9 px-4 shadow-md transition-all active:scale-95 items-center justify-center gap-2 text-sm whitespace-nowrap"
+              >
+                {exportingPdf ? (
+                  <Loader2 className="animate-spin h-4 w-4" />
+                ) : (
+                  <FileDown className="h-4 w-4" />
+                )}
+                Export PDF
+              </Button>
+
+              {/* Mobile Export PDF Icon Button */}
+              <Button
+                onClick={handleExportPdf}
+                disabled={exportingPdf}
+                size="icon"
+                variant="outline"
+                className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+                title="Export PDF"
+              >
+                {exportingPdf ? (
+                  <Loader2 className="animate-spin h-4 w-4" />
+                ) : (
+                  <FileDown className="h-4 w-4" />
+                )}
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="flex-1 pt-2 sm:pt-0">

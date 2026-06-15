@@ -335,17 +335,17 @@ const ApplyLeaveAdmin = () => {
           {/* Recent Leave Applications - Right Side */}
           <Card id="recent-leaves-card" className={`apply-leave-card ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
             <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
+              <div className="flex flex-row items-start sm:items-center justify-between gap-4 w-full">
+                <div className="flex flex-col gap-1">
                   <CardTitle className={`apply-leave-title text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
                   <p className={`apply-leave-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
                 </div>
-                <div className="relative w-full sm:w-auto" ref={filterRef}>
+                <div className="relative flex-shrink-0 mt-2 sm:mt-0" ref={filterRef}>
                   <Button
                     onClick={() => setShowFilter((prev) => !prev)}
-                    className="w-full sm:w-auto h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90">
+                    className="h-10 w-10 sm:w-auto px-0 sm:px-4 text-sm font-medium flex items-center justify-center gap-0 sm:gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90 rounded-lg">
                     <FilterIcon className="w-4 h-4" />
-                    {statusFilter === "All" ? "Filter" : statusFilter}
+                    <span className="hidden sm:inline">{statusFilter === "All" ? "Filter" : statusFilter}</span>
                   </Button>
                   {showFilter &&
                     <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-20 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
