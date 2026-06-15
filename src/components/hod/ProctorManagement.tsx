@@ -691,7 +691,9 @@ const ProctorStudents = () => {
                         className={`px-3 py-2 border-b border-border sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}
                         onKeyDown={(e) => e.stopPropagation()}
                         onMouseDown={(e) => e.stopPropagation()}
+                        onMouseUp={(e) => e.stopPropagation()}
                         onPointerDown={(e) => e.stopPropagation()}
+                        onPointerUp={(e) => e.stopPropagation()}
                         onClick={(e) => e.stopPropagation()}
                         onTouchStart={(e) => e.stopPropagation()}
                         onTouchEnd={(e) => e.stopPropagation()}
@@ -911,7 +913,9 @@ const ProctorStudents = () => {
                           className={`px-3 py-2 border-b border-border sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}
                           onKeyDown={(e) => e.stopPropagation()}
                           onMouseDown={(e) => e.stopPropagation()}
+                          onMouseUp={(e) => e.stopPropagation()}
                           onPointerDown={(e) => e.stopPropagation()}
+                          onPointerUp={(e) => e.stopPropagation()}
                           onClick={(e) => e.stopPropagation()}
                           onTouchStart={(e) => e.stopPropagation()}
                           onTouchEnd={(e) => e.stopPropagation()}
