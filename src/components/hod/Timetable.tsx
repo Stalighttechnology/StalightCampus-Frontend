@@ -1105,7 +1105,7 @@ const Timetable = () => {
       <Card id="timetable-card" className="shadow-xl">
         <div id="timetable-header-filters-section">
           <CardHeader id="timetable-card-header" className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card px-4 py-3 rounded-t-md gap-4">
-            <div className="flex items-center justify-between w-full sm:w-auto">
+            <div className="flex items-start justify-between w-full sm:w-auto">
               <CardTitle className="text-2xl font-semibold text-foreground">Timetable</CardTitle>
               {/* Mobile Download PDF Icon Button */}
               <Button

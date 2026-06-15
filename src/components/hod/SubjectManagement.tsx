@@ -320,7 +320,7 @@ const SubjectManagement = () => {
         <div id="courses-header-filters-section">
           <CardHeader>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
-              <div className="flex items-center justify-between w-full sm:w-auto">
+              <div className="flex items-start justify-between w-full sm:w-auto">
                 <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Manage Courses</CardTitle>
                 {/* Mobile Download PDF Icon Button */}
                 <Button

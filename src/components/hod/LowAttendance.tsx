@@ -723,27 +723,39 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
         <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm' : 'bg-white border border-gray-200 shadow-sm'}>
           <div id="low-attendance-dashboard-header">
             <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex-1">
-                <CardTitle className={`text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  Low Attendance Management
-                </CardTitle>
-                <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Monitor and notify students with low attendance
-                </p>
+              <div className="flex items-start justify-between w-full sm:w-auto">
+                <div className="flex-1">
+                  <CardTitle className={`text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    Low Attendance Management
+                  </CardTitle>
+                  <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Monitor and notify students with low attendance
+                  </p>
+                </div>
+                {/* Mobile Download PDF Icon Button */}
+                <Button
+                  onClick={exportPDF}
+                  disabled={state.loading || state.students.length === 0 || state.downloadingPDF}
+                  size="icon"
+                  variant="outline"
+                  className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                >
+                  {state.downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                </Button>
               </div>
               <Button
                 onClick={exportPDF}
                 disabled={state.loading || state.students.length === 0 || state.downloadingPDF}
-                className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto">
+                className="hidden sm:flex text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto items-center justify-center gap-2 h-10 px-4">
                 {state.downloadingPDF ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Downloading...
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Downloading...</span>
                   </>
                 ) : (
                   <>
-                    <FileDown className="w-4 h-4 mr-2" />
-                    Export PDF
+                    <FileDown className="w-4 h-4" />
+                    <span>Export PDF</span>
                   </>
                 )}
               </Button>
