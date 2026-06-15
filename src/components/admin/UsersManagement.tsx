@@ -638,17 +638,6 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                 {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
                 {downloadingPDF ? "Exporting..." : "Download PDF"}
               </Button>
-
-              {/* Mobile Download PDF Icon Button */}
-              <Button
-                onClick={handleDownloadPDF}
-                disabled={!isAnyFilterActive || downloadingPDF}
-                size="icon"
-                variant="outline"
-                className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
-              >
-                {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
-              </Button>
             </CardHeader>
              <CardContent className="users-card-content pb-0">
               <div className="filters-search flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-2 sm:mb-10">
@@ -701,6 +690,16 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                           </button>
                         )}
                       </div>
+                      {/* Mobile Download PDF Icon Button */}
+                      <Button
+                        onClick={handleDownloadPDF}
+                        disabled={!isAnyFilterActive || downloadingPDF}
+                        size="icon"
+                        variant="outline"
+                        className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                      >
+                        {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
+                      </Button>
                     </div>
                   </div>
                 </div>

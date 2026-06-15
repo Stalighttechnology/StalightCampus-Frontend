@@ -13,8 +13,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "../ui/dialog";
-import { Edit, Trash2, Layers } from "lucide-react";
+import { Edit, Trash2, Layers, FileDown, Loader2 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
+import { fetchWithTokenRefresh } from "../../utils/authService";
+import { API_ENDPOINT } from "../../utils/config";
 
 interface Batch {
   id: number;
@@ -41,7 +43,56 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
   const [batchToDelete, setBatchToDelete] = useState<Batch | null>(null);
   const [confirmName, setConfirmName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [exporting, setExporting] = useState(false);
   const { theme } = useTheme();
+
+  const handleExportPDF = async () => {
+    setExporting(true);
+    try {
+      let queryParams = "";
+      if (searchQuery.trim()) {
+        queryParams = `?search=${encodeURIComponent(searchQuery.trim())}`;
+      }
+
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/batches/export-pdf/${queryParams}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Batch_List_${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        if (toast) {
+          toast({
+            title: "Success",
+            description: "Batches list PDF exported successfully",
+          });
+        }
+      } else {
+        const result = await response.json().catch(() => ({}));
+        if (toast) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: result.message || "Failed to export PDF",
+          });
+        }
+      }
+    } catch (err) {
+      if (toast) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Network error while exporting PDF",
+        });
+      }
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -357,31 +408,57 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
         <CardHeader id="existing-batches-header" className="batch-card-header pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="batch-title">Existing Batches</CardTitle>
-            {totalCount > 0 && (
-              <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-800'}`}>
-                Total: {totalCount}
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {totalCount > 0 && (
+                <span className={`hidden md:inline-flex text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-800'}`}>
+                  Total: {totalCount}
+                </span>
+              )}
+            </div>
           </div>
           <div className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className={`batch-desc text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Manage, edit, or delete created batches
             </p>
-            <div className="relative w-full sm:w-64">
-              <Input
-                placeholder="Search batches..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={`batch-search-mobile h-9 w-full pr-12 ${theme === 'dark' ? 'bg-card border-border' : 'bg-gray-50 border-gray-200'}`}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-                >
-                  Clear
-                </button>
-              )}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:flex-initial sm:w-64">
+                <Input
+                  placeholder="Search batches..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={`batch-search-mobile h-9 w-full pr-12 ${theme === 'dark' ? 'bg-card border-border' : 'bg-gray-50 border-gray-200'}`}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              {/* Desktop/Tablet Export Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportPDF}
+                disabled={exporting}
+                className="hidden md:flex items-center justify-center gap-1 w-full md:w-auto h-9 border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium bg-primary hover:bg-primary/90 text-white hover:text-white"
+              >
+                {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                {exporting ? "Exporting..." : "Export PDF"}
+              </Button>
+              {/* Mobile Export Icon Button next to search input */}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleExportPDF}
+                disabled={exporting}
+                className="flex md:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+                title="Export PDF"
+              >
+                {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+              </Button>
             </div>
           </div>
         </CardHeader>

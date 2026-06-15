@@ -382,14 +382,14 @@ const StudentInfoScanner = () => {
       <Card id="hod-search-student-card" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm mb-6' : 'bg-white text-gray-900 border-gray-200 shadow-sm mb-6'}`}>
         <CardHeader id="scan-student-info-header" className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div className="space-y-1">
-            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight text-gray-900'}`}>Search Student</CardTitle>
+            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Search Student</CardTitle>
             <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Enter USN or use scanner to find student information</p>
           </div>
           {studentData && (
             <Button
               onClick={handleExportPDF}
               disabled={downloadingPDF}
-              className="bg-primary hover:bg-[#9147e0] text-white flex items-center gap-2 h-10 px-4"
+              className="hidden md:flex bg-primary hover:bg-[#9147e0] text-white items-center gap-2 h-10 px-4"
             >
               {downloadingPDF ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -413,7 +413,7 @@ const StudentInfoScanner = () => {
                 className={`pl-10 h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
               
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 onClick={toggleScanner}
                 variant="outline"
@@ -433,7 +433,7 @@ const StudentInfoScanner = () => {
               <Button
                 onClick={() => fetchStudentData()}
                 disabled={loading}
-                className="h-11 bg-primary hover:bg-[#9147e0] text-white px-6 sm:px-8">
+                className="h-11 bg-primary hover:bg-[#9147e0] text-white px-6 sm:px-8 flex-1 sm:flex-none">
                 
                 {loading ?
                 <motion.div
@@ -446,6 +446,19 @@ const StudentInfoScanner = () => {
                 "Search"
                 }
               </Button>
+              {studentData && (
+                /* Mobile Export Icon Button */
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleExportPDF}
+                  disabled={downloadingPDF}
+                  className="flex md:hidden h-11 w-11 items-center justify-center shrink-0 border border-input bg-background"
+                  title="Export PDF"
+                >
+                  {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
