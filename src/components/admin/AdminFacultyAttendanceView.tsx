@@ -735,22 +735,39 @@ const AdminFacultyAttendanceView: React.FC = () => {
                 <CardTitle className={`text-sm sm:text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   Today's Faculty Attendance <span className="inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
                 </CardTitle>
-                <button
+                {/* Desktop Export PDF Button */}
+                <Button
                   onClick={handleExportTodayPDF}
                   disabled={exportingToday}
-                  className={`flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50 today-export-btn`}>
+                  className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 hover:text-white transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
+                >
                   {exportingToday ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                      <span className="hidden sm:inline">Downloading...</span>
+                      <span>Downloading...</span>
                     </>
                   ) : (
                     <>
                       <FileDown className="w-4 h-4" />
-                      <span className="hidden sm:inline">Export PDF</span>
+                      <span>Export PDF</span>
                     </>
                   )}
-                </button>
+                </Button>
+
+                {/* Mobile Export PDF Icon Button */}
+                <Button
+                  onClick={handleExportTodayPDF}
+                  disabled={exportingToday}
+                  size="icon"
+                  variant="outline"
+                  className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+                >
+                  {exportingToday ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                  ) : (
+                    <FileDown className="w-4 h-4" />
+                  )}
+                </Button>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
@@ -951,24 +968,6 @@ const AdminFacultyAttendanceView: React.FC = () => {
                     </PopoverContent>
                   </Popover>
                 </div>
-                <div className="w-full sm:w-auto pt-4 sm:pt-0 ml-auto">
-                  <button
-                    onClick={handleExportRecordsPDF}
-                    disabled={exportingRecords || facultySummary.length === 0 || !selectedFacultyId}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50 export-btn">
-                    {exportingRecords ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                        <span>Downloading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <FileDown className="w-4 h-4" />
-                        <span>Export Report</span>
-                      </>
-                    )}
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -985,10 +984,44 @@ const AdminFacultyAttendanceView: React.FC = () => {
               </div>
             ) : facultySummary.length > 0 ? (
               <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
-                <CardHeader className="px-6 py-4 border-b border-border">
+                <CardHeader className="px-6 py-4 border-b border-border flex flex-row justify-between items-center gap-4">
                   <CardTitle className={`text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                     Faculty Attendance Summary
                   </CardTitle>
+                  
+                  {/* Desktop Export Report Button */}
+                  <Button
+                    onClick={handleExportRecordsPDF}
+                    disabled={exportingRecords || facultySummary.length === 0 || !selectedFacultyId}
+                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 hover:text-white transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
+                  >
+                    {exportingRecords ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                        <span>Downloading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileDown className="w-4 h-4" />
+                        <span>Export Report</span>
+                      </>
+                    )}
+                  </Button>
+
+                  {/* Mobile Export Report Icon Button */}
+                  <Button
+                    onClick={handleExportRecordsPDF}
+                    disabled={exportingRecords || facultySummary.length === 0 || !selectedFacultyId}
+                    size="icon"
+                    variant="outline"
+                    className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+                  >
+                    {exportingRecords ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                    ) : (
+                      <FileDown className="w-4 h-4" />
+                    )}
+                  </Button>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
