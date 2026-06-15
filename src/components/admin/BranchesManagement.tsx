@@ -531,7 +531,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
               </div>
             </CardHeader>
 
-            <div className="px-2 sm:px-4 pt-3 pb-3 flex flex-row sm:items-center sm:justify-between gap-3">
+            <div className="px-2 sm:px-4 pt-3 pb-3 flex flex-row items-center justify-between gap-3">
               <div className="relative flex-1 sm:flex-initial sm:w-64">
                 <Input
                   placeholder={translateTerminology("Search by branch name...")}
@@ -552,7 +552,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
               <Button
                 size="icon"
                 variant="outline"
-                className="flex md:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+                className="flex md:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
                 onClick={exportToPDF}
                 disabled={loading || downloadingPDF}
                 title="Export PDF"

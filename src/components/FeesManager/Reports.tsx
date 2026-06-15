@@ -196,25 +196,41 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
       <Card>
         <div id="feesmanager-reports-header">
           <CardHeader className="border-b bg-muted/20 pb-6 px-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start justify-between gap-4">
               <div>
                 <CardTitle className="text-2xl sm:text-2xl font-semibold flex items-center gap-2 tracking-tight">
                   Staff Attendance Audit
                 </CardTitle>
                 <p className="text-muted-foreground mt-1.5 text-sm sm:text-md">Monitor attendance across all institutional roles</p>
               </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="flex items-center gap-2 flex-shrink-0 mt-1">
+                {/* Desktop/Tablet Export Button */}
                 <Button
                   size="sm"
                   onClick={() => downloadReport('pdf')}
                   disabled={loading || downloading || selectedRole === '' || startDate === '' || endDate === ''}
-                  className="w-full sm:w-auto justify-center bg-primary text-white hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium px-4 py-2 rounded-md flex items-center gap-2 h-9 disabled:opacity-50">
+                  className="hidden sm:flex justify-center bg-primary text-white hover:bg-primary/90 transition-all shadow-md text-sm font-medium px-4 py-2 rounded-md items-center gap-2 h-9 disabled:opacity-50">
                   {downloading ? (
                     <Loader2 className="h-4.5 w-4.5 animate-spin flex-shrink-0" />
                   ) : (
                     <Download className="h-4 w-4 flex-shrink-0" />
                   )}
                   <span>{downloading ? 'Exporting...' : 'Export PDF'}</span>
+                </Button>
+                {/* Mobile Export Icon Button */}
+                <Button
+                  onClick={() => downloadReport('pdf')}
+                  disabled={loading || downloading || selectedRole === '' || startDate === '' || endDate === ''}
+                  size="icon"
+                  variant="outline"
+                  className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                  title="Export PDF"
+                >
+                  {downloading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
                 </Button>
               </div>
             </div>

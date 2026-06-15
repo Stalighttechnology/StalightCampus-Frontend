@@ -453,9 +453,8 @@ const DeanFacultyProfile = ({
 
   return (
     <div
-      className={`dean-profile min-h-screen ${
-        theme === "dark" ? "bg-background" : "bg-gray-50"
-      } p-0`}
+      className={`dean-profile min-h-screen ${theme === "dark" ? "bg-background" : "bg-gray-50"
+        } p-0`}
     >
       <style>{`
         @media (min-width: 481px) and (max-width: 768px) {
@@ -471,9 +470,9 @@ const DeanFacultyProfile = ({
         @media (max-width: 480px) {
           .dean-profile .filters-row { gap: 12px !important; display: flex !important; flex-direction: column !important; align-items: stretch !important; }
           .dean-profile .filters-row .flex-1 { width: 100% !important; min-width: 0 !important; }
-          .dean-profile .filters-row .flex-shrink-0 { width: 100% !important; margin-top: 0.25rem !important; display: flex !important; justify-content: center !important; }
-          .dean-profile .dean-buttons-row { display: flex !important; flex-direction: row !important; gap: 8px !important; width: 100% !important; }
-          .dean-profile .dean-buttons-row > div { flex: 1 !important; }
+          .dean-profile .filters-row .flex-shrink-0 { width: 100% !important; margin-top: 0.25rem !important; display: flex !important; }
+          .dean-profile .dean-buttons-row { display: flex !important; flex-direction: row !important; gap: 8px !important; width: 100% !important; align-items: center !important; }
+          .dean-profile .dean-buttons-row button.dean-mobile-icon-btn { width: 40px !important; min-width: 40px !important; height: 40px !important; min-height: 40px !important; padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; }
           .dean-profile h1 { font-size: 1.75rem !important; line-height: 1.4 !important; }
           .dean-profile h2 { font-size: 1.375rem !important; line-height: 1.45 !important; }
           .dean-profile h3 { font-size: 1.125rem !important; line-height: 1.5 !important; }
@@ -530,16 +529,14 @@ const DeanFacultyProfile = ({
           <div id="dean-faculty-filters-header-wrapper">
             <div className="mb-4">
               <h2
-                className={`text-xl font-semibold ${
-                  theme === "dark" ? "text-foreground" : "text-gray-900"
-                }`}
+                className={`text-xl font-semibold ${theme === "dark" ? "text-foreground" : "text-gray-900"
+                  }`}
               >
                 Faculty Profile
               </h2>
               <p
-                className={`text-sm ${
-                  theme === "dark" ? "text-muted-foreground" : "text-gray-500"
-                }`}
+                className={`text-sm ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"
+                  }`}
               >
                 View faculty attendance, schedule and assignments
               </p>
@@ -560,9 +557,8 @@ const DeanFacultyProfile = ({
                   {/* Branch selector */}
                   <div className="flex-1">
                     <Label
-                      className={`text-sm font-semibold mb-2 ${
-                        theme === "dark" ? "text-foreground" : "text-gray-700"
-                      }`}
+                      className={`text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"
+                        }`}
                     >
                       {translateTerminology("Branch")}
                     </Label>
@@ -578,11 +574,10 @@ const DeanFacultyProfile = ({
                       }}
                     >
                       <SelectTrigger
-                        className={`w-full font-normal ${
-                          theme === "dark"
+                        className={`w-full font-normal ${theme === "dark"
                             ? "bg-background border-border"
                             : "bg-white border-gray-200"
-                        }`}
+                          }`}
                       >
                         <SelectValue placeholder="Select a branch" />
                       </SelectTrigger>
@@ -602,9 +597,8 @@ const DeanFacultyProfile = ({
                   {/* Faculty selector */}
                   <div className="flex-1">
                     <Label
-                      className={`text-sm font-semibold mb-2 ${
-                        theme === "dark" ? "text-foreground" : "text-gray-700"
-                      }`}
+                      className={`text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"
+                        }`}
                     >
                       Faculty
                     </Label>
@@ -628,102 +622,114 @@ const DeanFacultyProfile = ({
 
                   {/* Action buttons (Filters & Export PDF) in a single row on mobile */}
                   <div className="flex-shrink-0 flex items-end gap-3 w-full lg:w-auto mt-2 lg:mt-0 dean-buttons-row">
-                    <div className="flex-1 lg:flex-initial">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full flex items-center justify-center gap-2 px-4 h-10 bg-primary text-white hover:bg-primary/90 hover:text-white"
-                            disabled={
-                              !selectedBranch || !selectedFaculty || facultiesLoading
-                            }
-                            title={
-                              !selectedBranch || !selectedFaculty
-                                ? "Select branch and faculty to enable filters"
-                                : undefined
-                            }
-                          >
-                            Filters
-                            <Sliders className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent
-                          className={`${
-                            theme === "dark"
-                              ? "bg-card border-border"
-                              : "bg-white border-gray-200"
-                          } dean-filters-dialog`}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="flex items-center justify-center gap-2 px-4 h-10 bg-primary text-white hover:bg-primary/90 hover:text-white w-full lg:w-auto flex-1 lg:flex-initial"
+                          disabled={
+                            !selectedBranch || !selectedFaculty || facultiesLoading
+                          }
+                          title={
+                            !selectedBranch || !selectedFaculty
+                              ? "Select branch and faculty to enable filters"
+                              : undefined
+                          }
                         >
-                          <DialogHeader>
-                            <DialogTitle>Attendance Report Filters</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4 py-2">
-                            <DatePickerField
-                              label="Start Date"
-                              date={startDate}
-                              onDateChange={setStartDate}
-                              popoverOpen={startDatePopoverOpen}
-                              onPopoverChange={setStartDatePopoverOpen}
-                              theme={theme}
-                            />
-                            <DatePickerField
-                              label="End Date"
-                              date={endDate}
-                              onDateChange={setEndDate}
-                              popoverOpen={endDatePopoverOpen}
-                              onPopoverChange={setEndDatePopoverOpen}
-                              theme={theme}
-                            />
-                            <div className="flex justify-end gap-2">
-                              <DialogClose asChild>
-                                <Button
-                                  onClick={handleClearDates}
-                                  className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors"
-                                >
-                                  Clear
-                                </Button>
-                              </DialogClose>
-                              <DialogClose asChild>
-                                <Button
-                                  onClick={handleDateFilter}
-                                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-                                >
-                                  Apply
-                                </Button>
-                              </DialogClose>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-
-                    <div className="flex-1 lg:flex-initial">
-                      <Button
-                        onClick={handleExportPDF}
-                        variant="outline"
-                        className="w-full flex items-center justify-center gap-2 px-4 h-10 bg-primary text-white hover:bg-primary/90 hover:text-white"
-                        disabled={
-                          !selectedBranch || !selectedFaculty || facultiesLoading || exportLoading
-                        }
-                        title={
-                          !selectedBranch || !selectedFaculty
-                            ? "Select branch and faculty to enable export"
-                            : undefined
-                        }
+                          Filters
+                          <Sliders className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent
+                        className={`${theme === "dark"
+                            ? "bg-card border-border"
+                            : "bg-white border-gray-200"
+                          } dean-filters-dialog`}
                       >
-                        {exportLoading ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Exporting...
-                          </>
-                        ) : (
-                          <>
-                            <FileText className="h-4 w-4" />
-                            Export PDF
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                        <DialogHeader>
+                          <DialogTitle>Attendance Report Filters</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 py-2">
+                          <DatePickerField
+                            label="Start Date"
+                            date={startDate}
+                            onDateChange={setStartDate}
+                            popoverOpen={startDatePopoverOpen}
+                            onPopoverChange={setStartDatePopoverOpen}
+                            theme={theme}
+                          />
+                          <DatePickerField
+                            label="End Date"
+                            date={endDate}
+                            onDateChange={setEndDate}
+                            popoverOpen={endDatePopoverOpen}
+                            onPopoverChange={setEndDatePopoverOpen}
+                            theme={theme}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <DialogClose asChild>
+                              <Button
+                                onClick={handleClearDates}
+                                className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors"
+                              >
+                                Clear
+                              </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                onClick={handleDateFilter}
+                                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                              >
+                                Apply
+                              </Button>
+                            </DialogClose>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    {/* Desktop/Tablet Export Button */}
+                    <Button
+                      onClick={handleExportPDF}
+                      variant="outline"
+                      className="hidden lg:flex items-center justify-center gap-2 px-4 h-10 bg-primary text-white hover:bg-primary/90 hover:text-white w-full lg:w-auto"
+                      disabled={
+                        !selectedBranch || !selectedFaculty || facultiesLoading || exportLoading
+                      }
+                      title={
+                        !selectedBranch || !selectedFaculty
+                          ? "Select branch and faculty to enable export"
+                          : undefined
+                      }
+                    >
+                      {exportLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Exporting...
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="h-4 w-4" />
+                          Export PDF
+                        </>
+                      )}
+                    </Button>
+                    {/* Mobile Export Icon Button */}
+                    <Button
+                      onClick={handleExportPDF}
+                      variant="outline"
+                      className="flex lg:hidden items-center justify-center border border-input bg-background text-foreground dean-mobile-icon-btn flex-shrink-0"
+                      disabled={
+                        !selectedBranch || !selectedFaculty || facultiesLoading || exportLoading
+                      }
+                      title="Export PDF"
+                    >
+                      {exportLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <FileText className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -758,25 +764,24 @@ const DeanFacultyProfile = ({
                       <StatsCard label="Present Days" value={profile.attendance_summary?.present_days ?? 0} color="green" theme={theme} />
                       <StatsCard label="Absent Days" value={profile.attendance_summary?.absent_days ?? 0} color="red" theme={theme} />
                       <StatsCard label="Attendance %" value={profile.attendance_summary?.percent_present ?? "N/A"} color="purple" theme={theme} />
-                      <StatsCard 
-                        label="Leave Days" 
+                      <StatsCard
+                        label="Leave Days"
                         value={
                           <div className="flex flex-col">
                             <span>{profile.attendance_summary?.leave_days ?? 0}</span>
                             <span className="text-sm font-medium opacity-70">Total: {profile.attendance_summary?.total_leave_days_all_time ?? 0}</span>
                           </div>
-                        } 
-                        color="yellow" 
-                        theme={theme} 
+                        }
+                        color="yellow"
+                        theme={theme}
                       />
                     </div>
 
                     {/* Assignments */}
                     <div className="mb-8">
                       <h3
-                        className={`text-xl font-semibold mb-4 flex items-center ${
-                          theme === "dark" ? "text-foreground" : "text-gray-800"
-                        }`}
+                        className={`text-xl font-semibold mb-4 flex items-center ${theme === "dark" ? "text-foreground" : "text-gray-800"
+                          }`}
                       >
                         <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -791,9 +796,8 @@ const DeanFacultyProfile = ({
                     {/* Scheduled Classes */}
                     <div className="mb-8">
                       <h3
-                        className={`text-xl font-semibold mb-4 flex items-center ${
-                          theme === "dark" ? "text-foreground" : "text-gray-800"
-                        }`}
+                        className={`text-xl font-semibold mb-4 flex items-center ${theme === "dark" ? "text-foreground" : "text-gray-800"
+                          }`}
                       >
                         <svg className="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -807,9 +811,8 @@ const DeanFacultyProfile = ({
                     {userTier >= 2 && (
                       <div>
                         <h3
-                          className={`text-xl font-semibold mb-4 flex items-center ${
-                            theme === "dark" ? "text-foreground" : "text-gray-800"
-                          }`}
+                          className={`text-xl font-semibold mb-4 flex items-center ${theme === "dark" ? "text-foreground" : "text-gray-800"
+                            }`}
                         >
                           <svg className="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V7m0 10a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v10z" />
@@ -833,30 +836,26 @@ const DeanFacultyProfile = ({
             /* Empty state — shown only when genuinely no faculty is selected */
             !profileLoading && (
               <div
-                className={`mt-4 flex flex-col items-center justify-center py-24 px-4 rounded-xl border-2 border-dashed ${
-                  theme === "dark"
+                className={`mt-4 flex flex-col items-center justify-center py-24 px-4 rounded-xl border-2 border-dashed ${theme === "dark"
                     ? "border-border bg-card/30"
                     : "border-gray-200 bg-gray-50/50"
-                }`}
+                  }`}
               >
                 <div
-                  className={`p-5 rounded-full mb-4 ${
-                    theme === "dark" ? "bg-primary/10" : "bg-primary/5"
-                  }`}
+                  className={`p-5 rounded-full mb-4 ${theme === "dark" ? "bg-primary/10" : "bg-primary/5"
+                    }`}
                 >
                   <AlertCircle className="w-10 h-10 text-primary opacity-50" />
                 </div>
                 <h3
-                  className={`text-lg font-semibold mb-2 ${
-                    theme === "dark" ? "text-foreground" : "text-gray-900"
-                  }`}
+                  className={`text-lg font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-900"
+                    }`}
                 >
                   Select a Faculty Member to View Profile
                 </h3>
                 <p
-                  className={`text-center max-w-md text-sm ${
-                    theme === "dark" ? "text-muted-foreground" : "text-gray-500"
-                  }`}
+                  className={`text-center max-w-md text-sm ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"
+                    }`}
                 >
                   Choose a branch and then select a faculty member from the dropdown
                   above to view their detailed performance analytics, schedule, and
@@ -899,16 +898,14 @@ function StatsCard({ label, value, color, theme }: StatsCardProps) {
   const cfg = colorMap[color] ?? colorMap.blue;
   return (
     <div
-      className={`bg-gradient-to-br ${
-        theme === "dark" ? cfg.darkGradient : cfg.gradient
-      } p-6 rounded-xl border ${theme === "dark" ? cfg.darkBorder : cfg.border}`}
+      className={`bg-gradient-to-br ${theme === "dark" ? cfg.darkGradient : cfg.gradient
+        } p-6 rounded-xl border ${theme === "dark" ? cfg.darkBorder : cfg.border}`}
     >
       <div className="flex items-center justify-between">
         <div>
           <p
-            className={`text-base sm:text-sm font-semibold uppercase tracking-wide mb-1 ${
-              theme === "dark" ? cfg.darkLabel : cfg.label
-            }`}
+            className={`text-base sm:text-sm font-semibold uppercase tracking-wide mb-1 ${theme === "dark" ? cfg.darkLabel : cfg.label
+              }`}
           >
             {label}
           </p>
@@ -957,9 +954,8 @@ function DatePickerField({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className={`w-auto p-0 ${
-            theme === "dark" ? "bg-card border-border" : "bg-white"
-          }`}
+          className={`w-auto p-0 ${theme === "dark" ? "bg-card border-border" : "bg-white"
+            }`}
         >
           <CalendarComponent
             mode="single"
@@ -992,9 +988,8 @@ function AssignmentsList({ assignments, theme }: AssignmentsListProps) {
     <>
       {list.length === 0 ? (
         <div
-          className={`col-span-full flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${
-            theme === "dark" ? "border-border bg-card/30 text-muted-foreground" : "border-gray-200 bg-gray-50/50 text-gray-500"
-          }`}
+          className={`col-span-full flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${theme === "dark" ? "border-border bg-card/30 text-muted-foreground" : "border-gray-200 bg-gray-50/50 text-gray-500"
+            }`}
         >
           <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
             <svg className="w-8 h-8 text-primary opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1016,16 +1011,14 @@ function AssignmentsList({ assignments, theme }: AssignmentsListProps) {
           return (
             <div
               key={key}
-              className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
-                theme === "dark"
+              className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${theme === "dark"
                   ? "bg-muted/50 border-border"
                   : "bg-gray-50 border-gray-200"
-              }`}
+                }`}
             >
               <div
-                className={`font-semibold mb-1 ${
-                  theme === "dark" ? "text-foreground" : "text-gray-800"
-                }`}
+                className={`font-semibold mb-1 ${theme === "dark" ? "text-foreground" : "text-gray-800"
+                  }`}
               >
                 {a.subject}
               </div>
@@ -1074,9 +1067,8 @@ function ScheduledClassesTable({ classesList, theme }: ScheduledClassesTableProp
               <tr>
                 <td colSpan={5} className="p-4">
                   <div
-                    className={`flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${
-                      theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
-                    }`}
+                    className={`flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+                      }`}
                   >
                     <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                       <svg className="w-8 h-8 text-primary opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1326,8 +1318,8 @@ function FacultySearchDropdown({
           <span className="truncate">
             {selectedFaculty
               ? profile?.name ||
-                faculties.find((f) => String(f.id) === selectedFaculty)?.name ||
-                "Loading..."
+              faculties.find((f) => String(f.id) === selectedFaculty)?.name ||
+              "Loading..."
               : "Select faculty member"}
           </span>
           <svg className="ml-2 h-4 w-4 shrink-0 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1339,11 +1331,10 @@ function FacultySearchDropdown({
         <div className={`flex flex-col ${theme === "dark" ? "bg-card text-foreground" : "bg-white text-gray-900"}`}>
           <div className="p-2 border-b border-border">
             <input
-              className={`w-full px-3 py-2 text-sm rounded-md border outline-none focus:ring-1 focus:ring-primary ${
-                theme === "dark"
+              className={`w-full px-3 py-2 text-sm rounded-md border outline-none focus:ring-1 focus:ring-primary ${theme === "dark"
                   ? "bg-background border-border text-foreground"
                   : "bg-white border-gray-200 text-gray-900"
-              }`}
+                }`}
               placeholder="Search faculty..."
               value={facultySearch}
               onChange={(e) => setFacultySearch(e.target.value)}
@@ -1368,8 +1359,8 @@ function FacultySearchDropdown({
                     selectedFaculty === String(f.id)
                       ? "bg-primary/10 text-primary font-medium"
                       : theme === "dark"
-                      ? "hover:bg-muted text-foreground"
-                      : "hover:bg-gray-100 text-gray-700"
+                        ? "hover:bg-muted text-foreground"
+                        : "hover:bg-gray-100 text-gray-700"
                   )}
                   onClick={() => {
                     setSelectedFaculty(String(f.id));
