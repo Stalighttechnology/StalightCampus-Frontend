@@ -257,6 +257,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "google-setup": <Settings size={20} />,
       "schedule-class": <Calendar size={20} />,
       "class-schedule": <Calendar size={20} />,
+      "act-as-teacher": <UserCheck size={20} />,
+      "return-to-hod": <LogOut size={20} />,
     };
     return iconMap[page] || <LayoutDashboard size={20} />;
   };
@@ -592,6 +594,16 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Profile", page: "profile" },
     ],
   };
+
+  if (user?.role === 'hod') {
+    if (role === 'hod') {
+      menuItems['hod'].push({ name: "Act as Teacher", page: "act-as-teacher" });
+    }
+    if (role === 'faculty') {
+      menuItems['faculty'] = menuItems['faculty'].filter(item => item.page !== 'apply-leave' && item.page !== 'faculty-attendance');
+      menuItems['faculty'].push({ name: "Return to HOD", page: "return-to-hod" });
+    }
+  }
 
   // Automatically scroll active sidebar item into view
   useEffect(() => {

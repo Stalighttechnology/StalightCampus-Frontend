@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, Users, Download, X, Search, Pencil } from "lucide-react";
+import { Loader2, Users, Download, X, Search, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton, SkeletonTable, SkeletonCard } from "../ui/skeleton";
 import DashboardCard from "../common/DashboardCard";
 import { FaUserGraduate, FaUserCheck, FaUserTimes } from "react-icons/fa";
 import { useToast } from "@/components/ui/use-toast";
-import { getProctors, manageStudents, assignProctorsBulk, getSemesters, manageSections, manageProfile, getProctorBootstrap } from "../../utils/hod_api";
+import { getProctors, manageStudents, assignProctorsBulk, getSemesters, manageSections, manageProfile, getProctorBootstrap, manageFaculties } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -26,6 +26,9 @@ interface Student {
 interface Proctor {
   id: string;
   name: string;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
 }
 
 interface Semester {
@@ -68,9 +71,13 @@ const ProctorStudents = () => {
     },
     saving: false,
     cancelling: false,
+    proctorPage: 1,
+    proctorTotalPages: 1,
+    loadingProctors: false,
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [proctorSearch, setProctorSearch] = useState("");
+  const [localProctorSearch, setLocalProctorSearch] = useState("");
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isSectionOpen, setIsSectionOpen] = useState(false);
   const [isProctorOpen, setIsProctorOpen] = useState(false);
@@ -139,11 +146,11 @@ const ProctorStudents = () => {
     }
   };
 
-  // Load metadata (profile, semesters, sections, proctors) on mount
+  // Load metadata (profile, semesters, sections) on mount
   const loadMetadata = async () => {
     try {
       updateState({ loading: true });
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/proctor-bootstrap/?include=profile,semesters,proctors`, {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/proctor-bootstrap/?include=profile,semesters`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -158,7 +165,6 @@ const ProctorStudents = () => {
         branchId: data.data.profile.branch_id,
         branchName: data.data.profile.branch,
         semesters: data.data.semesters,
-        proctors: data.data.proctors.map((f: any) => ({ id: f.id, name: f.name })),
         sections: [],
       });
     } catch (error) {
@@ -174,36 +180,61 @@ const ProctorStudents = () => {
     }
   };
 
-  // Load proctors on demand (when Edit is opened)
+  // Load proctors on demand or when search changes
   const loadProctors = async () => {
+    if (!state.branchId) return;
+    
+    // Prevent redundant fetch if already populated and not searching
+    if (state.proctors.length > 0 && !state.loadingProctors && !state.proctorSearch) {
+      return;
+    }
+
     try {
-      updateState({ loading: true });
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/proctor-bootstrap/?include=proctors`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
+      updateState({ loadingProctors: true });
+      const res = await manageFaculties({
+        branch_id: state.branchId,
+        search: state.proctorSearch,
+        page_size: 1000 // Fetch many for frontend pagination
       });
 
-      const data = await response.json();
-
-      if (!data.success || !data.data) {
-        throw new Error(data.message || "Failed to fetch proctors");
+      if (res.success) {
+        const allProctors = res.data.map((f: any) => ({
+          ...f,
+          name: `${f.first_name} ${f.last_name || ""}`.trim()
+        }));
+        updateState({
+          proctors: allProctors,
+          proctorPage: 1,
+          proctorTotalPages: Math.ceil(allProctors.length / 10)
+        });
       }
-
-      updateState({
-        proctors: data.data.proctors.map((f: any) => ({ id: f.id, name: f.name })),
-      });
     } catch (error) {
       const errorMessage = (error as Error).message || "Network error";
-      updateState({ error: errorMessage });
       toast({
         variant: "destructive",
         title: "Error",
         description: errorMessage,
       });
     } finally {
-      updateState({ loading: false });
+      updateState({ loadingProctors: false });
     }
   };
+
+  // Sync local search to state.proctorSearch with debounce to avoid excessive re-renders
+  useEffect(() => {
+    if (localProctorSearch === state.proctorSearch) return;
+    const timer = setTimeout(() => {
+      updateState({ proctorSearch: localProctorSearch, proctorPage: 1 });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [localProctorSearch, state.proctorSearch]);
+
+  // Fetch proctors when branch or search changes
+  useEffect(() => {
+    if (state.branchId) {
+      loadProctors();
+    }
+  }, [state.branchId, state.proctorSearch]);
 
   // Separate function to load students
   const loadStudents = async (searchTerm?: string) => {
@@ -634,14 +665,120 @@ const ProctorStudents = () => {
                 <label className={`block text-sm sm:text-sm mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                   Choose a Proctor
                 </label>
-                <Select onValueChange={(value) => updateState({ selectedProctor: value })} disabled={state.proctors.length === 0}>
+                <Select 
+                  open={isProctorOpen}
+                  onOpenChange={setIsProctorOpen}
+                  onValueChange={(value) => updateState({ selectedProctor: value })} 
+                  disabled={state.loading || state.proctors.length === 0}>
                   <SelectTrigger className={`text-base w-full ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
-                    <SelectValue placeholder={state.proctors.length === 0 ? "No proctors" : "Choose a proctor"} />
+                    <SelectValue placeholder={state.loadingProctors ? "Loading..." : (state.proctors.length === 0 ? "No proctors" : "Choose a proctor")} />
                   </SelectTrigger>
-                  <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
-                    {state.proctors.map((proctor) => (
-                      <SelectItem key={proctor.id} value={proctor.id}>{proctor.name}</SelectItem>
-                    ))}
+                  <SelectContent className={`max-h-[320px] overflow-hidden flex flex-col z-[9999] ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
+                    <div className={`px-3 py-2 border-b border-border sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
+                      <div className="relative">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <input
+                          type="text"
+                          autoFocus
+                          placeholder="Search proctor..."
+                          value={localProctorSearch}
+                          onChange={(e) => setLocalProctorSearch(e.target.value)}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onTouchStart={(e) => e.stopPropagation()}
+                          className={`w-full pl-8 pr-10 py-1.5 text-sm rounded border ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
+                        {localProctorSearch && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setLocalProctorSearch(""); }}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-primary hover:text-primary/80 transition-colors"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="max-h-40 overflow-y-auto custom-scrollbar">
+                      {(() => {
+                        const selected = state.proctors.find((f) => f.id === state.selectedProctor) || 
+                          (() => {
+                            if (!state.selectedProctor) return undefined;
+                            return undefined;
+                          })();
+
+                        if (state.loadingProctors) {
+                          return (
+                            <>
+                              <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>
+                              {selected && (
+                                <SelectItem key={selected.id} value={selected.id} className="hidden">
+                                  {selected.first_name} {selected.last_name || ""}
+                                </SelectItem>
+                              )}
+                            </>
+                          );
+                        }
+
+                        if (state.proctors.length === 0) {
+                          return (
+                            <>
+                              <div className="p-4 text-center text-sm text-muted-foreground">No proctor found</div>
+                              {selected && (
+                                <SelectItem key={selected.id} value={selected.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                                  {selected.first_name} {selected.last_name || ""}
+                                </SelectItem>
+                              )}
+                            </>
+                          );
+                        }
+                        
+                        const sliced = state.proctors.slice((state.proctorPage - 1) * 10, state.proctorPage * 10);
+                        const list = [...sliced];
+                        if (selected && !list.some((f) => f.id === selected.id)) {
+                          list.push(selected);
+                        }
+                        
+                        return list.map((proctor) => (
+                          <SelectItem key={proctor.id} value={proctor.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                            {proctor.first_name} {proctor.last_name || ""} {proctor.username ? `(${proctor.username})` : ""}
+                          </SelectItem>
+                        ));
+                      })()}
+                    </div>
+                    {state.proctorTotalPages > 1 &&
+                      <div className={`px-3 py-2 border-t border-border flex items-center justify-between sticky bottom-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (state.proctorPage > 1) updateState({ proctorPage: state.proctorPage - 1 });
+                          }}
+                          disabled={state.proctorPage === 1}
+                          className={`h-8 w-8 p-0 rounded-md transition-all ${theme === 'dark' ? 'hover:bg-primary/20 border-border' : 'hover:bg-primary/10 border-gray-200'}`}>
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-bold px-2 py-1 rounded ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                            {state.proctorPage}
+                          </span>
+                          <span className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            of {state.proctorTotalPages}
+                          </span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (state.proctorPage < state.proctorTotalPages) updateState({ proctorPage: state.proctorPage + 1 });
+                          }}
+                          disabled={state.proctorPage === state.proctorTotalPages}
+                          className={`h-8 w-8 p-0 rounded-md transition-all ${theme === 'dark' ? 'hover:bg-primary/20 border-border' : 'hover:bg-primary/10 border-gray-200'}`}>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    }
                   </SelectContent>
                 </Select>
               </div>
@@ -739,28 +876,115 @@ const ProctorStudents = () => {
                     disabled={state.loading || state.proctors.length === 0 || !state.filters.section_id}
                   >
                     <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || state.proctors.length === 0 || !state.filters.section_id}>
-                      <SelectValue placeholder={translateTerminology("Choose Proctor")} />
+                      <SelectValue placeholder={state.loadingProctors ? "Loading..." : translateTerminology("Choose Proctor")} />
                     </SelectTrigger>
-                    <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
-                      <div className="p-2 border-b border-border" onPointerDown={(e) => e.stopPropagation()}>
-                        <input
-                          type="text"
-                          placeholder="Search proctor..."
-                          className={`w-full p-2 text-xs rounded border outline-none ${theme === 'dark' ? 'bg-muted border-border text-foreground' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
-                          value={proctorSearch}
-                          onChange={(e) => setProctorSearch(e.target.value)}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                        />
+                    <SelectContent className={`max-h-[320px] overflow-hidden flex flex-col z-[9999] ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
+                      <div className={`px-3 py-2 border-b border-border sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
+                        <div className="relative">
+                          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <input
+                            type="text"
+                            autoFocus
+                            placeholder="Search proctor..."
+                            value={localProctorSearch}
+                            onChange={(e) => setLocalProctorSearch(e.target.value)}
+                            onKeyDown={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
+                            className={`w-full pl-8 pr-10 py-1.5 text-sm rounded border ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
+                        {localProctorSearch && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setLocalProctorSearch(""); }}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-primary hover:text-primary/80 transition-colors"
+                          >
+                            Clear
+                          </button>
+                        )}
+                        </div>
                       </div>
-                      <SelectItem value="unassigned">Unassigned</SelectItem>
-                      {state.proctors
-                        .filter((proctor) => proctor.name.toLowerCase().includes(proctorSearch.toLowerCase()))
-                        .map((proctor) => (
-                          <SelectItem key={proctor.id} value={proctor.id}>
-                            {proctor.name}
-                          </SelectItem>
-                        ))}
+                      <div className="max-h-40 overflow-y-auto custom-scrollbar">
+                        <SelectItem value="unassigned">Unassigned</SelectItem>
+                        {(() => {
+                          const selected = state.proctors.find((f) => f.id === state.filters.proctor_id) || 
+                            (() => {
+                              if (!state.filters.proctor_id || state.filters.proctor_id === 'unassigned') return undefined;
+                              return undefined;
+                            })();
+
+                          if (state.loadingProctors) {
+                            return (
+                              <>
+                                <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>
+                                {selected && (
+                                  <SelectItem key={selected.id} value={selected.id} className="hidden">
+                                    {selected.first_name} {selected.last_name || ""}
+                                  </SelectItem>
+                                )}
+                              </>
+                            );
+                          }
+
+                          if (state.proctors.length === 0) {
+                            return (
+                              <>
+                                <div className="p-4 text-center text-sm text-muted-foreground">No proctor found</div>
+                                {selected && (
+                                  <SelectItem key={selected.id} value={selected.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                                    {selected.first_name} {selected.last_name || ""}
+                                  </SelectItem>
+                                )}
+                              </>
+                            );
+                          }
+                          
+                          const sliced = state.proctors.slice((state.proctorPage - 1) * 10, state.proctorPage * 10);
+                          const list = [...sliced];
+                          if (selected && !list.some((f) => f.id === selected.id)) {
+                            list.push(selected);
+                          }
+                          
+                          return list.map((proctor) => (
+                            <SelectItem key={proctor.id} value={proctor.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                              {proctor.first_name} {proctor.last_name || ""} {proctor.username ? `(${proctor.username})` : ""}
+                            </SelectItem>
+                          ));
+                        })()}
+                      </div>
+                      {state.proctorTotalPages > 1 &&
+                        <div className={`px-3 py-2 border-t border-border flex items-center justify-between sticky bottom-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (state.proctorPage > 1) updateState({ proctorPage: state.proctorPage - 1 });
+                            }}
+                            disabled={state.proctorPage === 1}
+                            className={`h-8 w-8 p-0 rounded-md transition-all ${theme === 'dark' ? 'hover:bg-primary/20 border-border' : 'hover:bg-primary/10 border-gray-200'}`}>
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-bold px-2 py-1 rounded ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                              {state.proctorPage}
+                            </span>
+                            <span className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              of {state.proctorTotalPages}
+                            </span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (state.proctorPage < state.proctorTotalPages) updateState({ proctorPage: state.proctorPage + 1 });
+                            }}
+                            disabled={state.proctorPage === state.proctorTotalPages}
+                            className={`h-8 w-8 p-0 rounded-md transition-all ${theme === 'dark' ? 'hover:bg-primary/20 border-border' : 'hover:bg-primary/10 border-gray-200'}`}>
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      }
                     </SelectContent>
                   </Select>
                 </div>

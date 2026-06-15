@@ -480,7 +480,7 @@ const AppContent = () => {
 
           {/* Faculty routes */}
           <Route path="/faculty/*" element={
-            <ProtectedRoute allowedRoles={["teacher"]}>
+            <ProtectedRoute allowedRoles={["teacher", "hod"]}>
               <>
                 <FacultyDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
