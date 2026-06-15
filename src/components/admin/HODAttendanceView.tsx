@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useEffect, useState } from "react";
-import { Users, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Users, CheckCircle, XCircle, Clock, FileDown } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -579,19 +579,35 @@ const AdminHODAttendance: React.FC = () => {
                   </PopoverContent>
                 </Popover>
               </div>
-              <Button
-                onClick={() => {
-                  setHasSearched(true);
-                  setRecordsPagination((p) => ({ ...p, page: 1 }));
-                  fetchRecords(1);
-                }}
-                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white">
-                Apply Filter
-              </Button>
+              <div className="flex flex-row gap-2 w-full sm:w-auto items-center">
+                <Button
+                  onClick={() => {
+                    setHasSearched(true);
+                    setRecordsPagination((p) => ({ ...p, page: 1 }));
+                    fetchRecords(1);
+                  }}
+                  className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 text-white">
+                  Apply Filter
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  disabled={!hasSearched || exporting}
+                  onClick={handleExportPDF}
+                  className="flex sm:hidden h-10 w-10 shrink-0 items-center justify-center border border-input bg-background"
+                  title="Export PDF"
+                >
+                  {exporting ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                  ) : (
+                    <FileDown className="w-4 h-4 text-foreground" />
+                  )}
+                </Button>
+              </div>
               <Button
                 disabled={!hasSearched || exporting}
                 onClick={handleExportPDF}
-                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                className="hidden sm:flex w-full sm:w-auto bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:cursor-not-allowed">
                 {exporting ? "Exporting..." : "Export PDF"}
               </Button>
             </div>
