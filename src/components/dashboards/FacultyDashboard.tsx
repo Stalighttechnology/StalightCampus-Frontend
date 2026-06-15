@@ -125,7 +125,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'faculty-announcement-management': '/faculty/announcements',
       'faculty-assignments': '/faculty/assignments',
       'schedule-class': '/faculty/schedule-class',
-      'syllabus-status': '/faculty/syllabus-status'
+      'syllabus-status': '/faculty/syllabus-status',
+      'return-to-hod': '/hod/dashboard'
     };
 
     const path = pathMap[page] || '/faculty/dashboard';

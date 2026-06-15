@@ -201,7 +201,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'co-attainment': '/hod/co-attainment',
       'exam-applications': '/hod/exam-applications',
       'syllabus-status': '/hod/syllabus-status',
-      'syllabus-monitor': '/hod/syllabus-monitor'
+      'syllabus-monitor': '/hod/syllabus-monitor',
+      'act-as-teacher': '/faculty/dashboard'
     };
 
     const path = pathMap[page] || '/hod/dashboard';

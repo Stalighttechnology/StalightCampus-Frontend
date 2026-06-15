@@ -805,7 +805,16 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                             onKeyDown={(e) => e.stopPropagation()}
                             onMouseDown={(e) => e.stopPropagation()}
                             onTouchStart={(e) => e.stopPropagation()}
-                            className={`w-full pl-8 pr-2 py-1.5 text-sm rounded border ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
+                            className={`w-full pl-8 pr-10 py-1.5 text-sm rounded border ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
+                        {localFacultySearch && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setLocalFacultySearch(""); }}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-primary hover:text-primary/80 transition-colors"
+                          >
+                            Clear
+                          </button>
+                        )}
                           
                       </div>
                     </div>
