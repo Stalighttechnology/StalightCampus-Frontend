@@ -55,6 +55,18 @@ const AdminQPApprovals = () => {
   const { theme } = useTheme();
   const { toast } = useToast();
 
+  const getStatusBadgeStyle = (status: string) => {
+    const s = (status || '').toLowerCase();
+    const base = "w-full flex items-center justify-center text-xs font-semibold px-2.5 py-1 rounded-full border transition-all duration-200";
+    if (s.includes('approve') || s.includes('finalized') || s.includes('pass')) {
+      return `${base} bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50`;
+    }
+    if (s.includes('reject') || s.includes('fail')) {
+      return `${base} bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50`;
+    }
+    return `${base} bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800/50`;
+  };
+
   const toggleExpanded = (key: string) => {
     setExpanded((p) => ({ ...p, [key]: !p[key] }));
   };
@@ -376,7 +388,7 @@ const AdminQPApprovals = () => {
               }
               {isHistory && qp.status && (
                 <div className="mt-2 space-y-1">
-                  <Badge variant="secondary" className="w-full justify-center">Status: {qp.status.replace('_', ' ').toUpperCase()}</Badge>
+                  <span className={getStatusBadgeStyle(qp.status)}>Status: {qp.status.replace('_', ' ').toUpperCase()}</span>
                   {qp.current_holder && (
                     <div className="text-center text-xs text-muted-foreground">
                       Waiting on: {qp.current_holder}
@@ -440,9 +452,9 @@ const AdminQPApprovals = () => {
                   <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and track question papers pending your oversight</p>
                 </div>
               </div>
-              <TabsList>
-                <TabsTrigger value="pending" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">Pending Requests</TabsTrigger>
-                <TabsTrigger value="history" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">History</TabsTrigger>
+              <TabsList className="w-full sm:w-auto">
+                <TabsTrigger value="pending" className="flex-1 px-4 data-[state=active]:bg-primary data-[state=active]:text-white">Pending Requests</TabsTrigger>
+                <TabsTrigger value="history" className="flex-1 px-4 data-[state=active]:bg-primary data-[state=active]:text-white">History</TabsTrigger>
               </TabsList>
             </div>
           </CardHeader>
