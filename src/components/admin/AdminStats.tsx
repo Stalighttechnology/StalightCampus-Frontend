@@ -272,7 +272,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       <div>
 
         {/* Dashboard Cards */}
-        <div id="admin-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="admin-stats-grid" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <DashboardCard
             title={translateTerminology("Branches")}
             value={stats.total_branches || 0}
@@ -318,7 +318,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
             <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Admission Overview
             </h3>
-            <div id="admission-overview-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div id="admission-overview-grid" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               <DashboardCard
                 title="Total Enquiries"
                 value={stats.admission_enquiries || 0}
@@ -560,7 +560,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       {/* Action Cards */}
       <div
         id="admin-action-cards"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+        className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
 
         <DashboardCard
           id="enroll-user-card"
