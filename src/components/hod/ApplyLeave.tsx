@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
-import { CalendarIcon, Filter as FilterIcon, Eye } from "lucide-react";
+import { CalendarIcon, Filter as FilterIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { manageHODLeaves, getLeaveBootstrap } from "../../utils/hod_api";
 import { SkeletonCard, SkeletonTable } from "../ui/skeleton";
@@ -658,7 +658,7 @@ const ApplyLeave = () => {
 
         {/* Popup Modal */}
         <Dialog open={!!selectedReason} onOpenChange={() => setSelectedReason(null)}>
-          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6'}>
+          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-lg p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-lg p-4 sm:p-6'}>
             <DialogHeader>
               <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Leave Reason</DialogTitle>
             </DialogHeader>
