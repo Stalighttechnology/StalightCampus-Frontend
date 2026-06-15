@@ -227,7 +227,7 @@ const HODSyllabusTracker = () => {
                   size="sm"
                   onClick={handleExportPDF}
                   disabled={exportingPDF}
-                  className="hidden sm:flex bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all text-sm items-center justify-center gap-2"
+                  className="hidden sm:flex bg-primary hover:bg-primary/90 text-white hover:text-white border-primary h-9 px-4 transition-all text-sm items-center justify-center gap-2"
                 >
                   {exportingPDF ? (
                     <>

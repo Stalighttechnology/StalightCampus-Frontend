@@ -321,45 +321,59 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
               </div>
             </CardHeader>
             <CardContent className="flex-1 h-full mt-3">
-              <div className="h-full flex flex-col md:flex-row gap-4 items-stretch">
-                {/* Bar chart - Average Attendance */}
-                <div className="flex-1 min-h-[240px] overflow-hidden custom-scrollbar">
-                  <h4 className={`text-base sm:text-base font-semibold mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average Attendance (30 days)</h4>
-                  <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
-                    <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
-                      <ResponsiveContainer width="100%" height={240}>
-                        <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 25 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
-                          <XAxis dataKey="subject" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={45} />
-                          <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-                          <Tooltip formatter={(value: any) => `${value}%`} />
-                          <Bar dataKey="attendance" fill="#3b82f6" radius={[6, 6, 0, 0]}>
-                            <LabelList dataKey="attendance" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: 10 }} />
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
+              {chartData.length === 0 ? (
+                <div className={`flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                  <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
+                    <TrendingUp className="w-8 h-8 opacity-80" />
+                  </div>
+                  <h4 className={`text-lg sm:text-xl font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    No Performance Data Found
+                  </h4>
+                  <p className="text-sm sm:text-base max-w-md mx-auto leading-relaxed opacity-75">
+                    Performance trends and IA averages will appear once attendance records and internal assessment marks are uploaded.
+                  </p>
+                </div>
+              ) : (
+                <div className="h-full flex flex-col md:flex-row gap-4 items-stretch">
+                  {/* Bar chart - Average Attendance */}
+                  <div className="flex-1 min-h-[240px] overflow-hidden custom-scrollbar">
+                    <h4 className={`text-base sm:text-base font-semibold mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average Attendance (30 days)</h4>
+                    <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
+                      <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
+                        <ResponsiveContainer width="100%" height={240}>
+                          <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 25 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
+                            <XAxis dataKey="subject" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={45} />
+                            <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                            <Tooltip formatter={(value: any) => `${value}%`} />
+                            <Bar dataKey="attendance" fill="#3b82f6" radius={[6, 6, 0, 0]}>
+                              <LabelList dataKey="attendance" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: 10 }} />
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Line chart - IA Marks */}
-                <div className="flex-1 min-h-[240px] overflow-hidden custom-scrollbar">
-                  <h4 className={`text-base sm:text-base font-semibold mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average IA Marks</h4>
-                  <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
-                    <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
-                      <ResponsiveContainer width="100%" height={240}>
-                        <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 25 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
-                          <XAxis dataKey="subject" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={45} />
-                          <YAxis />
-                          <Tooltip />
-                          <Line type="monotone" dataKey="iaMarks" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
-                        </LineChart>
-                      </ResponsiveContainer>
+                  {/* Line chart - IA Marks */}
+                  <div className="flex-1 min-h-[240px] overflow-hidden custom-scrollbar">
+                    <h4 className={`text-base sm:text-base font-semibold mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average IA Marks</h4>
+                    <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
+                      <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
+                        <ResponsiveContainer width="100%" height={240}>
+                          <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 25 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
+                            <XAxis dataKey="subject" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={45} />
+                            <YAxis />
+                            <Tooltip />
+                            <Line type="monotone" dataKey="iaMarks" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         )}

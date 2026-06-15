@@ -20,9 +20,12 @@ import { useTheme } from "@/context/ThemeContext";
 import { 
   getSyllabusBootstrap, 
   getSemesterSyllabusMonitor,
-  SemesterSyllabusMonitorResponse
+  SemesterSyllabusMonitorResponse,
+  exportSemesterSyllabusMonitorPdf,
+  exportSyllabusPdf,
+  exportSubjectSyllabusMonitorPdf
 } from "@/utils/faculty_api";
-import { BookOpen, BarChart3, Users, Clock, AlertCircle, Eye } from "lucide-react";
+import { BookOpen, BarChart3, Users, Clock, AlertCircle, Eye, FileDown, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +46,79 @@ const HODSemesterMonitor = () => {
   const [monitorData, setMonitorData] = useState<SemesterSyllabusMonitorResponse | null>(null);
   const [loadingMonitor, setLoadingMonitor] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<any | null>(null);
+  const [exportingSubjectId, setExportingSubjectId] = useState<number | null>(null);
+  const [exportingSectionId, setExportingSectionId] = useState<number | null>(null);
+
+  const handleExportSubjectPDF = async (subj: any) => {
+    if (!semesterId) return;
+    setExportingSubjectId(subj.subject_id);
+    try {
+      const blob = await exportSubjectSyllabusMonitorPdf(semesterId.toString(), subj.subject_id.toString());
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const fileNameSuffix = `${subj.subject_name.replace(/\s+/g, '_')}`;
+      link.setAttribute('download', `Syllabus_Monitor_${fileNameSuffix}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Success',
+        description: 'Syllabus coverage PDF downloaded successfully',
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to export syllabus coverage PDF',
+      });
+    } finally {
+      setExportingSubjectId(null);
+    }
+  };
+
+  const handleExportSectionPDF = async (subject: any, sectionId: number | null, sectionName: string) => {
+    setExportingSubjectId(subject.subject_id);
+    if (sectionId) setExportingSectionId(sectionId);
+    try {
+      const blob = await exportSyllabusPdf({
+        subject_id: subject.subject_id.toString(),
+        branch_id: "",
+        semester_id: semesterId?.toString() || "",
+        section_id: sectionId?.toString() || ""
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const fileNameSuffix = sectionId 
+        ? `${subject.subject_name.replace(/\s+/g, '_')}_${sectionName.replace(/\s+/g, '_')}`
+        : `${subject.subject_name.replace(/\s+/g, '_')}_Elective`;
+      link.setAttribute('download', `Syllabus_Progress_${fileNameSuffix}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Success',
+        description: 'Syllabus progress PDF downloaded successfully',
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to export syllabus progress PDF',
+      });
+    } finally {
+      setExportingSubjectId(null);
+      setExportingSectionId(null);
+    }
+  };
 
   // Load HOD bootstrap data
   useEffect(() => {
@@ -124,17 +200,15 @@ const HODSemesterMonitor = () => {
   return (
     <div className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'} agent`}>
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-        <CardHeader id="hod-semester-monitor-header">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div>
-                <CardTitle className="text-2xl font-semibold">Semester Syllabus Overview</CardTitle>
-                <CardDescription>Track weekly teaching completions across all subjects in the department.</CardDescription>
-              </div>
+        <CardHeader id="hod-semester-monitor-header" className="border-b mb-3">
+          <div className="flex flex-row items-center justify-between gap-4 w-full">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-xl sm:text-2xl font-semibold mb-2">Semester Syllabus Overview</CardTitle>
+              <CardDescription>Track weekly teaching completions across all subjects in the department.</CardDescription>
             </div>
 
             {/* Semester Filter */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-col items-start gap-1 shrink-0">
               <span className="text-xs font-semibold uppercase opacity-80 shrink-0">{translateTerminology("Semester")}</span>
               <Select 
                 value={semesterId?.toString() || ""} 
@@ -226,7 +300,7 @@ const HODSemesterMonitor = () => {
                         </div>
                       </div>
                       
-                      <div className="pt-2 flex justify-end">
+                      <div className="pt-2 flex justify-end gap-2">
                         <Button 
                           variant="outline" 
                           size="sm" 
@@ -234,6 +308,35 @@ const HODSemesterMonitor = () => {
                           onClick={() => setSelectedSubject(subj)}
                         >
                           <Eye className="w-4 h-4" /> View Section Progress
+                        </Button>
+                        {/* Desktop view button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="hidden sm:flex bg-primary hover:bg-primary/90 text-white hover:text-white border-primary gap-2"
+                          onClick={() => handleExportSubjectPDF(subj)}
+                          disabled={exportingSubjectId === subj.subject_id}
+                        >
+                          {exportingSubjectId === subj.subject_id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <FileDown className="w-4 h-4" />
+                          )}
+                          <span>Export PDF</span>
+                        </Button>
+                        {/* Mobile view icon button */}
+                        <Button
+                          onClick={() => handleExportSubjectPDF(subj)}
+                          disabled={exportingSubjectId === subj.subject_id}
+                          size="icon"
+                          variant="outline"
+                          className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+                        >
+                          {exportingSubjectId === subj.subject_id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <FileDown className="w-4 h-4" />
+                          )}
                         </Button>
                       </div>
                     </CardContent>
@@ -297,9 +400,24 @@ const HODSemesterMonitor = () => {
                         <Users className="w-3.5 h-3.5 text-muted-foreground" />
                         <strong>Faculty:</strong> {sec.faculty_name}
                       </span>
-                      <span className="font-semibold">
-                        {sec.completed_weeks} / {sec.total_weeks} Weeks
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold mr-1">
+                          {sec.completed_weeks} / {sec.total_weeks} Weeks
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 text-primary hover:bg-primary/10"
+                          onClick={() => handleExportSectionPDF(selectedSubject, sec.section_id, sec.section_name)}
+                          disabled={exportingSubjectId === selectedSubject.subject_id && exportingSectionId === sec.section_id}
+                        >
+                          {exportingSubjectId === selectedSubject.subject_id && exportingSectionId === sec.section_id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <FileDown className="w-3.5 h-3.5" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
