@@ -95,7 +95,7 @@ const Pricing = () => {
         "Full Library Administration",
         "Admissions Management",
         "Outcome Based Education (CO)",
-        "AI Mock Interviews & Scanning",
+
         "Department Admin Leaves",
         "Everything in Pro +"
       ],
@@ -121,7 +121,7 @@ const Pricing = () => {
     { name: "Library Catalog & Circulation", basic: false, pro: false, advance: true },
     { name: "Admissions & Seat Matrix Management", basic: false, pro: false, advance: true },
     { name: "Outcome Based Education (CO Attainment)", basic: false, pro: false, advance: true },
-    { name: "AI Mock Interviews & Student Scanning", basic: false, pro: false, advance: true },
+
   ];
 
   const faqs = [

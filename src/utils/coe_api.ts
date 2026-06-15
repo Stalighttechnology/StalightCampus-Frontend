@@ -474,6 +474,31 @@ export const publishUploadBatch = async (uploadId: number) => {
   }
 };
 
+export const importCieMarks = async (uploadId: number, calculationRule: string) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/result-upload/${uploadId}/import-cie/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ calculation_rule: calculationRule })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+export const importSeeMarks = async (uploadId: number) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/result-upload/${uploadId}/import-see/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
 export const unpublishUploadBatch = async (uploadId: number) => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/result-upload/${uploadId}/unpublish/`, {

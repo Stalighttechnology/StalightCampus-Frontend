@@ -805,6 +805,8 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                             onKeyDown={(e) => e.stopPropagation()}
                             onMouseDown={(e) => e.stopPropagation()}
                             onTouchStart={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
                             className={`w-full pl-8 pr-10 py-1.5 text-sm rounded border ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
                         {localFacultySearch && (
                           <button

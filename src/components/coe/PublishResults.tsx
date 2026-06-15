@@ -8,7 +8,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { paginationToUI } from '@/utils/paginationToUI';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertTriangle, Copy, ExternalLink, Search } from 'lucide-react';
-import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult } from "../../utils/coe_api";
+import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult, importCieMarks, importSeeMarks } from "../../utils/coe_api";
 import { toast } from "sonner";
 import { SkeletonForm, SkeletonTable } from '@/components/ui/skeleton';
 
@@ -23,11 +23,17 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [studentsPage, setStudentsPage] = useState(1);
   const [studentsPageSize, setStudentsPageSize] = useState(25);
   const [studentsPagination, setStudentsPagination] = useState<any>(null);
+  const [subjectsMeta, setSubjectsMeta] = useState<Record<string, {name: string, code: string, credits: number}>>({});
   const [dirtyPages, setDirtyPages] = useState<Record<number, boolean>>({});
   const [navModalOpen, setNavModalOpen] = useState(false);
   const [pendingNav, setPendingNav] = useState<{page: number;pageSize?: number;} | null>(null);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [unpublishModalOpen, setUnpublishModalOpen] = useState(false);
+  const [importCieModalOpen, setImportCieModalOpen] = useState(false);
+  const [cieCalculationRule, setCieCalculationRule] = useState('average');
+  const [importingCie, setImportingCie] = useState(false);
+  const [importSeeModalOpen, setImportSeeModalOpen] = useState(false);
+  const [importingSee, setImportingSee] = useState(false);
   // marks for current page (kept for compatibility)
   const [marks, setMarks] = useState<Record<string, Record<string, {cie?: number | string | null;see?: number | string | null;}>>>({});
   // persisted marks across pages keyed by student_id -> { usn, subs: { subjectId: {cie,see} }}
@@ -119,6 +125,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
     if (stu.success) {
       const studentList = stu.data?.students || [];
       setStudents(studentList);
+      if (stu.data?.subjects_meta) {
+        setSubjectsMeta(stu.data.subjects_meta);
+      }
       setStudentsPagination(stu.pagination || null);
       setStudentsPage(page || 1);
       // mark this page as clean when freshly loaded
@@ -327,6 +336,36 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
     }
   };
 
+  const handleImportCie = async () => {
+    if (!upload) return;
+    setImportingCie(true);
+    const res = await importCieMarks(upload.id, cieCalculationRule);
+    setImportingCie(false);
+    if (res.success) {
+      toast.success(res.message || 'Import successful');
+      setImportCieModalOpen(false);
+      // reload current page to show imported marks
+      await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true, debouncedSearchQuery);
+    } else {
+      toast.error(res.message || 'Import failed');
+    }
+  };
+
+  const handleImportSee = async () => {
+    if (!upload) return;
+    setImportingSee(true);
+    const res = await importSeeMarks(upload.id);
+    setImportingSee(false);
+    if (res.success) {
+      toast.success(res.message || 'Import successful');
+      setImportSeeModalOpen(false);
+      // reload current page to show imported marks
+      await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true, debouncedSearchQuery);
+    } else {
+      toast.error(res.message || 'Import failed');
+    }
+  };
+
   return (
     <div ref={ref} id="coe-publish-results-container" className={` ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card id="coe-publish-results-filters" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
@@ -417,35 +456,42 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
             <span>Upload ID: <span className="font-semibold">{upload.id}</span></span>
             <span className="hidden sm:inline">|</span>
             <span>Token: <span className="font-mono">{upload.token}</span></span>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 px-2 text-xs ml-2"
-              onClick={() => {
-                const url = `${window.location.origin}/results/view/${upload.token}`;
-                navigator.clipboard.writeText(url);
-                toast.success('Result link copied to clipboard');
-              }}>
-              
-              <Copy className="h-3 w-3 mr-1" /> Copy Link
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={() => {
-                window.open(`/results/view/${upload.token}`, '_blank');
-              }}>
-              
-              <ExternalLink className="h-3 w-3 mr-1" /> Open Link
-            </Button>
+            {upload.is_published && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 text-xs ml-2"
+                  onClick={() => {
+                    const url = `${window.location.origin}/results/view/${upload.token}`;
+                    navigator.clipboard.writeText(url);
+                    toast.success('Result link copied to clipboard');
+                  }}>
+                  
+                  <Copy className="h-3 w-3 mr-1" /> Copy Link
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={() => {
+                    window.open(`/results/view/${upload.token}`, '_blank');
+                  }}>
+                  
+                  <ExternalLink className="h-3 w-3 mr-1" /> Open Link
+                </Button>
+              </>
+            )}
           </div>
           <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <div>Published: <span className={`font-medium ${upload.is_published ? 'text-green-600' : 'text-red-600'}`}>{upload.is_published ? 'Yes' : 'No'}</span></div>
             {upload.is_published ?
             <Button onClick={() => setUnpublishModalOpen(true)} variant="secondary">Unpublish</Button> :
-
-            <Button className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={() => setPublishModalOpen(true)}>Publish Results</Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={() => setImportCieModalOpen(true)}>Import Internal Marks</Button>
+              <Button variant="outline" onClick={() => setImportSeeModalOpen(true)}>Import SEE Marks</Button>
+              <Button className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={() => setPublishModalOpen(true)}>Publish Results</Button>
+            </div>
             }
           </div>
           </CardContent>
@@ -577,15 +623,15 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
 
                             return (
                               <tr key={sub.id}>
-                                <td className="border px-2 py-1">{sub.code}</td>
-                                <td className="border px-2 py-1">{sub.name}</td>
-                                <td className={`border px-2 py-1`}><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={50} value={cie} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'cie', e.target.value)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
+                                <td className="border px-2 py-1">{subjectsMeta[sub.id]?.code || sub.code}</td>
+                                <td className="border px-2 py-1">{subjectsMeta[sub.id]?.name || sub.name}</td>
+                                <td className="border px-2 py-1"><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={50} value={cie} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'cie', e.target.value)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
                                 <td className={`border px-2 py-1`}><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={50} value={see} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'see', e.target.value)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
                                 <td className="border px-2 py-1">{displayTotal}</td>
                                 <td className={`border px-2 py-1 ${result === 'Pass' ? 'text-green-600' : result === 'Fail' ? 'text-red-600' : 'text-yellow-600'}`}>{result}</td>
                                 <td className="border px-2 py-1">{grade}</td>
                                 <td className="border px-2 py-1">{gradePoints}</td>
-                                <td className="border px-2 py-1">{result === 'Pass' ? sub.credits ?? 0 : result === 'Fail' ? 0 : 'N/A'}</td>
+                                <td className="border px-2 py-1">{result === 'Pass' ? (subjectsMeta[sub.id]?.credits ?? sub.credits ?? 0) : result === 'Fail' ? 0 : 'N/A'}</td>
                               </tr>);
 
                           })}
@@ -786,6 +832,58 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                       toast.error(res.message || 'Failed to unpublish');
                     }
                   }}>Confirm Unpublish</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Import CIE Marks Modal */}
+      <Dialog open={importCieModalOpen} onOpenChange={setImportCieModalOpen}>
+        <DialogContent className={`max-w-md ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+          <DialogHeader>
+            <DialogTitle>Import Internal Marks</DialogTitle>
+            <DialogDescription className="mt-2 text-muted-foreground">
+              This will pull the faculty-entered internal marks into this upload batch. Each IA is assumed to be out of 50 marks.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 space-y-4">
+            <div>
+              <label className="block text-sm mb-1 font-medium">Calculation Rule</label>
+              <Select value={cieCalculationRule} onValueChange={setCieCalculationRule}>
+                <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
+                  <SelectValue placeholder="Select calculation rule" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="average">Proportional Average (All IAs)</SelectItem>
+                  <SelectItem value="best_2">Best 2 out of N</SelectItem>
+                  <SelectItem value="best_3">Best 3 out of N</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-2">
+                This rule determines how the final CIE out of 50 is calculated if the student wrote multiple IAs.
+              </p>
+            </div>
+          </div>
+          <div className="mt-6 flex justify-end">
+            <Button variant="ghost" onClick={() => setImportCieModalOpen(false)}>Cancel</Button>
+            <Button className="ml-3 bg-primary text-white" disabled={importingCie} onClick={handleImportCie}>
+              {importingCie ? 'Importing...' : 'Confirm Import'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Import SEE Marks Modal */}
+      <Dialog open={importSeeModalOpen} onOpenChange={setImportSeeModalOpen}>
+        <DialogContent className={`max-w-md ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+          <DialogHeader>
+            <DialogTitle>Import SEE Marks</DialogTitle>
+            <DialogDescription className="mt-2 text-muted-foreground">
+              This will pull the faculty-entered SEE marks into this upload batch. SEE marks evaluated out of 100 will be automatically scaled down to 50.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 flex justify-end">
+            <Button variant="outline" onClick={() => setImportSeeModalOpen(false)}>Cancel</Button>
+            <Button className="ml-3 bg-primary text-white" disabled={importingSee} onClick={handleImportSee}>
+              {importingSee ? 'Importing...' : 'Confirm Import'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
