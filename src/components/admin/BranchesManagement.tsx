@@ -477,6 +477,8 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
             font-size: 0.875rem !important;
             padding: 0 8px !important;
           }
+          .branches-mobile-row { display: flex !important; flex-direction: row !important; gap: 8px !important; width: 100% !important; }
+          .branches-mobile-row > button { flex: 1 !important; width: 50% !important; }
         }
       `}</style>
 
@@ -498,30 +500,28 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
 
               <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
                 {!isReadOnly && (
-                  <>
+                  <div className="flex flex-row gap-2 w-full md:w-auto branches-mobile-row">
                     <Button
                       size="sm"
-                      className="flex items-center justify-center gap-1 w-full md:w-auto"
+                      className="flex-1 flex items-center justify-center gap-1 md:w-auto"
                       onClick={() => setIsAddDialogOpen(true)}
                       disabled={loading}>
-
                       <PlusIcon className="w-4 h-4" /> Add Branch
                     </Button>
 
                     <Button
                       size="sm"
-                      className="flex items-center justify-center gap-1 w-full md:w-auto"
+                      className="flex-1 flex items-center justify-center gap-1 md:w-auto"
                       onClick={() => setIsAssignDialogOpen(true)}
                       disabled={loading}>
-
                       <UserPlus2Icon className="w-4 h-4" /> Assign HOD
                     </Button>
-                  </>
+                  </div>
                 )}
 
                 <Button
                   size="sm"
-                  className="flex items-center justify-center gap-1 w-full md:w-auto"
+                  className="hidden md:flex items-center justify-center gap-1 w-full md:w-auto"
                   onClick={exportToPDF}
                   disabled={loading || downloadingPDF}>
 
@@ -531,8 +531,8 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
               </div>
             </CardHeader>
 
-            <div className="px-2 sm:px-4 pt-3 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="relative w-full sm:w-64">
+            <div className="px-2 sm:px-4 pt-3 pb-3 flex flex-row sm:items-center sm:justify-between gap-3">
+              <div className="relative flex-1 sm:flex-initial sm:w-64">
                 <Input
                   placeholder={translateTerminology("Search by branch name...")}
                   value={filter}
@@ -547,6 +547,18 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
                   </button>
                 )}
               </div>
+
+              {/* Mobile-only download icon button next to search bar */}
+              <Button
+                size="icon"
+                variant="outline"
+                className="flex md:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+                onClick={exportToPDF}
+                disabled={loading || downloadingPDF}
+                title="Export PDF"
+              >
+                {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
+              </Button>
             </div>
           </div>
 

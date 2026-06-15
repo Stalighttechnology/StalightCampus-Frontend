@@ -465,7 +465,7 @@ const AdminQPApprovals = () => {
             </CardContent>
 
             {/* Pagination Footer */}
-            {totalPages > 0 &&
+            {totalPages > 1 &&
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                 <div>
                   Showing {totalCount === 0 ? 0 : (currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
@@ -521,7 +521,7 @@ const AdminQPApprovals = () => {
             </CardContent>
 
             {/* Pagination Footer */}
-            {historyTotalPages > 0 &&
+            {historyTotalPages > 1 &&
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                 <div>
                   Showing {historyTotalCount === 0 ? 0 : (historyPage - 1) * 10 + 1} to {Math.min(historyPage * 10, historyTotalCount)} of {historyTotalCount} records

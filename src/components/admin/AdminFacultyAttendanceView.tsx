@@ -560,6 +560,10 @@ const AdminFacultyAttendanceView: React.FC = () => {
             align-items: center !important;
             width: 100% !important;
           }
+          .today-export-btn {
+            width: auto !important;
+            padding: 8px !important;
+          }
           th {
             font-size: 16px !important;
             padding: 8px 12px !important;
@@ -616,9 +620,9 @@ const AdminFacultyAttendanceView: React.FC = () => {
             Track and manage faculty attendance across the institution
           </p>
         </div>
-        <div id="admin-faculty-attendance-branch-select" className="flex items-center gap-2">
+        <div id="admin-faculty-attendance-branch-select" className="flex items-center gap-2 w-full md:w-auto">
           <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full md:w-[200px]">
               <SelectValue placeholder={translateTerminology("Select Branch")} />
             </SelectTrigger>
             <SelectContent>
@@ -727,23 +731,23 @@ const AdminFacultyAttendanceView: React.FC = () => {
         {activeTab === 'today' && !isLoading && todaySummary.total_faculty > 0 &&
           <>
             <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
-              <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b border-border flex flex-row justify-between items-center gap-4">
                 <CardTitle className={`text-sm sm:text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   Today's Faculty Attendance <span className="inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
                 </CardTitle>
                 <button
                   onClick={handleExportTodayPDF}
                   disabled={exportingToday}
-                  className={`flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50 export-btn`}>
+                  className={`flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50 today-export-btn`}>
                   {exportingToday ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                      <span>Downloading...</span>
+                      <span className="hidden sm:inline">Downloading...</span>
                     </>
                   ) : (
                     <>
                       <FileDown className="w-4 h-4" />
-                      <span>Export PDF</span>
+                      <span className="hidden sm:inline">Export PDF</span>
                     </>
                   )}
                 </button>

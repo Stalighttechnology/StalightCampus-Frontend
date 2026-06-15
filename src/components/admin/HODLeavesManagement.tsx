@@ -460,9 +460,12 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={`leave-view-btn w-full h-9 font-semibold ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                          className={`leave-view-btn w-full h-9 font-semibold transition border ${
+                            theme === 'dark'
+                              ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                              : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                          }`}
                           onClick={() => setViewReason(leave.reason)}>
-
                           View Reason
                         </Button>
 
@@ -536,8 +539,12 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                         <td className="py-4 px-2 md:px-4 text-sm">
                           <button
                             onClick={() => setViewReason(leave.reason)}
-                            className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
-
+                            className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${
+                              theme === 'dark'
+                                ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                            }`}
+                          >
                             View
                           </button>
                         </td>
@@ -594,36 +601,38 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
             </div>
           </CardContent>
 
-          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-            <div>
-              Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1 || loading}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Previous
-              </Button>
-
-              <div className="flex items-center justify-center min-w-[2rem]">
-                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {currentPage}
-                </span>
+          {totalPages > 1 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
               </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1 || loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Previous
+                </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages || loading}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Next
-              </Button>
-            </div>
-          </CardFooter>
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {currentPage}
+                  </span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages || loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
 
         {/* View Reason Dialog */}
