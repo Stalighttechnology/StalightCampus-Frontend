@@ -678,7 +678,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               <DialogTrigger asChild>
                 <Button className="bg-primary text-white w-full sm:w-auto">Raise Ticket</Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="w-[90%] sm:max-w-[500px] mx-auto rounded-xl">
                 <DialogHeader>
                   <DialogTitle>Raise Support Ticket</DialogTitle>
                 </DialogHeader>

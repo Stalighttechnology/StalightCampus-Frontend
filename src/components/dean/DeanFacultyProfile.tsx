@@ -472,6 +472,8 @@ const DeanFacultyProfile = ({
           .dean-profile .filters-row { gap: 12px !important; display: flex !important; flex-direction: column !important; align-items: stretch !important; }
           .dean-profile .filters-row .flex-1 { width: 100% !important; min-width: 0 !important; }
           .dean-profile .filters-row .flex-shrink-0 { width: 100% !important; margin-top: 0.25rem !important; display: flex !important; justify-content: center !important; }
+          .dean-profile .dean-buttons-row { display: flex !important; flex-direction: row !important; gap: 8px !important; width: 100% !important; }
+          .dean-profile .dean-buttons-row > div { flex: 1 !important; }
           .dean-profile h1 { font-size: 1.75rem !important; line-height: 1.4 !important; }
           .dean-profile h2 { font-size: 1.375rem !important; line-height: 1.45 !important; }
           .dean-profile h3 { font-size: 1.125rem !important; line-height: 1.5 !important; }
@@ -624,103 +626,104 @@ const DeanFacultyProfile = ({
                     />
                   </div>
 
-                  {/* Filters button */}
-                  <div className="flex-shrink-0 flex items-end mt-2 lg:mt-0">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="flex items-center gap-2 px-4 h-10 bg-primary text-white hover:bg-primary/90 hover:text-white"
-                          disabled={
-                            !selectedBranch || !selectedFaculty || facultiesLoading
-                          }
-                          title={
-                            !selectedBranch || !selectedFaculty
-                              ? "Select branch and faculty to enable filters"
-                              : undefined
-                          }
+                  {/* Action buttons (Filters & Export PDF) in a single row on mobile */}
+                  <div className="flex-shrink-0 flex items-end gap-3 w-full lg:w-auto mt-2 lg:mt-0 dean-buttons-row">
+                    <div className="flex-1 lg:flex-initial">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full flex items-center justify-center gap-2 px-4 h-10 bg-primary text-white hover:bg-primary/90 hover:text-white"
+                            disabled={
+                              !selectedBranch || !selectedFaculty || facultiesLoading
+                            }
+                            title={
+                              !selectedBranch || !selectedFaculty
+                                ? "Select branch and faculty to enable filters"
+                                : undefined
+                            }
+                          >
+                            Filters
+                            <Sliders className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent
+                          className={`${
+                            theme === "dark"
+                              ? "bg-card border-border"
+                              : "bg-white border-gray-200"
+                          } dean-filters-dialog`}
                         >
-                          Filters
-                          <Sliders className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent
-                        className={`${
-                          theme === "dark"
-                            ? "bg-card border-border"
-                            : "bg-white border-gray-200"
-                        } dean-filters-dialog`}
-                      >
-                        <DialogHeader>
-                          <DialogTitle>Attendance Report Filters</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 py-2">
-                          <DatePickerField
-                            label="Start Date"
-                            date={startDate}
-                            onDateChange={setStartDate}
-                            popoverOpen={startDatePopoverOpen}
-                            onPopoverChange={setStartDatePopoverOpen}
-                            theme={theme}
-                          />
-                          <DatePickerField
-                            label="End Date"
-                            date={endDate}
-                            onDateChange={setEndDate}
-                            popoverOpen={endDatePopoverOpen}
-                            onPopoverChange={setEndDatePopoverOpen}
-                            theme={theme}
-                          />
-                          <div className="flex justify-end gap-2">
-                            <DialogClose asChild>
-                              <Button
-                                onClick={handleClearDates}
-                                className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors"
-                              >
-                                Clear
-                              </Button>
-                            </DialogClose>
-                            <DialogClose asChild>
-                              <Button
-                                onClick={handleDateFilter}
-                                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-                              >
-                                Apply
-                              </Button>
-                            </DialogClose>
+                          <DialogHeader>
+                            <DialogTitle>Attendance Report Filters</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 py-2">
+                            <DatePickerField
+                              label="Start Date"
+                              date={startDate}
+                              onDateChange={setStartDate}
+                              popoverOpen={startDatePopoverOpen}
+                              onPopoverChange={setStartDatePopoverOpen}
+                              theme={theme}
+                            />
+                            <DatePickerField
+                              label="End Date"
+                              date={endDate}
+                              onDateChange={setEndDate}
+                              popoverOpen={endDatePopoverOpen}
+                              onPopoverChange={setEndDatePopoverOpen}
+                              theme={theme}
+                            />
+                            <div className="flex justify-end gap-2">
+                              <DialogClose asChild>
+                                <Button
+                                  onClick={handleClearDates}
+                                  className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors"
+                                >
+                                  Clear
+                                </Button>
+                              </DialogClose>
+                              <DialogClose asChild>
+                                <Button
+                                  onClick={handleDateFilter}
+                                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                                >
+                                  Apply
+                                </Button>
+                              </DialogClose>
+                            </div>
                           </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
 
-                  {/* Export PDF button */}
-                  <div className="flex-shrink-0 flex items-end mt-2 lg:mt-0">
-                    <Button
-                      onClick={handleExportPDF}
-                      variant="outline"
-                      className="flex items-center gap-2 px-4 h-10 bg-primary text-white hover:bg-primary/90 hover:text-white"
-                      disabled={
-                        !selectedBranch || !selectedFaculty || facultiesLoading || exportLoading
-                      }
-                      title={
-                        !selectedBranch || !selectedFaculty
-                          ? "Select branch and faculty to enable export"
-                          : undefined
-                      }
-                    >
-                      {exportLoading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Exporting...
-                        </>
-                      ) : (
-                        <>
-                          <FileText className="h-4 w-4" />
-                          Export PDF
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex-1 lg:flex-initial">
+                      <Button
+                        onClick={handleExportPDF}
+                        variant="outline"
+                        className="w-full flex items-center justify-center gap-2 px-4 h-10 bg-primary text-white hover:bg-primary/90 hover:text-white"
+                        disabled={
+                          !selectedBranch || !selectedFaculty || facultiesLoading || exportLoading
+                        }
+                        title={
+                          !selectedBranch || !selectedFaculty
+                            ? "Select branch and faculty to enable export"
+                            : undefined
+                        }
+                      >
+                        {exportLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Exporting...
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="h-4 w-4" />
+                            Export PDF
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
