@@ -1464,11 +1464,27 @@ const UploadMarks = () => {
               <div>
                 <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white border border-gray-300'}`}>
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <h3 className="text-lg font-semibold">Question Paper Format</h3>
+                    <div className="flex items-center justify-between w-full sm:w-auto">
+                      <h3 className="text-lg font-semibold">Question Paper Format</h3>
+                      {/* Mobile Download PDF Icon Button */}
+                      <Button
+                        onClick={downloadQuestionPaperPDF}
+                        disabled={downloadingPDF}
+                        size="icon"
+                        variant="outline"
+                        className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                      >
+                        {downloadingPDF ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <FileDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                     <Button
                       onClick={downloadQuestionPaperPDF}
                       disabled={downloadingPDF}
-                      className="w-full sm:w-auto bg-primary text-white hover:bg-primary/90 flex items-center justify-center gap-2">
+                      className="hidden sm:flex w-full sm:w-auto bg-primary text-white hover:bg-primary/90 items-center justify-center gap-2">
                       {downloadingPDF ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (

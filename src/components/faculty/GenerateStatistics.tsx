@@ -250,19 +250,34 @@ const GenerateStatistics: React.FC = () => {
         <CardHeader id="statistics-table-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3">
-                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
-                {totalCount > 0 &&
-                  <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
-                    {totalCount} Total
-                  </span>
-                }
+              <div className="flex items-start justify-between w-full sm:w-auto gap-2">
+                <div className="flex items-center gap-3">
+                  <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
+                  {totalCount > 0 &&
+                    <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
+                      {totalCount} Total
+                    </span>
+                  }
+                </div>
+                {/* Mobile Export PDF Icon Button */}
+                <Button
+                  onClick={handleExportPDF}
+                  disabled={downloadingPDF || proctorStudents.length === 0}
+                  size="icon"
+                  variant="outline"
+                  className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background mt-1"
+                >
+                  {downloadingPDF
+                    ? <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    : <FileDown className="h-4 w-4" />
+                  }
+                </Button>
               </div>
               <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 View and export performance and attendance statistics for your proctored students
               </p>
             </div>
-            <div className="w-full sm:w-auto">
+            <div className="hidden sm:block">
               <Button
                 variant="outline"
                 size="sm"

@@ -786,13 +786,26 @@ const UploadQP = () => {
                 </div> :
 
                 <div className="mb-4 space-y-4">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h3 className="font-semibold text-lg">Question Paper Preview</h3>
-                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
+                    <div className="flex items-center justify-between w-full sm:w-auto">
+                      <h3 className="font-semibold text-lg">Question Paper Preview</h3>
+                      {/* Mobile Download PDF Icon Button */}
                       <Button
                         onClick={downloadPDF}
                         disabled={downloadingPDF}
-                        className="w-full sm:w-auto bg-primary text-white hover:bg-primary/90 transition-all duration-200 flex items-center gap-2">
+                        size="icon"
+                        variant="outline"
+                        className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                      >
+                        {downloadingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      {/* Desktop Download PDF Button */}
+                      <Button
+                        onClick={downloadPDF}
+                        disabled={downloadingPDF}
+                        className="hidden sm:flex w-full sm:w-auto bg-primary text-white hover:bg-primary/90 transition-all duration-200 items-center justify-center gap-2">
                         {downloadingPDF ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
