@@ -2197,4 +2197,30 @@ export const getSemesterSyllabusMonitor = async (semesterId: string): Promise<Se
     return { success: false, message: "Network error while fetching semester syllabus monitor data" };
   }
 };
+
+export const exportSemesterSyllabusMonitorPdf = async (semesterId: string): Promise<Blob> => {
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/semester-monitor/export-pdf/?semester_id=${semesterId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    }
+  });
+  if (!response.ok) {
+    throw new Error("Failed to export semester syllabus monitor PDF");
+  }
+  return response.blob();
+};
+
+export const exportSubjectSyllabusMonitorPdf = async (semesterId: string, subjectId: string): Promise<Blob> => {
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/subject-monitor/export-pdf/?semester_id=${semesterId}&subject_id=${subjectId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    }
+  });
+  if (!response.ok) {
+    throw new Error("Failed to export subject syllabus monitor PDF");
+  }
+  return response.blob();
+};
 

@@ -676,7 +676,7 @@ export const AnnouncementSections = ({
           </CardFooter>
         )}
 
-        {activeTab === "received" && receivedPagination && receivedPagination.count > 0 && (
+        {activeTab === "received" && receivedPagination && receivedPagination.count > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((receivedPagination.page - 1) * receivedPagination.pageSize + 1, receivedPagination.count)} to {Math.min(receivedPagination.page * receivedPagination.pageSize, receivedPagination.count)} of {receivedPagination.count} announcements

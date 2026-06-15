@@ -21,7 +21,8 @@ import { useTheme } from "@/context/ThemeContext";
 import {
   getSyllabusStatus,
   updateSyllabusPlan,
-  getSyllabusBootstrap
+  getSyllabusBootstrap,
+  exportSyllabusPdf
 } from "@/utils/faculty_api";
 import {
   BookOpen,
@@ -30,7 +31,9 @@ import {
   Save,
   Edit3,
   AlertCircle,
-  Eye
+  Eye,
+  FileDown,
+  Loader2
 } from "lucide-react";
 import { showSuccessAlert, showErrorAlert } from "@/utils/sweetalert";
 import {
@@ -66,6 +69,45 @@ const HODSyllabusTracker = () => {
   const [weeksPlan, setWeeksPlan] = useState<Array<{ week: number; expected_topics: string }>>([]);
 
   const [isSubjectOpen, setIsSubjectOpen] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!subjectId) return;
+    setExportingPDF(true);
+    try {
+      const blob = await exportSyllabusPdf({
+        subject_id: subjectId.toString(),
+        branch_id: "",
+        semester_id: semesterId?.toString() || "",
+        section_id: ""
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const fileNameSuffix = `${selectedSubject?.name.replace(/\s+/g, '_')}_MasterSyllabus`;
+      link.setAttribute('download', `Master_Syllabus_${fileNameSuffix}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Success',
+        description: 'Syllabus template PDF downloaded successfully',
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to export syllabus template PDF',
+      });
+    } finally {
+      setExportingPDF(false);
+    }
+  };
 
   // Load HOD bootstrap data
   useEffect(() => {
@@ -171,12 +213,51 @@ const HODSyllabusTracker = () => {
   return (
     <div className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'} agent`}>
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-        <CardHeader id="hod-syllabus-tracker-header">
-          <div className="flex items-center gap-2">
-            <div>
-              <CardTitle className="text-2xl font-semibold mb-2">Department Syllabus Management</CardTitle>
-              <CardDescription >Configure department-level week-wise syllabus templates.</CardDescription>
+        <CardHeader id="hod-syllabus-tracker-header" className="border-b mb-3">
+          <div className="flex flex-row items-start justify-between gap-4 w-full">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-xl sm:text-2xl font-semibold mb-2">Department Syllabus Management</CardTitle>
+              <CardDescription>Configure department-level week-wise syllabus templates.</CardDescription>
             </div>
+            {syllabusData && (
+              <>
+                {/* Desktop view button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPDF}
+                  disabled={exportingPDF}
+                  className="hidden sm:flex bg-primary hover:bg-primary/90 text-white hover:text-white border-primary h-9 px-4 transition-all text-sm items-center justify-center gap-2"
+                >
+                  {exportingPDF ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Exporting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileDown className="w-4 h-4" />
+                      <span>Export PDF</span>
+                    </>
+                  )}
+                </Button>
+
+                {/* Mobile view icon button */}
+                <Button
+                  onClick={handleExportPDF}
+                  disabled={exportingPDF}
+                  size="icon"
+                  variant="outline"
+                  className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                >
+                  {exportingPDF ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <FileDown className="w-4 h-4" />
+                  )}
+                </Button>
+              </>
+            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-6">

@@ -746,7 +746,7 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
           <CardTitle className={`text-lg ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Promote Students to Next Semester</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-3 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
             <Select
               value={state.selectedSemester}
               onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "", isSectionOpen: false })}
@@ -1325,7 +1325,7 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-3 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
               <Select
                 value={state.selectedSemester}
                 onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "", isSectionOpen: false })}

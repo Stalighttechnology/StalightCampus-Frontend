@@ -538,15 +538,17 @@ const ApplyLeave = () => {
                         {renderStatus(theme, leave.status)}
                       </div>
                     </div>
-                    <div className="mt-3 flex gap-2">
-                      <Button
-                      size="sm"
-                      variant="outline"
-                      className={`flex-1 h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}
-                      onClick={() => setSelectedReason(leave.reason)}>
-                        <Eye className="w-3 h-3 mr-1" />
-                        View
-                      </Button>
+                    <div className="mt-3">
+                      <button
+                        onClick={() => setSelectedReason(leave.reason)}
+                        className={`w-full text-center text-sm font-semibold py-2 px-4 rounded-lg transition border ${
+                          theme === 'dark'
+                            ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                            : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100'
+                        }`}
+                      >
+                        View Reason
+                      </button>
                     </div>
                   </div>
                 )
@@ -600,10 +602,11 @@ const ApplyLeave = () => {
                       </td>
                       <td className="py-3 px-4 text-sm">
                         <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedReason(leave.reason)}
-                        className={`h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}>
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedReason(leave.reason)}
+                          className={`h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
                           <Eye className="w-3 h-3 mr-1" />
                           View
                         </Button>
@@ -618,7 +621,7 @@ const ApplyLeave = () => {
             </table>
           </div>
         </CardContent>
-        {leaves.length > 1 && (
+        {totalPages > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {totalCount === 0 ? 0 : (currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
@@ -655,7 +658,7 @@ const ApplyLeave = () => {
 
         {/* Popup Modal */}
         <Dialog open={!!selectedReason} onOpenChange={() => setSelectedReason(null)}>
-          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6'}>
+          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-lg p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-lg p-4 sm:p-6'}>
             <DialogHeader>
               <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Leave Reason</DialogTitle>
             </DialogHeader>

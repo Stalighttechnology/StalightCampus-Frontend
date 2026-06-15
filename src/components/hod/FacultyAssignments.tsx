@@ -1032,11 +1032,23 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
         <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
-              <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Faculty Assignments List</CardTitle>
+              <div className="flex items-start justify-between w-full sm:w-auto">
+                <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Assignments List</CardTitle>
+                {/* Mobile Download PDF Icon Button */}
+                <Button
+                  onClick={handleExportPDF}
+                  disabled={state.loading || downloadingPDF || !state.filterSemesterId || !state.filterSectionId}
+                  size="icon"
+                  variant="outline"
+                  className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                >
+                  {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                </Button>
+              </div>
               <Button
                 onClick={handleExportPDF}
                 disabled={state.loading || downloadingPDF || !state.filterSemesterId || !state.filterSectionId}
-                className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+                className="hidden sm:flex w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md items-center justify-center gap-2">
                 {downloadingPDF ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
