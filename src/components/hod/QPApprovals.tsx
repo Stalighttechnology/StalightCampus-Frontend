@@ -81,6 +81,18 @@ const QPApprovals = () => {
     setExpanded((p) => ({ ...p, [key]: !p[key] }));
   };
 
+  const getStatusBadgeStyle = (status: string) => {
+    const s = (status || '').toLowerCase();
+    const base = "w-full flex items-center justify-center text-xs font-semibold px-2.5 py-1 rounded-full border transition-all duration-200";
+    if (s.includes('approve') || s.includes('finalized') || s.includes('pass')) {
+      return `${base} bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50`;
+    }
+    if (s.includes('reject') || s.includes('fail')) {
+      return `${base} bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50`;
+    }
+    return `${base} bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800/50`;
+  };
+
   // Ensure SweetAlert appears above the dialog and is interactive
   useEffect(() => {
     try {
@@ -384,7 +396,7 @@ const QPApprovals = () => {
               }
               {isHistory && qp.status && (
                 <div className="mt-2 space-y-1">
-                  <Badge variant="secondary" className="w-full justify-center">Status: {qp.status.replace('_', ' ').toUpperCase()}</Badge>
+                  <span className={getStatusBadgeStyle(qp.status)}>Status: {qp.status.replace('_', ' ').toUpperCase()}</span>
                   {qp.current_holder && (
                     <div className="text-center text-xs text-muted-foreground">
                       Waiting on: {qp.current_holder}
@@ -448,7 +460,7 @@ const QPApprovals = () => {
                     <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and track question papers from your department faculty</p>
                   </div>
                 </div>
-                <TabsList>
+                 <TabsList className="grid grid-cols-2 w-full sm:w-auto">
                   <TabsTrigger value="pending" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">Pending Requests</TabsTrigger>
                   <TabsTrigger value="history" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">History</TabsTrigger>
                 </TabsList>
@@ -472,7 +484,7 @@ const QPApprovals = () => {
                   }
                 </div>
               </CardContent>
-              {pendingQPs.length > 0 && (
+              {pendingQPs.length > 1 && (
                 <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                   <div>
                     Showing {totalCount === 0 ? 0 : (currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
@@ -524,7 +536,7 @@ const QPApprovals = () => {
                   )}
                 </div>
               </CardContent>
-              {historyQPs.length > 0 && (
+              {historyQPs.length > 1 && (
                 <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                   <div>
                     Showing {historyTotalCount === 0 ? 0 : (historyPage - 1) * 10 + 1} to {Math.min(historyPage * 10, historyTotalCount)} of {historyTotalCount} records
