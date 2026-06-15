@@ -1497,23 +1497,24 @@ const StudentManagement = () => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 md:gap-4">
               <CardTitle>Student List</CardTitle>
               <div className="flex w-full sm:w-auto gap-2">
-                <Button
-                  onClick={handleExportPDF}
-                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap disabled:opacity-50"
-                  disabled={state.isLoading || !state.branchId || state.semesterFilter === "" || state.sectionFilter === "" || downloadingPDF}
-                >
-                  {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-                  <span className="hidden sm:inline">{downloadingPDF ? "Exporting..." : "Export PDF"}</span>
-                  <span className="sm:hidden">{downloadingPDF ? "Exporting..." : "Export"}</span>
-                </Button>
+                {/* Bulk Upload Button */}
                 <Button
                   onClick={() => updateState({ addStudentModal: true })}
-                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap"
-                  disabled={state.isLoading || !state.branchId}>
-
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap h-10"
+                  disabled={state.isLoading || !state.branchId}
+                >
                   <Upload className="w-4 h-4" />
                   <span className="hidden sm:inline">Bulk Upload</span>
                   <span className="sm:hidden">Upload</span>
+                </Button>
+                {/* Desktop Download PDF Button */}
+                <Button
+                  onClick={handleExportPDF}
+                  className="hidden sm:flex flex-1 sm:flex-initial items-center justify-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap disabled:opacity-50 h-10"
+                  disabled={state.isLoading || !state.branchId || state.semesterFilter === "" || state.sectionFilter === "" || downloadingPDF}
+                >
+                  {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                  <span>{downloadingPDF ? "Exporting..." : "Export PDF"}</span>
                 </Button>
               </div>
             </div>
@@ -1522,22 +1523,34 @@ const StudentManagement = () => {
           <CardContent className="pb-4">
             <div className="flex flex-col gap-3">
               {/* Search bar — full width on all screens */}
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40" />
-                <Input
-                  placeholder="Search students..."
-                  className={`w-full pl-10 pr-12 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
-                  value={state.search}
-                  onChange={(e) => updateState({ search: e.target.value })}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()} />
-                {state.search && (
-                  <button
-                    onClick={() => updateState({ search: "" })}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-                  >
-                    Clear
-                  </button>
-                )}
+              <div className="search-wrapper flex gap-2 w-full">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40" />
+                  <Input
+                    placeholder="Search students..."
+                    className={`w-full pl-10 pr-12 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
+                    value={state.search}
+                    onChange={(e) => updateState({ search: e.target.value })}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()} />
+                  {state.search && (
+                    <button
+                      onClick={() => updateState({ search: "" })}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                {/* Mobile Download PDF Icon Button */}
+                <Button
+                  onClick={handleExportPDF}
+                  disabled={state.isLoading || !state.branchId || state.semesterFilter === "" || state.sectionFilter === "" || downloadingPDF}
+                  size="icon"
+                  variant="outline"
+                  className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background text-foreground"
+                >
+                  {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                </Button>
               </div>
 
               {/* Semester + Section selects — stack on mobile, row on md+ */}

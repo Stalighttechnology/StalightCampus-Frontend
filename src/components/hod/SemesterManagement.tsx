@@ -9,13 +9,14 @@ import { Pencil, Trash2, Plus, X, FileDown, Loader2 } from "lucide-react";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { SkeletonTable } from "../ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogFooter } from "../ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "../ui/dialog";
 import { getSemesters, manageSemesters, manageSections, manageProfile, getSemesterBootstrap } from "../../utils/hod_api";
 import { useHODBootstrap } from "../../context/HODBootstrapContext";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { cn } from "../../lib/utils";
 import { useTheme } from "../../context/ThemeContext";
 import { showConfirmAlert, showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
+import Swal from "sweetalert2";
 
 interface Semester {
   id: string;
@@ -84,6 +85,14 @@ const SemesterManagement = () => {
   const [editingSectionsSemesterId, setEditingSectionsSemesterId] = useState<string | null>(null);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const bootstrap = useHODBootstrap();
+
+  const [deleteSemDialogOpen, setDeleteSemDialogOpen] = useState(false);
+  const [semToDelete, setSemToDelete] = useState<Semester | null>(null);
+  const [confirmSemName, setConfirmSemName] = useState("");
+
+  const [deleteSecDialogOpen, setDeleteSecDialogOpen] = useState(false);
+  const [secToDelete, setSecToDelete] = useState<Section | null>(null);
+  const [confirmSecName, setConfirmSecName] = useState("");
 
   const handleExportPDF = async () => {
     setDownloadingPDF(true);
@@ -171,15 +180,9 @@ const SemesterManagement = () => {
   };
 
   const openDeleteModal = (sem: Semester) => {
-    showConfirmAlert(
-      "Delete Semester?",
-      `Are you sure you want to delete ${getSemesterName(sem.number)}?`,
-      "Delete"
-    ).then((result) => {
-      if (result.isConfirmed) {
-        executeDelete(sem);
-      }
-    });
+    setSemToDelete(sem);
+    setConfirmSemName("");
+    setDeleteSemDialogOpen(true);
   };
 
   const openSectionModal = (sem: Semester) => {
@@ -189,16 +192,60 @@ const SemesterManagement = () => {
   };
 
   const openDeleteSectionModal = (section: Section) => {
-    const semNumber = semesters.find(s => s.id === section.semester_id)?.number;
-    showConfirmAlert(
-      "Delete Section?",
-      `Are you sure you want to delete Section ${section.name} from Semester ${semNumber || ""}?`,
-      "Delete"
-    ).then((result) => {
-      if (result.isConfirmed) {
-        executeDeleteSection(section);
-      }
+    setSecToDelete(section);
+    setConfirmSecName("");
+    setDeleteSecDialogOpen(true);
+  };
+
+  const confirmDeleteSemester = async () => {
+    if (!semToDelete) return;
+
+    const currentTheme = theme === 'dark' ? 'dark' : 'light';
+    const result = await Swal.fire({
+      title: 'Final Confirmation',
+      text: `Are you absolutely sure you want to delete ${getSemesterName(semToDelete.number)}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#3b82f6',
+      confirmButtonText: 'Yes, delete it!',
+      background: currentTheme === 'dark' ? '#1f2937' : '#fff',
+      color: currentTheme === 'dark' ? '#fff' : '#000'
     });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    await executeDelete(semToDelete);
+    setDeleteSemDialogOpen(false);
+    setSemToDelete(null);
+  };
+
+  const confirmDeleteSection = async () => {
+    if (!secToDelete) return;
+
+    const semNumber = semesters.find(s => s.id === secToDelete.semester_id)?.number;
+    const currentTheme = theme === 'dark' ? 'dark' : 'light';
+    const result = await Swal.fire({
+      title: 'Final Confirmation',
+      text: `Are you absolutely sure you want to delete Section ${secToDelete.name} from Semester ${semNumber || ""}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#3b82f6',
+      confirmButtonText: 'Yes, delete it!',
+      background: currentTheme === 'dark' ? '#1f2937' : '#fff',
+      color: currentTheme === 'dark' ? '#fff' : '#000'
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    await executeDeleteSection(secToDelete);
+    setDeleteSecDialogOpen(false);
+    setSecToDelete(null);
   };
 
   const closeModal = () => {
@@ -380,18 +427,29 @@ const SemesterManagement = () => {
         <CardHeader>
           <div id="semester-list-header" className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3">
             <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Semester List</CardTitle>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
               <Button
                 onClick={() => openModal()}
                 disabled={loading || !branchId}
-                className="w-full sm:w-auto text-foreground bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white justify-center"
+                className="flex-1 sm:flex-initial text-foreground bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white justify-center h-10"
               >
                 + Add Semester
               </Button>
+              {/* Mobile Download PDF Icon Button */}
               <Button
                 onClick={handleExportPDF}
                 disabled={loading || !branchId || downloadingPDF}
-                className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-primary text-white border-primary hover:bg-primary/90"
+                size="icon"
+                variant="outline"
+                className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background text-foreground"
+              >
+                {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+              </Button>
+              {/* Desktop Download PDF Button */}
+              <Button
+                onClick={handleExportPDF}
+                disabled={loading || !branchId || downloadingPDF}
+                className="hidden sm:flex w-full sm:w-auto items-center justify-center gap-1.5 bg-primary text-white border-primary hover:bg-primary/90 h-10"
               >
                 {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
                 {downloadingPDF ? "Exporting..." : "Export PDF"}
@@ -644,6 +702,112 @@ const SemesterManagement = () => {
         <Button onClick={handleSaveSection} disabled={loading} className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
           Add Section
         </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Semester Confirmation Dialog */}
+      <Dialog open={deleteSemDialogOpen} onOpenChange={(open) => {
+        setDeleteSemDialogOpen(open);
+        if (!open) setConfirmSemName("");
+      }}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[400px] w-full rounded-xl shadow-xl`}>
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Delete Semester</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div>
+              <p className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>
+                Are you sure you want to delete <span className="font-semibold text-foreground">"{semToDelete ? getSemesterName(semToDelete.number) : ""}"</span>?
+              </p>
+              <p className="text-sm text-destructive font-medium mt-2">
+                This action cannot be undone and will remove all associations.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <label className={`block text-xs font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
+                Please type <span className="font-bold">{semToDelete ? getSemesterName(semToDelete.number) : ""}</span> to confirm:
+              </label>
+              <Input
+                value={confirmSemName}
+                onChange={(e) => setConfirmSemName(e.target.value)}
+                placeholder={semToDelete ? getSemesterName(semToDelete.number) : ""}
+                className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-3">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setDeleteSemDialogOpen(false);
+                setConfirmSemName("");
+              }}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteSemester}
+              disabled={loading || confirmSemName !== (semToDelete ? getSemesterName(semToDelete.number) : "")}
+              className="flex-1"
+            >
+              {loading ? "Deleting..." : "Delete Semester"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Section Confirmation Dialog */}
+      <Dialog open={deleteSecDialogOpen} onOpenChange={(open) => {
+        setDeleteSecDialogOpen(open);
+        if (!open) setConfirmSecName("");
+      }}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[400px] w-full rounded-xl shadow-xl`}>
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Delete Section</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div>
+              <p className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>
+                Are you sure you want to delete <span className="font-semibold text-foreground">"Section {secToDelete?.name}"</span>?
+              </p>
+              <p className="text-sm text-destructive font-medium mt-2">
+                This action cannot be undone and will remove all associations.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <label className={`block text-xs font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
+                Please type <span className="font-bold">Section {secToDelete?.name}</span> to confirm:
+              </label>
+              <Input
+                value={confirmSecName}
+                onChange={(e) => setConfirmSecName(e.target.value)}
+                placeholder={`Section ${secToDelete?.name || ""}`}
+                className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-3">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setDeleteSecDialogOpen(false);
+                setConfirmSecName("");
+              }}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteSection}
+              disabled={loading || confirmSecName !== `Section ${secToDelete?.name || ""}`}
+              className="flex-1"
+            >
+              {loading ? "Deleting..." : "Delete Section"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

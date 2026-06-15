@@ -12,7 +12,7 @@ import { useHODBootstrap } from "../../context/HODBootstrapContext";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
-import { Loader2, Users, UserX, UserCheck, FileDown } from "lucide-react";
+import { Loader2, Users, UserX, UserCheck, FileDown, Search } from "lucide-react";
 import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 
 const StudentEnrollment = () => {
@@ -34,6 +34,7 @@ const StudentEnrollment = () => {
   const [showEnrolledOnly, setShowEnrolledOnly] = useState<boolean>(false);
   // enrolledCount state removed (unused)
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [appliedSearch, setAppliedSearch] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const { theme } = useTheme();
   const [saving, setSaving] = useState(false);
@@ -216,7 +217,7 @@ const StudentEnrollment = () => {
         subject_id: selectedSubjectId,
         semester_id: semesterId,
         section_id: sectionId,
-        search: searchTerm,
+        search: appliedSearch,
       });
 
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/elective-enrollment/export-pdf/?${params}`);
@@ -412,12 +413,20 @@ const StudentEnrollment = () => {
     setIsLoading(false);
   };
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAppliedSearch(searchTerm.trim());
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   // Automatically load students when selection changes
   useEffect(() => {
     if (branchId && selectedSubjectId) {
-      loadStudents(1);
+      loadStudents(1, appliedSearch);
     }
-  }, [branchId, selectedSubjectId, semesterId, sectionId]);
+  }, [branchId, selectedSubjectId, semesterId, sectionId, appliedSearch]);
 
   const toggleStudent = (id: string) => {
     setStudents((prev) => prev.map((p) => p.id === id ? { ...p, checked: !p.checked } : p));
@@ -498,8 +507,17 @@ const StudentEnrollment = () => {
     <div id="hod-student-enrollment-container" className="w-full mx-auto max-w-none">
       <Card className="shadow-lg">
         <div id="elective-enrollment-filters-section">
-          <CardHeader className="pb-4 md:pb-2 lg:pb-4">
+          <CardHeader className="pb-4 md:pb-2 lg:pb-4 flex flex-row items-start justify-between">
             <CardTitle>Student Enrollment <span className="block sm:inline">(Elective / Open Elective)</span></CardTitle>
+            <Button
+              onClick={handleExportPDF}
+              disabled={!selectedSubjectId || isLoading || saving || downloadingPDF}
+              size="icon"
+              variant="outline"
+              className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+            >
+              {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4 sm:space-y-5 md:space-y-4 lg:space-y-6 p-4 sm:p-5 md:p-4 lg:p-6 pb-0">
             <div className="w-full">
@@ -627,30 +645,33 @@ const StudentEnrollment = () => {
               </div>
             </div>
 
-          <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-6 p-4 sm:p-5 rounded-lg border ${
+          <div className={`flex flex-col lg:flex-row items-stretch lg:items-center gap-4 mb-6 p-4 sm:p-5 rounded-lg border ${
           theme === 'dark' ? 'bg-muted/50 border-border' : 'bg-gray-50 border-gray-100'}`
           }>
-            <div className="flex-1">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40 text-gray-500" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by USN or name"
-                className={`w-full px-4 py-2.5 text-sm rounded-md border shadow-sm transition-all placeholder-gray-400 focus:ring-2 focus:ring-purple-500/20 ${
+                disabled={!selectedSubjectId}
+                placeholder={selectedSubjectId ? "Search by USN or name" : "Select subject to search"}
+                className={`w-full pl-10 pr-12 py-2.5 text-sm rounded-md border shadow-sm transition-all placeholder-gray-400 focus:ring-2 focus:ring-purple-500/20 ${
+                !selectedSubjectId ? 'opacity-50 cursor-not-allowed' : ''} ${
                 theme === 'dark' ?
                 'bg-background border-border text-foreground placeholder:text-muted-foreground' :
                 'bg-white border-gray-300 text-gray-900'}`
                 } />
-              
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-3">
-              <Button
-                onClick={() => loadStudents(1, searchTerm)}
-                disabled={!selectedSubjectId || isLoading || !branchId}
-                className="w-full sm:w-auto px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95">
-                
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
-              </Button>
               <Button
                 onClick={save}
                 disabled={saving || students.length === 0}
@@ -661,7 +682,7 @@ const StudentEnrollment = () => {
               <Button
                 onClick={handleExportPDF}
                 disabled={!selectedSubjectId || isLoading || saving || downloadingPDF}
-                className="w-full sm:w-auto px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
+                className="hidden sm:flex px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95 items-center justify-center gap-2">
                 {downloadingPDF ? (
                    <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -670,7 +691,7 @@ const StudentEnrollment = () => {
                 <span>Export PDF</span>
               </Button>
             </div>
-            <div className="flex flex-row items-center justify-center sm:justify-start gap-4 sm:gap-6 text-sm pt-2 sm:pt-0 border-t sm:border-none border-gray-200 dark:border-gray-800 mt-2 sm:mt-0">
+            <div className="flex flex-row items-center justify-center lg:justify-start gap-4 lg:gap-6 text-sm pt-2 lg:pt-0 border-t lg:border-none border-gray-200 dark:border-gray-800 mt-2 lg:mt-0">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-gray-600 dark:text-gray-400">Enrolled:</span>
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
@@ -681,14 +702,13 @@ const StudentEnrollment = () => {
                   {students.filter((s: any) => s.checked).length}
                 </span>
               </div>
-              <label className="flex items-center gap-2 cursor-pointer group">
-                <input
-                  type="checkbox"
+              <label className="flex items-center gap-2 cursor-pointer group shrink-0">
+                <Checkbox
+                  id="show-enrolled-only-checkbox"
                   checked={showEnrolledOnly}
-                  onChange={(e) => setShowEnrolledOnly(e.target.checked)}
-                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4 transition-all" />
-                
-                <span className="font-semibold text-gray-700 dark:text-gray-300 group-hover:text-purple-600 transition-colors">Show enrolled only</span>
+                  onCheckedChange={(checked) => setShowEnrolledOnly(!!checked)}
+                />
+                <span className="font-semibold text-gray-700 dark:text-gray-300 group-hover:text-purple-600 transition-colors whitespace-nowrap">Show enrolled only</span>
               </label>
             </div>
           </div>
@@ -1054,7 +1074,7 @@ const StudentEnrollment = () => {
             </DialogContent>
           </Dialog>
         </CardContent>
-        {students.length > 0 && (
+        {students.length > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {totalStudents === 0 ? 0 : (currentPage - 1) * 50 + 1} to {Math.min(currentPage * 50, totalStudents)} of {totalStudents} students
