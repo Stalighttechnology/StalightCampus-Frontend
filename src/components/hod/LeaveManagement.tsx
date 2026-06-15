@@ -346,19 +346,19 @@ const LeaveManagement = () => {
           </CardHeader>
           <CardContent className="p-2 sm:p-4">
             {/* Search Bar */}
-            <div className="flex flex-col sm:flex-row items-center gap-2 mb-6">
+            <div className="flex flex-row items-center gap-2 mb-6 w-full">
               <Input
                 placeholder="Search faculty..."
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
-                className={`flex-1 w-full text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`} />
+                className={`flex-1 text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`} />
 
-              <div className="relative w-full sm:w-auto" ref={filterRef}>
+              <div className="relative shrink-0" ref={filterRef}>
                 <Button
                   onClick={() => setShowFilter(!showFilter)}
-                  className="w-full sm:w-auto h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90">
+                  className="h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90 px-3 sm:px-4">
                   <Filter className="w-4 h-4" />
-                  {filterStatus === "All" ? "Filter" : filterStatus}
+                  <span className="hidden sm:inline">{filterStatus === "All" ? "Filter" : filterStatus}</span>
                 </Button>
                 {showFilter &&
                   <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-md shadow-lg z-20`}>
