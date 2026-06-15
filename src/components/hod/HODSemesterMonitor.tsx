@@ -201,21 +201,21 @@ const HODSemesterMonitor = () => {
     <div className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'} agent`}>
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader id="hod-semester-monitor-header" className="border-b mb-3">
-          <div className="flex flex-row items-center justify-between gap-4 w-full">
-            <div className="flex-1 min-w-0">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
+            <div className="flex-1 min-w-0 text-left">
               <CardTitle className="text-xl sm:text-2xl font-semibold mb-2">Semester Syllabus Overview</CardTitle>
               <CardDescription>Track weekly teaching completions across all subjects in the department.</CardDescription>
             </div>
 
             {/* Semester Filter */}
-            <div className="flex flex-col items-start gap-1 shrink-0">
+            <div className="flex flex-col items-start gap-1 shrink-0 w-full sm:w-auto">
               <span className="text-xs font-semibold uppercase opacity-80 shrink-0">{translateTerminology("Semester")}</span>
               <Select 
                 value={semesterId?.toString() || ""} 
                 onValueChange={(v) => setSemesterId(Number(v))}
                 disabled={bootstrapLoading}
               >
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-full sm:w-40">
                   <SelectValue placeholder={translateTerminology("Select Semester")} />
                 </SelectTrigger>
                 <SelectContent>
