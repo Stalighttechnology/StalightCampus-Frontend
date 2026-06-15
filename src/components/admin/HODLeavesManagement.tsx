@@ -117,7 +117,9 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
         const leaveData = Array.isArray(dataSource.leaves) ?
           dataSource.leaves.map((leave: any) => ({
             id: leave.id,
-            name: leave.hod?.username || leave.hod_name || "N/A",
+            name: (leave.hod?.first_name || leave.hod?.last_name)
+              ? `${leave.hod?.first_name || ""} ${leave.hod?.last_name || ""}`.trim()
+              : leave.hod?.username || leave.hod_name || "N/A",
             department: leave.branch || "N/A",
             from: leave.start_date || "N/A",
             to: leave.end_date || "N/A",
@@ -442,8 +444,8 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                   filteredLeaveRequests.map((leave) =>
                     <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                       <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="font-semibold text-base">{leave.name}</div>
+                        <div className="min-w-0">
+                          <div className="font-semibold text-base break-all">{leave.name}</div>
                           <div className="text-xs text-muted-foreground font-medium">{leave.department}</div>
                         </div>
                         <div className="shrink-0">{getStatusBadge(leave.status, theme)}</div>

@@ -354,7 +354,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
           .batch-card-content { padding: 12px 16px 16px 16px !important; }
           .batch-title { font-size: 1.35rem !important; }
           .batch-desc { font-size: 0.8125rem !important; }
-          .batch-search-mobile { width: 100% !important; margin-top: 8px !important; }
+          .batch-search-mobile { width: 100% !important; }
           .batch-add-controls { gap: 12px !important; }
         }
       `}</style>
