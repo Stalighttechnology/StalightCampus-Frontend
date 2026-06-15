@@ -731,98 +731,107 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
               }
 
+              if (loading) {
+                return (
+                  <div className="table-wrapper block overflow-x-auto custom-scrollbar">
+                    <SkeletonTable rows={pageSize} cols={6} />
+                  </div>
+                );
+              }
+
+              if (filteredUsers.length === 0) {
+                return (
+                  <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                    <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                      <Search className="w-10 h-10 text-primary opacity-50" />
+                    </div>
+                    <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      No Users Found
+                    </h3>
+                    <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      We couldn't find any users matching the selected criteria. Try adjusting your filters or search query.
+                    </p>
+                  </div>
+                );
+              }
+
               return (
                 <div className="table-wrapper block overflow-x-auto custom-scrollbar    ">
-                {loading ?
-                  <SkeletonTable rows={pageSize} cols={6} /> :
-
                   <table className="users-table w-full text-left">
                     <thead className={`table-header border-b ${theme === 'dark' ? 'border-border text-foreground' : 'border-gray-200 text-gray-900'}`}>
                       <tr>
                         <th className="py-2 px-4 sm:w-[200px]">Full Name</th>
                         <th className="py-2 px-1 md:w-[200px]">Email</th>
-                         <th className="py-2 px-1 md:w-[120px]">Role</th>
+                        <th className="py-2 px-1 md:w-[120px]">Role</th>
                         <th className="py-2 px-1 md:w-[250px]">Department</th>
                         <th className="py-2 px-1 md:w-[120px]">Status</th>
                         <th className="py-2 px-1 text-right md:w-[120px]">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <>
-                        {filteredUsers.length > 0 ?
-                        filteredUsers.map((user) =>
+                      {filteredUsers.map((user) =>
                         <tr
                           key={user.id}
                           className={`table-row border-b transition-colors duration-200 ${
-                          theme === 'dark' ?
-                          'border-border hover:bg-accent' :
-                          'border-gray-200 hover:bg-gray-50'}`
-                          }>
-                          
-                              <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[200px]">
-                                {user.name}
-                              </td>
-                              <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[200px]">
-                                {user.email}
-                              </td>
-                               <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getRoleBadge(user.role, theme)}</td>
-                              <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[250px]">
-                                <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                  {user.department !== "N/A" ? user.department : "-"}
-                                </span>
-                              </td>
-                              <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getStatusBadge(user.status, theme)}</td>
-                              <td className="table-cell py-2 px-1 text-right">
-                                <div className="action-buttons whitespace-nowrap justify-end gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => { setPromoteData(user); setSelectedNewRole(""); }}
-                                    disabled={loading || (user.role !== 'teacher' && user.role !== 'hod')}
-                                    className={theme === 'dark' ?
-                                    'p-2 rounded hover:bg-accent' :
-                                    'p-2 rounded hover:bg-gray-100'}
-                                    title="Promote Role">
-                                    <ArrowUpCircle className={theme === 'dark' ? 'w-5 h-5 text-purple-400' : 'w-5 h-5 text-purple-500'} />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleEdit(user)}
-                                    disabled={loading}
-                                    className={theme === 'dark' ?
-                                    'p-2 rounded hover:bg-accent' :
-                                    'p-2 rounded hover:bg-gray-100'}>
-                                    
-                                    <Pencil1Icon className={theme === 'dark' ? 'w-5 h-5 text-primary' : 'w-5 h-5 text-blue-500'} />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => confirmDelete(user.id)}
-                                    disabled={loading}
-                                    className={theme === 'dark' ?
-                                    'p-2 rounded hover:bg-accent' :
-                                    'p-2 rounded hover:bg-gray-100'}>
-                                    
-                                    <TrashIcon className={theme === 'dark' ? 'w-5 h-5 text-destructive' : 'w-5 h-5 text-red-500'} />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                        ) :
-
-                        <tr>
-                            <td colSpan={6} className={`py-8 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                              No users found for the selected criteria.
-                            </td>
-                          </tr>
-                        }
-                      </>
+                            theme === 'dark' ?
+                              'border-border hover:bg-accent' :
+                              'border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[200px]">
+                            {user.name}
+                          </td>
+                          <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[200px]">
+                            {user.email}
+                          </td>
+                          <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getRoleBadge(user.role, theme)}</td>
+                          <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[250px]">
+                            <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {user.department !== "N/A" ? user.department : "-"}
+                            </span>
+                          </td>
+                          <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getStatusBadge(user.status, theme)}</td>
+                          <td className="table-cell py-2 px-1 text-right">
+                            <div className="action-buttons whitespace-nowrap justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => { setPromoteData(user); setSelectedNewRole(""); }}
+                                disabled={loading || (user.role !== 'teacher' && user.role !== 'hod')}
+                                className={theme === 'dark' ?
+                                  'p-2 rounded hover:bg-accent' :
+                                  'p-2 rounded hover:bg-gray-100'}
+                                title="Promote Role">
+                                <ArrowUpCircle className={theme === 'dark' ? 'w-5 h-5 text-purple-400' : 'w-5 h-5 text-purple-500'} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEdit(user)}
+                                disabled={loading}
+                                className={theme === 'dark' ?
+                                  'p-2 rounded hover:bg-accent' :
+                                  'p-2 rounded hover:bg-gray-100'}>
+                                <Pencil1Icon className={theme === 'dark' ? 'w-5 h-5 text-primary' : 'w-5 h-5 text-blue-500'} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => confirmDelete(user.id)}
+                                disabled={loading}
+                                className={theme === 'dark' ?
+                                  'p-2 rounded hover:bg-accent' :
+                                  'p-2 rounded hover:bg-gray-100'}>
+                                <TrashIcon className={theme === 'dark' ? 'w-5 h-5 text-destructive' : 'w-5 h-5 text-red-500'} />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
-                  }
-              </div>);
+                </div>
+              );
 
             })()}
 

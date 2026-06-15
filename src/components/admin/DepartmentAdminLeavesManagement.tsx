@@ -479,9 +479,12 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                           <Button
                             variant="outline"
                             size="sm"
-                            className={`leave-view-btn w-full h-9 font-semibold ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                            className={`leave-view-btn w-full h-9 font-semibold transition border ${
+                              theme === 'dark'
+                                ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                            }`}
                             onClick={() => setViewLeave(leave)}>
-
                             View Reason
                           </Button>
 
@@ -560,8 +563,12 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                           <td className="py-4 px-2 md:px-4 text-sm">
                             <button
                               onClick={() => setViewLeave(leave)}
-                              className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
-
+                              className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${
+                                theme === 'dark'
+                                  ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                  : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                              }`}
+                            >
                               View
                             </button>
                           </td>
