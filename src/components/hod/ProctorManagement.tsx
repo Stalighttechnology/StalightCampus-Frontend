@@ -590,7 +590,7 @@ const ProctorStudents = () => {
       {/* Main Management Card */}
       <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm' : 'bg-white border border-gray-200 shadow-sm'}>
         <div id="proctors-header-filters-section">
-          <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
           <div className="flex items-start justify-between w-full sm:w-auto">
             <div className="flex-1">
               <CardTitle className={`text-lg sm:text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -600,18 +600,8 @@ const ProctorStudents = () => {
                 View and manage student-proctor assignments
               </p>
             </div>
-            {/* Mobile Download PDF Icon Button */}
-            <Button
-              onClick={handleExportPDF}
-              disabled={downloadingPDF || state.loading || state.students.length === 0}
-              size="icon"
-              variant="outline"
-              className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
-            >
-              {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            </Button>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
             <Button
               onClick={handleExportPDF}
               disabled={downloadingPDF || state.loading || state.students.length === 0}
@@ -635,13 +625,24 @@ const ProctorStudents = () => {
                   }
                   updateState({ editMode: true });
                 }}
-                className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto flex items-center justify-center gap-2 h-10 px-4"
+                className="flex-1 sm:flex-none text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto flex items-center justify-center gap-2 h-10 px-4"
                 disabled={state.loading || state.students.length === 0}
               >
                 <Pencil className="w-4 h-4" />
                 <span>Edit</span>
               </Button>
             )}
+
+            {/* Mobile Download PDF Icon Button */}
+            <Button
+              onClick={handleExportPDF}
+              disabled={downloadingPDF || state.loading || state.students.length === 0}
+              size="icon"
+              variant="outline"
+              className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+            >
+              {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            </Button>
           </div>
         </CardHeader>
 

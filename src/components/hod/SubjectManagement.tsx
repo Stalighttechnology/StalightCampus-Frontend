@@ -319,9 +319,25 @@ const SubjectManagement = () => {
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <div id="courses-header-filters-section">
           <CardHeader>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-2 sm:gap-4">
               <div className="flex items-start justify-between w-full sm:w-auto">
                 <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Manage Courses</CardTitle>
+              </div>
+              <div className="flex flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                <Button
+                  onClick={() => {
+                    updateState({
+                      showModal: "add",
+                      newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                      currentSubject: null
+                    });
+                  }}
+                  className="flex-1 sm:flex-none w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
+                  disabled={state.loading || !state.branchId}>
+                  
+                  + Add Course
+                </Button>
+
                 {/* Mobile Download PDF Icon Button */}
                 <Button
                   onClick={handleExportPDF}
@@ -332,8 +348,7 @@ const SubjectManagement = () => {
                 >
                   {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
                 </Button>
-              </div>
-              <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+
                 <Button
                   onClick={handleExportPDF}
                   disabled={state.loading || downloadingPDF || !state.filters.semester_id || !state.filters.subject_type || state.filters.semester_id === "all" || state.filters.subject_type === "all"}
@@ -344,19 +359,6 @@ const SubjectManagement = () => {
                     <FileDown className="h-4 w-4" />
                   )}
                   <span>Export PDF</span>
-                </Button>
-                <Button
-                  onClick={() => {
-                    updateState({
-                      showModal: "add",
-                      newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                      currentSubject: null
-                    });
-                  }}
-                  className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
-                  disabled={state.loading || !state.branchId}>
-                  
-                  + Add Course
                 </Button>
               </div>
             </div>

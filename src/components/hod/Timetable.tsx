@@ -1101,12 +1101,24 @@ const Timetable = () => {
   }
 
   return (
-    <div className="bg-background text-foreground">
-      <Card id="timetable-card" className="shadow-xl">
+    <div >
+      <Card id="timetable-card">
         <div id="timetable-header-filters-section">
-          <CardHeader id="timetable-card-header" className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card px-4 py-3 rounded-t-md gap-4">
+          <CardHeader id="timetable-card-header" className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card px-4 py-3 rounded-t-md gap-2 sm:gap-4">
             <div className="flex items-start justify-between w-full sm:w-auto">
               <CardTitle className="text-2xl font-semibold text-foreground">Timetable</CardTitle>
+            </div>
+            <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
+              <Button
+                variant="outline"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleEdit}
+                disabled={!state.semesterId || !state.sectionId}>
+                
+                <EditIcon className="w-4 h-4" />
+                <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
+              </Button>
+
               {/* Mobile Download PDF Icon Button */}
               <Button
                 onClick={handleExportPDF}
@@ -1117,8 +1129,7 @@ const Timetable = () => {
               >
                 {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <DownloadIcon className="w-4 h-4" />}
               </Button>
-            </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+
               <Button
                 variant="outline"
                 className="hidden sm:flex flex-1 sm:flex-none items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
@@ -1133,19 +1144,10 @@ const Timetable = () => {
                   {downloadingPDF ? "Exporting..." : "Export PDF"}
                 </span>
               </Button>
-              <Button
-                variant="outline"
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={handleEdit}
-                disabled={!state.semesterId || !state.sectionId}>
-                
-                <EditIcon className="w-4 h-4" />
-                <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
-              </Button>
             </div>
           </CardHeader>
 
-          <CardContent className="bg-card pb-0">
+          <CardContent className="bg-card pb-3">
             <div className="border border-border rounded-lg p-4">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
                 <div className="flex flex-col sm:flex-row md:flex-row gap-2 sm:gap-4 w-full md:flex-1 md:items-center md:flex-nowrap">

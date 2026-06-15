@@ -506,7 +506,7 @@ const FacultyAttendanceView: React.FC = () => {
           <div id="hod-faculty-attendance-tabs" className={`flex space-x-1 p-1 rounded-lg mt-3 ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'} overflow-x-auto`}>
             <button
               onClick={() => setActiveTab('today')}
-              className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'today' ?
+              className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'today' ?
                 'bg-primary text-white' :
                 theme === 'dark' ?
                   'text-muted-foreground hover:text-foreground' :
@@ -517,7 +517,7 @@ const FacultyAttendanceView: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('records')}
-              className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'records' ?
+              className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'records' ?
                 'bg-primary text-white' :
                 theme === 'dark' ?
                   'text-muted-foreground hover:text-foreground' :
@@ -534,8 +534,8 @@ const FacultyAttendanceView: React.FC = () => {
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
                 <div className="flex flex-row items-center justify-between gap-2">
                   <div>
-                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Faculty</p>
-                    <p className={`text-lg sm:text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_faculty}</p>
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Faculty</p>
+                    <p className={`text-2xl sm:text-3xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_faculty}</p>
                   </div>
                   <Users className="w-6 sm:w-8 h-6 sm:h-8 text-blue-600 flex-shrink-0" />
                 </div>
@@ -543,8 +543,8 @@ const FacultyAttendanceView: React.FC = () => {
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
                 <div className="flex flex-row items-center justify-between gap-2">
                   <div>
-                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
-                    <p className={`text-lg sm:text-2xl font-bold text-green-600`}>{todaySummary.present}</p>
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
+                    <p className={`text-2xl sm:text-3xl font-bold text-green-600`}>{todaySummary.present}</p>
                   </div>
                   <CheckCircle className="w-6 sm:w-8 h-6 sm:h-8 text-green-600 flex-shrink-0" />
                 </div>
@@ -552,8 +552,8 @@ const FacultyAttendanceView: React.FC = () => {
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
                 <div className="flex flex-row items-center justify-between gap-2">
                   <div>
-                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
-                    <p className={`text-lg sm:text-2xl font-bold text-red-600`}>{todaySummary.absent}</p>
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
+                    <p className={`text-2xl sm:text-3xl font-bold text-red-600`}>{todaySummary.absent}</p>
                   </div>
                   <XCircle className="w-6 sm:w-8 h-6 sm:h-8 text-red-600 flex-shrink-0" />
                 </div>
@@ -561,8 +561,8 @@ const FacultyAttendanceView: React.FC = () => {
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
                 <div className="flex flex-row items-center justify-between gap-2">
                   <div>
-                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
-                    <p className={`text-lg sm:text-2xl font-bold text-gray-600`}>{todaySummary.not_marked}</p>
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
+                    <p className={`text-2xl sm:text-3xl font-bold text-gray-600`}>{todaySummary.not_marked}</p>
                   </div>
                   <Clock className="w-6 sm:w-8 h-6 sm:h-8 text-gray-600 flex-shrink-0" />
                 </div>
@@ -907,7 +907,7 @@ const FacultyAttendanceView: React.FC = () => {
                           <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
                           <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</th>
                           <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</th>
-                          <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance %</th>
+                          <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance</th>
                           <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Actions</th>
                         </tr>
                       </thead>
