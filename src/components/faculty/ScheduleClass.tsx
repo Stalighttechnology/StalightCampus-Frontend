@@ -1360,16 +1360,6 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
         </CardContent>
       </Card>
 
-      {/* Floating Action Button (FAB) for mobile view to Schedule Class */}
-      <div className="fixed bottom-6 right-6 z-50 sm:hidden">
-        <Button
-          onClick={handleScheduleButtonClick}
-          className="bg-primary hover:bg-primary/90 text-white rounded-full w-14 h-14 shadow-lg flex items-center justify-center p-0 transition-transform active:scale-95 border-none"
-          title="Schedule Class"
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
-      </div>
     </div>
   );
 };

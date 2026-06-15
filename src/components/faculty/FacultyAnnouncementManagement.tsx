@@ -394,13 +394,13 @@ const FacultyAnnouncementManagement = () => {
                         onInteractOutside={(e) => e.preventDefault()}
                         className="mobile-modal max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                         
-                      <DialogHeader>
-                        <DialogTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      <DialogHeader className="pr-8 text-left">
+                        <DialogTitle className={`text-lg sm:text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                           {editingId ?
                             "Edit Announcement" :
-                            "Create Announcement for Proctor Students"}
+                            "Send Announcement"}
                         </DialogTitle>
-                        <DialogDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
+                        <DialogDescription className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                           {editingId ?
                             "Update the announcement details below" :
                             "Create a new announcement that will be sent to your proctor students"}
