@@ -123,7 +123,7 @@ const LibraryOverview = () => {
     try {
       setLoading(true);
       const res = await returnBook({ barcode_id: barcodeInput.trim() });
-      if (res && res.message) {
+      if (res && res.record) {
         if (res.fine_generated) {
           Swal.fire({
             title: "Returned (Late Penalty)",
@@ -136,7 +136,7 @@ const LibraryOverview = () => {
         setBarcodeInput("");
         loadStats();
       } else {
-        Swal.fire("Error", res.message || "Failed to process book return", "error");
+        Swal.fire("Error", res?.message || "Failed to process book return", "error");
       }
     } catch (err) {
       Swal.fire("Error", "Server error processing check-in", "error");
