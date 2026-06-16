@@ -7,7 +7,7 @@ import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar as CalendarComponent } from "../ui/calendar";
-import { Calendar as CalendarIcon, Sliders, AlertCircle, FileText, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Sliders, AlertCircle, FileText, Loader2, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Label } from "../ui/label";
@@ -527,29 +527,25 @@ const DeanFacultyProfile = ({
         <>
           {/* ── Filters header ─────────────────────────────────────────────── */}
           <div id="dean-faculty-filters-header-wrapper">
-            <div className="mb-4">
-              <h2
-                className={`text-xl font-semibold ${theme === "dark" ? "text-foreground" : "text-gray-900"
-                  }`}
-              >
-                Faculty Profile
-              </h2>
-              <p
-                className={`text-sm ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"
-                  }`}
-              >
-                View faculty attendance, schedule and assignments
-              </p>
-            </div>
-
             <Card
               className={
                 theme === "dark"
-                  ? "w-full bg-card border border-border mb-4"
-                  : "w-full bg-white border border-gray-200 mb-4"
+                  ? "w-full bg-card border border-border flex flex-col mb-4"
+                  : "w-full bg-white border border-gray-200 flex flex-col mb-4"
               }
             >
-              <CardContent className="p-4">
+              <div id="dean-faculty-header-section" className="border-b border-border/50 pb-4">
+                <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b mb-3">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      Faculty Profile
+                    </CardTitle>
+                    <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-505'}`}>
+                      View faculty attendance, schedule and assignments
+                    </p>
+                  </div>
+                </CardHeader>
+                <CardContent className="pb-0">
                 <div
                   id="dean-faculty-filters"
                   className="filters-row flex flex-col lg:flex-row gap-6 items-start lg:items-end"
@@ -626,7 +622,7 @@ const DeanFacultyProfile = ({
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
-                          className="flex items-center justify-center gap-2 px-4 h-10 bg-primary text-white hover:bg-primary/90 hover:text-white w-full lg:w-auto flex-1 lg:flex-initial"
+                          className="flex items-center justify-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md h-9 px-3 whitespace-nowrap rounded-lg w-full lg:w-auto flex-1 lg:flex-initial"
                           disabled={
                             !selectedBranch || !selectedFaculty || facultiesLoading
                           }
@@ -636,8 +632,8 @@ const DeanFacultyProfile = ({
                               : undefined
                           }
                         >
-                          Filters
-                          <Sliders className="h-4 w-4" />
+                          <Filter className="w-4 h-4" />
+                          <span className="ml-1.5 text-sm">Filter</span>
                         </Button>
                       </DialogTrigger>
                       <DialogContent
@@ -717,8 +713,9 @@ const DeanFacultyProfile = ({
                     {/* Mobile Export Icon Button */}
                     <Button
                       onClick={handleExportPDF}
+                      size="icon"
                       variant="outline"
-                      className="flex lg:hidden items-center justify-center border border-input bg-background text-foreground dean-mobile-icon-btn flex-shrink-0"
+                      className="flex lg:hidden items-center justify-center h-9 w-9 p-0 border border-input bg-background text-foreground flex-shrink-0 shadow-sm dean-mobile-icon-btn"
                       disabled={
                         !selectedBranch || !selectedFaculty || facultiesLoading || exportLoading
                       }
@@ -733,6 +730,7 @@ const DeanFacultyProfile = ({
                   </div>
                 </div>
               </CardContent>
+              </div>
             </Card>
           </div>
 

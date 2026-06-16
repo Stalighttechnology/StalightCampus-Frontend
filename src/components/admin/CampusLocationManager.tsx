@@ -276,6 +276,34 @@ const CampusLocationManager: React.FC = () => {
     document.head.appendChild(style);
   }, []);
 
+  // Inject responsive modal/dialog styles scoped to this component
+  useEffect(() => {
+    if (document.getElementById('campus-modal-styles-admin')) return;
+    const style = document.createElement('style');
+    style.id = 'campus-modal-styles-admin';
+    style.innerHTML = `
+      /* Force modal/dialog to 80vh height and 90% width on mobile views */
+      @media (max-width: 768px) {
+        .DialogContent,
+        .dialog-content,
+        .modal,
+        .dialog,
+        [role="dialog"] {
+          max-width: 90% !important;
+          width: 90% !important;
+          height: 80vh !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      const el = document.getElementById('campus-modal-styles-admin');
+      if (el) el.remove();
+    };
+  }, []);
+
   return (
     <div className={`flex flex-col h-[100dvh] overflow-hidden p-4 sm:p-6 text-sm sm:text-base w-full max-w-[412px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200 rounded-lg'}`}>
       {/* Header area (fixed) */}
@@ -379,23 +407,23 @@ const CampusLocationManager: React.FC = () => {
 
                 <div className="space-y-4 w-full">
                     {locations.map((location) =>
-                  <div key={location.id} className="border rounded-lg p-4 w-full">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-2">
-                              <h3 className="font-semibold">{location.name}</h3>
-                              {location.is_active && <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Active</span>}
+                  <div key={location.id} className={`border rounded-lg p-4 w-full ${theme === 'dark' ? 'bg-muted/50 border-border' : 'bg-white border-gray-200'}`}>
+                        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                          <div className="flex-1 min-w-0 w-full">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className={`font-semibold truncate max-w-[180px] sm:max-w-none ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{location.name}</h3>
+                              {location.is_active && <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'}`}>Active</span>}
                             </div>
-                            {location.description && <p className="text-gray-600 mt-1">{location.description}</p>}
-                            <div className="mt-2 text-sm text-gray-500">
+                            {location.description && <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{location.description}</p>}
+                            <div className={`mt-2 text-xs space-y-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                               <p>Center: {location.center_latitude.toFixed(6)}, {location.center_longitude.toFixed(6)}</p>
                               <p>Radius: {location.radius_meters} meters</p>
                               <p>Created: {new Date(location.created_at).toLocaleDateString()}</p>
                             </div>
                           </div>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" onClick={() => handleEdit(location)} disabled={showForm}><Edit className="w-4 h-4" /></Button>
-                            <Button variant="outline" size="sm" onClick={() => handleDelete(location)} className="text-red-600 hover:text-red-700"><Trash2 className="w-4 h-4" /></Button>
+                          <div className="flex items-center gap-2 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100 dark:border-border/50 justify-end w-full sm:w-auto shrink-0">
+                            <Button variant="outline" size="sm" onClick={() => handleEdit(location)} disabled={showForm} className="flex-1 sm:flex-none justify-center gap-1.5"><Edit className="w-4 h-4" /><span className="sm:hidden text-xs">Edit</span></Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDelete(location)} className="flex-1 sm:flex-none text-red-600 hover:text-red-700 border-red-200/50 hover:bg-red-50 dark:hover:bg-red-950/20 justify-center gap-1.5"><Trash2 className="w-4 h-4" /><span className="sm:hidden text-xs">Delete</span></Button>
                           </div>
                         </div>
                       </div>

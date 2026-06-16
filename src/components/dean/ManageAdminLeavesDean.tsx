@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { useTheme } from "../../context/ThemeContext";
-import { CheckCircle, XCircle, Filter as FilterIcon, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Filter as FilterIcon, Loader2, Calendar as CalendarIcon, Check, X, Clock } from 'lucide-react';
 import { manageAllLeaves } from "../../utils/dean_api";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
@@ -227,50 +227,64 @@ const ManageAdminLeavesDean = () => {
                       <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <div className="font-medium">{leave.faculty_name}</div>
-                            <div className="text-xs text-muted-foreground">{leave.faculty_type === 'principal' ? 'Administration' : leave.department}</div>
-                            <div className="text-sm mt-1">{leave.start_date} <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {leave.end_date}</div>
+                            <div className="font-semibold text-base">{leave.faculty_name}</div>
+                            <div className="text-xs text-muted-foreground font-medium flex gap-1">
+                              <span>{leave.faculty_type === 'principal' ? 'Administration' : leave.department}</span>
+                              <span>•</span>
+                              <span>{leave.faculty_type.toUpperCase()}</span>
+                            </div>
                           </div>
                           <div className="shrink-0">
                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700'}`}>Pending</span>
                           </div>
                         </div>
-                        <div className="mt-3 flex items-center justify-between">
+
+                        <div className="mt-3 space-y-3">
+                          <div className={`p-2.5 rounded-lg border text-sm flex items-center gap-2 ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50/50 border-gray-100'}`}>
+                            <CalendarIcon className="w-4 h-4 text-primary/60" />
+                            <span className="font-medium text-foreground">{leave.start_date}</span>
+                            <span className="text-muted-foreground">to</span>
+                            <span className="font-medium text-foreground">{leave.end_date}</span>
+                          </div>
+
                           <Button
                             variant="outline"
                             size="sm"
-                            className={`text-xs ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-300 hover:bg-gray-50'}`}
+                            className={`w-full h-9 font-semibold transition border ${
+                              theme === 'dark'
+                                ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                            }`}
                             onClick={() => { setSelectedLeave(leave); setShowReasonDialog(true); }}
                           >
-                            View
+                            View Reason
                           </Button>
-                          <div>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark'
-                                  ? 'text-green-400 border-green-400 hover:bg-green-900/20'
-                                  : 'text-green-700 border-green-600 hover:bg-green-100'
-                                  }`}
-                                onClick={() => handleAction(leave.id, 'APPROVED')}
-                                disabled={actionLoading === leave.id}
-                              >
-                                {actionLoading === leave.id ? '...' : <><CheckCircle size={16} /> Approve</>}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark'
-                                  ? 'text-red-400 border-red-400 hover:bg-red-900/20'
-                                  : 'text-red-700 border-red-600 hover:bg-red-100'
-                                  }`}
-                                onClick={() => handleAction(leave.id, 'REJECTED')}
-                                disabled={actionLoading === leave.id}
-                              >
-                                {actionLoading === leave.id ? '...' : <><XCircle size={16} /> Reject</>}
-                              </Button>
-                            </div>
+
+                          <div className="grid grid-cols-2 gap-3 mt-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className={`px-3 py-1 text-xs flex items-center justify-center gap-1 w-full ${theme === 'dark'
+                                ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
+                                : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                                }`}
+                              onClick={() => handleAction(leave.id, 'APPROVED')}
+                              disabled={actionLoading === leave.id}
+                            >
+                              {actionLoading === leave.id ? '...' : <><CheckCircle size={16} /> Approve</>}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className={`px-3 py-1 text-xs flex items-center justify-center gap-1 w-full ${theme === 'dark'
+                                ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
+                                : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                                }`}
+                              onClick={() => handleAction(leave.id, 'REJECTED')}
+                              disabled={actionLoading === leave.id}
+                            >
+                              {actionLoading === leave.id ? '...' : <><XCircle size={16} /> Reject</>}
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -404,11 +418,11 @@ const ManageAdminLeavesDean = () => {
               <div className="relative" ref={filterRef}>
                 <Button
                   onClick={() => setShowFilter(v => !v)}
-                  className="bg-primary hover:bg-primary/90 text-white flex items-center gap-2 px-4 h-9 shadow-sm"
+                  className="bg-primary hover:bg-primary/90 text-white flex items-center gap-2 px-2.5 sm:px-4 h-9 shadow-sm"
                   aria-label="Filter recent leaves"
                 >
                   <FilterIcon className="w-4 h-4" />
-                  <span>Filter</span>
+                  <span className="hidden sm:inline">Filter</span>
                 </Button>
                 {showFilter && (
                   <div className={`absolute right-0 mt-2 w-36 rounded shadow-lg z-10 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
@@ -426,7 +440,7 @@ const ManageAdminLeavesDean = () => {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             {recentLoading && recentLeaves.length === 0 ? (
               <div className="space-y-3">
                 <SkeletonList items={3} />
@@ -447,63 +461,50 @@ const ManageAdminLeavesDean = () => {
             <div className="overflow-x-auto max-w-full custom-scrollbar">
               {/* Mobile: stacked cards */}
               <div className="md:hidden space-y-3 pl-4">
-                <div className="h-[420px] overflow-auto space-y-3 custom-scrollbar pr-2">
-                  {filteredRecentLeaves.map((leave) => (
+                {filteredRecentLeaves.map((leave) => (
                     <div
                       key={`${leave.faculty_type}-${leave.id}`}
-                      className={`border rounded-md px-4 py-3 shadow-sm ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
+                      className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-start gap-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h3 className={`font-medium ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>{leave.title || `Leave on ${leave.start_date}`}</h3>
-                                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${leave.faculty_type === 'coe'
-                                  ? (theme === 'dark' ? 'bg-green-400 text-green-900' : 'bg-green-600 text-white')
-                                  : leave.faculty_type === 'principal'
-                                    ? (theme === 'dark' ? 'bg-blue-100 text-blue-800' : 'bg-blue-100 text-blue-800')
-                                    : (theme === 'dark' ? 'bg-purple-100 text-purple-800' : 'bg-purple-100 text-purple-800')
-                                  }`}>{leave.faculty_type.toUpperCase()}</span>
-                              </div>
-                              <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>{leave.start_date}</p>
-                            </div>
-                          </div>
-
-                          <p className={`mt-2 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>
-                            {leave.faculty_name} - {leave.faculty_type === 'principal' ? 'Administration' : leave.department}
-                          </p>
-
-                          <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            {leave.start_date} to {leave.end_date}
-                          </p>
-
-                          <div className="mt-3">
-                            <Button
-                              onClick={() => { setSelectedLeave(leave); setShowReasonDialog(true); }}
-                              variant="outline"
-                              size="sm"
-                              className={`text-xs ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-300 hover:bg-gray-50'}`}
-                            >
-                              View Reason
-                            </Button>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>{leave.title || `Leave on ${leave.start_date}`}</h3>
+                          <div className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            {leave.start_date === leave.end_date ? leave.start_date : `${leave.start_date} to ${leave.end_date}`}
                           </div>
                         </div>
-
-                        <div className="ml-4 flex-shrink-0 text-right">
-                          <div className="flex flex-col items-end">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${leave.status === 'APPROVED' ? (theme === 'dark' ? 'bg-green-700 text-green-50' : 'bg-green-100 text-green-700') :
-                              leave.status === 'REJECTED' ? (theme === 'dark' ? 'bg-red-700 text-red-50' : 'bg-red-100 text-red-700') :
-                                (theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700')
-                              }`}>{leave.status.charAt(0) + leave.status.slice(1).toLowerCase()}</span>
-                            <p className={`text-xs mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{new Date(leave.start_date).toLocaleDateString()}</p>
-                          </div>
+                        <div className="shrink-0">
+                          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                            leave.status.toUpperCase() === 'APPROVED' 
+                              ? 'text-green-700 bg-green-100 dark:bg-green-950/30 dark:text-green-400' 
+                              : leave.status.toUpperCase() === 'REJECTED' 
+                                ? 'text-red-700 bg-red-100 dark:bg-red-950/30 dark:text-red-400' 
+                                : 'text-yellow-700 bg-yellow-100 dark:bg-yellow-950/30 dark:text-yellow-400'
+                          }`}>
+                            {leave.status.toUpperCase() === 'APPROVED' && <Check className="w-3.5 h-3.5" />}
+                            {leave.status.toUpperCase() === 'REJECTED' && <X className="w-3.5 h-3.5" />}
+                            {leave.status.toUpperCase() === 'PENDING' && <Clock className="w-3.5 h-3.5" />}
+                            {leave.status.charAt(0) + leave.status.slice(1).toLowerCase()}
+                          </span>
                         </div>
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <Button
+                          onClick={() => { setSelectedLeave(leave); setShowReasonDialog(true); }}
+                          variant="outline"
+                          size="sm"
+                          className={`w-full h-9 font-semibold transition border ${
+                            theme === 'dark'
+                              ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                              : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                          }`}
+                        >
+                          View Reason
+                        </Button>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
 
               {/* Tablet/Laptop: table */}
               <div className="hidden md:block">
@@ -586,7 +587,7 @@ const ManageAdminLeavesDean = () => {
         </Card>
       </div>
       <Dialog open={showReasonDialog} onOpenChange={setShowReasonDialog}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-card-foreground border-border w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border-gray-200 w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}>
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}>
               Leave Reason

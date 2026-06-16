@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
-import { CalendarIcon, Filter as FilterIcon } from "lucide-react";
+import { CalendarIcon, Filter as FilterIcon, Check, X, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { adminLeaveApplications } from "../../utils/admin_api";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -394,15 +394,21 @@ const ApplyLeaveAdmin = () => {
                     filteredLeaves.map((leave) => (
                       <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                         <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <div className="font-medium">{leave.title}</div>
-                            <div className="text-xs text-muted-foreground">{leave.date}</div>
+                          <div className="min-w-0">
+                            <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>{leave.title}</h3>
+                            <div className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.date}</div>
                           </div>
                           <div className="shrink-0">
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${leave.status === 'APPROVED' ? 'text-green-700 bg-green-100' :
-                                leave.status === 'REJECTED' ? 'text-red-700 bg-red-100' :
-                                  'text-yellow-700 bg-yellow-100'
-                              }`}>
+                            <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                              leave.status.toUpperCase() === 'APPROVED' 
+                                ? 'text-green-700 bg-green-100 dark:bg-green-950/30 dark:text-green-400' 
+                                : leave.status.toUpperCase() === 'REJECTED' 
+                                  ? 'text-red-700 bg-red-100 dark:bg-red-950/30 dark:text-red-400' 
+                                  : 'text-yellow-700 bg-yellow-100 dark:bg-yellow-950/30 dark:text-yellow-400'
+                            }`}>
+                              {leave.status.toUpperCase() === 'APPROVED' && <Check className="w-3.5 h-3.5" />}
+                              {leave.status.toUpperCase() === 'REJECTED' && <X className="w-3.5 h-3.5" />}
+                              {leave.status.toUpperCase() === 'PENDING' && <Clock className="w-3.5 h-3.5" />}
                               {leave.status.charAt(0) + leave.status.slice(1).toLowerCase()}
                             </span>
                           </div>
@@ -411,7 +417,11 @@ const ApplyLeaveAdmin = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            className={`flex-1 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-300 hover:bg-gray-50'}`}
+                            className={`w-full h-9 font-semibold transition border ${
+                              theme === 'dark'
+                                ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                            }`}
                             onClick={() => { setSelectedLeave(leave); setShowReasonDialog(true); }}>
                             View Reason
                           </Button>
