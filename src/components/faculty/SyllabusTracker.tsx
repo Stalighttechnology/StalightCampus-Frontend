@@ -492,7 +492,7 @@ const SyllabusTracker = () => {
                               }`}
                               onClick={() => handleToggleCompletion(w.week, w.is_completed)}
                             >
-                              {w.is_completed ? "Mark Incomplete" : "Mark Completed"}
+                              {w.is_completed ? "Mark as Incomplete" : "Mark as Completed"}
                             </Button>
                             <Button
                               size="sm"
