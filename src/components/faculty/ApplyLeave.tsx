@@ -455,14 +455,17 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             {renderStatus(leave.status)}
                           </div>
                         </div>
-                        <div className="mt-3 flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className={`flex-1 ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                            onClick={() => setViewReason(leave.reason)}>
+                        <div className="mt-3">
+                          <button
+                            onClick={() => setViewReason(leave.reason)}
+                            className={`w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition border ${
+                              theme === 'dark'
+                                ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                            }`}
+                          >
                             View Reason
-                          </Button>
+                          </button>
                         </div>
                       </div>
                     ))

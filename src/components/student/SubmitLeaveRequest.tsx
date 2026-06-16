@@ -284,10 +284,10 @@ const SubmitLeaveRequest = () => {
                 <Button
                   size="sm"
                   onClick={() => setShowFilter(!showFilter)}
-                  className="bg-primary text-white">
+                  className="bg-primary text-white flex items-center justify-center h-9 w-9 sm:h-9 sm:w-auto sm:px-3 rounded-lg shadow-sm">
 
-                  <Filter className="w-4 h-4 mr-1" />
-                  Filter
+                  <Filter className="w-4 h-4" />
+                  <span className="hidden sm:inline ml-1.5 text-sm">Filter</span>
                 </Button>
                 {showFilter &&
                   <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-md shadow-lg z-10`}>
@@ -339,52 +339,94 @@ const SubmitLeaveRequest = () => {
                   </p>
                 </div> :
 
-                <div className="w-full overflow-x-auto custom-scrollbar pb-2">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                        <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</TableHead>
-                        <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</TableHead>
-                        <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</TableHead>
-                        <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody >
-                      {filteredLeaves.map((item) =>
-                        <TableRow key={item.id} className={theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}>
-                          <TableCell className={`font-medium text-[14px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                            {item.title && item.title.trim() && item.title !== 'N/A' ? item.title : 'Untitled'}
-                          </TableCell>
-                          <TableCell className={`text-[14px] sm:text-sm whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            {item.start_date && item.end_date ?
-                              `${format(parseISO(item.start_date), 'MMM dd')} - ${format(parseISO(item.end_date), 'MMM dd, yyyy')}` :
-                              'N/A'}
-                          </TableCell>
-                          <TableCell className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setViewReason(item.reason)}
-                              className={`h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}>
-
-                              <Eye className="w-3 h-3 mr-1" />
-                              View
-                            </Button>
-                          </TableCell>
-                          <TableCell>
+                <div className="space-y-4">
+                  {/* Mobile View: Stacked Cards */}
+                  <div className="md:hidden space-y-3">
+                    {filteredLeaves.map((item) => (
+                      <div key={item.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="font-medium">{item.title && item.title.trim() && item.title !== 'N/A' ? item.title : 'Untitled'}</div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {item.start_date && item.end_date ?
+                                `${format(parseISO(item.start_date), 'MMM dd')} - ${format(parseISO(item.end_date), 'MMM dd, yyyy')}` :
+                                'N/A'}
+                            </div>
+                          </div>
+                          <div className="shrink-0">
                             <Badge
                               className={`text-[12px] sm:text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${getStatusStyles(theme, item.status).bg} ${getStatusStyles(theme, item.status).color}`}>
-
                               <div className="flex items-center gap-1">
                                 {getStatusStyles(theme, item.status).icon}
                                 {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
                               </div>
                             </Badge>
-                          </TableCell>
+                          </div>
+                        </div>
+                        <div className="mt-3">
+                          <button
+                            onClick={() => setViewReason(item.reason)}
+                            className={`w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition border ${
+                              theme === 'dark'
+                                ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                            }`}
+                          >
+                            View Reason
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Desktop / Tablet View: Table */}
+                  <div className="hidden md:block w-full overflow-x-auto custom-scrollbar pb-2">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                          <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</TableHead>
+                          <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</TableHead>
+                          <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</TableHead>
+                          <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</TableHead>
                         </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody >
+                        {filteredLeaves.map((item) =>
+                          <TableRow key={item.id} className={theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}>
+                            <TableCell className={`font-medium text-[14px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                              {item.title && item.title.trim() && item.title !== 'N/A' ? item.title : 'Untitled'}
+                            </TableCell>
+                            <TableCell className={`text-[14px] sm:text-sm whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                              {item.start_date && item.end_date ?
+                                `${format(parseISO(item.start_date), 'MMM dd')} - ${format(parseISO(item.end_date), 'MMM dd, yyyy')}` :
+                                'N/A'}
+                            </TableCell>
+                            <TableCell className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setViewReason(item.reason)}
+                                className={`h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}>
+
+                                <Eye className="w-3 h-3 mr-1" />
+                                View
+                              </Button>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                className={`text-[12px] sm:text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${getStatusStyles(theme, item.status).bg} ${getStatusStyles(theme, item.status).color}`}>
+
+                                <div className="flex items-center gap-1">
+                                  {getStatusStyles(theme, item.status).icon}
+                                  {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
+                                </div>
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
             }
           </CardContent>
@@ -426,7 +468,7 @@ const SubmitLeaveRequest = () => {
 
       {/* View Reason Dialog */}
       <Dialog open={!!viewReason} onOpenChange={() => setViewReason(null)}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[80%] sm:max-w-md mx-auto rounded-2xl p-4 sm:p-6`}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-2xl p-4 sm:p-6`}>
           <DialogHeader>
             <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Reason</DialogTitle>
           </DialogHeader>
