@@ -95,9 +95,9 @@ const AdminHODAttendance: React.FC = () => {
   const [records, setRecords] = useState<RecordRow[]>([]);
   const [recordsPagination, setRecordsPagination] = useState({ page: 1, page_size: 50, total_pages: 1, total_items: 0, has_next: false, has_prev: false });
 
-  // Detail view (Calendar Grid)
   const [selectedHOD, setSelectedHOD] = useState<SummaryRow | null>(null);
   const [hodAttendanceDetails, setHODAttendanceDetails] = useState<RecordRow[]>([]);
+  const [holidayDates, setHolidayDates] = useState<string[]>([]);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
@@ -207,6 +207,7 @@ const AdminHODAttendance: React.FC = () => {
       const json = await res.json();
       if (json.success) {
         setHODAttendanceDetails(json.data || []);
+        setHolidayDates(json.holidays || []);
       } else {
         Swal.fire("Error", "Failed to load details", "error");
       }
@@ -818,21 +819,26 @@ const AdminHODAttendance: React.FC = () => {
                       const dateStr = date.toLocaleDateString('sv-SE');
                       const record = hodAttendanceDetails.find((r) => r.date === dateStr);
                       const isFuture = dateStr > todayStr;
+                      const isSunday = date.getDay() === 0;
+                      const isHoliday = holidayDates.includes(dateStr);
+                      const isNonWorkingDay = isSunday || isHoliday;
+                      
                       const isPresent = record?.status?.toLowerCase() === 'present';
-                      const isAbsent = record?.status?.toLowerCase() === 'absent' || !record && !isFuture;
+                      const isAbsent = !isNonWorkingDay && (record?.status?.toLowerCase() === 'absent' || (!record && !isFuture));
 
                       return (
-                        <div key={dateStr} className={`relative group p-4 rounded-2xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md ${isPresent ? 'bg-green-500/10 border-green-500/30 text-green-600' : isAbsent ? 'bg-red-500/10 border-red-500/30 text-red-600' : theme === 'dark' ? 'bg-white/5 border-white/5 text-muted-foreground/30' : 'bg-gray-100 border-gray-200 text-gray-300'}`}>
-                          <span className="text-[10px] font-black uppercase tracking-wider mb-1 opacity-60">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                        <div key={dateStr} className={`relative group p-4 rounded-2xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md ${isPresent ? 'bg-green-500/10 border-green-500/30 text-green-600' : isAbsent ? 'bg-red-500/10 border-red-500/30 text-red-600' : isNonWorkingDay ? 'bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-400' : theme === 'dark' ? 'bg-white/5 border-white/5 text-muted-foreground/30' : 'bg-gray-100 border-gray-200 text-gray-300'}`}>
+                          <span className={`text-[10px] font-black uppercase tracking-wider mb-1 opacity-60 ${(isPresent || isAbsent || isNonWorkingDay) ? 'opacity-100' : ''}`}>{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
                           <span className="text-xl font-black leading-tight">{date.getDate()}</span>
-                          <span className="text-[10px] font-semibold uppercase tracking-widest opacity-60">{date.toLocaleDateString('en-US', { month: 'short' })}</span>
+                          <span className={`text-[10px] font-semibold uppercase tracking-widest opacity-60 ${(isPresent || isAbsent || isNonWorkingDay) ? 'opacity-100' : ''}`}>{date.toLocaleDateString('en-US', { month: 'short' })}</span>
                           {record ?
                           <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`}>{record.status[0]}</div> :
-                          !isFuture && <div className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]">A</div>}
+                          !isFuture && !isNonWorkingDay ? <div className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]">A</div> : <div className={`w-1.5 h-1.5 rounded-full mt-2.5 ${isNonWorkingDay ? 'bg-slate-300 dark:bg-slate-600' : 'bg-transparent'}`} />}
                           
                           <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-slate-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/10 scale-90 group-hover:scale-100">
                             <div className="font-semibold">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
-                            {!record && !isFuture && <div className="text-red-300 mt-1 flex items-center gap-1"><XCircle className="w-3 h-3" /> Auto-marked Absent</div>}
+                            {!record && !isFuture && !isNonWorkingDay && <div className="text-red-300 mt-1 flex items-center gap-1"><XCircle className="w-3 h-3" /> Auto-marked Absent</div>}
+                            {isNonWorkingDay && <div className="text-slate-300 mt-1">{isHoliday ? 'Holiday' : 'Sunday'}</div>}
                             {record && <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>{isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status}</div>}
                           </div>
                         </div>);
