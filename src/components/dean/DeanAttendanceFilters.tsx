@@ -476,10 +476,11 @@ const DeanAttendanceFilters = () => {
                 </CardTitle>
                 <Button
                   onClick={handleExportReport}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium"
+                  variant="outline"
+                  className="flex items-center justify-center gap-2 h-10 w-10 sm:h-10 sm:w-auto px-0 sm:px-4 border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground transition-all font-medium shrink-0 shadow-sm"
                 >
                   <FileDown className="w-4 h-4" />
-                  <span>Export Report</span>
+                  <span className="hidden sm:inline text-xs sm:text-sm">Export Report</span>
                 </Button>
               </CardHeader>
               <CardContent className="p-0">

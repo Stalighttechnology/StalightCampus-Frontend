@@ -643,7 +643,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
             </div>
           }
         </CardContent>
-        {totalGroups > 0 && (
+        {totalPages > 1 && (
           <CardFooter className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-border mt-auto gap-4">
             <div className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Showing {totalGroups === 0 ? 0 : (currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalGroups)} of {totalGroups} {totalGroups === 1 ? 'exam schedule' : 'exam schedules'}
