@@ -26,7 +26,7 @@ import {
 } from "../ui/popover";
 import { Calendar as CalendarComponent } from "../ui/calendar";
 import { Button } from "../ui/button";
-import { Calendar, Trash2, ChevronDown, AlertCircle } from "lucide-react";
+import { Calendar, Trash2, ChevronDown, AlertCircle, Filter, FileDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SkeletonStatsGrid, SkeletonPageHeader, SkeletonCard } from "../ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -39,8 +39,12 @@ const DeanAttendanceFilters = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>(
+    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE')
+  );
+  const [endDate, setEndDate] = useState<string>(
+    new Date().toLocaleDateString('sv-SE')
+  );
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [selectedPersonSummary, setSelectedPersonSummary] = useState<any>(null);
@@ -49,14 +53,19 @@ const DeanAttendanceFilters = () => {
   const [endDatePopoverOpen, setEndDatePopoverOpen] = useState(false);
   const [leavesPage, setLeavesPage] = useState(1);
   const [isPersonSelectOpen, setIsPersonSelectOpen] = useState(false);
+  const [viewingPerson, setViewingPerson] = useState<any>(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
 
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // We only need the names of HODs and Admins for the dropdowns.
-      // Individual profiles are fetched separately when a person is selected.
-      const url = `${API_ENDPOINT}/dean/reports/hod-admin-attendance/?names_only=true`;
+      let url = `${API_ENDPOINT}/dean/reports/hod-admin-attendance/?names_only=false`;
+      const defaultStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE');
+      const defaultEnd = new Date().toLocaleDateString('sv-SE');
+      url += `&start_date=${startDate || defaultStart}&end_date=${endDate || defaultEnd}`;
+      url += `&hod_page_size=100&admin_page_size=100`;
+
       const resSummary = await fetchWithTokenRefresh(url);
       const jsonSummary = await resSummary.json();
       if (!jsonSummary.success) {
@@ -74,7 +83,7 @@ const DeanAttendanceFilters = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [startDate, endDate]);
 
   const summary = data?.summary;
   const isMonthly = useMemo(() => Boolean(startDate && endDate), [startDate, endDate]);
@@ -91,73 +100,106 @@ const DeanAttendanceFilters = () => {
   }, [startDate, endDate]);
 
   const handleFilter = () => {
-    // The loadPerson useEffect will automatically trigger when startDate/endDate changes
-    // No need to re-fetch the global HOD/Admin list
+    fetchData();
+  };
+
+  const getStatsForPerson = (person: any) => {
+    let totalDays = totalRangeDays || 1;
+    let presentDays = 0;
+    let absentDays = totalDays;
+
+    if (person.total_days !== undefined) {
+      totalDays = person.total_days;
+      presentDays = person.present_days ?? 0;
+      absentDays = person.absent_days ?? 0;
+    } else {
+      if (person.date_joined && startDate && endDate) {
+        const joinDate = new Date(person.date_joined);
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const effectiveStart = joinDate > start ? joinDate : start;
+        if (end >= effectiveStart) {
+          const diffTime = Math.abs(end.getTime() - effectiveStart.getTime());
+          totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        } else {
+          totalDays = 0;
+        }
+      }
+
+      if (person.is_present !== undefined) {
+        presentDays = person.is_present ? 1 : 0;
+        absentDays = Math.max(0, totalDays - presentDays);
+      } else if (person.status !== undefined) {
+        presentDays = person.status === 'present' ? 1 : 0;
+        absentDays = person.status === 'present' ? 0 : 1;
+      }
+    }
+
+    const attendancePercent = totalDays ? ((presentDays / totalDays) * 100).toFixed(1) : "0.0";
+
+    return {
+      totalDays,
+      presentDays,
+      absentDays,
+      attendancePercent: `${attendancePercent}%`
+    };
+  };
+
+  const handleExportReport = () => {
+    const listToExport = selectedRole === "hod" ? hodList : adminList;
+    const filteredList = listToExport.filter((p: any) => selectedPersonId === "all" || String(p.id) === String(selectedPersonId));
+
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Name,Role,Total Days,Present,Absent,Attendance %\n";
+
+    filteredList.forEach((person: any) => {
+      const stats = getStatsForPerson(person);
+      const roleStr = selectedRole === "hod" ? "HOD" : "Admin";
+      const name = (person.name || "").replace(/,/g, " ");
+      csvContent += `${name},${roleStr},${stats.totalDays},${stats.presentDays},${stats.absentDays},${stats.attendancePercent}\n`;
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${selectedRole}_Attendance_Report.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   useEffect(() => {
     const loadPerson = async () => {
       setSelectedPersonSummary(null);
-      if (!selectedPersonId) return;
+      const activePersonId = viewingPerson ? viewingPerson.id : selectedPersonId;
+      if (!activePersonId || activePersonId === "all") return;
+      setIsDetailLoading(true);
 
       try {
-        if (selectedRole === "hod") {
-          let url = `${API_ENDPOINT}/dean/faculty/${selectedPersonId}/profile/`;
-          const params = new URLSearchParams();
-          params.append("compact", "true");
-          params.append("page", String(leavesPage));
-          if (startDate) params.append("start_date", startDate);
-          if (endDate) params.append("end_date", endDate);
-          url += `?${params.toString()}`;
+        let url = `${API_ENDPOINT}/dean/faculty/${activePersonId}/profile/`;
+        const params = new URLSearchParams();
+        params.append("compact", "false");
+        params.append("page", String(leavesPage));
+        const todayStr = new Date().toLocaleDateString('sv-SE');
+        params.append("start_date", startDate || todayStr);
+        params.append("end_date", endDate || todayStr);
+        url += `?${params.toString()}`;
 
-          const res = await fetchWithTokenRefresh(url);
-          const json = await res.json();
-          if (json.success) {
-            const profile = json.data || json.profile || null;
-            setSelectedPersonSummary(profile);
-          }
-        } else {
-          const selectedAdmin = adminList.find((admin: { id?: string; name?: string; email?: string; mobile?: string; last_login?: string | null }) => String(admin.id) === String(selectedPersonId));
-          if (selectedAdmin) {
-            const nameParts = String(selectedAdmin.name || "").trim().split(/\s+/);
-            const selectedLogin = selectedAdmin.last_login ? new Date(selectedAdmin.last_login) : null;
-            let inSelectedRange = false;
-            if (selectedLogin) {
-              if (isMonthly) {
-                const rangeStart = startDate ? new Date(startDate) : null;
-                const rangeEnd = endDate ? new Date(endDate) : null;
-                inSelectedRange = Boolean(rangeStart && rangeEnd && selectedLogin >= rangeStart && selectedLogin <= rangeEnd);
-              } else {
-                inSelectedRange = selectedLogin.toDateString() === new Date().toDateString();
-              }
-            }
-            const presentDays = inSelectedRange ? 1 : 0;
-            setSelectedPersonSummary({
-              first_name: nameParts[0] || "",
-              last_name: nameParts.slice(1).join(" ") || "",
-              email: selectedAdmin.email || "",
-              mobile_number: selectedAdmin.mobile || "",
-              address: "",
-              bio: "",
-              total_weekly_hours: 0,
-              attendance_summary: {
-                present_days: presentDays,
-                absent_days: Math.max(0, totalRangeDays - presentDays),
-                leave_days: 0,
-                unmarked_days: Math.max(0, totalRangeDays - presentDays),
-                total_days: totalRangeDays,
-                percent_present: totalRangeDays ? Number(((presentDays / totalRangeDays) * 100).toFixed(2)) : 0,
-              }
-            });
-          }
+        const res = await fetchWithTokenRefresh(url);
+        const json = await res.json();
+        if (json.success) {
+          const profile = json.data || json.profile || null;
+          setSelectedPersonSummary(profile);
         }
       } catch {
         // Keep this page resilient; main error handling is in fetchData.
+      } finally {
+        setIsDetailLoading(false);
       }
     };
 
     loadPerson();
-  }, [selectedPersonId, selectedRole, startDate, endDate, adminList, totalRangeDays, isMonthly, leavesPage]);
+  }, [selectedPersonId, viewingPerson, selectedRole, startDate, endDate, adminList, totalRangeDays, isMonthly, leavesPage]);
 
 
   if (error && !data) {
@@ -174,7 +216,7 @@ const DeanAttendanceFilters = () => {
 
   return (
     <div id="dean-attendance-filters-container" className={`space-y-4  ${theme === "dark" ? "bg-background text-foreground" : "bg-gray-50 text-gray-900"}`}>
-      {loading ? (
+      {loading && !data ? (
         <div className="space-y-6">
           <SkeletonPageHeader />
           <SkeletonCard className="h-32" />
@@ -191,14 +233,46 @@ const DeanAttendanceFilters = () => {
         </Alert>
       ) : (
         <>
-          <div id="dean-attendance-filters-card">
-            <div className="mb-4">
-              <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance Filters</h2>
-              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Filter and analyze attendance data historically by date and role</p>
-            </div>
-
-            {/* Filter Controls Card */}
-            <div className={`p-4 rounded-lg shadow ${theme === "dark" ? "bg-card border border-border" : "bg-white border border-gray-200"}`}>
+          <Card className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} w-full max-w-full flex flex-col mb-4 ${loading ? 'opacity-70 pointer-events-none' : ''}`}>
+            <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-row items-center justify-between gap-3 sm:gap-4 border-b mb-3">
+              <div className="flex-1 min-w-0">
+                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Attendance Filters
+                </CardTitle>
+                <p className={`hidden sm:block text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Filter and analyze attendance data historically by date and role
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const defaultStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE');
+                  const defaultEnd = new Date().toLocaleDateString('sv-SE');
+                  const isDateFiltered = startDate !== defaultStart || endDate !== defaultEnd;
+                  return isDateFiltered && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setStartDate(defaultStart);
+                        setEndDate(defaultEnd);
+                      }}
+                      className="flex items-center justify-center transition-all duration-200 ease-in-out h-9 px-3 rounded-lg border-red-200 text-red-500 hover:bg-red-50 dark:border-red-950/30 dark:text-red-400 dark:hover:bg-red-950/20"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="hidden sm:inline ml-1.5 text-sm">Clear Filter</span>
+                    </Button>
+                  );
+                })()}
+                <Button
+                  onClick={() => setIsDateModalOpen(true)}
+                  disabled={!selectedRole || !selectedPersonId}
+                  className="flex items-center justify-center transition-all duration-200 ease-in-out shadow-md h-9 w-9 sm:h-9 sm:w-auto sm:px-3 rounded-lg bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Filter className="w-4 h-4" />
+                  <span className="hidden sm:inline ml-1.5 text-sm">Filter</span>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="pb-4">
               <div className="flex flex-wrap lg:flex-nowrap items-end justify-between gap-4">
                 {/* Left Side: Role & Select */}
                 <div className="flex gap-4 items-end flex-wrap w-full">
@@ -210,6 +284,8 @@ const DeanAttendanceFilters = () => {
                       setSelectedRole(value);
                       setSelectedPersonId(null);
                       setIsPersonSelectOpen(true);
+                      setStartDate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE'));
+                      setEndDate(new Date().toLocaleDateString('sv-SE'));
                     }}>
                       <SelectTrigger className={`w-full lg:w-[120px] ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
                         <SelectValue placeholder="Select role" />
@@ -225,11 +301,12 @@ const DeanAttendanceFilters = () => {
                     <label htmlFor="dean-filter-person" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
                       Select
                     </label>
-                    <Select disabled={!selectedRole} open={isPersonSelectOpen} onOpenChange={setIsPersonSelectOpen} value={selectedPersonId || ""} onValueChange={(value) => setSelectedPersonId(value || null)}>
+                    <Select disabled={!selectedRole} open={isPersonSelectOpen} onOpenChange={setIsPersonSelectOpen} value={selectedPersonId || ""} onValueChange={(value) => setSelectedPersonId(value)}>
                       <SelectTrigger className={`w-full lg:w-[180px] ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
                         <SelectValue placeholder={!selectedRole ? "Select role first" : (selectedRole === "hod" ? "Select HOD" : "Select Admin")} />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="all">All {selectedRole === "hod" ? translateTerminology("HODs") : "Admins"}</SelectItem>
                         {selectedRole === "hod" && hodList.map((h: any) => (
                           <SelectItem key={h.id} value={h.id}>
                             {h.name}
@@ -244,53 +321,16 @@ const DeanAttendanceFilters = () => {
                     </Select>
                   </div>
                 </div>
-
-                {/* Right Side: Date Range & Clear */}
-                <div className="flex flex-col lg:flex-row lg:items-center gap-4 w-full lg:w-auto">
-                  <label className={`text-sm font-semibold whitespace-nowrap ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
-                    Date Range to filter
-                  </label>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsDateModalOpen(true)}
-                    disabled={!selectedPersonId}
-                    className={cn(
-                      "w-full lg:w-auto justify-start text-left font-normal gap-2",
-                      !startDate && "text-muted-foreground",
-                      theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"
-                    )}
-                  >
-                    <Calendar className="h-4 w-4" />
-                    {startDate && endDate
-                      ? `${startDate} to ${endDate}`
-                      : "Select dates"}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    disabled={!startDate && !endDate}
-                    onClick={() => {
-                      setStartDate("");
-                      setEndDate("");
-                    }}
-                    className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Clear
-                  </Button>
-                </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {isMonthly && (
-            <div className={`mt-2 text-sm ${theme === "dark" ? "text-muted-foreground" : "text-gray-600"}`}>
-              Showing data from {startDate} to {endDate} ({totalRangeDays} {totalRangeDays === 1 ? "day" : "days"})
-            </div>
-          )}
-
-          {/* Date Filter Modal */}
           <Dialog open={isDateModalOpen} onOpenChange={setIsDateModalOpen}>
-            <DialogContent className={`${theme === "dark" ? "bg-card border-border" : "bg-white border-gray-200"}`}>
+            <DialogContent
+              onPointerDownOutside={(e) => e.preventDefault()}
+              onInteractOutside={(e) => e.preventDefault()}
+              className={`w-[90%] sm:max-w-md rounded-2xl ${theme === "dark" ? "bg-card border-border" : "bg-white border-gray-200"}`}
+            >
               <DialogHeader>
                 <DialogTitle className={theme === "dark" ? "text-foreground" : "text-gray-900"}>
                   Select Date Range
@@ -302,21 +342,21 @@ const DeanAttendanceFilters = () => {
                   <label htmlFor="modal-start-date" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
                     Start Date
                   </label>
-                  <Popover open={startDatePopoverOpen} onOpenChange={setStartDatePopoverOpen}>
+                  <Popover modal={false} open={startDatePopoverOpen} onOpenChange={setStartDatePopoverOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={cn(
                           "w-full justify-start text-left font-normal",
                           !startDate && "text-muted-foreground",
-                          theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"
+                          theme === "dark" ? "bg-background border-border text-foreground" : "bg-white border-gray-300"
                         )}
                       >
                         <Calendar className="mr-2 h-4 w-4" />
                         {startDate ? format(new Date(startDate), "MMM dd, yyyy") : "Pick a date"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className={`w-auto p-0 ${theme === "dark" ? "bg-card border-border" : "bg-white"}`}>
+                    <PopoverContent align="center" className={`w-auto p-0 ${theme === "dark" ? "bg-card border-border" : "bg-white"}`}>
                       <CalendarComponent
                         mode="single"
                         selected={startDate ? new Date(startDate) : undefined}
@@ -327,7 +367,17 @@ const DeanAttendanceFilters = () => {
                             setStartDatePopoverOpen(false);
                           }
                         }}
-                        disabled={(date) => date > new Date()}
+                        disabled={(date) => {
+                          const today = new Date();
+                          today.setHours(23, 59, 59, 999);
+                          const end = endDate ? new Date(endDate) : null;
+                          if (end) {
+                            // Ensure start date cannot exceed end date
+                            end.setHours(0, 0, 0, 0);
+                            return date > end || date > today;
+                          }
+                          return date > today;
+                        }}
                       />
                     </PopoverContent>
                   </Popover>
@@ -337,21 +387,21 @@ const DeanAttendanceFilters = () => {
                   <label htmlFor="modal-end-date" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
                     End Date
                   </label>
-                  <Popover open={endDatePopoverOpen} onOpenChange={setEndDatePopoverOpen}>
+                  <Popover modal={false} open={endDatePopoverOpen} onOpenChange={setEndDatePopoverOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={cn(
                           "w-full justify-start text-left font-normal",
                           !endDate && "text-muted-foreground",
-                          theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"
+                          theme === "dark" ? "bg-background border-border text-foreground" : "bg-white border-gray-300"
                         )}
                       >
                         <Calendar className="mr-2 h-4 w-4" />
                         {endDate ? format(new Date(endDate), "MMM dd, yyyy") : "Pick a date"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className={`w-auto p-0 ${theme === "dark" ? "bg-card border-border" : "bg-white"}`}>
+                    <PopoverContent align="center" className={`w-auto p-0 ${theme === "dark" ? "bg-card border-border" : "bg-white"}`}>
                       <CalendarComponent
                         mode="single"
                         selected={endDate ? new Date(endDate) : undefined}
@@ -362,14 +412,42 @@ const DeanAttendanceFilters = () => {
                             setEndDatePopoverOpen(false);
                           }
                         }}
-                        disabled={(date) => date > new Date()}
+                        disabled={(date) => {
+                          const today = new Date();
+                          today.setHours(23, 59, 59, 999);
+                          const start = startDate ? new Date(startDate) : null;
+                          if (start) {
+                            // Ensure end date cannot precede start date
+                            start.setHours(0, 0, 0, 0);
+                            return date < start || date > today;
+                          }
+                          return date > today;
+                        }}
                       />
                     </PopoverContent>
                   </Popover>
                 </div>
               </div>
 
-              <DialogFooter className="flex gap-2">
+              <DialogFooter className="flex flex-row justify-end items-center gap-2">
+                {(() => {
+                  const defaultStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE');
+                  const defaultEnd = new Date().toLocaleDateString('sv-SE');
+                  const isDateFiltered = startDate !== defaultStart || endDate !== defaultEnd;
+                  return isDateFiltered && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setStartDate(defaultStart);
+                        setEndDate(defaultEnd);
+                        setIsDateModalOpen(false);
+                      }}
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 mr-auto text-sm font-semibold h-9 px-3"
+                    >
+                      Clear Filter
+                    </Button>
+                  );
+                })()}
                 <Button
                   variant="outline"
                   onClick={() => setIsDateModalOpen(false)}
@@ -390,95 +468,117 @@ const DeanAttendanceFilters = () => {
             </DialogContent>
           </Dialog>
 
-          {selectedPersonId && selectedPersonSummary ? (
-            <Card className={`mt-4 shadow ${theme === "dark" ? "bg-card border border-border" : "bg-white border border-gray-200"}`}>
-              <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <div className={`text-sm ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}>Selected</div>
-                  <div className="text-lg font-semibold">
-                    {(selectedRole === "hod"
-                      ? hodList.find((h: any) => h.id === selectedPersonId)?.name
-                      : adminList.find((a: any) => a.id === selectedPersonId)?.name) || "Selected Person"}
-                  </div>
-                  <div className={`text-sm ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}>
-                    {selectedRole === "hod"
-                      ? hodList.find((h: any) => h.id === selectedPersonId)?.branch
-                      : adminList.find((a: any) => a.id === selectedPersonId)?.email || adminList.find((a: any) => a.id === selectedPersonId)?.mobile}
-                  </div>
+          {selectedRole && selectedPersonId ? (
+            <Card className={`mt-4 shadow ${theme === "dark" ? "bg-card border border-border" : "bg-white border border-gray-200"} overflow-hidden`}>
+              <CardHeader className="px-6 py-4 border-b border-border flex flex-row justify-between items-center gap-4">
+                <CardTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {selectedRole === "hod" ? translateTerminology("HOD") : "Admin"} Attendance Summary
+                </CardTitle>
+                <Button
+                  onClick={handleExportReport}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium"
+                >
+                  <FileDown className="w-4 h-4" />
+                  <span>Export Report</span>
+                </Button>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className={`sticky top-0 whitespace-nowrap ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
+                      <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          {selectedRole === "hod" ? translateTerminology("HOD") : "Admin"}
+                        </th>
+                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
+                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</th>
+                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</th>
+                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance %</th>
+                        <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
+                      {(selectedRole === "hod" ? hodList : adminList)
+                        .filter((person: any) => selectedPersonId === "all" || String(person.id) === String(selectedPersonId))
+                        .map((person: any) => {
+                          const stats = getStatsForPerson(person);
+                          return (
+                            <tr key={person.id} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedPersonId === person.id ? (theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50') : ''}`}>
+                              <td className={`px-6 py-4 whitespace-nowrap font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                <div>{person.name}</div>
+                                <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                                  {person.branch || person.email || person.mobile}
+                                </div>
+                              </td>
+                              <td className={`px-6 py-4 whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {stats.totalDays}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-green-600 font-medium">
+                                {stats.presentDays}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-red-600 font-medium">
+                                {stats.absentDays}
+                              </td>
+                              <td className={`px-6 py-4 whitespace-nowrap font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {stats.attendancePercent}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right">
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    setViewingPerson(person);
+                                  }}
+                                  className="bg-primary hover:bg-primary/90 text-white font-medium rounded-lg h-8 px-4"
+                                >
+                                  View
+                                </Button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
                 </div>
-                <div className={`text-sm text-right ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}>
-                  <div>Range days</div>
-                  <div className="text-lg font-semibold">{selectedPersonSummary?.attendance_summary?.total_days ?? (isMonthly ? data.summary.period.total_days : "-")}</div>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-blue-900/10 border-blue-900/20' : 'bg-blue-50 border-blue-100'}`}>
-                  <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>Weekly Hours</div>
-                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-blue-100' : 'text-blue-900'}`}>{selectedPersonSummary?.total_weekly_hours ?? 0}</div>
-                </div>
-                <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-green-900/10 border-green-900/20' : 'bg-green-50 border-green-100'}`}>
-                  <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>Present Days</div>
-                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-green-100' : 'text-green-900'}`}>{selectedPersonSummary?.attendance_summary?.present_days ?? 0}</div>
-                </div>
-                <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-red-900/10 border-red-900/20' : 'bg-red-50 border-red-100'}`}>
-                  <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>Absent Days</div>
-                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-red-100' : 'text-red-900'}`}>{selectedPersonSummary?.attendance_summary?.absent_days ?? 0}</div>
-                </div>
-                <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-purple-900/10 border-purple-900/20' : 'bg-purple-50 border-purple-100'}`}>
-                  <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`}>Attendance %</div>
-                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-purple-100' : 'text-purple-900'}`}>{selectedPersonSummary?.attendance_summary?.percent_present ?? "N/A"}</div>
-                </div>
-                <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-yellow-900/10 border-yellow-900/20' : 'bg-yellow-50 border-yellow-100'}`}>
-                  <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>Leave Days</div>
-                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-yellow-100' : 'text-yellow-900'}`}>{selectedPersonSummary?.attendance_summary?.leave_days ?? 0}</div>
-                </div>
-                <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-amber-900/10 border-amber-900/20' : 'bg-amber-50 border-amber-100'}`}>
-                  <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>Unmarked Days</div>
-                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-amber-100' : 'text-amber-900'}`}>{selectedPersonSummary?.attendance_summary?.unmarked_days ?? 0}</div>
-                </div>
-              </div>
-
-              {/* Paginated Leaves Section */}
-              {userTier >= 2 && selectedRole === "hod" && selectedPersonSummary?.leaves && (
-                <div className="mt-6 border-t border-border pt-4">
-                  <div className="text-md font-semibold mb-3">Leave History</div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                      <thead className={theme === 'dark' ? 'text-muted-foreground bg-muted' : 'text-gray-500 bg-gray-50'}>
-                        <tr>
-                          <th className="px-4 py-2 font-medium">Period</th>
-                          <th className="px-4 py-2 font-medium">Status</th>
-                          <th className="px-4 py-2 font-medium">Reason</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {selectedPersonSummary.leaves.length > 0 ? selectedPersonSummary.leaves.map((l: any) => (
-                          <tr key={l.id} className={theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50'}>
-                            <td className="px-4 py-3">{l.start_date} to {l.end_date}</td>
-                            <td className="px-4 py-3">
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${l.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                {/* Paginated Leaves Section */}
+                {userTier >= 2 && selectedRole === "hod" && selectedPersonSummary?.leaves && (
+                  <div className="p-6 border-t border-border">
+                    <div className="text-md font-semibold mb-3">Leave History for {selectedPersonSummary?.first_name} {selectedPersonSummary?.last_name}</div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-left">
+                        <thead className={theme === 'dark' ? 'text-muted-foreground bg-muted' : 'text-gray-500 bg-gray-50'}>
+                          <tr>
+                            <th className="px-4 py-2 font-medium">Period</th>
+                            <th className="px-4 py-2 font-medium">Status</th>
+                            <th className="px-4 py-2 font-medium">Reason</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {selectedPersonSummary.leaves.length > 0 ? selectedPersonSummary.leaves.map((l: any) => (
+                            <tr key={l.id} className={theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50'}>
+                              <td className="px-4 py-3">{l.start_date} to {l.end_date}</td>
+                              <td className="px-4 py-3">
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${l.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
                                   l.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
                                     'bg-yellow-100 text-yellow-800'
-                                }`}>
-                                {l.status}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 max-w-[200px] truncate" title={l.reason}>{l.reason}</td>
-                          </tr>
-                        )) : (
-                          <tr>
-                            <td colSpan={3} className="px-4 py-6 text-center text-muted-foreground">No leave records found in this range.</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
+                                  }`}>
+                                  {l.status}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 max-w-[200px] truncate" title={l.reason}>{l.reason}</td>
+                            </tr>
+                          )) : (
+                            <tr>
+                              <td colSpan={3} className="px-4 py-6 text-center text-muted-foreground">No leave records found in this range.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-
-                </div>
-              )}
+                )}
               </CardContent>
+
               {userTier >= 2 && selectedRole === "hod" && selectedPersonSummary?.leaves && selectedPersonSummary.leaves_pagination?.total_pages > 1 && (
                 <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto w-full">
                   <div className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
@@ -518,15 +618,148 @@ const DeanAttendanceFilters = () => {
                 <AlertCircle className="w-10 h-10 text-primary opacity-50" />
               </div>
               <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Select a {selectedRole === "hod" ? translateTerminology("HOD") : "Admin"} to View Report
+                Select a Role to View Report
               </h3>
               <p className={`text-center max-w-md ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                Choose a specific {selectedRole === "hod" ? "Head of Department" : "Administrator"} from the dropdown above to generate their detailed attendance analysis and statistics.
+                Choose a specific role from the dropdown above to generate the detailed attendance analysis and statistics.
               </p>
             </div>
           )}
         </>
       )}
+
+      {/* Attendance Details Modal */}
+      <Dialog open={!!viewingPerson} onOpenChange={(open) => !open && setViewingPerson(null)}>
+        <DialogContent className={`max-w-xl max-h-[80vh] overflow-y-auto custom-scrollbar rounded-xl w-[90%] ${theme === 'dark' ? 'bg-slate-950 border-white/10' : 'bg-white'}`}>
+          <DialogHeader className="pb-4 border-b border-border/50">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <DialogTitle className="text-lg font-semibold">
+                  {viewingPerson?.name}'s Attendance
+                </DialogTitle>
+                <p className={`text-sm mt-1 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  {startDate && endDate ? `${startDate} — ${endDate}` : "Today"}
+                </p>
+              </div>
+              <div className="flex items-center gap-4 bg-muted/50 p-3 rounded-xl border border-border/50">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Present</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Absent</span>
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className={`p-4 sm:p-6 rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'bg-muted/20 border border-white/5' : 'bg-gray-50 border border-gray-100'}`}>
+            {isDetailLoading ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-3">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                <p className="text-sm font-semibold animate-pulse text-muted-foreground">Syncing attendance data...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-4">
+                {(() => {
+                  const end = endDate ? new Date(endDate) : new Date();
+                  const start = new Date(end);
+                  if (selectedPersonSummary?.attendance_summary?.total_days > 0) {
+                    start.setDate(end.getDate() - (selectedPersonSummary.attendance_summary.total_days - 1));
+                  } else if (startDate) {
+                    start.setTime(new Date(startDate).getTime());
+                  } else {
+                    start.setDate(end.getDate() - 29);
+                  }
+
+                  // Cap start date by joining date (date_joined)
+                  const joinDateStr = selectedPersonSummary?.date_joined || viewingPerson?.date_joined;
+                  if (joinDateStr) {
+                    const joinDate = new Date(joinDateStr);
+                    joinDate.setHours(0, 0, 0, 0);
+                    if (start < joinDate) {
+                      start.setTime(joinDate.getTime());
+                    }
+                  }
+
+                  const todayStr = new Date().toLocaleDateString('sv-SE');
+                  const days = [];
+                  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                    days.push(new Date(d));
+                  }
+
+                  return days.map((date) => {
+                    const dateStr = date.toLocaleDateString('sv-SE');
+
+                    let isPresent = false;
+                    let isAbsent = false;
+                    let statusLabel = "";
+
+                    const record = selectedPersonSummary?.attendance?.find((r: any) => r.date === dateStr);
+                    if (record) {
+                      isPresent = record.status?.toLowerCase() === 'present';
+                      isAbsent = record.status?.toLowerCase() === 'absent';
+                      statusLabel = record.status[0].toUpperCase();
+                    } else {
+                      const hasAnyCheckIns = selectedPersonSummary?.attendance?.length > 0;
+                      if (selectedRole === "admin" && !hasAnyCheckIns) {
+                        const adminLastLoginStr = viewingPerson?.last_login ? new Date(viewingPerson.last_login).toLocaleDateString('sv-SE') : "";
+                        isPresent = adminLastLoginStr === dateStr;
+                        isAbsent = !isPresent && dateStr <= todayStr;
+                        statusLabel = isPresent ? "P" : "A";
+                      } else {
+                        isAbsent = dateStr <= todayStr;
+                        statusLabel = "A";
+                      }
+                    }
+
+                    return (
+                      <div
+                        key={dateStr}
+                        className={`relative group p-4 rounded-2xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md ${isPresent
+                          ? 'bg-green-500/10 border-green-500/30 text-green-600'
+                          : isAbsent
+                            ? 'bg-red-500/10 border-red-500/30 text-red-600'
+                            : theme === 'dark'
+                              ? 'bg-white/5 border-white/5 text-muted-foreground/30'
+                              : 'bg-gray-100 border-gray-200 text-gray-300'
+                          }`}
+                      >
+                        <span className="text-[10px] font-black uppercase tracking-wider mb-1 opacity-60">
+                          {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                        </span>
+                        <span className="text-xl font-black leading-tight">{date.getDate()}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">
+                          {date.toLocaleDateString('en-US', { month: 'short' })}
+                        </span>
+
+                        <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`}>
+                          {statusLabel}
+                        </div>
+
+                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-slate-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/10 scale-90 group-hover:scale-100">
+                          <div className="font-bold">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
+                          <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1`}>
+                            {isPresent ? "Present" : "Absent"}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/30 pt-6">
+            <div className="text-[11px] text-muted-foreground italic font-medium">
+              Note: "A" indicates auto-marked absence due to missing records.
+            </div>
+            <Button onClick={() => setViewingPerson(null)} className="rounded-xl px-8 bg-primary text-white hover:bg-primary/90">Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
