@@ -126,7 +126,7 @@ const StudentTimetable = () => {
   return (
     <Card id="timetable-card" className={`${styles.card} ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
       <CardHeader id="timetable-card-header" className={`${styles.cardHeader} ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
-        <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+        <CardTitle className={`text-2xl sm:text-3xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
           Timetable
         </CardTitle>
         <div className="flex items-center gap-2">

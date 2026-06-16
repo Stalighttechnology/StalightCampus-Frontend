@@ -18,6 +18,8 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { SkeletonList } from '../ui/skeleton';
+
 
 const MySwal = withReactContent(Swal);
 
@@ -190,7 +192,7 @@ const SubmitLeaveRequest = () => {
         {/* Leave Application Form - Left Side */}
         <Card id="leave-form-card" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader>
-            <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+            <CardTitle className={`text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">Your leave request will be routed to your <span className="font-medium text-primary">Faculty (Proctor)</span> for approval.</p>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -279,7 +281,7 @@ const SubmitLeaveRequest = () => {
         <Card id="leave-status-list" className={theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Your Leave Requests</CardTitle>
+              <CardTitle className={`text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Your Leave Requests</CardTitle>
               <div className="relative" ref={filterRef}>
                 <Button
                   size="sm"
@@ -326,8 +328,9 @@ const SubmitLeaveRequest = () => {
             }
 
             {/* Loading State */}
-            {leavesLoading ?
-              <div className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Loading leave requests...</div> :
+            {leavesLoading ? (
+              <SkeletonList items={3} />
+            ) :
               filteredLeaves.length === 0 ?
                 <div className="py-24 flex flex-col items-center justify-center text-center">
                   <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>

@@ -441,7 +441,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
 
       <Card className={`overflow-hidden ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
         <CardHeader className="border-b">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-1 sm:gap-4">
+          <div className="flex flex-row justify-between items-center sm:items-start md:items-center gap-4">
             <div>
               <CardTitle className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                 Fee Information
@@ -450,10 +450,12 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                 View and manage your fee payments
               </p>
             </div>
+            
+            {/* Desktop Button */}
             <Button
               variant="outline"
               size="sm"
-              className="bg-primary hover:bg-primary/90 text-white border-primary"
+              className="hidden sm:flex bg-primary hover:bg-primary/90 text-white border-primary"
               disabled={exportingPDF}
               onClick={handleExportPDF}>
               {exportingPDF ? (
@@ -462,6 +464,17 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                 <FileDown className="w-4 h-4 mr-2" />
               )}
               {exportingPDF ? "Exporting..." : "Export PDF"}
+            </Button>
+
+            {/* Mobile Icon Button */}
+            <Button
+              onClick={handleExportPDF}
+              disabled={exportingPDF}
+              size="icon"
+              variant="outline"
+              className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+            >
+              {exportingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
             </Button>
           </div>
         </CardHeader>
@@ -811,15 +824,16 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
           {/* Payment History Section */}
           <motion.div variants={cardVariants} initial="hidden" animate="visible" className="h-full">
             <Card id="fees-history-card" className={`shadow-none border h-[650px] flex flex-col ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-              <CardHeader id="fees-history-card-header" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 space-y-0 pb-4">
+              <CardHeader id="fees-history-card-header" className="flex flex-row justify-between items-center sm:items-start gap-4 pb-4">
                 <CardTitle className={`flex items-center gap-2 text-base sm:text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                  <CreditCard className="h-5 w-5" />
                   Payment History ({feeData?.statistics?.total_payments || 0})
                 </CardTitle>
+                
+                {/* Desktop Button */}
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-primary hover:bg-primary/90 text-white border-primary shrink-0 w-full sm:w-auto justify-center"
+                  className="hidden sm:flex bg-primary hover:bg-primary/90 text-white border-primary shrink-0"
                   disabled={exportingPaymentsPDF}
                   onClick={handleExportPaymentsPDF}>
                   {exportingPaymentsPDF ? (
@@ -828,6 +842,17 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                     <FileDown className="w-4 h-4 mr-2" />
                   )}
                   {exportingPaymentsPDF ? "Exporting..." : "Download Receipt"}
+                </Button>
+
+                {/* Mobile Icon Button */}
+                <Button
+                  onClick={handleExportPaymentsPDF}
+                  disabled={exportingPaymentsPDF}
+                  size="icon"
+                  variant="outline"
+                  className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                >
+                  {exportingPaymentsPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
                 </Button>
               </CardHeader>
               <CardContent className="flex-1 overflow-y-auto custom-scrollbar pr-2">

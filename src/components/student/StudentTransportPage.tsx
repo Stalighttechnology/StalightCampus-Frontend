@@ -4,6 +4,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
+import { SkeletonList } from "../ui/skeleton";
 import {
   fetchMyBusDetails, fetchMyTripHistory, submitStudentComplaint
 } from "../../utils/transport_api";
@@ -127,7 +128,9 @@ const StudentTransportPage: React.FC = () => {
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
 
       {loading ? (
-        <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
+        <div className="p-4">
+          <SkeletonList items={3} />
+        </div>
       ) : tab === 'info' ? (
         <div className="space-y-4">
           {!busData?.has_bus ? (
@@ -286,7 +289,9 @@ const StudentTransportPage: React.FC = () => {
             <h2 className="font-semibold text-base flex items-center gap-2"><Calendar size={16} /> Trip Attendance History</h2>
           </div>
           {historyLoading ? (
-            <div className="flex justify-center p-12"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+            <div className="p-4">
+              <SkeletonList items={3} />
+            </div>
           ) : history.length === 0 ? (
             <div className="p-12 text-center">
               <Calendar size={40} className="mx-auto mb-3 opacity-30" />
@@ -321,10 +326,10 @@ const StudentTransportPage: React.FC = () => {
         </div>
       ) : (
         <div className={`rounded-2xl border shadow-sm p-5 ${card}`}>
-          <h2 className="font-semibold text-base mb-4 flex items-center gap-2"><AlertTriangle size={16} className="text-amber-500" /> File a Transport Complaint</h2>
+          <h2 className="font-semibold text-lg sm:text-xl mb-4 flex items-center gap-2"><AlertTriangle size={18} className="text-amber-500" /> File Transport Complaint</h2>
           <div className="space-y-4">
             <div>
-              <label className="text-xs font-semibold mb-1.5 block">Subject</label>
+              <label className="text-sm sm:text-xs font-semibold mb-1.5 block">Subject</label>
               <input
                 className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 ${input}`}
                 placeholder="e.g. Bus arrived late"
@@ -333,7 +338,7 @@ const StudentTransportPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold mb-1.5 block">Description</label>
+              <label className="text-sm sm:text-xs font-semibold mb-1.5 block">Description</label>
               <textarea
                 className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 ${input}`}
                 placeholder="Describe the issue in detail..."
@@ -345,27 +350,27 @@ const StudentTransportPage: React.FC = () => {
             <button
               disabled={submitting}
               onClick={handleComplaint}
-              className="flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-xl font-semibold hover:bg-primary/90 transition-all disabled:opacity-60 shadow-sm"
+              className="flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-xl font-semibold text-sm sm:text-base hover:bg-primary/90 transition-all disabled:opacity-60 shadow-sm"
             >
               <Send size={16} /> {submitting ? 'Submitting...' : 'Submit Complaint'}
             </button>
           </div>
-
+ 
           {/* Recent Complaints */}
           {busData?.recent_complaints?.length > 0 && (
             <div className="mt-8 pt-6 border-t border-inherit">
-              <h3 className="font-semibold text-sm mb-4">Recent Complaints</h3>
+              <h3 className="font-bold text-base sm:text-lg mb-4">Recent Complaints</h3>
               <div className="space-y-3">
                 {busData.recent_complaints.map((c: any) => (
                   <div key={c.id} className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
                     <div className="flex justify-between items-start mb-2">
-                      <p className="font-semibold text-sm">{c.title}</p>
+                      <p className="font-semibold text-base sm:text-sm">{c.title}</p>
                       <span className={`px-2 py-0.5 rounded text-xs font-semibold capitalize ${c.status === 'resolved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{c.status}</span>
                     </div>
-                    <p className={`text-xs mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{c.description}</p>
+                    <p className={`text-sm sm:text-xs mb-2 leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{c.description}</p>
                     
                     <div className="flex justify-between items-center mt-3 pt-2 border-t border-dashed border-inherit">
-                      <p className={`text-[10px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>{new Date(c.created_at).toLocaleString()}</p>
+                      <p className={`text-xs sm:text-[10px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>{new Date(c.created_at).toLocaleString()}</p>
                       {c.status === 'resolved' && c.action_taken && (
                         <Button
                           variant="outline"

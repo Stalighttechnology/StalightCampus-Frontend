@@ -61,10 +61,10 @@ const StudentSyllabus = () => {
     <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       <Card id="student-syllabus-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <CardHeader id="student-syllabus-header" className="p-3 sm:p-4 lg:p-6 border-b">
-          <h1 className={`text-2xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+          <h1 className={`text-2xl sm:text-3xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
             My Syllabus Tracker
           </h1>
-          <p className={`text-md sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+          <p className={`text-sm sm:text-base mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
             Track the week-by-week syllabus completion status of all your enrolled courses.
           </p>
         </CardHeader>
@@ -144,9 +144,9 @@ const StudentSyllabus = () => {
                       </div>
 
                       {/* Progress Bar & View Action */}
-                      <div className="flex items-center gap-4 min-w-[200px] md:min-w-[300px]">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 w-full sm:w-auto md:min-w-[300px]">
                         {syllabusData && (
-                          <div className="flex-1 space-y-1">
+                          <div className="w-full sm:flex-1 space-y-1">
                             <div className="flex justify-between text-xs font-semibold">
                               <span>Coverage</span>
                               <span>{syllabusData.progress_percentage}%</span>
@@ -163,7 +163,10 @@ const StudentSyllabus = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => setSelectedSubject(subject)}
-                          className="gap-2"
+                          className={`w-full sm:w-auto h-9 text-sm font-semibold flex items-center justify-center gap-2 rounded-lg shadow-sm transition-all duration-200 shrink-0
+                          ${theme === 'dark' ?
+                              'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' :
+                              'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10'}`}
                         >
                           <Eye className="w-4 h-4" /> View Timeline
                         </Button>

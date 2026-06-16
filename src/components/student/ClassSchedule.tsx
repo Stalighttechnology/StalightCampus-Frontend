@@ -197,7 +197,7 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
             <div>
               <CardTitle>Class Schedules</CardTitle>
               <CardDescription
-                className={theme === "dark" ? "text-muted-foreground" : "text-gray-500"}
+                className={`hidden sm:block ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}
               >
                 Your upcoming and live sessions. Join Meet sessions directly when available.
               </CardDescription>
@@ -217,11 +217,19 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
                 placeholder="Search by subject, topic, or faculty..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`pl-9 ${theme === "dark"
+                className={`pl-9 pr-12 ${theme === "dark"
                     ? "bg-background border border-input text-foreground"
                     : "bg-white border border-gray-300 text-gray-900"
                   }`}
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
 
           </div>
@@ -328,14 +336,14 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
 
                     {/* Row 4: Meet link + actions */}
                     {isOnline && item.meeting_link && (
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 w-full min-w-0">
                         <a
                           href={item.meeting_link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-2 hover:text-primary/80 transition-colors font-mono truncate max-w-full sm:max-w-[200px] md:max-w-xs break-all"
+                          className="flex items-center gap-1 text-xs text-primary underline underline-offset-2 hover:text-primary/80 transition-colors font-mono min-w-0 max-w-[200px] md:max-w-xs"
                         >
-                          {item.meeting_link}
+                          <span className="truncate">{item.meeting_link}</span>
                           <ExternalLink className="w-3 h-3 flex-shrink-0" />
                         </a>
                         <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 sm:self-auto">

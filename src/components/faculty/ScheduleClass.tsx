@@ -44,6 +44,7 @@ import {
   Copy,
   Share2,
   Plus,
+  FileDownIcon,
 } from "lucide-react";
 import { useFacultyAssignmentsQuery } from "@/hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
@@ -558,7 +559,7 @@ const ClassHistoryCard = ({ cls, theme, currentTime = new Date() }: { cls: Sched
 
 const getInitialScheduleState = () => {
   const now = new Date();
-  
+
   // Format Date: YYYY-MM-DD local time
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -568,7 +569,7 @@ const getInitialScheduleState = () => {
   // Start Time
   let currentHour = now.getHours();
   let currentMinute = now.getMinutes();
-  
+
   // Round minute to nearest 5 minutes
   const remainder = currentMinute % 5;
   if (remainder >= 3) {
@@ -643,7 +644,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [topic, setTopic] = useState("");
   const [description, setDescription] = useState("");
-  
+
   const initVals = getInitialScheduleState();
   const [date, setDate] = useState(initVals.date);
   const [startTime, setStartTime] = useState("");
@@ -696,7 +697,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
         if (assignment.semester_id) params.append('semester_id', assignment.semester_id.toString());
         if (assignment.section_id) params.append('section_id', assignment.section_id.toString());
       }
-      
+
       let url = `${API_ENDPOINT}/scheduled-classes/export_pdf/`;
       if (params.toString()) {
         url += `?${params.toString()}`;
@@ -717,12 +718,12 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
-      
-      const fileNameSuffix = assignment 
-        ? `${assignment.subject_name.replace(/\s+/g, '_')}_${assignment.branch.replace(/\s+/g, '_')}_Sem_${assignment.semester}_Sec_${assignment.section}` 
+
+      const fileNameSuffix = assignment
+        ? `${assignment.subject_name.replace(/\s+/g, '_')}_${assignment.branch.replace(/\s+/g, '_')}_Sem_${assignment.semester}_Sec_${assignment.section}`
         : 'All';
       link.setAttribute('download', `Class_History_${fileNameSuffix}_${new Date().toISOString().slice(0, 10)}.pdf`);
-      
+
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -813,7 +814,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     scheduleDropdowns.reset();
     setTopic("");
     setDescription("");
-    
+
     const freshVals = getInitialScheduleState();
     setDate(freshVals.date);
     setStartTime("");
@@ -1221,8 +1222,21 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
         <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
             <div className="flex-1 min-w-0">
-              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Class History</CardTitle>
-              <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              <div className="flex items-center justify-between w-full">
+                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Class History</CardTitle>
+                {historyClasses.length > 0 && (
+                  <Button
+                    onClick={handleExportPDF}
+                    disabled={exportingPDF}
+                    size="icon"
+                    variant="outline"
+                    className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                  >
+                    {exportingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
+                  </Button>
+                )}
+              </div>
+              <p className={`hidden sm:block text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 Select a subject to view scheduled classes history
               </p>
             </div>
@@ -1240,7 +1254,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                   size="sm"
                   onClick={handleExportPDF}
                   disabled={exportingPDF}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all w-full sm:w-auto"
+                  className="hidden sm:inline-flex bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all w-full sm:w-auto"
                 >
                   {exportingPDF ? (
                     <>

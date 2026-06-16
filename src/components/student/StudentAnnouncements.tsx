@@ -419,13 +419,20 @@ const StudentAnnouncements = () => {
   }, [announcements, totalCount, unreadCount]);
 
   return (
-    <div>
-      <Card id="announcements-card" className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
+    <>
+      <style>{`
+        @media (max-width: 640px) {
+          .filter-text { display: none !important; }
+          .filter-btn { width: 40px !important; height: 40px !important; padding: 0 !important; }
+        }
+      `}</style>
+      <div>
+        <Card id="announcements-card" className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
         <div id="announcements-header-stats">
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
-                <h2 className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                <h2 className={`text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   Announcements
                 </h2>
                 <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
@@ -477,8 +484,8 @@ const StudentAnnouncements = () => {
         <CardContent className="space-y-8 pt-6">
 
           {/* Filters & Actions */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="relative w-full sm:max-w-md">
+          <div className="flex flex-row items-center justify-between gap-2 w-full sm:gap-4">
+            <div className="relative flex-1 sm:max-w-md">
               <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} size={18} />
               <Input
                 placeholder="Search announcements..."
@@ -488,11 +495,11 @@ const StudentAnnouncements = () => {
               />
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-2 shrink-0 sm:w-auto">
               <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
-                <SelectTrigger className="w-full sm:w-[100px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden shadow-sm font-medium text-sm">
+                <SelectTrigger className="filter-btn w-9 h-9 p-0 sm:w-[100px] sm:px-3 sm:gap-2 flex items-center justify-center rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden shadow-sm font-medium text-sm">
                   <Filter className="h-4 w-4" />
-                  <span>Filter</span>
+                  <span className="filter-text hidden sm:inline">Filter</span>
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
                   <SelectItem value="all">All Items</SelectItem>
@@ -503,7 +510,7 @@ const StudentAnnouncements = () => {
 
               {filterType === "priority" && (
                 <Select value={priorityFilter} onValueChange={(value: any) => setPriorityFilter(value)}>
-                  <SelectTrigger className={`w-full sm:w-[160px] ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200 shadow-sm'}`}>
+                  <SelectTrigger className={`w-[110px] sm:w-[160px] ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200 shadow-sm'}`}>
                     <SelectValue placeholder="Priority" />
                   </SelectTrigger>
                   <SelectContent>
@@ -586,7 +593,7 @@ const StudentAnnouncements = () => {
                               </div>
 
                               <div>
-                                <h3 className={`text-md font-semibold leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                <h3 className={`text-lg sm:text-md font-semibold leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                                   {announcement.title}
                                 </h3>
                                 <p className={`text-sm mt-2 leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
@@ -647,7 +654,7 @@ const StudentAnnouncements = () => {
           )}
         </CardContent>
 
-        {!loading && !error && totalPages > 0 && (
+        {!loading && !error && totalPages > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing page {currentPage} of {totalPages} ({totalCount} announcements)
@@ -683,7 +690,8 @@ const StudentAnnouncements = () => {
         )}
       </Card>
     </div>
-  );
+  </>
+);
 };
 
 export default StudentAnnouncements;

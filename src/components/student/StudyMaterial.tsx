@@ -76,13 +76,13 @@ const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme:
   };
 
   return (
-    <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-      <TableCell className="w-[70px]">
+    <TableRow className={`group ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'} hover:bg-muted/5 transition-colors`}>
+      <TableCell className="w-[100px] px-6 py-4">
         <div className={`p-2.5 rounded-xl inline-flex items-center justify-center ${theme === 'dark' ? 'bg-red-500/10' : 'bg-red-50'}`}>
           <FileText className="text-red-500" size={22} />
         </div>
       </TableCell>
-      <TableCell className="font-medium max-w-[250px]">
+      <TableCell className="font-medium max-w-[250px] px-6 py-4">
         <div 
           onClick={handleDownload}
           className={`text-sm md:text-base lg:text-lg ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} hover:underline cursor-pointer truncate font-semibold tracking-tight`}
@@ -90,29 +90,29 @@ const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme:
           {material.title}
         </div>
       </TableCell>
-      <TableCell className={`text-sm md:text-base ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'} font-medium`}>
+      <TableCell className={`text-sm md:text-base ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'} font-medium px-6 py-4 whitespace-nowrap`}>
         {material.subject_name}
       </TableCell>
-      <TableCell className={`hidden md:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+      <TableCell className={`hidden md:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap`}>
         {material.subject_code}
       </TableCell>
-      <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+      <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap text-center`}>
         {material.semester || "N/A"}
       </TableCell>
-      <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+      <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4`}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary shadow-sm flex-shrink-0">
             {(material.uploaded_by_name ?? 'U').charAt(0).toUpperCase()}
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <span className="truncate font-medium">{material.uploaded_by_name ?? 'Unknown'}</span>
             {material.uploaded_by_role && (
-              <span className="text-xs text-muted-foreground">{material.uploaded_by_role}</span>
+              <span className="text-xs text-muted-foreground truncate">{material.uploaded_by_role}</span>
             )}
           </div>
         </div>
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="text-right px-6 py-4">
         <button
           onClick={handleDownload}
           disabled={downloading}
@@ -272,11 +272,11 @@ const StudyMaterialsStudent = () => {
   }, [selectedBranch, selectedSemester, selectedSection, searchQuery]);
 
   return (
-    <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-      <Card id="study-materials-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+    <div className={`w-full max-w-full overflow-hidden ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+      <Card id="study-materials-card" className={`w-full max-w-full overflow-hidden ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <CardHeader id="study-materials-header" className="p-3 sm:p-4 lg:p-6 border-b">
-          <h1 className="text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}">Study Materials</h1>
-          <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+          <h1 className={`text-2xl sm:text-3xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Study Materials</h1>
+          <p className={`text-sm sm:text-base mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
             Access and download study materials shared by your professors.
           </p>
         </CardHeader>
@@ -364,17 +364,17 @@ const StudyMaterialsStudent = () => {
                 </p>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-2xl border border-border">
+              <div className="overflow-x-auto custom-scrollbar rounded-2xl border border-border">
                 <Table>
                   <TableHeader className={theme === 'dark' ? 'bg-muted/30' : 'bg-slate-50/50'}>
                     <TableRow className="border-none hover:bg-transparent h-14">
-                      <TableHead className="w-[70px] text-base text-slate-800 md:text-lg font-semibold">Type</TableHead>
-                      <TableHead className="text-base md:text-lg font-semibold text-slate-800">Title</TableHead>
-                      <TableHead className="text-base md:text-lg font-semibold text-slate-800">Course Name</TableHead>
-                      <TableHead className="hidden md:table-cell text-base md:text-lg font-semibold text-slate-800">Code</TableHead>
-                      <TableHead className="hidden md:table-cell text-base md:text-lg font-semibold text-slate-800">Sem</TableHead>
-                      <TableHead className="hidden lg:table-cell text-base md:text-lg font-semibold text-slate-800">Uploaded By</TableHead>
-                      <TableHead className="text-right text-base md:text-lg font-semibold text-slate-800">Action</TableHead>
+                      <TableHead className="w-[100px] px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Type</TableHead>
+                      <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Title</TableHead>
+                      <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Course Name</TableHead>
+                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Code</TableHead>
+                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap text-center">Sem</TableHead>
+                      <TableHead className="hidden lg:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Uploaded By</TableHead>
+                      <TableHead className="text-right px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
