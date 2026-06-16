@@ -1214,8 +1214,16 @@ const UploadMarks = () => {
                             </tr> :
                             currentStudents.length === 0 ?
                               <tr>
-                                <td colSpan={questions.length * 3 + 5} className={`text-center text-sm p-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                                  No students found for selected criteria.
+                                <td colSpan={questions.length * 3 + 4} className="p-0">
+                                  <div className={`flex flex-col items-center justify-center py-16 px-6 text-center transition-all duration-300 ${theme === 'dark' ? 'text-muted-foreground bg-card/30' : 'text-gray-500 bg-gray-50/50'}`}>
+                                    <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                                      <Layers className="w-8 h-8 opacity-80" />
+                                    </div>
+                                    <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Students Found</h3>
+                                    <p className="max-w-md text-sm leading-relaxed">
+                                      No students match the selected criteria (Batch, Subject, Branch, Semester, and Section). Please verify your assignments or contact the administrator.
+                                    </p>
+                                  </div>
                                 </td>
                               </tr> :
 
