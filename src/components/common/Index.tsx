@@ -50,7 +50,10 @@ const Index = () => {
         currentPath.startsWith("/notifications") ||
         currentPath.startsWith("/face-recognition") ||
         currentPath.startsWith("/student-study-material") ||
-        currentPath.startsWith("/student-assignment");
+        currentPath.startsWith("/student-assignment") ||
+        currentPath.startsWith("/dean") ||
+        currentPath.startsWith("/coe") ||
+        currentPath.startsWith("/admission-manager");
 
       if (!isOnDashboard) {
         // Redirect to appropriate dashboard based on role
@@ -91,6 +94,15 @@ const Index = () => {
             break;
           case "placement_officer":
             navigate("/sync-access-restricted", { replace: true });
+            break;
+          case "dean":
+            navigate("/dean", { replace: true });
+            break;
+          case "coe":
+            navigate("/coe", { replace: true });
+            break;
+          case "admission_manager":
+            navigate("/admission-manager", { replace: true });
             break;
           default:
             setPage("login");
@@ -136,12 +148,12 @@ const Index = () => {
             initial={{ opacity: 0, x: isMobile ? 100 : 0 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: isMobile ? -100 : 0 }}
-            transition={{ 
+            transition={{
               duration: 0.4,
               ease: [0.25, 1, 0.5, 1]
             }}
-            style={{ 
-              width: "100%", 
+            style={{
+              width: "100%",
               willChange: "transform, opacity",
               backfaceVisibility: "hidden",
               WebkitBackfaceVisibility: "hidden",
