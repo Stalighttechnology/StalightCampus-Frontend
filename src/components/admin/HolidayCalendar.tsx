@@ -149,7 +149,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                 <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between pb-3 gap-3 border-b border-gray-100 dark:border-border/30">
                     {/* Month Title & Navigation */}
                     <div className="flex flex-row items-center justify-between md:justify-start gap-3 w-full md:w-auto">
-                        <h2 className={`text-2xl md:text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        <h2 className={`text-2xl md:text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                             {format(currentDate, 'MMMM')}
                         </h2>
                         
