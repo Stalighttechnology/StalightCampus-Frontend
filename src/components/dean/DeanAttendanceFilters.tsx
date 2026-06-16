@@ -26,7 +26,7 @@ import {
 } from "../ui/popover";
 import { Calendar as CalendarComponent } from "../ui/calendar";
 import { Button } from "../ui/button";
-import { Calendar, Trash2, ChevronDown, AlertCircle, Filter, FileDown } from "lucide-react";
+import { Calendar, Trash2, ChevronDown, AlertCircle, Filter, FileDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SkeletonStatsGrid, SkeletonPageHeader, SkeletonCard } from "../ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -55,6 +55,7 @@ const DeanAttendanceFilters = () => {
   const [isPersonSelectOpen, setIsPersonSelectOpen] = useState(false);
   const [viewingPerson, setViewingPerson] = useState<any>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
 
 
   const fetchData = async () => {
@@ -145,27 +146,35 @@ const DeanAttendanceFilters = () => {
     };
   };
 
-  const handleExportReport = () => {
-    const listToExport = selectedRole === "hod" ? hodList : adminList;
-    const filteredList = listToExport.filter((p: any) => selectedPersonId === "all" || String(p.id) === String(selectedPersonId));
+  const handleExportReport = async () => {
+    setExportingPDF(true);
+    try {
+      const params = new URLSearchParams();
+      params.append("start_date", startDate);
+      params.append("end_date", endDate);
+      params.append("role", selectedRole);
+      params.append("person_id", selectedPersonId || "all");
 
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Name,Role,Total Days,Present,Absent,Attendance %\n";
-
-    filteredList.forEach((person: any) => {
-      const stats = getStatsForPerson(person);
-      const roleStr = selectedRole === "hod" ? "HOD" : "Admin";
-      const name = (person.name || "").replace(/,/g, " ");
-      csvContent += `${name},${roleStr},${stats.totalDays},${stats.presentDays},${stats.absentDays},${stats.attendancePercent}\n`;
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${selectedRole}_Attendance_Report.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const url = `${API_ENDPOINT}/dean/reports/hod-admin-attendance/export-pdf/?${params.toString()}`;
+      const response = await fetchWithTokenRefresh(url);
+      if (!response.ok) {
+        throw new Error("Failed to export PDF report");
+      }
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `${selectedRole.toUpperCase()}_Attendance_Report.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (e: any) {
+      console.error("Failed to export PDF:", e);
+      alert(e.message || "Failed to download PDF report");
+    } finally {
+      setExportingPDF(false);
+    }
   };
 
   useEffect(() => {
@@ -474,14 +483,37 @@ const DeanAttendanceFilters = () => {
                 <CardTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   {selectedRole === "hod" ? translateTerminology("HOD") : "Admin"} Attendance Summary
                 </CardTitle>
-                <Button
-                  onClick={handleExportReport}
-                  variant="outline"
-                  className="flex items-center justify-center gap-2 h-10 w-10 sm:h-10 sm:w-auto px-0 sm:px-4 border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground transition-all font-medium shrink-0 shadow-sm"
-                >
-                  <FileDown className="w-4 h-4" />
-                  <span className="hidden sm:inline text-xs sm:text-sm">Export Report</span>
-                </Button>
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* Mobile Export PDF Icon Button */}
+                  <Button
+                    onClick={handleExportReport}
+                    disabled={exportingPDF}
+                    size="icon"
+                    variant="outline"
+                    className="flex sm:hidden h-10 w-10 items-center justify-center border border-input bg-background"
+                  >
+                    {exportingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                  </Button>
+
+                  {/* Desktop Export PDF Button */}
+                  <button
+                    onClick={handleExportReport}
+                    disabled={exportingPDF}
+                    className="hidden sm:flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
+                  >
+                    {exportingPDF ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                        <span>Downloading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileDown className="w-4 h-4" />
+                        <span>Export PDF</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
