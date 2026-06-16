@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Filter, AlertCircle } from "lucide-react";
+import { Filter, AlertCircle, Search } from "lucide-react";
 import { useStudentInternalMarksQuery } from "@/hooks/useApiQueries";
 import { useMemoizedCalculation } from "@/hooks/useOptimizations";
 import { useTheme } from "@/context/ThemeContext";
@@ -405,16 +405,20 @@ const InternalMarks = () => {
       <div className="flex flex-row items-center gap-2 sm:justify-between w-full">
         {/* Search Input */}
         <div className="relative flex-1 sm:flex-initial">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40 text-foreground" />
           <Input
             placeholder="Search subjects..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={theme === 'dark' ? 'w-full sm:w-72 bg-background text-foreground border-border focus:border-foreground focus:ring-0 rounded-md placeholder:text-muted-foreground text-sm' : 'w-full sm:w-72 bg-white text-gray-900 border-gray-300 focus:border-gray-500 focus:ring-0 rounded-md placeholder:text-gray-500 text-sm'}
+            className={theme === 'dark' ? 'w-full sm:w-72 pl-10 pr-12 bg-background text-foreground border-border focus:border-foreground focus:ring-0 rounded-md placeholder:text-muted-foreground text-sm' : 'w-full sm:w-72 pl-10 pr-12 bg-white text-gray-900 border-gray-300 focus:border-gray-500 focus:ring-0 rounded-md placeholder:text-gray-500 text-sm'}
           />
-          {isDebouncing && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <div className="w-4 h-4 border-2 border-muted-foreground/20 border-t-muted-foreground rounded-full animate-spin" />
-            </div>
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+            >
+              Clear
+            </button>
           )}
         </div>
 
