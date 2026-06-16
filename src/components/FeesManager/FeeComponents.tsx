@@ -119,6 +119,17 @@ const FeeComponents: React.FC = () => {
       try { window.dispatchEvent(new CustomEvent('feeComponents:changed', { detail: { action: 'create', item } })); } catch (e) { }
       setIsCreateDialogOpen(false);
       resetForm();
+
+      const currentTheme = theme === 'dark' ? 'dark' : 'light';
+      await MySwal.fire({
+        title: 'Success!',
+        text: 'Fee component created successfully.',
+        icon: 'success',
+        confirmButtonText: 'OK',
+        confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: currentTheme === 'dark' ? '#ffffff' : '#000000',
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create component');
     }
@@ -157,6 +168,17 @@ const FeeComponents: React.FC = () => {
       try { window.dispatchEvent(new CustomEvent('feeComponents:changed', { detail: { action: 'update', item } })); } catch (e) { }
       setIsCreateDialogOpen(false);
       resetForm();
+
+      const currentTheme = theme === 'dark' ? 'dark' : 'light';
+      await MySwal.fire({
+        title: 'Success!',
+        text: 'Fee component updated successfully.',
+        icon: 'success',
+        confirmButtonText: 'OK',
+        confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: currentTheme === 'dark' ? '#ffffff' : '#000000',
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update component');
     }

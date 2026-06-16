@@ -4,6 +4,7 @@ import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const STAGES = [
   { id: 'new', label: 'New Enquiry' },
@@ -17,6 +18,47 @@ const STAGES = [
   { id: 'enrolled', label: 'Enrolled' },
   { id: 'rejected', label: 'Rejected' }
 ];
+
+const isValidTransition = (currentStatus: string, newStatus: string): { valid: boolean; reason?: string } => {
+  if (currentStatus === newStatus) {
+    return { valid: true };
+  }
+
+  // 1. Enrolled is final
+  if (currentStatus === 'enrolled') {
+    return { valid: false, reason: 'Enrolled students cannot be moved to other stages.' };
+  }
+
+  // 2. Admission Confirmed can only go to enrolled
+  if (currentStatus === 'admission_confirmed') {
+    if (newStatus === 'enrolled') return { valid: true };
+    return { valid: false, reason: 'Confirmed admissions can only transition to Enrolled.' };
+  }
+
+  // 3. Fee Pending can only go to admission_confirmed
+  if (currentStatus === 'fee_pending') {
+    if (newStatus === 'admission_confirmed') return { valid: true };
+    return { valid: false, reason: 'Leads with pending fees can only transition to Confirmed.' };
+  }
+
+  // 4. Enquiry-based stages can only go to other enquiry stages, application_started, or rejected
+  const enquiryStages = ['new', 'contacted', 'interested'];
+  if (enquiryStages.includes(currentStatus)) {
+    const allowed = [...enquiryStages, 'application_started', 'rejected'];
+    if (allowed.includes(newStatus)) return { valid: true };
+    return { valid: false, reason: 'Enquiry leads must start an application before moving to verification/admission stages.' };
+  }
+
+  // 5. Active application stages cannot go back to enquiry stages
+  const activeAppStages = ['application_started', 'documents_pending', 'documents_verified'];
+  if (activeAppStages.includes(currentStatus)) {
+    if (enquiryStages.includes(newStatus)) {
+      return { valid: false, reason: 'Cannot move active applications back to the enquiry stage.' };
+    }
+  }
+
+  return { valid: true };
+};
 
 const LeadPipeline: React.FC = () => {
   const [leads, setLeads] = useState<any[]>([]);
@@ -107,8 +149,19 @@ const LeadPipeline: React.FC = () => {
                 className="min-w-[280px] w-[280px] flex flex-col h-full border-r border-border last:border-r-0 px-4"
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
-                  const leadId = e.dataTransfer.getData('leadId');
-                  if (leadId) moveLead(parseInt(leadId), stage.id);
+                  const leadIdStr = e.dataTransfer.getData('leadId');
+                  if (leadIdStr) {
+                    const leadId = parseInt(leadIdStr);
+                    const lead = leads.find(l => l.id === leadId);
+                    if (lead) {
+                      const validation = isValidTransition(lead.status, stage.id);
+                      if (!validation.valid) {
+                        toast.error(validation.reason || "Invalid stage transition");
+                        return;
+                      }
+                      moveLead(leadId, stage.id);
+                    }
+                  }
                 }}
               >
                 <div className="flex justify-between items-center mb-4 border-b border-border/50 pb-3">

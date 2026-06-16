@@ -313,7 +313,7 @@ const FeeAssignments: React.FC = () => {
 
       // Selective Optimistic Update: Only update students who weren't skipped by the backend
       const assignedTemplate = templates.find((t) => t.id.toString() === selectedTemplateId);
-      const skippedIds = new Set(result.skipped_student_ids || []);
+      const skippedIds = new Set(result.data?.skipped_student_ids || result.skipped_student_ids || []);
 
       if (assignedTemplate) {
         setStudents((prev) => prev.map((student) => {
@@ -336,7 +336,7 @@ const FeeAssignments: React.FC = () => {
       setSelectedStudentIds(new Set());
       setSelectedTemplateId('');
 
-      if (result.created_count > 0) {
+      if ((result.data?.created_count !== undefined ? result.data.created_count : result.created_count) > 0) {
         showSuccessAlert('Success!', result.message || 'Fee templates assigned successfully!');
       } else {
         showInfoAlert('No Changes Made', result.message || 'All selected students already have an assignment for this year.');

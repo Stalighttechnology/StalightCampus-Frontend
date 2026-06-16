@@ -290,8 +290,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Reports", page: "reports" },
       { name: "Student Fee Reports", page: "student-reports" },
       { name: "Profile", page: "profile" },
-          { name: "Holiday Calendar", page: "holiday-calendar" },
-],
+      { name: "Holiday Calendar", page: "holiday-calendar" },
+    ],
     principal: [
       // Main
       { name: "Dashboard", page: "dashboard" },
@@ -342,8 +342,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Payments", page: "payments" },
       { name: "Reports", page: "reports" },
       { name: "Profile", page: "profile" },
-          { name: "Holiday Calendar", page: "holiday-calendar" },
-],
+      { name: "Holiday Calendar", page: "holiday-calendar" },
+    ],
     admin: [
       // Main
       { name: "Dashboard", page: "dashboard" },
@@ -512,8 +512,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       // Profile
       { name: "Fee Settings", page: "fee-settings" },
       { name: "Profile", page: "profile" },
-          { name: "Holiday Calendar", page: "holiday-calendar" },
-],
+      { name: "Holiday Calendar", page: "holiday-calendar" },
+    ],
     dean: [
       { name: "Dashboard", page: "dashboard" },
       { name: "Enroll Staff", page: "enroll-user" },
@@ -528,8 +528,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Campus Locations", page: "campus-locations" },
       { name: "Admin Leaves", page: "admin-leaves" },
       { name: "Profile", page: "profile" },
-          { name: "Holiday Calendar", page: "holiday-calendar" },
-],
+      { name: "Holiday Calendar", page: "holiday-calendar" },
+    ],
     hms: [
       { name: "Dashboard", page: "dashboard" },
       { name: "Hostels", page: "hostels" },
@@ -556,8 +556,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "Profile", page: "profile" },
-          { name: "Holiday Calendar", page: "holiday-calendar" },
-],
+      { name: "Holiday Calendar", page: "holiday-calendar" },
+    ],
     transport_admin: [
       { name: "Overview", page: "dashboard" },
       { name: "Buses", page: "transport-buses" },
@@ -571,8 +571,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Driver Leaves", page: "manage-leaves" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "Profile", page: "profile" },
-          { name: "Holiday Calendar", page: "holiday-calendar" },
-],
+      { name: "Holiday Calendar", page: "holiday-calendar" },
+    ],
     driver: [
       { name: "Dashboard", page: "dashboard" },
       { name: "Trip History", page: "driver-history" },
@@ -580,8 +580,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "Profile", page: "profile" },
-          { name: "Holiday Calendar", page: "holiday-calendar" },
-],
+      { name: "Holiday Calendar", page: "holiday-calendar" },
+    ],
     library_admin: [
       { name: "Overview", page: "dashboard" },
       { name: "Books Catalog", page: "library-books" },
@@ -590,8 +590,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "Profile", page: "profile" },
-          { name: "Holiday Calendar", page: "holiday-calendar" },
-],
+      { name: "Holiday Calendar", page: "holiday-calendar" },
+    ],
     admission_manager: [
       { name: "Dashboard", page: "admission-dashboard" },
       { name: "Campus Page Management", page: "campus-builder" },
@@ -599,12 +599,12 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Applications", page: "admission-applications" },
       { name: "Students", page: "admission-students" },
       { name: "Courses", page: "admission-courses" },
-      { name: "Seat Matrix", page: "seat-matrix" },
+
       { name: "Fees", page: "admission-fees" },
       { name: "Documents", page: "admission-documents" },
       { name: "Communication", page: "admission-communication" },
       { name: "Reports", page: "admission-reports" },
-      { name: "Settings", page: "admission-settings" },
+
       { name: "My Attendance", page: "my-attendance" },
       { name: "Profile", page: "profile" },
       { name: "Holiday Calendar", page: "holiday-calendar" },

@@ -140,7 +140,12 @@ export default function AdmissionApplications() {
                 <tbody className="divide-y divide-border">
                   {applications.map(app => (
                     <tr key={app.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">{app.enquiry_details?.name}</td>
+                      <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
+                        <div className="font-semibold">{app.enquiry_details?.name}</div>
+                        {app.enquiry_details?.email && (
+                          <div className="text-xs text-muted-foreground font-normal mt-0.5">{app.enquiry_details?.email}</div>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">{app.enquiry_details?.course_name || 'N/A'}</td>
                       <td className="px-6 py-4 text-muted-foreground font-mono whitespace-nowrap">{app.marks_12th}%</td>
                       <td className="px-6 py-4 whitespace-nowrap">

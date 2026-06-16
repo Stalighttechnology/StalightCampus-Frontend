@@ -212,6 +212,21 @@ const FeeTemplates: React.FC = () => {
   const handleCreateTemplate = async () => {
     if (!templateName.trim() || selectedComponents.length === 0) return;
 
+    if (feeType === 'other' && !templateDescription.trim()) {
+      setError('Description is required when Fee Type is set to "Other".');
+      const currentTheme = theme === 'dark' ? 'dark' : 'light';
+      await MySwal.fire({
+        title: 'Validation Error',
+        text: 'Description is required when Fee Type is set to "Other".',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+      });
+      return;
+    }
+
     try {
       const templateData = {
         name: templateName.trim(),
@@ -244,6 +259,17 @@ const FeeTemplates: React.FC = () => {
       try {window.dispatchEvent(new CustomEvent('feeTemplates:changed', { detail: { action: 'create', item } }));} catch (e) {}
       setIsCreateDialogOpen(false);
       resetForm();
+
+      const currentTheme = theme === 'dark' ? 'dark' : 'light';
+      await MySwal.fire({
+        title: 'Success!',
+        text: 'Fee template created successfully.',
+        icon: 'success',
+        confirmButtonText: 'OK',
+        confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create template');
     }
@@ -286,6 +312,21 @@ const FeeTemplates: React.FC = () => {
   const handleUpdateTemplate = async () => {
     if (!editingTemplate || !templateName.trim() || selectedComponents.length === 0) return;
 
+    if (feeType === 'other' && !templateDescription.trim()) {
+      setError('Description is required when Fee Type is set to "Other".');
+      const currentTheme = theme === 'dark' ? 'dark' : 'light';
+      await MySwal.fire({
+        title: 'Validation Error',
+        text: 'Description is required when Fee Type is set to "Other".',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+      });
+      return;
+    }
+
     try {
       const templateData = {
         name: templateName.trim(),
@@ -318,6 +359,17 @@ const FeeTemplates: React.FC = () => {
       try {window.dispatchEvent(new CustomEvent('feeTemplates:changed', { detail: { action: 'update', item } }));} catch (e) {}
       setIsCreateDialogOpen(false);
       resetForm();
+
+      const currentTheme = theme === 'dark' ? 'dark' : 'light';
+      await MySwal.fire({
+        title: 'Success!',
+        text: 'Fee template updated successfully.',
+        icon: 'success',
+        confirmButtonText: 'OK',
+        confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update template');
     }
@@ -491,12 +543,12 @@ const FeeTemplates: React.FC = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="templateDescription">Description (Optional)</Label>
+                  <Label htmlFor="templateDescription">Description {feeType === 'other' ? <span className="text-red-500">*</span> : '(Optional)'}</Label>
                   <Textarea
                     id="templateDescription"
                     value={templateDescription}
                     onChange={(e) => setTemplateDescription(e.target.value)}
-                    placeholder="Brief description of this fee template"
+                    placeholder={feeType === 'other' ? "Description is required for 'Other' fee type" : "Brief description of this fee template"}
                     className={`${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'} mt-1 h-20 resize-none overflow-y-auto custom-scrollbar`} />
                   
                 </div>

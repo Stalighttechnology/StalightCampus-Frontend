@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 export default function AdmissionDocuments() {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending');
 
   useEffect(() => {
     fetchApplications();
@@ -19,8 +20,7 @@ export default function AdmissionDocuments() {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/`);
       if (response.ok) {
         const data = await response.json();
-        // Only show those with documents pending or newly submitted that need review
-        setApplications(data.filter((app: any) => !app.is_verified));
+        setApplications(data);
       }
     } catch (err) {
       console.error(err);
@@ -38,7 +38,9 @@ export default function AdmissionDocuments() {
       });
       if (response.ok) {
         toast.success("Documents verified successfully!");
-        setApplications(apps => apps.filter(app => app.id !== id));
+        setApplications(apps => apps.map(app => 
+          app.id === id ? { ...app, is_verified: true, enquiry_details: { ...app.enquiry_details, status: 'documents_verified' } } : app
+        ));
       } else {
         toast.error("Failed to verify documents.");
       }
@@ -93,6 +95,10 @@ export default function AdmissionDocuments() {
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
   );
 
+  const filteredApplications = applications.filter((app: any) => 
+    activeTab === 'pending' ? !app.is_verified : app.is_verified
+  );
+
   return (
     <div id="admission-documents-container" className="space-y-6">
       <Card>
@@ -101,27 +107,56 @@ export default function AdmissionDocuments() {
           <p className="text-xs text-muted-foreground mt-1">Review and verify documents uploaded by applicants.</p>
         </CardHeader>
         <CardContent className="pt-6">
+          <div className="flex border-b border-border mb-6">
+            <button
+              onClick={() => setActiveTab('pending')}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all ${
+                activeTab === 'pending'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Pending Verification ({applications.filter(a => !a.is_verified).length})
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all ${
+                activeTab === 'history'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Verification History ({applications.filter(a => a.is_verified).length})
+            </button>
+          </div>
+
           <div className="grid gap-6">
-            {applications.length === 0 ? (
+            {filteredApplications.length === 0 ? (
               <div className="p-12 text-center text-muted-foreground">
                 <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-4 opacity-50" />
-                <p>All applicant documents have been verified.</p>
+                <p>{activeTab === 'pending' ? 'All applicant documents have been verified.' : 'No verified applications found.'}</p>
               </div>
             ) : (
-              applications.map(app => (
+              filteredApplications.map(app => (
                 <Card key={app.id} className="border-border shadow-sm">
                   <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-border mb-4">
                     <div>
                       <CardTitle className="text-base font-semibold">{app.enquiry_details?.name}</CardTitle>
                       <p className="text-xs text-muted-foreground mt-1">App ID: #{app.id} • Course: {app.enquiry_details?.course_name}</p>
                     </div>
-                    <Button 
-                      onClick={() => handleVerify(app.id)}
-                      className="bg-green-600 hover:bg-green-700 text-white shadow-sm w-full sm:w-auto"
-                      size="sm"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" /> Mark as Verified
-                    </Button>
+                    {app.is_verified ? (
+                      <span className="text-xs bg-green-100 text-green-700 font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                        <CheckCircle className="w-4 h-4" /> Verified
+                      </span>
+                    ) : (
+                      <Button 
+                        onClick={() => handleVerify(app.id)}
+                        className="bg-green-600 hover:bg-green-700 text-white shadow-sm w-full sm:w-auto"
+                        size="sm"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" /> Mark as Verified
+                      </Button>
+                    )}
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-2">
