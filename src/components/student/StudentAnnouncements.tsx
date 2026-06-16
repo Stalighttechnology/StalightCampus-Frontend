@@ -297,7 +297,7 @@ const ExamAnnouncementCard = ({ exam, theme, handleMarkRead }: { exam: ExamAnnou
                   <span className="text-xs font-semibold">View Schedule</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogContent className="w-[90%] sm:max-w-2xl rounded-lg max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="text-xl">{exam.examName} Schedule</DialogTitle>
                 </DialogHeader>
