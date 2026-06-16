@@ -8,6 +8,7 @@ import ApplyLeaveDriver from "../transport/driver/ApplyLeave";
 import Profile from "../common/Profile";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import { TutorialController } from "../../onboarding/components/TutorialController";
+import { HolidayCalendar } from "../admin/HolidayCalendar";
 
 interface DashboardProps {
   user: any;
@@ -43,6 +44,8 @@ const DriverDashboard = ({ user }: DashboardProps) => {
         return <ApplyLeaveDriver />;
       case "my-attendance":
         return <FacultyAttendance />;
+            case "holiday-calendar":
+        return <HolidayCalendar readOnly />;
       case "profile":
         return <Profile role="driver" user={user} />;
       default:

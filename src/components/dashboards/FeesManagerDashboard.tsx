@@ -1,6 +1,7 @@
 import React from "react";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import FeesManagerDashboard from "../FeesManager/FeesManagerDashboard";
+import { HolidayCalendar } from "../admin/HolidayCalendar";
 
 interface FeesManagerDashboardProps {
   user: any;

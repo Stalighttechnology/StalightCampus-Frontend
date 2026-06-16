@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
 import Profile from "../common/Profile";
+import { HolidayCalendar } from "../admin/HolidayCalendar";
 
 import TransportOverview from "../transport/admin/TransportOverview";
 import TransportBuses from "../transport/admin/TransportBuses";
@@ -62,6 +63,8 @@ const TransportAdminDashboard = ({ user }: DashboardProps) => {
         return <FacultyAttendance />;
       case "manage-leaves":
         return <DriverLeavesManagement />;
+            case "holiday-calendar":
+        return <HolidayCalendar readOnly />;
       case "profile":
         return <Profile role="transport_admin" user={user} />;
       default:

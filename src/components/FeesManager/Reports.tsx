@@ -78,6 +78,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<AttendanceSummary | null>(null);
   const [detailedAttendance, setDetailedAttendance] = useState<any[]>([]);
+  const [holidayDates, setHolidayDates] = useState<string[]>([]);
   const [selectedStaffJoinDate, setSelectedStaffJoinDate] = useState<string | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
@@ -160,6 +161,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
       const response = await getStaffDetailedAttendance(staff.id, startDate, endDate);
       if (response.success) {
         setDetailedAttendance(response.results);
+        setHolidayDates(response.holidays || []);
         setSelectedStaffJoinDate((response as any).date_joined || null);
       }
     } catch (error) {
@@ -534,8 +536,12 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                           return rDate === dateStr;
                         });
  
+                        const isSunday = date.getDay() === 0;
+                        const isHoliday = holidayDates.includes(dateStr);
+                        const isNonWorkingDay = isSunday || isHoliday;
+                        
                         const isPresent = record?.status === 'present';
-                        const isAbsent = record?.status === 'absent' || !record && !isPresent;
+                        const isAbsent = !isNonWorkingDay && (record?.status === 'absent' || (!record && !isPresent));
  
                     return (
                       <div
@@ -544,12 +550,13 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                           "flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all duration-300 shadow-sm",
                           isPresent ? "bg-green-500/10 border-green-500/30 text-green-700 shadow-green-500/5" :
                           isAbsent ? "bg-red-500/10 border-red-500/30 text-red-700 shadow-red-500/5" :
+                          isNonWorkingDay ? "bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-400" :
                           "bg-muted/30 border-border/50 text-muted-foreground opacity-30"
                         )}>
                         
                           <span className={cn(
                           "text-[10px] font-semibold uppercase tracking-tighter opacity-70",
-                          (isPresent || isAbsent) && "opacity-100"
+                          (isPresent || isAbsent || isNonWorkingDay) && "opacity-100"
                         )}>
                             {format(date, "EEE")}
                           </span>
@@ -558,7 +565,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                           </span>
                           <div className={cn(
                           "w-1.5 h-1.5 rounded-full mt-1.5",
-                          isPresent ? "bg-green-500" : isAbsent ? "bg-red-500" : "bg-muted-foreground/30"
+                          isPresent ? "bg-green-500" : isAbsent ? "bg-red-500" : isNonWorkingDay ? "bg-slate-300 dark:bg-slate-600" : "bg-muted-foreground/30"
                         )} />
                         </div>);
  

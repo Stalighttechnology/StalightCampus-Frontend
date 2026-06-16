@@ -11,6 +11,7 @@ import { useToast } from "../../hooks/use-toast";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import StudentInfoScanner from "../hod/StudentInfoScanner";
+import { HolidayCalendar } from "../admin/HolidayCalendar";
 
 import BranchesManagement from "../admin/BranchesManagement";
 import BatchManagement from "../admin/BatchManagement";
@@ -69,6 +70,8 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
       case "billing":
         return <BillingManagement />;
 
+            case "holiday-calendar":
+        return <HolidayCalendar />;
       case "profile":
         return <AdminProfile user={user} setError={setError} />
 

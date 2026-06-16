@@ -24,6 +24,7 @@ import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import StudentInfoScanner from "../hod/StudentInfoScanner";
 import GoogleSetup from "../admin/GoogleSetup";
+import { HolidayCalendar } from "../admin/HolidayCalendar";
 import BillingManagement from "../org_admin/BillingManagement";
 
 import {
@@ -133,6 +134,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <BatchManagement setError={setError} toast={toast} />
+          </div>);
+
+      case "holiday-calendar":
+        return (
+          <div>
+            <HolidayCalendar />
           </div>);
 
       case "hod-leaves":

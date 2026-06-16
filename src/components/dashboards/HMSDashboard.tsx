@@ -26,6 +26,7 @@ import { AcademicProvider } from "../../context/AcademicContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Building2 } from "lucide-react";
+import { HolidayCalendar } from "../admin/HolidayCalendar";
 
 interface HMSDashboardProps {
   user: any;
@@ -100,6 +101,8 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
         return <AnnouncementManagement />;
       case "my-attendance":
         return <FacultyAttendance />;
+            case "holiday-calendar":
+        return <HolidayCalendar readOnly />;
       case "profile":
         return <HMSProfile user={user} />;
       default:

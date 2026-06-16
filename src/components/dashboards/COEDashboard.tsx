@@ -22,6 +22,7 @@ import { logoutUser } from "../../utils/authService";
 import StudentInfoScanner from "../hod/StudentInfoScanner";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
+import { HolidayCalendar } from "../admin/HolidayCalendar";
 
 interface COEDashboardProps {
   user: {
@@ -48,6 +49,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
     const pathMap: {[key: string]: string;} = {
       'fee-settings': 'fee-settings',
       'dashboard': 'dashboard',
+      'holiday-calendar': '/coe/holiday-calendar',
+      'holiday-calendar': 'holiday-calendar',
       'student-status': 'student-status',
       'course-statistics': 'course-statistics',
       'makeup-requests': 'makeup-requests',
@@ -86,6 +89,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
     // Navigate to the corresponding URL path
     const pathMap: {[key: string]: string;} = {
       'dashboard': '/coe/dashboard',
+      'holiday-calendar': '/coe/holiday-calendar',
       'student-status': '/coe/student-status',
       'course-statistics': '/coe/course-statistics',
       'makeup-requests': '/coe/makeup-requests',
@@ -154,6 +158,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
         return <FacultyAttendance />;
       case 'announcement-management':
         return <AnnouncementManagement />;
+            case "holiday-calendar":
+        return <HolidayCalendar readOnly />;
       default:
         return <COEDashboardStats />;
     }
