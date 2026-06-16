@@ -41,6 +41,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Lock } from "lucide-react";
 import { Button } from "../ui/button";
 import { useAuth } from "../../context/AuthContext";
+import { HolidayCalendar } from "../admin/HolidayCalendar";
 
 interface HODUser {
   username: string;
@@ -120,6 +121,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
     // Map URL paths to page names
     const pathMap: {[key: string]: string;} = {
       'dashboard': 'dashboard',
+      'holiday-calendar': '/hod/holiday-calendar',
+      'holiday-calendar': 'holiday-calendar',
       'promotion-management': 'promotion-management',
       'low-attendance': 'low-attendance',
       'student-enrollment': 'student-enrollment',
@@ -176,6 +179,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
     // Navigate to the corresponding URL path
     const pathMap: {[key: string]: string;} = {
       'dashboard': '/hod/dashboard',
+      'holiday-calendar': '/hod/holiday-calendar',
       'promotion-management': '/hod/promotion-management',
       'low-attendance': '/hod/low-attendance',
       'semesters': '/hod/semesters',
@@ -294,6 +298,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         return <HODSyllabusTracker />;
       case "syllabus-monitor":
         return <HODSemesterMonitor />;
+            case "holiday-calendar":
+        return <HolidayCalendar readOnly />;
       default:
         return <HODStats setError={setError} setPage={handlePageChange} />;
     }

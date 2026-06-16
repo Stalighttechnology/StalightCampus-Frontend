@@ -11,6 +11,7 @@ import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import { HMSProvider } from "../../context/HMSContext";
 import { AcademicProvider } from "../../context/AcademicContext";
+import { HolidayCalendar } from "../admin/HolidayCalendar";
 
 interface WardenDashboardProps {
   user: any;
@@ -48,6 +49,8 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
         return <ApplyLeaveDepartmentAdmin />;
       case "my-attendance":
         return <FacultyAttendance />;
+            case "holiday-calendar":
+        return <HolidayCalendar readOnly />;
       case "profile":
         return <WardenProfile user={user} />;
       case "visitor_logs":

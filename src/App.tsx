@@ -251,6 +251,15 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
 
+          
+          <Route path="/holiday-calendar" element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <>
+                <StudentDashboard user={userData} setPage={() => { }} />
+                {shouldShowFloatingAssistant() && <FloatingAssistant />}
+              </>
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard" element={
             <ProtectedRoute allowedRoles={["student"]}>
               <>

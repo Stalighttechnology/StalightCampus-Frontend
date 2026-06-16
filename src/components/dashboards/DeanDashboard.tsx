@@ -21,6 +21,7 @@ import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import BillingManagement from "../org_admin/BillingManagement";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
+import { HolidayCalendar } from "../admin/HolidayCalendar";
 
 interface DeanUser {
   username: string;
@@ -36,6 +37,8 @@ const getActivePageFromPath = (pathname: string): string => {
   const lastPart = pathParts[pathParts.length - 1] || '';
   const pathMap: { [key: string]: string } = {
     'dashboard': 'dashboard',
+      'holiday-calendar': '/dean/holiday-calendar',
+      'holiday-calendar': 'holiday-calendar',
     'profile': 'profile',
     'campus-locations': 'campus-locations',
     'attendance': 'attendance',
@@ -112,6 +115,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <BillingManagement />;
       case 'announcement-management':
         return <AnnouncementManagement />;
+            case "holiday-calendar":
+        return <HolidayCalendar readOnly />;
       default:
         return <div>Welcome, Dean.</div>;
     }

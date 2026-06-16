@@ -8,6 +8,7 @@ import { SkeletonCard } from "../ui/skeleton";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import { TutorialController } from "../../onboarding/components/TutorialController";
+import { HolidayCalendar } from "../admin/HolidayCalendar";
 
 // Lazy load student components for code splitting
 const StudentStats = lazy(() => import("../student/StudentStats"));
@@ -119,6 +120,8 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
         return <PaymentSuccess setPage={handlePageChange} />;
       case "payment-cancel":
         return <PaymentCancel setPage={handlePageChange} />;
+            case "holiday-calendar":
+        return <HolidayCalendar readOnly />;
       case "profile":
         return <StudentProfile />;
       case "announcements":

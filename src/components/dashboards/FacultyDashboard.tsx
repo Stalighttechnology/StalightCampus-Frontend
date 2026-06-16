@@ -30,6 +30,7 @@ import { useProctorStudentsQuery } from "../../hooks/useApiQueries";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import { useAuth } from "../../context/AuthContext";
+import { HolidayCalendar } from "../admin/HolidayCalendar";
 
 interface FacultyDashboardProps {
   user: {
@@ -57,6 +58,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
     // Map URL paths to page names
     const pathMap: {[key: string]: string;} = {
       'dashboard': 'dashboard',
+      'holiday-calendar': '/faculty/holiday-calendar',
+      'holiday-calendar': 'holiday-calendar',
       'take-attendance': 'take-attendance',
       'upload-marks': 'upload-marks',
       'upload-qp': 'upload-qp',
@@ -105,6 +108,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
     // Navigate to the corresponding URL path
     const pathMap: {[key: string]: string;} = {
       'dashboard': '/faculty/dashboard',
+      'holiday-calendar': '/faculty/holiday-calendar',
       'take-attendance': '/faculty/take-attendance',
       'upload-marks': '/faculty/upload-marks',
       'upload-qp': '/faculty/upload-qp',
@@ -203,6 +207,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
         return <ScheduleClass user={user} setError={setError} toast={null} />;
       case "syllabus-status":
         return <SyllabusTracker />;
+            case "holiday-calendar":
+        return <HolidayCalendar readOnly />;
       default:
         return <FacultyStats setActivePage={handlePageChange} />;
     }
