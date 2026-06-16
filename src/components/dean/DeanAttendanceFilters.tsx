@@ -2,6 +2,7 @@ import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useMemo, useState } from "react";
 import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
+import { downloadFile } from "@/utils/downloadHelper";
 import { useTheme } from "../../context/ThemeContext";
 import { format } from "date-fns";
 import { useAuth } from "@/context/AuthContext";
@@ -156,23 +157,9 @@ const DeanAttendanceFilters = () => {
       params.append("person_id", selectedPersonId || "all");
 
       const url = `${API_ENDPOINT}/dean/reports/hod-admin-attendance/export-pdf/?${params.toString()}`;
-      const response = await fetchWithTokenRefresh(url);
-      if (!response.ok) {
-        const errJson = await response.json().catch(() => ({}));
-        throw new Error(errJson.message || "Failed to export PDF report");
-      }
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = `${selectedRole.toUpperCase()}_Attendance_Report.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
+      await downloadFile(url, `${selectedRole.toUpperCase()}_Attendance_Report.pdf`);
     } catch (e: any) {
       console.error("Failed to export PDF:", e);
-      alert(e.message || "Failed to download PDF report");
     } finally {
       setExportingPDF(false);
     }
