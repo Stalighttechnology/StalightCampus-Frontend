@@ -571,7 +571,8 @@ const ExamApplication: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                <div className={`overflow-x-auto rounded-md border ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                <>
+                  <div className={`overflow-x-auto rounded-md border ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                   <table className="w-full border-collapse min-w-[600px]">
                     <thead className={theme === 'dark' ? 'bg-muted text-foreground' : 'bg-gray-100 text-gray-900'}>
                       <tr>
@@ -615,6 +616,7 @@ const ExamApplication: React.FC = () => {
                     </tbody>
                   </table>
                 </div>
+                </>
               )}
             </>
           }

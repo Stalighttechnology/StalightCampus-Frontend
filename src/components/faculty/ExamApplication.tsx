@@ -50,6 +50,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
   const [isDirectDownload, setIsDirectDownload] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [downloadingHallTicketId, setDownloadingHallTicketId] = useState<string | null>(null);
+  const [downloadingAllPDF, setDownloadingAllPDF] = useState(false);
 
   // Use hooks for fetching - requesting only essential fields to optimize payload
   const includeFields = 'id,user_id,name,usn,branch,semester,section';
@@ -423,16 +424,93 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
     }
   };
 
+  const exportAllPDF = async () => {
+    setDownloadingAllPDF(true);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/exam-applications/export-pdf/?exam_period=${examPeriod}&search=${processedSearch}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to export exam application PDF');
+      }
+
+      const blob = await response.blob();
+      let filename = `Exam_Applications_${examPeriod}.pdf`;
+      try {
+        const cd = response.headers.get('content-disposition') || response.headers.get('Content-Disposition');
+        if (cd) {
+          const m = cd.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+          if (m && m[1]) filename = decodeURIComponent(m[1]);
+        }
+      } catch (e) {
+        // ignore and use fallback filename
+      }
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to export PDF",
+        variant: "destructive"
+      });
+    } finally {
+      setDownloadingAllPDF(false);
+    }
+  };
+
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
       <CardHeader id="exam-applications-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
-          <div className="flex-1 min-w-0">
-            <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Exam Applications</CardTitle>
-            <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Manage and approve exam registration requests for your proctored students
-            </p>
+          <div className="flex justify-between items-start w-full">
+            <div className="flex-1 min-w-0">
+              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Exam Applications</CardTitle>
+              <p className={`text-[16px] sm:text-sm mt-1 hidden sm:block ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Manage and approve exam registration requests for your proctored students
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Desktop Export PDF Button */}
+              <Button
+                onClick={exportAllPDF}
+                disabled={students.length === 0 || downloadingAllPDF}
+                className="hidden sm:flex bg-primary hover:bg-primary/90 text-white font-medium px-4 h-10 rounded-xl items-center justify-center gap-2"
+              >
+                {downloadingAllPDF ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    <FileDown className="h-4 w-4" />
+                    <span>Export PDF</span>
+                  </>
+                )}
+              </Button>
+              {/* Mobile Download PDF Icon Button */}
+              <Button
+                onClick={exportAllPDF}
+                disabled={students.length === 0 || downloadingAllPDF}
+                size="icon"
+                variant="outline"
+                className="flex sm:hidden h-10 w-10 items-center justify-center border border-input bg-background"
+              >
+                {downloadingAllPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+              </Button>
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -455,7 +533,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
               </SelectContent>
             </Select>
           </div>
-          <div className="flex-1">
+          <div className="flex-grow">
             <Input
               placeholder="Search proctor students by USN or name..."
               value={search}
@@ -571,7 +649,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                       )}
                     </div>
                   </div>
-              )}
+                )}
               </div>
 
               {/* Desktop view: Table */}
@@ -691,16 +769,13 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="w-[90%] md:w-full md:max-w-[70vw] h-[80vh] md:h-auto md:max-h-[80vh] overflow-y-auto custom-scrollbar rounded-xl">
+          <DialogContent className="w-[90vw] sm:max-w-[650px] h-[80vh] sm:max-h-[85vh] overflow-y-auto custom-scrollbar rounded-lg">
             <DialogTitle className="sr-only">
               Exam Application — {selectedStudent?.name || 'Student'}
             </DialogTitle>
             <div className="p-1 md:p-2 lg:p-4">
-              {/* Existing Applications UI removed — statuses shown via checkboxes */}
-
-              {/* Edit Mode Banner - NOT in PDF */}
               {isEditMode && editingApplication &&
-              <div className="mb-4 md:mb-5 lg:mb-6 p-2 md:p-3 lg:p-4 border rounded-lg bg-blue-50 border-blue-200">
+                <div className="mb-4 md:mb-5 lg:mb-6 p-2 md:p-3 lg:p-4 border rounded-lg bg-blue-50 border-blue-200">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-semibold text-blue-800">Editing Application</h3>
@@ -709,393 +784,329 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                       </p>
                     </div>
                     <Button
-                    onClick={() => {
-                      setIsEditMode(false);
-                      setEditingApplication(null);
-                      setAppliedSubjects({});
-                    }}
-                    variant="outline"
-                    size="sm">
-                    
+                      onClick={() => {
+                        setIsEditMode(false);
+                        setEditingApplication(null);
+                        setAppliedSubjects({});
+                      }}
+                      variant="outline"
+                      size="sm">
                       Cancel Edit
                     </Button>
                   </div>
                 </div>
               }
 
-              <div ref={printRef} className="mt-4">
-                {/* Printable application form */}
-                <div id="exam-application-printable" className="p-3 md:p-4 lg:p-6 bg-white text-black" style={{ minWidth: '100%', maxWidth: '800px', width: 'auto', margin: '0 auto' }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <img
-                        src={studentDetails?.org_logo || JSON.parse(sessionStorage.getItem("user") || '{}').org_logo || "/logo.jpeg"}
-                        alt="Logo"
-                        style={{ height: 96, width: 96, objectFit: 'contain', borderRadius: 6 }} />
-                      
-                    </div>
-                    <div style={{ flex: 1, textAlign: 'center' }}>
-                      <div className="font-bold text-lg uppercase" style={{ letterSpacing: '0.6px' }}>
-                        {JSON.parse(sessionStorage.getItem("user") || '{}').org_name || "STALIGHT CAMPUS"}
+              <div ref={printRef} className="mt-2">
+                <div className="space-y-6 text-gray-900 bg-white p-4 rounded-xl border border-gray-100">
+                  <div className="border-b pb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Student Info</h3>
+                  </div>
+
+                  {/* Student Details Stack */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="border-b border-gray-100 pb-2">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</span>
+                      <div className="text-sm font-semibold text-gray-900 mt-0.5">
+                        {selectedStudent?.name || ''}
                       </div>
-                      <div className="text-xs text-muted-foreground">Official Campus Portal</div>
                     </div>
-                    <div style={{ width: 120, textAlign: 'right' }}>
-                      <div className="text-sm font-medium">Exam Application</div>
-                      <div className="text-xs text-muted-foreground">{new Date().toLocaleDateString()}</div>
+                    <div className="border-b border-gray-100 pb-2">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">USN</span>
+                      <div className="text-sm font-semibold text-gray-900 mt-0.5 font-mono">{selectedStudent?.usn || ''}</div>
+                    </div>
+                    <div className="border-b border-gray-100 pb-2">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</span>
+                      <div className="text-sm font-semibold text-gray-900 mt-0.5">{selectedStudent?.branch || 'Computer Science'}</div>
+                    </div>
+                    <div className="border-b border-gray-100 pb-2">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Semester</span>
+                      <div className="text-sm font-semibold text-gray-900 mt-0.5">{selectedStudent?.semester || ''}</div>
                     </div>
                   </div>
 
-                  <hr style={{ marginBottom: 12, borderColor: '#e5e7eb' }} />
-                  <div className="text-center mb-4">
-                    <div className="font-bold text-lg">Exam Application Form</div>
-                  </div>
-
-                  <div className="flex items-center gap-2 md:gap-3 lg:gap-4 mb-3 md:mb-4 lg:mb-4">
-
-                    <div>
-                      {(() => {
-                        // Resolve photo URL with priority chain:
-                        // 1. student_meta.profile_picture (R2/Cloudinary/local, resolved by backend)
-                        // 2. student_meta.profile_picture_url
-                        // 3. student_meta.photo_url
-                        // 4. selectedStudent photo fields
-                        const photoUrl =
-                          studentDetails?.student?.profile_picture ||
-                          studentDetails?.student?.profile_picture_url ||
-                          studentDetails?.student?.photo_url ||
-                          studentDetails?.student_info?.photo_url ||
-                          (selectedStudent as any)?.profile_picture ||
-                          (selectedStudent as any)?.profile_picture_url ||
-                          (selectedStudent as any)?.photo_url ||
-                          (selectedStudent as any)?.photo;
-
-                        return photoUrl ? (
-                          <img
-                            src={photoUrl.startsWith('http') ? photoUrl : `${API_BASE_URL}${photoUrl}`}
-                            alt={selectedStudent?.name || 'Student'}
-                            className="w-16 md:w-16 lg:w-20 h-16 md:h-16 lg:h-20 rounded-md overflow-hidden object-cover border border-gray-200"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                          />
-                        ) : (
-                          <Avatar className="w-16 md:w-16 lg:w-20 h-16 md:h-16 lg:h-20 rounded-md overflow-hidden">
-                            <AvatarFallback className="text-xl md:text-lg lg:text-2xl font-medium">
-                              {(selectedStudent?.name || studentDetails?.name || 'U')[0]?.toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                        );
-                      })()}
-                    </div>
-                    <div className="flex-1 grid grid-cols-2 gap-2 md:gap-3 lg:gap-4">
-                      <div>
-                        <div className="text-xs text-muted-foreground">Name</div>
-                        <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.name || studentDetails?.student_info?.name || ''}</div>
-                        <div className="text-xs text-muted-foreground">USN</div>
-                        <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.usn || ''}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-muted-foreground">Department</div>
-                        <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.branch || ''}</div>
-                        <div className="text-xs text-muted-foreground">{translateTerminology("Semester")}</div>
-                        <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.semester || ''}</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <h4 className="font-medium mb-2">Regular Courses</h4>
-                  <table className="w-full border-collapse" style={{ border: '1px solid #ddd' }}>
-                    <thead>
-                      <tr style={{ background: '#f3f4f6' }}>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Select</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Code</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Name</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {semesterSubjects.length > 0 ? semesterSubjects.map((sub) =>
-                      <tr key={sub.subject_code}>
-                          <td style={{ border: '1px solid #ddd', padding: 8 }}>
-                            <input
-                            type="checkbox"
-                            checked={appliedSubjects[sub.subject_code] || false}
-                            onChange={() => handleApplyToggle(sub.subject_code)}
-                            className="w-4 h-4" />
-                          
-                          </td>
-                          <td style={{ border: '1px solid #ddd', padding: 8 }}>{sub.subject_code}</td>
-                          <td style={{ border: '1px solid #ddd', padding: 8 }}>{sub.name}</td>
-                          <td style={{ border: '1px solid #ddd', padding: 8 }}>
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${subjectStatuses[sub.subject_code] === 'Applied' ?
-                          'bg-green-100 text-green-800' :
-                          'bg-gray-100 text-gray-800'}`
-                          }>
+                  {/* Regular Courses */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Regular Courses</h4>
+                    <div className="space-y-3">
+                      {semesterSubjects.length > 0 ? (
+                        semesterSubjects.map((sub) => (
+                          <div
+                            key={sub.subject_code}
+                            onClick={() => handleApplyToggle(sub.subject_code)}
+                            className="p-3 border border-gray-100 rounded-xl bg-gray-50/50 flex items-center justify-between gap-3 shadow-sm hover:border-primary/20 transition-all cursor-pointer select-none"
+                          >
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={appliedSubjects[sub.subject_code] || false}
+                                onChange={() => handleApplyToggle(sub.subject_code)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary shrink-0 cursor-pointer"
+                              />
+                              <div>
+                                <div className="text-[10px] text-gray-400 font-mono uppercase tracking-wider">{sub.subject_code}</div>
+                                <div className="font-semibold text-sm text-gray-800">{sub.name}</div>
+                              </div>
+                            </div>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
+                              subjectStatuses[sub.subject_code] === 'Applied' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
                               {subjectStatuses[sub.subject_code] || 'Not Applied'}
                             </span>
-                          </td>
-                        </tr>
-                      ) :
-                      <tr><td colSpan={4} style={{ padding: 12 }}>No subjects available.</td></tr>
-                      }
-                    </tbody>
-                  </table>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-4 text-xs text-gray-500 border border-dashed border-gray-200 rounded-xl">
+                          No subjects available.
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-                  <h4 className="font-medium mt-6 mb-2">Elective Courses (Registered)</h4>
-                  <table className="w-full border-collapse mb-4" style={{ border: '1px solid #ddd' }}>
-                    <thead>
-                      <tr style={{ background: '#f3f4f6' }}>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Select</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Code</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Name</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective').length > 0 ?
-                      (studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective').map((r: any) =>
-                      <tr key={r.subject_code}>
-                            <td style={{ border: '1px solid #ddd', padding: 8 }}>
+                  {/* Elective Courses */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Elective Courses (Registered)</h4>
+                    <div className="space-y-3">
+                      {(studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective').length > 0 ? (
+                        (studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective').map((r: any) => (
+                          <div
+                            key={r.subject_code}
+                            onClick={() => handleApplyToggle(r.subject_code)}
+                            className="p-3 border border-gray-100 rounded-xl bg-gray-50/50 flex items-center justify-between gap-3 shadow-sm hover:border-primary/20 transition-all cursor-pointer select-none"
+                          >
+                            <div className="flex items-center gap-3">
                               <input
-                            type="checkbox"
-                            checked={appliedSubjects[r.subject_code] || false}
-                            onChange={() => handleApplyToggle(r.subject_code)}
-                            className="w-4 h-4" />
-                          
-                            </td>
-                            <td style={{ border: '1px solid #ddd', padding: 8 }}>{r.subject_code}</td>
-                            <td style={{ border: '1px solid #ddd', padding: 8 }}>{r.subject_name}</td>
-                            <td style={{ border: '1px solid #ddd', padding: 8 }}>
-                              <span className={`px-2 py-1 rounded text-xs font-medium ${subjectStatuses[r.subject_code] === 'Applied' ?
-                          'bg-green-100 text-green-800' :
-                          'bg-gray-100 text-gray-800'}`
-                          }>
-                                {subjectStatuses[r.subject_code] || 'Not Applied'}
-                              </span>
-                            </td>
-                          </tr>
-                      ) :
-                      <tr><td colSpan={4} style={{ padding: 12 }}>No registered electives.</td></tr>
-                      }
-                    </tbody>
-                  </table>
+                                type="checkbox"
+                                checked={appliedSubjects[r.subject_code] || false}
+                                onChange={() => handleApplyToggle(r.subject_code)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary shrink-0 cursor-pointer"
+                              />
+                              <div>
+                                <div className="text-[10px] text-gray-400 font-mono uppercase tracking-wider">{r.subject_code}</div>
+                                <div className="font-semibold text-sm text-gray-800">{r.subject_name}</div>
+                              </div>
+                            </div>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
+                              subjectStatuses[r.subject_code] === 'Applied' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {subjectStatuses[r.subject_code] || 'Not Applied'}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-4 text-xs text-gray-500 border border-dashed border-gray-200 rounded-xl">
+                          No elective subjects registered.
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-                  <h4 className="font-medium mt-6 mb-2">Open Elective Courses (Registered)</h4>
-                  <table className="w-full border-collapse" style={{ border: '1px solid #ddd' }}>
-                    <thead>
-                      <tr style={{ background: '#f3f4f6' }}>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Select</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Code</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Name</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'open_elective').length > 0 ?
-                      (studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'open_elective').map((r: any) =>
-                      <tr key={r.subject_code}>
-                            <td style={{ border: '1px solid #ddd', padding: 8 }}>
+                  {/* Open Elective Courses */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Open Elective Courses (Registered)</h4>
+                    <div className="space-y-3">
+                      {(studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'open_elective').length > 0 ? (
+                        (studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'open_elective').map((r: any) => (
+                          <div
+                            key={r.subject_code}
+                            onClick={() => handleApplyToggle(r.subject_code)}
+                            className="p-3 border border-gray-100 rounded-xl bg-gray-50/50 flex items-center justify-between gap-3 shadow-sm hover:border-primary/20 transition-all cursor-pointer select-none"
+                          >
+                            <div className="flex items-center gap-3">
                               <input
-                            type="checkbox"
-                            checked={appliedSubjects[r.subject_code] || false}
-                            onChange={() => handleApplyToggle(r.subject_code)}
-                            className="w-4 h-4" />
-                          
-                            </td>
-                            <td style={{ border: '1px solid #ddd', padding: 8 }}>{r.subject_code}</td>
-                            <td style={{ border: '1px solid #ddd', padding: 8 }}>{r.subject_name}</td>
-                            <td style={{ border: '1px solid #ddd', padding: 8 }}>
-                              <span className={`px-2 py-1 rounded text-xs font-medium ${subjectStatuses[r.subject_code] === 'Applied' ?
-                          'bg-green-100 text-green-800' :
-                          'bg-gray-100 text-gray-800'}`
-                          }>
-                                {subjectStatuses[r.subject_code] || 'Not Applied'}
-                              </span>
-                            </td>
-                          </tr>
-                      ) :
-                      <tr><td colSpan={4} style={{ padding: 12 }}>No registered open electives.</td></tr>
-                      }
-                    </tbody>
-                  </table>
+                                type="checkbox"
+                                checked={appliedSubjects[r.subject_code] || false}
+                                onChange={() => handleApplyToggle(r.subject_code)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary shrink-0 cursor-pointer"
+                              />
+                              <div>
+                                <div className="text-[10px] text-gray-400 font-mono uppercase tracking-wider">{r.subject_code}</div>
+                                <div className="font-semibold text-sm text-gray-800">{r.subject_name}</div>
+                              </div>
+                            </div>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
+                              subjectStatuses[r.subject_code] === 'Applied' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {subjectStatuses[r.subject_code] || 'Not Applied'}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-4 text-xs text-gray-500 border border-dashed border-gray-200 rounded-xl">
+                          No open elective subjects registered.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end">
+                    {isEditMode ? (
+                      <Button onClick={handleUpdateApplication} className="bg-blue-500 hover:bg-blue-600 text-white h-10 rounded-xl font-semibold w-full sm:w-auto">
+                        Update Application
+                      </Button>
+                    ) : (
+                      <Button onClick={async () => {
+                        if (!selectedStudent) return;
+
+                        if (!selectedStudent.semester_id || !selectedStudent.batch_id) {
+                          toast({
+                            title: "Invalid student data",
+                            description: "Student must have semester and batch information to apply for exams.",
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+
+                        const selectedSubjectCodes = Object.entries(appliedSubjects).
+                          filter(([_, applied]) => applied).
+                          map(([subjectCode, _]) => subjectCode);
+
+                        if (selectedSubjectCodes.length === 0) {
+                          toast({
+                            title: "No subjects selected",
+                            description: "Please select at least one subject to apply for.",
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+
+                        try {
+                          const existingMap: Record<string, any> = {};
+                          (existingApplications || []).forEach((app: any) => {
+                            if (app.subject_code) existingMap[app.subject_code] = app;
+                          });
+
+                          const previouslyAppliedCodes = Object.keys(existingMap).filter((code) => existingMap[code].status === 'applied');
+                          const toCancelCodes = previouslyAppliedCodes.filter((code) => !selectedSubjectCodes.includes(code));
+                          const subjectIdsSet = new Set<number>();
+
+                          for (const subjectCode of selectedSubjectCodes) {
+                            if (existingMap[subjectCode] && existingMap[subjectCode].status === 'applied') continue;
+                            const subject = semesterSubjects.find((s) => s.subject_code === subjectCode);
+                            if (subject) subjectIdsSet.add(subject.id);
+                          }
+
+                          const registeredSubjects = studentDetails?.subjects_registered || [];
+                          for (const sub of registeredSubjects) {
+                            if (!selectedSubjectCodes.includes(sub.subject_code)) continue;
+                            if (existingMap[sub.subject_code] && existingMap[sub.subject_code].status === 'applied') continue;
+                            subjectIdsSet.add(sub.subject_id);
+                          }
+
+                          const subjectIdsToCreate = Array.from(subjectIdsSet);
+                          let cancelResults: Array<any> = [];
+
+                          if (toCancelCodes.length > 0) {
+                            const cancelPromises = toCancelCodes.map(async (code) => {
+                              const app = existingMap[code];
+                              if (!app) return null;
+                              try {
+                                const updateData = {
+                                  application_id: app.id,
+                                  subject: app.subject,
+                                  exam_period: examPeriod,
+                                  status: 'not_applied',
+                                  semester: selectedStudent.semester_id,
+                                  batch: selectedStudent.batch_id
+                                };
+                                const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/exam-applications/`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify(updateData)
+                                });
+                                const resJson = await resp.json();
+                                if (!resp.ok) throw new Error(resJson.message || 'Failed to update application');
+                                return resJson;
+                              } catch (e) {
+                                return null;
+                              }
+                            });
+                            cancelResults = await Promise.all(cancelPromises);
+                            cancelResults.forEach((r) => {
+                              if (r && r.data) {
+                                const app = r.data;
+                                const subjCode = app.subject_code;
+                                if (subjCode) {
+                                  setSubjectStatuses((prev) => ({ ...prev, [subjCode]: app.status === 'applied' ? 'Applied' : 'Not Applied' }));
+                                  setAppliedSubjects((prev) => ({ ...prev, [subjCode]: app.status === 'applied' }));
+                                  if (app.status !== 'applied') {
+                                    setExistingApplications((prev) => prev.filter((x: any) => x.id !== app.id));
+                                  }
+                                }
+                              }
+                            });
+                          }
+
+                          if (subjectIdsToCreate.length > 0) {
+                            const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/exam-applications/`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                student_id: selectedStudent.id,
+                                subjects: subjectIdsToCreate,
+                                exam_period: examPeriod,
+                                semester: selectedStudent.semester_id,
+                                batch: selectedStudent.batch_id
+                              })
+                            });
+                            const result = await response.json();
+                            if (!response.ok && response.status !== 200 && response.status !== 207) {
+                              throw new Error(result.message || 'Failed to submit applications');
+                            }
+
+                            if (result && Array.isArray(result.data)) {
+                              const createdApps = result.data;
+                              createdApps.forEach((app: any) => {
+                                const subjCode = app.subject_code;
+                                if (subjCode) {
+                                  setSubjectStatuses((prev) => ({ ...prev, [subjCode]: app.status === 'applied' ? 'Applied' : 'Not Applied' }));
+                                  setAppliedSubjects((prev) => ({ ...prev, [subjCode]: app.status === 'applied' }));
+                                  setExistingApplications((prev) => {
+                                    if (prev.find((p: any) => p.id === app.id)) return prev;
+                                    return [...prev, app];
+                                  });
+                                }
+                              });
+                            }
+
+                            if (result && result.updated_student) {
+                              const usn = result.updated_student.usn;
+                              const newStatus = result.updated_student.status || 'Not Applied';
+                              setStudentStatuses((prev) => ({ ...prev, [usn]: newStatus }));
+                            }
+                          }
+
+                          toast({
+                            title: "Success",
+                            description: `Applications updated successfully.`
+                          });
+
+                          setOpen(false);
+                        } catch (error) {
+                          toast({
+                            title: "Application Failed",
+                            description: error instanceof Error ? error.message : "Failed to submit applications. Please try again.",
+                            variant: "destructive"
+                          });
+                        }
+                      }} className="bg-primary hover:bg-[#9147e0] text-white h-10 rounded-xl font-semibold w-full sm:w-auto">
+                        Save / Apply Applications
+                      </Button>
+                    )}
+                    <Button onClick={() => setOpen(false)} className="bg-white border border-gray-300 text-gray-900 hover:bg-gray-50 h-10 rounded-xl font-semibold w-full sm:w-auto">Close</Button>
+                  </div>
                 </div>
               </div>
             </div>
-            <DialogFooter className="mt-4 gap-3">
-              {isEditMode ?
-              <Button onClick={handleUpdateApplication} className="bg-blue-500 hover:bg-blue-600 text-white h-10 rounded-xl font-semibold w-full sm:w-auto">
-                  Update Application
-                </Button> :
-
-              <Button onClick={async () => {
-                if (!selectedStudent) return;
-
-                // Validate that student has required data
-                if (!selectedStudent.semester_id || !selectedStudent.batch_id) {
-                  toast({
-                    title: "Invalid student data",
-                    description: "Student must have semester and batch information to apply for exams.",
-                    variant: "destructive"
-                  });
-                  return;
-                }
-
-                // Get selected subjects from all tables
-                const selectedSubjectCodes = Object.entries(appliedSubjects).
-                filter(([_, applied]) => applied).
-                map(([subjectCode, _]) => subjectCode);
-
-                if (selectedSubjectCodes.length === 0) {
-                  toast({
-                    title: "No subjects selected",
-                    description: "Please select at least one subject to apply for.",
-                    variant: "destructive"
-                  });
-                  return;
-                }
-
-                try {
-                  // Build map of existing applications by subject_code
-                  const existingMap: Record<string, any> = {};
-                  (existingApplications || []).forEach((app: any) => {
-                    if (app.subject_code) existingMap[app.subject_code] = app;
-                  });
-
-                  // Determine which previously-applied subjects were unchecked -> cancel them
-                  const previouslyAppliedCodes = Object.keys(existingMap).filter((code) => existingMap[code].status === 'applied');
-                  const toCancelCodes = previouslyAppliedCodes.filter((code) => !selectedSubjectCodes.includes(code));
-
-                  // Collect subject IDs to create (only for checked subjects that are not already applied)
-                  const subjectIdsSet = new Set<number>();
-
-                  // Handle semester subjects
-                  for (const subjectCode of selectedSubjectCodes) {
-                    // Skip ones already applied
-                    if (existingMap[subjectCode] && existingMap[subjectCode].status === 'applied') continue;
-                    const subject = semesterSubjects.find((s) => s.subject_code === subjectCode);
-                    if (subject) subjectIdsSet.add(subject.id);
-                  }
-
-                  // Handle registered subjects (electives and open electives)
-                  const registeredSubjects = studentDetails?.subjects_registered || [];
-                  for (const sub of registeredSubjects) {
-                    if (!selectedSubjectCodes.includes(sub.subject_code)) continue;
-                    if (existingMap[sub.subject_code] && existingMap[sub.subject_code].status === 'applied') continue;
-                    subjectIdsSet.add(sub.subject_id);
-                  }
-
-                  const subjectIdsToCreate = Array.from(subjectIdsSet);
-
-                  // First, cancel unchecked previously applied applications
-                  let cancelResults: Array<any> = [];
-                  if (toCancelCodes.length > 0) {
-                    const cancelPromises = toCancelCodes.map(async (code) => {
-                      const app = existingMap[code];
-                      if (!app) return null;
-                      try {
-                        const updateData = {
-                          application_id: app.id,
-                          subject: app.subject,
-                          exam_period: examPeriod,
-                          status: 'not_applied',
-                          semester: selectedStudent.semester_id,
-                          batch: selectedStudent.batch_id
-                        };
-                        const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/exam-applications/`, {
-                          method: 'PUT',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify(updateData)
-                        });
-                        const resJson = await resp.json();
-                        if (!resp.ok) throw new Error(resJson.message || 'Failed to update application');
-                        return resJson;
-                      } catch (e) {
-
-                        return null;
-                      }
-                    });
-                    cancelResults = await Promise.all(cancelPromises);
-                    // Apply cancellations locally
-                    cancelResults.forEach((r) => {
-                      if (r && r.data) {
-                        const app = r.data;
-                        const subjCode = app.subject_code;
-                        if (subjCode) {
-                          setSubjectStatuses((prev) => ({ ...prev, [subjCode]: app.status === 'applied' ? 'Applied' : 'Not Applied' }));
-                          setAppliedSubjects((prev) => ({ ...prev, [subjCode]: app.status === 'applied' }));
-                          // remove from existingApplications if status is not applied
-                          if (app.status !== 'applied') {
-                            setExistingApplications((prev) => prev.filter((x: any) => x.id !== app.id));
-                          }
-                        }
-                      }
-                    });
-                  }
-
-                  // Then, create new applications for newly checked subjects
-                  if (subjectIdsToCreate.length > 0) {
-                    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/exam-applications/`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        student_id: selectedStudent.id,
-                        subjects: subjectIdsToCreate,
-                        exam_period: examPeriod,
-                        semester: selectedStudent.semester_id,
-                        batch: selectedStudent.batch_id
-                      })
-                    });
-                    const result = await response.json();
-                    if (!response.ok && response.status !== 200 && response.status !== 207) {
-                      throw new Error(result.message || 'Failed to submit applications');
-                    }
-
-                    // Update per-subject statuses and existingApplications from server response (POST returns created apps)
-                    if (result && Array.isArray(result.data)) {
-                      const createdApps = result.data;
-                      createdApps.forEach((app: any) => {
-                        const subjCode = app.subject_code;
-                        if (subjCode) {
-                          setSubjectStatuses((prev) => ({ ...prev, [subjCode]: app.status === 'applied' ? 'Applied' : 'Not Applied' }));
-                          setAppliedSubjects((prev) => ({ ...prev, [subjCode]: app.status === 'applied' }));
-                          setExistingApplications((prev) => {
-                            // avoid duplicates
-                            if (prev.find((p: any) => p.id === app.id)) return prev;
-                            return [...prev, app];
-                          });
-                        }
-                      });
-                    }
-
-                    // Also update student-level status if provided
-                    if (result && result.updated_student) {
-                      const usn = result.updated_student.usn;
-                      const newStatus = result.updated_student.status || 'Not Applied';
-                      setStudentStatuses((prev) => ({ ...prev, [usn]: newStatus }));
-                    }
-                  }
-
-                  toast({
-                    title: "Success",
-                    description: `Applications updated successfully.`
-                  });
-
-                  // Close the dialog
-                  setOpen(false);
-
-                } catch (error) {
-
-                  toast({
-                    title: "Application Failed",
-                    description: error instanceof Error ? error.message : "Failed to submit applications. Please try again.",
-                    variant: "destructive"
-                  });
-                }
-              }} className="bg-primary hover:bg-[#9147e0] text-white h-10 rounded-xl font-semibold w-full sm:w-auto">
-                  Apply
-                </Button>
-              }
-              <Button onClick={() => setOpen(false)} className="bg-white border border-gray-300 text-gray-900 hover:bg-gray-50 h-10 rounded-xl font-semibold w-full sm:w-auto">Close</Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
       </Card>);
