@@ -347,15 +347,20 @@ const StudentAssignments = () => {
                           }`}>
 
                         <div className="flex flex-col lg:flex-row justify-between gap-6">
-                          <div className="flex gap-5">
-                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${theme === 'dark' ? 'bg-primary/20 text-primary shadow-primary/5' : 'bg-primary/10 text-primary shadow-primary/10'}`}>
-                              <FileText size={28} />
-                            </div>
-                            <div className="space-y-1.5">
-                              <h3 className="font-semibold text-2xl md:text-lg leading-tight group-hover:text-primary transition-colors">
+                          <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
+                            <div className="flex items-center sm:items-start gap-4">
+                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${theme === 'dark' ? 'bg-primary/20 text-primary shadow-primary/5' : 'bg-primary/10 text-primary shadow-primary/10'}`}>
+                                <FileText size={24} />
+                              </div>
+                              <h3 className="font-semibold text-lg leading-tight group-hover:text-primary transition-colors sm:hidden">
                                 {assignment.title}
                               </h3>
-                              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-lg md:text-sm">
+                            </div>
+                            <div className="space-y-2 flex-1 min-w-0">
+                              <h3 className="font-semibold text-lg leading-tight group-hover:text-primary transition-colors hidden sm:block">
+                                {assignment.title}
+                              </h3>
+                              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
                                 <span className={`font-semibold px-2 py-0.5 rounded-lg ${theme === 'dark' ? 'bg-white/5 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
                                   {assignment.subject}
                                 </span>
@@ -363,13 +368,23 @@ const StudentAssignments = () => {
                                   <Clock size={15} />
                                   Due {new Date(assignment.due_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                                 </span>
+                                {assignment.faculty && (
+                                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                                    <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                      <span className="text-[8px] font-bold text-primary">
+                                        {assignment.faculty.charAt(0).toUpperCase()}
+                                      </span>
+                                    </div>
+                                    {assignment.faculty}
+                                  </span>
+                                )}
                               </div>
-                              <p className={`text-lg md:text-sm mt-3 line-clamp-2 max-w-2xl leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                              <p className={`text-sm mt-3 line-clamp-2 max-w-2xl leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                                 {assignment.description}
                               </p>
                             </div>
                           </div>
-
+ 
                           <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between lg:justify-start gap-4 shrink-0 w-full lg:w-auto">
                             {getStatusBadge(assignment)}
                             <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
@@ -395,7 +410,7 @@ const StudentAssignments = () => {
                                       <span className="truncate">{downloadingIds[`q-${assignment.id}`] ? "Downloading..." : "Questions"}</span>
                                     </Button>
                                   )}
-
+ 
                                   {assignment.is_submitted && assignment.submission_file_url && (
                                     <Button
                                       variant="outline"
@@ -413,7 +428,7 @@ const StudentAssignments = () => {
                                   )}
                                 </div>
                               )}
-
+ 
                               {/* Row 2: Submit / Details / Re-submit */}
                               <div className="flex gap-2 w-full sm:w-auto">
                                 {!assignment.is_submitted ? (
@@ -444,7 +459,7 @@ const StudentAssignments = () => {
                                       <Info size={14} />
                                       Details
                                     </Button>
-
+ 
                                     {withinDeadline && assignment.marks_obtained === null && (assignment.resubmission_count || 0) < 3 && (
                                       <Button
                                         size="sm"
@@ -467,24 +482,24 @@ const StudentAssignments = () => {
                             </div>
                           </div>
                         </div>
-
+ 
                         {/* Inline submission summary for submitted or auto_zero assignments */}
                         {(assignment.is_submitted || assignment.auto_zero) &&
                           <div className={`mt-5 p-5 rounded-2xl border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/80 border-gray-200'}`}>
                             <div className="flex flex-col md:flex-row justify-between gap-6">
                               <div className="space-y-1.5">
-                                <p className="text-sm md:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{assignment.auto_zero ? 'Deadline Passed' : 'Submission Date'}</p>
-                                <p className="text-lg md:text-sm font-medium">{assignment.auto_zero ? new Date(assignment.due_date).toLocaleString() : new Date(assignment.submission_date).toLocaleString()}</p>
+                                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{assignment.auto_zero ? 'Deadline Passed' : 'Submission Date'}</p>
+                                <p className="text-sm font-medium">{assignment.auto_zero ? new Date(assignment.due_date).toLocaleString() : new Date(assignment.submission_date).toLocaleString()}</p>
                               </div>
                               <div className="space-y-1.5 md:text-center">
-                                <p className="text-sm md:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Resubmissions</p>
-                                <p className="text-lg md:text-sm font-medium">
+                                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Resubmissions</p>
+                                <p className="text-sm font-medium">
                                   {assignment.resubmission_count || 0} / 3
                                 </p>
                               </div>
                               <div className="md:text-right">
-                                <p className="text-sm md:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Grade Status</p>
-                                <p className={`text-3xl md:text-xl font-semibold ${assignment.marks_obtained !== null ? (assignment.auto_zero ? 'text-red-500' : 'text-indigo-500') : 'text-amber-500'}`}>
+                                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Grade Status</p>
+                                <p className={`text-lg font-semibold ${assignment.marks_obtained !== null ? (assignment.auto_zero ? 'text-red-500' : 'text-indigo-500') : 'text-amber-500'}`}>
                                   {assignment.marks_obtained !== null ?
                                     `${assignment.marks_obtained} / ${assignment.max_marks}` :
                                     'Awaiting Grade'}
@@ -493,8 +508,8 @@ const StudentAssignments = () => {
                             </div>
                             {assignment.feedback &&
                               <div className="mt-4 pt-4 border-t border-border/50">
-                                <p className="text-sm md:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Instructor Feedback</p>
-                                <p className={`text-lg md:text-sm italic leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Instructor Feedback</p>
+                                <p className={`text-sm italic leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                                   "{assignment.feedback}"
                                 </p>
                               </div>
