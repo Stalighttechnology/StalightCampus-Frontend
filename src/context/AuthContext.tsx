@@ -64,10 +64,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Optimistic UI: If we already have the user data in sessionStorage, load it INSTANTLY
       // so the user doesn't have to wait for the background network requests.
       if (storedRole && storedUserRaw && storedAccessToken) {
-        setRole(storedRole);
-        setUser(JSON.parse(storedUserRaw));
-        setAccessToken(storedAccessToken);
-        setIsInitializing(false); // Stop the loading spinner immediately
+        try {
+          const parsedUser = JSON.parse(storedUserRaw);
+          setRole(storedRole);
+          setUser(parsedUser);
+          setAccessToken(storedAccessToken);
+          setIsInitializing(false); // Stop the loading spinner immediately
+        } catch (e) {
+          sessionStorage.removeItem("role");
+          sessionStorage.removeItem("user");
+          sessionStorage.removeItem("access_token");
+        }
       }
 
       try {
@@ -88,14 +95,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 sessionStorage.setItem("user", JSON.stringify(profileRes.profile));
              } else {
                 if (storedRole && storedUserRaw) {
-                   setRole(storedRole);
-                   setUser(JSON.parse(storedUserRaw));
+                   try {
+                      setRole(storedRole);
+                      setUser(JSON.parse(storedUserRaw));
+                   } catch {
+                      sessionStorage.removeItem("role");
+                      sessionStorage.removeItem("user");
+                      sessionStorage.removeItem("access_token");
+                   }
                 }
              }
           } catch (e) {
              if (storedRole && storedUserRaw) {
-                 setRole(storedRole);
-                 setUser(JSON.parse(storedUserRaw));
+                 try {
+                     setRole(storedRole);
+                     setUser(JSON.parse(storedUserRaw));
+                 } catch {
+                     sessionStorage.removeItem("role");
+                     sessionStorage.removeItem("user");
+                     sessionStorage.removeItem("access_token");
+                 }
              }
           }
         } else {
@@ -107,6 +126,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch {
         // Network error during silent refresh – don't break the app
+        localStorage.removeItem("has_session");
         sessionStorage.removeItem("role");
         sessionStorage.removeItem("user");
         sessionStorage.removeItem("access_token");

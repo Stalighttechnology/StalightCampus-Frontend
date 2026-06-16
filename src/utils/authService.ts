@@ -130,6 +130,12 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
     };
     options.headers = safeHeaders as Record<string, string>;
     options.credentials = 'include'; // Include cookies
+
+    // Add a default timeout of 10 seconds if no signal is specified
+    if (!options.signal && typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal) {
+      options.signal = AbortSignal.timeout(10000);
+    }
+
     let response = await fetch(url, options);
 
     if (response.status === 401) {
