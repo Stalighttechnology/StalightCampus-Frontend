@@ -40,10 +40,10 @@ const DeanAttendanceFilters = () => {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
   const [startDate, setStartDate] = useState<string>(
-    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE')
+    format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd')
   );
   const [endDate, setEndDate] = useState<string>(
-    new Date().toLocaleDateString('sv-SE')
+    format(new Date(), 'yyyy-MM-dd')
   );
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
@@ -62,8 +62,8 @@ const DeanAttendanceFilters = () => {
     setLoading(true);
     try {
       let url = `${API_ENDPOINT}/dean/reports/hod-admin-attendance/?names_only=false`;
-      const defaultStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE');
-      const defaultEnd = new Date().toLocaleDateString('sv-SE');
+      const defaultStart = format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
+      const defaultEnd = format(new Date(), 'yyyy-MM-dd');
       url += `&start_date=${startDate || defaultStart}&end_date=${endDate || defaultEnd}`;
       url += `&hod_page_size=100&admin_page_size=100`;
 
@@ -254,8 +254,8 @@ const DeanAttendanceFilters = () => {
               </div>
               <div className="flex items-center gap-2">
                 {(() => {
-                  const defaultStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE');
-                  const defaultEnd = new Date().toLocaleDateString('sv-SE');
+                  const defaultStart = format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
+                  const defaultEnd = format(new Date(), 'yyyy-MM-dd');
                   const isDateFiltered = startDate !== defaultStart || endDate !== defaultEnd;
                   return isDateFiltered && (
                     <Button
@@ -293,8 +293,8 @@ const DeanAttendanceFilters = () => {
                       setSelectedRole(value);
                       setSelectedPersonId(null);
                       setIsPersonSelectOpen(true);
-                      setStartDate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE'));
-                      setEndDate(new Date().toLocaleDateString('sv-SE'));
+                      setStartDate(format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'));
+                      setEndDate(format(new Date(), 'yyyy-MM-dd'));
                     }}>
                       <SelectTrigger className={`w-full lg:w-[120px] ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
                         <SelectValue placeholder="Select role" />
@@ -440,8 +440,8 @@ const DeanAttendanceFilters = () => {
 
               <DialogFooter className="flex flex-row justify-end items-center gap-2">
                 {(() => {
-                  const defaultStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE');
-                  const defaultEnd = new Date().toLocaleDateString('sv-SE');
+                  const defaultStart = format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
+                  const defaultEnd = format(new Date(), 'yyyy-MM-dd');
                   const isDateFiltered = startDate !== defaultStart || endDate !== defaultEnd;
                   return isDateFiltered && (
                     <Button
