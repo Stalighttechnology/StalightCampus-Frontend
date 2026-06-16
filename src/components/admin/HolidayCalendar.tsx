@@ -287,15 +287,15 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
             </Card>
 
             {/* Bottom Summary Pill */}
-            {upcomingHolidays.length > 0 && (
-                <div className={`border-2 border-dashed rounded-2xl md:rounded-full px-4 py-3 md:px-6 md:py-4 flex flex-col md:flex-row md:items-center gap-2 md:gap-2 shadow-sm shrink-0 ${
-                    theme === 'dark' ? 'border-primary/30 bg-muted/10' : 'border-primary/20 bg-primary/5'
-                }`}>
-                    <span className="text-xs md:text-sm font-semibold uppercase tracking-wider text-primary whitespace-nowrap">
-                        Upcoming Events & Holidays :
-                    </span>
-                    <div className="w-full flex-1 overflow-x-auto thin-scrollbar flex gap-2.5 md:gap-3 text-xs md:text-sm font-semibold md:ml-2 items-center">
-                        {upcomingHolidays.map((holiday, i) => {
+            <div className={`border-2 border-dashed rounded-2xl md:rounded-full px-4 py-3 md:px-6 md:py-4 flex flex-col md:flex-row md:items-center gap-2 md:gap-2 shadow-sm shrink-0 ${
+                theme === 'dark' ? 'border-primary/30 bg-muted/10' : 'border-primary/20 bg-primary/5'
+            }`}>
+                <span className="text-xs md:text-sm font-semibold uppercase tracking-wider text-primary whitespace-nowrap">
+                    Upcoming Events & Holidays :
+                </span>
+                <div className="w-full flex-1 overflow-x-auto thin-scrollbar flex gap-2.5 md:gap-3 text-xs md:text-sm font-semibold md:ml-2 items-center">
+                    {upcomingHolidays.length > 0 ? (
+                        upcomingHolidays.map((holiday, i) => {
                             const isEvent = holiday.holiday_type === 'event';
                             return (
                                 <span 
@@ -314,10 +314,14 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                     {holiday.description}
                                 </span>
                             );
-                        })}
-                    </div>
+                        })
+                    ) : (
+                        <span className="text-xs md:text-sm text-muted-foreground italic pl-1">
+                            No upcoming events or holidays scheduled.
+                        </span>
+                    )}
                 </div>
-            )}
+            </div>
 
             {/* Event dialog (Add/Edit) */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
