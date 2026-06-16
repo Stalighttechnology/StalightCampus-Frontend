@@ -23,7 +23,8 @@ import {
   FaClock,
   FaCog,
   FaHardHat,
-  FaCalendarAlt } from
+  FaCalendarAlt,
+  FaUtensils } from
 'react-icons/fa';
 import { SkeletonCard, SkeletonList } from '../ui/skeleton';
 import { Card, CardHeader, CardContent } from '../ui/card';
@@ -694,8 +695,17 @@ const StudentHostelDetails: React.FC = () => {
                 </div>
               </div>
 
-              {todayMenus.length === 0 ?
-              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No menus available for today.</p> :
+              {todayMenus.length === 0 ? (
+                <div className={`py-8 text-center rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-slate-900/30' : 'border-gray-200 bg-gray-50'}`}>
+                  <FaUtensils className={`w-10 h-10 mx-auto mb-2 opacity-50 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
+                  <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                    No menus available for today
+                  </p>
+                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-500'}`}>
+                    Today's breakfast, lunch, and dinner plans will appear here once updated.
+                  </p>
+                </div>
+              ) :
 
               <div className="space-y-4">
                   {todayMenus.map((m) => {
