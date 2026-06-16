@@ -1262,51 +1262,53 @@ const FacultyAssignments = () => {
                   </div> :
                   activeTab === 'submitted' ?
                     submissionsList.length > 0 ?
-                      <table className="w-full text-left">
-                        <thead className="bg-muted sticky top-0 z-10">
-                          <tr className="text-xs font-semibold text-muted-foreground border-b border-border">
-                            <th className="px-6 py-3">USN</th>
-                            <th className="px-6 py-3">Student Name</th>
-                            <th className="px-6 py-3">Submitted At</th>
-                            <th className="px-6 py-3 text-right">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
-                          {submissionsList.map((sub: any) =>
-                            <tr key={sub.id} className="hover:bg-muted/30 transition-colors">
-                              <td className="px-6 py-4 text-sm font-mono">{sub.student.usn}</td>
-                              <td className="px-6 py-4 text-sm font-semibold">{sub.student.name}</td>
-                              <td className="px-6 py-4 text-xs text-muted-foreground">
-                                {new Date(sub.submitted_at).toLocaleString()}
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  {sub.file_url ? (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-8 gap-2 bg-primary hover:bg-primary/90 text-white hover:text-white"
-                                      onClick={() => openGradeModal(sub)}>
-                                      <Eye size={14} />
-                                      {selectedAssignment && new Date(selectedAssignment.due_date) > new Date() ? 'View' : 'Grade / View'}
-                                    </Button>
-                                  ) : (
-                                    <span className="text-xs text-muted-foreground">No File</span>
-                                  )}
-                                  {sub.marks_obtained !== null && sub.marks_obtained !== undefined ? (
-                                    <span className={`text-xs font-bold px-2 py-1 rounded-lg ${theme === 'dark' ? 'bg-green-500/15 text-green-400' : 'bg-green-100 text-green-700'
-                                      }`}>
-                                      {sub.marks_obtained}/{selectedAssignment?.max_marks}
-                                    </span>
-                                  ) : (
-                                    <span className="text-[10px] text-amber-500 font-semibold">Ungraded</span>
-                                  )}
-                                </div>
-                              </td>
+                      <div className="overflow-x-auto w-full thin-scrollbar">
+                        <table className="w-full text-left">
+                          <thead className="bg-muted sticky top-0 z-10">
+                            <tr className="text-xs font-semibold text-muted-foreground border-b border-border">
+                              <th className="px-3 sm:px-6 py-2 sm:py-3">USN</th>
+                              <th className="px-3 sm:px-6 py-2 sm:py-3">Student Name</th>
+                              <th className="px-3 sm:px-6 py-2 sm:py-3">Submitted At</th>
+                              <th className="px-3 sm:px-6 py-2 sm:py-3 text-right">Actions</th>
                             </tr>
-                          )}
-                        </tbody>
-                      </table> :
+                          </thead>
+                          <tbody className="divide-y divide-border">
+                            {submissionsList.map((sub: any) =>
+                              <tr key={sub.id} className="hover:bg-muted/30 transition-colors">
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-mono">{sub.student.usn}</td>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-semibold">{sub.student.name}</td>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs text-muted-foreground">
+                                  {new Date(sub.submitted_at).toLocaleString()}
+                                </td>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
+                                  <div className="flex items-center justify-end gap-2">
+                                    {sub.file_url ? (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 gap-2 bg-primary hover:bg-primary/90 text-white hover:text-white"
+                                        onClick={() => openGradeModal(sub)}>
+                                        <Eye size={14} />
+                                        {selectedAssignment && new Date(selectedAssignment.due_date) > new Date() ? 'View' : 'Grade / View'}
+                                      </Button>
+                                    ) : (
+                                      <span className="text-xs text-muted-foreground">No File</span>
+                                    )}
+                                    {sub.marks_obtained !== null && sub.marks_obtained !== undefined ? (
+                                      <span className={`text-xs font-bold px-2 py-1 rounded-lg ${theme === 'dark' ? 'bg-green-500/15 text-green-400' : 'bg-green-100 text-green-700'
+                                        }`}>
+                                        {sub.marks_obtained}/{selectedAssignment?.max_marks}
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] text-amber-500 font-semibold">Ungraded</span>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div> :
 
                       <div className="p-12 text-center text-muted-foreground">
                         No submissions yet.
@@ -1314,33 +1316,35 @@ const FacultyAssignments = () => {
 
 
                     pendingList.length > 0 ?
-                      <table className="w-full text-left">
-                        <thead className="bg-muted sticky top-0 z-10">
-                          <tr className="text-xs font-semibold text-muted-foreground border-b border-border">
-                            <th className="px-6 py-3">USN</th>
-                            <th className="px-6 py-3">Student Name</th>
-                            <th className="px-6 py-3">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
-                          {pendingList.map((student: any) =>
-                            <tr key={student.id} className="hover:bg-muted/30 transition-colors">
-                              <td className="px-6 py-4 text-sm font-mono">{student.usn}</td>
-                              <td className="px-6 py-4 text-sm font-semibold">{student.name}</td>
-                              <td className="px-6 py-4">
-                                {student.auto_zero ?
-                                  <span className="text-[12px] font-semibold uppercase px-2 py-1 rounded-full bg-red-500/10 text-red-500">
-                                    0 Marks (Missed)
-                                  </span> :
-                                  <span className="text-[12px] font-semibold uppercase px-2 py-1 rounded-full bg-amber-500/10 text-amber-500">
-                                    Pending
-                                  </span>
-                                }
-                              </td>
+                      <div className="overflow-x-auto w-full thin-scrollbar">
+                        <table className="w-full text-left">
+                          <thead className="bg-muted sticky top-0 z-10">
+                            <tr className="text-xs font-semibold text-muted-foreground border-b border-border">
+                              <th className="px-3 sm:px-6 py-2 sm:py-3">USN</th>
+                              <th className="px-3 sm:px-6 py-2 sm:py-3">Student Name</th>
+                              <th className="px-3 sm:px-6 py-2 sm:py-3">Status</th>
                             </tr>
-                          )}
-                        </tbody>
-                      </table> :
+                          </thead>
+                          <tbody className="divide-y divide-border">
+                            {pendingList.map((student: any) =>
+                              <tr key={student.id} className="hover:bg-muted/30 transition-colors">
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-mono">{student.usn}</td>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-semibold">{student.name}</td>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4">
+                                  {student.auto_zero ?
+                                    <span className="text-[12px] font-semibold uppercase px-2 py-1 rounded-full bg-red-500/10 text-red-500">
+                                      0 Marks (Missed)
+                                    </span> :
+                                    <span className="text-[12px] font-semibold uppercase px-2 py-1 rounded-full bg-amber-500/10 text-amber-500">
+                                      Pending
+                                    </span>
+                                  }
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div> :
 
                       <div className="p-12 text-center text-muted-foreground">
                         All students have submitted!
