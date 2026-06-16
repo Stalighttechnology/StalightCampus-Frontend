@@ -129,20 +129,32 @@ const StudentTimetable = () => {
         <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
           Timetable
         </CardTitle>
-        <Button
-          variant="outline"
-          size="sm"
-          className={`${styles.exportButton} bg-primary hover:bg-primary/90 text-white border-primary`}
-          disabled={exportingPDF || timetableData.length === 0}
-          onClick={exportToPDF}>
-
-          {exportingPDF ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <FileDown className="w-4 h-4 mr-2" />
-          )}
-          {exportingPDF ? "Exporting..." : "Export"}
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Desktop Export Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className={`${styles.exportButton} bg-primary hover:bg-primary/90 text-white border-primary hidden sm:flex`}
+            disabled={exportingPDF || timetableData.length === 0}
+            onClick={exportToPDF}>
+            {exportingPDF ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <FileDown className="w-4 h-4 mr-2" />
+            )}
+            {exportingPDF ? "Exporting..." : "Export"}
+          </Button>
+          {/* Mobile Download PDF Icon Button */}
+          <Button
+            onClick={exportToPDF}
+            disabled={exportingPDF || timetableData.length === 0}
+            size="icon"
+            variant="outline"
+            className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+          >
+            {exportingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+          </Button>
+        </div>
       </CardHeader>
 
       <CardContent className={`p-0 ${styles.card}`}>

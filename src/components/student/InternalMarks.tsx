@@ -402,9 +402,9 @@ const InternalMarks = () => {
 
 
       {/* Filter Row */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-0 sm:justify-between">
+      <div className="flex flex-row items-center gap-2 sm:justify-between w-full">
         {/* Search Input */}
-        <div className="relative w-full sm:w-auto">
+        <div className="relative flex-1 sm:flex-initial">
           <Input
             placeholder="Search subjects..."
             value={searchQuery}
@@ -418,13 +418,22 @@ const InternalMarks = () => {
           )}
         </div>
 
-        {/* Filter Button */}
+        {/* Desktop Filter Button */}
         <Button
-          className="bg-primary"
+          className="hidden sm:flex bg-primary"
           onClick={() => setShowFilter(true)}
         >
           <Filter className="w-4 h-4 mr-2" />
           Filter
+        </Button>
+
+        {/* Mobile Filter Icon Button */}
+        <Button
+          onClick={() => setShowFilter(true)}
+          size="icon"
+          className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 bg-primary hover:bg-primary/90 text-white border-0"
+        >
+          <Filter className="w-4 h-4 text-white" />
         </Button>
       </div>
 
@@ -464,7 +473,7 @@ const InternalMarks = () => {
                 </tr>
               ) : filteredSubjects.length === 0 ? (
                 <tr>
-                  <td colSpan={selectedIA === 'all' ? 5 : 3} className="py-20">
+                  <td colSpan={selectedIA === 'all' ? 7 : 3} className="py-20">
                     <div className="flex flex-col items-center justify-center space-y-4">
                       <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
                         <AlertCircle className="h-10 w-10 text-muted-foreground/40" />
