@@ -158,7 +158,8 @@ const DeanAttendanceFilters = () => {
       const url = `${API_ENDPOINT}/dean/reports/hod-admin-attendance/export-pdf/?${params.toString()}`;
       const response = await fetchWithTokenRefresh(url);
       if (!response.ok) {
-        throw new Error("Failed to export PDF report");
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(errJson.message || "Failed to export PDF report");
       }
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
