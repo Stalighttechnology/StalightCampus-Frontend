@@ -361,20 +361,33 @@ const StudentManagement: React.FC = () => {
       <Card className="border-primary/10 shadow-sm overflow-hidden">
         <CardHeader id="hms-students-card" className="bg-muted/30 pb-4 border-b">
           <div className="flex flex-col space-y-6">
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start gap-4">
               <div className="flex flex-col space-y-1">
                 <h2 className="text-2xl font-semibold leading-none tracking-tight">Student Management</h2>
                 <p className="text-md text-muted-foreground">Monitor and manage hostel student allocations and dues.</p>
               </div>
+              
+              {/* Desktop Export PDF Button */}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleExportPDF}
                 disabled={exporting || (!appliedSearch.trim() && (!filters.batch || !filters.branch || !filters.semester))}
-                className="flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap shadow-sm"
+                className="hidden sm:flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap shadow-sm"
               >
                 {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-4 h-4" />}
                 Export PDF
+              </Button>
+
+              {/* Mobile Export PDF Icon Button */}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleExportPDF}
+                disabled={exporting || (!appliedSearch.trim() && (!filters.batch || !filters.branch || !filters.semester))}
+                className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+              >
+                {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
               </Button>
             </div>
 
@@ -385,12 +398,11 @@ const StudentManagement: React.FC = () => {
                 {skeletonMode ?
                 <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                <Select value={filters.batch || "all"} onValueChange={(v) => handleFilterChange('batch', v === "all" ? '' : v)}>
+                <Select value={filters.batch} onValueChange={(v) => handleFilterChange('batch', v)}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
-                      <SelectValue placeholder="All Batches" />
+                      <SelectValue placeholder="Select Batch" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Batches</SelectItem>
                       {batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -405,13 +417,12 @@ const StudentManagement: React.FC = () => {
                   disabled={!filters.batch}
                   open={isBranchOpen}
                   onOpenChange={setIsBranchOpen}
-                  value={filters.branch || "all"}
-                  onValueChange={(v) => handleFilterChange('branch', v === "all" ? '' : v)}>
+                  value={filters.branch}
+                  onValueChange={(v) => handleFilterChange('branch', v)}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
-                      <SelectValue placeholder={translateTerminology("All Branches")} />
+                      <SelectValue placeholder={translateTerminology("Select Branch")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Branches</SelectItem>
                       {branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -426,13 +437,12 @@ const StudentManagement: React.FC = () => {
                   disabled={!filters.branch}
                   open={isSemesterOpen}
                   onOpenChange={setIsSemesterOpen}
-                  value={filters.semester || "all"}
-                  onValueChange={(v) => handleFilterChange('semester', v === "all" ? '' : v)}>
+                  value={filters.semester}
+                  onValueChange={(v) => handleFilterChange('semester', v)}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
-                      <SelectValue placeholder={translateTerminology("All Semesters")} />
+                      <SelectValue placeholder={translateTerminology("Select Semester")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Semesters</SelectItem>
                       {Array.isArray(semesters) && semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -590,11 +600,15 @@ const StudentManagement: React.FC = () => {
                     {getInitials(editingStudent.name)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-1 flex-1">
-                  <div className="text-xs font-bold uppercase opacity-60">Name</div>
-                  <div className="text-xs font-bold uppercase opacity-60">USN</div>
-                  <div className="text-sm font-semibold">{editingStudent.name}</div>
-                  <div className="text-sm font-semibold">{editingStudent.usn}</div>
+                <div className="flex flex-col sm:grid sm:grid-cols-2 gap-x-8 gap-y-2 flex-1">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold uppercase opacity-60">Name</span>
+                    <span className="text-sm font-semibold mt-0.5 break-words">{editingStudent.name}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold uppercase opacity-60">USN</span>
+                    <span className="text-sm font-semibold mt-0.5 font-mono">{editingStudent.usn}</span>
+                  </div>
                 </div>
               </div>
 
@@ -613,7 +627,7 @@ const StudentManagement: React.FC = () => {
                       <SelectTrigger><SelectValue placeholder="Select hostel" /></SelectTrigger>
                       <SelectContent>
                         {hostels.length > 0 ? (
-                          hostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
+                           hostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
                         ) : (
                           <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
                             <p className="text-xs text-muted-foreground">No hostels found</p>
@@ -636,7 +650,7 @@ const StudentManagement: React.FC = () => {
                     </Select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div className="space-y-2">
                       <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Select Floor</Label>
                       <Select
