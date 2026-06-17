@@ -202,16 +202,16 @@ const ManageAdminLeavesDean = () => {
                 Pending Leave Requests {pendingPagination.totalItems > 0 && `(${pendingPagination.totalItems})`}
               </CardTitle>
             </CardHeader>
-            <CardContent className="overflow-x-auto">
+            <CardContent className="px-6 pb-6 pt-0 overflow-x-auto">
               <div className="overflow-x-auto max-w-full custom-scrollbar">
                 {/* Mobile: stacked cards */}
-                <div className="md:hidden space-y-3 pl-4">
+                <div className="md:hidden space-y-3">
                   {pendingLoading ? (
                     <div className="space-y-3">
                       <SkeletonList items={3} />
                     </div>
                   ) : pendingLeaves.length === 0 ? (
-                    <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                    <div className={`flex flex-col items-center justify-center py-12 px-6 sm:px-8 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                       <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                         <FilterIcon className="w-8 h-8 text-primary opacity-50" />
                       </div>
@@ -440,20 +440,20 @@ const ManageAdminLeavesDean = () => {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="overflow-x-auto">
+          <CardContent className="px-6 pb-6 pt-0 overflow-x-auto">
             {recentLoading && recentLeaves.length === 0 ? (
               <div className="space-y-3">
                 <SkeletonList items={3} />
               </div>
             ) : filteredRecentLeaves.length === 0 ? (
-              <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+              <div className={`flex flex-col items-center justify-center py-12 px-6 sm:px-8 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                 <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                   <CheckCircle className="w-8 h-8 text-primary opacity-50" />
                 </div>
                 <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   No Recent History Found
                 </h3>
-                <p className={`text-center max-w-sm text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                <p className={`text-center max-w-sm text-sm px-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                   No processed leave requests match your current filters in the past 7 days.
                 </p>
               </div>

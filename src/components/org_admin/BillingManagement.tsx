@@ -975,14 +975,14 @@ export const BillingManagement: React.FC = () => {
 
       {/* Edit Organization Details Dialog */}
       <Dialog open={showEditOrg} onOpenChange={setShowEditOrg}>
-        <DialogContent className="w-[95%] sm:max-w-[550px] mx-auto rounded-xl">
+        <DialogContent className="w-[90%] sm:w-[95%] sm:max-w-[550px] h-[80vh] sm:h-auto overflow-y-auto mx-auto rounded-xl">
           <DialogHeader>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b pb-3">
-              <DialogTitle className="text-xl font-bold">Edit Organization Details</DialogTitle>
+              <DialogTitle className="text-xl font-semibold">Edit Organization Details</DialogTitle>
               <div className="flex items-center gap-1.5 bg-muted px-2.5 py-1 rounded-full text-xs font-semibold shrink-0">
-                <span className={editOrgStep === 1 ? "text-primary font-bold" : "text-muted-foreground"}>Identity</span>
+                <span className={editOrgStep === 1 ? "text-primary font-semibold" : "text-muted-foreground"}>Identity</span>
                 <span className="text-muted-foreground">/</span>
-                <span className={editOrgStep === 2 ? "text-primary font-bold" : "text-muted-foreground"}>Admin Details</span>
+                <span className={editOrgStep === 2 ? "text-primary font-semibold" : "text-muted-foreground"}>Admin Details</span>
               </div>
             </div>
           </DialogHeader>
@@ -996,7 +996,7 @@ export const BillingManagement: React.FC = () => {
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="orgName" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Organization Name *</Label>
+                  <Label htmlFor="orgName" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Organization Name *</Label>
                   <Input
                     id="orgName"
                     required
@@ -1009,7 +1009,7 @@ export const BillingManagement: React.FC = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="accreditationId" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Accreditation ID</Label>
+                    <Label htmlFor="accreditationId" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Accreditation ID</Label>
                     <Input
                       id="accreditationId"
                       placeholder="AICTE / UGC"
@@ -1019,7 +1019,7 @@ export const BillingManagement: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <span className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Brand Logo</span>
+                    <span className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest block">Brand Logo</span>
                     <div className="flex items-center gap-3">
                       <div className="relative w-12 h-12 bg-background rounded-xl flex items-center justify-center overflow-hidden border flex-shrink-0">
                         {orgLogoPreview ? (
@@ -1054,7 +1054,7 @@ export const BillingManagement: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="institutionAddress" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Institution Address</Label>
+                  <Label htmlFor="institutionAddress" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Institution Address</Label>
                   <Input
                     id="institutionAddress"
                     placeholder="Full physical address"
@@ -1084,7 +1084,7 @@ export const BillingManagement: React.FC = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="pocName" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Technical POC Name</Label>
+                    <Label htmlFor="pocName" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Technical POC Name</Label>
                     <Input
                       id="pocName"
                       placeholder="POC Name"
@@ -1094,7 +1094,7 @@ export const BillingManagement: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="pocMobile" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Technical POC Mobile</Label>
+                    <Label htmlFor="pocMobile" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Technical POC Mobile</Label>
                     <Input
                       id="pocMobile"
                       placeholder="POC Mobile"
@@ -1107,7 +1107,7 @@ export const BillingManagement: React.FC = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="pocEmail" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Technical POC Email</Label>
+                    <Label htmlFor="pocEmail" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Technical POC Email</Label>
                     <Input
                       id="pocEmail"
                       type="email"
@@ -1118,7 +1118,7 @@ export const BillingManagement: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="taxId" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Tax ID / GSTIN</Label>
+                    <Label htmlFor="taxId" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Tax ID / GSTIN</Label>
                     <Input
                       id="taxId"
                       placeholder="GSTIN/PAN"
@@ -1130,7 +1130,7 @@ export const BillingManagement: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="billingAddress" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Billing Address</Label>
+                  <Label htmlFor="billingAddress" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Billing Address</Label>
                   <Textarea
                     id="billingAddress"
                     placeholder="Address for invoice generation"

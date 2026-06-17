@@ -377,9 +377,9 @@ const CampusLocationManager: React.FC = () => {
                   <iframe src={iframeUrl} className="absolute inset-0 w-full h-full" style={{ border: 0, objectFit: 'cover' }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Campus Location Map" />
                 </div>
 
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
-                  <Button type="submit" disabled={saving}>
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 w-full mt-4">
+                  <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="w-full sm:w-auto">Cancel</Button>
+                  <Button type="submit" disabled={saving} className="w-full sm:w-auto">
                     {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     <Save className="w-4 h-4 mr-2" />
                     {editingLocation ? 'Update' : 'Create'} Location
