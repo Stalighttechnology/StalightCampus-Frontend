@@ -1,6 +1,7 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -396,44 +397,71 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
 
       {upload &&
       <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
-          <CardContent className="pt-6">
-          <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
-            <span>Upload ID: {upload.id}</span>
-            <span className="hidden sm:inline">|</span>
-            <span>Token: {upload.token}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 px-2 text-xs ml-2"
-              onClick={() => {
-                const type = selected.request_type && selected.request_type !== 'all' ? selected.request_type : 'revaluation';
-                const url = `${window.location.origin}/results/view/${upload.token}?type=${type}`;
-                navigator.clipboard.writeText(url);
-                toast.success('Result link copied to clipboard');
-              }}>
-              
-              <Copy className="h-3 w-3 mr-1" /> Copy Link
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={() => {
-                const type = selected.request_type && selected.request_type !== 'all' ? selected.request_type : 'revaluation';
-                window.open(`/results/view/${upload.token}?type=${type}`, '_blank');
-              }}>
-              
-              <ExternalLink className="h-3 w-3 mr-1" /> Open Link
-            </Button>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-4">
-            <div className="text-sm">Published: <span className={`font-medium ${upload.is_published ? 'text-green-600' : 'text-red-600'}`}>{upload.is_published ? 'Yes' : 'No'}</span></div>
-            {upload.is_published ?
-            <Button onClick={() => setUnpublishModalOpen(true)} variant="secondary">Unpublish</Button> :
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex flex-col gap-4">
+              {/* Header section with ID & Status */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/40">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0 shadow-inner">
+                    ID
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <span>Upload Batch #{upload.id}</span>
+                      <Badge className={upload.is_published ? "border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200" : "border-red-200 bg-red-100 text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200"}>
+                        {upload.is_published ? "Published" : "Draft"}
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">Manage result publication and imports</div>
+                  </div>
+                </div>
+                {upload.is_published && (
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 sm:flex-none h-8 text-xs gap-1.5"
+                      onClick={() => {
+                        const type = selected.request_type && selected.request_type !== 'all' ? selected.request_type : 'revaluation';
+                        const url = `${window.location.origin}/results/view/${upload.token}?type=${type}`;
+                        navigator.clipboard.writeText(url);
+                        toast.success('Result link copied to clipboard');
+                      }}>
+                      <Copy className="h-3.5 w-3.5" /> Copy Link
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 sm:flex-none h-8 text-xs gap-1.5"
+                      onClick={() => {
+                        const type = selected.request_type && selected.request_type !== 'all' ? selected.request_type : 'revaluation';
+                        window.open(`/results/view/${upload.token}?type=${type}`, '_blank');
+                      }}>
+                      <ExternalLink className="h-3.5 w-3.5" /> Open Link
+                    </Button>
+                  </div>
+                )}
+              </div>
 
-            <Button className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={() => setPublishModalOpen(true)}>Publish Results</Button>
-            }
-          </div>
+              {/* Token Section */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Token / Access Key</span>
+                <div className="font-mono text-xs bg-muted/20 p-3 rounded-xl border border-border/30 break-all select-all leading-normal text-foreground/90">
+                  {upload.token}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-1 flex flex-col sm:flex-row sm:items-center gap-3">
+                {upload.is_published ? (
+                  <Button onClick={() => setUnpublishModalOpen(true)} className="w-full sm:w-auto h-9 font-medium shadow-sm transition-all border border-red-200 bg-red-100 text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200 hover:bg-red-200 dark:hover:bg-red-950/60">
+                    Unpublish Results
+                  </Button>
+                ) : (
+                  <Button className="w-full sm:w-auto h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={() => setPublishModalOpen(true)}>Publish Results</Button>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
       }
@@ -488,55 +516,59 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               return (
                 <div key={s.student_id} className={`border rounded-md p-3 ${theme === 'dark' ? 'border-border bg-background/40' : 'border-gray-200 bg-white'}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <div className="font-medium">{s.name} <span className="text-sm text-muted-foreground">({s.usn})</span></div>
-                      <div className="text-sm text-muted-foreground">Subjects: {(s.subjects || []).length} • Incomplete Entries: {incompleteCount}</div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                    <div className="space-y-1">
+                      <div className="font-semibold text-base leading-tight">
+                        {s.name} <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded ml-1">({s.usn})</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Subjects: {(s.subjects || []).length} • Incomplete: {incompleteCount}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {s.is_withheld &&
-                      <div className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded border border-amber-300">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      {s.is_withheld && (
+                        <div className="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-md border border-amber-300 font-medium">
                           Withheld
                         </div>
-                      }
-                      {upload?.is_published &&
-                      <Button
-                        size="sm"
-                        variant={s.is_withheld ? "outline" : "destructive"}
-                        onClick={async () => {
-                          let publishedResultId = s.published_result_id;
-                          let currentWithheld = s.is_withheld;
+                      )}
+                      {upload?.is_published && (
+                        <Button
+                          size="sm"
+                          variant={s.is_withheld ? "outline" : "destructive"}
+                          onClick={async () => {
+                            let publishedResultId = s.published_result_id;
+                            let currentWithheld = s.is_withheld;
 
-                          // Retry once after refreshing current page if the id is not yet present.
-                          if (!publishedResultId && upload) {
-                            const refreshed = await getStudentsForRevalMakeupUpload(
-                              upload.id,
-                              studentsPage,
-                              studentsPageSize,
-                              selected.request_type === 'all' ? undefined : selected.request_type
-                            );
-                            const refreshedStudent = refreshed?.success ?
-                            (refreshed.data?.students || []).find((st: any) => st.student_id === s.student_id) :
-                            null;
-                            if (refreshedStudent?.published_result_id) {
-                              publishedResultId = refreshedStudent.published_result_id;
-                              currentWithheld = !!refreshedStudent.is_withheld;
-                              await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true);
+                            // Retry once after refreshing current page if the id is not yet present.
+                            if (!publishedResultId && upload) {
+                              const refreshed = await getStudentsForRevalMakeupUpload(
+                                upload.id,
+                                studentsPage,
+                                studentsPageSize,
+                                selected.request_type === 'all' ? undefined : selected.request_type
+                              );
+                              const refreshedStudent = refreshed?.success ?
+                              (refreshed.data?.students || []).find((st: any) => st.student_id === s.student_id) :
+                              null;
+                              if (refreshedStudent?.published_result_id) {
+                                publishedResultId = refreshedStudent.published_result_id;
+                                currentWithheld = !!refreshedStudent.is_withheld;
+                                await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true);
+                              }
                             }
-                          }
 
-                          if (!publishedResultId) {
-                            toast.error('Published result ID not found yet. Please refresh student list.');
-                            return;
-                          }
+                            if (!publishedResultId) {
+                              toast.error('Published result ID not found yet. Please refresh student list.');
+                              return;
+                            }
 
-                          await handleToggleWithhold(s.student_id, s.name, publishedResultId, currentWithheld);
-                        }}
-                        className="text-xs">
-                        
+                            await handleToggleWithhold(s.student_id, s.name, publishedResultId, currentWithheld);
+                          }}
+                          className={`flex-1 sm:flex-none h-8 text-xs font-semibold rounded-md border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
+                        >
                           {s.is_withheld ? "Release Result" : "Withhold Result"}
                         </Button>
-                      }
+                      )}
                     </div>
                   </div>
 
@@ -690,49 +722,51 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
            </div>
            </CardContent>
 
-          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-            <div className="text-sm text-muted-foreground text-center sm:text-left">
-              {studentsPagination?.count > 0 ?
-                `Showing ${(studentsPage - 1) * studentsPageSize + 1} to ${Math.min(studentsPage * studentsPageSize, studentsPagination?.count || 0)} of ${studentsPagination?.count || 0} students` :
-                `Showing 0 students`}
-            </div>
-            
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (!upload) return;
-                    navigateToPage(Math.max(1, studentsPage - 1));
-                  }}
-                  disabled={studentsPage === 1}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                >
-                  Prev
-                </Button>
-
-                <div className="flex items-center justify-center min-w-[2rem]">
-                  <span className="text-sm font-semibold text-primary">
-                    {studentsPage}
-                  </span>
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (!upload) return;
-                    navigateToPage(studentsPage + 1);
-                  }}
-                  disabled={!studentsPagination?.next}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                >
-                  Next
-                </Button>
+          {studentsPagination && studentsPagination.count > studentsPageSize && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div className="text-sm text-muted-foreground text-center sm:text-left">
+                {studentsPagination?.count > 0 ?
+                  `Showing ${(studentsPage - 1) * studentsPageSize + 1} to ${Math.min(studentsPage * studentsPageSize, studentsPagination?.count || 0)} of ${studentsPagination?.count || 0} students` :
+                  `Showing 0 students`}
               </div>
-            </div>
-          </CardFooter>
+              
+              <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (!upload) return;
+                      navigateToPage(Math.max(1, studentsPage - 1));
+                    }}
+                    disabled={studentsPage === 1}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Prev
+                  </Button>
+
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className="text-sm font-semibold text-primary">
+                      {studentsPage}
+                    </span>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (!upload) return;
+                      navigateToPage(studentsPage + 1);
+                    }}
+                    disabled={!studentsPagination?.next}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </CardFooter>
+          )}
         </Card>
       }
 

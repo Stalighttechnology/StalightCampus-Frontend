@@ -307,15 +307,15 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
       <CardHeader id="coe-profile-card" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
         <div className="flex-1 min-w-0">
           <CardTitle className="text-xl sm:text-xl md:text-2xl font-semibold">COE Profile</CardTitle>
-          <p className={`text-[16px] sm:text-sm mt-1 line-clamp-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage your profile and account details</p>
+          <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage your profile and account details</p>
         </div>
 
-        <div className="flex flex-row items-center gap-2 w-full sm:w-auto sm:ml-auto">
+        <div className="flex flex-row items-center gap-1.5 w-full sm:w-auto sm:ml-auto">
           <Button
             size="sm"
             onClick={() => { if (editing) handleUpdateProfile(); else setEditing(true); }}
             variant="outline"
-            className={`flex-1 sm:flex-none w-full sm:w-auto text-sm text-white border transition-colors ${
+            className={`flex-1 sm:flex-none text-md sm:text-sm px-3 sm:px-4 h-8 sm:h-9 text-white border transition-colors ${
               editing 
                 ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white' 
                 : 'bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white'
@@ -326,7 +326,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
 
           <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
             <DialogTrigger asChild>
-              <Button size="sm" className="flex-1 sm:flex-none w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90">
+              <Button size="sm" className="flex-1 sm:flex-none text-md sm:text-sm px-3 sm:px-4 bg-primary text-white border-primary hover:bg-primary/90 h-8 sm:h-9">
                 Change Password
               </Button>
             </DialogTrigger>

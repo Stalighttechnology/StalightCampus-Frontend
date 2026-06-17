@@ -168,7 +168,7 @@ const COEFeeSettings = () => {
   return (
     <div className="space-y-6 w-full">
       <Card id="coe-fee-settings-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} shadow-md`}>
-        <CardHeader id="coe-fee-settings-header" className="flex flex-row items-center justify-between border-b pb-4">
+        <CardHeader id="coe-fee-settings-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
           <div>
             <CardTitle className="text-xl font-semibold tracking-tight">COE Fee Configuration</CardTitle>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">
@@ -179,13 +179,13 @@ const COEFeeSettings = () => {
             <Button
               onClick={handleEditClick}
               disabled={loading}
-              className="bg-primary hover:bg-primary/95 text-white flex items-center gap-2"
+              className="w-full sm:w-auto bg-primary hover:bg-primary/95 text-white flex items-center justify-center gap-2"
             >
               <Edit3 className="w-4 h-4" /> Edit Settings
             </Button>
           )}
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="px-6 pb-6 pt-6">
           {isEditing ? (
             // Edit Mode Form
             <div className="space-y-6">
@@ -266,12 +266,12 @@ const COEFeeSettings = () => {
               </div>
 
               {/* Edit Actions */}
-              <div className="flex justify-end gap-3 pt-6 border-t">
-                <Button variant="ghost" onClick={handleCancelClick} disabled={loading} className="h-11 px-5">
-                  <X className="w-4 h-4 mr-2" /> Cancel
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-6 border-t w-full">
+                <Button variant="outline" onClick={handleCancelClick} disabled={loading} className="w-full sm:w-auto h-11 px-5">
+                  Cancel
                 </Button>
-                <Button onClick={handleSave} disabled={loading} className="bg-primary hover:bg-primary/95 text-white h-11 px-6 font-semibold">
-                  <Save className="w-4 h-4 mr-2" /> Save Changes
+                <Button onClick={handleSave} disabled={loading} className="w-full sm:w-auto bg-primary hover:bg-primary/95 text-white h-11 px-6 font-semibold flex items-center justify-center gap-2">
+                  <Save className="w-4 h-4" /> Save Changes
                 </Button>
               </div>
             </div>
@@ -292,7 +292,7 @@ const COEFeeSettings = () => {
                 </div>
                 <div className="flex items-baseline gap-1 mt-2">
                   <IndianRupee className="w-4 h-4 opacity-75 self-center" />
-                  <span className="text-3xl font-bold tracking-tight">{reval !== null ? reval.toLocaleString('en-IN') : '—'}</span>
+                  <span className="text-3xl font-semibold tracking-tight">{reval !== null ? reval.toLocaleString('en-IN') : '—'}</span>
                 </div>
               </div>
 
@@ -309,7 +309,7 @@ const COEFeeSettings = () => {
                 </div>
                 <div className="flex items-baseline gap-1 mt-2">
                   <IndianRupee className="w-4 h-4 opacity-75 self-center" />
-                  <span className="text-3xl font-bold tracking-tight">{photocopy !== null ? photocopy.toLocaleString('en-IN') : '—'}</span>
+                  <span className="text-3xl font-semibold tracking-tight">{photocopy !== null ? photocopy.toLocaleString('en-IN') : '—'}</span>
                 </div>
               </div>
 
@@ -326,7 +326,7 @@ const COEFeeSettings = () => {
                 </div>
                 <div className="flex items-baseline gap-1 mt-2">
                   <IndianRupee className="w-4 h-4 opacity-75 self-center" />
-                  <span className="text-3xl font-bold tracking-tight">{makeup !== null ? makeup.toLocaleString('en-IN') : '—'}</span>
+                  <span className="text-3xl font-semibold tracking-tight">{makeup !== null ? makeup.toLocaleString('en-IN') : '—'}</span>
                 </div>
               </div>
 

@@ -5,14 +5,16 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue } from
-"@/components/ui/select";
+  SelectValue
+} from
+  "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle } from
-"@/components/ui/dialog";
+  DialogTitle
+} from
+  "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format, parse } from "date-fns";
@@ -23,7 +25,7 @@ import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from "../ui/alert";
-import { RefreshCcw, BookOpen, Clock, Calendar, CheckCircle2, History, Plus, Trash2 } from "lucide-react";
+import { RefreshCcw, BookOpen, Clock, Calendar, CheckCircle2, History, Plus, Trash2, MapPin } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
@@ -36,30 +38,31 @@ import {
   getSubjects,
   Batch,
   Branch,
-  Semester } from
-"../../utils/coe_api";
+  Semester
+} from
+  "../../utils/coe_api";
 import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 
 const EXAM_TYPES = [
-{ value: 'internal_1', label: '1st Internal Assessment' },
-{ value: 'internal_2', label: '2nd Internal Assessment' },
-{ value: 'internal_3', label: '3rd Internal Assessment' },
-{ value: 'internal_4', label: '4th Internal Assessment' },
-{ value: 'internal_5', label: '5th Internal Assessment' },
-{ value: 'semester_exam', label: 'Semester End Exam' },
-{ value: 'makeup', label: 'Makeup Exam' },
-{ value: 'supplementary', label: 'Supplementary Exam' }];
+  { value: 'internal_1', label: '1st Internal Assessment' },
+  { value: 'internal_2', label: '2nd Internal Assessment' },
+  { value: 'internal_3', label: '3rd Internal Assessment' },
+  { value: 'internal_4', label: '4th Internal Assessment' },
+  { value: 'internal_5', label: '5th Internal Assessment' },
+  { value: 'semester_exam', label: 'Semester End Exam' },
+  { value: 'makeup', label: 'Makeup Exam' },
+  { value: 'supplementary', label: 'Supplementary Exam' }];
 
 
 const EXAM_PERIODS = [
-{ value: 'june_july', label: 'June/July' },
-{ value: 'nov_dec', label: 'November/December' },
-{ value: 'jan_feb', label: 'January/February' },
-{ value: 'apr_may', label: 'April/May' },
-    { value: 'sept_oct', label: 'September/October' },
-    { value: 'feb_mar', label: 'February/March' }];
+  { value: 'june_july', label: 'June/July' },
+  { value: 'nov_dec', label: 'November/December' },
+  { value: 'jan_feb', label: 'January/February' },
+  { value: 'apr_may', label: 'April/May' },
+  { value: 'sept_oct', label: 'September/October' },
+  { value: 'feb_mar', label: 'February/March' }];
 
 
 const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
@@ -147,8 +150,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
     setLoading(true);
     try {
-      const examRes = await getExamSchedule({ 
-        page, 
+      const examRes = await getExamSchedule({
+        page,
         page_size: 10,
         batch_id: currentFilters.batch_id !== 'all' ? currentFilters.batch_id : undefined,
         branch_id: currentFilters.branch_id !== 'all' ? currentFilters.branch_id : undefined,
@@ -221,7 +224,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
       const fetchSubjects = async () => {
         try {
           const subs = await getSubjects(
-            formData.branch_id, 
+            formData.branch_id,
             formData.semester_id,
             formData.batch_id,
             formData.exam_type,
@@ -259,7 +262,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   const handleSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Frontend validation
     if (formData.subjects.length > 0) {
       const invalidSubject = formData.subjects.find(s => !s.subject_id || !s.date);
@@ -378,7 +381,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
               setShowForm(true);
             }}
             className="flex items-center gap-2">
-            
+
             <Plus className="w-4 h-4" />
             Schedule New Exam
           </Button>
@@ -402,7 +405,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
                   className="h-12 sm:h-10 text-[18px] sm:text-sm" />
-                
+
               </div>
 
               <div className="space-y-2">
@@ -589,10 +592,10 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                         )}
                       </div>
                     ))}
-                    <div className="pt-2 flex justify-end">
+                    <div className="pt-2 flex justify-end w-full">
                       <Button
                         type="button"
-                        className="h-10 px-6"
+                        className="w-full sm:w-auto h-12 sm:h-10"
                         onClick={() => {
                           const validRooms = roomsList.map(r => r.trim()).filter(r => r);
                           if (validRooms.length > 0) {
@@ -813,9 +816,9 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                 )}
               </div>
 
-              <div className="sm:col-span-2 flex justify-end gap-3 pt-6 border-t mt-4">
-                <Button type="button" variant="ghost" className="h-12 sm:h-10 text-[18px] sm:text-sm" onClick={() => setShowForm(false)}>Cancel</Button>
-                <Button type="submit" disabled={loading} className="h-12 sm:h-10 px-8 text-[18px] sm:text-sm font-bold sm:font-semibold">
+              <div className="sm:col-span-2 flex flex-row items-center justify-end gap-3 pt-6 border-t mt-4 w-full">
+                <Button type="button" variant="outline" className="flex-1 sm:flex-none h-12 sm:h-10 text-[18px] sm:text-sm" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type="submit" disabled={loading} className="flex-1 sm:flex-none h-12 sm:h-10 text-[18px] sm:text-sm font-bold sm:font-semibold">
                   {loading ? "Scheduling..." : "Create Schedule"}
                 </Button>
               </div>
@@ -871,24 +874,24 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
             ) : exams.length === 0 ? (
               <div className="px-6 py-12">
-                 <Card className="border-dashed border-2 shadow-none bg-transparent">
-                    <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-                      <div className="bg-primary/5 p-6 rounded-full mb-4">
-                        <Calendar className="w-12 h-12 text-primary/40" />
-                      </div>
-                      <h3 className="text-xl font-semibold mb-2">
-                        {listFilters.batch_id === 'all'
-                          ? "Select Filters" 
-                          : "No exams scheduled yet"}
-                      </h3>
-                      <p className="text-muted-foreground max-w-sm mx-auto">
-                        {listFilters.batch_id === 'all'
-                          ? "Please select a Batch above to view scheduled exams."
-                          : "There are currently no active exam schedules for the selected filters. Click the Schedule New Exam button above to create one."}
-                      </p>
-                    </CardContent>
-                 </Card>
-               </div>
+                <Card className="border-dashed border-2 shadow-none bg-transparent">
+                  <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="bg-primary/5 p-6 rounded-full mb-4">
+                      <Calendar className="w-12 h-12 text-primary/40" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">
+                      {listFilters.batch_id === 'all'
+                        ? "Select Filters"
+                        : "No exams scheduled yet"}
+                    </h3>
+                    <p className="text-muted-foreground max-w-sm mx-auto">
+                      {listFilters.batch_id === 'all'
+                        ? "Please select a Batch above to view scheduled exams."
+                        : "There are currently no active exam schedules for the selected filters. Click the Schedule New Exam button above to create one."}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
             ) : (
               <div className="space-y-4">
                 <div className="hidden sm:block overflow-x-auto">
@@ -905,7 +908,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </thead>
                     <tbody className={`whitespace-nowrap divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
                       {Array.isArray(exams) && exams.map((ex) =>
-                      <tr key={ex.id} className={`hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
+                        <tr key={ex.id} className={`hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
                           <td className="px-6 py-4">
                             <div className="font-semibold text-foreground">{ex.title}</div>
                             <div className="text-xs text-muted-foreground mt-1">
@@ -932,19 +935,19 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                           </td>
                           <td className="px-6 py-4 text-center">
                             <Badge className={`capitalize ${computeStatus(ex) === 'ongoing' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                          computeStatus(ex) === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
-                          'bg-gray-500/10 text-gray-600 border-gray-500/20'}`
-                          } variant="outline">
+                              computeStatus(ex) === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                                'bg-gray-500/10 text-gray-600 border-gray-500/20'}`
+                            } variant="outline">
                               {computeStatus(ex)}
                             </Badge>
                           </td>
                           <td className="px-6 py-4 text-right">
                             <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => handleDelete(ex.id)}>
-                            
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => handleDelete(ex.id)}>
+
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </td>
@@ -956,69 +959,108 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
                 {/* Mobile Card List */}
                 <div className="sm:hidden space-y-4 px-4 py-2">
-                  {Array.isArray(exams) && exams.map((ex) =>
-                  <Card key={ex.id} className="p-4 sm:p-5">
+                  {Array.isArray(exams) && exams.map((ex) => (
+                    <Card key={ex.id} className="p-5 border shadow-sm bg-card">
                       <div className="flex flex-col gap-4">
-                        <div className="w-full">
-                          <div className="flex items-center flex-wrap gap-2 mb-2">
-                            <h3 className="font-semibold text-[18px] sm:text-base">{ex.title}</h3>
-                            <Badge className={`capitalize ${computeStatus(ex) === 'ongoing' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                          computeStatus(ex) === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
-                          'bg-gray-500/10 text-gray-600 border-gray-500/20'}`
-                          } variant="outline">
-                              {computeStatus(ex)}
-                            </Badge>
+                        {/* Title Area */}
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <span className="text-[10px] tracking-wider uppercase font-bold text-muted-foreground px-2 py-0.5 rounded-full bg-secondary border border-border">
+                              {ex.exam_type?.replace('_', ' ') || 'Exam'}
+                            </span>
+                            <h3 className="font-bold text-lg text-foreground mt-1.5 tracking-tight leading-snug">{ex.title}</h3>
                           </div>
-                          <div className="space-y-1 sm:space-y-0.5">
-                            <div className="grid grid-cols-[110px_1fr] items-start">
-                              <span className="text-[16px] sm:text-sm text-muted-foreground">Subject:</span>
-                              <span className="text-[16px] sm:text-sm font-medium">{ex.subject?.name || 'General'}</span>
-                            </div>
-                            <div className="grid grid-cols-[110px_1fr] items-start">
-                              <span className="text-[16px] sm:text-sm text-muted-foreground">Batch/Branch/Sem:</span>
-                              <span className="text-[16px] sm:text-sm font-medium">
+
+                          <Badge className={`capitalize font-semibold text-xs px-2.5 py-1 rounded-lg border ${
+                            computeStatus(ex) === 'ongoing' 
+                              ? 'bg-green-500/10 text-green-600 border-green-500/20 dark:bg-green-500/20 dark:text-green-400' 
+                              : computeStatus(ex) === 'upcoming' 
+                                ? 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:bg-blue-500/20 dark:text-blue-400' 
+                                : 'bg-gray-500/10 text-gray-600 border-gray-500/20 dark:bg-gray-800 dark:text-gray-400'
+                          }`} variant="outline">
+                            {computeStatus(ex)}
+                          </Badge>
+                        </div>
+
+                        {/* Subject Details Box */}
+                        <div className="p-3.5 rounded-xl border border-border bg-transparent">
+                          <p className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest">Subject</p>
+                          <p className="font-semibold text-foreground text-sm mt-0.5 leading-snug">
+                            {ex.subject?.name || 'General'}
+                          </p>
+                          {ex.subject?.code && (
+                            <span className="inline-block text-[11px] font-mono bg-muted text-muted-foreground px-1.5 py-0.5 rounded mt-1.5">
+                              {ex.subject.code}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Metadata Rows */}
+                        <div className="grid grid-cols-1 gap-3.5 text-sm">
+                          {/* Batch / Branch / Sem info */}
+                          <div className="flex items-start gap-2">
+                            <BookOpen className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                            <div>
+                              <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Class Info</span>
+                              <span className="font-semibold text-foreground text-[13px] leading-snug break-words">
                                 {ex.batch?.name || 'All Batches'} / {ex.subject?.branch || 'All Branches'} / Sem {ex.semester?.number || 'All'}
                               </span>
                             </div>
-                            <div className="grid grid-cols-[110px_1fr] items-start">
-                              <span className="text-[16px] sm:text-sm text-muted-foreground">Date:</span>
-                              <span className="text-[16px] sm:text-sm font-medium">{new Date(ex.date).toLocaleDateString()}</span>
+                          </div>
+
+                          {/* Date and Time info side-by-side */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="flex items-start gap-2">
+                              <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                              <div>
+                                <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Date</span>
+                                <span className="font-semibold text-foreground text-[13px]">{new Date(ex.date).toLocaleDateString()}</span>
+                              </div>
                             </div>
-                            <div className="grid grid-cols-[110px_1fr] items-start">
-                              <span className="text-[16px] sm:text-sm text-muted-foreground">Time:</span>
-                              <span className="text-[16px] sm:text-sm font-medium flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {formatTo12h(ex.start_time)} - {formatTo12h(ex.end_time)}
-                              </span>
+
+                            <div className="flex items-start gap-2">
+                              <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                              <div>
+                                <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Time</span>
+                                <span className="font-semibold text-foreground text-[13px] leading-snug">
+                                  {formatTo12h(ex.start_time)}
+                                  <span className="block text-[11px] text-muted-foreground font-normal">to {formatTo12h(ex.end_time)}</span>
+                                </span>
+                              </div>
                             </div>
-                            <div className="grid grid-cols-[110px_1fr] items-start">
-                              <span className="text-[16px] sm:text-sm text-muted-foreground">Venue:</span>
-                              <span className="text-[16px] sm:text-sm font-medium">{ex.room || 'TBD'}</span>
+                          </div>
+
+                          {/* Venue info */}
+                          <div className="flex items-start gap-2">
+                            <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                            <div>
+                              <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Venue / Room</span>
+                              <span className="font-semibold text-foreground text-[13px]">{ex.room || 'TBD'}</span>
                             </div>
                           </div>
                         </div>
-                        <div className="flex w-full gap-2">
-                          <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDelete(ex.id)}
-                          className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}>
 
-                          
-                            <Trash2 className="w-4 h-4 mr-2" />
+                        {/* Footer Action */}
+                        <div className="pt-3 border-t border-border">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(ex.id)}
+                            className="w-full h-10 flex items-center justify-center gap-2 text-sm font-semibold rounded-xl border-border text-destructive hover:bg-destructive/10">
+                            <Trash2 className="w-4 h-4" />
                             Delete Schedule
                           </Button>
                         </div>
                       </div>
                     </Card>
-                  )}
+                  ))}
                 </div>
               </div>
             )}
           </div>
         </CardContent>
 
-        {!loading && exams.length > 0 && (
+        {!loading && exams.length > 0 && pagination.totalPages > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               {pagination.totalItems > 0 ?
