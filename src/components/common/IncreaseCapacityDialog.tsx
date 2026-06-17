@@ -23,16 +23,6 @@ interface IncreaseCapacityDialogProps {
   expiryDate?: string;
 }
 
-const TIER_OPTIONS = [
-  { max: 750, name: 'Small Tier', base: 500, options: [{ size: 50, price: 2500 }, { size: 100, price: 4500 }, { size: 250, price: 9000 }] },
-  { max: 2500, name: 'Medium Tier', base: 2000, options: [{ size: 100, price: 5000 }, { size: 250, price: 10000 }, { size: 500, price: 18000 }] },
-  { max: 6000, name: 'Large Tier', base: 5000, options: [{ size: 250, price: 12000 }, { size: 500, price: 22000 }, { size: 1000, price: 40000 }] },
-  { max: 12000, name: 'Very Large Tier', base: 10000, options: [{ size: 500, price: 25000 }, { size: 1000, price: 45000 }, { size: 2000, price: 80000 }] },
-  { max: 30000, name: 'Enterprise Tier', base: 25000, options: [{ size: 1000, price: 50000 }, { size: 2500, price: 110000 }, { size: 5000, price: 200000 }] },
-];
-
-
-
 export const IncreaseCapacityDialog: React.FC<IncreaseCapacityDialogProps> = ({
   onClose,
   currentMaxStudents,
@@ -46,13 +36,34 @@ export const IncreaseCapacityDialog: React.FC<IncreaseCapacityDialogProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Memoize tier so it only recalculates when currentMaxStudents changes
+  const bufferRate = useMemo(() => {
+    const p = currentPlan.toLowerCase();
+    if (p.includes('advance')) return 125;
+    if (p.includes('pro')) return 100;
+    return 75; // basic
+  }, [currentPlan]);
+
+  // Memoize tier so it only recalculates when currentMaxStudents or bufferRate changes
   const tierInfo = useMemo(() => {
-    return (
-      TIER_OPTIONS.find(t => currentMaxStudents <= t.max) ||
-      { name: 'Mega University', base: currentMaxStudents, max: currentMaxStudents, options: [] }
-    );
-  }, [currentMaxStudents]);
+    const rawTiers = [
+      { max: 750, name: 'Small Tier', base: 500, options: [50, 100, 250] },
+      { max: 2500, name: 'Medium Tier', base: 2000, options: [100, 250, 500] },
+      { max: 6000, name: 'Large Tier', base: 5000, options: [250, 500, 1000] },
+      { max: 12000, name: 'Very Large Tier', base: 10000, options: [500, 1000, 2000] },
+      { max: 30000, name: 'Enterprise Tier', base: 25000, options: [1000, 2500, 5000] },
+    ];
+    
+    const matchedTier = rawTiers.find(t => currentMaxStudents <= t.max);
+    if (!matchedTier) return { name: 'Mega University', base: currentMaxStudents, max: currentMaxStudents, options: [] };
+
+    return {
+      ...matchedTier,
+      options: matchedTier.options.map(size => ({
+        size,
+        price: size * bufferRate
+      }))
+    };
+  }, [currentMaxStudents, bufferRate]);
 
   // Set default buffer once on mount / tier change
   useEffect(() => {
