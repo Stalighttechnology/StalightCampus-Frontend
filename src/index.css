@@ -203,36 +203,46 @@
   }
 }
 
-/* Global scrollbar hiding but still scrollable */
+/* Allow default browser scrolling on html by default, keeping body and root visible to prevent double scrollbars.
+   DashboardLayout, LoginMobile, and other viewport-constrained layouts handle 
+   their own inner scrolling and viewport locks via relative classes. */
+html {
+  overflow-y: auto !important;
+  height: 100% !important;
+}
+
+body {
+  overflow: visible !important;
+  height: auto !important;
+  min-height: 100% !important;
+}
+
+#root {
+  overflow: visible !important;
+  height: auto !important;
+  min-height: 100% !important;
+}
+
+/* Global Custom Scrollbar Styling - Hidden but still scrollable */
+::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
+  display: none !important;
+}
+
+/* Firefox support */
 html,
 body,
 #root {
-  @apply overflow-hidden;
-  /* disable window scrolling */
-  height: 100%;
-}
-
-/* Chrome, Safari, Edge */
-html::-webkit-scrollbar,
-body::-webkit-scrollbar,
-#root::-webkit-scrollbar {
-  width: 0px;
-  height: 0px;
-  background: transparent;
-}
-
-/* Firefox */
-html,
-body,
-#root {
-  scrollbar-width: none;
+  scrollbar-width: none !important;
 }
 
 /* IE/Edge Legacy */
 html,
 body,
 #root {
-  -ms-overflow-style: none;
+  -ms-overflow-style: none !important;
 }
 
 .react-datepicker-wrapper,

@@ -5,9 +5,13 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { publicViewResultByToken, publicOrganizationInfoByToken } from '@/utils/coe_api'
+import { useTheme } from '@/context/ThemeContext'
+import { ArrowLeft } from 'lucide-react'
 
 const ResultsView: React.FC = () => {
+  const { theme } = useTheme();
   const { token: paramToken } = useParams<{ token: string }>();
   const location = useLocation();
   // Accept token from route param or query string (?token=...)
@@ -24,6 +28,7 @@ const ResultsView: React.FC = () => {
   const [message, setMessage] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
 
+  // Fetch organization information on mount/token change
   useEffect(() => {
     if (token) {
       publicOrganizationInfoByToken(token).then((res) => {
@@ -147,55 +152,82 @@ const ResultsView: React.FC = () => {
   const cgpa = result ? (result.aggregate?.cgpa ?? calcCGPA(result.marks || [])) : null;
 
   return (
-    <div className="h-screen overflow-y-auto flex items-start justify-center bg-white py-8 px-4 w-full">
-      <div className="w-full max-w-3xl bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <div className="flex items-center gap-4">
-            <img
-              src={result?.organization?.logo || orgInfo?.logo || "/logo.jpeg"}
-              alt={`${result?.organization?.name || orgInfo?.name || 'College'} Logo`}
-              className="w-16 h-16 object-contain"
-            />
+    <div className="min-h-screen w-full bg-slate-50/50 dark:bg-zinc-950 flex flex-col items-center justify-start p-3 sm:p-6">
+      <div className={`${result ? 'my-4 sm:my-8 max-w-3xl' : 'my-auto max-w-2xl'} w-full bg-card border border-border shadow-xl rounded-2xl p-5 sm:p-8 relative overflow-hidden`}>
+
+        <div className="flex flex-row items-center justify-between gap-4 mb-4 sm:mb-6 pt-1 sm:pt-2 overflow-x-auto thin-scrollbar pb-1">
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+            <div className="p-1 rounded-xl border bg-white dark:bg-zinc-900 shadow-sm shrink-0">
+              <img
+                src={result?.organization?.logo || orgInfo?.logo || "/logo.jpeg"}
+                alt={`${result?.organization?.name || orgInfo?.name || 'College'} Logo`}
+                className="w-10 h-10 sm:w-14 sm:h-14 object-contain"
+              />
+            </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{result?.organization?.name || orgInfo?.name || 'College'}</h1>
-              <p className="text-xs text-gray-500">Official marks portal</p>
+              <h1 className="text-base sm:text-2xl font-semibold tracking-tight text-foreground">{result?.organization?.name || orgInfo?.name || 'College'}</h1>
+              <p className="text-[10px] sm:text-xs text-muted-foreground font-medium mt-0.5">Official marks portal</p>
             </div>
           </div>
-          <div className="text-sm text-gray-600 text-right flex flex-col items-end gap-2">
-            <div>Secure public result view</div>
+          <div className="text-xs sm:text-sm text-right flex flex-col items-end gap-1.5 sm:gap-2 shrink-0">
+            <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-secondary text-secondary-foreground border border-border">
+              Secure Public Result View
+            </span>
             {result && (
-              <Button onClick={() => { setResult(null); setUsn(''); setRecaptchaToken(null); }} className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs h-7 px-3">
+              <Button
+                onClick={() => { setResult(null); setUsn(''); setRecaptchaToken(null); }}
+                variant="outline"
+                className="text-[10px] sm:text-xs h-7 sm:h-8 px-2 sm:px-3 border-border hover:bg-accent text-foreground transition-all flex items-center gap-1.5"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
                 Search Another USN
               </Button>
             )}
           </div>
         </div>
 
-        <div className="mb-4 p-3 bg-gray-50 rounded">
-          <div className="text-sm text-gray-700 font-medium">Instructions</div>
-          <ul className="text-xs text-gray-600 mt-2 list-disc list-inside space-y-1">
+        {/* Instructions Card */}
+        <div className="mb-4 p-3 sm:p-4 bg-primary/5 border border-primary/10 rounded-xl">
+          <div className="text-xs sm:text-sm text-primary font-semibold tracking-wide uppercase">Instructions</div>
+          <ul className="text-[10px] sm:text-xs text-muted-foreground mt-1.5 list-disc list-inside space-y-1 sm:space-y-1.5 leading-relaxed">
             <li>Enter your USN exactly as on your ID (input will convert to UPPERCASE).</li>
             <li>Results shown are official. Use the export to download a marks card.</li>
             <li>Passing requires meeting the minimum criteria set by the {result?.organization?.name || orgInfo?.name || 'examination board'}.</li>
           </ul>
         </div>
 
+        {/* Search / Input form */}
         {!result && (
-          <div className="flex flex-col gap-4 mb-4">
-            <div className="flex flex-col sm:flex-row gap-2 items-start">
-              <Input value={usn} onChange={(e: any) => setUsn(String(e.target.value).toUpperCase())} placeholder="Enter USN (e.g. 25CI003)" maxLength={20} className="bg-white text-gray-900 border border-gray-300" />
-              <div className="flex-shrink-0">
-                <Button onClick={fetchResult} disabled={loading || !recaptchaToken} className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">{loading ? 'Loading...' : 'View'}</Button>
-              </div>
+          <div className="flex flex-col gap-4 mb-2">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch w-full">
+              <Input
+                value={usn}
+                onChange={(e: any) => setUsn(String(e.target.value).toUpperCase())}
+                placeholder="Enter USN (e.g. 25CI003)"
+                maxLength={20}
+                className="h-11 sm:h-12 bg-background text-foreground border border-input rounded-xl focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 transition-all"
+              />
+              <Button
+                onClick={fetchResult}
+                disabled={loading || !recaptchaToken}
+                className="bg-primary hover:bg-primary/90 text-white h-11 sm:h-12 rounded-xl px-6 font-semibold shadow-sm transition-all duration-200 active:scale-[0.98] w-full sm:w-auto shrink-0"
+              >
+                {loading ? 'Loading...' : 'View Results'}
+              </Button>
             </div>
-            <div>
+            <div className="flex flex-col items-center justify-center p-3 border rounded-xl bg-muted/20 border-border/60">
               <ReCAPTCHA
                 sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
                 onChange={(token: string | null) => setRecaptchaToken(token)}
+                theme={theme === 'dark' ? 'dark' : 'light'}
               />
               {import.meta.env.DEV && (
-                <div className="mt-2 text-center">
-                  <button type="button" onClick={() => setRecaptchaToken("bypass")} className="text-xs text-indigo-600 underline hover:text-indigo-800">
+                <div className="mt-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setRecaptchaToken("bypass")}
+                    className="text-[11px] text-primary font-semibold underline hover:text-primary/80 transition-colors"
+                  >
                     Bypass Captcha (Dev Only)
                   </button>
                 </div>
@@ -204,59 +236,76 @@ const ResultsView: React.FC = () => {
           </div>
         )}
 
-        {error && <div className="text-red-600 mb-4">{error}</div>}
-        {message && <div className="text-sm text-gray-700 mb-4">{message}</div>}
+        {error && (
+          <div className="p-3 mb-4 rounded-lg bg-destructive/10 text-destructive text-sm font-semibold border border-destructive/20">
+            {error}
+          </div>
+        )}
+        {message && (
+          <div className="p-3 mb-4 rounded-lg bg-secondary text-secondary-foreground text-sm font-medium border border-border">
+            {message}
+          </div>
+        )}
 
+        {/* Results display */}
         {result && result.success && (
           <div>
             {result.withheld ? (
-              <div className="mb-6 p-6 bg-amber-50 border-l-4 border-amber-500 rounded">
-                <div className="flex items-start gap-3">
-                  <div className="text-2xl">⚠️</div>
+              <div className="mb-6 p-6 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                <div className="flex items-start gap-3.5">
+                  <div className="text-3xl leading-none select-none">⚠️</div>
                   <div>
-                    <h3 className="text-lg font-semibold text-amber-800 mb-2">Result Withheld</h3>
-                    <p className="text-amber-700">{result.message || 'Your result has been withheld by the examination authorities.'}</p>
-                    <p className="text-sm text-amber-600 mt-3">Please contact the examination office for more information.</p>
+                    <h3 className="text-lg font-semibold text-amber-600 dark:text-amber-400 mb-1.5">Result Withheld</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{result.message || 'Your result has been withheld by the examination authorities.'}</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold mt-3">Please contact the examination office for more information.</p>
                   </div>
                 </div>
               </div>
             ) : (
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-sm text-gray-600">{result.declared_on ? 'Declared on: ' + result.declared_on : 'Results declared'}</div>
-                  <div className="flex items-center gap-2">
-                    <Button onClick={exportMarksCard} disabled={exporting} className="bg-indigo-600 hover:bg-indigo-700 text-white">{exporting ? 'Exporting...' : 'Export PDF'}</Button>
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+                  <div className="text-xs font-medium text-muted-foreground">
+                    {result.declared_on ? 'Declared on: ' + result.declared_on : 'Results declared'}
+                  </div>
+                  <Button
+                    onClick={exportMarksCard}
+                    disabled={exporting}
+                    className="bg-primary hover:bg-primary/90 text-white h-10 rounded-xl px-5 font-semibold shadow-sm transition-all duration-200 active:scale-[0.98] w-full sm:w-auto"
+                  >
+                    {exporting ? 'Exporting...' : 'Export PDF'}
+                  </Button>
+                </div>
+
+                <div className="p-4 rounded-xl border border-border bg-muted/10 grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-sm">
+                  <div className="flex gap-2">
+                    <span className="text-muted-foreground font-medium w-16">Name:</span>
+                    <span className="font-semibold text-foreground">{result.student?.name || '-'}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-muted-foreground font-medium w-16">USN:</span>
+                    <span className="font-semibold text-foreground">{result.student?.usn || usn}</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div className="md:col-span-2">
-                    <div className="text-gray-700"><strong>Name:</strong> <span className="text-gray-900">{result.student?.name || '-'}</span></div>
-                    <div className="text-gray-700"><strong>USN:</strong> <span className="text-gray-900">{result.student?.usn || usn}</span></div>
-                  </div>
-
-                </div>
-
-                <div className="rounded-md overflow-hidden border border-gray-200 bg-white">
-                  <div className="overflow-x-auto">
-                    <table className="w-full table-auto border-collapse">
+                <div className="rounded-xl overflow-hidden border border-border bg-card shadow-sm">
+                  <div className="overflow-x-auto thin-scrollbar">
+                    <table className="w-full text-sm text-left border-collapse">
                       <thead>
-                        <tr className="text-left">
-                          <th className="p-2 border-b text-gray-700">Subject Code</th>
-                          <th className="p-2 border-b text-gray-700">Subject Title</th>
-                          <th className="p-2 border-b text-gray-700 text-right">CIE</th>
-                          <th className="p-2 border-b text-gray-700 text-right">SEE</th>
-                          <th className="p-2 border-b text-gray-700 text-right">Total Marks</th>
-                          <th className="p-2 border-b text-gray-700">Result</th>
-                          <th className="p-2 border-b text-gray-700">Grade</th>
-                          <th className="p-2 border-b text-gray-700">Grade Point</th>
-                          <th className="p-2 border-b text-gray-700">Credits Assigned</th>
+                        <tr className="border-b border-border bg-muted/40 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          <th className="p-3">Subject Code</th>
+                          <th className="p-3">Subject Title</th>
+                          <th className="p-3 text-right">CIE</th>
+                          <th className="p-3 text-right">SEE</th>
+                          <th className="p-3 text-right">Total</th>
+                          <th className="p-3">Result</th>
+                          <th className="p-3 text-center">Grade</th>
+                          <th className="p-3 text-center">GP</th>
+                          <th className="p-3 text-center">Credits</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="divide-y divide-border">
                         {Array.isArray(result.marks) && result.marks.length > 0 ? (
-                          result.marks.map((m: { subject: string, subject_code: string, cie?: number, see?: number, total?: number, status: string, credits?: number, credit?: number, credit_hours?: number, creditHours?: number, credit_hour?: number }, idx: number) => {
-                            // Calculate grade and grade points based on total marks
+                          result.marks.map((m: any, idx: number) => {
                             const total = m.total;
                             let grade = '';
                             let gradePoints = '';
@@ -270,27 +319,33 @@ const ResultsView: React.FC = () => {
                               else { grade = 'F'; gradePoints = '0'; }
                             }
 
-                            // Determine credits based on pass/fail status
                             const availableCredits = m.credits ?? m.credit ?? m.credit_hours ?? m.creditHours ?? m.credit_hour ?? 0;
                             const credits = m.status === 'pass' ? availableCredits : 0;
 
                             return (
-                              <tr key={idx} className="odd:bg-gray-50 even:bg-white">
-                                <td className="p-2 text-gray-900">{m.subject_code}</td>
-                                <td className="p-2 text-gray-900">{m.subject}</td>
-                                <td className="p-2 text-gray-900 text-right">{m.cie ?? '-'}</td>
-                                <td className="p-2 text-gray-900 text-right">{m.see ?? '-'}</td>
-                                <td className="p-2 text-gray-900 text-right">{m.total ?? '-'}</td>
-                                <td className={m.status === 'pass' ? 'p-2 text-green-600 font-medium' : 'p-2 text-red-600 font-medium'}>{m.status?.toUpperCase() ?? '-'}</td>
-                                <td className="p-2 text-gray-900">{grade}</td>
-                                <td className="p-2 text-gray-900">{gradePoints}</td>
-                                <td className="p-2 text-gray-900">{credits}</td>
+                              <tr key={idx} className="hover:bg-muted/10 transition-colors">
+                                <td className="p-3 font-mono font-medium text-foreground">{m.subject_code}</td>
+                                <td className="p-3 font-medium text-foreground">{m.subject}</td>
+                                <td className="p-3 text-right text-foreground">{m.cie ?? '-'}</td>
+                                <td className="p-3 text-right text-foreground">{m.see ?? '-'}</td>
+                                <td className="p-3 text-right font-semibold text-foreground">{m.total ?? '-'}</td>
+                                <td className="p-3">
+                                  <Badge className={`capitalize font-semibold text-xs px-2.5 py-0.5 rounded-full border shadow-sm ${m.status === 'pass'
+                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400'
+                                    : 'bg-destructive/10 text-destructive border-destructive/20 dark:bg-destructive/20'
+                                    }`} variant="outline">
+                                    {m.status?.toUpperCase() ?? '-'}
+                                  </Badge>
+                                </td>
+                                <td className="p-3 text-center font-semibold text-foreground">{grade}</td>
+                                <td className="p-3 text-center font-semibold text-foreground">{gradePoints}</td>
+                                <td className="p-3 text-center font-semibold text-foreground">{credits}</td>
                               </tr>
                             );
                           })
                         ) : (
                           <tr>
-                            <td className="p-2 text-gray-600" colSpan={9}>No marks available</td>
+                            <td className="p-4 text-center text-muted-foreground" colSpan={9}>No marks available</td>
                           </tr>
                         )}
                       </tbody>
@@ -298,15 +353,29 @@ const ResultsView: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="mt-4">
-                  <div className="text-gray-700"><strong>Total Marks:</strong> <span className="text-gray-900">{result.aggregate?.total_marks ?? '-'}</span></div>
-                  <div className="text-gray-700"><strong>CGPA:</strong> <span className="text-gray-900">{cgpa ?? '-'}</span></div>
-                  <div className="text-gray-700"><strong>Overall Status:</strong> <span className={result.aggregate?.overall_status === 'pass' ? 'text-green-600' : 'text-red-600'}> {result.aggregate?.overall_status ?? '-'}</span></div>
+                <div className="p-4 rounded-xl border border-border bg-muted/20 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm font-semibold">
+                  <div className="flex justify-between sm:justify-start gap-2">
+                    <span className="text-muted-foreground font-medium">Total Marks:</span>
+                    <span className="text-foreground font-semibold">{result.aggregate?.total_marks ?? '-'}</span>
+                  </div>
+                  <div className="flex justify-between sm:justify-start gap-2">
+                    <span className="text-muted-foreground font-medium">CGPA:</span>
+                    <span className="text-foreground font-semibold">{cgpa ?? '-'}</span>
+                  </div>
+                  <div className="flex justify-between sm:justify-start gap-2">
+                    <span className="text-muted-foreground font-medium">Overall Status:</span>
+                    <Badge className={`capitalize font-semibold text-xs px-3 py-1 rounded-lg border shadow-sm ${result.aggregate?.overall_status === 'pass'
+                      ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                      : 'bg-destructive/10 text-destructive border-destructive/20'
+                      }`} variant="outline">
+                      {result.aggregate?.overall_status ?? '-'}
+                    </Badge>
+                  </div>
                 </div>
 
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-100 rounded text-sm text-gray-700">
-                  <strong>Notes:</strong>
-                  <div className="text-xs text-gray-600 mt-1">This is a provisional marks card issued for reference. The official marks card will be issued by the Administration in due course. The results and marks indicated are accurate and officially recognized.</div>
+                <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-xl text-xs text-muted-foreground leading-relaxed">
+                  <strong className="text-amber-600 dark:text-amber-400 font-semibold block mb-1">Notes:</strong>
+                  This is a provisional marks card issued for reference. The official marks card will be issued by the Administration in due course. The results and marks indicated are accurate and officially recognized.
                 </div>
 
                 <div style={{ position: 'absolute', left: -9999, top: 0 }}>
