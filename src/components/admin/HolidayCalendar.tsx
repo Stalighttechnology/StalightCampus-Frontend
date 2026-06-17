@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Plus, Trash2, Calendar as CalendarIcon, Star
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO } from 'date-fns';
 import { getHolidays, createHoliday, deleteHoliday, Holiday } from '../../utils/holiday_api';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useTheme } from '../../context/ThemeContext';
 import { showConfirmAlert, showSuccessAlert, showErrorAlert } from '../../utils/sweetalert';
 
@@ -343,15 +344,19 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Type</label>
-                            <select
+                            <Select
                                 value={holidayType}
-                                onChange={(e) => setHolidayType(e.target.value)}
+                                onValueChange={(val) => setHolidayType(val)}
                                 disabled={isDialogReadOnly}
-                                className={`w-full border rounded-md p-2 text-sm font-medium focus:ring-2 focus:ring-primary ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'} ${isDialogReadOnly ? 'opacity-80 cursor-not-allowed' : ''}`}
                             >
-                                <option value="holiday">Holiday / Break</option>
-                                <option value="event">Campus Event</option>
-                            </select>
+                                <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'} ${isDialogReadOnly ? 'opacity-80 cursor-not-allowed' : ''}`}>
+                                    <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                                <SelectContent className={theme === 'dark' ? 'bg-background border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+                                    <SelectItem value="holiday">Holiday / Break</SelectItem>
+                                    <SelectItem value="event">Campus Event</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Description / Title</label>
