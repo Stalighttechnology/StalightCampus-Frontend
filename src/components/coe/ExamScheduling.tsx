@@ -141,7 +141,9 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   const loadData = async (page = 1, currentFilters = listFilters) => {
-    if (!currentFilters.batch_id || currentFilters.batch_id === 'all') {
+    if (!currentFilters.batch_id || currentFilters.batch_id === 'all' ||
+        !currentFilters.branch_id || currentFilters.branch_id === 'all' ||
+        !currentFilters.semester_id || currentFilters.semester_id === 'all') {
       setExams([]);
       setPagination({ currentPage: 1, totalPages: 1, totalItems: 0 });
       setLoading(false);
@@ -416,7 +418,11 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                 }}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder="Select Batch" /></SelectTrigger>
                   <SelectContent>
-                    {batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                    {batches.length > 0 ? (
+                      batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
+                    ) : (
+                      <SelectItem value="none" disabled>No batches found</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -429,7 +435,11 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                 }} open={isFormBranchOpen} onOpenChange={setIsFormBranchOpen} disabled={!formData.batch_id}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.batch_id ? "Select Branch" : "Select Batch First"} /></SelectTrigger>
                   <SelectContent>
-                    {branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                    {branches.length > 0 ? (
+                      branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
+                    ) : (
+                      <SelectItem value="none" disabled>No branches found</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -442,7 +452,11 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                 }} open={isFormSemesterOpen} onOpenChange={setIsFormSemesterOpen} disabled={!formData.branch_id}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.branch_id ? "Select Semester" : "Select Branch First"} /></SelectTrigger>
                   <SelectContent>
-                    {semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>Sem {s.number}</SelectItem>)}
+                    {semesters.length > 0 ? (
+                      semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>Sem {s.number}</SelectItem>)
+                    ) : (
+                      <SelectItem value="none" disabled>No semesters found</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -838,7 +852,11 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
               }}>
                 <SelectTrigger className="h-10 bg-background"><SelectValue placeholder="Select Batch" /></SelectTrigger>
                 <SelectContent>
-                  {batches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                  {batches.length > 0 ? (
+                    batches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled>No batches found</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -852,7 +870,11 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
               }} disabled={!listFilters.batch_id || listFilters.batch_id === 'all'} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
                 <SelectTrigger className="h-10 bg-background"><SelectValue placeholder={!listFilters.batch_id || listFilters.batch_id === 'all' ? "Select Batch First" : "Select Branch"} /></SelectTrigger>
                 <SelectContent>
-                  {branches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                  {branches.length > 0 ? (
+                    branches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled>No branches found</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -861,7 +883,11 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
               <Select value={listFilters.semester_id} onValueChange={(v) => handleFilterChange('semester_id', v)} disabled={!listFilters.branch_id || listFilters.branch_id === 'all'} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
                 <SelectTrigger className="h-10 bg-background"><SelectValue placeholder={!listFilters.branch_id || listFilters.branch_id === 'all' ? "Select Branch First" : "Select Semester"} /></SelectTrigger>
                 <SelectContent>
-                  {filterSemesters.map(s => <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>)}
+                  {filterSemesters.length > 0 ? (
+                    filterSemesters.map(s => <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled>No semesters found</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -880,13 +906,13 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                       <Calendar className="w-12 h-12 text-primary/40" />
                     </div>
                     <h3 className="text-xl font-semibold mb-2">
-                      {listFilters.batch_id === 'all'
+                      {!(listFilters.batch_id && listFilters.branch_id && listFilters.semester_id)
                         ? "Select Filters"
                         : "No exams scheduled yet"}
                     </h3>
                     <p className="text-muted-foreground max-w-sm mx-auto">
-                      {listFilters.batch_id === 'all'
-                        ? "Please select a Batch above to view scheduled exams."
+                      {!(listFilters.batch_id && listFilters.branch_id && listFilters.semester_id)
+                        ? "Please select a Batch, Branch, and Semester above to view scheduled exams."
                         : "There are currently no active exam schedules for the selected filters. Click the Schedule New Exam button above to create one."}
                     </p>
                   </CardContent>

@@ -181,10 +181,14 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <SelectValue placeholder="Select batch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filterOptions.batches.map((batch: any) =>
-                    <SelectItem key={batch.id} value={batch.id.toString()}>
-                      {batch.name}
-                    </SelectItem>
+                  {filterOptions.batches.length > 0 ? (
+                    filterOptions.batches.map((batch: any) =>
+                      <SelectItem key={batch.id} value={batch.id.toString()}>
+                        {batch.name}
+                      </SelectItem>
+                    )
+                  ) : (
+                    <SelectItem value="none" disabled>No batches found</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -221,10 +225,14 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <SelectValue placeholder="Select branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filterOptions.branches.map((branch: any) =>
-                    <SelectItem key={branch.id} value={branch.id.toString()}>
-                      {branch.name}
-                    </SelectItem>
+                  {filterOptions.branches.length > 0 ? (
+                    filterOptions.branches.map((branch: any) =>
+                      <SelectItem key={branch.id} value={branch.id.toString()}>
+                        {branch.name}
+                      </SelectItem>
+                    )
+                  ) : (
+                    <SelectItem value="none" disabled>No branches found</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -236,10 +244,14 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <SelectValue placeholder="Select semester" />
                 </SelectTrigger>
                 <SelectContent>
-                  {semesters.map((semester: any) =>
-                    <SelectItem key={semester.id} value={semester.id.toString()}>
-                      Semester {semester.number}
-                    </SelectItem>
+                  {semesters.length > 0 ? (
+                    semesters.map((semester: any) =>
+                      <SelectItem key={semester.id} value={semester.id.toString()}>
+                        Semester {semester.number}
+                      </SelectItem>
+                    )
+                  ) : (
+                    <SelectItem value="none" disabled>No semesters found</SelectItem>
                   )}
                 </SelectContent>
               </Select>
