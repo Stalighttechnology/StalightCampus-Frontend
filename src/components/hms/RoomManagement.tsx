@@ -336,8 +336,8 @@ const RoomManagement: React.FC = () => {
         <div id="hms-rooms-header">
           <CardHeader className="bg-muted/30 pb-4 border-b">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-              <div className="flex flex-row items-center gap-4 w-full md:w-auto">
-                <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="flex flex-row items-center gap-2 sm:gap-4 w-full md:w-auto">
+                <div className="flex items-center gap-3 flex-1 md:w-auto">
                   <div className="flex flex-col w-full">
                     <span className="text-[14px] font-semibold mb-2">Current Hostel</span>
                     {isLoadingHostels || skeletonMode ?
@@ -382,7 +382,7 @@ const RoomManagement: React.FC = () => {
                 </div>
 
                 {/* Floor Filter */}
-                <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="flex items-center gap-3 flex-1 md:w-auto">
                   <div className="flex flex-col w-full">
                     <span className="text-[14px] font-semibold mb-2">Current Floor</span>
                     {isLoadingHostels || skeletonMode ?
@@ -411,25 +411,25 @@ const RoomManagement: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex flex-row items-center gap-3 w-full md:w-auto">
+               <div className="flex flex-row items-center gap-2 w-full md:w-auto">
                 {isLoadingHostels || skeletonMode ? (
-                  <div className="h-9 w-full sm:w-[120px] rounded-md bg-muted animate-pulse border" />
+                  <div className="h-9 flex-1 md:w-[120px] rounded-md bg-muted animate-pulse border" />
                 ) : (
                   rooms.length > 0 && (
                     <Button
                       variant={isEditMode ? "secondary" : "outline"}
                       onClick={() => setIsEditMode(!isEditMode)}
                       disabled={!selectedHostel || !selectedFloorFilter}
-                      className={`h-9 px-4 font-semibold transition-all ${isEditMode ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20' : ''} w-full sm:w-auto`}
+                      className={`h-9 px-2 sm:px-4 text-xs sm:text-sm font-semibold transition-all ${isEditMode ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20' : ''} flex-1 md:flex-initial flex items-center justify-center gap-1 sm:gap-2`}
                     >
-                      <Edit2 className={`w-4 h-4 mr-2 ${isEditMode ? 'animate-pulse' : ''}`} />
-                      {isEditMode ? "Done Editing" : "Edit Rooms"}
+                      <Edit2 className={`w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${isEditMode ? 'animate-pulse' : ''}`} />
+                      {isEditMode ? "Done" : "Edit Rooms"}
                     </Button>
                   )
                 )}
 
                 {isLoadingHostels || skeletonMode ?
-                <div className="h-9 w-full sm:w-[120px] rounded-md bg-muted animate-pulse border" /> :
+                <div className="h-9 flex-1 md:w-[120px] rounded-md bg-muted animate-pulse border" /> :
 
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
@@ -439,11 +439,11 @@ const RoomManagement: React.FC = () => {
                       setFormData({ no: '', name: '', room_type: 'S', vacant: true, hostel: selectedHostel || 0 });
                     }} 
                     disabled={!selectedHostel || !selectedFloorFilter}
-                    className="bg-primary hover:bg-primary/90 h-9 px-4 font-semibold shadow-sm whitespace-nowrap w-full sm:w-auto">
-                        <Plus className="w-4 h-4 mr-2" /> Add Room
+                    className="bg-primary hover:bg-primary/90 h-9 px-2 sm:px-4 text-xs sm:text-sm font-semibold shadow-sm whitespace-nowrap flex-1 md:flex-initial flex items-center justify-center gap-1 sm:gap-2">
+                        <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Add Room
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-[90vw] sm:max-w-md rounded-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+                    <DialogContent className="max-w-[90%] sm:max-w-md rounded-xl max-h-[80vh] overflow-y-auto custom-scrollbar">
                       <DialogHeader>
                         <DialogTitle>{editingRoom ? 'Edit Room' : 'Add Room'}</DialogTitle>
                       </DialogHeader>
@@ -706,7 +706,7 @@ const RoomManagement: React.FC = () => {
       </Card>
       {/* Room Details/Residents Dialog (Read-only) */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="w-[92vw] max-w-[400px] sm:max-w-md rounded-2xl">
+        <DialogContent className="max-w-[90%] sm:max-w-[400px] rounded-2xl max-h-[80vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full ${

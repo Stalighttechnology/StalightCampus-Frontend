@@ -474,66 +474,123 @@ const HostelManagement: React.FC = () => {
           {loading || skeletonMode ? (
             <SkeletonTable rows={5} columns={5} />
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="font-bold">Hostel Name</TableHead>
-                    <TableHead className="font-bold">Type</TableHead>
-                    <TableHead className="font-bold">Location</TableHead>
-                    <TableHead className="font-bold">Warden</TableHead>
-                    <TableHead className="font-bold">Caretaker</TableHead>
-                    <TableHead className="text-right font-bold">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredHostels.length > 0 ? (
-                    filteredHostels.map((hostel) => (
-                      <TableRow key={hostel.id} className="hover:bg-muted/30 transition-colors">
-                        <TableCell className="font-medium">{hostel.name}</TableCell>
-                        <TableCell>
-                          <Badge variant={hostel.gender === 'M' ? 'default' : 'secondary'} className={hostel.gender === 'M' ? 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 border-blue-200' : 'bg-pink-500/10 text-pink-600 hover:bg-pink-500/20 border-pink-200'}>
-                            {hostel.gender === 'M' ? 'Boys' : 'Girls'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-xs max-w-[150px] truncate">
-                          {hostel.address && isCoordsFormat(hostel.address)
-                            ? hostel.address.split(',').slice(0, 2).join(', ')
-                            : (hostel.address || '—')}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Shield size={14} className="text-primary opacity-70" />
-                            {hostel.warden_name || 'Not Assigned'}
+            <div className="border-none bg-transparent md:rounded-md md:border">
+              {/* Mobile View (Cards) */}
+              <div className="grid grid-cols-1 gap-4 md:hidden">
+                {filteredHostels.length > 0 ? (
+                  filteredHostels.map((hostel) => (
+                    <Card key={hostel.id} className="border border-border shadow-sm p-4 space-y-3 bg-card">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h3 className="font-semibold text-foreground text-base">{hostel.name}</h3>
+                          <div className="mt-1">
+                            <Badge variant={hostel.gender === 'M' ? 'default' : 'secondary'} className={hostel.gender === 'M' ? 'bg-blue-500/10 text-blue-600 border-blue-200 hover:bg-blue-500/20' : 'bg-pink-500/10 text-pink-600 border-pink-200 hover:bg-pink-500/20'}>
+                              {hostel.gender === 'M' ? 'Boys' : 'Girls'}
+                            </Badge>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-sm">
-                            <User size={14} className="text-muted-foreground" />
-                            {hostel.caretaker_name || 'Not Assigned'}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="outline" size="icon" onClick={() => handleEdit(hostel)} className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-200">
-                              <Edit2 size={14} />
-                            </Button>
-                            <Button variant="outline" size="icon" onClick={() => handleDelete(hostel.id)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200">
-                              <Trash2 size={14} />
-                            </Button>
-                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 gap-2 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <MapPin size={14} className="text-muted-foreground shrink-0" />
+                          <span>
+                            {hostel.address && isCoordsFormat(hostel.address)
+                              ? hostel.address.split(',').slice(0, 2).join(', ')
+                              : (hostel.address || '—')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Shield size={14} className="text-primary opacity-70 shrink-0" />
+                          <span className="font-medium text-foreground">Warden: {hostel.warden_name || 'Not Assigned'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <User size={14} className="text-muted-foreground shrink-0" />
+                          <span className="font-medium text-foreground">Caretaker: {hostel.caretaker_name || 'Not Assigned'}</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-border/60">
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(hostel)} className="w-full text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-200 flex items-center justify-center gap-1.5 h-9">
+                          <Edit2 size={13} />
+                          Edit
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleDelete(hostel.id)} className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 flex items-center justify-center gap-1.5 h-9">
+                          <Trash2 size={13} />
+                          Delete
+                        </Button>
+                      </div>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground bg-card rounded-lg border">
+                    {searchQuery ? 'No hostels match your search.' : 'No hostels found.'}
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop View (Table) */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="font-bold">Hostel Name</TableHead>
+                      <TableHead className="font-bold">Type</TableHead>
+                      <TableHead className="font-bold">Location</TableHead>
+                      <TableHead className="font-bold">Warden</TableHead>
+                      <TableHead className="font-bold">Caretaker</TableHead>
+                      <TableHead className="text-right font-bold">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredHostels.length > 0 ? (
+                      filteredHostels.map((hostel) => (
+                        <TableRow key={hostel.id} className="hover:bg-muted/30 transition-colors">
+                          <TableCell className="font-medium">{hostel.name}</TableCell>
+                          <TableCell>
+                            <Badge variant={hostel.gender === 'M' ? 'default' : 'secondary'} className={hostel.gender === 'M' ? 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 border-blue-200' : 'bg-pink-500/10 text-pink-600 hover:bg-pink-500/20 border-pink-200'}>
+                              {hostel.gender === 'M' ? 'Boys' : 'Girls'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-xs max-w-[150px] truncate">
+                            {hostel.address && isCoordsFormat(hostel.address)
+                              ? hostel.address.split(',').slice(0, 2).join(', ')
+                              : (hostel.address || '—')}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Shield size={14} className="text-primary opacity-70" />
+                              {hostel.warden_name || 'Not Assigned'}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-sm">
+                              <User size={14} className="text-muted-foreground" />
+                              {hostel.caretaker_name || 'Not Assigned'}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button variant="outline" size="icon" onClick={() => handleEdit(hostel)} className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-200">
+                                <Edit2 size={14} />
+                              </Button>
+                              <Button variant="outline" size="icon" onClick={() => handleDelete(hostel.id)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200">
+                                <Trash2 size={14} />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                          {searchQuery ? 'No hostels match your search.' : 'No hostels found.'}
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                        {searchQuery ? 'No hostels match your search.' : 'No hostels found.'}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           )}
         </CardContent>
