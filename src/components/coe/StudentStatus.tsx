@@ -5,7 +5,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
-import { Users, CheckCircle, XCircle, Search, Download } from "lucide-react";
+import { Users, CheckCircle, XCircle, Search, Download, Loader2, FileDownIcon } from "lucide-react";
 import { getStudentApplicationStatus, getFilterOptions, getSemesters, FilterOptions } from "../../utils/coe_api";
 import { SkeletonStatsGrid, SkeletonTable } from "../ui/skeleton";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -315,106 +315,132 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
         {/* Students Table */}
         {data &&
           <Card>
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                <CardTitle className="text-lg sm:text-xl font-semibold sm:font-semibold">Student Application Status ({totalCount !== null ? totalCount : data.students.length})</CardTitle>
-                <div className="flex items-center space-x-2">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex flex-row items-center justify-between gap-4 w-full">
+                <CardTitle className="text-lg sm:text-xl font-semibold">
+                  Student Application Status ({totalCount !== null ? totalCount : data.students.length})
+                </CardTitle>
+                
+                {/* Desktop Export Button */}
+                <div className="hidden sm:block">
                   <Button
                     variant="default"
                     size="sm"
                     onClick={handleExport}
-                    disabled={exporting || !(filters.batch && filters.exam_period && filters.branch && filters.semester)}
-                    className="w-full sm:w-auto h-12 sm:h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 export-button text-[18px] sm:text-sm font-semibold sm:font-normal">
-
-                    <Download className="mr-1 sm:mr-2 h-3 sm:h-4 w-3 sm:w-4" />
+                    disabled={exporting || !(filters.batch && filters.exam_period && filters.branch && filters.semester) || !data || data.students.length === 0}
+                    className="h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 export-button text-sm font-normal"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
                     {exporting ? 'Exporting...' : 'Export'}
                   </Button>
                 </div>
+
+                {/* Mobile Export Button (same line, icon-only) */}
+                <Button
+                  onClick={handleExport}
+                  disabled={exporting || !(filters.batch && filters.exam_period && filters.branch && filters.semester) || !data || data.students.length === 0}
+                  size="icon"
+                  variant="outline"
+                  className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                >
+                  {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="p-3 sm:p-6">
-              <div className="w-full overflow-x-auto table-wrapper">
-                <Table className="min-w-full">
-                  <TableHeader>
-                    <TableRow className="sm:table-row">
-                      <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Roll Number</TableHead>
-                      <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Student Name</TableHead>
-                      <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Status</TableHead>
-                      <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Applied Subjects</TableHead>
-                      <TableHead className="text-[16px] sm:text-sm whitespace-nowrap text-left font-semibold sm:font-semibold">Count</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data.students.map((student: any) =>
-                      <TableRow key={student.student_id} className="sm:table-row">
-                        <TableCell className="font-semibold sm:font-medium text-[16px] sm:text-sm py-4 sm:py-2" data-label="Roll Number">{student.roll_number}</TableCell>
-                        <TableCell className="text-[16px] sm:text-sm py-4 sm:py-2" data-label="Student Name">{student.student_name}</TableCell>
-                        <TableCell className="text-[16px] sm:text-sm py-4 sm:py-2" data-label="Status">{getStatusBadge(student.status)}</TableCell>
-                        <TableCell className="text-[16px] sm:text-sm py-4 sm:py-2" data-label="Applied Subjects">
-                          {student.applied_subjects.length > 0 ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedStudent(student);
-                                setSubjectsModalOpen(true);
-                              }}
-                              className="h-7 px-3 text-xs border-primary text-primary hover:bg-primary hover:text-white transition-colors"
-                            >
-                              View
-                            </Button>
-                          ) : (
-                            <span className="text-muted-foreground text-xs font-normal">None</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-[16px] sm:text-sm text-left py-4 sm:py-2" data-label="Count">{student.applied_count}</TableCell>
+              {data.students.length === 0 ? (
+                <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'} text-center`}>
+                  <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-4 shadow-sm`}>
+                    <Users className="h-10 w-10 text-primary/40" />
+                  </div>
+                  <h3 className={`text-lg font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    No students found
+                  </h3>
+                  <p className={`text-sm mt-2 max-w-xs mx-auto leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    No students match the selected filters.
+                  </p>
+                </div>
+              ) : (
+                <div className="w-full overflow-x-auto table-wrapper">
+                  <Table className="min-w-full">
+                    <TableHeader>
+                      <TableRow className="sm:table-row">
+                        <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Roll Number</TableHead>
+                        <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Student Name</TableHead>
+                        <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Status</TableHead>
+                        <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Applied Subjects</TableHead>
+                        <TableHead className="text-[16px] sm:text-sm whitespace-nowrap text-left font-semibold sm:font-semibold">Count</TableHead>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-              {data.students.length === 0 && (
-                <div className="text-center py-6 sm:py-8 text-xs sm:text-sm text-muted-foreground empty-state">
-                  No students found for the selected filters.
+                    </TableHeader>
+                    <TableBody>
+                      {data.students.map((student: any) =>
+                        <TableRow key={student.student_id} className="sm:table-row">
+                          <TableCell className="font-semibold sm:font-medium text-[16px] sm:text-sm py-4 sm:py-2" data-label="Roll Number">{student.roll_number}</TableCell>
+                          <TableCell className="text-[16px] sm:text-sm py-4 sm:py-2" data-label="Student Name">{student.student_name}</TableCell>
+                          <TableCell className="text-[16px] sm:text-sm py-4 sm:py-2" data-label="Status">{getStatusBadge(student.status)}</TableCell>
+                          <TableCell className="text-[16px] sm:text-sm py-4 sm:py-2" data-label="Applied Subjects">
+                            {student.applied_subjects.length > 0 ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedStudent(student);
+                                  setSubjectsModalOpen(true);
+                                }}
+                                className="h-8 px-4 text-xs font-semibold rounded-lg transition border border-purple-300 text-purple-600 bg-white hover:bg-purple-50 dark:border-purple-500/30 dark:text-purple-400 dark:bg-card dark:hover:bg-purple-950/20"
+                              >
+                                View
+                              </Button>
+                            ) : (
+                              <span className="text-muted-foreground text-xs font-normal">None</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-[16px] sm:text-sm text-left py-4 sm:py-2" data-label="Count">{student.applied_count}</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </CardContent>
 
             {/* Pagination controls */}
-            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-              <div className="text-sm text-muted-foreground pagination-info">
-                {totalCount !== null && totalCount > 0 ?
-                  `Showing ${(page - 1) * pageSize + 1} to ${Math.min(page * pageSize, totalCount)} of ${totalCount} students` :
-                  `Showing 0 students`}
-              </div>
-              <div className="flex items-center gap-2 pagination-controls">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                >
-                  Prev
-                </Button>
-
-                <div className="flex items-center justify-center min-w-[2rem]">
-                  <span className="text-sm font-semibold text-primary">
-                    {page}
-                  </span>
+            {data.students.length > 0 && totalCount !== null && totalCount > pageSize && (
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div className="text-sm text-muted-foreground pagination-info">
+                  {totalCount !== null && totalCount > 0 ?
+                    `Showing ${(page - 1) * pageSize + 1} to ${Math.min(page * pageSize, totalCount)} of ${totalCount} students` :
+                    `Showing 0 students`}
                 </div>
+                <div className="flex items-center gap-2 pagination-controls">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Prev
+                  </Button>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={!pagination?.next}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                >
-                  Next
-                </Button>
-              </div>
-            </CardFooter>
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className="text-sm font-semibold text-primary">
+                      {page}
+                    </span>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={!pagination?.next}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
           </Card>
         }
 

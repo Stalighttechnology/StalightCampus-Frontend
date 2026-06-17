@@ -169,6 +169,15 @@ export const AnnouncementSections = ({
       <style>{`
         @media (max-width: 639px) {
           .ann-tabs-list { width: 100% !important; grid-template-columns: ${hideReceivedTab ? '1fr' : '1fr 1fr'} !important; margin-top: 8px !important; }
+          .ann-tabs-list button {
+            font-size: 11px !important;
+            padding-left: 4px !important;
+            padding-right: 4px !important;
+            gap: 4px !important;
+          }
+          .ann-tabs-list button span {
+            font-size: 14px !important;
+          }
           .ann-archive-btn { width: 100% !important; margin-top: 8px !important; }
           .ann-table-container { border: none !important; }
           .ann-card-mobile { padding: 12px !important; margin-bottom: 12px !important; border-radius: 12px !important; border: 1px solid hsl(var(--border)) !important; }
