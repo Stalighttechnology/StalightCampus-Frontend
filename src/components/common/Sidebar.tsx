@@ -323,6 +323,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       // User & Profile
       { name: "Users", page: "users" },
       { name: "Scan for Student Info", page: "scan-student-info" },
+      { name: "Campus Locations", page: "campus-locations" },
       { name: "Profile", page: "profile" },
     ],
     org_admin: [
@@ -341,6 +342,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Invoices", page: "invoices" },
       { name: "Payments", page: "payments" },
       { name: "Reports", page: "reports" },
+      { name: "Campus Locations", page: "campus-locations" },
       { name: "Profile", page: "profile" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
     ],
