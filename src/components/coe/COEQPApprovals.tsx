@@ -672,10 +672,10 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         
         <DialogContent
           ref={dialogContentRef}
-          className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[calc(100vw-1.5rem)] sm:w-[calc(100vw-2rem)] md:w-[90vw] rounded-lg flex flex-col max-h-[92vh]`}>
+          className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} w-[90vw] max-w-[720px] h-[80vh] max-h-[80vh] rounded-lg flex flex-col`}>
           
           <DialogHeader>
-            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+            <DialogTitle className={`pr-8 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number}
             </DialogTitle>
           </DialogHeader>
@@ -756,16 +756,26 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
           </div>
 
           <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            <div className="flex flex-row gap-2 w-full sm:w-auto">
               {/* Show Finalize & Approve for all statuses EXCEPT already-approved — COE can re-approve rejected/sent-back QPs */}
               {selectedQP?.status !== 'approved' && (
                 <Button
                   onClick={() => selectedQP && handleFinalize(selectedQP.id)}
                   disabled={actionLoading}
-                  className={`w-full sm:w-auto justify-center transition-none whitespace-normal text-center ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}
+                  className={`flex-1 sm:w-auto justify-center transition-none text-xs px-2 h-10 sm:h-9 ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}
                 >
-                  <CheckCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
-                  {selectedQP?.status === 'pending_admin' ? 'Re-Approve QP' : 'Finalize & Approve'}
+                  <CheckCircle className={`w-3.5 h-3.5 mr-1 shrink-0 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                  {selectedQP?.status === 'pending_admin' ? (
+                    <>
+                      <span className="hidden sm:inline">Re-Approve QP</span>
+                      <span className="inline sm:hidden">Re-Approve</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="hidden sm:inline">Finalize & Approve</span>
+                      <span className="inline sm:hidden">Finalize</span>
+                    </>
+                  )}
                 </Button>
               )}
 
@@ -773,10 +783,20 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
               <Button
                 onClick={() => selectedQP && handleReject(selectedQP.id)}
                 disabled={actionLoading}
-                className={`w-full sm:w-auto justify-center transition-none whitespace-normal text-center ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}
+                className={`flex-1 sm:w-auto justify-center transition-none text-xs px-2 h-10 sm:h-9 ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}
               >
-                <XCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
-                {selectedQP?.status === 'approved' ? 'Revoke & Send Back' : 'Reject & Send Back'}
+                <XCircle className={`w-3.5 h-3.5 mr-1 shrink-0 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                {selectedQP?.status === 'approved' ? (
+                  <>
+                    <span className="hidden sm:inline">Revoke & Send Back</span>
+                    <span className="inline sm:hidden">Revoke</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">Reject & Send Back</span>
+                    <span className="inline sm:hidden">Reject</span>
+                  </>
+                )}
               </Button>
             </div>
 

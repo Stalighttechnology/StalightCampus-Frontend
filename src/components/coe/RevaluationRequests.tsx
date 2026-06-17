@@ -643,7 +643,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
         {/* Request Details Dialog */}
         <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
-          <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border shadow-2xl' : 'bg-white text-gray-900 border border-gray-200 shadow-2xl'} max-w-[640px] w-[calc(100vw-2rem)] sm:w-[90vw] rounded-2xl flex flex-col max-h-[85vh] p-0 overflow-hidden`}>
+          <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border shadow-2xl' : 'bg-white text-gray-900 border border-gray-200 shadow-2xl'} w-[90vw] max-w-[640px] h-[80vh] max-h-[80vh] rounded-2xl flex flex-col p-0 overflow-hidden`}>
             <div className="px-6 py-4 border-b border-border flex items-center justify-between shrink-0">
               <DialogHeader>
                 <DialogTitle className={`${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-lg font-semibold`}>
