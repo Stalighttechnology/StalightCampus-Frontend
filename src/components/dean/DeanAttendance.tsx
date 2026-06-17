@@ -67,7 +67,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
   const allAdmins = data?.summary?.admins || [];
   const adminPagination = data?.summary?.admin_pagination || { current_page: 1, total_pages: 1 };
   const hodPagination = data?.summary?.hod_pagination || { current_page: 1, total_pages: 1 };
-  
+
   const adminPresentCount = data?.summary?.admin_present_count ?? 0;
   const adminAbsentCount = (data?.summary?.total_admins ?? allAdmins.length) - adminPresentCount;
 
@@ -94,11 +94,6 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
       ) : (
         <>
           <div id="dean-attendance-stats-grid">
-            <div className="mb-4">
-              <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Today's Attendance</h2>
-              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Real-time presence summary of HODs and Admins</p>
-            </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <DashboardCard
                 title={`HODs Present ${isMonthly ? 'Days' : ''}`}
@@ -160,11 +155,10 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                             </span>
                           </div>
                         ) : (
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            h.status === 'present' 
-                              ? (theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800') 
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${h.status === 'present'
+                              ? (theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800')
                               : (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
-                          }`}>
+                            }`}>
                             {h.status === 'present' ? 'Present' : 'Absent'}
                           </span>
                         )}
@@ -225,22 +219,22 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                   {allAdmins.length > 0 ? allAdmins.map((a: any) => {
                     const isPresent = a.is_present || false;
                     return (
-                    <div key={a.id} className={`flex items-center justify-between p-3 rounded ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
-                      <div className="min-w-0 flex-1 mr-2">
-                        <div className="font-medium break-words">{a.name}</div>
-                        <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{a.email || a.mobile || ''}</div>
+                      <div key={a.id} className={`flex items-center justify-between p-3 rounded ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
+                        <div className="min-w-0 flex-1 mr-2">
+                          <div className="font-medium break-words">{a.name}</div>
+                          <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{a.email || a.mobile || ''}</div>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${isPresent
+                              ? (theme === 'dark' ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-100 text-indigo-800')
+                              : (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
+                            }`}>
+                            {isPresent ? (isMonthly ? 'Active in Period' : 'Present') : (isMonthly ? 'Inactive' : 'Absent')}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex-shrink-0">
-                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          isPresent 
-                            ? (theme === 'dark' ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-100 text-indigo-800') 
-                            : (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
-                        }`}>
-                          {isPresent ? (isMonthly ? 'Active in Period' : 'Present') : (isMonthly ? 'Inactive' : 'Absent')}
-                        </span>
-                      </div>
-                    </div>
-                  )}) : (
+                    )
+                  }) : (
                     <Card className="border-dashed border-2 shadow-none bg-transparent">
                       <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                         <div className={`p-4 rounded-full bg-primary/10 mb-3`}>
