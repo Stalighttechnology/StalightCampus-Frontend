@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { publicViewResultByToken, publicOrganizationInfoByToken, publicExportResultPDF } from '@/utils/coe_api'
+import { API_ENDPOINT } from '@/utils/config'
 import { useTheme } from '@/context/ThemeContext'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 
@@ -118,23 +119,35 @@ const ResultsView: React.FC = () => {
     setExporting(true);
     setMessage(null);
     try {
-      const response = await publicExportResultPDF(token, result.student?.usn || usn, resultType);
-      if (!response.ok) {
-        throw new Error('Failed to export PDF');
+      // Check if the user is on a mobile/tablet device (iOS, Android, etc.)
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // Direct download via window.open is extremely reliable on mobile and prompts native PDF download
+        let downloadUrl = `${API_ENDPOINT}/results/view/${token}/export-pdf/?usn=${encodeURIComponent(result.student?.usn || usn)}`;
+        if (resultType) {
+          downloadUrl += `&type=${encodeURIComponent(resultType)}`;
+        }
+        window.open(downloadUrl, '_blank');
+      } else {
+        // Blob-based download for desktop browsers
+        const response = await publicExportResultPDF(token, result.student?.usn || usn, resultType);
+        if (!response.ok) {
+          throw new Error('Failed to export PDF');
+        }
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.setAttribute('download', `${(result.student?.usn || usn || 'marks')}_provisional_marks_card.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        
+        setTimeout(() => {
+          window.URL.revokeObjectURL(downloadUrl);
+        }, 1500);
       }
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.setAttribute('download', `${(result.student?.usn || usn || 'marks')}_provisional_marks_card.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      
-      setTimeout(() => {
-        window.URL.revokeObjectURL(downloadUrl);
-      }, 1500);
-      
     } catch (e: any) {
       setMessage(e?.message || 'Export failed');
     } finally {
