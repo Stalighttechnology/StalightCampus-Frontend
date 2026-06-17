@@ -119,9 +119,14 @@ const HMSOverview = () => {
 
   const fetchHostelRooms = async (hostelId: number, floor?: string) => {
     setLoadingRooms(true);
-    const results = await getCachedRooms(hostelId, floor);
-    setRooms(results);
-    setLoadingRooms(false);
+    try {
+      const results = await getCachedRooms(hostelId, floor);
+      setRooms(results);
+    } catch (error) {
+      console.error("Error fetching rooms:", error);
+    } finally {
+      setLoadingRooms(false);
+    }
   };
 
   const handleRoomClick = async (room: Room) => {
@@ -304,7 +309,12 @@ const HMSOverview = () => {
                   <Select
                     disabled={!selectedHostel}
                     value={selectedFloor}
-                    onValueChange={setSelectedFloor}
+                    onValueChange={(v) => {
+                      setSelectedFloor(v);
+                      if (v) {
+                        setLoadingRooms(true);
+                      }
+                    }}
                     open={isFloorOpen}
                     onOpenChange={setIsFloorOpen}>
 

@@ -59,7 +59,11 @@ const getInitials = (name: string) => {
 const StudentManagement: React.FC = () => {
   const navigate = useNavigate();
   const { hostels, getCachedFloors, getCachedRooms, refreshData, updateRoomStudentCount, skeletonMode } = useHMSContext();
-  const { batches, branches, getSemestersForBranch, loading: academicLoading } = useAcademicContext();
+  const { batches, branches, getSemestersForBranch, loading: academicLoading, refreshAcademicData } = useAcademicContext();
+
+  useEffect(() => {
+    refreshAcademicData();
+  }, []);
   const [students, setStudents] = useState<HostelStudent[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [floorsForHostel, setFloorsForHostel] = useState<number[]>([]);
@@ -187,9 +191,14 @@ const StudentManagement: React.FC = () => {
     }
 
     setIsLoadingRooms(true);
-    const results = await getCachedRooms(hostelId, floor.toString());
-    setRoomsForHostel(results);
-    setIsLoadingRooms(false);
+    try {
+      const results = await getCachedRooms(hostelId, floor.toString());
+      setRoomsForHostel(results);
+    } catch (error) {
+      console.error("Error getting rooms for hostel:", error);
+    } finally {
+      setIsLoadingRooms(false);
+    }
   };
 
   const fetchSemesters = async (branchId?: string) => {
@@ -636,6 +645,8 @@ const StudentManagement: React.FC = () => {
                         const floor = parseInt(v);
                         setSelectedFloorInDialog(floor);
                         if (selectedHostelInDialog) {
+                          setRoomsForHostel([]);
+                          setIsLoadingRooms(true);
                           getRoomsForHostel(selectedHostelInDialog, floor);
                         }
                         setFormData((prev) => ({ ...prev, room: null, room_allotted: false }));

@@ -50,6 +50,7 @@ const RoomManagement: React.FC = () => {
   const [roomStudentCounts, setRoomStudentCounts] = useState<{[key: number]: number;}>({});
   const [isLoadingRooms, setIsLoadingRooms] = useState(false);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
+  const [isLoadingFloors, setIsLoadingFloors] = useState(false);
   const [formData, setFormData] = useState({
     no: '',
     name: '',
@@ -148,25 +149,37 @@ const RoomManagement: React.FC = () => {
   };
 
   const fetchHostelFloors = async (hostelId: number) => {
-    const floors = await getCachedFloors(hostelId);
-    const hostel = hostels.find(h => h.id === hostelId);
-    const floorCount = hostel ? hostel.floor_count || 1 : 1;
-    const generatedFloors = Array.from({ length: floorCount }, (_, i) => i);
-    const allFloors = Array.from(new Set([...floors, ...generatedFloors]));
-    setAvailableFloors(allFloors);
+    setIsLoadingFloors(true);
+    try {
+      const floors = await getCachedFloors(hostelId);
+      const hostel = hostels.find(h => h.id === hostelId);
+      const floorCount = hostel ? hostel.floor_count || 1 : 1;
+      const generatedFloors = Array.from({ length: floorCount }, (_, i) => i);
+      const allFloors = Array.from(new Set([...floors, ...generatedFloors]));
+      setAvailableFloors(allFloors);
+    } catch (error) {
+      console.error("Error fetching floors:", error);
+    } finally {
+      setIsLoadingFloors(false);
+    }
   };
 
   const fetchRoomsByHostel = async (hostelId: number, floor?: string) => {
     setIsLoadingRooms(true);
-    const results = await getCachedRooms(hostelId, floor);
-    setRooms(results);
+    try {
+      const results = await getCachedRooms(hostelId, floor);
+      setRooms(results);
 
-    const countsMap: {[key: number]: number;} = {};
-    results.forEach((room: any) => {
-      countsMap[room.id] = room.student_count || 0;
-    });
-    setRoomStudentCounts(countsMap);
-    setIsLoadingRooms(false);
+      const countsMap: {[key: number]: number;} = {};
+      results.forEach((room: any) => {
+        countsMap[room.id] = room.student_count || 0;
+      });
+      setRoomStudentCounts(countsMap);
+    } catch (error) {
+      console.error("Error fetching rooms:", error);
+    } finally {
+      setIsLoadingRooms(false);
+    }
   };
 
 
@@ -389,13 +402,22 @@ const RoomManagement: React.FC = () => {
                     <div className="w-full md:w-[160px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
                     <Select
-                      disabled={!selectedHostel}
+                      disabled={!selectedHostel || isLoadingFloors}
                       value={selectedFloorFilter}
-                      onValueChange={setSelectedFloorFilter}
+                      onValueChange={(v) => {
+                        setSelectedFloorFilter(v);
+                        if (v) {
+                          setIsLoadingRooms(true);
+                        }
+                      }}
                       open={isFloorOpen}
                       onOpenChange={setIsFloorOpen}>
                         <SelectTrigger className="w-full md:w-[160px] h-9 border bg-transparent p-2 focus:ring-1 font-normal text-md">
-                          <SelectValue placeholder="Choose Floor" />
+                          {isLoadingFloors ? (
+                            <span className="text-muted-foreground text-sm animate-pulse">Loading floors...</span>
+                          ) : (
+                            <SelectValue placeholder="Choose Floor" />
+                          )}
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All Floors</SelectItem>
@@ -586,122 +608,109 @@ const RoomManagement: React.FC = () => {
         <CardContent className="pt-6">
 
           {/* Room Matrix View */}
-          <AnimatePresence mode="wait">
-            {isLoadingRooms || skeletonMode ?
+          {isLoadingRooms || skeletonMode ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <SkeletonCard className="h-48" />
-                <SkeletonCard className="h-48" />
-                <SkeletonCard className="h-48" />
-                <SkeletonCard className="h-48" />
-                <SkeletonCard className="h-48" />
-                <SkeletonCard className="h-48" />
-              </div> :
-            !selectedFloorFilter ?
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center justify-center py-20 bg-muted/20 rounded-2xl border-2 border-dashed border-muted/50">
-              
-                <LayoutGrid className="w-12 h-12 text-muted-foreground/30 mb-4" />
-                <p className="text-muted-foreground font-medium text-lg text-center px-4">Select a floor to view and manage rooms</p>
-                <p className="text-muted-foreground/70 text-sm text-center px-4 mt-1">Choose a floor from the dropdown above to continue</p>
-              </motion.div> :
-
-            <motion.div
-              key={selectedHostel}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-8">
-              
-                {floors.
-              filter((f) => selectedFloorFilter === "all" || f.toString() === selectedFloorFilter).
-              map((floor) => {
-                const floorRooms = hostelRooms.filter((r) => (r.floor !== undefined ? r.floor : getFloorFromRoomNo(r.no)) === floor).sort((a, b) => parseInt(a.no) - parseInt(b.no));
-                return (
-                  <div key={floor} className="space-y-4">
-                        <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                          <LayoutGrid size={16} /> Floor {floor === 0 ? 'Ground' : floor}
-                        </h3>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                          {floorRooms.map((room) => {
-                        const studentCount = roomStudentCounts[room.id] || 0;
-                        const status = getRoomStatus(room, studentCount);
-                        return (
-                          <div
-                            key={room.id}
-                            onClick={() => {
-                              if (isEditMode) {
-                                handleEdit(room);
-                              } else {
-                                setViewingRoom(room);
-                                setIsViewDialogOpen(true);
-                              }
-                            }}
-                            className={`group relative p-4 rounded-xl border-2 transition-all hover:shadow-md cursor-pointer overflow-hidden ${getRoomColorClasses(status.color)}`}>
-                            
-                                <div className="space-y-1">
-                                  <div className="text-sm font-bold tracking-tight">{room.name}</div>
-                                  <div className="text-[10px] uppercase opacity-70 font-semibold">{getRoomTypeLabel(room.room_type)}</div>
-                                  <div className="flex items-center justify-center gap-1.5 mt-2">
-                                    <UsersIcon size={12} className="opacity-70" />
-                                    <span className="text-xs font-bold">{studentCount} / {getRoomCapacity(room.room_type)}</span>
-                                  </div>
-                                  <div className="mt-2 pt-2 border-t border-current/10 flex items-center justify-center gap-1 text-[12px] uppercase tracking-wider font-bold opacity-60 group-hover:opacity-100 transition-all">
-                                    <Eye size={15} />
-                                    <span>View</span>
-                                  </div>
+              <SkeletonCard className="h-48" />
+              <SkeletonCard className="h-48" />
+              <SkeletonCard className="h-48" />
+              <SkeletonCard className="h-48" />
+              <SkeletonCard className="h-48" />
+              <SkeletonCard className="h-48" />
+            </div>
+          ) : !selectedFloorFilter ? (
+            <div className="flex flex-col items-center justify-center py-20 bg-muted/20 rounded-2xl border-2 border-dashed border-muted/50">
+              <LayoutGrid className="w-12 h-12 text-muted-foreground/30 mb-4" />
+              <p className="text-muted-foreground font-medium text-lg text-center px-4">Select a floor to view and manage rooms</p>
+              <p className="text-muted-foreground/70 text-sm text-center px-4 mt-1">Choose a floor from the dropdown above to continue</p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {floors
+                .filter((f) => selectedFloorFilter === "all" || f.toString() === selectedFloorFilter)
+                .map((floor) => {
+                  const floorRooms = hostelRooms.filter((r) => (r.floor !== undefined ? r.floor : getFloorFromRoomNo(r.no)) === floor).sort((a, b) => parseInt(a.no) - parseInt(b.no));
+                  return (
+                    <div key={floor} className="space-y-4">
+                      <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <LayoutGrid size={16} /> Floor {floor === 0 ? 'Ground' : floor}
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {floorRooms.map((room) => {
+                          const studentCount = roomStudentCounts[room.id] || 0;
+                          const status = getRoomStatus(room, studentCount);
+                          return (
+                            <div
+                              key={room.id}
+                              onClick={() => {
+                                if (isEditMode) {
+                                  handleEdit(room);
+                                } else {
+                                  setViewingRoom(room);
+                                  setIsViewDialogOpen(true);
+                                }
+                              }}
+                              className={`group relative p-4 rounded-xl border-2 transition-all hover:shadow-md cursor-pointer overflow-hidden ${getRoomColorClasses(status.color)}`}
+                            >
+                              <div className="space-y-1">
+                                <div className="text-sm font-bold tracking-tight">{room.name}</div>
+                                <div className="text-[10px] uppercase opacity-70 font-semibold">{getRoomTypeLabel(room.room_type)}</div>
+                                <div className="flex items-center justify-center gap-1.5 mt-2">
+                                  <UsersIcon size={12} className="opacity-70" />
+                                  <span className="text-xs font-bold">{studentCount} / {getRoomCapacity(room.room_type)}</span>
                                 </div>
+                                <div className="mt-2 pt-2 border-t border-current/10 flex items-center justify-center gap-1 text-[12px] uppercase tracking-wider font-bold opacity-60 group-hover:opacity-100 transition-all">
+                                  <Eye size={15} />
+                                  <span>View</span>
+                                </div>
+                              </div>
 
-                                {/* Edit Overlay - Only in Edit Mode */}
-                                <AnimatePresence>
-                                  {isEditMode &&
-                              <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="absolute inset-0 bg-primary/5 backdrop-blur-[1px] border-2 border-primary/50 rounded-xl flex items-center justify-center z-10">
-                                
-                                      <Button
-                                  size="sm"
-                                  className="h-8 px-3 text-[10px] font-bold shadow-lg bg-primary hover:bg-primary/90"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEdit(room);
-                                  }}>
-                                  
-                                        <Edit2 size={12} className="mr-1.5" /> Edit Details
-                                      </Button>
-                                    </motion.div>
-                              }
-                                </AnimatePresence>
-                              </div>);
-
-                      })}
-                        </div>
-                      </div>);
-
-              })
-              }
-                {hostelRooms.length === 0 &&
-              <Card className="border-dashed py-12">
-                    <div className="text-center space-y-2">
-                      <LayoutGrid className="w-12 h-12 mx-auto text-muted-foreground opacity-20" />
-                      <p className="text-muted-foreground">No rooms found for this hostel.</p>
+                              {/* Edit Overlay - Only in Edit Mode */}
+                              <AnimatePresence>
+                                {isEditMode && (
+                                  <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="absolute inset-0 bg-primary/5 backdrop-blur-[1px] border-2 border-primary/50 rounded-xl flex items-center justify-center z-10"
+                                  >
+                                    <Button
+                                      size="sm"
+                                      className="h-8 px-3 text-[10px] font-bold shadow-lg bg-primary hover:bg-primary/90"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEdit(room);
+                                      }}
+                                    >
+                                      <Edit2 size={12} className="mr-1.5" /> Edit Details
+                                    </Button>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </Card>
-              }
-                {hostelRooms.length > 0 && floors.filter((f) => selectedFloorFilter === "all" || f.toString() === selectedFloorFilter).length === 0 &&
-              <Card className="border-dashed py-12">
-                    <div className="text-center space-y-2">
-                      <LayoutGrid className="w-12 h-12 mx-auto text-muted-foreground opacity-20" />
-                      <p className="text-muted-foreground">No rooms found for the selected floor.</p>
-                    </div>
-                  </Card>
-              }
-              </motion.div>
-            }
-          </AnimatePresence>
+                  );
+                })}
+              {hostelRooms.length === 0 && (
+                <Card className="border-dashed py-12">
+                  <div className="text-center space-y-2">
+                    <LayoutGrid className="w-12 h-12 mx-auto text-muted-foreground opacity-20" />
+                    <p className="text-muted-foreground">No rooms found for this hostel.</p>
+                  </div>
+                </Card>
+              )}
+              {hostelRooms.length > 0 && floors.filter((f) => selectedFloorFilter === "all" || f.toString() === selectedFloorFilter).length === 0 && (
+                <Card className="border-dashed py-12">
+                  <div className="text-center space-y-2">
+                    <LayoutGrid className="w-12 h-12 mx-auto text-muted-foreground opacity-20" />
+                    <p className="text-muted-foreground">No rooms found for the selected floor.</p>
+                  </div>
+                </Card>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
       {/* Room Details/Residents Dialog (Read-only) */}

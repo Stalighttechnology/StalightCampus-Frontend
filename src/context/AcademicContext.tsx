@@ -107,15 +107,7 @@ export const AcademicProvider: React.FC<{children: React.ReactNode;}> = ({ child
     }
   };
 
-  useEffect(() => {
-    const role = sessionStorage.getItem("role");
-    const isWardenPath = window.location.pathname.includes('/warden');
-
-    if (!fetchRef.current && role !== 'warden' && !isWardenPath) {
-      refreshAcademicData();
-      fetchRef.current = true;
-    }
-  }, []);
+  // Left empty so data fetching is triggered lazily by consumer components when they mount.
 
   return (
     <AcademicContext.Provider value={{ batches, branches, loading, refreshAcademicData, getSemestersForBranch }}>
