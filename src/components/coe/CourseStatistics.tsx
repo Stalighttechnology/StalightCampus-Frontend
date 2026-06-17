@@ -313,41 +313,48 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="course-statistics-table-wrapper w-full overflow-x-auto">
-              <Table className="min-w-full">
-                <TableHeader>
-                  <TableRow className="sm:table-row">
-                    <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Subject Code</TableHead>
-                    <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Subject Name</TableHead>
-                    <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Total Students</TableHead>
-                    <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Applications</TableHead>
-                    <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Application Rate</TableHead>
-                    <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(data?.courses || []).map((course: any) =>
-                    <TableRow key={course.subject_id} className="sm:table-row">
-                      <TableCell className="font-semibold sm:font-medium text-[18px] sm:text-sm py-4 sm:py-2" data-label="Subject Code">{course.subject_code}</TableCell>
-                      <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Subject Name">{course.subject_name}</TableCell>
-                      <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Total Students">{course.total_students}</TableCell>
-                      <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Applications">{course.applied_students}</TableCell>
-                      <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Application Rate">
-                        <span className={`font-semibold ${getApplicationRateColor(course.application_rate)}`}>
-                          {course.application_rate}%
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Status">{getApplicationRateBadge(course.application_rate)}</TableCell>
+            {(data?.courses || []).length > 0 ? (
+              <div className="course-statistics-table-wrapper w-full overflow-x-auto">
+                <Table className="min-w-full">
+                  <TableHeader>
+                    <TableRow className="sm:table-row">
+                      <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Subject Code</TableHead>
+                      <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Subject Name</TableHead>
+                      <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Total Students</TableHead>
+                      <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Applications</TableHead>
+                      <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Application Rate</TableHead>
+                      <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Status</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            {(data?.courses?.length ?? 0) === 0 &&
-              <div className="text-center py-8 text-muted-foreground">
-                No course statistics found for the selected filters.
+                  </TableHeader>
+                  <TableBody>
+                    {(data?.courses || []).map((course: any) =>
+                      <TableRow key={course.subject_id} className="sm:table-row">
+                        <TableCell className="font-semibold sm:font-medium text-[18px] sm:text-sm py-4 sm:py-2" data-label="Subject Code">{course.subject_code}</TableCell>
+                        <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Subject Name">{course.subject_name}</TableCell>
+                        <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Total Students">{course.total_students}</TableCell>
+                        <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Applications">{course.applied_students}</TableCell>
+                        <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Application Rate">
+                          <span className={`font-semibold ${getApplicationRateColor(course.application_rate)}`}>
+                            {course.application_rate}%
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Status">{getApplicationRateBadge(course.application_rate)}</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
-            }
+            ) : (
+              <div className="border-dashed border-2 border-border rounded-xl flex flex-col items-center justify-center py-16 text-center">
+                <div className="bg-primary/5 p-6 rounded-full mb-4">
+                  <BookOpen className="w-10 h-10 text-primary/40" />
+                </div>
+                <h4 className="text-lg font-semibold mb-1 text-foreground">No stats found</h4>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                  No subject-wise application statistics were found for the selected filters.
+                </p>
+              </div>
+            )}
           </CardContent>
 
           {totalPages > 1 && (
