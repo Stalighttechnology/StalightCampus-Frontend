@@ -25,6 +25,7 @@ import DeanFinance from "../dean/DeanFinance";
 import InvoiceManagement from "../FeesManager/InvoiceManagement";
 import PaymentMonitoring from "../FeesManager/PaymentMonitoring";
 import Reports from "../FeesManager/Reports";
+import CampusLocationManager from "../dean/CampusLocationManager";
 
 interface OrgAdminDashboardProps {
   user: any;
@@ -100,6 +101,8 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
         return <PaymentMonitoring isReadOnly={true} />;
       case "reports":
         return <Reports isReadOnly={true} />;
+      case "campus-locations":
+        return <CampusLocationManager />;
 
       default:
         return <AdminStats setError={setError} onNavigate={handlePageChange} />;

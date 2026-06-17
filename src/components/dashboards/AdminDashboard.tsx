@@ -26,6 +26,7 @@ import StudentInfoScanner from "../hod/StudentInfoScanner";
 import GoogleSetup from "../admin/GoogleSetup";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 import BillingManagement from "../org_admin/BillingManagement";
+import CampusLocationManager from "../dean/CampusLocationManager";
 
 import {
   Users,
@@ -208,6 +209,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <StudentInfoScanner />
+          </div>);
+
+      case "campus-locations":
+        return (
+          <div>
+            <CampusLocationManager />
           </div>);
 
       case "google-setup":

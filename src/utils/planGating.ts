@@ -6,6 +6,8 @@ export const PLAN_TIERS: Record<string, number> = {
 };
 
 export const PAGE_REQUIRED_TIERS: Record<string, number> = {
+
+
   // Pro Features (Tier 2)
   'components': 2,
   'templates': 2,
