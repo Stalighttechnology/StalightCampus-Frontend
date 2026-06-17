@@ -133,7 +133,7 @@ const StudentManagement: React.FC = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      
+
       toast({
         title: 'Success',
         description: 'Hostel students PDF downloaded successfully',
@@ -311,10 +311,10 @@ const StudentManagement: React.FC = () => {
 
       // Invalidate context cache to ensure other pages fetch fresh data and statistics (like occupancy rate)
       await refreshData(true);
-      
+
       // Update local state optimistically/instantly for real-time response
       setStudents((prev) => prev.map((s) => s.id === editingStudent.id ? updatedStudent : s));
-      
+
       // Fetch fresh data silently in the background
       fetchStudents(true);
 
@@ -366,7 +366,7 @@ const StudentManagement: React.FC = () => {
                 <h2 className="text-2xl font-semibold leading-none tracking-tight">Student Management</h2>
                 <p className="text-md text-muted-foreground">Monitor and manage hostel student allocations and dues.</p>
               </div>
-              
+
               {/* Desktop Export PDF Button */}
               <Button
                 variant="outline"
@@ -396,9 +396,9 @@ const StudentManagement: React.FC = () => {
               <div className="space-y-2">
                 <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Batch</Label>
                 {skeletonMode ?
-                <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
+                  <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                <Select value={filters.batch} onValueChange={(v) => handleFilterChange('batch', v)}>
+                  <Select value={filters.batch} onValueChange={(v) => handleFilterChange('batch', v)}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
                       <SelectValue placeholder="Select Batch" />
                     </SelectTrigger>
@@ -411,14 +411,14 @@ const StudentManagement: React.FC = () => {
               <div className="space-y-2">
                 <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">{translateTerminology("Branch")}</Label>
                 {skeletonMode ?
-                <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
+                  <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                <Select
-                  disabled={!filters.batch}
-                  open={isBranchOpen}
-                  onOpenChange={setIsBranchOpen}
-                  value={filters.branch}
-                  onValueChange={(v) => handleFilterChange('branch', v)}>
+                  <Select
+                    disabled={!filters.batch}
+                    open={isBranchOpen}
+                    onOpenChange={setIsBranchOpen}
+                    value={filters.branch}
+                    onValueChange={(v) => handleFilterChange('branch', v)}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
                       <SelectValue placeholder={translateTerminology("Select Branch")} />
                     </SelectTrigger>
@@ -431,14 +431,14 @@ const StudentManagement: React.FC = () => {
               <div className="space-y-2">
                 <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">{translateTerminology("Semester")}</Label>
                 {skeletonMode ?
-                <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
+                  <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                <Select
-                  disabled={!filters.branch}
-                  open={isSemesterOpen}
-                  onOpenChange={setIsSemesterOpen}
-                  value={filters.semester}
-                  onValueChange={(v) => handleFilterChange('semester', v)}>
+                  <Select
+                    disabled={!filters.branch}
+                    open={isSemesterOpen}
+                    onOpenChange={setIsSemesterOpen}
+                    value={filters.semester}
+                    onValueChange={(v) => handleFilterChange('semester', v)}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
                       <SelectValue placeholder={translateTerminology("Select Semester")} />
                     </SelectTrigger>
@@ -457,24 +457,24 @@ const StudentManagement: React.FC = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   {skeletonMode ?
-                  <div className="h-9 w-full rounded-md bg-muted animate-pulse border" /> :
+                    <div className="h-9 w-full rounded-md bg-muted animate-pulse border" /> :
 
-                  <>
-                    <Input
-                      placeholder="USN, Name, Email..."
-                      className="h-9 pl-10 pr-12 bg-background border-muted-foreground/20 focus:border-primary/50 transition-colors"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)} />
-                    {searchQuery && (
-                      <button
-                        type="button"
-                        onClick={() => setSearchQuery("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-                      >
-                        Clear
-                      </button>
-                    )}
-                  </>
+                    <>
+                      <Input
+                        placeholder="USN, Name, Email..."
+                        className="h-9 pl-10 pr-12 bg-background border-muted-foreground/20 focus:border-primary/50 transition-colors"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)} />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery("")}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </>
 
                   }
                 </div>
@@ -484,9 +484,9 @@ const StudentManagement: React.FC = () => {
         </CardHeader>
         <CardContent className="p-0">
           {loading || skeletonMode ?
-          <div className="p-6"><SkeletonTable rows={10} columns={7} /></div> :
+            <div className="p-6"><SkeletonTable rows={10} columns={7} /></div> :
 
-          <>
+            <>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -500,8 +500,8 @@ const StudentManagement: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     {students.length > 0 ?
-                  students.map((student) =>
-                  <TableRow key={student.id} className="hover:bg-muted/30 transition-colors">
+                      students.map((student) =>
+                        <TableRow key={student.id} className="hover:bg-muted/30 transition-colors">
                           <TableCell className="font-medium">{student.usn}</TableCell>
                           <TableCell>
                             <div className="flex flex-col">
@@ -511,18 +511,18 @@ const StudentManagement: React.FC = () => {
                           </TableCell>
                           <TableCell>
                             {student.room_name ?
-                      <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2">
                                 <span className="text-sm">{student.room_hostel_name} - {student.room_name}</span>
                               </div> :
 
-                      <span className="text-xs text-muted-foreground italic">Not Assigned</span>
-                      }
+                              <span className="text-xs text-muted-foreground italic">Not Assigned</span>
+                            }
                           </TableCell>
                           <TableCell className="text-center">
                             {student.room_allotted ?
-                      <Badge className="bg-green-500/10 text-green-600 border-green-200 hover:bg-green-500/20">Allotted</Badge> :
-                      <Badge variant="outline" className="text-muted-foreground border-dashed">Pending</Badge>
-                      }
+                              <Badge className="bg-green-500/10 text-green-600 border-green-200 hover:bg-green-500/20">Allotted</Badge> :
+                              <Badge variant="outline" className="text-muted-foreground border-dashed">Pending</Badge>
+                            }
                           </TableCell>
                           <TableCell className="text-right px-6">
                             <Button variant="ghost" size="icon" onClick={() => handleEdit(student)} className="h-8 w-8 text-primary hover:bg-primary/10">
@@ -530,17 +530,28 @@ const StudentManagement: React.FC = () => {
                             </Button>
                           </TableCell>
                         </TableRow>
-                  ) :
+                      ) :
 
-                  <TableRow>
-                        <TableCell colSpan={5} className="text-center py-20 text-muted-foreground">
-                          {!appliedSearch.trim() && (!filters.batch || !filters.branch || !filters.semester) ?
-                            "Select filters or type a search query to view student records." :
-                            "No student records found."
-                          }
+                      <TableRow className="hover:bg-transparent">
+                        <TableCell colSpan={5} className="p-6">
+                          <div className="flex flex-col items-center justify-center py-16 bg-muted/10 rounded-2xl border-2 border-dashed border-muted/50">
+                            <UserCircle2 className="w-12 h-12 text-muted-foreground/30 mb-4" />
+                            <p className="text-muted-foreground font-medium text-lg text-center px-4">
+                              {!appliedSearch.trim() && (!filters.batch || !filters.branch || !filters.semester) ?
+                                "Select filters or type a search query to view student records." :
+                                "No student records found."
+                              }
+                            </p>
+                            <p className="text-muted-foreground/60 text-sm text-center px-4 mt-1">
+                              {!appliedSearch.trim() && (!filters.batch || !filters.branch || !filters.semester) ?
+                                "Choose a batch and branch above, or enter search terms to retrieve students." :
+                                "We couldn't find any results. Please check your spelling or try different filters."
+                              }
+                            </p>
+                          </div>
                         </TableCell>
                       </TableRow>
-                  }
+                    }
                   </TableBody>
                 </Table>
               </div>
@@ -586,13 +597,13 @@ const StudentManagement: React.FC = () => {
             <DialogTitle>Update Student HMS Details</DialogTitle>
           </DialogHeader>
           {editingStudent &&
-          <div className="space-y-6 pt-4">
+            <div className="space-y-6 pt-4">
               <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex gap-4 items-center">
                 <Avatar className="w-12 h-12 border border-primary/10">
                   {editingStudent.profile_picture ? (
-                    <AvatarImage 
-                      src={getProfilePicUrl(editingStudent.profile_picture)} 
-                      alt={editingStudent.name} 
+                    <AvatarImage
+                      src={getProfilePicUrl(editingStudent.profile_picture)}
+                      alt={editingStudent.name}
                       className="object-cover"
                     />
                   ) : null}
@@ -617,23 +628,23 @@ const StudentManagement: React.FC = () => {
                   <div className="space-y-2">
                     <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Assign Hostel</Label>
                     <Select value={selectedHostelInDialog?.toString() || ''} onValueChange={(v) => {
-                    const id = parseInt(v);
-                    setSelectedHostelInDialog(id);
-                    setSelectedFloorInDialog(null);
-                    setRoomsForHostel([]);
-                    getFloorsForHostel(id);
-                    setFormData((prev) => ({ ...prev, room: null, room_allotted: false }));
-                  }}>
+                      const id = parseInt(v);
+                      setSelectedHostelInDialog(id);
+                      setSelectedFloorInDialog(null);
+                      setRoomsForHostel([]);
+                      getFloorsForHostel(id);
+                      setFormData((prev) => ({ ...prev, room: null, room_allotted: false }));
+                    }}>
                       <SelectTrigger><SelectValue placeholder="Select hostel" /></SelectTrigger>
                       <SelectContent>
                         {hostels.length > 0 ? (
-                           hostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
+                          hostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
                         ) : (
                           <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
                             <p className="text-xs text-muted-foreground">No hostels found</p>
-                            <Button 
-                              type="button" 
-                              size="sm" 
+                            <Button
+                              type="button"
+                              size="sm"
                               className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
                               onPointerDown={(e) => {
                                 e.preventDefault();
@@ -654,32 +665,32 @@ const StudentManagement: React.FC = () => {
                     <div className="space-y-2">
                       <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Select Floor</Label>
                       <Select
-                      value={selectedFloorInDialog?.toString() || ''}
-                      onValueChange={(v) => {
-                        const floor = parseInt(v);
-                        setSelectedFloorInDialog(floor);
-                        if (selectedHostelInDialog) {
-                          setRoomsForHostel([]);
-                          setIsLoadingRooms(true);
-                          getRoomsForHostel(selectedHostelInDialog, floor);
-                        }
-                        setFormData((prev) => ({ ...prev, room: null, room_allotted: false }));
-                      }}
-                       disabled={!selectedHostelInDialog || hostels.length === 0 || isLoadingFloors}>
-                      
+                        value={selectedFloorInDialog?.toString() || ''}
+                        onValueChange={(v) => {
+                          const floor = parseInt(v);
+                          setSelectedFloorInDialog(floor);
+                          if (selectedHostelInDialog) {
+                            setRoomsForHostel([]);
+                            setIsLoadingRooms(true);
+                            getRoomsForHostel(selectedHostelInDialog, floor);
+                          }
+                          setFormData((prev) => ({ ...prev, room: null, room_allotted: false }));
+                        }}
+                        disabled={!selectedHostelInDialog || hostels.length === 0 || isLoadingFloors}>
+
                         <SelectTrigger>
                           {isLoadingFloors ? <span className="animate-pulse">Loading Floors...</span> : <SelectValue placeholder="Select Floor" />}
                         </SelectTrigger>
                         <SelectContent>
                           {floorsForHostel.length > 0 ?
-                        floorsForHostel.map((floor) =>
-                        <SelectItem key={floor} value={floor.toString()}>
+                            floorsForHostel.map((floor) =>
+                              <SelectItem key={floor} value={floor.toString()}>
                                 {floor === 0 ? 'Ground Floor' : `${floor}${floor === 1 ? 'st' : floor === 2 ? 'nd' : floor === 3 ? 'rd' : 'th'} Floor`}
                               </SelectItem>
-                        ) :
+                            ) :
 
-                        <SelectItem value="none" disabled>No floors found</SelectItem>
-                        }
+                            <SelectItem value="none" disabled>No floors found</SelectItem>
+                          }
                         </SelectContent>
                       </Select>
                     </div>
@@ -695,20 +706,20 @@ const StudentManagement: React.FC = () => {
                         </SelectTrigger>
                         <SelectContent className="max-h-[250px]">
                           <div className="p-2 border-b border-muted/50" onPointerDown={(e) => e.stopPropagation()}>
-                            <Button 
-                              type="button" 
-                              size="sm" 
+                            <Button
+                              type="button"
+                              size="sm"
                               className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white flex items-center justify-center gap-1"
                               onPointerDown={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 setIsDialogOpen(false);
-                                navigate('/hms/rooms', { 
-                                  state: { 
-                                    openAddRoom: true, 
-                                    hostelId: selectedHostelInDialog, 
-                                    floor: selectedFloorInDialog 
-                                  } 
+                                navigate('/hms/rooms', {
+                                  state: {
+                                    openAddRoom: true,
+                                    hostelId: selectedHostelInDialog,
+                                    floor: selectedFloorInDialog
+                                  }
                                 });
                               }}
                             >
@@ -716,10 +727,10 @@ const StudentManagement: React.FC = () => {
                             </Button>
                           </div>
                           {roomsForHostel.map((r) =>
-                        <SelectItem key={r.id} value={r.id.toString()} disabled={r.student_count >= r.capacity && editingStudent.room !== r.id}>
+                            <SelectItem key={r.id} value={r.id.toString()} disabled={r.student_count >= r.capacity && editingStudent.room !== r.id}>
                               {r.name} ({r.student_count}/{r.capacity})
                             </SelectItem>
-                        )}
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
