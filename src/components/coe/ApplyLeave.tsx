@@ -251,39 +251,16 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   const renderStatus = (status: LeaveStatus) => {
+    const displayStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    const bgClass = status === 'Approved' ? 'text-green-700 bg-green-100' :
+      status === 'Rejected' ? 'text-red-700 bg-red-100' :
+        'text-yellow-700 bg-yellow-100';
 
-    const baseClass = 'flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap';
-    switch (status) {
-      case 'Pending':
-        return (
-          <div className={`${baseClass} ${theme === 'dark' ? 'bg-yellow-900/30 text-yellow-500' : 'bg-yellow-100 text-yellow-800'}`}>
-            <Circle className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 ${theme === 'dark' ? 'text-yellow-500' : 'text-yellow-500'}`} fill="currentColor" />
-            <span>Pending</span>
-          </div>);
-
-      case 'Approved':
-        return (
-          <div className={`${baseClass} ${theme === 'dark' ? 'bg-green-900/30 text-green-500' : 'bg-green-100 text-green-700'}`}>
-            <CalendarCheck2 className={`w-3 h-3 sm:w-4 sm:h-4 ${theme === 'dark' ? 'text-green-500' : 'text-green-600'}`} />
-            <span>Approved</span>
-          </div>);
-
-      case 'Rejected':
-        return (
-          <div className={`${baseClass} ${theme === 'dark' ? 'bg-red-900/30 text-red-500' : 'bg-red-100 text-red-700'}`}>
-            <CalendarX2 className={`w-3 h-3 sm:w-4 sm:h-4 ${theme === 'dark' ? 'text-red-500' : 'text-red-600'}`} />
-            <span>Rejected</span>
-          </div>);
-
-      default:
-
-        return (
-          <div className={`${baseClass} ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800'}`}>
-            <Circle className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`} fill="currentColor" />
-            <span>{status || 'Unknown'}</span>
-          </div>);
-
-    }
+    return (
+      <span className={`px-3 py-1 text-xs font-semibold rounded-full inline-block whitespace-nowrap ${bgClass}`}>
+        {displayStatus}
+      </span>
+    );
   };
 
   return (
@@ -292,11 +269,13 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
         {/* Leave Application Form - Left Side */}
         <Card id="coe-leave-application-form" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4 lg:p-6 border-b h-14 sm:h-16 lg:h-20">
-            <CardTitle className={`text-xl sm:text-xl lg:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1 font-normal">Your leave request will be routed to the <span className="font-medium text-primary">Dean</span> for approval.</p>
+          <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+            <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
+            <div className={`p-3 rounded-lg border text-xs sm:text-sm ${theme === 'dark' ? 'bg-blue-900/10 border-blue-800/50 text-blue-300' : 'bg-blue-50/50 border-blue-200 text-blue-800'}`}>
+              Your leave request will be routed to the <span className="font-semibold text-primary">Dean</span> for approval.
+            </div>
             {/* Title */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
               <Label htmlFor="title" className={`text-base sm:text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title <span className="text-red-500">*</span></Label>
@@ -432,7 +411,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
             </div>
 
           </CardHeader>
-          <CardContent className="p-2 sm:p-4 lg:p-6">
+          <CardContent className="flex-1 p-4 pt-4 sm:pt-1 max-h-[500px] overflow-y-auto custom-scrollbar">
             {loading ?
             <div className="space-y-4">
                 <SkeletonList items={5} />
@@ -452,72 +431,80 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </p>
               </div> :
 
-            <div className="space-y-4">
+            <div className="overflow-x-auto thin-scrollbar">
                 {/* Mobile View: Cards */}
                 <div className="sm:hidden space-y-3 max-h-[500px] overflow-y-auto thin-scrollbar">
-                  {filteredLeaveList.map((leave) =>
-                <div key={leave.id} className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-background border-border hover:bg-accent/50' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="font-semibold text-base truncate pr-2">{leave.title}</div>
-                        <div className="shrink-0">{renderStatus(leave.status)}</div>
+                  {filteredLeaveList.map((leave) => (
+                    <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="font-medium">{leave.title}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {leave.start_date} to {leave.end_date}
+                          </div>
+                        </div>
+                        <div className="shrink-0">
+                          {renderStatus(leave.status)}
+                        </div>
                       </div>
-                      <div className={`text-sm mb-3 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {leave.start_date} to {leave.end_date}
-                      </div>
-                      <div className="flex items-center justify-between mt-auto">
-                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>Applied: {leave.applied_on}</span>
-                        <Button
-                      size="sm"
-                      variant="outline"
-                      className={`h-9 px-4 text-sm font-semibold ${theme === 'dark' ? 'bg-muted/20 text-foreground border-border' : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20'}`}
-                      onClick={() => setViewReason(leave.reason)}>
-                      
+                      <div className="mt-3">
+                        <button
+                          onClick={() => setViewReason(leave.reason)}
+                          className={`w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition border ${
+                            theme === 'dark'
+                              ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                              : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                          }`}
+                        >
                           View Reason
-                        </Button>
+                        </button>
                       </div>
                     </div>
-                )}
+                  ))}
                 </div>
 
                 {/* Tablet/Desktop View: Table */}
-                <div className="hidden sm:block overflow-x-auto thin-scrollbar">
-                  <table className="w-full text-sm text-left border-collapse">
-                    <thead className={`border-b ${theme === 'dark' ? 'border-border bg-background' : 'border-gray-200 bg-gray-50'}`}>
-                      <tr>
-                        <th className="py-3 px-4 font-semibold">Title</th>
-                        <th className="py-3 px-4 font-semibold">Period</th>
-                        <th className="py-3 px-4 font-semibold">Status</th>
-                        <th className="py-3 px-4 font-semibold text-right">Action</th>
+                <table className="hidden sm:table w-full text-sm text-left border-collapse">
+                  <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
+                    <tr>
+                      <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</th>
+                      <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
+                      <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
+                      <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredLeaveList.map((leave) => (
+                      <tr
+                        key={leave.id}
+                        className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
+                        <td className={`py-3 px-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</td>
+                        <td className={`py-3 px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {leave.start_date} to {leave.end_date}
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className={`${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                            onClick={() => setViewReason(leave.reason)}>
+                            View
+                          </Button>
+                        </td>
+                        <td className="py-3 px-4">
+                          {renderStatus(leave.status)}
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {filteredLeaveList.map((leave) =>
-                    <tr key={leave.id} className={`border-b transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/30' : 'border-gray-100 hover:bg-gray-50'}`}>
-                          <td className="py-4 px-4 font-medium max-w-[200px] truncate">{leave.title}</td>
-                          <td className="py-4 px-4 whitespace-nowrap">{leave.start_date} to {leave.end_date}</td>
-                          <td className="py-4 px-4">{renderStatus(leave.status)}</td>
-                          <td className="py-4 px-4 text-right">
-                            <Button
-                          size="sm"
-                          variant="outline"
-                          className={`h-8 text-xs font-semibold ${theme === 'dark' ? 'bg-muted/10 text-foreground border-border' : 'bg-primary/5 text-primary border-primary/10 hover:bg-primary/10'}`}
-                          onClick={() => setViewReason(leave.reason)}>
-                          
-                              View
-                            </Button>
-                          </td>
-                        </tr>
-                    )}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             }
 
           </CardContent>
 
           {/* Pagination Controls */}
-          {!loading && filteredLeaveList.length > 0 && pagination.total_pages > 0 && (
+          {!loading && filteredLeaveList.length > 0 && pagination.total_pages > 1 && (
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
               <span>
                 Showing {(pagination.page - 1) * itemsPerPage + 1} to {Math.min(pagination.page * itemsPerPage, pagination.total)} of {pagination.total} requests
