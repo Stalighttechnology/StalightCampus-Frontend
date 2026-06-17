@@ -36,8 +36,32 @@
     max-width: 100%;
   }
 
+  .course-statistics-table-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .course-statistics-table-wrapper > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
   .course-statistics-table-wrapper table {
-    font-size: 18px !important;
+    font-size: 16px;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   /* Table - convert to mobile card layout */
@@ -47,43 +71,58 @@
 
   .course-statistics-table-wrapper tbody {
     display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   .course-statistics-table-wrapper tr {
     display: block !important;
-    margin-bottom: 16px !important;
-    padding: 16px !important;
+    width: 100% !important;
+    max-width: 100% !important;
     border: 1px solid #e5e7eb !important;
     border-radius: 12px !important;
-    background: #fff !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 16px !important;
+    padding: 16px !important;
+    background: white !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .dark .course-statistics-table-wrapper tr {
+    background: hsl(var(--card)) !important;
+    border-color: hsl(var(--border)) !important;
+    box-shadow: none !important;
   }
 
   .course-statistics-table-wrapper td {
-    display: grid !important;
-    grid-template-columns: 130px 1fr !important; /* Fixed width for labels, rest for values */
-    gap: 12px !important;
-    border: 0 !important;
-    text-align: left !important;
-    align-items: start !important;
-    font-size: 18px !important;
-  }
-
-  .course-statistics-table-wrapper td[data-label="Status"] {
+    display: flex !important;
     align-items: center !important;
-  }
-
-  .course-statistics-table-wrapper td[data-label="Status"] > * {
-    justify-self: start !important;
-    width: fit-content !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    padding: 8px 0 !important;
+    border: none !important;
+    text-align: right !important;
+    width: 100% !important;
   }
 
   .course-statistics-table-wrapper td[data-label]::before {
     content: attr(data-label);
-    font-weight: 600 !important;
-    color: #1f2937 !important; /* Darker for better contrast */
-    font-size: 18px !important;
+    font-weight: 500 !important;
+    color: #4b5563 !important;
     display: block !important;
+    width: auto !important;
+    min-width: 120px !important;
+    flex: 0 0 120px !important;
+    margin-right: 0 !important;
+    font-size: 14px !important;
+    text-align: left !important;
+  }
+
+  .dark .course-statistics-table-wrapper td[data-label]::before {
+    color: hsl(var(--muted-foreground)) !important;
   }
 
   /* Pagination */

@@ -630,6 +630,7 @@ export interface MakeupRequest {
   id: number;
   student_name: string;
   student_usn: string;
+  student_profile_pic?: string | null;
   subject_name: string;
   subject_code: string;
   batch: string;
@@ -650,6 +651,7 @@ export interface RevaluationRequest {
   id: number;
   student_name: string;
   student_usn: string;
+  student_profile_pic?: string | null;
   subject_name: string;
   subject_code: string;
   batch: string;

@@ -575,9 +575,9 @@ const AdminAnnouncementManagement = () => {
                   {roles.map((role) => {
                     const isSelected = formData.target_roles?.includes(role) || false;
                     return (
-                      <button
+                      <div
                         key={role}
-                        type="button"
+                        role="button"
                         onClick={() => {
                           if (isSelected) {
                             setFormData({
@@ -591,7 +591,7 @@ const AdminAnnouncementManagement = () => {
                             });
                           }
                         }}
-                        className={`flex items-center gap-3 p-3 rounded-lg border text-sm font-medium transition-all duration-200 ${isSelected
+                        className={`flex items-center gap-3 p-3 rounded-lg border text-sm font-medium transition-all duration-200 cursor-pointer select-none ${isSelected
                             ? theme === 'dark'
                               ? 'bg-primary/20 border-primary text-primary-foreground shadow-sm'
                               : 'bg-primary/10 border-primary text-primary shadow-sm'
@@ -606,7 +606,7 @@ const AdminAnnouncementManagement = () => {
                           className="pointer-events-none"
                         />
                         <span className="capitalize">{role.replace('_', ' ')}</span>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>

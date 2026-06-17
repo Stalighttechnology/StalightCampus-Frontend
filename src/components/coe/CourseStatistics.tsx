@@ -5,7 +5,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
-import { BookOpen, Users, Download } from "lucide-react";
+import { BookOpen, Users, Download, Loader2, FileDownIcon } from "lucide-react";
 import { getCourseApplicationStats, getFilterOptions, getSemesters, FilterOptions } from "../../utils/coe_api";
 import { SkeletonStatsGrid, SkeletonTable } from "../ui/skeleton";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -284,16 +284,31 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
       {/* Course Statistics Table */}
       {data &&
         <Card className="course-statistics-table-card">
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <CardHeader className="p-4 sm:p-6">
+            <div className="flex flex-row items-center justify-between gap-4 w-full">
               <CardTitle className="text-lg sm:text-xl font-semibold">Subject-wise Application Statistics</CardTitle>
-              <Button
-                size="sm"
-                onClick={handleExport}
-                className="w-full sm:w-auto h-12 sm:h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 text-[18px] sm:text-sm font-semibold sm:font-semibold">
+              
+              {/* Desktop Export Button */}
+              <div className="hidden sm:block">
+                <Button
+                  size="sm"
+                  onClick={handleExport}
+                  disabled={exporting || !data || (data.courses || []).length === 0}
+                  className="h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 text-sm font-normal">
+                  <Download className="mr-2 h-4 w-4" />
+                  {exporting ? 'Exporting...' : 'Export PDF'}
+                </Button>
+              </div>
 
-                <Download className="mr-2 h-4 w-4" />
-                {exporting ? 'Exporting...' : 'Export PDF'}
+              {/* Mobile Export Button (same line, icon-only) */}
+              <Button
+                onClick={handleExport}
+                disabled={exporting || !data || (data.courses || []).length === 0}
+                size="icon"
+                variant="outline"
+                className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+              >
+                {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
               </Button>
             </div>
           </CardHeader>

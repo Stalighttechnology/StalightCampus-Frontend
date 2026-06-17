@@ -18,6 +18,23 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 import { SkeletonTable } from '@/components/ui/skeleton';
 import { useTheme } from '@/context/ThemeContext';
 import { toast } from 'sonner';
+import { API_BASE_URL } from '@/utils/config';
+
+const getPhotoUrl = (photoPath?: string | null) => {
+  if (!photoPath) return null;
+  return photoPath.startsWith("http") ? photoPath : `${API_BASE_URL}${photoPath}`;
+};
+
+const getInitials = (name?: string) => {
+  if (!name) return "";
+  const cleaned = name.trim();
+  if (!cleaned) return "";
+  const parts = cleaned.split(/\s+/);
+  if (parts.length > 1) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return parts[0][0].toUpperCase();
+};
 
 const EXAM_PERIODS = [
 { value: 'june_july', label: 'June/July' },
@@ -40,6 +57,12 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
   const [responseNote, setResponseNote] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const [selectedImageError, setSelectedImageError] = useState(false);
+
+  useEffect(() => {
+    setSelectedImageError(false);
+  }, [selectedRequest]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -249,7 +272,23 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   return (
-    <div ref={ref} id="coe-makeup-requests-container" className="space-y-6">
+    <>
+      <style>{`
+        @media (max-width: 639px) {
+          .makeup-window-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 16px !important;
+          }
+          .makeup-window-actions {
+            width: 100% !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+          }
+        }
+      `}</style>
+      <div ref={ref} id="coe-makeup-requests-container" className="space-y-6">
       <Card id="coe-makeup-requests-filters">
         <CardHeader className="pb-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -396,15 +435,15 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
         <Card>
           <CardContent className="p-6">
             {/* Makeup Application Window Toggle (Placed Above Table) */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-6 border-b border-border">
+            <div className="makeup-window-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-6 border-b border-border">
               <div>
                 <h3 className="text-lg font-semibold">Makeup Application Window</h3>
                 <p className="text-sm text-muted-foreground mt-1">
                   Control student submissions for the selected batch, branch, semester, and exam period.
                 </p>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
+              <div className="makeup-window-actions flex flex-row items-center gap-4 w-full sm:w-auto">
+                <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
                   <span className="text-sm font-medium">Status:</span>
                   {makeupApplicationsOpen ? (
                     <Badge className="border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
@@ -436,19 +475,20 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                     disabled={togglingMakeup}
                     variant={makeupApplicationsOpen ? "destructive" : "default"}
                     size="sm"
-                    className="font-medium shadow-sm transition-all"
+                    className="w-full sm:w-auto font-medium shadow-sm transition-all"
                   >
                     {togglingMakeup ? 'Updating...' : makeupApplicationsOpen ? 'Close Applications' : 'Open Applications'}
                   </Button>
                 ) : (
-                  <div className="text-xs text-muted-foreground italic max-w-xs text-right">
+                  <div className="text-xs text-muted-foreground italic max-w-xs text-right w-full sm:w-auto">
                     No result batch found. Create the result upload batch first to manage applications.
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="border rounded-lg">
+            {/* Desktop Table View */}
+            <div className="hidden sm:block border rounded-lg">
               <Table>
                 <TableHeader>
                   <TableRow className={theme === 'dark' ? 'bg-muted/40 border-b border-border' : 'bg-slate-100 border-b border-slate-200'}>
@@ -470,7 +510,17 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </TableRow>
                   ) : requests.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">No makeup requests found</TableCell>
+                      <TableCell colSpan={7} className="p-4 border-none">
+                        <div className="flex flex-col items-center justify-center py-12 text-center border-dashed border-2 rounded-xl bg-transparent">
+                          <div className="bg-primary/5 p-4 rounded-full mb-3">
+                            <Search className="w-8 h-8 text-primary/45" />
+                          </div>
+                          <h4 className="text-base font-semibold mb-1">No makeup requests found</h4>
+                          <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                            No requests match the selected filters or search criteria.
+                          </p>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ) : (
                     requests.map((request) => (
@@ -537,6 +587,127 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                   )}
                 </TableBody>
               </Table>
+            </div>
+ 
+            {/* Mobile Card View */}
+            <div className="block sm:hidden space-y-4">
+              {loading ? (
+                <div className="text-center py-8 text-sm text-muted-foreground">Loading requests...</div>
+              ) : requests.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center border-dashed border-2 rounded-xl bg-transparent">
+                  <div className="bg-primary/5 p-4 rounded-full mb-3">
+                    <Search className="w-8 h-8 text-primary/45" />
+                  </div>
+                  <h4 className="text-base font-semibold mb-1">No makeup requests found</h4>
+                  <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                    No requests match the selected filters or search criteria.
+                  </p>
+                </div>
+              ) : (
+                requests.map((request) => (
+                  <div key={request.id} className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-muted/10 border-border' : 'bg-white border-slate-200'} space-y-3`}>
+                    {/* Student Info & Status */}
+                    <div className="flex items-center gap-3">
+                      {request.student_profile_pic && !imageErrors[request.id] ? (
+                        <img 
+                          src={getPhotoUrl(request.student_profile_pic) || undefined} 
+                          alt={request.student_name}
+                          onError={() => setImageErrors(prev => ({ ...prev, [request.id]: true }))}
+                          className="w-10 h-10 rounded-full object-cover shrink-0 border border-border/50 shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0 shadow-inner">
+                          {getInitials(request.student_name)}
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-semibold text-base leading-tight">{request.student_name}</div>
+                        <div className="text-xs text-muted-foreground mt-1.5 flex items-center gap-2 flex-wrap">
+                          <span>{request.student_usn}</span>
+                          {getStatusBadge(request.status)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="h-px bg-border/40 my-2" />
+
+                    {/* Details section */}
+                    <div className="space-y-3 text-sm">
+                      <div>
+                        <span className="text-[11.5px] font-bold text-muted-foreground uppercase block tracking-wider mb-0.5">Subject</span>
+                        <div className="font-medium text-foreground">{request.subject_name}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{request.subject_code}</div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[11.5px] font-bold text-muted-foreground uppercase block tracking-wider mb-0.5">Batch / Sem</span>
+                          <div className="text-xs font-semibold text-foreground">{request.batch} / Sem {request.semester}</div>
+                        </div>
+                        <div>
+                          <span className="text-[11.5px] font-bold text-muted-foreground uppercase block tracking-wider mb-0.5">Exam Period</span>
+                          <div className="text-xs font-semibold text-foreground">{request.exam_period}</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[11.5px] font-bold text-muted-foreground uppercase block tracking-wider mb-0.5">Branch</span>
+                          <div className="text-xs font-semibold text-foreground truncate">{request.branch}</div>
+                        </div>
+                        <div>
+                          <span className="text-[11.5px] font-bold text-muted-foreground uppercase block tracking-wider mb-0.5">Requested Date</span>
+                          <div className="text-xs font-semibold text-foreground">{new Date(request.requested_at).toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="h-px bg-border/40 my-2" />
+
+                    {/* Action buttons toolbar */}
+                    <div className="flex gap-2 w-full pt-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedRequest(request)}
+                        className="flex-1 h-9 justify-center items-center gap-1.5 text-xs font-medium"
+                      >
+                        <Eye className="w-3.5 h-3.5" /> View
+                      </Button>
+                      {request.attachment && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(request.attachment!, '_blank')}
+                          className="flex-1 h-9 justify-center items-center gap-1.5 text-xs font-medium"
+                        >
+                          <Download className="w-3.5 h-3.5" /> Document
+                        </Button>
+                      )}
+                      {request.status === 'pending' && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAction(request, 'approve')}
+                            className="flex-1 h-9 text-green-700 border-green-600 hover:bg-green-50 hover:text-green-800 justify-center items-center text-xs font-semibold"
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAction(request, 'reject')}
+                            className="flex-1 h-9 text-red-700 border-red-600 hover:bg-red-50 hover:text-red-800 justify-center items-center text-xs font-semibold"
+                          >
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
 
@@ -622,69 +793,127 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
       {/* Request Details Dialog */}
       <Dialog open={!!selectedRequest && !actionDialogOpen} onOpenChange={() => setSelectedRequest(null)}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[calc(100vw-2rem)] sm:w-[90vw] rounded-lg flex flex-col max-h-[92vh]`}>
-          <DialogHeader>
-            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Makeup Request Details</DialogTitle>
-          </DialogHeader>
-          {selectedRequest &&
-          <div className="space-y-4 overflow-auto px-1 sm:px-2 py-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Student</Label>
-                  <p className="font-medium">{selectedRequest.student_name}</p>
-                  <p className="text-sm text-muted-foreground">{selectedRequest.student_usn}</p>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border shadow-2xl' : 'bg-white text-gray-900 border border-gray-200 shadow-2xl'} max-w-[640px] w-[calc(100vw-2rem)] sm:w-[90vw] rounded-2xl flex flex-col max-h-[85vh] p-0 overflow-hidden`}>
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between shrink-0">
+            <DialogHeader>
+              <DialogTitle className={`${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-lg font-semibold`}>
+                Makeup Request Details
+              </DialogTitle>
+            </DialogHeader>
+          </div>
+          
+          {selectedRequest && (
+            <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 space-y-4 sm:space-y-6 custom-scrollbar">
+              {/* Student Header Info */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-muted/20 border border-border/40">
+                <div className="flex items-center gap-3">
+                  {selectedRequest.student_profile_pic && !selectedImageError ? (
+                    <img 
+                      src={getPhotoUrl(selectedRequest.student_profile_pic) || undefined} 
+                      alt={selectedRequest.student_name}
+                      onError={() => setSelectedImageError(true)}
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover shrink-0 border border-border/50 shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm sm:text-base shrink-0 shadow-inner">
+                      {getInitials(selectedRequest.student_name)}
+                    </div>
+                  )}
+                  <div>
+                    <div className="font-bold text-foreground text-sm sm:text-base">{selectedRequest.student_name}</div>
+                    <div className="text-xs text-muted-foreground font-mono mt-0.5">{selectedRequest.student_usn}</div>
+                  </div>
                 </div>
-                <div>
-                  <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Subject</Label>
-                  <p className="font-medium">{selectedRequest.subject_name}</p>
-                  <p className="text-sm text-muted-foreground">{selectedRequest.subject_code}</p>
-                </div>
-                <div>
-                  <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Batch/Branch/Semester</Label>
-                  <p>{selectedRequest.batch} / {selectedRequest.branch} / Sem {selectedRequest.semester}</p>
-                </div>
-                <div>
-                  <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Exam Period</Label>
-                  <p>{selectedRequest.exam_period}</p>
-                </div>
-                <div>
-                  <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Status : </Label>
+                <div className="shrink-0 sm:self-center">
                   {getStatusBadge(selectedRequest.status)}
                 </div>
-                <div>
-                  <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Requested Date</Label>
-                  <p>{new Date(selectedRequest.requested_at).toLocaleString()}</p>
+              </div>
+
+              {/* Grid of properties */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="p-2.5 sm:p-3.5 rounded-xl border border-border/30 bg-muted/5">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Subject</span>
+                  <div className="font-semibold text-foreground text-sm leading-snug">{selectedRequest.subject_name}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5 font-mono">{selectedRequest.subject_code}</div>
+                </div>
+
+                <div className="p-2.5 sm:p-3.5 rounded-xl border border-border/30 bg-muted/5">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Batch / Semester</span>
+                  <div className="text-xs font-semibold text-foreground leading-normal mt-0.5">
+                    {selectedRequest.batch} / Sem {selectedRequest.semester}
+                  </div>
+                </div>
+
+                <div className="p-2.5 sm:p-3.5 rounded-xl border border-border/30 bg-muted/5">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Branch</span>
+                  <div className="text-xs font-semibold text-foreground leading-normal mt-0.5">
+                    {selectedRequest.branch}
+                  </div>
+                </div>
+
+                <div className="p-2.5 sm:p-3.5 rounded-xl border border-border/30 bg-muted/5">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Exam Period</span>
+                  <div className="text-xs font-semibold text-foreground leading-normal mt-0.5">
+                    {selectedRequest.exam_period}
+                  </div>
+                </div>
+
+                <div className="p-2.5 sm:p-3.5 rounded-xl border border-border/30 bg-muted/5 sm:col-span-2">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Requested Date</span>
+                  <div className="text-xs font-semibold text-foreground leading-normal mt-0.5">
+                    {new Date(selectedRequest.requested_at).toLocaleString()}
+                  </div>
                 </div>
               </div>
-              <div>
-                <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Reason</Label>
-                <p className={`mt-1 rounded-md p-3 whitespace-pre-wrap ${theme === 'dark' ? 'bg-muted/20' : 'bg-gray-50 border border-gray-200'}`}>{selectedRequest.reason}</p>
+
+              {/* Reason for makeup */}
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Reason for request</span>
+                <div className={`p-3 sm:p-4 rounded-xl text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap border ${theme === 'dark' ? 'bg-muted/15 border-border/50' : 'bg-gray-50 border-gray-100'}`}>
+                  {selectedRequest.reason || <span className="italic text-muted-foreground">No reason provided.</span>}
+                </div>
               </div>
-              {selectedRequest.response_note &&
-            <div>
-                  <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Response Note</Label>
-                  <p className={`mt-1 rounded-md p-3 whitespace-pre-wrap ${theme === 'dark' ? 'bg-muted/20' : 'bg-gray-50 border border-gray-200'}`}>{selectedRequest.response_note}</p>
+
+              {/* Response Note (If exists) */}
+              {selectedRequest.response_note && (
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Response Note</span>
+                  <div className={`p-3 sm:p-4 rounded-xl text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap border ${selectedRequest.status === 'approved' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-800 dark:text-emerald-300' : 'bg-destructive/10 border-destructive/20 text-destructive'}`}>
+                    {selectedRequest.response_note}
+                  </div>
                 </div>
-            }
-              {selectedRequest.processed_by &&
-            <div>
-                  <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Processed By</Label>
-                  <p>{selectedRequest.processed_by}</p>
-                  {selectedRequest.processed_at &&
-              <p className="text-sm text-muted-foreground">
-                      on {new Date(selectedRequest.processed_at).toLocaleString()}
-                    </p>
-              }
+              )}
+
+              {/* Processed By Info */}
+              {selectedRequest.processed_by && (
+                <div className="pt-4 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground">
+                  <div>
+                    Processed by: <span className="font-semibold text-foreground/80">{selectedRequest.processed_by}</span>
+                  </div>
+                  {selectedRequest.processed_at && (
+                    <div>
+                      {new Date(selectedRequest.processed_at).toLocaleString()}
+                    </div>
+                  )}
                 </div>
-            }
+              )}
             </div>
-          }
+          )}
+
+          <div className="px-6 py-4 border-t border-border shrink-0 flex justify-end bg-muted/10">
+            <Button
+              onClick={() => setSelectedRequest(null)}
+              className="bg-primary text-white hover:bg-primary/95 px-5 h-9 rounded-xl text-xs font-semibold"
+            >
+              Close
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Action Dialog */}
       <Dialog open={actionDialogOpen} onOpenChange={handleActionDialogOpenChange}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[80%] sm:max-w-md mx-auto rounded-2xl p-4 sm:p-6`}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} w-[90vw] max-w-[90%] sm:max-w-md mx-auto rounded-2xl p-4 sm:p-6`}>
           <DialogHeader>
             <DialogTitle className={`${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-lg font-semibold`}>
               {actionType === 'approve' ? 'Approve' : 'Reject'} Makeup Request
@@ -717,7 +946,9 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
         </DialogContent>
       </Dialog>
 
-    </div>);
+    </div>
+    </>
+  );
 
 });
 
