@@ -609,6 +609,22 @@ export const publicOrganizationInfoByToken = async (token: string) => {
   }
 };
 
+export const publicExportResultPDF = async (token: string, usn: string, type?: string) => {
+  try {
+    let url = `${API_ENDPOINT}/results/view/${token}/export-pdf/?usn=${encodeURIComponent(usn)}`;
+    if (type) {
+      url += `&type=${encodeURIComponent(type)}`;
+    }
+    const response = await fetchWithTokenRefresh(url, {
+      method: 'GET',
+    });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 /**
  * Toggle withhold status for a published result
  */

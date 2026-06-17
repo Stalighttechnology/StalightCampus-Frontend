@@ -1,14 +1,12 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import ReCAPTCHA from "react-google-recaptcha"
 import { useParams, useLocation } from 'react-router-dom'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { publicViewResultByToken, publicOrganizationInfoByToken } from '@/utils/coe_api'
+import { publicViewResultByToken, publicOrganizationInfoByToken, publicExportResultPDF } from '@/utils/coe_api'
 import { useTheme } from '@/context/ThemeContext'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 
 const ResultsView: React.FC = () => {
   const { theme } = useTheme();
@@ -26,7 +24,6 @@ const ResultsView: React.FC = () => {
   const [orgInfo, setOrgInfo] = useState<{ name: string; logo: string | null } | null>(null);
   const [exporting, setExporting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const cardRef = useRef<HTMLDivElement | null>(null);
 
   // Fetch organization information on mount/token change
   useEffect(() => {
@@ -121,25 +118,23 @@ const ResultsView: React.FC = () => {
     setExporting(true);
     setMessage(null);
     try {
-      if (!cardRef.current) {
-        setMessage('Export failed: preview element missing');
-        setExporting(false);
-        return;
+      const response = await publicExportResultPDF(token, result.student?.usn || usn, resultType);
+      if (!response.ok) {
+        throw new Error('Failed to export PDF');
       }
-
-      // ensure white background
-      const canvas = await html2canvas(cardRef.current as HTMLElement, { backgroundColor: '#ffffff', scale: 2 });
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgProps = (pdf as any).getImageProperties(imgData);
-      const imgWidth = pageWidth - 20; // margin
-      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-      pdf.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
-      const filename = `${(result.student?.usn || usn || 'marks')}_marks_card.pdf`;
-      pdf.save(filename);
-      setMessage('Exported marks card');
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', `${(result.student?.usn || usn || 'marks')}_provisional_marks_card.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      setTimeout(() => {
+        window.URL.revokeObjectURL(downloadUrl);
+      }, 1500);
+      
     } catch (e: any) {
       setMessage(e?.message || 'Export failed');
     } finally {
@@ -270,9 +265,16 @@ const ResultsView: React.FC = () => {
                   <Button
                     onClick={exportMarksCard}
                     disabled={exporting}
-                    className="bg-primary hover:bg-primary/90 text-white h-10 rounded-xl px-5 font-semibold shadow-sm transition-all duration-200 active:scale-[0.98] w-full sm:w-auto"
+                    className="bg-primary hover:bg-primary/90 text-white h-10 rounded-xl px-5 font-semibold shadow-sm transition-all duration-200 active:scale-[0.98] w-full sm:w-auto flex items-center justify-center gap-2"
                   >
-                    {exporting ? 'Exporting...' : 'Export PDF'}
+                    {exporting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Exporting...
+                      </>
+                    ) : (
+                      'Export PDF'
+                    )}
                   </Button>
                 </div>
 
@@ -378,138 +380,6 @@ const ResultsView: React.FC = () => {
                   This is a provisional marks card issued for reference. The official marks card will be issued by the Administration in due course. The results and marks indicated are accurate and officially recognized.
                 </div>
 
-                <div style={{ position: 'absolute', left: -9999, top: 0 }}>
-                  <div ref={cardRef as any} style={{ width: 800, padding: 20, background: '#fff', color: '#000' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <img
-                        src={result?.organization?.logo || orgInfo?.logo || "/logo.jpeg"}
-                        alt="Logo"
-                        style={{ width: 80, height: 80, objectFit: 'contain' }}
-                      />
-                      <div>
-                        <div style={{ fontSize: 20, fontWeight: 700 }}>{result?.organization?.name || orgInfo?.name || 'College'}</div>
-                        <div style={{ fontSize: 12 }}>Official Marks Card</div>
-                      </div>
-                    </div>
-                    <hr style={{ margin: '12px 0' }} />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <div><strong>Name:</strong> {result.student?.name || '-'}</div>
-                      <div><strong>USN:</strong> {result.student?.usn || usn}</div>
-                    </div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr>
-                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Subject Code</th>
-                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Subject Title</th>
-                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'right', padding: 6 }}>CIE</th>
-                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'right', padding: 6 }}>SEE</th>
-                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'right', padding: 6 }}>Total Marks</th>
-                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Result</th>
-                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Grade</th>
-                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Grade Point</th>
-                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Credits Assigned</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {Array.isArray(result.marks) && result.marks.map((m: { subject: string, subject_code: string, cie?: number, see?: number, total?: number, status: string, credits?: number, credit?: number, credit_hours?: number, creditHours?: number, credit_hour?: number }, i: number) => {
-                          // Calculate grade and grade points based on total marks
-                          const total = m.total;
-                          let grade = '';
-                          let gradePoints = '';
-                          if (typeof total === 'number') {
-                            if (total >= 90) { grade = 'S'; gradePoints = '10'; }
-                            else if (total >= 80) { grade = 'A'; gradePoints = '9'; }
-                            else if (total >= 70) { grade = 'B'; gradePoints = '8'; }
-                            else if (total >= 60) { grade = 'C'; gradePoints = '7'; }
-                            else if (total >= 50) { grade = 'D'; gradePoints = '6'; }
-                            else if (total >= 40) { grade = 'E'; gradePoints = '5'; }
-                            else { grade = 'F'; gradePoints = '0'; }
-                          }
-
-                          // Determine credits based on pass/fail status
-                          const availableCredits = m.credits ?? m.credit ?? m.credit_hours ?? m.creditHours ?? m.credit_hour ?? 0;
-                          const credits = m.status === 'pass' ? availableCredits : 0;
-
-                          return (
-                            <tr key={i}>
-                              <td style={{ padding: 6 }}>{m.subject_code}</td>
-                              <td style={{ padding: 6 }}>{m.subject}</td>
-                              <td style={{ padding: 6, textAlign: 'right' }}>{m.cie ?? '-'}</td>
-                              <td style={{ padding: 6, textAlign: 'right' }}>{m.see ?? '-'}</td>
-                              <td style={{ padding: 6, textAlign: 'right' }}>{m.total ?? '-'}</td>
-                              <td style={{ padding: 6 }}>{m.status?.toUpperCase() ?? '-'}</td>
-                              <td style={{ padding: 6 }}>{grade}</td>
-                              <td style={{ padding: 6 }}>{gradePoints}</td>
-                              <td style={{ padding: 6 }}>{credits}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                    <table style={{ width: '100%', marginTop: 10, borderCollapse: 'collapse' }}>
-                      <tbody>
-                        <tr>
-                          <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>Total Credits Earned:</td>
-                          <td style={{ padding: 6, fontWeight: 'bold' }}>
-                            {(result.marks || []).reduce((acc: number, m: { status: string, credits?: number, credit?: number, credit_hours?: number, creditHours?: number, credit_hour?: number }) => {
-                              const availableCredits = m.credits ?? m.credit ?? m.credit_hours ?? m.creditHours ?? m.credit_hour ?? 0;
-                              const credits = m.status === 'pass' ? availableCredits : 0;
-                              return acc + credits;
-                            }, 0)}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>Total Marks Obtained:</td>
-                          <td style={{ padding: 6, fontWeight: 'bold' }}>
-                            {(result.marks || []).reduce((acc: number, m: { total?: number }) => {
-                              return acc + (typeof m.total === 'number' ? m.total : 0);
-                            }, 0)}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>SGPA:</td>
-                          <td style={{ padding: 6, fontWeight: 'bold' }}>
-                            {(() => {
-                              const marks = result.marks || [];
-                              let totalGradePoints = 0;
-                              let totalCredits = 0;
-
-                              marks.forEach((m: { total?: number, credits?: number, credit?: number, credit_hours?: number, creditHours?: number, credit_hour?: number, status: string }) => {
-                                const total = m.total;
-                                const credits = m.credits ?? m.credit ?? m.credit_hours ?? m.creditHours ?? m.credit_hour ?? 0;
-
-                                if (typeof total === 'number' && credits > 0 && m.status === 'pass') {
-                                  let gradePoints = 0;
-                                  if (total >= 90) gradePoints = 10;
-                                  else if (total >= 80) gradePoints = 9;
-                                  else if (total >= 70) gradePoints = 8;
-                                  else if (total >= 60) gradePoints = 7;
-                                  else if (total >= 50) gradePoints = 6;
-                                  else if (total >= 40) gradePoints = 5;
-                                  else gradePoints = 0;
-
-                                  totalGradePoints += gradePoints * credits;
-                                  totalCredits += credits;
-                                }
-                              });
-
-                              return totalCredits > 0 ? (totalGradePoints / totalCredits).toFixed(2) : '0.00';
-                            })()}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>CGPA:</td>
-                          <td style={{ padding: 6, fontWeight: 'bold' }}>{cgpa ?? '-'}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>Overall Status:</td>
-                          <td style={{ padding: 6, fontWeight: 'bold' }}>{result.aggregate?.overall_status ?? '-'}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    <div style={{ marginTop: 18, fontSize: 11 }}>This is an official marks card generated from {result?.organization?.name || orgInfo?.name || 'College'}.</div>
-                  </div>
-                </div>
               </div>
             )}
           </div>
