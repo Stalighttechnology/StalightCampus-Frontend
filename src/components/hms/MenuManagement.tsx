@@ -4,8 +4,9 @@ import {
   manageMenu,
   getMenuItems,
   manageMenuItem,
-  exportHostelMenuPdf } from
-'../../utils/hms_api';
+  exportHostelMenuPdf
+} from
+  '../../utils/hms_api';
 import { useHMSContext } from '../../context/HMSContext';
 
 import { useToast } from '../../hooks/use-toast';
@@ -24,8 +25,9 @@ import {
   History,
   Repeat,
   Download,
-  Loader2 } from
-'lucide-react';
+  Loader2
+} from
+  'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,13 +78,13 @@ interface Hostel {
 }
 
 const DAY_OPTIONS = [
-{ value: '0', label: 'Monday' },
-{ value: '1', label: 'Tuesday' },
-{ value: '2', label: 'Wednesday' },
-{ value: '3', label: 'Thursday' },
-{ value: '4', label: 'Friday' },
-{ value: '5', label: 'Saturday' },
-{ value: '6', label: 'Sunday' }];
+  { value: '0', label: 'Monday' },
+  { value: '1', label: 'Tuesday' },
+  { value: '2', label: 'Wednesday' },
+  { value: '3', label: 'Thursday' },
+  { value: '4', label: 'Friday' },
+  { value: '5', label: 'Saturday' },
+  { value: '6', label: 'Sunday' }];
 
 
 const MEAL_TYPE_DISPLAY = {
@@ -93,10 +95,10 @@ const MEAL_TYPE_DISPLAY = {
 };
 
 const DEFAULT_MEAL_TYPES = [
-{ name: 'BR', time_from: '07:30 AM', time_to: '09:00 AM' },
-{ name: 'LN', time_from: '12:00 PM', time_to: '02:00 PM' },
-{ name: 'SN', time_from: '04:00 PM', time_to: '05:30 PM' },
-{ name: 'DN', time_from: '07:00 PM', time_to: '09:00 PM' }];
+  { name: 'BR', time_from: '07:30 AM', time_to: '09:00 AM' },
+  { name: 'LN', time_from: '12:00 PM', time_to: '02:00 PM' },
+  { name: 'SN', time_from: '04:00 PM', time_to: '05:30 PM' },
+  { name: 'DN', time_from: '07:00 PM', time_to: '09:00 PM' }];
 
 
 const getMealTypeLabel = (code: string) => {
@@ -135,7 +137,7 @@ const MenuManagement: React.FC = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      
+
       toast({
         title: 'Success',
         description: 'Mess menu PDF downloaded successfully',
@@ -194,8 +196,8 @@ const MenuManagement: React.FC = () => {
     setLoading(true);
     try {
       const res = await getMenus({ hostel: hostelId });
-      if (res.success && res.results) setMenus(res.results);else
-      setMenus([]);
+      if (res.success && res.results) setMenus(res.results); else
+        setMenus([]);
     } catch (e) {
 
       setMenus([]);
@@ -251,9 +253,9 @@ const MenuManagement: React.FC = () => {
     if (!editingMenu) {
       const duplicate = menus.find(
         (m) =>
-        m.hostel === parseInt(formData.hostel) &&
-        m.day_of_week === formData.day_of_week &&
-        m.meal_type_detail?.name === formData.meal_type
+          m.hostel === parseInt(formData.hostel) &&
+          m.day_of_week === formData.day_of_week &&
+          m.meal_type_detail?.name === formData.meal_type
       );
 
       if (duplicate) {
@@ -316,17 +318,17 @@ const MenuManagement: React.FC = () => {
           // Convert items into full MenuItem objects when possible.
           // The backend may return either an array of IDs or an array of full item objects.
           const fullItems = Array.isArray(updatedMenu.items) ?
-          updatedMenu.items.map((it: any) => {
-            if (typeof it === 'number') {
-              return menuItems.find((m) => m.id === it) || { id: it, name: 'Unknown', vegetarian: false };
-            }
-            if (it && typeof it === 'object' && it.id) {
-              // already a full item object returned by backend
-              return it;
-            }
-            return { id: it, name: 'Unknown', vegetarian: false };
-          }) :
-          [];
+            updatedMenu.items.map((it: any) => {
+              if (typeof it === 'number') {
+                return menuItems.find((m) => m.id === it) || { id: it, name: 'Unknown', vegetarian: false };
+              }
+              if (it && typeof it === 'object' && it.id) {
+                // already a full item object returned by backend
+                return it;
+              }
+              return { id: it, name: 'Unknown', vegetarian: false };
+            }) :
+            [];
 
           const merged = {
             ...existing,
@@ -407,8 +409,8 @@ const MenuManagement: React.FC = () => {
     setFormData((prev) => ({
       ...prev,
       items: prev.items.includes(itemId) ?
-      prev.items.filter((id) => id !== itemId) :
-      [...prev.items, itemId]
+        prev.items.filter((id) => id !== itemId) :
+        [...prev.items, itemId]
     }));
   };
 
@@ -505,8 +507,8 @@ const MenuManagement: React.FC = () => {
   };
 
   const filteredMenus = selectedHostel ?
-  menus.filter((m) => m.hostel === parseInt(selectedHostel)) :
-  menus;
+    menus.filter((m) => m.hostel === parseInt(selectedHostel)) :
+    menus;
 
   // Apply day filter (supports recurring weekly menus and one-time date menus)
   const applyDayFilter = (menuList: Menu[]) => {
@@ -535,20 +537,32 @@ const MenuManagement: React.FC = () => {
       <Card className="border-primary/10 shadow-sm overflow-hidden">
         <CardHeader id="hms-menu-card" className="pb-6 border-b bg-muted/30">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <CardTitle className="text-2xl font-semibold tracking-tight">Menu Management</CardTitle>
-              <CardDescription>Plan and manage daily mess menus and food items.</CardDescription>
+            <div className="flex items-start justify-between w-full lg:w-auto">
+              <div className="space-y-1">
+                <CardTitle className="text-2xl font-semibold tracking-tight">Menu Management</CardTitle>
+                <CardDescription>Plan and manage daily mess menus and food items.</CardDescription>
+              </div>
+              {/* Mobile Download PDF Icon Button */}
+              <Button
+                onClick={handleExportPDF}
+                disabled={exporting || !selectedHostel}
+                size="icon"
+                variant="outline"
+                className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+              >
+                {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              </Button>
             </div>
-            <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto lg:justify-end">
+              <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:gap-2 sm:w-auto">
                 {initialLoading || skeletonMode ?
-                <div className="w-[180px] h-9 rounded-md bg-muted animate-pulse border" /> :
+                  <div className="w-full sm:w-[180px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                <Select value={selectedHostel} onValueChange={(val) => {
-                  setSelectedHostel(val);
-                  setDayFilter("all");
-                }}>
-                    <SelectTrigger className="w-[180px] bg-background">
+                  <Select value={selectedHostel} onValueChange={(val) => {
+                    setSelectedHostel(val);
+                    setDayFilter("all");
+                  }}>
+                    <SelectTrigger className="w-full sm:w-[180px] bg-background">
                       <SelectValue placeholder="Select Hostel" />
                     </SelectTrigger>
                     <SelectContent>
@@ -557,9 +571,9 @@ const MenuManagement: React.FC = () => {
                       ) : (
                         <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
                           <p className="text-xs text-muted-foreground">No hostels found</p>
-                          <Button 
-                            type="button" 
-                            size="sm" 
+                          <Button
+                            type="button"
+                            size="sm"
                             className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
                             onPointerDown={(e) => {
                               e.preventDefault();
@@ -576,55 +590,55 @@ const MenuManagement: React.FC = () => {
                 }
 
                 {initialLoading || skeletonMode ?
-                <div className="w-[150px] h-9 rounded-md bg-muted animate-pulse border" /> :
+                  <div className="w-full sm:w-[150px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                <Select
-                  disabled={!selectedHostel}
-                  value={dayFilter}
-                  onValueChange={setDayFilter}>
-                    <SelectTrigger className="w-[150px] bg-background">
+                  <Select
+                    disabled={!selectedHostel}
+                    value={dayFilter}
+                    onValueChange={setDayFilter}>
+                    <SelectTrigger className="w-full sm:w-[150px] bg-background">
                       <SelectValue placeholder="All Days" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Days</SelectItem>
                       {DAY_OPTIONS.map((d) =>
-                    <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-                    )}
+                        <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 }
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:gap-2 sm:w-auto">
                 {initialLoading || skeletonMode ?
-                <>
-                    <div className="w-[130px] h-9 rounded-md bg-muted animate-pulse border" />
-                    <div className="w-[130px] h-9 rounded-md bg-muted animate-pulse border" />
+                  <>
+                    <div className="w-full h-9 rounded-md bg-muted animate-pulse border" />
+                    <div className="w-full h-9 rounded-md bg-muted animate-pulse border" />
                   </> :
 
-                <>
+                  <>
                     <Button
-                    variant="outline"
-                    disabled={!selectedHostel}
-                    onClick={() => {
-                      setShowFoodForm(true);
-                      setEditingFoodItem(null);
-                      setFoodFormData({ name: '', description: '', vegetarian: true });
-                      loadMenuItems();
-                    }}
-                    className="border-primary/20 hover:bg-primary/5 bg-background">
-                    
+                      variant="outline"
+                      disabled={!selectedHostel}
+                      onClick={() => {
+                        setShowFoodForm(true);
+                        setEditingFoodItem(null);
+                        setFoodFormData({ name: '', description: '', vegetarian: true });
+                        loadMenuItems();
+                      }}
+                      className="border-primary/20 hover:bg-primary/5 bg-background w-full">
+
                       <UtensilsCrossed className="w-4 h-4 mr-2" /> Food Items
                     </Button>
-                    <Button 
-                      disabled={!selectedHostel} 
+                    <Button
+                      disabled={!selectedHostel}
                       onClick={() => {
                         setShowForm(true);
                         setEditingMenu(null);
                         setFormData({ hostel: selectedHostel, day_of_week: '', meal_type: '', date: '', items: [], is_recurring: true });
                         loadMenuItems();
-                      }} 
-                      className="bg-primary hover:bg-primary/90"
+                      }}
+                      className="bg-primary hover:bg-primary/90 w-full"
                     >
                       <Plus className="w-4 h-4 mr-2" /> Add Menu
                     </Button>
@@ -632,7 +646,7 @@ const MenuManagement: React.FC = () => {
                       variant="outline"
                       onClick={handleExportPDF}
                       disabled={exporting || !selectedHostel}
-                      className="bg-primary hover:bg-primary/90 text-white border-primary h-10 px-4 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                      className="hidden sm:flex bg-primary hover:bg-primary/90 text-white border-primary h-10 px-4 text-xs font-semibold items-center justify-center gap-1.5 transition-all shadow-sm w-auto"
                     >
                       {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-4 h-4" />}
                       Export PDF
@@ -646,104 +660,114 @@ const MenuManagement: React.FC = () => {
         <CardContent className="pt-6">
           {/* Menu Grid */}
           {loading || skeletonMode || initialLoading ?
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
             </div> :
-          selectedHostel ?
-          displayedMenus.length > 0 ?
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayedMenus.map((menu) =>
-            <Card key={menu.id} className="group hover:shadow-md transition-all shadow-sm">
-                    <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Badge className={MEAL_TYPE_DISPLAY[menu.meal_type_detail?.name as keyof typeof MEAL_TYPE_DISPLAY]?.color}>
-                            {getMealTypeLabel(menu.meal_type_detail?.name || '')}
-                          </Badge>
-                          {menu.is_recurring ?
-                    <Badge variant="outline" className="text-[10px] uppercase tracking-wider bg-muted/50">
-                              <Repeat className="w-3 h-3 mr-1" /> Weekly
-                            </Badge> :
-
-                    <Badge variant="outline" className="text-[10px] uppercase tracking-wider bg-orange-50 text-orange-600 border-orange-100">
-                              <Calendar className="w-3 h-3 mr-1" /> Special
+            selectedHostel ?
+              displayedMenus.length > 0 ?
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {displayedMenus.map((menu) =>
+                    <Card key={menu.id} className="group hover:shadow-md transition-all shadow-sm">
+                      <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge className={MEAL_TYPE_DISPLAY[menu.meal_type_detail?.name as keyof typeof MEAL_TYPE_DISPLAY]?.color}>
+                              {getMealTypeLabel(menu.meal_type_detail?.name || '')}
                             </Badge>
-                    }
-                        </div>
-                        <CardTitle className="text-lg font-semibold pt-1">{DAY_OPTIONS.find((d) => d.value === menu.day_of_week)?.label}</CardTitle>
-                        {menu.date && <CardDescription>{menu.date}</CardDescription>}
-                      </div>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:bg-blue-50" onClick={() => handleEdit(menu)}>
-                          <Edit size={14} />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={() => handleDelete(menu.id)}>
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-40 pr-4 overflow-y-auto custom-scrollbar">
-                        <div className="space-y-2">
-                          {menu.items.map((item, idx) =>
-                    <div key={idx} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/30 group/item hover:bg-muted/50 transition-colors">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${item.vegetarian ? 'bg-green-500' : 'bg-red-500'}`} />
-                                <span className="truncate font-medium">{item.name}</span>
-                              </div>
-                            </div>
-                    )}
-                        </div>
-                      </div>
-                      <Separator className="my-4" />
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5" />
-                          {MEAL_TYPE_DISPLAY[menu.meal_type_detail?.name as keyof typeof MEAL_TYPE_DISPLAY]?.time_from} - {MEAL_TYPE_DISPLAY[menu.meal_type_detail?.name as keyof typeof MEAL_TYPE_DISPLAY]?.time_to}
-                        </div>
-                        <div className="font-medium text-primary">
-                          {menu.items.length} Items
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-            )}
-              </div> :
+                            {menu.is_recurring ?
+                              <Badge variant="outline" className="text-[10px] uppercase tracking-wider bg-muted/50">
+                                <Repeat className="w-3 h-3 mr-1" /> Weekly
+                              </Badge> :
 
-          <div className="border-dashed border-2 py-20 rounded-xl">
+                              <Badge variant="outline" className="text-[10px] uppercase tracking-wider bg-orange-50 text-orange-600 border-orange-100">
+                                <Calendar className="w-3 h-3 mr-1" /> Special
+                              </Badge>
+                            }
+                          </div>
+                          <CardTitle className="text-lg font-semibold pt-1">{DAY_OPTIONS.find((d) => d.value === menu.day_of_week)?.label}</CardTitle>
+                          {menu.date && <CardDescription>{menu.date}</CardDescription>}
+                        </div>
+                        <div className="hidden sm:flex gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:bg-blue-50" onClick={() => handleEdit(menu)}>
+                            <Edit size={14} />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={() => handleDelete(menu.id)}>
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-40 pr-4 overflow-y-auto custom-scrollbar">
+                          <div className="space-y-2">
+                            {menu.items.map((item, idx) =>
+                              <div key={idx} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/30 group/item hover:bg-muted/50 transition-colors">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${item.vegetarian ? 'bg-green-500' : 'bg-red-500'}`} />
+                                  <span className="truncate font-medium">{item.name}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <Separator className="my-4" />
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            {MEAL_TYPE_DISPLAY[menu.meal_type_detail?.name as keyof typeof MEAL_TYPE_DISPLAY]?.time_from} - {MEAL_TYPE_DISPLAY[menu.meal_type_detail?.name as keyof typeof MEAL_TYPE_DISPLAY]?.time_to}
+                          </div>
+                          <div className="font-medium text-primary">
+                            {menu.items.length} Items
+                          </div>
+                        </div>
+
+                        {/* Mobile action buttons */}
+                        <div className="flex gap-2 pt-3 mt-4 border-t border-border/50 sm:hidden">
+                          <Button variant="outline" size="sm" className="flex-1 h-8 gap-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/20" onClick={() => handleEdit(menu)}>
+                            <Edit size={12} /> Edit
+                          </Button>
+                          <Button variant="outline" size="sm" className="flex-1 h-8 gap-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20" onClick={() => handleDelete(menu.id)}>
+                            <Trash2 size={12} /> Delete
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div> :
+
+                <div className="border-dashed border-2 py-20 rounded-xl">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="bg-muted rounded-full p-6 mb-4">
+                      <Calendar className="w-10 h-10 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-xl font-semibold">No menus planned</h3>
+                    <p className="text-muted-foreground max-w-sm mx-auto mt-2">
+                      There are no menus scheduled for {dayFilter === 'all' ? 'any day' : DAY_OPTIONS.find((d) => d.value === dayFilter)?.label}.
+                    </p>
+                    <Button className="mt-6" onClick={() => { setShowForm(true); setEditingMenu(null); }}>
+                      <Plus className="w-4 h-4 mr-2" /> Add First Menu
+                    </Button>
+                  </div>
+                </div> :
+
+
+              <div className="border-dashed border-2 py-20 rounded-xl">
                 <div className="flex flex-col items-center justify-center text-center">
                   <div className="bg-muted rounded-full p-6 mb-4">
-                    <Calendar className="w-10 h-10 text-muted-foreground" />
+                    <Search className="w-10 h-10 text-muted-foreground" />
                   </div>
-                  <h3 className="text-xl font-semibold">No menus planned</h3>
+                  <h3 className="text-xl font-semibold">Select a hostel</h3>
                   <p className="text-muted-foreground max-w-sm mx-auto mt-2">
-                    There are no menus scheduled for {dayFilter === 'all' ? 'any day' : DAY_OPTIONS.find((d) => d.value === dayFilter)?.label}.
+                    Choose a hostel from the dropdown above to view and manage its mess menus.
                   </p>
-                  <Button className="mt-6" onClick={() => {setShowForm(true);setEditingMenu(null);}}>
-                    <Plus className="w-4 h-4 mr-2" /> Add First Menu
-                  </Button>
                 </div>
-              </div> :
-
-
-          <div className="border-dashed border-2 py-20 rounded-xl">
-              <div className="flex flex-col items-center justify-center text-center">
-                <div className="bg-muted rounded-full p-6 mb-4">
-                  <Search className="w-10 h-10 text-muted-foreground" />
-                </div>
-                <h3 className="text-xl font-semibold">Select a hostel</h3>
-                <p className="text-muted-foreground max-w-sm mx-auto mt-2">
-                  Choose a hostel from the dropdown above to view and manage its mess menus.
-                </p>
               </div>
-            </div>
           }
         </CardContent>
       </Card>
 
       {/* Menu Form Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="w-[92vw] max-w-[500px] rounded-2xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+        <DialogContent className="w-[90%] max-w-[90vw] h-[80vh] sm:h-auto sm:max-h-[75vh] sm:max-w-[500px] rounded-2xl overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ChefHat className="w-5 h-5 text-primary" />
@@ -765,7 +789,7 @@ const MenuManagement: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {hostels.map((h) =>
-                    <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>
+                      <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
@@ -788,7 +812,7 @@ const MenuManagement: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {DAY_OPTIONS.map((d) =>
-                    <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                      <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
@@ -806,7 +830,7 @@ const MenuManagement: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {DEFAULT_MEAL_TYPES.map((m) =>
-                    <SelectItem key={m.name} value={m.name}>
+                      <SelectItem key={m.name} value={m.name}>
                         {getMealTypeLabel(m.name)} ({m.time_from}-{m.time_to})
                       </SelectItem>
                     )}
@@ -823,7 +847,7 @@ const MenuManagement: React.FC = () => {
                         "w-full justify-start text-left font-normal",
                         !formData.date && "text-muted-foreground"
                       )}>
-                      
+
                       <Calendar className="mr-2 h-4 w-4" />
                       {formData.date ? format(new Date(formData.date), "PPP") : <span>Pick a date</span>}
                     </Button>
@@ -837,7 +861,7 @@ const MenuManagement: React.FC = () => {
                         setIsCalendarOpen(false);
                       }}
                       initialFocus />
-                    
+
                   </PopoverContent>
                 </Popover>
               </div>
@@ -850,7 +874,7 @@ const MenuManagement: React.FC = () => {
                 checked={formData.is_recurring}
                 onChange={(e) => setFormData({ ...formData, is_recurring: e.target.checked })}
                 className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" />
-              
+
               <Label htmlFor="recurring" className="font-medium cursor-pointer">Recurring Weekly Menu</Label>
             </div>
 
@@ -862,15 +886,14 @@ const MenuManagement: React.FC = () => {
               <div className="border rounded-lg p-2 max-h-[300px] overflow-y-auto bg-muted/10 custom-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {menuItems.map((item) =>
-                  <div
-                    key={item.id}
-                    onClick={() => toggleItemSelection(item.id!)}
-                    className={`flex items-center gap-3 p-3 rounded-md cursor-pointer border transition-all ${
-                    formData.items.includes(item.id!) ?
-                    'bg-primary/5 border-primary/30 shadow-sm ring-1 ring-primary/20' :
-                    'bg-background hover:bg-muted/50 border-transparent'}`
-                    }>
-                    
+                    <div
+                      key={item.id}
+                      onClick={() => toggleItemSelection(item.id!)}
+                      className={`flex items-center gap-3 p-3 rounded-md cursor-pointer border transition-all ${formData.items.includes(item.id!) ?
+                          'bg-primary/5 border-primary/30 shadow-sm ring-1 ring-primary/20' :
+                          'bg-background hover:bg-muted/50 border-transparent'}`
+                      }>
+
                       <div className={`w-3 h-3 rounded-full flex-shrink-0 ${item.vegetarian ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]'}`} />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold truncate">{item.name}</p>
@@ -912,7 +935,7 @@ const MenuManagement: React.FC = () => {
                 checked={foodFormData.vegetarian}
                 onChange={(e) => setFoodFormData({ ...foodFormData, vegetarian: e.target.checked })}
                 className="w-4 h-4 rounded border-gray-300 text-primary" />
-              
+
               <Label htmlFor="veg" className="cursor-pointer">Vegetarian Item</Label>
             </div>
             <DialogFooter>
