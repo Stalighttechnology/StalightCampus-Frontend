@@ -232,137 +232,154 @@ const StaffManagementOverview: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0">
             <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
-              {/* Desktop View */}
-              <div className="hidden sm:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/30">
-                      <TableHead>Staff Details</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {isSkeleton ? (
-                      Array.from({ length: 5 }).map((_, i) => (
-                        <TableRow key={i}>
-                          <TableCell>
-                            <div className="space-y-2 py-2">
-                              <div className="h-4 w-32 bg-muted animate-pulse rounded" />
-                              <div className="space-y-1">
-                                <div className="h-3 w-48 bg-muted animate-pulse rounded" />
-                                <div className="h-3 w-40 bg-muted animate-pulse rounded" />
-                                <div className="h-3 w-56 bg-muted animate-pulse rounded" />
-                                <div className="h-3 w-36 bg-muted animate-pulse rounded" />
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right"><div className="h-8 w-16 bg-muted animate-pulse rounded ml-auto" /></TableCell>
+              {isSkeleton ? (
+                <>
+                  <div className="hidden sm:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30">
+                          <TableHead>Staff Details</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      ))
-                    ) : filteredWardens.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={2} className="h-24 text-center text-muted-foreground">No wardens found</TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredWardens.map((warden) => (
-                        <TableRow key={warden.id} className="group">
-                          <TableCell>
-                            <div className="space-y-1 py-1">
-                              <div className="text-lg sm:text-base font-semibold flex items-center gap-2">
-                                {warden.name}
-                                <Badge variant="outline" className="text-xs sm:text-[10px] py-0">{warden.designation || 'Warden'}</Badge>
+                      </TableHeader>
+                      <TableBody>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <TableRow key={i}>
+                            <TableCell>
+                              <div className="space-y-2 py-2">
+                                <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+                                <div className="space-y-1">
+                                  <div className="h-3 w-48 bg-muted animate-pulse rounded" />
+                                  <div className="h-3 w-40 bg-muted animate-pulse rounded" />
+                                  <div className="h-3 w-56 bg-muted animate-pulse rounded" />
+                                  <div className="h-3 w-36 bg-muted animate-pulse rounded" />
+                                </div>
                               </div>
-                              <div className="text-sm sm:text-xs text-muted-foreground flex flex-col gap-0.5">
-                                <span className="flex items-center gap-1.5 text-sm"><Mail size={14} className="sm:size-[14px] mt-1 " /> {warden.email || 'N/A'}</span>
-                                <span className="flex items-center gap-1.5 text-sm"><Phone size={14} className="sm:size-[14px] mt-1" /> {warden.phone || 'N/A'}</span>
-                                <span className="flex items-center gap-1.5 text-sm"><MapPin size={14} className="sm:size-[14px] mt-1" /> {warden.address || 'N/A'}</span>
-                                <span className="flex items-center gap-1.5 font-medium text-primary/70 text-sm"><Award size={14} className="sm:size-[14px] mt-1" /> {warden.experience || '0'} Years Experience</span>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right align-top pt-4">
-                            <div className="flex justify-end gap-1">
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditingWarden(warden); setIsWardenModalOpen(true); }}>
-                                <Edit2 size={14} className="text-blue-500" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteWarden(warden.id)}>
-                                <Trash2 size={14} className="text-red-500" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Mobile Card View */}
-              <div className="block sm:hidden p-4 space-y-4">
-                {isSkeleton ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="p-4 border rounded-xl space-y-3 bg-card/50 animate-pulse">
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                          <div className="h-5 w-32 bg-muted rounded" />
-                          <div className="h-4 w-16 bg-muted rounded" />
-                        </div>
-                        <div className="h-8 w-16 bg-muted rounded" />
-                      </div>
-                      <div className="space-y-2 pt-2 border-t border-border/50">
-                        <div className="h-4 w-48 bg-muted rounded" />
-                        <div className="h-4 w-40 bg-muted rounded" />
-                        <div className="h-4 w-56 bg-muted rounded" />
-                      </div>
-                    </div>
-                  ))
-                ) : filteredWardens.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground text-sm">No wardens found</div>
-                ) : (
-                  filteredWardens.map((warden) => (
-                    <div key={warden.id} className="p-4 border rounded-xl space-y-3 bg-card shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-                      <div className="space-y-3">
+                            </TableCell>
+                            <TableCell className="text-right"><div className="h-8 w-16 bg-muted animate-pulse rounded ml-auto" /></TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  <div className="block sm:hidden p-4 space-y-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="p-4 border rounded-xl space-y-3 bg-card/50 animate-pulse">
                         <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-semibold text-base text-card-foreground">
-                              {warden.name}
-                            </h4>
-                            <Badge variant="outline" className="text-[10px] mt-1 py-0">{warden.designation || 'Warden'}</Badge>
+                          <div className="space-y-1">
+                            <div className="h-5 w-32 bg-muted rounded" />
+                            <div className="h-4 w-16 bg-muted rounded" />
                           </div>
+                          <div className="h-8 w-16 bg-muted rounded" />
                         </div>
-                        
-                        <div className="text-xs text-muted-foreground space-y-2 pt-2 border-t border-border/50">
-                          <div className="flex items-center gap-2">
-                            <Mail size={13} className="text-muted-foreground/70" />
-                            <span className="truncate">{warden.email || 'N/A'}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Phone size={13} className="text-muted-foreground/70" />
-                            <span>{warden.phone || 'N/A'}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin size={13} className="text-muted-foreground/70" />
-                            <span className="truncate">{warden.address || 'N/A'}</span>
-                          </div>
-                          <div className="flex items-center gap-2 font-medium text-primary/80">
-                            <Award size={13} className="text-primary/70" />
-                            <span>{warden.experience || '0'} Years Experience</span>
-                          </div>
+                        <div className="space-y-2 pt-2 border-t border-border/50">
+                          <div className="h-4 w-48 bg-muted rounded" />
+                          <div className="h-4 w-40 bg-muted rounded" />
+                          <div className="h-4 w-56 bg-muted rounded" />
                         </div>
                       </div>
+                    ))}
+                  </div>
+                </>
+              ) : filteredWardens.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                  <div className="p-4 rounded-full bg-primary/10 text-primary mb-3">
+                    <UserCheck className="w-8 h-8 opacity-60" />
+                  </div>
+                  <h3 className="text-base font-semibold mb-1 text-foreground">No wardens found</h3>
+                  <p className="text-xs text-muted-foreground max-w-[250px]">There are currently no wardens registered or matching the search query.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Desktop View */}
+                  <div className="hidden sm:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30">
+                          <TableHead>Staff Details</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredWardens.map((warden) => (
+                          <TableRow key={warden.id} className="group">
+                            <TableCell>
+                              <div className="space-y-1 py-1">
+                                <div className="text-lg sm:text-base font-semibold flex items-center gap-2">
+                                  {warden.name}
+                                  <Badge variant="outline" className="text-xs sm:text-[10px] py-0">{warden.designation || 'Warden'}</Badge>
+                                </div>
+                                <div className="text-sm sm:text-xs text-muted-foreground flex flex-col gap-0.5">
+                                  <span className="flex items-center gap-1.5 text-sm"><Mail size={14} className="sm:size-[14px] mt-1 " /> {warden.email || 'N/A'}</span>
+                                  <span className="flex items-center gap-1.5 text-sm"><Phone size={14} className="sm:size-[14px] mt-1" /> {warden.phone || 'N/A'}</span>
+                                  <span className="flex items-center gap-1.5 text-sm"><MapPin size={14} className="sm:size-[14px] mt-1" /> {warden.address || 'N/A'}</span>
+                                  <span className="flex items-center gap-1.5 font-medium text-primary/70 text-sm"><Award size={14} className="sm:size-[14px] mt-1" /> {warden.experience || '0'} Years Experience</span>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right align-top pt-4">
+                              <div className="flex justify-end gap-1">
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditingWarden(warden); setIsWardenModalOpen(true); }}>
+                                  <Edit2 size={14} className="text-blue-500" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteWarden(warden.id)}>
+                                  <Trash2 size={14} className="text-red-500" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
 
-                      <div className="flex gap-2 pt-2 border-t border-border/50 w-full">
-                        <Button variant="outline" size="sm" className="flex-1 h-8 gap-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/20" onClick={() => { setEditingWarden(warden); setIsWardenModalOpen(true); }}>
-                          <Edit2 size={12} /> Edit
-                        </Button>
-                        <Button variant="outline" size="sm" className="flex-1 h-8 gap-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20" onClick={() => deleteWarden(warden.id)}>
-                          <Trash2 size={12} /> Delete
-                        </Button>
+                  {/* Mobile Card View */}
+                  <div className="block sm:hidden p-4 space-y-4">
+                    {filteredWardens.map((warden) => (
+                      <div key={warden.id} className="p-4 border rounded-xl space-y-3 bg-card shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold text-base text-card-foreground">
+                                {warden.name}
+                              </h4>
+                              <Badge variant="outline" className="text-[10px] mt-1 py-0">{warden.designation || 'Warden'}</Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="text-xs text-muted-foreground space-y-2 pt-2 border-t border-border/50">
+                            <div className="flex items-center gap-2">
+                              <Mail size={13} className="text-muted-foreground/70" />
+                              <span className="truncate">{warden.email || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Phone size={13} className="text-muted-foreground/70" />
+                              <span>{warden.phone || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <MapPin size={13} className="text-muted-foreground/70" />
+                              <span className="truncate">{warden.address || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center gap-2 font-medium text-primary/80">
+                              <Award size={13} className="text-primary/70" />
+                              <span>{warden.experience || '0'} Years Experience</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2 border-t border-border/50 w-full">
+                          <Button variant="outline" size="sm" className="flex-1 h-8 gap-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/20" onClick={() => { setEditingWarden(warden); setIsWardenModalOpen(true); }}>
+                            <Edit2 size={12} /> Edit
+                          </Button>
+                          <Button variant="outline" size="sm" className="flex-1 h-8 gap-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20" onClick={() => deleteWarden(warden.id)}>
+                            <Trash2 size={12} /> Delete
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -392,133 +409,150 @@ const StaffManagementOverview: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0">
             <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
-              {/* Desktop View */}
-              <div className="hidden sm:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/30">
-                      <TableHead>Staff Details</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {isSkeleton ? (
-                      Array.from({ length: 5 }).map((_, i) => (
-                        <TableRow key={i}>
-                          <TableCell>
-                            <div className="space-y-2 py-2">
-                              <div className="h-4 w-32 bg-muted animate-pulse rounded" />
-                              <div className="space-y-1">
-                                <div className="h-3 w-48 bg-muted animate-pulse rounded" />
-                                <div className="h-3 w-40 bg-muted animate-pulse rounded" />
-                                <div className="h-3 w-56 bg-muted animate-pulse rounded" />
-                                <div className="h-3 w-36 bg-muted animate-pulse rounded" />
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right"><div className="h-8 w-16 bg-muted animate-pulse rounded ml-auto" /></TableCell>
+              {isSkeleton ? (
+                <>
+                  <div className="hidden sm:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30">
+                          <TableHead>Staff Details</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      ))
-                    ) : filteredCaretakers.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={2} className="h-24 text-center text-muted-foreground">No caretakers found</TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredCaretakers.map((caretaker) => (
-                        <TableRow key={caretaker.id} className="group">
-                          <TableCell>
-                            <div className="space-y-1 py-1">
-                              <div className="text-lg sm:text-base font-semibold flex items-center gap-2">
-                                {caretaker.name}
+                      </TableHeader>
+                      <TableBody>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <TableRow key={i}>
+                            <TableCell>
+                              <div className="space-y-2 py-2">
+                                <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+                                <div className="space-y-1">
+                                  <div className="h-3 w-48 bg-muted animate-pulse rounded" />
+                                  <div className="h-3 w-40 bg-muted animate-pulse rounded" />
+                                  <div className="h-3 w-56 bg-muted animate-pulse rounded" />
+                                  <div className="h-3 w-36 bg-muted animate-pulse rounded" />
+                                </div>
                               </div>
-                              <div className="text-sm sm:text-xs text-muted-foreground flex flex-col gap-0.5">
-                                <span className="flex items-center gap-1.5 text-sm"><Mail size={14} className="sm:size-[14px] mt-1" /> {caretaker.email || 'N/A'}</span>
-                                <span className="flex items-center gap-1.5 text-sm"><Phone size={14} className="sm:size-[14px] mt-1" /> {caretaker.phone || 'N/A'}</span>
-                                <span className="flex items-center gap-1.5 text-sm"><MapPin size={14} className="sm:size-[14px] mt-1" /> {caretaker.address || 'N/A'}</span>
-                                <span className="flex items-center gap-1.5 font-medium text-blue-500/70 text-sm"><Briefcase size={14} className="sm:size-[14px] mt-1" /> {caretaker.experience || '0'} Years Experience</span>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right align-top pt-4">
-                            <div className="flex justify-end gap-1">
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditingCaretaker(caretaker); setIsCaretakerModalOpen(true); }}>
-                                <Edit2 size={14} className="text-blue-500" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteCaretaker(caretaker.id)}>
-                                <Trash2 size={14} className="text-red-500" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Mobile Card View */}
-              <div className="block sm:hidden p-4 space-y-4">
-                {isSkeleton ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="p-4 border rounded-xl space-y-3 bg-card/50 animate-pulse">
-                      <div className="flex justify-between items-start">
-                        <div className="h-5 w-32 bg-muted rounded" />
-                        <div className="h-8 w-16 bg-muted rounded" />
-                      </div>
-                      <div className="space-y-2 pt-2 border-t border-border/50">
-                        <div className="h-4 w-48 bg-muted rounded" />
-                        <div className="h-4 w-40 bg-muted rounded" />
-                        <div className="h-4 w-56 bg-muted rounded" />
-                      </div>
-                    </div>
-                  ))
-                ) : filteredCaretakers.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground text-sm">No caretakers found</div>
-                ) : (
-                  filteredCaretakers.map((caretaker) => (
-                    <div key={caretaker.id} className="p-4 border rounded-xl space-y-3 bg-card shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-                      <div className="space-y-3">
+                            </TableCell>
+                            <TableCell className="text-right"><div className="h-8 w-16 bg-muted animate-pulse rounded ml-auto" /></TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  <div className="block sm:hidden p-4 space-y-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="p-4 border rounded-xl space-y-3 bg-card/50 animate-pulse">
                         <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-semibold text-base text-card-foreground">
-                              {caretaker.name}
-                            </h4>
-                            <Badge variant="outline" className="text-[10px] mt-1 py-0">Caretaker</Badge>
-                          </div>
+                          <div className="h-5 w-32 bg-muted rounded" />
+                          <div className="h-8 w-16 bg-muted rounded" />
                         </div>
-                        
-                        <div className="text-xs text-muted-foreground space-y-2 pt-2 border-t border-border/50">
-                          <div className="flex items-center gap-2">
-                            <Mail size={13} className="text-muted-foreground/70" />
-                            <span className="truncate">{caretaker.email || 'N/A'}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Phone size={13} className="text-muted-foreground/70" />
-                            <span>{caretaker.phone || 'N/A'}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin size={13} className="text-muted-foreground/70" />
-                            <span className="truncate">{caretaker.address || 'N/A'}</span>
-                          </div>
-                          <div className="flex items-center gap-2 font-medium text-blue-500/80">
-                            <Briefcase size={13} className="text-blue-500/70" />
-                            <span>{caretaker.experience || '0'} Years Experience</span>
-                          </div>
+                        <div className="space-y-2 pt-2 border-t border-border/50">
+                          <div className="h-4 w-48 bg-muted rounded" />
+                          <div className="h-4 w-40 bg-muted rounded" />
+                          <div className="h-4 w-56 bg-muted rounded" />
                         </div>
                       </div>
+                    ))}
+                  </div>
+                </>
+              ) : filteredCaretakers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                  <div className="p-4 rounded-full bg-blue-500/10 text-blue-500 mb-3">
+                    <Users className="w-8 h-8 opacity-60" />
+                  </div>
+                  <h3 className="text-base font-semibold mb-1 text-foreground">No caretakers found</h3>
+                  <p className="text-xs text-muted-foreground max-w-[250px]">There are currently no caretakers registered or matching the search query.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Desktop View */}
+                  <div className="hidden sm:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30">
+                          <TableHead>Staff Details</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredCaretakers.map((caretaker) => (
+                          <TableRow key={caretaker.id} className="group">
+                            <TableCell>
+                              <div className="space-y-1 py-1">
+                                <div className="text-lg sm:text-base font-semibold flex items-center gap-2">
+                                  {caretaker.name}
+                                </div>
+                                <div className="text-sm sm:text-xs text-muted-foreground flex flex-col gap-0.5">
+                                  <span className="flex items-center gap-1.5 text-sm"><Mail size={14} className="sm:size-[14px] mt-1" /> {caretaker.email || 'N/A'}</span>
+                                  <span className="flex items-center gap-1.5 text-sm"><Phone size={14} className="sm:size-[14px] mt-1" /> {caretaker.phone || 'N/A'}</span>
+                                  <span className="flex items-center gap-1.5 text-sm"><MapPin size={14} className="sm:size-[14px] mt-1" /> {caretaker.address || 'N/A'}</span>
+                                  <span className="flex items-center gap-1.5 font-medium text-blue-500/70 text-sm"><Briefcase size={14} className="sm:size-[14px] mt-1" /> {caretaker.experience || '0'} Years Experience</span>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right align-top pt-4">
+                              <div className="flex justify-end gap-1">
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditingCaretaker(caretaker); setIsCaretakerModalOpen(true); }}>
+                                  <Edit2 size={14} className="text-blue-500" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteCaretaker(caretaker.id)}>
+                                  <Trash2 size={14} className="text-red-500" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
 
-                      <div className="flex gap-2 pt-2 border-t border-border/50 w-full">
-                        <Button variant="outline" size="sm" className="flex-1 h-8 gap-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/20" onClick={() => { setEditingCaretaker(caretaker); setIsCaretakerModalOpen(true); }}>
-                          <Edit2 size={12} /> Edit
-                        </Button>
-                        <Button variant="outline" size="sm" className="flex-1 h-8 gap-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20" onClick={() => deleteCaretaker(caretaker.id)}>
-                          <Trash2 size={12} /> Delete
-                        </Button>
+                  {/* Mobile Card View */}
+                  <div className="block sm:hidden p-4 space-y-4">
+                    {filteredCaretakers.map((caretaker) => (
+                      <div key={caretaker.id} className="p-4 border rounded-xl space-y-3 bg-card shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold text-base text-card-foreground">
+                                {caretaker.name}
+                              </h4>
+                              <Badge variant="outline" className="text-[10px] mt-1 py-0">Caretaker</Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="text-xs text-muted-foreground space-y-2 pt-2 border-t border-border/50">
+                            <div className="flex items-center gap-2">
+                              <Mail size={13} className="text-muted-foreground/70" />
+                              <span className="truncate">{caretaker.email || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Phone size={13} className="text-muted-foreground/70" />
+                              <span>{caretaker.phone || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <MapPin size={13} className="text-muted-foreground/70" />
+                              <span className="truncate">{caretaker.address || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center gap-2 font-medium text-blue-500/80">
+                              <Briefcase size={13} className="text-blue-500/70" />
+                              <span>{caretaker.experience || '0'} Years Experience</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2 border-t border-border/50 w-full">
+                          <Button variant="outline" size="sm" className="flex-1 h-8 gap-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/20" onClick={() => { setEditingCaretaker(caretaker); setIsCaretakerModalOpen(true); }}>
+                            <Edit2 size={12} /> Edit
+                          </Button>
+                          <Button variant="outline" size="sm" className="flex-1 h-8 gap-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20" onClick={() => deleteCaretaker(caretaker.id)}>
+                            <Trash2 size={12} /> Delete
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
