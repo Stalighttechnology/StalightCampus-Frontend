@@ -1,5 +1,5 @@
 import { Switch } from "@/components/ui/switch";
-import { requestForToken } from "@/lib/firebase";
+import { handleNotificationToggle, checkNotificationPermission } from "../../utils/notificationHelper";
 import React, { useEffect, useRef, useState } from "react";
 import HelpLearningCard from "../common/HelpLearningCard";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -43,7 +43,11 @@ const FeesManagerProfile: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
   const [formData, setFormData] = useState({ first_name: "", last_name: "", email: "", phone: "", address: "", bio: "" });
   const [activeTab, setActiveTab] = useState<'details' | 'activity' | 'settings' | 'help'>('details');
-  const [notificationsEnabled, setNotificationsEnabled] = useState((typeof Notification !== 'undefined' && Notification.permission === 'granted') && localStorage.getItem('hasSeenPwaWizard') !== null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  useEffect(() => {
+    checkNotificationPermission(setNotificationsEnabled);
+  }, []);
 
   // Change password state
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -442,34 +446,7 @@ const FeesManagerProfile: React.FC = () => {
                         <Label className="text-base font-medium">Push Notifications</Label>
                         <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Receive real-time alerts for attendance, leaves, exams, and more.</p>
                       </div>
-                      <Switch checked={notificationsEnabled} onCheckedChange={async (checked) => {
-                        try {
-                          setNotificationsEnabled(checked);
-                          const userToken = sessionStorage.getItem('token') || localStorage.getItem('token');
-                          if (checked) {
-                            const token = await requestForToken();
-                            if (token && userToken) {
-                              await fetch(`${API_ENDPOINT}/profile/register-device/`, {
-                                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
-                                body: JSON.stringify({ fcm_token: token, device_type: 'web' })
-                              });
-                              showSuccessAlert('Success', 'Push notifications enabled!');
-                            }
-                          } else {
-                            const token = await requestForToken();
-                            if (token && userToken) {
-                              await fetch(`${API_ENDPOINT}/profile/unregister-device/`, {
-                                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
-                                body: JSON.stringify({ fcm_token: token })
-                              });
-                              showSuccessAlert('Disabled', 'Push notifications disabled.');
-                            }
-                          }
-                        } catch (error) {
-                          setNotificationsEnabled(!checked);
-                          showErrorAlert('Error', 'Failed to update notification settings');
-                        }
-                      }} />
+                      <Switch checked={notificationsEnabled} onCheckedChange={(checked) => handleNotificationToggle(checked, setNotificationsEnabled)} />
                     </div>
                   </div>
                 )}
