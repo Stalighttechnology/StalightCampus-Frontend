@@ -560,8 +560,8 @@ const WardenVisitorLogs = () => {
 
                           <div className="space-y-2 pt-2 border-t border-border/40">
                             <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Filter Students</Label>
-                            <div className="grid grid-cols-3 gap-2">
-                              <div className="space-y-1.5">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                              <div className="space-y-1.5 min-w-0">
                                 <Label className="text-xs text-muted-foreground">Batch</Label>
                                 <Select
                                   value={selectedBatch}
@@ -693,8 +693,8 @@ const WardenVisitorLogs = () => {
                                         type="button"
                                         onClick={() => {
                                           const matchedHostel = hostels.find(h => h.name === s.room_hostel_name);
-                                          setFormData({ 
-                                            ...formData, 
+                                          setFormData({
+                                            ...formData,
                                             student: s.id.toString(),
                                             hostel: matchedHostel ? matchedHostel.id.toString() : formData.hostel
                                           });
