@@ -5,7 +5,7 @@ import { Badge } from "./TransportCommon";
 import { Card, CardHeader, CardTitle, CardContent } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { SkeletonCard } from "../../ui/skeleton";
-import { Radio, Bus, RefreshCw, MapPin } from "lucide-react";
+import { Radio, Bus, RefreshCw, MapPin, Sunrise, Sunset } from "lucide-react";
 
 const TransportTracking: React.FC = () => {
   const { theme } = useTheme();
@@ -33,12 +33,12 @@ const TransportTracking: React.FC = () => {
     <div id="transport-tracking-header" className="space-y-6">
 
       <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
-        <CardHeader className="pb-3 border-b border-inherit">
+        <CardHeader className="p-4 md:p-6 pb-3 md:pb-4 border-b border-inherit">
           <CardTitle id="transport-tracking-title-row" className="text-lg font-semibold flex items-center gap-2">
-            <Bus className="text-primary" /> Running Fleet
+            Running Fleet
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-5">
+        <CardContent className="p-4 md:p-6">
           {loading ? (
             <SkeletonCard className="w-full h-80" />
           ) : liveTrips.length === 0 ? (
@@ -54,7 +54,7 @@ const TransportTracking: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 gap-6">
               {liveTrips.map((t: any) => (
-                <div key={t.id} className={`p-5 rounded-2xl border transition-all duration-200 ${theme === 'dark' ? 'border-border bg-background/50' : 'border-gray-100 bg-gray-50/50'}`}>
+                <div key={t.id} className="py-5 border-b border-gray-100 dark:border-border last:border-b-0 first:pt-0 last:pb-0">
                   <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-border">
                     <div>
                       <p className="font-bold text-base text-primary">{t.route_details?.route_name}</p>
@@ -62,7 +62,17 @@ const TransportTracking: React.FC = () => {
                         Bus No: <b>{t.bus_details?.bus_number}</b> · Driver: <b>{t.driver_details?.first_name} {t.driver_details?.last_name}</b>
                       </p>
                     </div>
-                    <Badge label={t.trip_type === 'morning' ? 'Morning 🌅' : 'Evening 🌇'} color="running" />
+                    <Badge color="running">
+                      {t.trip_type === 'morning' ? (
+                        <span className="flex items-center gap-1">
+                          Morning <Sunrise className="w-3.5 h-3.5" />
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          Evening <Sunset className="w-3.5 h-3.5" />
+                        </span>
+                      )}
+                    </Badge>
                   </div>
                   {t.current_latitude && (
                     <div className="mt-4 border rounded-2xl overflow-hidden shadow-sm">
