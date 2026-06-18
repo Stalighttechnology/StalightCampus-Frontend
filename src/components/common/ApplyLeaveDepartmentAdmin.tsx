@@ -370,16 +370,16 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
             </div>
 
             {/* Filter Button */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 mt-2 sm:mt-0">
               <Popover open={filterOpen} onOpenChange={setFilterOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-7 sm:h-8 lg:h-9 px-1.5 sm:px-2 lg:px-3 whitespace-nowrap">
-
-                    <Filter className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
-                    <span className="hidden sm:inline">Filter</span>
+                    className="flex items-center justify-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md h-9 w-9 sm:h-9 sm:w-auto sm:px-3 whitespace-nowrap rounded-lg"
+                  >
+                    <Filter className="w-4 h-4" />
+                    <span className="hidden sm:inline ml-1.5 text-sm">Filter</span>
                   </Button>
                 </PopoverTrigger>
 
