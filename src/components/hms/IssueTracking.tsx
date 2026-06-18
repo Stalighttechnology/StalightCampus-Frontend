@@ -603,7 +603,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
         </div>
 
         {/* Issue Details */}
-        <div className="lg:col-span-7" ref={detailsRef}>
+        <div className="hidden lg:block lg:col-span-7" ref={detailsRef}>
           <AnimatePresence mode="wait">
             {selectedIssue ?
               <motion.div

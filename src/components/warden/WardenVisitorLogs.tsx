@@ -487,7 +487,7 @@ const WardenVisitorLogs = () => {
     <div className="space-y-6">
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm">
         <CardHeader id="warden-visitor-logs-header" className="pb-4 border-b bg-muted/30">
-          <div className="flex flex-col space-y-4">
+          <div className="flex flex-col space-y-3 sm:space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <CardTitle className="text-xl">Visitor Logs</CardTitle>
@@ -771,30 +771,42 @@ const WardenVisitorLogs = () => {
                   size="sm"
                   onClick={handleExportPDF}
                   disabled={exporting || totalCount === 0}
-                  className="flex items-center justify-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap w-full sm:w-auto"
+                  className="hidden sm:flex items-center justify-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap"
                 >
                   {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
                   Export PDF
                 </Button>
               </div>
             </div>
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-40" />
-              <Input
-                type="text"
-                placeholder="Search visitors, students, or hostels..."
-                className="pl-10 pr-12 h-10 bg-background border-primary/10 hover:border-primary/30 transition-colors"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-                >
-                  Clear
-                </button>
-              )}
+            <div className="flex gap-2 w-full">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-40" />
+                <Input
+                  type="text"
+                  placeholder="Search visitors, students, or hostels..."
+                  className="pl-10 pr-12 h-10 bg-background border-primary/10 hover:border-primary/30 transition-colors w-full"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              {/* Mobile Download PDF Icon Button */}
+              <Button
+                onClick={handleExportPDF}
+                disabled={exporting || totalCount === 0}
+                size="icon"
+                variant="outline"
+                className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+              >
+                {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -929,49 +941,68 @@ const WardenVisitorLogs = () => {
                         <div className="text-base font-semibold truncate">{log.student_name || '-'}</div>
                         <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider truncate">{log.student_usn || '-'}</div>
                       </div>
-                      <div className="flex items-center gap-2 w-full mt-1">
+                      <div className="flex flex-col gap-2 w-full mt-1">
+                        {/* Row 1: View Reason (Full Width) */}
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setViewPurpose(log.purpose)}
-                          className={`flex-1 text-xs font-semibold px-2 py-1 rounded-xl h-8 transition-all flex items-center justify-center gap-1 ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                            }`}
+                          className="w-full text-xs font-semibold px-4 h-9 text-primary hover:text-primary/95 bg-primary/5 hover:bg-primary/10 border-primary/10 rounded-lg flex items-center justify-center"
                         >
-                          View Purpose
+                          View Reason
                         </Button>
+
+                        {/* Row 2: Actions (Remind + Check Out) */}
                         {!log.check_out_time && (
-                          <>
-                            {isOverdue(log.check_in_time, log.check_out_time) && (
+                          <div className="flex items-center gap-2 w-full mt-1">
+                            {isOverdue(log.check_in_time, log.check_out_time) ? (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleSendReminder(log.id)}
+                                  disabled={isSendingReminder === log.id || isCheckingOut === log.id}
+                                  className="flex-1 text-xs font-semibold px-2 h-9 border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-950 dark:text-orange-400 dark:hover:bg-orange-950/20 rounded-lg flex items-center justify-center gap-1.5"
+                                >
+                                  {isSendingReminder === log.id ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <Bell className="w-3.5 h-3.5" />
+                                  )}
+                                  Remind
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleCheckout(log.id)}
+                                  disabled={isCheckingOut === log.id || isSendingReminder === log.id}
+                                  className="flex-1 text-xs font-semibold px-2 h-9 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center gap-1.5"
+                                >
+                                  {isCheckingOut === log.id ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <LogOut className="w-3.5 h-3.5" />
+                                  )}
+                                  Check Out
+                                </Button>
+                              </>
+                            ) : (
                               <Button
-                                variant="outline"
+                                variant="destructive"
                                 size="sm"
-                                onClick={() => handleSendReminder(log.id)}
-                                disabled={isSendingReminder === log.id || isCheckingOut === log.id}
-                                className="flex-1 text-xs font-semibold px-2 py-1 rounded-xl h-8 transition-all flex items-center justify-center gap-1 border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-950 dark:text-orange-400 dark:hover:bg-orange-950/20"
+                                onClick={() => handleCheckout(log.id)}
+                                disabled={isCheckingOut === log.id}
+                                className="w-full text-xs font-semibold px-2 h-9 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center gap-1.5"
                               >
-                                {isSendingReminder === log.id ? (
+                                {isCheckingOut === log.id ? (
                                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                 ) : (
-                                  <Bell className="w-3.5 h-3.5" />
+                                  <LogOut className="w-3.5 h-3.5" />
                                 )}
-                                Remind
+                                Check Out
                               </Button>
                             )}
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleCheckout(log.id)}
-                              disabled={isCheckingOut === log.id || isSendingReminder === log.id}
-                              className="flex-1 text-xs font-semibold px-2 py-1 rounded-xl h-8 transition-all flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white"
-                            >
-                              {isCheckingOut === log.id ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <LogOut className="w-3.5 h-3.5" />
-                              )}
-                              Check Out
-                            </Button>
-                          </>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1122,7 +1153,7 @@ const WardenVisitorLogs = () => {
 
       {/* View Purpose Dialog */}
       <Dialog open={!!viewPurpose} onOpenChange={() => setViewPurpose(null)}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden' : 'bg-white text-gray-900 border border-gray-200 max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden'}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border w-[90%] max-w-[90vw] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden' : 'bg-white text-gray-900 border border-gray-200 w-[90%] max-w-[90vw] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden'}>
           <DialogHeader>
             <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Visit Purpose</DialogTitle>
           </DialogHeader>
