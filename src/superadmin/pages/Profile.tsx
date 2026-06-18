@@ -2,13 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { Mail, Bell, Save, CheckCircle, AlertCircle, Loader2, Shield, UserCircle2 } from "lucide-react";
 import Swal from "sweetalert2";
-
-const API_BASE = "/api/superadmin";
-
-const authHeaders = () => ({
-  Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
-  "Content-Type": "application/json",
-});
+import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
+import { API_ENDPOINT } from "../../utils/config";
 
 interface ProfileData {
   username: string;
@@ -47,7 +42,7 @@ const SuperAdminProfile: React.FC = () => {
 
   // Fetch once on mount
   useEffect(() => {
-    fetch(`${API_BASE}/profile/`, { headers: authHeaders() })
+    fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/superadmin/profile/`)
       .then((r) => r.json())
       .then((data: ProfileData) => {
         if (data.username) {
@@ -77,9 +72,11 @@ const SuperAdminProfile: React.FC = () => {
     setError("");
 
     try {
-      const res = await fetch(`${API_BASE}/profile/`, {
+      const res = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/superadmin/profile/`, {
         method: "PUT",
-        headers: authHeaders(),
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           first_name: form.first_name,
           last_name: form.last_name,
