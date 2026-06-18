@@ -124,7 +124,7 @@ const DriverTripHistory: React.FC = () => {
             </div>
           )}
         </CardContent>
-        {totalPages > 1 && (
+        {!loadingHistory && totalPages > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((historyPage - 1) * 10 + 1, totalCount)} to {Math.min(historyPage * 10, totalCount)} of {totalCount} records
@@ -163,8 +163,8 @@ const DriverTripHistory: React.FC = () => {
           onClick={() => { setSelectedTrip(null); setTripStudents([]); }} 
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
         >
-          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-lg z-50">
-            <Card className={`shadow-2xl overflow-hidden flex flex-col max-h-[85vh] border ${cardBg}`}>
+          <div onClick={(e) => e.stopPropagation()} className="relative w-[90%] md:w-full max-w-lg z-50">
+            <Card className={`shadow-2xl overflow-hidden flex flex-col max-h-[80vh] md:max-h-[85vh] border ${cardBg}`}>
               <CardHeader className="p-4 border-b border-inherit bg-primary/5 flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                   Student Attendance List

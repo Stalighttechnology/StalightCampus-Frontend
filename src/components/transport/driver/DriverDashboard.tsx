@@ -7,11 +7,12 @@ import {
   fetchTripStudents, markStudentAttendance, triggerEmergency
 } from "../../../utils/transport_api";
 import {
-  Bus, Users, CheckCircle, XCircle, AlertTriangle, Play, Square, Radio, LogOut, X, MapPin, Navigation, Clock, Sunrise, Sunset
+  Bus, Users, CheckCircle, XCircle, AlertTriangle, Play, Square, Radio, LogOut, X, MapPin, Navigation, Clock, Sunrise, Sunset, Loader2
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../ui/card";
 import { Button } from "../../ui/button";
 import DashboardCard from "../../common/DashboardCard";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../ui/dialog";
 
 interface Student { id: number; student_name: string; student_usn: string; stop_name: string; status: string; student_details?: any; stop_details?: any; }
 interface Trip { id: number; trip_type: string; status: string; start_time: string; route_details: any; bus_details: any; }
@@ -30,6 +31,9 @@ const DriverDashboard: React.FC = () => {
   const [showEmergency, setShowEmergency] = useState(false);
   const [emergencyDesc, setEmergencyDesc] = useState('');
   const gpsRef = useRef<number | null>(null);
+
+  const [isStartingTrip, setIsStartingTrip] = useState<"morning" | "evening" | null>(null);
+  const [isEndingTrip, setIsEndingTrip] = useState(false);
 
   const PAGE_SIZE = 10;
   const totalCount = students.length;
@@ -74,20 +78,28 @@ const DriverDashboard: React.FC = () => {
       return;
     }
     
+    setIsStartingTrip(type);
+    
     // Test GPS permission before starting
     navigator.geolocation.getCurrentPosition(
       async () => {
-        const res = await startTrip(type);
-        if (res.success) { 
-          setActiveTrip(res.trip);
-          startGps(res.trip.id); 
-          const s = await fetchTripStudents(res.trip.id);
-          if (s.success) {
-            setStudents(s.students);
-            setCurrentPage(1);
+        try {
+          const res = await startTrip(type);
+          if (res.success) { 
+            setActiveTrip(res.trip);
+            startGps(res.trip.id); 
+            const s = await fetchTripStudents(res.trip.id);
+            if (s.success) {
+              setStudents(s.students);
+              setCurrentPage(1);
+            }
           }
+          else err(res.message || 'Failed to start trip');
+        } catch (e) {
+          err("An unexpected error occurred while starting the trip.");
+        } finally {
+          setIsStartingTrip(null);
         }
-        else err(res.message || 'Failed to start trip');
       },
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
@@ -95,6 +107,7 @@ const DriverDashboard: React.FC = () => {
         } else {
           err("Failed to acquire GPS location. Trip cannot start.");
         }
+        setIsStartingTrip(null);
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -102,15 +115,22 @@ const DriverDashboard: React.FC = () => {
 
   const handleEndTrip = async () => {
     if (!activeTrip) return;
-    const res = await endTrip(activeTrip.id);
-    if (res.success) { 
-      toast({ title: 'Success', description: 'Trip ended.' });
-      stopGps(); 
-      setActiveTrip(null); 
-      setStudents([]); 
-      setCurrentPage(1);
+    setIsEndingTrip(true);
+    try {
+      const res = await endTrip(activeTrip.id);
+      if (res.success) { 
+        toast({ title: 'Success', description: 'Trip ended.' });
+        stopGps(); 
+        setActiveTrip(null); 
+        setStudents([]); 
+        setCurrentPage(1);
+      }
+      else err(res.message || 'Failed');
+    } catch (e) {
+      err("An unexpected error occurred while ending the trip.");
+    } finally {
+      setIsEndingTrip(false);
     }
-    else err(res.message || 'Failed');
   };
 
   const handleCancelTrip = async () => {
@@ -237,11 +257,11 @@ const DriverDashboard: React.FC = () => {
       ) : (
         <Card id="driver-dashboard-card" className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
           <CardHeader className="pb-3 border-b border-inherit">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between gap-4">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <span>Driver Dashboard Control Center</span>
               {gpsActive && (
-                <span className="flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 rounded-full text-[10px] font-bold">
-                  <Radio size={10} className="animate-pulse" /> Live Tracking Active
+                <span className="flex items-center gap-1 self-start sm:self-auto px-2.5 py-1 bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 rounded-full text-[10px] font-bold whitespace-nowrap">
+                  <Radio size={10} className="animate-pulse flex-shrink-0" /> Live Tracking Active
                 </span>
               )}
             </CardTitle>
@@ -264,15 +284,33 @@ const DriverDashboard: React.FC = () => {
                   <div className="flex flex-wrap gap-3">
                     <Button 
                       onClick={() => handleStartTrip('morning')} 
-                      className="flex items-center gap-2 bg-primary hover:bg-primary/95 text-white font-semibold rounded-xl px-5 h-12 shadow-sm transition-all"
+                      disabled={isStartingTrip !== null}
+                      className="flex items-center gap-2 bg-primary hover:bg-primary/95 text-white font-semibold rounded-xl px-5 h-12 shadow-sm transition-all disabled:opacity-50"
                     >
-                      <Sunrise size={18} /> Start Morning Trip 
+                      {isStartingTrip === 'morning' ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" /> Initializing Morning Trip...
+                        </>
+                      ) : (
+                        <>
+                          <Sunrise size={18} /> Start Morning Trip 
+                        </>
+                      )}
                     </Button>
                     <Button 
                       onClick={() => handleStartTrip('evening')} 
-                      className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl px-5 h-12 shadow-sm transition-all"
+                      disabled={isStartingTrip !== null}
+                      className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl px-5 h-12 shadow-sm transition-all disabled:opacity-50"
                     >
-                      <Sunset size={18} /> Start Evening Trip 
+                      {isStartingTrip === 'evening' ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" /> Initializing Evening Trip...
+                        </>
+                      ) : (
+                        <>
+                          <Sunset size={18} /> Start Evening Trip 
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -285,25 +323,34 @@ const DriverDashboard: React.FC = () => {
                         {activeTrip.trip_type === 'morning' ? 'Morning' : 'Evening'} Trip In Progress
                       </h3>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                       <Button 
                         variant="outline" 
                         onClick={handleCancelTrip} 
-                        className="border-gray-300 dark:border-border hover:bg-gray-100 dark:hover:bg-accent/40 text-xs font-semibold h-9"
+                        className="border-gray-300 dark:border-border hover:bg-gray-100 dark:hover:bg-accent/40 text-xs font-semibold h-9 w-full sm:w-auto flex justify-center items-center gap-1.5"
                       >
                         <X size={13} /> Cancel
                       </Button>
                       <Button 
                         onClick={() => setShowEmergency(true)} 
-                        className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold h-9 animate-pulse"
+                        className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold h-9 animate-pulse w-full sm:w-auto flex justify-center items-center gap-1.5"
                       >
                         <AlertTriangle size={13} /> EMERGENCY
                       </Button>
                       <Button 
                         onClick={handleEndTrip} 
-                        className="bg-gray-800 hover:bg-gray-900 dark:bg-accent dark:hover:bg-accent/80 text-white text-xs font-semibold h-9"
+                        disabled={isEndingTrip}
+                        className="bg-gray-800 hover:bg-gray-900 dark:bg-accent dark:hover:bg-accent/80 text-white text-xs font-semibold h-9 w-full sm:w-auto flex justify-center items-center gap-1.5 disabled:opacity-50"
                       >
-                        <Square size={13} /> End Trip
+                        {isEndingTrip ? (
+                          <>
+                            <Loader2 size={13} className="animate-spin" /> Ending Trip...
+                          </>
+                        ) : (
+                          <>
+                            <Square size={13} /> End Trip
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -314,36 +361,7 @@ const DriverDashboard: React.FC = () => {
               )}
             </div>
 
-            {/* Emergency Reporting */}
-            {showEmergency && (
-              <div className={`p-4 rounded-xl border-2 border-red-500 pb-6 border-b border-inherit ${theme === 'dark' ? 'bg-red-950/20' : 'bg-red-50'}`}>
-                <h3 className="font-bold text-red-600 mb-3 flex items-center gap-2">
-                  <AlertTriangle size={18} /> Report Emergency Situation
-                </h3>
-                <textarea 
-                  placeholder="Describe the emergency situation (accident, vehicle breakdown, traffic jam, etc.)..." 
-                  className={`w-full border rounded-lg px-4 py-3 text-sm focus:ring-1 focus:outline-none ${input}`} 
-                  rows={3} 
-                  value={emergencyDesc} 
-                  onChange={e => setEmergencyDesc(e.target.value)} 
-                />
-                <div className="flex gap-2 mt-4">
-                  <Button 
-                    onClick={handleEmergency} 
-                    className="bg-red-600 hover:bg-red-700 text-white font-bold h-10"
-                  >
-                    Send Emergency Alert
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowEmergency(false)} 
-                    className="border-gray-300 dark:border-border h-10"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            )}
+
 
             {/* Student Boarding List */}
             {activeTrip && (
@@ -471,6 +489,43 @@ const DriverDashboard: React.FC = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Emergency Reporting Dialog */}
+      <Dialog open={showEmergency} onOpenChange={setShowEmergency}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6'}>
+          <DialogHeader>
+            <DialogTitle className={`font-bold text-red-600 flex items-center gap-2 ${theme === 'dark' ? 'text-red-500' : 'text-red-600'}`}>
+              <AlertTriangle size={18} className="flex-shrink-0" /> Report Emergency Situation
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-2">
+            <textarea 
+              placeholder="Describe the emergency situation (accident, vehicle breakdown, traffic jam, etc.)..." 
+              className={`w-full border rounded-lg px-4 py-3 text-sm focus:ring-1 focus:outline-none ${input}`} 
+              rows={4} 
+              value={emergencyDesc} 
+              onChange={e => setEmergencyDesc(e.target.value)} 
+            />
+            
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button 
+                onClick={handleEmergency} 
+                className="bg-red-600 hover:bg-red-700 text-white font-bold h-10 w-full sm:w-auto flex justify-center items-center flex-1"
+              >
+                Send Emergency Alert
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowEmergency(false)} 
+                className="border-gray-300 dark:border-border h-10 w-full sm:w-auto flex justify-center items-center flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
