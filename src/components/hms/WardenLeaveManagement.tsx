@@ -332,14 +332,14 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
                   Review and approve leave requests from Wardens
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+              <div className="flex flex-row items-center gap-2 w-full md:w-auto">
+                <div className="flex items-center gap-2 flex-grow md:flex-initial justify-between md:justify-start">
                   <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} shrink-0`}>Month:</label>
                   <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        className={`flex-1 sm:w-40 justify-start text-left font-normal h-9 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                        className={`flex-1 md:w-40 justify-start text-left font-normal h-9 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
 
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {selectedMonth ?
@@ -421,11 +421,11 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
                   </Popover>
                 </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex items-center gap-2 shrink-0">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="flex-1 sm:w-[120px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 shadow-sm font-medium text-sm">
+                    <SelectTrigger className="w-9 md:w-[120px] p-0 md:px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:hidden md:[&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 shadow-sm font-medium text-sm">
                       <Filter className="h-4 w-4" />
-                      <span>Status</span>
+                      <span className="hidden md:inline">Status</span>
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
                       <SelectItem value="All">All Statuses</SelectItem>
@@ -465,14 +465,16 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
                           <span className="font-medium text-foreground">{leave.to}</span>
                         </div>
 
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={`leave-view-btn w-full h-9 font-semibold ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                          onClick={() => setViewLeave(leave)}>
-
+                        <button
+                          onClick={() => setViewLeave(leave)}
+                          className={`w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition border ${
+                            theme === 'dark'
+                              ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                              : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100'
+                          }`}
+                        >
                           View Reason
-                        </Button>
+                        </button>
 
                         {leave.status === "Pending" ? (
                           <div className="grid grid-cols-2 gap-3 mt-2">
@@ -615,36 +617,38 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
             </div>
           </CardContent>
 
-          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-            <div>
-              Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1 || loading}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Previous
-              </Button>
-
-              <div className="flex items-center justify-center min-w-[2rem]">
-                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {currentPage}
-                </span>
+          {totalPages > 1 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
               </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1 || loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Previous
+                </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages || loading}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Next
-              </Button>
-            </div>
-          </CardFooter>
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {currentPage}
+                  </span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages || loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
 
         {/* View Reason Dialog */}

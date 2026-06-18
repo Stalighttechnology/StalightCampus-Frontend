@@ -267,10 +267,12 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
           <CardHeader className="flex flex-row items-center justify-between p-2 sm:p-4 lg:p-6 gap-1 sm:gap-2 min-h-fit">
             <div className="flex flex-col">
               <CardTitle>Leave Application Form</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1 font-normal">Your leave request will be routed to the <span className="font-medium text-primary">Principal</span> for approval.</p>
             </div>
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
+            <div className={`p-3 rounded-lg border text-xs sm:text-sm ${theme === 'dark' ? 'bg-blue-900/10 border-blue-800/50 text-blue-300' : 'bg-blue-50/50 border-blue-200 text-blue-800'}`}>
+              Your leave request will be routed to the <span className="font-semibold text-primary">{props.routedTo || "Principal"}</span> for approval.
+            </div>
 
 
             {/* Title */}
@@ -406,7 +408,7 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
             </div>
 
           </CardHeader>
-          <CardContent className="flex-1 p-2 sm:p-4 lg:p-6 max-h-[500px] overflow-y-auto custom-scrollbar">
+          <CardContent className="flex-1 p-4 pt-2 sm:pt-0 max-h-[500px] overflow-y-auto custom-scrollbar">
             <div className="overflow-x-auto thin-scrollbar">
               {/* Mobile: stacked cards */}
               <div className="md:hidden space-y-3">
@@ -436,15 +438,17 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
                           {renderStatus(leave.status)}
                         </div>
                       </div>
-                      <div className="mt-3 flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className={`flex-1 h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}
-                          onClick={() => setViewReason(leave.reason)}>
-                          <Eye className="w-3 h-3 mr-1" />
-                          View
-                        </Button>
+                      <div className="mt-3">
+                        <button
+                          onClick={() => setViewReason(leave.reason)}
+                          className={`w-full text-center text-sm font-semibold py-2 px-4 rounded-lg transition border ${
+                            theme === 'dark'
+                              ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                              : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100'
+                          }`}
+                        >
+                          View Reason
+                        </button>
                       </div>
                     </div>
                   ))

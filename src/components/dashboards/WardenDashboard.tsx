@@ -46,7 +46,7 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
       case "residents":
         return <WardenHostelOverview />;
       case "apply-leave":
-        return <ApplyLeaveDepartmentAdmin />;
+        return <ApplyLeaveDepartmentAdmin routedTo="Hostel Administrator" />;
       case "my-attendance":
         return <FacultyAttendance />;
             case "holiday-calendar":

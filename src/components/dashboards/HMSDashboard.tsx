@@ -121,24 +121,16 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
         onNotificationClick={handleNotificationClick}
         pageTitle="HMS Dashboard"
       >
-      <div className="space-y-4">
-        {/* Page content rendered below */}
-
-        {/* Header - Only show for non-dashboard pages */}
-        {(activePage !== '' && activePage !== 'dashboard') && (
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            {/* Page specific header content can go here if needed in future */}
-          </div>
-        )}
-
-        {/* Tabs Navigation */}
-        <div className="mt-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
           <div key={activePage}>
             {renderContent()}
           </div>
-        </div>
-      </div>
-    </DashboardLayout>
+        </motion.div>
+      </DashboardLayout>
     </>
   );
 };
