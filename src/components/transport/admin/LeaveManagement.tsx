@@ -304,7 +304,7 @@ const DriverLeavesManagement = () => {
           .leave-filter-container { display: flex !important; flex-direction: row !important; justify-content: space-between !important; align-items: center !important; width: 100% !important; gap: 8px !important; }
           .leave-month-wrapper { display: flex !important; flex: 1 !important; min-width: 0 !important; align-items: center !important; gap: 6px !important; }
           .leave-month-picker { flex: 1 !important; min-width: 0 !important; width: auto !important; margin-top: 0px !important; padding-left: 8px !important; padding-right: 8px !important; font-size: 13px !important; }
-          .leave-filter-select { width: 90px !important; flex-shrink: 0 !important; padding-left: 8px !important; padding-right: 8px !important; font-size: 13px !important; gap: 4px !important; }
+          .leave-filter-select { width: 40px !important; flex-shrink: 0 !important; padding-left: 0px !important; padding-right: 0px !important; font-size: 13px !important; gap: 0px !important; justify-content: center !important; }
           .leave-item-card { padding: 16px !important; border-radius: 12px !important; }
           .leave-actions-mobile { width: 100% !important; margin-top: 12px !important; gap: 8px !important; flex-direction: row !important; }
           .leave-action-btn { flex: 1 !important; height: 38px !important; font-size: 12px !important; font-weight: 600 !important; }
@@ -419,9 +419,9 @@ const DriverLeavesManagement = () => {
               </div>
 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="leave-filter-select w-[100px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 shadow-sm font-medium text-sm">
+                <SelectTrigger className="leave-filter-select w-[100px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center shadow-sm font-medium text-sm">
                   <Filter className="h-4 w-4" />
-                  <span>Filter</span>
+                  <span className="!hidden sm:!inline">Filter</span>
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
                   <SelectItem value="All">All Statuses</SelectItem>
@@ -457,13 +457,45 @@ const DriverLeavesManagement = () => {
                       </div>
 
                       <Button
-                      variant="outline"
-                      size="sm"
-                      className={`leave-view-btn w-full h-9 font-semibold ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                      onClick={() => setViewLeave(leave)}>
-                      
+                        variant="outline"
+                        size="sm"
+                        className={`leave-view-btn w-full h-9 font-semibold transition border ${
+                          theme === 'dark'
+                            ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                            : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                        }`}
+                        onClick={() => setViewLeave(leave)}>
                         View Reason
                       </Button>
+
+                      {leave.status === "Pending" ? (
+                        <div className="leave-actions-mobile flex gap-2 w-full mt-2">
+                          <Button
+                            variant="outline"
+                            className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${theme === 'dark' ?
+                                'text-green-400 border-green-400 hover:bg-green-900/20' :
+                                'text-green-700 border-green-600 hover:bg-green-100'}`
+                            }
+                            onClick={() => handleApprove(leave.id)}
+                            disabled={loading}>
+                            <CheckCircle size={15} /> Approve
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${theme === 'dark' ?
+                                'text-red-400 border-red-400 hover:bg-red-900/20' :
+                                'text-red-700 border-red-600 hover:bg-red-100'}`
+                            }
+                            onClick={() => handleReject(leave.id)}
+                            disabled={loading}>
+                            <XCircle size={15} /> Reject
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="pt-2 text-center border-t border-border/30">
+                          <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) :
@@ -484,6 +516,7 @@ const DriverLeavesManagement = () => {
                   <th className={`py-3 px-4 md:px-12 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
                   <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
                   <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
+                  <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -502,18 +535,50 @@ const DriverLeavesManagement = () => {
                       </td>
                       <td className="py-4 px-2 md:px-4 text-sm">
                         <button
-                        onClick={() => setViewLeave(leave)}
-                        className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
-                        
+                          onClick={() => setViewLeave(leave)}
+                          className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${
+                            theme === 'dark'
+                              ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                              : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                          }`}
+                        >
                           View
                         </button>
                       </td>
                       <td className="py-4 px-2 md:px-4">{getStatusBadge(leave.status, theme)}</td>
+                      <td className="py-4 px-2 md:px-4">
+                        {leave.status === "Pending" ? (
+                          <div className="flex flex-col md:flex-row gap-2">
+                            <Button
+                              variant="outline"
+                              className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
+                                  'text-green-400 border-green-400 hover:bg-green-900/20' :
+                                  'text-green-700 border-green-600 hover:bg-green-100'}`
+                              }
+                              onClick={() => handleApprove(leave.id)}
+                              disabled={loading}>
+                              <CheckCircle size={16} /> Approve
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
+                                  'text-red-400 border-red-400 hover:bg-red-900/20' :
+                                  'text-red-700 border-red-600 hover:bg-red-100'}`
+                              }
+                              onClick={() => handleReject(leave.id)}
+                              disabled={loading}>
+                              <XCircle size={16} /> Reject
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+                        )}
+                      </td>
                     </tr>
                   ) :
 
                   <tr>
-                    <td colSpan={4} className="py-20 px-4">
+                    <td colSpan={5} className="py-20 px-4">
                       <div className="flex flex-col items-center justify-center">
                         <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                           <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
@@ -531,36 +596,38 @@ const DriverLeavesManagement = () => {
           </div>
         </CardContent>
         
-        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-          <div>
-            Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1 || loading}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-              Previous
-            </Button>
-
-            <div className="flex items-center justify-center min-w-[2rem]">
-              <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                {currentPage}
-              </span>
+        {totalPages > 1 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
             </div>
+            <div className="flex items-center gap-2">
+              <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1 || loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Previous
+              </Button>
 
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages || loading}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-              Next
-            </Button>
-          </div>
-        </CardFooter>
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {currentPage}
+                </span>
+              </div>
+
+              <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages || loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       {/* View Reason Dialog */}
@@ -577,38 +644,7 @@ const DriverLeavesManagement = () => {
             {viewLeave?.reason}
           </div>
 
-          {viewLeave?.status === "Pending" && (
-            <div className="flex flex-row gap-2 mt-4 pt-4 border-t border-border/20">
-              <Button
-                variant="outline"
-                className={`flex-1 h-9 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200
-                ${theme === 'dark' ?
-                    'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20' :
-                    'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'}`
-                }
-                onClick={() => {
-                  handleApprove(viewLeave.id);
-                  setViewLeave(null);
-                }}
-                disabled={loading}>
-                <CheckCircle size={14} /> Approve
-              </Button>
-              <Button
-                variant="outline"
-                className={`flex-1 h-9 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200
-                ${theme === 'dark' ?
-                    'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20' :
-                    'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'}`
-                }
-                onClick={() => {
-                  handleReject(viewLeave.id);
-                  setViewLeave(null);
-                }}
-                disabled={loading}>
-                <XCircle size={14} /> Reject
-              </Button>
-            </div>
-          )}
+
 
           <DialogFooter className="mt-4">
             <Button

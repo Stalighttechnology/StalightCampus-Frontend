@@ -650,7 +650,7 @@ const TransportAllocations: React.FC = () => {
             </div>
             
             {/* Pagination */}
-            {allocations.length > 1 && (
+            {allocCount > 20 && (
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-inherit mt-auto">
                 <div>
                   Showing <span className="font-medium">{allocCount > 0 ? (allocPage - 1) * 20 + 1 : 0}</span> to <span className="font-medium">{Math.min(allocPage * 20, allocCount)}</span> of <span className="font-medium">{allocCount}</span> allocations

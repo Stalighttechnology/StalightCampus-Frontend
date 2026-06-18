@@ -468,7 +468,7 @@ const TransportDrivers: React.FC = () => {
                 );
               })()}
             </div>
-            {drivers.length > 1 && (
+            {drivers.length > ROWS_PER_PAGE && (
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                 <div>
                   {drivers.length > 0 && (() => {
