@@ -344,7 +344,7 @@ const HODAnnouncementManagement = () => {
     });
   };
 
-  const roles = ["student", "faculty"];
+  const roles = ["student", "faculty", "hod", "principal", "placement_officer"];
 
   return (
     <>

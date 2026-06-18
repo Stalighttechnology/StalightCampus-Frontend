@@ -174,7 +174,7 @@ const AdminAnnouncementManagement = () => {
       return;
     }
 
-    const allowGlobalStudents = ["coe", "dean", "fees_manager", "principal", "org_admin", "hms", "transport_admin"].includes(user?.role);
+    const allowGlobalStudents = ["coe", "dean", "fees_manager", "principal", "admin", "org_admin", "hms", "hms_admin", "transport_admin"].includes(user?.role);
     if (!allowGlobalStudents && formData.target_roles.includes("student") && formData.is_global) {
       MySwal.fire({
         title: "Validation Error",
@@ -387,19 +387,21 @@ const AdminAnnouncementManagement = () => {
     });
   };
 
-  const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms", "transport_admin", "library_admin", "admission_manager"];
+  const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager"];
   const BASIC_ROLES = ["student", "hod", "faculty", "principal", "org_admin", "dean"];
   
   const getTargetRolesForUser = (userRole: string) => {
     switch (userRole) {
       case "principal":
       case "org_admin":
+      case "admin":
       case "dean":
         return ALL_ROLES;
       case "coe":
         return ["student", "faculty", "hod", "principal"];
       case "fees_manager":
       case "hms":
+      case "hms_admin":
       case "transport_admin":
         return ["student"];
       default:
