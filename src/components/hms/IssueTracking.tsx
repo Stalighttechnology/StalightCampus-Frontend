@@ -337,7 +337,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
   return (
     <div className="space-y-4">
       {/* Quick Stats */}
-      <div id="hms-issues-stats-grid" className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div id="hms-issues-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardCard
           title="Total Issues"
           value={statsLoading || skeletonMode ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : stats?.total ?? 0}

@@ -172,32 +172,40 @@ const WardenHostelOverview = () => {
                     setSelectedStudent(student);
                     setIsDialogOpen(true);
                   }}
-                  className="group p-4 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all border-border/40 flex flex-col justify-between cursor-pointer"
+                  className="group p-4 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all border-border/40 flex flex-col justify-between cursor-pointer min-w-0"
                 >
-                  <div>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-base overflow-hidden shrink-0">
+                  <div className="min-w-0 w-full">
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-base overflow-hidden shrink-0 relative">
                           {student.profile_picture ? (
-                            <img
-                              src={getPhotoUrl(student.profile_picture) || undefined}
-                              alt={student.name}
-                              className="w-full h-full object-cover"
-                            />
+                            <>
+                              <img
+                                src={getPhotoUrl(student.profile_picture) || undefined}
+                                alt={student.name}
+                                className="w-full h-full object-cover absolute inset-0 z-10"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                              <span className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-semibold text-base">
+                                {student.name.charAt(0)}
+                              </span>
+                            </>
                           ) : (
                             student.name.charAt(0)
                           )}
                         </div>
-                        <div className="min-w-0">
-                          <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-sm break-words group-hover:text-primary transition-colors">
                             {student.name}
                           </h3>
-                          <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider truncate">
+                          <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider break-words">
                             {student.usn}
                           </p>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-1.5">
+                      <div className="hidden sm:flex flex-col items-end gap-1.5 shrink-0">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -221,9 +229,19 @@ const WardenHostelOverview = () => {
                     </div>
                   </div>
 
-                  <div className="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground bg-muted/30 p-2 rounded-lg">
-                    <Building2 size={12} className="shrink-0" />
-                    <span className="truncate">{student.branch_name}</span>
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground bg-muted/30 p-2 rounded-lg min-w-0 flex-1">
+                      <Building2 size={12} className="shrink-0" />
+                      <span className="truncate">{student.branch_name}</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2.5 text-[12px] gap-1 rounded-full text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all shrink-0 sm:hidden flex items-center"
+                    >
+                      <Eye size={12} />
+                      View
+                    </Button>
                   </div>
                 </motion.div>
               ))}
@@ -294,13 +312,21 @@ const WardenHostelOverview = () => {
               <GraduationCap size={120} />
             </div>
             <div className="flex items-center gap-4 relative z-10">
-              <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-3xl font-semibold border border-white/30 overflow-hidden shrink-0">
+              <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-3xl font-semibold border border-white/30 overflow-hidden shrink-0 relative">
                 {selectedStudent?.profile_picture ? (
-                  <img
-                    src={getPhotoUrl(selectedStudent.profile_picture) || undefined}
-                    alt={selectedStudent.name}
-                    className="w-full h-full object-cover"
-                  />
+                  <>
+                    <img
+                      src={getPhotoUrl(selectedStudent.profile_picture) || undefined}
+                      alt={selectedStudent.name}
+                      className="w-full h-full object-cover absolute inset-0 z-10"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                    <span className="w-full h-full flex items-center justify-center bg-white/10 text-white font-semibold text-3xl">
+                      {selectedStudent?.name?.charAt(0)}
+                    </span>
+                  </>
                 ) : (
                   selectedStudent?.name?.charAt(0)
                 )}
