@@ -664,7 +664,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                               const seeVal = see !== null && see !== undefined && see !== '' ? Number(see) : null;
                               const total = cieVal !== null && seeVal !== null && !isNaN(cieVal) && !isNaN(seeVal) ? cieVal + seeVal : null;
                               const passed = meetsPassCriteria(cie, see, total);
-                              const creditsToAdd = passed ? sub.credits || 0 : 0;
+                              const creditsToAdd = passed ? Number(sub.credits ?? 0) : 0;
                               return acc + creditsToAdd;
                             }, 0)}
                         </td>
@@ -698,7 +698,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                                 const cieVal = cie !== null && cie !== undefined && cie !== '' ? Number(cie) : null;
                                 const seeVal = see !== null && see !== undefined && see !== '' ? Number(see) : null;
                                 const total = cieVal !== null && seeVal !== null && !isNaN(cieVal) && !isNaN(seeVal) ? cieVal + seeVal : null;
-                                const credits = sub.credits || 0;
+                                const credits = Number(sub.credits ?? 0);
                                 const passed = meetsPassCriteria(cie, see, total);
 
                                 if (total !== null && credits > 0) {
