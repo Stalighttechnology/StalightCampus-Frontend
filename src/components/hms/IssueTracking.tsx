@@ -113,6 +113,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [exporting, setExporting] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const fetchStats = async () => {
     setStatsLoading(true);
@@ -262,11 +263,9 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
       const response = await getIssueDetail(issue.id);
       if (response.success && response.data) {
         setSelectedIssue(response.data);
-        // Scroll into view on mobile
+        // Open details modal on mobile
         if (window.innerWidth < 1024) {
-          setTimeout(() => {
-            detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 100);
+          setIsDetailsModalOpen(true);
         }
       }
     } catch (error) {
@@ -371,22 +370,36 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
           <Card className="border-primary/10 shadow-sm overflow-hidden">
             <CardHeader id="hms-issues-card" className="pb-4 border-b bg-muted/30">
               <div className="flex flex-col space-y-4">
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start w-full">
                   <div className="space-y-1">
                     <CardTitle>Issue Tracking</CardTitle>
                     <CardDescription>Manage student complaints and maintenance requests.</CardDescription>
                   </div>
                   {selectedHostelId && totalCount > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleExportPDF}
-                      disabled={exporting}
-                      className="flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap"
-                    >
-                      {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-                      Export PDF
-                    </Button>
+                    <>
+                      {/* Desktop Button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExportPDF}
+                        disabled={exporting}
+                        className="hidden sm:flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap"
+                      >
+                        {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                        Export PDF
+                      </Button>
+                      
+                      {/* Mobile Download PDF Icon Button */}
+                      <Button
+                        onClick={handleExportPDF}
+                        disabled={exporting}
+                        size="icon"
+                        variant="outline"
+                        className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                      >
+                        {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                      </Button>
+                    </>
                   )}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
@@ -456,7 +469,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="h-[calc(100vh-23.5rem)] min-h-[50px] custom-scrollbar">
+              <div className="h-auto max-h-[calc(100vh-12rem)] sm:h-[calc(100vh-23.5rem)] min-h-[50px] overflow-y-auto custom-scrollbar">
                 {(loading || skeletonMode) && issues.length === 0 ?
                   <div className="divide-y">
                     {[1, 2, 3, 4].map((i) =>
@@ -488,7 +501,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
                       <p className="text-sm text-muted-foreground">No issues found with this filter.</p>
                     </div> :
 
-                    <div className="divide-y">
+                    <div className="divide-y-0 sm:divide-y p-3 sm:p-0 space-y-3 sm:space-y-0">
                       {issues.map((issue) => {
                         const config = STATUS_CONFIG[issue.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
                         const Icon = config.icon;
@@ -498,8 +511,12 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
                           <div
                             key={issue.id}
                             onClick={() => handleIssueClick(issue)}
-                            className={`p-4 transition-all cursor-pointer hover:bg-muted/50 relative ${isSelected ? "bg-primary/5 ring-1 ring-primary/20 ring-inset" : ""}`
-                            }>
+                            className={cn(
+                              "p-4 transition-all cursor-pointer relative hover:bg-muted/50",
+                              // Mobile card style
+                              "border rounded-xl shadow-sm bg-card sm:border-0 sm:rounded-none sm:shadow-none sm:bg-transparent",
+                              isSelected ? "bg-primary/5 ring-1 ring-primary/20 ring-inset" : ""
+                            )}>
 
                             {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 " />}
                             <div className="flex flex-wrap sm:flex-nowrap items-start justify-between gap-2 mb-2">
@@ -529,41 +546,59 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
                                 </Badge>
                               }
                             </div>
+
+                            {/* Mobile View Details Button */}
+                            <div className="mt-3 pt-3 border-t border-border/50 flex sm:hidden">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full h-9 text-xs font-semibold text-primary hover:text-primary/95 bg-primary/5 hover:bg-primary/10 border-primary/10 rounded-lg"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleIssueClick(issue);
+                                  setIsDetailsModalOpen(true);
+                                }}
+                              >
+                                View Details
+                              </Button>
+                            </div>
                           </div>);
 
                       })}
                     </div>
                 }
-              </ScrollArea>
+              </div>
             </CardContent>
-            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-              <div>
-                Showing {totalCount === 0 ? 0 : Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} issues
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={currentPage === 1 || loading}
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                >
-                  Previous
-                </Button>
-                <div className="flex items-center justify-center min-w-[2rem]">
-                  <span className="text-sm font-semibold">{currentPage}</span>
+            {totalPages > 1 && (
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div>
+                  Showing {totalCount === 0 ? 0 : Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} issues
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={currentPage === totalPages || loading}
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                >
-                  Next
-                </Button>
-              </div>
-            </CardFooter>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1 || loading}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Previous
+                  </Button>
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className="text-sm font-semibold">{currentPage}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === totalPages || loading}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
           </Card>
         </div>
 
@@ -714,7 +749,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
                 </Card>
               </motion.div> :
 
-              <div className="flex flex-col items-center justify-center h-[calc(100vh-23.5rem)] min-h-[500px] border-2 border-dashed rounded-3xl bg-muted/5 opacity-50">
+              <div className="hidden lg:flex flex-col items-center justify-center h-[calc(100vh-23.5rem)] min-h-[500px] border-2 border-dashed rounded-3xl bg-muted/5 opacity-50">
                 <div className="bg-muted/50 p-8 rounded-full mb-6 ring-8 ring-muted/20">
                   <ChevronRight className="w-12 h-12 text-muted-foreground animate-pulse" />
                 </div>
@@ -725,6 +760,151 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Mobile Details Dialog */}
+      <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
+        <DialogContent className="w-[90%] max-w-[90vw] h-[80vh] sm:hidden rounded-xl overflow-y-auto custom-scrollbar p-0">
+          {selectedIssue && (
+            <div className="flex flex-col h-full bg-background">
+              {/* Header with Title and Status */}
+              <div className="p-4 border-b bg-muted/10 shrink-0 space-y-3">
+                <div className="flex flex-wrap items-center gap-2 pr-6">
+                  <DialogTitle className="text-lg font-semibold text-foreground leading-snug">{selectedIssue.title}</DialogTitle>
+                  <Badge className={cn(
+                    STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.color || '',
+                    "text-[10px] py-0.5"
+                  )}>
+                    {selectedIssue.status_display}
+                  </Badge>
+                  <span className="text-[10px] font-mono text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded border border-border/40">
+                    ID: #{selectedIssue.id}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* Resolution Timeline Button (inside mobile modal) */}
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-primary/20 hover:bg-primary/5 hover:text-primary">
+                        <History className="w-3.5 h-3.5 text-primary" />
+                        <span>Timeline</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-[90%] max-w-[90vw] h-[70vh] rounded-xl overflow-y-auto custom-scrollbar p-0">
+                      <DialogHeader className="p-4 border-b bg-muted/30">
+                        <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
+                          <History className="w-4 h-4 text-primary" />
+                          Resolution Timeline
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="p-4 space-y-4">
+                        {selectedIssue.updates && selectedIssue.updates.length > 0 ? (
+                          <div className="space-y-4 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-muted">
+                            {selectedIssue.updates.map((update: any, idx: number) => (
+                              <div key={idx} className="relative pl-6">
+                                <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full border bg-muted flex items-center justify-center">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                </div>
+                                <div className="p-2.5 rounded bg-muted/30 border border-muted/50 text-xs">
+                                  <div className="flex justify-between gap-1 mb-1 font-semibold">
+                                    <span>{update.old_status_display} → {update.new_status_display}</span>
+                                    <span className="text-[9px] font-mono text-muted-foreground">{formatDate(update.created_at)}</span>
+                                  </div>
+                                  {update.note && <p className="text-muted-foreground bg-background/50 p-1.5 rounded mt-1">{update.note}</p>}
+                                  <p className="text-[9px] mt-1.5 text-primary/70 flex items-center gap-1 font-medium">
+                                    <User className="w-2.5 h-2.5" /> {update.updated_by_name || 'System'}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-center text-xs text-muted-foreground py-10">No history available</p>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  
+                  {/* Export PDF Button (inside mobile modal) */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportSingleIssuePDF}
+                    disabled={exportingSingle}
+                    className="h-8 gap-1.5 text-xs bg-primary text-white border-primary hover:bg-primary/90 hover:text-white"
+                  >
+                    {exportingSingle ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                    <span>Export PDF</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Scrollable details */}
+              <div className="flex-1 p-4 space-y-5 overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-2 gap-3 p-4 rounded-xl bg-muted/30 border border-muted-foreground/10 text-xs">
+                  <div>
+                    <span className="text-muted-foreground uppercase font-semibold block mb-0.5 tracking-wider">Student</span>
+                    <p className="font-semibold text-sm">{selectedIssue.student_name}</p>
+                    <p className="text-muted-foreground">{selectedIssue.enrollment_no}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground uppercase font-semibold block mb-0.5 tracking-wider">Location</span>
+                    <p className="font-semibold text-sm">Room {selectedIssue.room_name}</p>
+                    <p className="text-muted-foreground truncate">{selectedIssue.hostel_name}</p>
+                  </div>
+                  <div className="col-span-2 border-t pt-2 border-border/40">
+                    <span className="text-muted-foreground uppercase font-semibold block mb-0.5 tracking-wider">Date Raised</span>
+                    <p className="font-semibold text-sm">{formatDate(selectedIssue.created_at)}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold flex items-center gap-1.5">
+                    <MessageSquare className="w-4 h-4 text-primary" /> Description
+                  </h4>
+                  <p className="text-sm text-muted-foreground bg-background p-4 rounded-lg border border-dashed leading-relaxed whitespace-pre-wrap">
+                    {selectedIssue.description}
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-3 pb-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/85">Update Status</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.keys(STATUS_CONFIG).map((status) => {
+                      const currentOrder = STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.order ?? 0;
+                      const targetOrder = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.order ?? 0;
+                      const isCurrent = selectedIssue.status === status;
+                      const isPast = targetOrder < currentOrder;
+
+                      return (
+                        <Button
+                          key={status}
+                          size="sm"
+                          variant={isCurrent ? "default" : "outline"}
+                          onClick={() => handleStatusChange(selectedIssue.id, status, '')}
+                          disabled={updatingIssueId === selectedIssue.id || isPast || isCurrent}
+                          className={`h-9 px-3 text-xs font-semibold transition-all ${isCurrent ?
+                            "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20 scale-105" :
+                            isPast ?
+                              "opacity-50 cursor-not-allowed bg-muted/20" :
+                              "hover:border-primary/60 opacity-100"}`
+                          }>
+                          {STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-3 border-t bg-muted/10 shrink-0 text-right">
+                <Button size="sm" variant="ghost" onClick={() => setIsDetailsModalOpen(false)} className="font-semibold">Close</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>);
 
 };
