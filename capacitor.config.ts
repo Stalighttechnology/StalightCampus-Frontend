@@ -10,6 +10,12 @@ const config: CapacitorConfig = {
     iosScheme: 'https'
   },
   plugins: {
+    CapacitorCookies: {
+      enabled: true
+    },
+    CapacitorHttp: {
+      enabled: true
+    },
     PushNotifications: {
       presentationOptions: [
         'badge',

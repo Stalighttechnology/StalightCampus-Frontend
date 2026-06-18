@@ -105,10 +105,7 @@ const AppContent = () => {
       const requestAllPermissions = async () => {
         try {
           // 1. Push Notifications
-          const notifResult = await PushNotifications.requestPermissions();
-          if (notifResult.receive === 'granted') {
-            await PushNotifications.register();
-          }
+          await PushNotifications.requestPermissions();
         } catch (e) { console.warn('Notification permission error:', e); }
 
         try {

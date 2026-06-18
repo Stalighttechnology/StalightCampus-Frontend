@@ -335,8 +335,9 @@ export const loginUser = async ({ username, password }: LoginRequest): Promise<L
     }
     return result;
   } catch (error: any) {
-
-    return { success: false, message: error.response?.data?.message || "Failed to connect to the server" };
+    console.error("LOGIN ERROR:", error);
+    const errorDetails = error instanceof Error ? `${error.name}: ${error.message}` : JSON.stringify(error);
+    return { success: false, message: `Failed to connect: ${errorDetails}` };
   }
 };
 
@@ -376,8 +377,9 @@ export const verifyOTP = async ({ user_id, otp }: VerifyOTPRequest): Promise<Log
     }
     return result;
   } catch (error: any) {
-
-    return { success: false, message: error.response?.data?.message || "Failed to connect to the server" };
+    console.error("VERIFY OTP ERROR:", error);
+    const errorDetails = error instanceof Error ? `${error.name}: ${error.message}` : JSON.stringify(error);
+    return { success: false, message: `Failed to connect: ${errorDetails}` };
   }
 };
 
