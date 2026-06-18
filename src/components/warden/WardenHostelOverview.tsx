@@ -306,85 +306,86 @@ const WardenHostelOverview = () => {
 
       {/* Resident Detail Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-lg w-[90%] rounded-xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
-          <div className="bg-primary p-6 text-primary-foreground relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 scale-150">
-              <GraduationCap size={120} />
+        <DialogContent className={`sm:max-w-lg w-[90%] rounded-xl p-6 max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-xl font-semibold">Resident Profile</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex items-center gap-4 py-4">
+            <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center text-2xl font-semibold text-primary overflow-hidden shrink-0 relative border border-primary/20">
+              {selectedStudent?.profile_picture ? (
+                <>
+                  <img
+                    src={getPhotoUrl(selectedStudent.profile_picture) || undefined}
+                    alt={selectedStudent.name}
+                    className="w-full h-full object-cover absolute inset-0 z-10"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                  <span className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-semibold text-2xl">
+                    {selectedStudent?.name?.charAt(0)}
+                  </span>
+                </>
+              ) : (
+                selectedStudent?.name?.charAt(0)
+              )}
             </div>
-            <div className="flex items-center gap-4 relative z-10">
-              <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-3xl font-semibold border border-white/30 overflow-hidden shrink-0 relative">
-                {selectedStudent?.profile_picture ? (
-                  <>
-                    <img
-                      src={getPhotoUrl(selectedStudent.profile_picture) || undefined}
-                      alt={selectedStudent.name}
-                      className="w-full h-full object-cover absolute inset-0 z-10"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                    <span className="w-full h-full flex items-center justify-center bg-white/10 text-white font-semibold text-3xl">
-                      {selectedStudent?.name?.charAt(0)}
-                    </span>
-                  </>
-                ) : (
-                  selectedStudent?.name?.charAt(0)
-                )}
-              </div>
-              <div>
-                <h2 className="text-2xl font-semibold">{selectedStudent?.name}</h2>
-                <p className="text-primary-foreground/70 font-mono tracking-widest text-sm uppercase">
-                  {selectedStudent?.usn}
-                </p>
-                <div className="mt-2 flex gap-2">
-                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-none text-[10px]">
-                    {selectedStudent?.branch_name}
-                  </Badge>
-                </div>
+            <div>
+              <h2 className="text-lg font-semibold leading-snug">{selectedStudent?.name}</h2>
+              <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider mt-0.5">
+                {selectedStudent?.usn}
+              </p>
+              <div className="mt-1.5">
+                <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none text-[10px] py-0.5 px-2 font-medium">
+                  {selectedStudent?.branch_name}
+                </Badge>
               </div>
             </div>
           </div>
 
-          <div className="p-6 space-y-6 bg-background">
+          <div className="space-y-6 pt-4 border-t border-border/40">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider">Hostel Location</p>
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <MapPin size={14} className="text-primary" />
-                  {selectedStudent?.room_hostel_name}, Room {selectedStudent?.room_name}
+                <p className="text-[12px] text-muted-foreground uppercase font-semibold tracking-wider">Hostel Location</p>
+                <div className="flex items-start gap-2 text-sm font-semibold">
+                  <MapPin size={14} className="text-primary shrink-0 mt-0.5" />
+                  <span className="break-words">
+                    {selectedStudent?.room_hostel_name}, {selectedStudent?.room_name?.toLowerCase().startsWith('room') ? selectedStudent.room_name : `Room ${selectedStudent?.room_name}`}
+                  </span>
                 </div>
-                <p className="text-[14px] text-muted-foreground ml-6">Floor {selectedStudent?.room_floor ?? 'N/A'}</p>
+                <p className="text-xs text-muted-foreground ml-6">Floor {selectedStudent?.room_floor ?? 'N/A'}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider">Personal Contact</p>
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Phone size={14} className="text-primary" />
-                  {selectedStudent?.phone || "N/A"}
+                <p className="text-[12px] text-muted-foreground uppercase font-semibold tracking-wider">Personal Contact</p>
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Phone size={14} className="text-primary shrink-0" />
+                  <span>{selectedStudent?.phone || "N/A"}</span>
                 </div>
-                <p className="text-[12px] text-muted-foreground ml-6 break-words">{selectedStudent?.user_email}</p>
+                <p className="text-xs text-muted-foreground ml-6 break-all">{selectedStudent?.user_email}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/40">
               <div className="space-y-1">
-                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider">Guardian Info</p>
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <UserIcon size={14} className="text-primary" />
-                  {selectedStudent?.parent_name || "N/A"}
+                <p className="text-[12px] text-muted-foreground uppercase font-semibold tracking-wider">Guardian Info</p>
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <UserIcon size={14} className="text-primary shrink-0" />
+                  <span>{selectedStudent?.parent_name || "N/A"}</span>
                 </div>
-                <p className="text-[14px] text-muted-foreground ml-6">
-                  {selectedStudent?.parent_contact ? `Ph: ${selectedStudent.parent_contact}` : 'No contact provided'}
+                <p className="text-xs text-muted-foreground ml-6">
+                  {selectedStudent?.parent_contact ? `Ph: ${selectedStudent.parent_contact}` : 'No contact'}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider">Medical Status</p>
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <HeartPulse size={14} className="text-primary" />
-                  Blood: {selectedStudent?.blood_group || "N/A"}
+                <p className="text-[12px] text-muted-foreground uppercase font-semibold tracking-wider">Medical Status</p>
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <HeartPulse size={14} className="text-primary shrink-0" />
+                  <span>Blood: {selectedStudent?.blood_group || "N/A"}</span>
                 </div>
-                <div className="flex items-center gap-1.5 ml-6">
+                <div className="flex items-center gap-1.5 ml-6 mt-0.5">
                   <div className={`w-1.5 h-1.5 rounded-full ${selectedStudent?.no_dues ? 'bg-green-500' : 'bg-red-500'}`} />
-                  <span className="text-[14px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {selectedStudent?.no_dues ? 'Dues Cleared' : 'Fees Pending'}
                   </span>
                 </div>
@@ -394,7 +395,7 @@ const WardenHostelOverview = () => {
             <div className="pt-2">
               <Button
                 variant="outline"
-                className="w-full bg-primary hover:bg-primary/90 text-white hover:text-white rounded-xl gap-2 text-xs h-9"
+                className="w-full bg-primary hover:bg-primary/90 text-white hover:text-white rounded-xl gap-2 text-xs h-9 font-semibold"
                 onClick={() => setIsDialogOpen(false)}
               >
                 Close Profile
