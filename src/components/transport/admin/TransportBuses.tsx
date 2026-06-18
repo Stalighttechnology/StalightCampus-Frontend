@@ -223,8 +223,20 @@ const TransportBuses: React.FC = () => {
             <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
               <CardHeader className="pb-3 border-b border-inherit">
                 <div id="transport-buses-action-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <CardTitle className="sm:text-2xl text-xl font-semibold flex items-center gap-2">
-                    <Bus size={20} className="text-primary" /> Active Fleet Register
+                  <CardTitle className="sm:text-2xl text-xl font-semibold flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+                    <span className="flex items-center gap-2">
+                      <Bus size={20} className="text-primary" /> Active Fleet Register
+                    </span>
+                    {/* Mobile Download PDF Icon Button */}
+                    <Button
+                      onClick={handleDownloadPDF}
+                      disabled={downloadingPDF}
+                      size="icon"
+                      variant="outline"
+                      className="flex sm:hidden h-8 w-8 items-center justify-center shrink-0 border border-input bg-background"
+                    >
+                      {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown size={15} />}
+                    </Button>
                   </CardTitle>
                   <div className="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
                     <Button onClick={() => { setShowBusForm(true); setEditBusId(null); setBusForm({ bus_number: '', registration_number: '', capacity: 40, model_name: '', status: 'active' }); }} className="w-full sm:w-auto bg-primary hover:bg-primary/95 text-white flex items-center justify-center gap-1 h-9">
@@ -233,7 +245,7 @@ const TransportBuses: React.FC = () => {
                     <Button
                       onClick={handleDownloadPDF}
                       disabled={downloadingPDF}
-                      className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white flex items-center justify-center gap-1.5 h-9"
+                      className="hidden sm:flex w-full sm:w-auto bg-primary hover:bg-primary/90 text-white items-center justify-center gap-1.5 h-9"
                     >
                       {downloadingPDF ? (
                         <Loader2 className="w-4 h-4 animate-spin" />

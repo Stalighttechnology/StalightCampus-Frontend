@@ -45,7 +45,7 @@ const TransportOverview: React.FC = () => {
       ) : (
         <div className="space-y-6">
           {/* Dashboard Metrics Grid */}
-          <div id="transport-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div id="transport-stats-grid" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <DashboardCard icon={<Bus size={20} />} title="Total Buses" value={stats?.total_buses} description="Total active transport fleet" />
             <DashboardCard icon={<Navigation size={20} />} title="Active Routes" value={stats?.total_routes} description="Planned transport routes" />
             <DashboardCard icon={<UserCheck size={20} />} title="Enrolled Drivers" value={stats?.total_drivers} description="Active campus drivers" />
