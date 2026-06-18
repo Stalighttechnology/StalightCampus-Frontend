@@ -11,8 +11,15 @@ const getApiBaseUrl = (): string => {
   // This ensures same-site cookie behavior whether accessing via localhost or 127.0.0.1.
   if (typeof window !== "undefined" && window.location) {
     const hostname = window.location.hostname;
-    // Keep the same port (8000) for local Django backend
-    return `http://${hostname}:8000`;
+    const protocol = window.location.protocol;
+    
+    // Only append :8000 and force http if we are on localhost/127.0.0.1/local IPs
+    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname.startsWith("192.168.")) {
+      return `http://${hostname}:8000`;
+    }
+    
+    // In production, use the current protocol and hostname (without port 8000)
+    return `${protocol}//${hostname}`;
   }
   
   return envUrl || "http://localhost:8000";

@@ -3,6 +3,10 @@ import SignatureCanvas from 'react-signature-canvas';
 import { submitNDAConsent } from '../services/ndaConsentApi';
 import './NDAConsent.css';
 
+// ESM/CJS interop for SignatureCanvas in production build
+// @ts-ignore
+const SignatureCanvasComponent = (SignatureCanvas as any).default || SignatureCanvas;
+
 // ── Types ──────────────────────────────────────────────────────────
 interface FormData {
   full_name: string; role: string; department: string; designation: string;
@@ -469,7 +473,7 @@ export const NDAConsentPortal: React.FC = () => {
               </div>
               <div className="nda-divider" />
               <div className="nda-sig-wrapper">
-                <SignatureCanvas
+                <SignatureCanvasComponent
                   ref={sigCanvas}
                   penColor="#1e40af"
                   velocityFilterWeight={0.7}
