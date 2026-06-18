@@ -55,6 +55,44 @@ const getPriorityColor = (priority: string, theme: string) => {
   }
 };
 
+const formatRoleLabel = (role: string | null | undefined) => {
+  if (!role) return "Administrator";
+  const r = role.toLowerCase().replace('_', ' ').trim();
+  switch (r) {
+    case 'hod':
+      return 'HOD';
+    case 'coe':
+      return 'COE';
+    case 'principal':
+      return 'Principal';
+    case 'warden':
+    case 'caretaker':
+    case 'hms':
+    case 'hostel':
+    case 'hostel administration':
+      return 'Hostel Administration';
+    case 'teacher':
+    case 'faculty':
+      return 'Faculty';
+    case 'dean':
+      return 'Dean';
+    case 'fees manager':
+      return 'Fees Manager';
+    case 'placement officer':
+      return 'Placement Officer';
+    case 'transport admin':
+      return 'Transport Admin';
+    case 'library admin':
+      return 'Library Admin';
+    case 'org admin':
+      return 'Administrator';
+    case 'superadmin':
+      return 'Super Admin';
+    default:
+      return role;
+  }
+};
+
 const formatDate = (dateString: string) => {
   try {
     const date = new Date(dateString);
@@ -631,17 +669,12 @@ const StudentAnnouncements = () => {
                                   <span className="text-xs font-semibold">Mark as read</span>
                                 </Button>
                               )}
-                              <div className="flex -space-x-1 overflow-hidden">
-                                {announcement.target_roles?.map((role, rIdx) => (
-                                  <Badge
-                                    key={rIdx}
-                                    variant="outline"
-                                    className={`text-[9px] px-1.5 py-0 capitalize ${theme === 'dark' ? 'border-border' : 'bg-gray-50 border-gray-200'}`}
-                                  >
-                                    {role}
-                                  </Badge>
-                                ))}
-                              </div>
+                              <Badge
+                                variant="outline"
+                                className={`text-[10px] px-2.5 py-1 font-medium ${theme === 'dark' ? 'bg-primary/10 border-primary/20 text-primary-foreground' : 'bg-primary/5 border-primary/20 text-primary'}`}
+                              >
+                                {formatRoleLabel(announcement.created_by_role)}
+                              </Badge>
                             </div>
                           </div>
                         </motion.div>
