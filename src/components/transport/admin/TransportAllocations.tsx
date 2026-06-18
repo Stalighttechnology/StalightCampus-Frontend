@@ -37,6 +37,7 @@ const TransportAllocations: React.FC = () => {
   const [allocTotalPages, setAllocTotalPages] = useState(1);
   const [allocCount, setAllocCount] = useState(0);
   const [allocFilters, setAllocFilters] = useState({ route: "", status: "", search: "", branch: "", batch: "", semester: "" });
+  const [showFilterModal, setShowFilterModal] = useState(false);
   
   // Eligible Student States
   const [eligibleStudents, setEligibleStudents] = useState<any[]>([]);
@@ -309,7 +310,7 @@ const TransportAllocations: React.FC = () => {
       <Card id="transport-allocation-form-card" className={`p-6 border shadow-sm backdrop-blur-sm ${cardBg}`}>
         <div className="flex justify-between items-center mb-4 pb-2 border-b border-inherit">
           <h3 className="text-xl font-semibold flex items-center gap-2">
-            <Users className="w-5 h-5 text-primary" /> Allocate Student to Stop
+            Allocate Student to Stop
           </h3>
         </div>
         <form onSubmit={handleAllocate} className="space-y-5">
@@ -529,29 +530,38 @@ const TransportAllocations: React.FC = () => {
           <CardHeader className="pb-3 border-b border-inherit">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <div>
-                <div className="flex items-center gap-2">
-                  <CardTitle className="sm:text-xl text-lg font-semibold flex items-center gap-2">
-                    <Users size={20} className="text-primary" /> Active Transport Allocations
-                  </CardTitle>
-                  {allocCount > 0 && (
-                    <span className={`hidden sm:inline-flex text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
-                      {allocCount} Students
-                    </span>
-                  )}
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="sm:text-xl text-lg font-semibold flex items-center gap-2">
+                      Active Transport Allocations
+                    </CardTitle>
+                    {allocCount > 0 && (
+                      <span className={`hidden sm:inline-flex text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
+                        {allocCount} Students
+                      </span>
+                    )}
+                  </div>
+                  <Button 
+                    onClick={() => setShowFilterModal(true)} 
+                    className="md:hidden w-10 h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90 p-0 flex-shrink-0"
+                    title="Filters"
+                  >
+                    <Filter className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             </div>
           </CardHeader>
 
           {/* Filters Bar */}
-          <div className={`p-4 border-b border-inherit flex flex-col sm:flex-row gap-3 sm:items-center ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
-            <div className="flex items-center gap-2 w-full sm:w-auto whitespace-nowrap scrollbar-none">
-              <div className="flex items-center gap-2 text-sm font-semibold opacity-75 flex-shrink-0">
-                <Filter size={14} className="hidden sm:inline" /> Filters:
+          <div className={`p-4 border-b border-inherit flex flex-col md:flex-row gap-3 md:items-center ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
+            <div className="hidden md:flex items-center gap-3 w-full md:w-auto">
+              <div className="flex items-center gap-1.5 text-sm font-semibold opacity-75 flex-shrink-0">
+                <Filter size={14} /> Filters:
               </div>
               
               <Select value={allocFilters.route} onValueChange={(val) => setAllocFilters(f => ({ ...f, route: val }))}>
-                <SelectTrigger className="w-[140px] sm:w-[180px] h-9 flex-shrink-0">
+                <SelectTrigger className="flex-1 min-w-0 sm:w-[180px] sm:flex-initial h-9">
                   <SelectValue placeholder="All Routes" />
                 </SelectTrigger>
                 <SelectContent>
@@ -561,7 +571,7 @@ const TransportAllocations: React.FC = () => {
               </Select>
 
               <Select value={allocFilters.status} onValueChange={(val) => setAllocFilters(f => ({ ...f, status: val }))}>
-                <SelectTrigger className="w-[130px] sm:w-[150px] h-9 flex-shrink-0">
+                <SelectTrigger className="flex-1 min-w-0 sm:w-[150px] sm:flex-initial h-9">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -573,7 +583,7 @@ const TransportAllocations: React.FC = () => {
               </Select>
             </div>
 
-            <div className="flex-1 relative min-w-[200px]">
+            <div className="flex-1 relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input type="text" placeholder="Search by name or USN..." className={`w-full pl-9 pr-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-1 ${input}`} value={allocFilters.search} onChange={e => setAllocFilters(f => ({ ...f, search: e.target.value }))} />
             </div>
@@ -761,6 +771,71 @@ const TransportAllocations: React.FC = () => {
                   </Button>
                 </div>
               </form>
+            </Card>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {showFilterModal && createPortal(
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+          <div className="modal-overlay" onClick={() => setShowFilterModal(false)} />
+          <div className="relative w-full max-w-sm z-[1000000]">
+            <Card className={`p-6 border shadow-2xl backdrop-blur-sm ${cardBg}`}>
+              <div className="flex justify-between items-center mb-4 pb-2 border-b border-inherit">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
+                  <Filter className="w-4 h-4" /> Filter Allocations
+                </h3>
+                <Button variant="ghost" size="icon" onClick={() => setShowFilterModal(false)}>
+                  <X size={16} />
+                </Button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Route</label>
+                  <Select value={allocFilters.route} onValueChange={(val) => setAllocFilters(f => ({ ...f, route: val }))}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="All Routes" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[1000001]">
+                      <SelectItem value="none_all">All Routes</SelectItem>
+                      {routes.map(r => <SelectItem key={r.id} value={r.id.toString()}>{r.route_name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Status</label>
+                  <Select value={allocFilters.status} onValueChange={(val) => setAllocFilters(f => ({ ...f, status: val }))}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[1000001]">
+                      <SelectItem value="none_all">All Statuses</SelectItem>
+                      <SelectItem value="allocated">Allocated</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setAllocFilters(f => ({ ...f, route: "", status: "" }));
+                      setShowFilterModal(false);
+                    }}
+                    className="flex-1 text-sm h-9"
+                  >
+                    Clear Filters
+                  </Button>
+                  <Button 
+                    onClick={() => setShowFilterModal(false)}
+                    className="flex-1 bg-primary text-white text-sm h-9"
+                  >
+                    Apply Filters
+                  </Button>
+                </div>
+              </div>
             </Card>
           </div>
         </div>,
