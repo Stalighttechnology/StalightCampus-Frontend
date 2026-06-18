@@ -264,9 +264,10 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-6 lg:gap-8">
         {/* Leave Application Form - Left Side */}
         <Card id="apply-leave-form-card" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="flex flex-row items-center justify-between p-2 sm:p-4 lg:p-6 gap-1 sm:gap-2 min-h-fit">
-            <div className="flex flex-col">
-              <CardTitle>Leave Application Form</CardTitle>
+          <CardHeader className="p-4 sm:p-6 border-b bg-muted/30 flex flex-row items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+              <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Submit a new leave application request</p>
             </div>
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
@@ -359,12 +360,14 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
 
         {/* Leave Requests List - Right Side */}
         <Card id="recent-leaves-card" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2">
+          <CardHeader className="p-4 sm:p-6 border-b bg-muted/30 flex flex-row items-center justify-between gap-4">
             {/* Title */}
-            <CardTitle>
-
-              Leave Requests
-            </CardTitle>
+            <div className="flex-1 min-w-0">
+              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Leave Requests
+              </CardTitle>
+              <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your submitted requests</p>
+            </div>
 
             {/* Filter Button */}
             <div className="flex-shrink-0">
@@ -556,7 +559,7 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
 
       {/* View Reason Dialog */}
       <Dialog open={!!viewReason} onOpenChange={() => setViewReason(null)}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6'}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}>
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Leave Reason</DialogTitle>
           </DialogHeader>

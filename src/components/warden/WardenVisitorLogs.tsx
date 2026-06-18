@@ -1114,7 +1114,7 @@ const WardenVisitorLogs = () => {
           )}
 
           {/* Pagination */}
-          {!loading && logs.length > 0 && (
+          {!loading && logs.length > 0 && totalPages > 1 && (
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
               <div>
                 Showing {totalCount === 0 ? 0 : Math.min((page - 1) * 10 + 1, totalCount)} to {Math.min(page * 10, totalCount)} of {totalCount} logs
