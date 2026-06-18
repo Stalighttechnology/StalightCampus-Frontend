@@ -3,6 +3,13 @@ import { API_ENDPOINT, TOKEN_REFRESH_TIMEOUT, API_BASE_URL } from "./config";
 // Persist a client-side device identifier used to group sessions per device.
 const DEVICE_ID_KEY = 'device_id';
 
+// In-memory cache fallback for WebView environment stability
+let _inMemoryAccessToken: string | null = null;
+
+export const setInMemoryAccessToken = (token: string | null) => {
+  _inMemoryAccessToken = token;
+};
+
 export const getOrCreateDeviceId = (): string => {
   try {
     const existing = localStorage.getItem(DEVICE_ID_KEY);
@@ -117,7 +124,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
   try {
     // Access token is now managed by AuthContext (in‑memory). We retrieve it from sessionStorage if available.
     // Note: AuthContext will populate sessionStorage with a refreshed token via its refreshAccessToken method.
-    let accessToken = sessionStorage.getItem("access_token");
+    let accessToken = sessionStorage.getItem("access_token") || _inMemoryAccessToken;
 
     // Ensure Authorization header is set only when we have a token. Also include session/device identifiers.
     const sessionId = (typeof window !== 'undefined') ? localStorage.getItem('session_id') : undefined;
@@ -150,6 +157,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
 
       if (isRevoked) {
         sessionStorage.clear();
+        _inMemoryAccessToken = null;
         localStorage.removeItem("has_session");
         stopTokenRefresh();
         
@@ -172,6 +180,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
       const refreshResult = await refreshToken();
       if (refreshResult.success && refreshResult.access) {
         sessionStorage.setItem("access_token", refreshResult.access);
+        _inMemoryAccessToken = refreshResult.access;
         options.headers = {
           ...options.headers,
           Authorization: `Bearer ${refreshResult.access}`
@@ -179,6 +188,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
         response = await fetch(url, options);
       } else {
         sessionStorage.clear();
+        _inMemoryAccessToken = null;
         localStorage.removeItem("has_session");
         stopTokenRefresh();
         window.location.href = "/"; // Redirect to home
@@ -249,6 +259,9 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
       if (!response.ok) {
         throw new Error(result.message || "Token refresh failed");
       }
+      if (result.access) {
+        _inMemoryAccessToken = result.access;
+      }
       return {
         success: true,
         access: result.access,
@@ -257,6 +270,7 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
     } catch (error: any) {
 
       sessionStorage.clear();
+      _inMemoryAccessToken = null;
       stopTokenRefresh();
       return { success: false, message: error.message || "Network error" };
     } finally {
@@ -276,9 +290,11 @@ export const startTokenRefresh = () => {
     const refreshResult = await refreshToken();
     if (refreshResult.success && refreshResult.access) {
       sessionStorage.setItem("access_token", refreshResult.access);
+      _inMemoryAccessToken = refreshResult.access;
     } else {
 
       sessionStorage.clear();
+      _inMemoryAccessToken = null;
       localStorage.removeItem("has_session");
       stopTokenRefresh();
       if (window.location.pathname !== "/") {
@@ -326,7 +342,10 @@ export const loginUser = async ({ username, password }: LoginRequest): Promise<L
       }
 
       // Store token in sessionStorage (non‑sensitive) for page reloads – actual access token lives in AuthContext memory
-      if (result.access) sessionStorage.setItem("access_token", result.access);
+      if (result.access) {
+        sessionStorage.setItem("access_token", result.access);
+        _inMemoryAccessToken = result.access;
+      }
       if (result.role) sessionStorage.setItem("role", result.role);
       if (result.profile) sessionStorage.setItem("user", JSON.stringify(result.profile));
       localStorage.setItem("has_session", "true");
@@ -364,7 +383,10 @@ export const verifyOTP = async ({ user_id, otp }: VerifyOTPRequest): Promise<Log
       }
 
       // Save refreshed token and user data to sessionStorage (access token stays in AuthContext memory)
-      if (result.access) sessionStorage.setItem("access_token", result.access);
+      if (result.access) {
+        sessionStorage.setItem("access_token", result.access);
+        _inMemoryAccessToken = result.access;
+      }
       if (result.role) sessionStorage.setItem("role", result.role);
       if (result.profile) sessionStorage.setItem("user", JSON.stringify(result.profile));
       localStorage.setItem("has_session", "true");
@@ -476,6 +498,7 @@ export const logoutUser = async (): Promise<GenericResponse> => {
     });
     // Clear any persisted non‑sensitive data.
     sessionStorage.clear();
+    _inMemoryAccessToken = null;
     localStorage.removeItem("has_session");
     // AuthContext will stop its refresh interval after logout.
     if (!response.ok) {
@@ -486,6 +509,7 @@ export const logoutUser = async (): Promise<GenericResponse> => {
   } catch (error: any) {
 
     sessionStorage.clear();
+    _inMemoryAccessToken = null;
     localStorage.removeItem("has_session");
     stopTokenRefresh();
     return { success: true, message: "Logged out successfully (error ignored)" };

@@ -7,7 +7,7 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
-import { refreshToken, fetchWithTokenRefresh } from "../utils/authService";
+import { refreshToken, fetchWithTokenRefresh, setInMemoryAccessToken } from "../utils/authService";
 import { API_ENDPOINT } from "../utils/config";
 import { useNavigate } from "react-router-dom";
 
@@ -82,10 +82,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (result.success && result.access) {
           setAccessToken(result.access);
           sessionStorage.setItem("access_token", result.access);
+          setInMemoryAccessToken(result.access);
           
           try {
              const profileRes = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/`, {
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 
+                   'Content-Type': 'application/json',
+                   'Authorization': `Bearer ${result.access}`
+                }
              }).then(res => res.json());
              
              if (profileRes.success && profileRes.profile) {
@@ -149,12 +153,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (result.success && result.access) {
           setAccessToken(result.access);
           sessionStorage.setItem("access_token", result.access);
+          setInMemoryAccessToken(result.access);
         } else {
           // Refresh failed (cookie expired) – log the user out silently
           setAccessToken(null);
           setRole(null);
           setUser(null);
           sessionStorage.clear();
+          setInMemoryAccessToken(null);
           navigate("/", { replace: true });
         }
       } catch {
@@ -172,6 +178,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setAccessToken(newToken);
       setRole(newRole);
       setUser(newUser);
+      setInMemoryAccessToken(newToken);
     },
     []
   );
@@ -183,6 +190,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setRole(null);
     setUser(null);
     sessionStorage.clear();
+    setInMemoryAccessToken(null);
     localStorage.removeItem("has_session");
   }, []);
 
@@ -193,6 +201,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (result.success && result.access) {
         setAccessToken(result.access);
         sessionStorage.setItem("access_token", result.access);
+        setInMemoryAccessToken(result.access);
         return result.access;
       }
     } catch {

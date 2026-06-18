@@ -206,7 +206,9 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register(swUrl)
       .then((registration) => {
         // Clean registration
-        registration.update();
+        registration.update().catch((error) => {
+          console.warn('Service worker update check failed:', error);
+        });
       })
       .catch((error) => {
         console.error('Service worker registration failed:', error);
