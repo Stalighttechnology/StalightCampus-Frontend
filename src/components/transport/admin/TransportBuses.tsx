@@ -47,15 +47,18 @@ const TransportBuses: React.FC = () => {
       return;
     }
 
+    const cleanedRegNo = busForm.registration_number.replace(/\s+/g, '').toUpperCase();
+    const payload = { ...busForm, registration_number: cleanedRegNo };
+
     try {
-      const res = editBusId ? await updateBus(editBusId, busForm) : await createBus(busForm);
+      const res = editBusId ? await updateBus(editBusId, payload) : await createBus(payload);
       if (res.id || res.success) {
         Swal.fire("Success", editBusId ? 'Bus details updated successfully' : 'New bus added to fleet', "success");
         setShowBusForm(false);
         if (editBusId) {
-          setBuses(buses.map(b => b.id === editBusId ? { ...b, ...busForm } : b));
+          setBuses(buses.map(b => b.id === editBusId ? { ...b, ...payload } : b));
         } else if (res.id) {
-          setBuses([{ id: res.id, ...busForm, is_active: true } as BusT, ...buses]);
+          setBuses([{ id: res.id, ...payload, is_active: true } as BusT, ...buses]);
         }
         setEditBusId(null);
         setBusForm({ bus_number: '', registration_number: '', capacity: 40, model_name: '', status: 'active' });
