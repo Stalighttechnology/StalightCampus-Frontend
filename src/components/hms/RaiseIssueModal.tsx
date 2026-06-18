@@ -95,20 +95,15 @@ const RaiseIssueModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[95%] sm:max-w-[450px] p-0 overflow-hidden border-primary/20 shadow-2xl max-h-[90vh] flex flex-col">
-        <div className="bg-primary px-6 py-4 text-primary-foreground relative overflow-hidden shrink-0">
-          <div className="absolute top-0 right-0 p-3 opacity-10">
-            <HelpCircle className="w-20 h-20 rotate-12" />
-          </div>
-          <DialogHeader className="relative z-10">
-            <DialogTitle className="text-xl font-semibold">Raise an Issue</DialogTitle>
-            <DialogDescription className="text-primary-foreground/80 text-xs font-medium mt-0.5">
-              Report a maintenance problem or a complaint.
-            </DialogDescription>
-          </DialogHeader>
-        </div>
+      <DialogContent className="w-[90%] sm:max-w-[450px] p-0 overflow-hidden shadow-2xl border max-h-[90vh] flex flex-col bg-background rounded-xl">
+        <DialogHeader className="p-6 pb-4 border-b shrink-0 bg-muted/10">
+          <DialogTitle className="text-xl font-semibold">Raise an Issue</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground mt-1">
+            Report a maintenance problem or a complaint.
+          </DialogDescription>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4 flex-1 overflow-y-auto custom-scrollbar min-h-0">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 flex-1 overflow-y-auto custom-scrollbar min-h-0">
           {roomName && (
             <div className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50 border border-dashed">
               <div className="bg-background p-1.5 rounded-md shadow-sm">
