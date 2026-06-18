@@ -514,7 +514,7 @@ const FacultyAttendance = () => {
           </CardHeader>
           <CardContent className="flex-1 flex flex-col">
             {recentRecords.length > 0 ? (
-              <div className="space-y-3 h-[500px] overflow-y-auto custom-scrollbar pr-1">
+              <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
                 {paginatedRecentRecords.map((record) =>
                   <motion.div
                     key={record.id}
@@ -744,7 +744,7 @@ const FacultyAttendance = () => {
             {historyLoading ? (
               <SkeletonList items={5} />
             ) : historyRecords.length > 0 ? (
-              <div className="space-y-3 h-[500px] overflow-y-auto custom-scrollbar pr-1">
+              <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
                 {historyRecords.map((record) => (
                   <div key={record.id} className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
                     <div className="flex items-center justify-between">
