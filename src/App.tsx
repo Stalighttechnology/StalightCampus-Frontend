@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import NetworkStatus from "./components/common/NetworkStatus";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Index from "./components/common/Index";
 import { PwaInstaller } from "./components/pwa/PwaInstaller";
@@ -13,6 +13,8 @@ import { Camera } from '@capacitor/camera';
 import { Geolocation } from '@capacitor/geolocation';
 import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
+import { Monitor, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // Lazy loaded components
 const NotFound = lazy(() => import("./components/common/NotFound"));
@@ -55,6 +57,58 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { initErrorLogger } from "./utils/errorLogger";
 import type { ReactNode } from "react";
 
+// Mobile Restriction component for desktop-only access roles
+const MobileRestrictionScreen = ({ onLogout }: { onLogout: () => void }) => {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-6 relative overflow-hidden selection:bg-purple-500/10">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(147,51,234,0.08),transparent_50%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(79,70,229,0.05),transparent_40%)] pointer-events-none" />
+
+      <div className="relative w-[90%] sm:w-full max-w-md bg-white/90 backdrop-blur-xl border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-xl text-center space-y-6 transform hover:scale-[1.01] transition-all duration-300">
+        {/* Warning Icon Graphic */}
+        <div className="flex justify-center">
+          <div className="relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-purple-50 to-indigo-50 border border-purple-100 animate-pulse">
+            <Monitor className="w-10 h-10 sm:w-12 sm:h-12 text-purple-600" />
+            <div className="absolute -top-1 -right-1 flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-red-500 border-2 border-white text-[10px] sm:text-xs font-bold text-white shadow-md">
+              ✕
+            </div>
+          </div>
+        </div>
+
+        {/* Info text */}
+        <div className="space-y-1 sm:space-y-2">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+            Desktop Access Required
+          </h2>
+          <p className="text-purple-600 font-semibold text-[10px] sm:text-xs uppercase tracking-widest">
+            Admission Manager Portal
+          </p>
+        </div>
+
+        <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+          The Admission Manager console is designed and optimized specifically for desktop screens to ensure precise data management and user safety.
+        </p>
+
+        <p className="text-slate-400 text-[10px] sm:text-xs leading-relaxed border-t border-slate-100 pt-4">
+          Please access this page using a web browser on a laptop or desktop computer.
+        </p>
+
+        {/* Action button */}
+        <div className="pt-2">
+          <Button
+            onClick={onLogout}
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium py-2 sm:py-2.5 rounded-xl shadow-md shadow-purple-200 hover:shadow-purple-300 active:scale-[0.98] transition-all duration-200 text-xs sm:text-sm"
+          >
+            <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            Log Out & Exit
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Protected Route Component
 const ProtectedRoute = ({
   children,
@@ -63,7 +117,17 @@ const ProtectedRoute = ({
   children: ReactNode;
   allowedRoles: string[];
 }) => {
-  const { isAuthenticated, isInitializing, role } = useAuth();
+  const { isAuthenticated, isInitializing, role, clearAuth } = useAuth();
+  const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // While the silent cookie-refresh is running, show the loading spinner to prevent white screens
   if (isInitializing) {
@@ -82,6 +146,18 @@ const ProtectedRoute = ({
       return <Navigate to="/sync-access-restricted" replace />;
     }
     return <Navigate to="/" replace />;
+  }
+
+  // Restrict admission_manager on mobile/tablet screens (< 1024px)
+  if (role === "admission_manager" && isMobile) {
+    return (
+      <MobileRestrictionScreen
+        onLogout={() => {
+          clearAuth();
+          navigate("/", { replace: true });
+        }}
+      />
+    );
   }
 
   return <>{children}</>;
