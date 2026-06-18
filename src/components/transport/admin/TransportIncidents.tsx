@@ -185,7 +185,7 @@ const TransportIncidents: React.FC = () => {
           <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
             <CardHeader className="pb-3 border-b border-inherit">
               <CardTitle id="transport-incidents-title-row" className="sm:text-xl text-lg font-semibold flex items-center gap-2">
-                <ShieldAlert size={20} className="text-primary" /> Active Incident Tickets
+                Active Incident Tickets
               </CardTitle>
             </CardHeader>
             <div className="divide-y divide-inherit">
@@ -209,44 +209,103 @@ const TransportIncidents: React.FC = () => {
                 const totalPages = Math.ceil(incidents.length / ROWS_PER_PAGE);
                 const safePage = Math.min(currentPage, totalPages);
                 const pageIncidents = incidents.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
-                return pageIncidents.map(i => (
-                  <div key={i.id} className="p-5 transition-all duration-200 hover:bg-primary/5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <Badge label={i.type} color={i.type} />
-                          <Badge label={i.status} color={i.status} />
+                return (
+                  <>
+                    {/* Mobile View: Stacked Cards */}
+                    <div className="md:hidden space-y-4 p-4">
+                      {pageIncidents.map(i => (
+                        <div
+                          key={i.id}
+                          className={`p-4 rounded-xl border ${
+                            theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'
+                          } flex flex-col gap-3 shadow-sm`}
+                        >
+                          <div className="flex justify-between items-center pb-2 border-b border-border/25">
+                            <div className="flex items-center gap-1.5">
+                              <Badge label={i.type} color={i.type} />
+                              <Badge label={i.status} color={i.status} />
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <h4 className="font-bold text-base leading-tight">{i.title}</h4>
+                            <p className={`text-sm mt-1.5 opacity-80 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{i.description}</p>
+                          </div>
+                          <div className="pt-2 border-t border-border/25 flex flex-col gap-3">
+                            <div className="text-xs opacity-60">
+                              Reported by <b>{i.reported_by_details?.first_name || "Driver"}</b> · {new Date(i.created_at).toLocaleDateString()} {new Date(i.created_at).toLocaleTimeString()}
+                            </div>
+                            
+                            {i.status === 'resolved' ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center justify-center gap-1 w-full border h-9 text-xs font-semibold"
+                                onClick={() => setViewIncident(i)}
+                              >
+                                View Log
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className={`flex items-center justify-center gap-1.5 border h-9 w-full text-xs font-semibold ${
+                                  theme === 'dark'
+                                    ? 'bg-green-900/20 text-green-400 border-green-500/30 hover:bg-green-900/40'
+                                    : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200/80'
+                                }`}
+                                onClick={() => setResolveId(i.id)}
+                              >
+                                <CheckCircle size={14} /> Resolve Ticket
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        <p className="font-semibold text-base">{i.title}</p>
-                        <p className={`text-sm mt-1 opacity-80 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{i.description}</p>
-                        <p className={`text-xs mt-2 opacity-60`}>Reported by <b>{i.reported_by_details?.first_name || "Driver"}</b> · {new Date(i.created_at).toLocaleDateString()} {new Date(i.created_at).toLocaleTimeString()}</p>
-                      </div>
-                      {i.status === 'resolved' ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center gap-1 border h-9 px-3 text-xs font-semibold"
-                          onClick={() => setViewIncident(i)}
-                        >
-                          View Log
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={`flex items-center gap-1 border ${
-                            theme === 'dark'
-                              ? 'bg-green-900/20 text-green-400 border-green-500/30 hover:bg-green-900/40'
-                              : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200/80'
-                          }`}
-                          onClick={() => setResolveId(i.id)}
-                        >
-                          <CheckCircle size={14} /> Resolve
-                        </Button>
-                      )}
+                      ))}
                     </div>
-                  </div>
-                ));
+
+                    {/* Desktop View: List Rows */}
+                    <div className="hidden md:block divide-y divide-inherit">
+                      {pageIncidents.map(i => (
+                        <div key={i.id} className="p-5 transition-all duration-200 hover:bg-primary/5">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex flex-wrap items-center gap-2 mb-2">
+                                <Badge label={i.type} color={i.type} />
+                                <Badge label={i.status} color={i.status} />
+                              </div>
+                              <p className="font-semibold text-base">{i.title}</p>
+                              <p className={`text-sm mt-1 opacity-80 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{i.description}</p>
+                              <p className={`text-xs mt-2 opacity-60`}>Reported by <b>{i.reported_by_details?.first_name || "Driver"}</b> · {new Date(i.created_at).toLocaleDateString()} {new Date(i.created_at).toLocaleTimeString()}</p>
+                            </div>
+                            {i.status === 'resolved' ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-1 border h-9 px-3 text-xs font-semibold"
+                                onClick={() => setViewIncident(i)}
+                              >
+                                View Log
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className={`flex items-center gap-1 border ${
+                                  theme === 'dark'
+                                    ? 'bg-green-900/20 text-green-400 border-green-500/30 hover:bg-green-900/40'
+                                    : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200/80'
+                                }`}
+                                onClick={() => setResolveId(i.id)}
+                              >
+                                <CheckCircle size={14} /> Resolve
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                );
               })()}
             </div>
             {incidents.length > 1 && (
