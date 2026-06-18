@@ -47,6 +47,7 @@ const TermsOfService = lazy(() => import("./components/legal/TermsOfService"));
 const Home = lazy(() => import("./components/public/Home"));
 const SyncAccessRestricted = lazy(() => import("./components/common/SyncAccessRestricted"));
 const AccountDeletion = lazy(() => import("./components/legal/AccountDeletion"));
+const NDAConsentPortal = lazy(() => import("./nda_consent/components/NDAConsentPortal").then(module => ({ default: module.NDAConsentPortal })));
 
 import { WardenProvider } from "./context/WardenContext";
 import { HMSProvider } from "./context/HMSContext";
@@ -180,6 +181,12 @@ const AppContent = () => {
           <Route path="/stalightcampus/:plan" element={<Onboarding />} />
           <Route path="/onboarding/success" element={<OnboardingSuccess />} />
           <Route path="/trial-expired" element={<TrialExpired />} />
+          <Route path="/nda-consent" element={
+            <>
+              <NDAConsentPortal />
+              {shouldShowFloatingAssistant() && <FloatingAssistant />}
+            </>
+          } />
 
           {/* Sync Restricted Route */}
           <Route path="/sync-access-restricted" element={
