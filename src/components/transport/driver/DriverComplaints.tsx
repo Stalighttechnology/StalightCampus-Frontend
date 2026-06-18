@@ -37,7 +37,7 @@ const DriverComplaints: React.FC = () => {
     <div>
       <Card id="driver-complaints-card" className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
         <CardHeader id="driver-complaints-header" className="pb-3 border-b border-inherit">
-          <CardTitle className="text-xl font-bold flex items-center gap-2">
+          <CardTitle className="text-xl font-semibold flex items-center gap-2">
             <Bus className="text-primary" size={22} /> Complaints & Incidents
           </CardTitle>
           <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
@@ -76,7 +76,7 @@ const DriverComplaints: React.FC = () => {
                 <div key={c.id} className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card hover:bg-accent/40 border-border' : 'bg-gray-50 hover:bg-gray-100/50 border-gray-200'}`}>
                   <div className="flex items-start justify-between mb-2 gap-4">
                     <div className="space-y-1">
-                      <p className="font-bold text-sm">{c.title}</p>
+                      <p className="font-semibold text-sm">{c.title}</p>
                       <p className={`text-xs mt-0.5 leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                         {c.description}
                       </p>
@@ -84,7 +84,7 @@ const DriverComplaints: React.FC = () => {
                         {new Date(c.created_at).toLocaleString()}
                       </p>
                     </div>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize whitespace-nowrap ${
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize whitespace-nowrap ${
                       c.status === 'resolved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
                     }`}>
                       {c.status}

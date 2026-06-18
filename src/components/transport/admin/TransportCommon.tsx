@@ -20,7 +20,7 @@ export const StatCard = ({ icon, label, value, accent, theme }: any) => (
   </div>
 );
 
-export const Badge = ({ label, color }: any) => {
+export const Badge = ({ label, color, children }: any) => {
   const colors: any = { active: 'bg-emerald-100 text-emerald-700', maintenance: 'bg-amber-100 text-amber-700', inactive: 'bg-red-100 text-red-700', allocated: 'bg-blue-100 text-blue-700', pending: 'bg-yellow-100 text-yellow-700', resolved: 'bg-green-100 text-green-700', emergency: 'bg-red-100 text-red-700', incident: 'bg-orange-100 text-orange-700', complaint: 'bg-purple-100 text-purple-700', running: 'bg-emerald-100 text-emerald-700' };
-  return <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize ${colors[color || label?.toLowerCase()] || 'bg-gray-100 text-gray-600'}`}>{label}</span>;
+  return <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold capitalize ${colors[color || label?.toLowerCase()] || 'bg-gray-100 text-gray-600'}`}>{children || label}</span>;
 };

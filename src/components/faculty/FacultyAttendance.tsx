@@ -478,7 +478,7 @@ const FacultyAttendance = () => {
                   <div>
                     <p className="font-semibold capitalize">{todayRecord.status}</p>
                     <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                      Marked at {todayRecord.marked_at ? new Date(todayRecord.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
+                      Marked at {todayRecord.marked_at ? new Date(todayRecord.marked_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', hour12: true }) : '—'}
                     </p>
                     {todayRecord.location ?
                       <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
@@ -512,9 +512,9 @@ const FacultyAttendance = () => {
               Recent Attendance (Last 7 Days)
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex-1">
-            {recentRecords.length > 1 ?
-              <div className="space-y-3 h-[500px] overflow-y-auto custom-scrollbar pr-1">
+          <CardContent className="flex-1 flex flex-col">
+            {recentRecords.length > 0 ? (
+              <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
                 {paginatedRecentRecords.map((record) =>
                   <motion.div
                     key={record.id}
@@ -534,7 +534,7 @@ const FacultyAttendance = () => {
                         </div>
                       </div>
                       <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {new Date(record.marked_at).toLocaleTimeString()}
+                        {new Date(record.marked_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                       </div>
                     </div>
                     {record.notes &&
@@ -548,9 +548,9 @@ const FacultyAttendance = () => {
                     {/* Location removed from UI */}
                   </motion.div>
                 )}
-              </div> :
-
-              <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+              </div>
+            ) : (
+              <div className={`flex flex-col items-center justify-center flex-1 py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                 <div className={`p-3 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                   <Clock className="w-8 h-8 text-primary opacity-50" />
                 </div>
@@ -559,9 +559,9 @@ const FacultyAttendance = () => {
                   You haven't marked any attendance in the last 7 days.
                 </p>
               </div>
-            }
+            )}
           </CardContent>
-          {!loading && recentTotalPages > 10 && (
+          {!loading && recentTotalPages > 1 && (
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
               <div>
                 Showing <span className="font-medium">{Math.min((recentPage - 1) * recentPageSize + 1, recentRecords.length)}</span> to <span className="font-medium">{Math.min(recentPage * recentPageSize, recentRecords.length)}</span> of <span className="font-medium">{recentRecords.length}</span> records
@@ -620,121 +620,131 @@ const FacultyAttendance = () => {
                 </Button>
               ) : null}
 
-              <Popover open={historyFilterOpen} onOpenChange={setHistoryFilterOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-md sm:text-sm h-9 px-2.5 whitespace-nowrap"
-                  >
-                    <Filter className="w-4 h-4" />
-                    <span>Filter</span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className={`w-72 p-4 space-y-4 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
-                  align="end"
-                  onInteractOutside={(event) => {
-                    // Prevent closing when interacting with calendar popups
-                    const target = event.target as HTMLElement;
-                    if (target.closest('[data-radix-popper-content-wrapper]')) {
-                      event.preventDefault();
-                    }
-                  }}
-                >
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Start Date</label>
-                    <Popover open={startCalendarOpen} onOpenChange={setStartCalendarOpen}>
+              {(() => {
+                const isFilterDisabled = !historyLoading && historyRecords.length === 0 && !historyStartDate && !historyEndDate;
+                const isExportDisabled = exportingPdf || historyLoading || historyRecords.length === 0;
+
+                return (
+                  <>
+                    <Popover open={historyFilterOpen} onOpenChange={setHistoryFilterOpen}>
                       <PopoverTrigger asChild>
                         <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal h-10 px-3 border",
-                            !historyStartDate && "text-muted-foreground",
-                            theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                          )}
+                          variant="outline"
+                          size="sm"
+                          disabled={isFilterDisabled}
+                          className="flex-1 sm:flex-none flex items-center justify-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-md sm:text-sm h-9 px-2.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {historyStartDate ? format(historyStartDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
+                          <Filter className="w-4 h-4" />
+                          <span>Filter</span>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 border border-border" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={historyStartDate}
-                          onSelect={handleStartDateChange}
-                          disabled={(date) => date > new Date()}
-                          initialFocus
-                        />
+                      <PopoverContent
+                        className={`w-72 p-4 space-y-4 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
+                        align="end"
+                        onInteractOutside={(event) => {
+                          // Prevent closing when interacting with calendar popups
+                          const target = event.target as HTMLElement;
+                          if (target.closest('[data-radix-popper-content-wrapper]')) {
+                            event.preventDefault();
+                          }
+                        }}
+                      >
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Start Date</label>
+                          <Popover open={startCalendarOpen} onOpenChange={setStartCalendarOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full justify-start text-left font-normal h-10 px-3 border",
+                                  !historyStartDate && "text-muted-foreground",
+                                  theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {historyStartDate ? format(historyStartDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 border border-border" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={historyStartDate}
+                                onSelect={handleStartDateChange}
+                                disabled={(date) => date > new Date()}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">End Date</label>
+                          <Popover open={endCalendarOpen} onOpenChange={setEndCalendarOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full justify-start text-left font-normal h-10 px-3 border",
+                                  !historyEndDate && "text-muted-foreground",
+                                  theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {historyEndDate ? format(historyEndDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 border border-border" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={historyEndDate}
+                                onSelect={handleEndDateChange}
+                                disabled={(date) => date > new Date() || (historyStartDate ? date <= historyStartDate : false)}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                       </PopoverContent>
                     </Popover>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">End Date</label>
-                    <Popover open={endCalendarOpen} onOpenChange={setEndCalendarOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal h-10 px-3 border",
-                            !historyEndDate && "text-muted-foreground",
-                            theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {historyEndDate ? format(historyEndDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 border border-border" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={historyEndDate}
-                          onSelect={handleEndDateChange}
-                          disabled={(date) => date > new Date() || (historyStartDate ? date <= historyStartDate : false)}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </PopoverContent>
-              </Popover>
 
-              {/* Desktop Export PDF Button */}
-              <Button
-                onClick={handleExportPdf}
-                disabled={exportingPdf}
-                className="hidden sm:flex bg-primary hover:bg-primary/90 text-white font-semibold h-9 px-4 shadow-md transition-all active:scale-95 items-center justify-center gap-2 text-sm whitespace-nowrap"
-              >
-                {exportingPdf ? (
-                  <Loader2 className="animate-spin h-4 w-4" />
-                ) : (
-                  <FileDown className="h-4 w-4" />
-                )}
-                Export PDF
-              </Button>
+                    {/* Desktop Export PDF Button */}
+                    <Button
+                      onClick={handleExportPdf}
+                      disabled={isExportDisabled}
+                      className="hidden sm:flex bg-primary hover:bg-primary/90 text-white font-semibold h-9 px-4 shadow-md transition-all active:scale-95 items-center justify-center gap-2 text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {exportingPdf ? (
+                        <Loader2 className="animate-spin h-4 w-4" />
+                      ) : (
+                        <FileDown className="h-4 w-4" />
+                      )}
+                      Export PDF
+                    </Button>
 
-              {/* Mobile Export PDF Icon Button */}
-              <Button
-                onClick={handleExportPdf}
-                disabled={exportingPdf}
-                size="icon"
-                variant="outline"
-                className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
-                title="Export PDF"
-              >
-                {exportingPdf ? (
-                  <Loader2 className="animate-spin h-4 w-4" />
-                ) : (
-                  <FileDown className="h-4 w-4" />
-                )}
-              </Button>
+                    {/* Mobile Export PDF Icon Button */}
+                    <Button
+                      onClick={handleExportPdf}
+                      disabled={isExportDisabled}
+                      size="icon"
+                      variant="outline"
+                      className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Export PDF"
+                    >
+                      {exportingPdf ? (
+                        <Loader2 className="animate-spin h-4 w-4" />
+                      ) : (
+                        <FileDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </>
+                );
+              })()}
             </div>
           </CardHeader>
-          <CardContent className="flex-1 pt-2 sm:pt-0">
+          <CardContent className="flex-1 flex flex-col pt-2 sm:pt-0">
             {historyLoading ? (
               <SkeletonList items={5} />
-            ) : historyRecords.length > 1 ? (
-              <div className="space-y-3 h-[500px] overflow-y-auto custom-scrollbar pr-1">
+            ) : historyRecords.length > 0 ? (
+              <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
                 {historyRecords.map((record) => (
                   <div key={record.id} className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
                     <div className="flex items-center justify-between">
@@ -748,14 +758,14 @@ const FacultyAttendance = () => {
                         </div>
                       </div>
                       <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {new Date(record.marked_at).toLocaleTimeString()}
+                        {new Date(record.marked_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+              <div className={`flex flex-col items-center justify-center flex-1 py-16 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                 <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                   <RotateCcw className="w-10 h-10 text-primary opacity-50" />
                 </div>
@@ -767,7 +777,7 @@ const FacultyAttendance = () => {
             )}
           </CardContent>
 
-          {!historyLoading && historyTotalPages > 10 && (
+          {!historyLoading && historyTotalPages > 1 && (
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
               <div>
                 Showing <span className="font-medium">{Math.min((historyPage - 1) * historyPageSize + 1, historyTotalItems)}</span> to <span className="font-medium">{Math.min(historyPage * historyPageSize, historyTotalItems)}</span> of <span className="font-medium">{historyTotalItems}</span> records

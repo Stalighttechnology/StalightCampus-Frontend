@@ -7,7 +7,7 @@ import { RouteT, StopT } from "./TransportCommon";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { SkeletonList } from "../../ui/skeleton";
-import { Navigation, MapPin, Plus, Trash2, Save, X, RefreshCw, Calendar, MapPin as StopIcon, Pencil, FileDown, Loader2 } from "lucide-react";
+import { Navigation, MapPin, Plus, Trash2, Save, X, RefreshCw, Calendar, MapPin as StopIcon, Pencil, FileDown, Loader2, Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 
 interface TimePickerProps {
@@ -46,7 +46,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, labelCl
       <label className={labelClass || "block text-xs font-semibold uppercase text-gray-700 dark:text-gray-200 mb-2"}>{label}</label>
       <div className="flex gap-1 items-center w-full flex-nowrap">
         <Select value={hour12Str} onValueChange={h => onChange(to24h(h, minute, period))}>
-          <SelectTrigger className="flex-1 h-10 border rounded-lg focus:ring-1 focus:ring-primary bg-background text-foreground px-2 text-xs">
+          <SelectTrigger className="flex-1 h-10 border rounded-lg focus:ring-1 focus:ring-primary bg-background text-foreground px-2 text-sm">
             <SelectValue placeholder="HH" />
           </SelectTrigger>
           <SelectContent className="max-h-[200px] z-[60]">
@@ -55,9 +55,9 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, labelCl
             ))}
           </SelectContent>
         </Select>
-        <span className="text-xs font-bold opacity-60">:</span>
+        <span className="text-sm font-bold opacity-60">:</span>
         <Select value={minute} onValueChange={m => onChange(to24h(hour12Str, m, period))}>
-          <SelectTrigger className="flex-1 h-10 border rounded-lg focus:ring-1 focus:ring-primary bg-background text-foreground px-2 text-xs">
+          <SelectTrigger className="flex-1 h-10 border rounded-lg focus:ring-1 focus:ring-primary bg-background text-foreground px-2 text-sm">
             <SelectValue placeholder="MM" />
           </SelectTrigger>
           <SelectContent className="max-h-[200px] z-[60]">
@@ -67,7 +67,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, labelCl
           </SelectContent>
         </Select>
         <Select value={period} onValueChange={p => onChange(to24h(hour12Str, minute, p))}>
-          <SelectTrigger className="w-[68px] h-10 border rounded-lg focus:ring-1 focus:ring-primary bg-background text-foreground px-2 text-xs">
+          <SelectTrigger className="w-[68px] h-10 border rounded-lg focus:ring-1 focus:ring-primary bg-background text-foreground px-2 text-sm">
             <SelectValue placeholder="Period" />
           </SelectTrigger>
           <SelectContent className="z-[60]">
@@ -112,6 +112,7 @@ const TransportRoutes: React.FC = () => {
   // Stop editor states
   const [editingRouteStops, setEditingRouteStops] = useState<number | null>(null);
   const [stopDraft, setStopDraft] = useState<StopT[]>([]);
+  const stopsContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Edit route states
   const [editingRoute, setEditingRoute] = useState<RouteT | null>(null);
@@ -120,6 +121,44 @@ const TransportRoutes: React.FC = () => {
   // Pagination
   const ROWS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredRoutes = routes
+    .filter(r => {
+      const query = searchQuery.toLowerCase().trim();
+      if (!query) return true;
+      return (
+        r.route_name.toLowerCase().includes(query) ||
+        r.start_location.toLowerCase().includes(query) ||
+        r.end_location.toLowerCase().includes(query) ||
+        (r.bus_details?.bus_number && r.bus_details.bus_number.toLowerCase().includes(query)) ||
+        (r.bus_details?.registration_number && r.bus_details.registration_number.toLowerCase().includes(query)) ||
+        (r.stops && r.stops.some(s => s.stop_name.toLowerCase().includes(query)))
+      );
+    })
+    .sort((a, b) => {
+      const query = searchQuery.toLowerCase().trim();
+      if (!query) return 0;
+
+      const aName = a.route_name.toLowerCase();
+      const bName = b.route_name.toLowerCase();
+
+      const aNameMatch = aName.includes(query);
+      const bNameMatch = bName.includes(query);
+
+      if (aNameMatch && !bNameMatch) return -1;
+      if (!aNameMatch && bNameMatch) return 1;
+
+      if (aNameMatch && bNameMatch) {
+        const aStarts = aName.startsWith(query);
+        const bStarts = bName.startsWith(query);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        return aName.localeCompare(bName);
+      }
+
+      return 0;
+    });
 
   const loadRoutes = useCallback(async () => {
     setLoading(true);
@@ -234,6 +273,14 @@ const TransportRoutes: React.FC = () => {
 
   const addStopRow = () => {
     setStopDraft(d => [...d, { id: 0, stop_name: '', sequence_order: d.length + 1, arrival_time_morning: '07:30', arrival_time_evening: '16:30', latitude: '', longitude: '' }]);
+    setTimeout(() => {
+      if (stopsContainerRef.current) {
+        stopsContainerRef.current.scrollTo({
+          top: stopsContainerRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
   };
 
   const removeStopRow = async (i: number) => {
@@ -255,7 +302,7 @@ const TransportRoutes: React.FC = () => {
 
   const handleSaveStops = async () => {
     if (!editingRouteStops) return;
-    
+
     const hasEmptyStopName = stopDraft.some(s => !s.stop_name || !s.stop_name.trim());
     if (hasEmptyStopName) {
       Swal.fire("Warning", "All stops must have a valid Stop Name.", "warning");
@@ -386,11 +433,9 @@ const TransportRoutes: React.FC = () => {
             <div
               className="absolute inset-0 bg-black/50 backdrop-blur-sm"
               onClick={() => setShowRouteForm(false)}
-            />
-
-            {/* Modal Window Container */}
-            <div className="relative w-full max-w-md z-50">
-              <Card className={`p-6 border shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar ${cardBg}`}>
+            />            {/* Modal Window Container */}
+            <div className="relative w-[90%] max-w-md z-50">
+              <Card className={`p-6 border shadow-2xl max-h-[80vh] overflow-y-auto custom-scrollbar ${cardBg}`}>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                     <Plus className="w-5 h-5" /> New Route
@@ -424,7 +469,7 @@ const TransportRoutes: React.FC = () => {
                       <input type="number" className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 ${input}`} value={routeForm.duration_minutes} onChange={e => setRouteForm(f => ({ ...f, duration_minutes: parseInt(e.target.value) || 0 }))} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <TimePicker
                       label="Morning Start"
                       value={routeForm.morning_start_time || "07:30"}
@@ -471,8 +516,8 @@ const TransportRoutes: React.FC = () => {
         {editingRoute && createPortal(
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setEditingRoute(null)} />
-            <div className="relative w-full max-w-md z-50">
-              <Card className={`p-6 border shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar ${cardBg}`}>
+            <div className="relative w-[90%] max-w-md z-50">
+              <Card className={`p-6 border shadow-2xl max-h-[80vh] overflow-y-auto custom-scrollbar ${cardBg}`}>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                     <Pencil className="w-5 h-5" /> Edit Route
@@ -506,7 +551,7 @@ const TransportRoutes: React.FC = () => {
                       <input type="number" className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 ${input}`} value={editRouteForm.duration_minutes} onChange={e => setEditRouteForm(f => ({ ...f, duration_minutes: parseInt(e.target.value) || 0 }))} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <TimePicker
                       label="Morning Start"
                       value={editRouteForm.morning_start_time || "07:30"}
@@ -552,10 +597,22 @@ const TransportRoutes: React.FC = () => {
         {/* Route List & Timeline */}
         <div className="lg:col-span-3">
           <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
-            <CardHeader className="pb-3 border-b border-inherit">
+            <CardHeader className="pb-3 border-b border-inherit space-y-4">
               <div id="transport-routes-action-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <CardTitle className="sm:text-2xl text-xl font-semibold flex items-center gap-2">
-                  <Navigation size={20} className="text-primary" /> Active Route Register
+                <CardTitle className="sm:text-2xl text-xl font-semibold flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+                  <span className="flex items-center gap-2">
+                      Active Route Register
+                  </span>
+                  {/* Mobile Download PDF Icon Button */}
+                  <Button
+                    onClick={handleDownloadPDF}
+                    disabled={downloadingPDF}
+                    size="icon"
+                    variant="outline"
+                    className="flex sm:hidden h-8 w-8 items-center justify-center shrink-0 border border-input bg-background"
+                  >
+                    {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown size={15} />}
+                  </Button>
                 </CardTitle>
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
                   <Button onClick={() => setShowRouteForm(true)} className="w-full sm:w-auto bg-primary hover:bg-primary/95 text-white flex items-center justify-center gap-1 h-9">
@@ -564,7 +621,7 @@ const TransportRoutes: React.FC = () => {
                   <Button
                     onClick={handleDownloadPDF}
                     disabled={downloadingPDF}
-                    className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white flex items-center justify-center gap-1.5 h-9"
+                    className="hidden sm:flex w-full sm:w-auto bg-primary hover:bg-primary/90 text-white items-center justify-center gap-1.5 h-9"
                   >
                     {downloadingPDF ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -573,6 +630,33 @@ const TransportRoutes: React.FC = () => {
                     )}
                     {downloadingPDF ? "Exporting..." : "Export PDF"}
                   </Button>
+                </div>
+              </div>
+
+              {/* Search Section */}
+              <div className="w-full sm:max-w-md">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40 text-foreground" />
+                  <input
+                    placeholder="Search route name, location, or stops..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className={`h-9 w-full pl-9 pr-12 rounded-lg border text-sm focus:outline-none focus:ring-1 ${input}`}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery("");
+                        setCurrentPage(1);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -591,114 +675,215 @@ const TransportRoutes: React.FC = () => {
                     </p>
                   </div>
                 </div>
+              ) : filteredRoutes.length === 0 ? (
+                <div className="p-6">
+                  <div className={`flex flex-col items-center justify-center py-12 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                      <Search size={32} className="opacity-80" />
+                    </div>
+                    <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Matching Routes</h3>
+                    <p className="max-w-md text-xs leading-relaxed opacity-80">
+                      Try adjusting your search query to find active transit paths.
+                    </p>
+                  </div>
+                </div>
               ) : (() => {
-                const totalPages = Math.ceil(routes.length / ROWS_PER_PAGE);
+                const totalPages = Math.ceil(filteredRoutes.length / ROWS_PER_PAGE);
                 const safePage = Math.min(currentPage, totalPages);
-                const pageRoutes = routes.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
-                const startEntry = (safePage - 1) * ROWS_PER_PAGE + 1;
-                const endEntry = Math.min(safePage * ROWS_PER_PAGE, routes.length);
+                const pageRoutes = filteredRoutes.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
+                const endEntry = Math.min(safePage * ROWS_PER_PAGE, filteredRoutes.length);
                 return (
                   <>
-                    <table className="w-full text-left border-collapse whitespace-nowrap">
-                      <thead>
-                        <tr className={`border-b text-sm sm:text-xs font-semibold uppercase opacity-70 ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                          <th className="p-4">Route Info</th>
-                          <th className="p-4">Start → End</th>
-                          <th className="p-4">Distance & Duration</th>
-                          <th className="p-4">Bus</th>
-                          <th className="p-4">Timings</th>
-                          <th className="p-4">Stops</th>
-                          <th className="p-4 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-inherit">
-                        {pageRoutes.map(r => (
-                          <React.Fragment key={r.id}>
-                            <tr className="hover:bg-primary/5 transition-colors duration-150">
-                              <td className="p-4 font-semibold text-base sm:text-sm">{r.route_name}</td>
-                              <td className="p-4 text-sm sm:text-xs font-medium">
+                    {/* Mobile View: Stacked Cards */}
+                    <div className="md:hidden space-y-4 p-4">
+                      {pageRoutes.map(r => (
+                        <div
+                          key={r.id}
+                          className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'
+                            } flex flex-col gap-3 shadow-sm`}
+                        >
+                          <div className="flex justify-between items-start gap-2">
+                            <div>
+                              <h4 className="font-semibold text-lg leading-tight">{r.route_name}</h4>
+                              <div className="text-sm font-medium mt-1 flex items-center gap-1.5 flex-wrap">
                                 <span className="text-primary">{r.start_location}</span>
-                                <span className="mx-2 opacity-50">→</span>
+                                <span className="opacity-50">→</span>
                                 <span className="text-purple-500 font-semibold">{r.end_location}</span>
-                              </td>
-                              <td className="p-4 text-sm sm:text-xs opacity-80">
-                                {r.distance} km / {r.duration_minutes} mins
-                              </td>
-                              <td className="p-4 text-sm sm:text-xs">
-                                {r.bus_details ? (
-                                  <div>
-                                    <div className="font-semibold text-gray-800 dark:text-gray-100">{r.bus_details.bus_number}</div>
-                                    <div className="text-xs sm:text-[10px] font-bold text-primary mt-0.5">{r.bus_details.registration_number}</div>
+                              </div>
+                            </div>
+                            <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-bold shrink-0">
+                              {r.stops?.length || 0} stops
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/25">
+                            <div>
+                              <span className="text-xs uppercase font-bold opacity-60 block">Distance & Duration</span>
+                              <span className="text-sm font-medium">{r.distance} km / {r.duration_minutes} mins</span>
+                            </div>
+                            <div>
+                              <span className="text-xs uppercase font-bold opacity-60 block">Bus</span>
+                              {r.bus_details ? (
+                                <div className="text-sm">
+                                  <div className="font-semibold text-gray-800 dark:text-gray-100">{r.bus_details.bus_number}</div>
+                                  <div className="text-xs font-bold text-primary">{r.bus_details.registration_number}</div>
+                                </div>
+                              ) : (
+                                <span className="opacity-40 text-sm">No bus</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="pt-2 border-t border-border/25">
+                            <span className="text-xs uppercase font-bold opacity-60 block mb-1">Timings</span>
+                            <div className="flex flex-wrap gap-x-4 gap-y-1">
+                              <div className="flex items-center gap-1 text-sm">
+                                <span className="opacity-50 font-bold">Morning:</span>
+                                <span className="font-semibold text-gray-700 dark:text-gray-200">{formatTo12h(r.morning_start_time)}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-sm">
+                                <span className="opacity-50 font-bold">Evening:</span>
+                                <span className="font-semibold text-gray-700 dark:text-gray-200">{formatTo12h(r.evening_start_time)}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {r.stops && r.stops.length > 0 && (
+                            <div className="pt-2 border-t border-border/25">
+                              <span className="text-xs uppercase font-bold opacity-60 block mb-1">Route Timeline:</span>
+                              <div className="max-h-[130px] overflow-y-auto custom-scrollbar pr-1 mt-1 space-y-1.5">
+                                {r.stops.map((s, i) => (
+                                  <div key={s.id} className="flex items-center gap-1.5 text-sm bg-white dark:bg-accent border dark:border-border px-3 py-1.5 rounded-lg shadow-sm">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                                    <span className="font-medium text-sm truncate pr-2">{s.stop_name}</span>
+                                    <span className="text-xs opacity-75 font-semibold text-primary ml-auto shrink-0">
+                                      ({formatTo12h(s.arrival_time_morning)} / {formatTo12h(s.arrival_time_evening)})
+                                    </span>
                                   </div>
-                                ) : (
-                                  <span className="opacity-40 text-xs sm:text-[11px]">No bus</span>
-                                )}
-                              </td>
-                              <td className="p-4 text-sm sm:text-xs space-y-1">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="opacity-50 text-xs sm:text-[10px] uppercase font-bold">Morning:</span>
-                                  <span className="font-semibold text-gray-700 dark:text-gray-200">{formatTo12h(r.morning_start_time)}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                  <span className="opacity-50 text-xs sm:text-[10px] uppercase font-bold">Evening:</span>
-                                  <span className="font-semibold text-gray-700 dark:text-gray-200">{formatTo12h(r.evening_start_time)}</span>
-                                </div>
-                              </td>
-                              <td className="p-4 text-sm sm:text-xs">
-                                <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs sm:text-[10px] font-bold">
-                                  {r.stops?.length || 0} stops
-                                </span>
-                              </td>
-                              <td className="p-4 text-right">
-                                <div className="flex gap-2 justify-end items-center">
-                                  <Button size="icon" variant="ghost" onClick={() => startEditRoute(r)} className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20">
-                                    <Pencil size={14} />
-                                  </Button>
-                                  <Button size="sm" variant="outline" onClick={() => startStopEdit(r)} className="text-xs bg-primary text-white hover:bg-primary/90 hover:text-white">
-                                    Add Stops
-                                  </Button>
-                                  <Button size="icon" variant="ghost" onClick={() => handleDeleteRoute(r.id)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20">
-                                    <Trash2 size={15} />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                            {r.stops && r.stops.length > 0 && (
-                              <tr className={theme === 'dark' ? 'bg-background/20' : 'bg-gray-50/40'}>
-                                <td colSpan={7} className="px-6 py-3">
-                                  <div className="flex flex-wrap gap-3 items-center pl-4 border-l-2 border-primary/20">
-                                    <span className="text-[10px] uppercase font-bold opacity-60 mr-2">Route Timeline:</span>
-                                    {r.stops.map((s, i) => (
-                                      <div key={s.id} className="flex items-center gap-1.5 text-xs bg-white dark:bg-accent border dark:border-border px-2.5 py-1 rounded-lg shadow-sm">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                        <span className="font-medium">{s.stop_name}</span>
-                                        <span className="text-[10px] opacity-75 font-semibold text-primary">
-                                          ({formatTo12h(s.arrival_time_morning)} / {formatTo12h(s.arrival_time_evening)})
-                                        </span>
-                                        {i < r.stops.length - 1 && <span className="opacity-40 ml-1">→</span>}
-                                      </div>
-                                    ))}
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex items-center justify-between gap-3 pt-3 border-t border-border/25 mt-1">
+                            <div className="flex gap-2 shrink-0">
+                              <Button size="icon" variant="ghost" onClick={() => startEditRoute(r)} className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20 border">
+                                <Pencil size={14} />
+                              </Button>
+                              <Button size="icon" variant="ghost" onClick={() => handleDeleteRoute(r.id)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 border">
+                                <Trash2 size={15} />
+                              </Button>
+                            </div>
+                            <Button size="sm" variant="outline" onClick={() => startStopEdit(r)} className="flex-1 text-xs bg-primary text-white hover:bg-primary/90 hover:text-white h-8">
+                              Add Stops
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Desktop View: Table */}
+                    <div className="hidden md:block overflow-x-auto thin-scrollbar">
+                      <table className="w-full text-left border-collapse whitespace-nowrap">
+                        <thead>
+                          <tr className={`border-b text-sm sm:text-xs font-semibold uppercase opacity-70 ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                            <th className="p-4">Route Info</th>
+                            <th className="p-4">Start → End</th>
+                            <th className="p-4">Distance & Duration</th>
+                            <th className="p-4">Bus</th>
+                            <th className="p-4">Timings</th>
+                            <th className="p-4">Stops</th>
+                            <th className="p-4 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-inherit">
+                          {pageRoutes.map(r => (
+                            <React.Fragment key={r.id}>
+                              <tr className="hover:bg-primary/5 transition-colors duration-150">
+                                <td className="p-4 font-semibold text-base sm:text-sm">{r.route_name}</td>
+                                <td className="p-4 text-sm sm:text-xs font-medium">
+                                  <span className="text-primary">{r.start_location}</span>
+                                  <span className="mx-2 opacity-50">→</span>
+                                  <span className="text-purple-500 font-semibold">{r.end_location}</span>
+                                </td>
+                                <td className="p-4 text-sm sm:text-xs opacity-80">
+                                  {r.distance} km / {r.duration_minutes} mins
+                                </td>
+                                <td className="p-4 text-sm sm:text-xs">
+                                  {r.bus_details ? (
+                                    <div>
+                                      <div className="font-semibold text-gray-800 dark:text-gray-100">{r.bus_details.bus_number}</div>
+                                      <div className="text-xs sm:text-[10px] font-bold text-primary mt-0.5">{r.bus_details.registration_number}</div>
+                                    </div>
+                                  ) : (
+                                    <span className="opacity-40 text-xs sm:text-[11px]">No bus</span>
+                                  )}
+                                </td>
+                                <td className="p-4 text-sm sm:text-xs space-y-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="opacity-50 text-xs sm:text-[10px] uppercase font-bold">Morning:</span>
+                                    <span className="font-semibold text-gray-700 dark:text-gray-200">{formatTo12h(r.morning_start_time)}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="opacity-50 text-xs sm:text-[10px] uppercase font-bold">Evening:</span>
+                                    <span className="font-semibold text-gray-700 dark:text-gray-200">{formatTo12h(r.evening_start_time)}</span>
+                                  </div>
+                                </td>
+                                <td className="p-4 text-sm sm:text-xs">
+                                  <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs sm:text-[10px] font-bold">
+                                    {r.stops?.length || 0} stops
+                                  </span>
+                                </td>
+                                <td className="p-4 text-right">
+                                  <div className="flex gap-2 justify-end items-center">
+                                    <Button size="icon" variant="ghost" onClick={() => startEditRoute(r)} className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20">
+                                      <Pencil size={14} />
+                                    </Button>
+                                    <Button size="sm" variant="outline" onClick={() => startStopEdit(r)} className="text-xs bg-primary text-white hover:bg-primary/90 hover:text-white">
+                                      Add Stops
+                                    </Button>
+                                    <Button size="icon" variant="ghost" onClick={() => handleDeleteRoute(r.id)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20">
+                                      <Trash2 size={15} />
+                                    </Button>
                                   </div>
                                 </td>
                               </tr>
-                            )}
-                          </React.Fragment>
-                        ))}
-                      </tbody>
-                    </table>
-
+                              {r.stops && r.stops.length > 0 && (
+                                <tr className={theme === 'dark' ? 'bg-background/20' : 'bg-gray-50/40'}>
+                                  <td colSpan={7} className="px-6 py-3">
+                                    <div className="flex flex-wrap gap-3 items-center pl-4 border-l-2 border-primary/20">
+                                      <span className="text-[10px] uppercase font-bold opacity-60 mr-2">Route Timeline:</span>
+                                      {r.stops.map((s, i) => (
+                                        <div key={s.id} className="flex items-center gap-1.5 text-xs bg-white dark:bg-accent border dark:border-border px-2.5 py-1 rounded-lg shadow-sm">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                          <span className="font-medium">{s.stop_name}</span>
+                                          <span className="text-[10px] opacity-75 font-semibold text-primary">
+                                            ({formatTo12h(s.arrival_time_morning)} / {formatTo12h(s.arrival_time_evening)})
+                                          </span>
+                                          {i < r.stops.length - 1 && <span className="opacity-40 ml-1">→</span>}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </>
                 );
               })()}
             </div>
-            {routes.length > ROWS_PER_PAGE && (
+            {filteredRoutes.length > ROWS_PER_PAGE && (
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                 <div>
-                  {routes.length > 0 && (() => {
-                    const safePage2 = Math.min(currentPage, Math.ceil(routes.length / ROWS_PER_PAGE));
-                    const start2 = Math.min((safePage2 - 1) * ROWS_PER_PAGE + 1, routes.length);
-                    const end2 = Math.min(safePage2 * ROWS_PER_PAGE, routes.length);
-                    return <>Showing {start2} to {end2} of {routes.length} routes</>;
+                  {filteredRoutes.length > 0 && (() => {
+                    const safePage2 = Math.min(currentPage, Math.ceil(filteredRoutes.length / ROWS_PER_PAGE));
+                    const start2 = Math.min((safePage2 - 1) * ROWS_PER_PAGE + 1, filteredRoutes.length);
+                    const end2 = Math.min(safePage2 * ROWS_PER_PAGE, filteredRoutes.length);
+                    return <>Showing {start2} to {end2} of {filteredRoutes.length} routes</>;
                   })()}
                 </div>
                 <div className="flex items-center gap-2">
@@ -713,14 +898,14 @@ const TransportRoutes: React.FC = () => {
                   </Button>
                   <div className="flex items-center justify-center min-w-[2rem]">
                     <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      {Math.min(currentPage, Math.max(1, Math.ceil(routes.length / ROWS_PER_PAGE)))}
+                      {Math.min(currentPage, Math.max(1, Math.ceil(filteredRoutes.length / ROWS_PER_PAGE)))}
                     </span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(routes.length / ROWS_PER_PAGE), p + 1))}
-                    disabled={currentPage === Math.ceil(routes.length / ROWS_PER_PAGE) || loading}
+                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredRoutes.length / ROWS_PER_PAGE), p + 1))}
+                    disabled={currentPage === Math.ceil(filteredRoutes.length / ROWS_PER_PAGE) || loading}
                     className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
                   >
                     Next
@@ -742,8 +927,8 @@ const TransportRoutes: React.FC = () => {
           />
 
           {/* Modal Window Container */}
-          <div className="relative w-full max-w-2xl z-50 max-h-[90vh] flex flex-col">
-            <Card className={`border shadow-2xl p-6 flex flex-col overflow-hidden ${cardBg}`}>
+          <div className="relative w-[95%] sm:w-[90%] max-w-2xl z-50 max-h-[85vh] flex flex-col">
+            <Card className={`border shadow-2xl p-4 sm:p-6 flex flex-col overflow-hidden max-h-[85vh] ${cardBg}`}>
               {/* Header */}
               <div className="flex justify-between items-start mb-4 pb-3 border-b border-inherit">
                 <div>
@@ -758,37 +943,70 @@ const TransportRoutes: React.FC = () => {
               </div>
 
               {/* Scrollable List */}
-              <div className="space-y-3 overflow-y-auto thin-scrollbar pr-2 flex-1 pb-4">
+              <div ref={stopsContainerRef} className="space-y-3 overflow-y-auto custom-scrollbar pr-2 flex-1 pb-4">
                 {stopDraft.map((s, i) => (
-                  <div key={i} className={`grid grid-cols-1 md:grid-cols-7 gap-3 p-3 rounded-xl border items-center ${theme === 'dark' ? 'border-border bg-background/50' : 'border-gray-100 bg-gray-50/50'}`}>
-                    <div className="col-span-1 md:col-span-2">
-                      <label className="text-[10px] uppercase font-bold text-gray-700 dark:text-gray-200 mb-1 block">Stop Name</label>
-                      <input placeholder="e.g. Silk Board" className={`w-full border rounded-lg px-3 py-1.5 text-xs ${input}`} value={s.stop_name} onChange={e => setStopDraft(d => d.map((x, j) => j === i ? { ...x, stop_name: e.target.value } : x))} />
+                  <div key={i}>
+                    {/* Mobile Card View */}
+                    <div className={`md:hidden p-4 rounded-xl border ${theme === 'dark' ? 'border-border bg-background/50' : 'border-gray-200 bg-white'} flex flex-col gap-3 relative mb-3 shadow-sm`}>
+                      <div className="flex justify-between items-center border-b border-border/20 pb-2">
+                        <span className="text-sm font-bold text-primary uppercase tracking-wider">Stop #{i + 1}</span>
+                        <Button size="icon" variant="ghost" onClick={() => removeStopRow(i)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 border">
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-xs uppercase font-bold text-gray-700 dark:text-gray-200 mb-1 block">Stop Name</label>
+                          <input placeholder="e.g. Silk Board" className={`w-full border rounded-lg px-3 py-2 text-sm ${input}`} value={s.stop_name} onChange={e => setStopDraft(d => d.map((x, j) => j === i ? { ...x, stop_name: e.target.value } : x))} />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <TimePicker
+                            label="Morning Time"
+                            labelClass="text-xs uppercase font-bold text-gray-700 dark:text-gray-200 mb-1 block"
+                            value={s.arrival_time_morning || "07:30"}
+                            onChange={val => setStopDraft(d => d.map((x, j) => j === i ? { ...x, arrival_time_morning: val } : x))}
+                          />
+                          <TimePicker
+                            label="Evening Time"
+                            labelClass="text-xs uppercase font-bold text-gray-700 dark:text-gray-200 mb-1 block"
+                            value={s.arrival_time_evening || "16:30"}
+                            onChange={val => setStopDraft(d => d.map((x, j) => j === i ? { ...x, arrival_time_evening: val } : x))}
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="col-span-1 md:col-span-2">
-                      <TimePicker
-                        label="Morning Time"
-                        labelClass="text-[10px] uppercase font-bold text-gray-700 dark:text-gray-200 mb-1 block"
-                        value={s.arrival_time_morning || "07:30"}
-                        onChange={val => setStopDraft(d => d.map((x, j) => j === i ? { ...x, arrival_time_morning: val } : x))}
-                      />
-                    </div>
-                    <div className="col-span-1 md:col-span-2">
-                      <TimePicker
-                        label="Evening Time"
-                        labelClass="text-[10px] uppercase font-bold text-gray-700 dark:text-gray-200 mb-1 block"
-                        value={s.arrival_time_evening || "16:30"}
-                        onChange={val => setStopDraft(d => d.map((x, j) => j === i ? { ...x, arrival_time_evening: val } : x))}
-                      />
-                    </div>
-                    <div className="col-span-1 md:col-span-1 flex items-end justify-end h-full pt-4 md:pt-0">
-                      <Button size="icon" variant="ghost" onClick={() => removeStopRow(i)} className="h-8 w-8 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20">
-                        <Trash2 size={14} />
-                      </Button>
+
+                    {/* Desktop Row View */}
+                    <div className={`hidden md:grid grid-cols-7 gap-3 p-3 rounded-xl border items-center ${theme === 'dark' ? 'border-border bg-background/50' : 'border-gray-200 bg-white'} mb-3 shadow-sm`}>
+                      <div className="col-span-2">
+                        <label className="text-[10px] uppercase font-bold text-gray-700 dark:text-gray-200 mb-1 block">Stop Name</label>
+                        <input placeholder="e.g. Silk Board" className={`w-full border rounded-lg px-3 py-1.5 text-xs ${input}`} value={s.stop_name} onChange={e => setStopDraft(d => d.map((x, j) => j === i ? { ...x, stop_name: e.target.value } : x))} />
+                      </div>
+                      <div className="col-span-2">
+                        <TimePicker
+                          label="Morning Time"
+                          labelClass="text-[10px] uppercase font-bold text-gray-700 dark:text-gray-200 mb-1 block"
+                          value={s.arrival_time_morning || "07:30"}
+                          onChange={val => setStopDraft(d => d.map((x, j) => j === i ? { ...x, arrival_time_morning: val } : x))}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <TimePicker
+                          label="Evening Time"
+                          labelClass="text-[10px] uppercase font-bold text-gray-700 dark:text-gray-200 mb-1 block"
+                          value={s.arrival_time_evening || "16:30"}
+                          onChange={val => setStopDraft(d => d.map((x, j) => j === i ? { ...x, arrival_time_evening: val } : x))}
+                        />
+                      </div>
+                      <div className="col-span-1 flex items-end justify-end h-full pt-4 md:pt-0">
+                        <Button size="icon" variant="ghost" onClick={() => removeStopRow(i)} className="h-8 w-8 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20">
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
-                 {stopDraft.length === 0 && (
+                {stopDraft.length === 0 && (
                   <div className={`flex flex-col items-center justify-center py-8 px-4 rounded-xl border border-dashed text-center ${theme === 'dark' ? 'border-border bg-card/10 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                     <MapPin size={24} className="opacity-40 mb-2" />
                     <p className="text-xs font-semibold">No Stops Configured</p>
@@ -798,16 +1016,16 @@ const TransportRoutes: React.FC = () => {
               </div>
 
               {/* Footer Actions */}
-              <div className="flex items-center justify-between gap-3 pt-3 border-t border-inherit">
-                <Button size="sm" variant="outline" onClick={addStopRow} className="flex items-center gap-1.5 bg-primary text-white hover:bg-primary/90 hover:text-white">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-inherit">
+                <Button size="sm" variant="outline" onClick={addStopRow} className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-primary text-white hover:bg-primary/90 hover:text-white h-9">
                   <Plus size={14} /> Add Stop
                 </Button>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="ghost" onClick={() => setEditingRouteStops(null)}>
+                <div className="flex w-full sm:w-auto gap-2 justify-end">
+                  <Button size="sm" variant="ghost" onClick={() => setEditingRouteStops(null)} className="flex-1 sm:flex-initial h-9">
                     Cancel
                   </Button>
-                  <Button size="sm" onClick={handleSaveStops} className="flex items-center gap-1.5 bg-gradient-to-r from-primary to-purple-600 text-white font-semibold shadow-md">
-                    <Save size={14} /> Save All Stops
+                  <Button size="sm" onClick={handleSaveStops} className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-gradient-to-r from-primary to-purple-600 text-white font-semibold shadow-md h-9">
+                    <Save size={14} /> Save Stops
                   </Button>
                 </div>
               </div>
