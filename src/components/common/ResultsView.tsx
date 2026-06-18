@@ -59,16 +59,36 @@ const ResultsView: React.FC = () => {
       // prefer provided total, else try to sum cie+see
       let total = m?.total;
       if (total == null) {
-        const cie = typeof m?.cie === 'number' ? m.cie : Number(m?.cie);
-        const see = typeof m?.see === 'number' ? m.see : Number(m?.see);
-        if (!Number.isFinite(cie) || !Number.isFinite(see)) continue;
-        total = cie + see;
+        const cie = m?.cie !== null && m?.cie !== undefined && m?.cie !== '' ? Number(m.cie) : null;
+        const see = m?.see !== null && m?.see !== undefined && m?.see !== '' ? Number(m.see) : null;
+        if (cie !== null && see !== null && !isNaN(cie) && !isNaN(see)) {
+          total = cie + see;
+        }
       }
-      total = Number(total);
-      if (!Number.isFinite(total)) continue;
+      if (total === null || total === undefined || isNaN(Number(total))) continue;
+      const totalNum = Number(total);
 
-      // convert marks (out of 100) to grade point on 10-point scale
-      const gp = Math.max(0, total / 10);
+      // check if passed
+      let passed = false;
+      if (m?.status) {
+        passed = m.status === 'pass';
+      } else {
+        const cie = m?.cie !== null && m?.cie !== undefined && m?.cie !== '' ? Number(m.cie) : null;
+        const see = m?.see !== null && m?.see !== undefined && m?.see !== '' ? Number(m.see) : null;
+        passed = cie !== null && see !== null && cie >= 20 && see >= 18 && totalNum >= 40;
+      }
+
+      // convert marks (out of 100) to discrete grade point
+      let gp = 0;
+      if (passed) {
+        if (totalNum >= 90) gp = 10;
+        else if (totalNum >= 80) gp = 9;
+        else if (totalNum >= 70) gp = 8;
+        else if (totalNum >= 60) gp = 7;
+        else if (totalNum >= 50) gp = 6;
+        else if (totalNum >= 40) gp = 5;
+      }
+
       weightedGP += gp * credits;
       totalCredits += credits;
     }
@@ -325,13 +345,18 @@ const ResultsView: React.FC = () => {
                             let grade = '';
                             let gradePoints = '';
                             if (typeof total === 'number') {
-                              if (total >= 90) { grade = 'S'; gradePoints = '10'; }
-                              else if (total >= 80) { grade = 'A'; gradePoints = '9'; }
-                              else if (total >= 70) { grade = 'B'; gradePoints = '8'; }
-                              else if (total >= 60) { grade = 'C'; gradePoints = '7'; }
-                              else if (total >= 50) { grade = 'D'; gradePoints = '6'; }
-                              else if (total >= 40) { grade = 'E'; gradePoints = '5'; }
-                              else { grade = 'F'; gradePoints = '0'; }
+                              if (m.status !== 'pass') {
+                                grade = 'F';
+                                gradePoints = '0';
+                              } else {
+                                if (total >= 90) { grade = 'S'; gradePoints = '10'; }
+                                else if (total >= 80) { grade = 'A'; gradePoints = '9'; }
+                                else if (total >= 70) { grade = 'B'; gradePoints = '8'; }
+                                else if (total >= 60) { grade = 'C'; gradePoints = '7'; }
+                                else if (total >= 50) { grade = 'D'; gradePoints = '6'; }
+                                else if (total >= 40) { grade = 'E'; gradePoints = '5'; }
+                                else { grade = 'F'; gradePoints = '0'; }
+                              }
                             }
 
                             const availableCredits = m.credits ?? m.credit ?? m.credit_hours ?? m.creditHours ?? m.credit_hour ?? 0;

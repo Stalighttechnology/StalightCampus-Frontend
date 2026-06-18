@@ -504,7 +504,12 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
             {students.map((s) => {
               const studentMarks = allMarks[String(s.student_id)]?.subs || marks[String(s.student_id)] || {};
               const meetsPassCriteria = (c: any, se: any, t: any) => {
-                return typeof c === 'number' && typeof se === 'number' && typeof t === 'number' && c >= 20 && se >= 18 && t >= 40;
+                const cieVal = c !== null && c !== undefined && c !== '' ? Number(c) : null;
+                const seeVal = se !== null && se !== undefined && se !== '' ? Number(se) : null;
+                const totalVal = t !== null && t !== undefined && t !== '' ? Number(t) : null;
+                return cieVal !== null && seeVal !== null && totalVal !== null &&
+                       !isNaN(cieVal) && !isNaN(seeVal) && !isNaN(totalVal) &&
+                       cieVal >= 20 && seeVal >= 18 && totalVal >= 40;
               };
               const incompleteCount = (s.subjects || []).reduce((acc: number, sub: any) => {
                 const e = studentMarks[String(sub.id)];
@@ -607,20 +612,27 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                           const entry = studentMarks[String(sub.id)];
                           const cie = entry?.cie ?? '';
                           const see = entry?.see ?? '';
-                          const total = typeof cie === 'number' && typeof see === 'number' ? cie + see : '';
+                          const cieVal = cie !== null && cie !== undefined && cie !== '' ? Number(cie) : null;
+                          const seeVal = see !== null && see !== undefined && see !== '' ? Number(see) : null;
+                          const total = cieVal !== null && seeVal !== null && !isNaN(cieVal) && !isNaN(seeVal) ? cieVal + seeVal : '';
                           const displayTotal = total;
                           const result = displayTotal === '' ? 'Incomplete' : meetsPassCriteria(cie, see, total) ? 'Pass' : 'Fail';
 
                           let grade = '';
                           let gradePoints = '';
                           if (typeof total === 'number') {
-                            if (total >= 90) {grade = 'S';gradePoints = '10';} else
-                            if (total >= 80) {grade = 'A';gradePoints = '9';} else
-                            if (total >= 70) {grade = 'B';gradePoints = '8';} else
-                            if (total >= 60) {grade = 'C';gradePoints = '7';} else
-                            if (total >= 50) {grade = 'D';gradePoints = '6';} else
-                            if (total >= 40) {grade = 'E';gradePoints = '5';} else
-                            {grade = 'F';gradePoints = '0';}
+                            if (result === 'Fail') {
+                              grade = 'F';
+                              gradePoints = '0';
+                            } else {
+                              if (total >= 90) {grade = 'S';gradePoints = '10';} else
+                              if (total >= 80) {grade = 'A';gradePoints = '9';} else
+                              if (total >= 70) {grade = 'B';gradePoints = '8';} else
+                              if (total >= 60) {grade = 'C';gradePoints = '7';} else
+                              if (total >= 50) {grade = 'D';gradePoints = '6';} else
+                              if (total >= 40) {grade = 'E';gradePoints = '5';} else
+                              {grade = 'F';gradePoints = '0';}
+                            }
                           }
 
                           return (
@@ -648,7 +660,9 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                               const entry = studentMarks[String(sub.id)];
                               const cie = entry?.cie;
                               const see = entry?.see;
-                              const total = typeof cie === 'number' && typeof see === 'number' ? cie + see : null;
+                              const cieVal = cie !== null && cie !== undefined && cie !== '' ? Number(cie) : null;
+                              const seeVal = see !== null && see !== undefined && see !== '' ? Number(see) : null;
+                              const total = cieVal !== null && seeVal !== null && !isNaN(cieVal) && !isNaN(seeVal) ? cieVal + seeVal : null;
                               const passed = meetsPassCriteria(cie, see, total);
                               const creditsToAdd = passed ? sub.credits || 0 : 0;
                               return acc + creditsToAdd;
@@ -662,8 +676,10 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                               const entry = studentMarks[String(sub.id)];
                               const cie = entry?.cie;
                               const see = entry?.see;
-                              const total = typeof cie === 'number' && typeof see === 'number' ? cie + see : 0;
-                              return acc + (typeof total === 'number' ? total : 0);
+                              const cieVal = cie !== null && cie !== undefined && cie !== '' ? Number(cie) : null;
+                              const seeVal = see !== null && see !== undefined && see !== '' ? Number(see) : null;
+                              const total = cieVal !== null && seeVal !== null && !isNaN(cieVal) && !isNaN(seeVal) ? cieVal + seeVal : 0;
+                              return acc + (total !== null ? total : 0);
                             }, 0)}
                         </td>
                       </tr>
@@ -679,19 +695,23 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                                 const entry = studentMarks[String(sub.id)];
                                 const cie = entry?.cie;
                                 const see = entry?.see;
-                                const total = typeof cie === 'number' && typeof see === 'number' ? cie + see : null;
+                                const cieVal = cie !== null && cie !== undefined && cie !== '' ? Number(cie) : null;
+                                const seeVal = see !== null && see !== undefined && see !== '' ? Number(see) : null;
+                                const total = cieVal !== null && seeVal !== null && !isNaN(cieVal) && !isNaN(seeVal) ? cieVal + seeVal : null;
                                 const credits = sub.credits || 0;
                                 const passed = meetsPassCriteria(cie, see, total);
 
-                                if (typeof total === 'number' && credits > 0 && passed) {
+                                if (total !== null && credits > 0) {
                                   let gradePoints = 0;
-                                  if (total >= 90) gradePoints = 10;else
-                                  if (total >= 80) gradePoints = 9;else
-                                  if (total >= 70) gradePoints = 8;else
-                                  if (total >= 60) gradePoints = 7;else
-                                  if (total >= 50) gradePoints = 6;else
-                                  if (total >= 40) gradePoints = 5;else
-                                  gradePoints = 0;
+                                  if (passed) {
+                                    if (total >= 90) gradePoints = 10;else
+                                    if (total >= 80) gradePoints = 9;else
+                                    if (total >= 70) gradePoints = 8;else
+                                    if (total >= 60) gradePoints = 7;else
+                                    if (total >= 50) gradePoints = 6;else
+                                    if (total >= 40) gradePoints = 5;else
+                                    gradePoints = 0;
+                                  }
 
                                   totalGradePoints += gradePoints * credits;
                                   totalCredits += credits;
