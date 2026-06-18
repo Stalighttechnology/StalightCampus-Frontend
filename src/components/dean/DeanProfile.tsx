@@ -1,5 +1,5 @@
 import { Switch } from "@/components/ui/switch";
-import { requestForToken } from "@/lib/firebase";
+import { handleNotificationToggle, checkNotificationPermission } from "../../utils/notificationHelper";
 import React, { useEffect, useRef, useState } from "react";
 import HelpLearningCard from "../common/HelpLearningCard";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -63,7 +63,11 @@ const DeanProfile = () => {
   });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity' | 'help' | 'settings'>('personal');
-  const [notificationsEnabled, setNotificationsEnabled] = useState((typeof Notification !== 'undefined' && Notification.permission === 'granted') && localStorage.getItem('hasSeenPwaWizard') !== null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  useEffect(() => {
+    checkNotificationPermission(setNotificationsEnabled);
+  }, []);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -678,46 +682,7 @@ const DeanProfile = () => {
                     </div>
                     <Switch
                       checked={notificationsEnabled}
-                      onCheckedChange={async (checked) => {
-                        try {
-                          setNotificationsEnabled(checked);
-                          const userToken = sessionStorage.getItem('token') || localStorage.getItem('token');
-                          
-                          if (checked) {
-                            // Enable notifications
-                            const token = await requestForToken();
-                            if (token && userToken) {
-                              await fetch(`${API_ENDPOINT}/profile/register-device/`, {
-                                method: 'POST',
-                                headers: {
-                                  'Content-Type': 'application/json',
-                                  'Authorization': `Bearer ${userToken}`
-                                },
-                                body: JSON.stringify({ fcm_token: token, device_type: 'web' })
-                              });
-                              showSuccessAlert('Success', 'Push notifications enabled!');
-                            }
-                          } else {
-                            // Disable notifications
-                            const token = await requestForToken();
-                            if (token && userToken) {
-                              await fetch(`${API_ENDPOINT}/profile/unregister-device/`, {
-                                method: 'POST',
-                                headers: {
-                                  'Content-Type': 'application/json',
-                                  'Authorization': `Bearer ${userToken}`
-                                },
-                                body: JSON.stringify({ fcm_token: token })
-                              });
-                              showSuccessAlert('Disabled', 'Push notifications disabled.');
-                            }
-                          }
-                        } catch (error) {
-                          console.error('Error toggling notifications:', error);
-                          setNotificationsEnabled(!checked);
-                          showErrorAlert('Error', 'Failed to update notification settings');
-                        }
-                      }}
+                      onCheckedChange={(checked) => handleNotificationToggle(checked, setNotificationsEnabled)}
                     />
                   </div>
                 </div>
