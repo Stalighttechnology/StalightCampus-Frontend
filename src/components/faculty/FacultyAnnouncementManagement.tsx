@@ -28,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle } from
 "@/components/ui/alert-dialog";
-import { Loader2, Plus, Calendar as CalendarIcon } from "lucide-react";
+import { Loader2, Plus, Calendar as CalendarIcon, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -139,10 +139,9 @@ const FacultyAnnouncementManagement = () => {
 
     try {
       setSubmitting(true);
-      // Faculty announcements are always for students only and branch-specific
+      // Faculty announcements are branch-specific
       const payload: CreateAnnouncementRequest = {
         ...formData,
-        target_roles: ["student"],
         is_global: false
       };
 
@@ -211,7 +210,7 @@ const FacultyAnnouncementManagement = () => {
     setFormData({
       title: announcement.title,
       message: announcement.message,
-      target_roles: ["student"],
+      target_roles: announcement.target_roles || ["student"],
       is_global: false,
       branch: announcement.branch,
       expires_at: announcement.expires_at?.split("T")[0] || "",
@@ -340,6 +339,8 @@ const FacultyAnnouncementManagement = () => {
       priority: "normal"
     });
   };
+
+  const roles = ["student", "faculty", "hod", "principal", "placement_officer"];
 
   return (
     <>
@@ -494,6 +495,48 @@ const FacultyAnnouncementManagement = () => {
                                   
                               </PopoverContent>
                             </Popover>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Target Roles *</Label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {roles.map((role) => {
+                              const isSelected = formData.target_roles?.includes(role) || false;
+                              return (
+                                <button
+                                  key={role}
+                                  type="button"
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      setFormData({
+                                        ...formData,
+                                        target_roles: (formData.target_roles || []).filter((r) => r !== role)
+                                      });
+                                    } else {
+                                      setFormData({
+                                        ...formData,
+                                        target_roles: [...(formData.target_roles || []), role]
+                                      });
+                                    }
+                                  }}
+                                  className={`flex items-center justify-between p-3 rounded-lg border text-sm font-medium transition-all duration-200 ${
+                                    isSelected
+                                      ? theme === 'dark'
+                                        ? 'bg-primary/20 border-primary text-primary-foreground shadow-sm'
+                                        : 'bg-primary/10 border-primary text-primary shadow-sm'
+                                      : theme === 'dark'
+                                        ? 'bg-card border-border hover:bg-accent text-muted-foreground'
+                                        : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'
+                                  }`}
+                                >
+                                  <span className="capitalize">{role.replace('_', ' ')}</span>
+                                  {isSelected && (
+                                    <Check className="h-4 w-4 text-primary" />
+                                  )}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
 
