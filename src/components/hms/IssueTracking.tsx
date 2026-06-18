@@ -404,7 +404,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   <div className="space-y-1">
-                    <p className="text-[18px] sm:text-[14px] uppercase font-semibold text-muted-foreground px-1 mb-2 block">Hostel</p>
+                    <p className="text-[14px] sm:text-[14px] uppercase font-semibold text-muted-foreground px-1 mb-2 block">Hostel</p>
                     {loading || skeletonMode ?
                       <div className="h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
@@ -445,7 +445,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
                   </div>
 
                   <div className="space-y-1">
-                    <p className="text-[18px] sm:text-[14px] uppercase font-semibold text-muted-foreground px-1 mb-2 block">Filter Status</p>
+                    <p className="text-[14px] sm:text-[14px] uppercase font-semibold text-muted-foreground px-1 mb-2 block">Filter Status</p>
                     {loading || skeletonMode ?
                       <div className="h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
