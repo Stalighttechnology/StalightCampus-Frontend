@@ -184,7 +184,7 @@ const AdminAnnouncementManagement = () => {
       return;
     }
 
-    const allowGlobalStudents = ["coe", "dean", "fees_manager", "principal", "admin", "org_admin", "hms", "hms_admin", "transport_admin"].includes(user?.role);
+    const allowGlobalStudents = ["coe", "dean", "fees_manager", "principal", "admin", "org_admin", "hms", "hms_admin", "transport_admin", "warden"].includes(user?.role);
     if (!allowGlobalStudents && formData.target_roles.includes("student") && formData.is_global) {
       MySwal.fire({
         title: "Validation Error",

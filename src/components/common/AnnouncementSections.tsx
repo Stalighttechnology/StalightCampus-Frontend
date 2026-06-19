@@ -363,11 +363,17 @@ export const AnnouncementSections = ({
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="flex flex-wrap justify-center gap-1.5">
-                            {announcement.target_roles.map((role) => (
-                              <Badge key={role} variant="outline" className="text-xs px-2 py-0.5 h-5 capitalize font-medium">
-                                {role}
+                            {activeTab === 'received' ? (
+                              <Badge variant="outline" className="text-xs px-2 py-0.5 h-5 capitalize font-medium">
+                                {announcement.created_by_role}
                               </Badge>
-                            ))}
+                            ) : (
+                              announcement.target_roles.map((role) => (
+                                <Badge key={role} variant="outline" className="text-xs px-2 py-0.5 h-5 capitalize font-medium">
+                                  {role}
+                                </Badge>
+                              ))
+                            )}
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
@@ -475,11 +481,17 @@ export const AnnouncementSections = ({
                     </div>
                     
                     <div className="ann-card-badges">
-                      {announcement.target_roles.map((role) => (
-                        <Badge key={role} variant="outline" className="text-[10px] capitalize px-2 h-5 bg-background">
-                          {role}
+                      {activeTab === 'received' ? (
+                        <Badge variant="outline" className="text-[10px] capitalize px-2 h-5 bg-background">
+                          {announcement.created_by_role}
                         </Badge>
-                      ))}
+                      ) : (
+                        announcement.target_roles.map((role) => (
+                          <Badge key={role} variant="outline" className="text-[10px] capitalize px-2 h-5 bg-background">
+                            {role}
+                          </Badge>
+                        ))
+                      )}
                     </div>
 
                     <div className="ann-card-actions">
@@ -859,11 +871,17 @@ export const AnnouncementSections = ({
 
             <div className="pt-4 flex flex-wrap gap-4 items-center justify-between border-t border-border/30">
               <div className="flex flex-wrap gap-2">
-                {viewingAnnouncement?.target_roles.map((role) => (
-                  <Badge key={role} variant="outline" className="capitalize text-sm font-semibold px-3 py-1 rounded-lg bg-background">
-                    {role}
+                {activeTab === 'received' ? (
+                  <Badge variant="outline" className="capitalize text-sm font-semibold px-3 py-1 rounded-lg bg-background">
+                    {viewingAnnouncement?.created_by_role}
                   </Badge>
-                ))}
+                ) : (
+                  viewingAnnouncement?.target_roles.map((role) => (
+                    <Badge key={role} variant="outline" className="capitalize text-sm font-semibold px-3 py-1 rounded-lg bg-background">
+                      {role}
+                    </Badge>
+                  ))
+                )}
               </div>
               <div className="text-sm text-muted-foreground font-semibold opacity-70">
                 Expires: {viewingAnnouncement && formatDate(viewingAnnouncement.expires_at)}
