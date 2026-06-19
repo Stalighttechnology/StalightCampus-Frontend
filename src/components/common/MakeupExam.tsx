@@ -530,7 +530,13 @@ const MakeupExam = () => {
                             setLoading(false);
                           }
                         },
-                        theme: { color: '#3399cc' }
+                        theme: { color: '#3399cc' },
+                        modal: {
+                          ondismiss: function () {
+                            showErrorAlert('Payment Cancelled', 'The payment process was cancelled.');
+                            setLoading(false);
+                          }
+                        }
                       };
 
                       const rzp = new (window as any).Razorpay(options);

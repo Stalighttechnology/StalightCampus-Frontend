@@ -594,14 +594,26 @@ const ExamApplication: React.FC = () => {
                               {studentStatuses[student.usn] || 'Not Applied'}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-sm flex gap-2 justify-center">
-                            <Button onClick={() => openFor(student)} className="bg-primary hover:bg-primary/90 text-white h-8 px-3">
-                              Apply / View
-                            </Button>
+                           <td className="px-4 py-3 text-sm flex gap-2 justify-center">
+                            {studentStatuses[student.usn] === 'Applied' ? (
+                              <Button
+                                onClick={() => openFor(student)}
+                                className="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-950/20 dark:text-purple-400 dark:border-purple-900/50 h-8 px-3 flex items-center gap-2 font-medium transition-colors"
+                              >
+                                Edit Application
+                              </Button>
+                            ) : (
+                              <Button
+                                onClick={() => openFor(student)}
+                                className="bg-primary hover:bg-primary/90 text-white h-8 px-3"
+                              >
+                                Apply
+                              </Button>
+                            )}
                             {studentStatuses[student.usn] === 'Applied' &&
                               <Button
                                 onClick={() => downloadHallTicket(student)}
-                                className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 flex items-center gap-2"
+                                className="bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/50 h-8 px-3 flex items-center gap-2 font-medium transition-colors"
                                 disabled={downloadingHallTicketId === student.usn}>
                                 {downloadingHallTicketId === student.usn ?
                                   <Loader2 className="h-4 w-4 animate-spin" /> :
@@ -774,7 +786,7 @@ const ExamApplication: React.FC = () => {
 
                 <div className="pt-4 border-t border-gray-100">
                   <Button onClick={submitApplications} className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-2.5 rounded-xl shadow-lg transition-all">
-                    Save / Apply Applications
+                    Save Applications
                   </Button>
                 </div>
               </div>

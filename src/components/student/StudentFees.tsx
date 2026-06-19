@@ -368,7 +368,13 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
           name: user?.first_name || '',
           email: user?.email || ''
         },
-        theme: { color: '#3399cc' }
+        theme: { color: '#3399cc' },
+        modal: {
+          ondismiss: function () {
+            showErrorAlert('Payment Cancelled', 'The payment process was cancelled.');
+            setIsProcessingPayment(false);
+          }
+        }
       };
 
       const rzp = new (window as any).Razorpay(options);

@@ -183,6 +183,12 @@ export const IncreaseCapacityDialog: React.FC<IncreaseCapacityDialogProps> = ({
         },
         prefill: { name: user?.first_name || 'Admin', email: user?.email || '' },
         theme: { color: '#3b82f6' },
+        modal: {
+          ondismiss: function () {
+            toast({ title: 'Payment Cancelled', description: 'The payment process was cancelled.', variant: 'destructive' });
+            setLoading(false);
+          }
+        }
       };
 
       const rzp = new (window as any).Razorpay(options);

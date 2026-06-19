@@ -187,6 +187,7 @@ const Onboarding = () => {
       modal: {
         ondismiss: function() {
           toast({ variant: "destructive", title: "Payment Cancelled", description: "Organization setup was cancelled." });
+          setLoading(false);
         }
       }
     };
