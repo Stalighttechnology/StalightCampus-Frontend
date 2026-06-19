@@ -114,7 +114,14 @@ const Index = () => {
   }, [isInitializing, isAuthenticated, role, authUser, navigate]);
 
   if (isInitializing) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <img src="/applogo.png" alt="Stalight Campus Logo" className="w-16 h-16 rounded-full object-cover animate-pulse shadow-lg" />
+          <p className="text-sm font-medium text-muted-foreground animate-pulse">Checking authorization...</p>
+        </div>
+      </div>
+    );
   }
 
   // Authentication pages
