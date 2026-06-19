@@ -561,9 +561,9 @@ const StudentLibraryPage: React.FC = () => {
                               </div>
                             </div>
 
-                            <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-border/20">
-                              <div className="flex items-center gap-2 sm:flex-col sm:items-end">
-                                <span className={`px-2.5 py-1 rounded-full text-xs sm:text-[10px] font-bold capitalize ${borrow.status === 'returned'
+                            <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-1.5 shrink-0 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-border/20">
+                              <div className="flex flex-wrap items-center gap-1.5 sm:flex-col sm:items-end">
+                                <span className={`px-2.5 py-1 rounded-full text-xs sm:text-[10px] font-semibold capitalize ${borrow.status === 'returned'
                                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
                                     : isOverdue
                                       ? 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 animate-pulse'
@@ -573,11 +573,11 @@ const StudentLibraryPage: React.FC = () => {
                                 </span>
 
                                 {borrow.status !== 'returned' && (
-                                  <span className={`text-xs sm:text-[10px] font-bold px-2 py-0.5 rounded ${isOverdue
-                                      ? 'text-red-500 bg-red-50 dark:bg-red-500/10'
+                                  <span className={`text-xs sm:text-[10px] font-semibold px-2.5 py-1 rounded-full ${isOverdue
+                                      ? 'text-red-600 bg-red-100 dark:bg-red-500/20 dark:text-red-400'
                                       : daysLeft <= 3
-                                        ? 'text-amber-500 bg-amber-50 dark:bg-amber-500/10'
-                                        : 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
+                                        ? 'text-amber-600 bg-amber-100 dark:bg-amber-500/20 dark:text-amber-400'
+                                        : 'text-emerald-600 bg-emerald-100 dark:bg-emerald-500/20 dark:text-emerald-400'
                                     }`}>
                                     {isOverdue
                                       ? `${Math.abs(daysLeft)} days late`
@@ -587,13 +587,13 @@ const StudentLibraryPage: React.FC = () => {
                                     }
                                   </span>
                                 )}
-                              </div>
 
-                              {borrow.fine_amount > 0 && (
-                                <span className="text-xs sm:text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-500/10 px-2 py-0.5 rounded">
-                                  Fine: ₹{borrow.fine_amount}
-                                </span>
-                              )}
+                                {borrow.fine_amount > 0 && (
+                                  <span className="text-xs sm:text-[10px] font-semibold text-red-600 bg-red-100 dark:bg-red-500/20 dark:text-red-400 px-2.5 py-1 rounded-full whitespace-nowrap animate-pulse">
+                                    Fine: ₹{borrow.fine_amount}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>

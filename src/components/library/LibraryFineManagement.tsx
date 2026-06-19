@@ -214,19 +214,6 @@ const LibraryFineManagement = () => {
               <Settings className="w-4 h-4" />
               Set Fine Rate
             </Button>
-            {/* Set Fine Rate Button (Mobile) */}
-            <Button
-              onClick={() => setShowSettingsModal(true)}
-              size="icon"
-              variant="outline"
-              className={`flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border ${
-                theme === 'dark'
-                  ? 'border-border bg-[#2c2c2e] hover:bg-[#3a3a3c] text-white'
-                  : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-900'
-              }`}
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
 
             {/* Desktop Export PDF Button */}
             <Button
@@ -249,6 +236,17 @@ const LibraryFineManagement = () => {
               {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
             </Button>
           </div>
+        </div>
+
+        {/* Mobile Set Fine Rate Row */}
+        <div className="block sm:hidden mt-3 w-full">
+          <Button
+            onClick={() => setShowSettingsModal(true)}
+            className="w-full bg-primary hover:bg-primary/95 text-white flex items-center justify-center gap-1.5 h-10 text-sm font-semibold rounded-lg shadow-sm border-0"
+          >
+            <Settings className="w-4 h-4" />
+            Set Fine Rate
+          </Button>
         </div>
       </CardHeader>
       {/* Desktop View: Table */}
@@ -307,7 +305,7 @@ const LibraryFineManagement = () => {
                     </div>
                   </td>
                   <td className="p-4">
-                    <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold capitalize ${fine.is_paid
+                    <span className={`text-[10px] px-2 py-0.5 rounded font-semibold capitalize ${fine.is_paid
                       ? "bg-emerald-500/20 text-emerald-400"
                       : "bg-red-500/20 text-red-400 animate-pulse"
                       }`}>
@@ -349,14 +347,14 @@ const LibraryFineManagement = () => {
           fines.map((fine) => (
             <div key={fine.id} className={`p-4 rounded-xl border shadow-sm space-y-3 transition-all ${theme === 'dark' ? 'bg-[#1c1c1e]/60 border-border text-foreground' : 'bg-gray-50/70 border-gray-200/80 text-gray-900'}`}>
               <div className="space-y-1.5">
-                <h4 className="font-bold text-base break-words whitespace-normal">
+                <h4 className="font-semibold text-base break-words whitespace-normal">
                   {fine.borrow_record_details?.user_details?.first_name} {fine.borrow_record_details?.user_details?.last_name}
                 </h4>
                 <p className={`text-xs opacity-75 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                   {fine.borrow_record_details?.user_details?.email}
                 </p>
                 <div className="pt-0.5">
-                  <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold capitalize whitespace-nowrap ${fine.is_paid
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-semibold capitalize whitespace-nowrap ${fine.is_paid
                     ? "bg-emerald-500/20 text-emerald-400"
                     : "bg-red-500/20 text-red-400 animate-pulse"
                     }`}>
@@ -376,7 +374,7 @@ const LibraryFineManagement = () => {
                 </div>
                 <div>
                   <span className="opacity-60 block text-[11px] uppercase tracking-wider font-semibold">Fine Amount</span>
-                  <span className="text-sm font-bold text-red-500 block">{fine.amount} units</span>
+                  <span className="text-sm font-semibold text-red-500 block">{fine.amount} units</span>
                   {(() => {
                     const details = getOverdueDetails(fine);
                     if (!details || details.days <= 0) return null;

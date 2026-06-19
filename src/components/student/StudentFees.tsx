@@ -702,13 +702,18 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                           <div className="flex justify-between items-start mb-4">
                             <motion.div variants={itemVariants}>
                               <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                                Semester {invoice.semester} • {invoice.academic_year}
+                                {invoice.invoice_type === 'library_fine' ? 'Library Fine' : `Semester ${invoice.semester}`} • {invoice.academic_year}
                               </h3>
                               <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                                 Invoice #{invoice.invoice_number}
                               </p>
                             </motion.div>
-                            <motion.div whileHover={{ scale: 1.1 }}>
+                            <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.05 }}>
+                              {invoice.invoice_type === 'library_fine' && (
+                                <Badge variant="outline" className="border-indigo-500 text-indigo-500 font-semibold bg-indigo-500/10">
+                                  LIBRARY
+                                </Badge>
+                              )}
                               <Badge
                                 variant={invoice.status === 'paid' ? 'default' : 'destructive'}
                                 className={`font-semibold ${invoice.status === 'paid' ? 'bg-green-600 text-white' : ''}`}>
@@ -756,16 +761,18 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                                   Pay Full
                                 </Button>
                               </motion.div>
-                              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className={`w-full sm:w-auto h-10 px-4 font-semibold ${theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 shadow-sm'}`}
-                                  onClick={() => handleComponentPaymentClick(invoice.id)}>
-                                  <Receipt className="h-3.5 w-3.5 mr-1.5" />
-                                  Pay Component
-                                </Button>
-                              </motion.div>
+                              {invoice.invoice_type !== 'library_fine' && (
+                                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className={`w-full sm:w-auto h-10 px-4 font-semibold ${theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 shadow-sm'}`}
+                                    onClick={() => handleComponentPaymentClick(invoice.id)}>
+                                    <Receipt className="h-3.5 w-3.5 mr-1.5" />
+                                    Pay Component
+                                  </Button>
+                                </motion.div>
+                              )}
                             </motion.div>
                           )}
                         </motion.div>
