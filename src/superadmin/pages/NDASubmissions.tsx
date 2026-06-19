@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Download, Search, FileText } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../../components/ui/card";
+import { Download, Search, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "../../components/ui/button";
 import { useTheme } from "../../context/ThemeContext";
 import { API_BASE_URL } from "@/utils/config";
 import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
@@ -9,19 +10,47 @@ const NDASubmissions = () => {
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+
   const { theme } = useTheme();
+
+  // Debounce search
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setPage(1); // Reset to first page on new search
+    }, 500);
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [searchTerm]);
 
   useEffect(() => {
     const fetchSubmissions = async () => {
+      setLoading(true);
       try {
-        const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/nda-submissions/`, {
+        const queryParams = new URLSearchParams({
+          page: page.toString(),
+          page_size: pageSize.toString(),
+          search: debouncedSearchTerm
+        });
+        
+        const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/nda-submissions/?${queryParams.toString()}`, {
           headers: {
             "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
           }
         });
         const data = await response.json();
+        
         if (data.submissions) {
           setSubmissions(data.submissions);
+          setTotal(data.total || 0);
         }
       } catch (error) {
         console.error("Error fetching NDA submissions:", error);
@@ -31,13 +60,11 @@ const NDASubmissions = () => {
     };
 
     fetchSubmissions();
-  }, []);
+  }, [page, pageSize, debouncedSearchTerm]);
 
-  const filteredSubmissions = submissions.filter((sub) =>
-    sub.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    sub.employee_intern_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    sub.personal_email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const totalPages = Math.ceil(total / pageSize);
+  const startItem = (page - 1) * pageSize + 1;
+  const endItem = Math.min(page * pageSize, total);
 
   return (
     <div className="space-y-6">
@@ -70,7 +97,7 @@ const NDASubmissions = () => {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto min-h-[400px]">
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
                 <tr>
@@ -84,21 +111,22 @@ const NDASubmissions = () => {
               <tbody className="divide-y divide-border/50">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
                       <div className="flex justify-center items-center gap-2">
                         <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                        Loading submissions...
+                        Fetching records...
                       </div>
                     </td>
                   </tr>
-                ) : filteredSubmissions.length === 0 ? (
+                ) : submissions.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
-                      No submissions found.
+                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                      <FileText className="w-8 h-8 mx-auto text-muted-foreground/50 mb-3" />
+                      <p>No submissions found matching your search.</p>
                     </td>
                   </tr>
                 ) : (
-                  filteredSubmissions.map((sub) => (
+                  submissions.map((sub) => (
                     <tr key={sub.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4">
                         <div className="font-medium text-foreground">{sub.full_name}</div>
@@ -126,13 +154,13 @@ const NDASubmissions = () => {
                             href={sub.pdf_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-colors shadow-sm"
                           >
                             <Download className="w-3.5 h-3.5" />
                             Download
                           </a>
                         ) : (
-                          <span className="text-xs text-muted-foreground italic">No PDF</span>
+                          <span className="text-xs text-muted-foreground italic px-3 py-1.5 border border-dashed rounded-md">Pending PDF</span>
                         )}
                       </td>
                     </tr>
@@ -142,6 +170,38 @@ const NDASubmissions = () => {
             </table>
           </div>
         </CardContent>
+        {total > 0 && (
+          <CardFooter className="flex items-center justify-between border-t border-border/50 px-6 py-4 bg-muted/10">
+            <div className="text-sm text-muted-foreground">
+              Showing <span className="font-medium text-foreground">{startItem}</span> to <span className="font-medium text-foreground">{endItem}</span> of <span className="font-medium text-foreground">{total}</span> results
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1 || loading}
+                className="h-8 gap-1 pl-2.5"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:inline-block">Previous</span>
+              </Button>
+              <div className="flex items-center justify-center text-sm font-medium w-10">
+                {page} / {totalPages || 1}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages || loading}
+                className="h-8 gap-1 pr-2.5"
+              >
+                <span className="sr-only sm:not-sr-only sm:inline-block">Next</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );
