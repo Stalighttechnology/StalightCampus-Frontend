@@ -47,7 +47,7 @@ const Field: React.FC<{
     </label>
     {children}
     {hint && <div className="nda-hint">{hint}</div>}
-    {error && <div className="nda-field-error">⚠ {error}</div>}
+    {error && <div className="nda-field-error">{error}</div>}
   </div>
 );
 
@@ -181,7 +181,9 @@ export const NDAConsentPortal: React.FC = () => {
       <div className="nda-card">
         {renderHeader()}
         <div className="nda-card-body nda-success">
-          <div className="nda-success-icon">✅</div>
+          <div className="nda-success-icon">
+            <svg width="40" height="40" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"></path></svg>
+          </div>
           <div className="nda-success-title">Documents Signed Successfully!</div>
           <div className="nda-success-sub">
             Your signed NDA &amp; Consent documents have been generated and emailed to <strong>{data.personal_email}</strong>.<br />
@@ -202,7 +204,7 @@ export const NDAConsentPortal: React.FC = () => {
           )}
           {pdfUrl && (
             <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="nda-btn nda-btn-primary">
-              ⬇ Download Signed PDF
+              Download Signed PDF
             </a>
           )}
         </div>
@@ -213,7 +215,7 @@ export const NDAConsentPortal: React.FC = () => {
   // ── Error alert ────────────────────────────────────────────────
   const errorAlert = error ? (
     <div className="nda-alert-error">
-      <div className="nda-alert-error-title">⚠ Please fix the following:</div>
+      <div className="nda-alert-error-title">Please fix the following:</div>
       {error.split('\n').map((l, i) => <div key={i}>{l}</div>)}
     </div>
   ) : null;
@@ -230,7 +232,7 @@ export const NDAConsentPortal: React.FC = () => {
           {step === 1 && (
             <div className="nda-step-enter">
               <div className="nda-section-title">
-                <div className="nda-section-icon">👤</div> Joinee Details
+                Joinee Details
               </div>
               <div className="nda-section-desc">Please fill in your personal and joining information accurately.</div>
               <div className="nda-divider" />
@@ -254,10 +256,7 @@ export const NDAConsentPortal: React.FC = () => {
                   <input className={`nda-input${fieldErrors.designation ? ' error' : ''}`}
                     type="text" placeholder="e.g., Software Developer" value={data.designation} onChange={set('designation')} />
                 </Field>
-                <Field label="Employee / Intern ID" optional hint="Leave blank to auto-generate">
-                  <input className="nda-input" type="text" placeholder="Auto-generated if blank"
-                    value={data.employee_intern_id} onChange={set('employee_intern_id')} />
-                </Field>
+
                 <Field label="Date of Joining" required error={fieldErrors.date_of_joining}>
                   <input className={`nda-input${fieldErrors.date_of_joining ? ' error' : ''}`}
                     type="date" value={data.date_of_joining} onChange={set('date_of_joining')} />
@@ -292,7 +291,7 @@ export const NDAConsentPortal: React.FC = () => {
           {step === 2 && (
             <div className="nda-step-enter">
               <div className="nda-section-title">
-                <div className="nda-section-icon">📋</div> Non-Disclosure Agreement
+                Non-Disclosure Agreement
               </div>
               <div className="nda-section-desc">
                 Please read the NDA carefully. Scroll through the full document before agreeing.
@@ -334,7 +333,7 @@ export const NDAConsentPortal: React.FC = () => {
           {step === 3 && (
             <div className="nda-step-enter">
               <div className="nda-section-title">
-                <div className="nda-section-icon">✅</div> Consent Declarations
+                Consent Declarations
               </div>
               <div className="nda-section-desc">
                 Please review and provide your consent for the following. All items marked Required must be agreed to continue.
@@ -370,7 +369,7 @@ export const NDAConsentPortal: React.FC = () => {
           {step === 4 && (
             <div className="nda-step-enter">
               <div className="nda-section-title">
-                <div className="nda-section-icon">💡</div> Intellectual Property Assignment
+                Intellectual Property Assignment
               </div>
               <div className="nda-section-desc">
                 All IP created during your engagement with the Company is automatically assigned to the Company.
@@ -405,7 +404,7 @@ export const NDAConsentPortal: React.FC = () => {
           {step === 5 && (
             <div className="nda-step-enter">
               <div className="nda-section-title">
-                <div className="nda-section-icon">🤝</div> Code of Conduct &amp; Ethics
+                Code of Conduct &amp; Ethics
               </div>
               <div className="nda-section-desc">
                 Our Code of Conduct reflects the values and standards we hold as a team.
@@ -436,7 +435,7 @@ export const NDAConsentPortal: React.FC = () => {
           {step === 6 && (
             <div className="nda-step-enter">
               <div className="nda-section-title">
-                <div className="nda-section-icon">📅</div> Holidays, Timings &amp; Leave Policy
+                Holidays, Timings &amp; Leave Policy
               </div>
               <div className="nda-section-desc">
                 Acknowledge the Company's working hours, public holidays, and leave entitlements for your role.
@@ -466,7 +465,7 @@ export const NDAConsentPortal: React.FC = () => {
           {step === 7 && (
             <div className="nda-step-enter">
               <div className="nda-section-title">
-                <div className="nda-section-icon">✍️</div> Electronic Signature
+                Electronic Signature
               </div>
               <div className="nda-section-desc">
                 Draw your signature below. This acts as your digital acknowledgment of all the agreements above.
@@ -482,7 +481,7 @@ export const NDAConsentPortal: React.FC = () => {
                 />
                 {sigIsEmpty && (
                   <div className="nda-sig-placeholder">
-                    ✍ Draw your signature here
+                    Draw your signature here
                   </div>
                 )}
               </div>
@@ -520,7 +519,7 @@ export const NDAConsentPortal: React.FC = () => {
           {step === 8 && (
             <div className="nda-step-enter">
               <div className="nda-section-title">
-                <div className="nda-section-icon">🔍</div> Review &amp; Submit
+                Review &amp; Submit
               </div>
               <div className="nda-section-desc">
                 Please review your information before submitting. Once submitted, a signed PDF will be generated and emailed to you and HR.
@@ -594,7 +593,7 @@ export const NDAConsentPortal: React.FC = () => {
                 <button className="nda-btn nda-btn-success" onClick={handleSubmit} disabled={loading}>
                   {loading ? (
                     <><span className="nda-loading-spinner" />{loadingMsg || 'Processing...'}</>
-                  ) : '🔏 Submit & Generate PDF'}
+                  ) : 'Submit & Generate PDF'}
                 </button>
               </div>
             </div>
