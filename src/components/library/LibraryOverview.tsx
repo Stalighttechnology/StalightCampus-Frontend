@@ -41,6 +41,7 @@ const LibraryOverview = () => {
   const [selectedBorrower, setSelectedBorrower] = useState<any>(null);
   const [issueBarcode, setIssueBarcode] = useState("");
   const [durationDays, setDurationDays] = useState(14);
+  const [isCustom, setIsCustom] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState("");
 
   const loadStats = async () => {
@@ -246,20 +247,40 @@ const LibraryOverview = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Duration (Days)</label>
-                <Select
-                  value={durationDays.toString()}
-                  onValueChange={(val) => setDurationDays(Number(val))}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Duration" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="7">7 Days</SelectItem>
-                    <SelectItem value="14">14 Days</SelectItem>
-                    <SelectItem value="21">21 Days</SelectItem>
-                    <SelectItem value="30">30 Days</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select
+                    value={isCustom ? "custom" : durationDays.toString()}
+                    onValueChange={(val) => {
+                      if (val === "custom") {
+                        setIsCustom(true);
+                      } else {
+                        setIsCustom(false);
+                        setDurationDays(Number(val));
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select Duration" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">7 Days</SelectItem>
+                      <SelectItem value="14">14 Days</SelectItem>
+                      <SelectItem value="21">21 Days</SelectItem>
+                      <SelectItem value="30">30 Days</SelectItem>
+                      <SelectItem value="custom">Custom...</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {isCustom && (
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="Days..."
+                      value={durationDays}
+                      onChange={(e) => setDurationDays(Number(e.target.value) || 1)}
+                      className={`w-24 px-3 py-2 text-sm rounded-lg border h-10 focus:outline-none focus:ring-1 focus:ring-primary shrink-0 ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'}`}
+                    />
+                  )}
+                </div>
               </div>
 
               <div className="flex items-end">
@@ -283,19 +304,19 @@ const LibraryOverview = () => {
           <form onSubmit={handleReturnBookSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Scan or Enter Barcode ID</label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   placeholder="Scan book barcode sticker..."
                   value={barcodeInput}
                   onChange={(e) => setBarcodeInput(e.target.value)}
-                  className={`flex-1 px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                  className={`w-full sm:flex-1 px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
                     }`}
                 />
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 h-10 rounded-lg flex items-center gap-1.5"
+                  className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 h-10 rounded-lg flex items-center justify-center gap-1.5"
                 >
                   <Check className="w-4 h-4" /> Check-In
                 </Button>

@@ -31,9 +31,6 @@ const StudentLibraryPage: React.FC = () => {
   const { theme } = useTheme();
   const [tab, setTab] = useState<TabType>('taken');
 
-  // Track which tabs have already been fetched so we don't re-fetch on revisit
-  const fetchedTabs = useRef<Set<string>>(new Set());
-
   // Dashboard summary – fetched once on mount
   const [summary, setSummary] = useState({
     taken_count: 0,
@@ -136,37 +133,24 @@ const StudentLibraryPage: React.FC = () => {
     loadDashboard();
   }, []);
 
-  // Load data only when a tab is first visited — no re-fetch on revisit
+  // Load data when tab changes
   useEffect(() => {
     if (tab === 'catalog') {
-      // Catalog is always search-driven; load empty list on first visit only
-      if (!fetchedTabs.current.has('catalog')) {
-        fetchedTabs.current.add('catalog');
-        loadCatalog("", 1);
-      }
+      loadCatalog("", 1);
       return;
     }
 
-    const cacheKey = tab; // 'taken' | 'overdue' | 'returned'
-    if (!fetchedTabs.current.has(cacheKey)) {
-      fetchedTabs.current.add(cacheKey);
-      // Reset pagination when switching to a fresh tab
-      setBorrowsPage(1);
-      setBorrowsTotalPages(1);
-      setBorrows([]);
-      loadBorrows(tab, 1);
-    } else {
-      // Tab was already loaded — just show the cached state (no API call)
-    }
+    // Reset pagination when switching tabs
+    setBorrowsPage(1);
+    setBorrowsTotalPages(1);
+    setBorrows([]);
+    loadBorrows(tab, 1);
   }, [tab]);
 
   // Catalog search debounce — reset to page 1 on new search
   useEffect(() => {
     if (tab !== 'catalog') return;
     const timeout = setTimeout(() => {
-      // Invalidate cache so a new search always refetches
-      fetchedTabs.current.delete('catalog');
-      fetchedTabs.current.add('catalog');
       loadCatalog(catalogSearch, 1);
     }, 400);
     return () => clearTimeout(timeout);

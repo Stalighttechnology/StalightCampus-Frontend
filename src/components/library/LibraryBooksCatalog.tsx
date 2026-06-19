@@ -57,7 +57,7 @@ const LibraryBooksCatalog = () => {
     if (saved) {
       try {
         return JSON.parse(saved);
-      } catch (e) {}
+      } catch (e) { }
     }
     return [];
   });
@@ -253,32 +253,58 @@ const LibraryBooksCatalog = () => {
     <div className="space-y-4">
       {/* Books List — all inside one Card */}
       <Card className={`border overflow-hidden shadow-sm ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
-        <CardHeader id="library-books-action-header" className="pb-3 border-b border-gray-200 dark:border-border">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <CardTitle className="sm:text-2xl text-xl font-semibold">Book Catalog</CardTitle>
-                {books.length > 0 && (
-                  <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full mt-0.5 ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
-                    {books.length} Titles
-                  </span>
-                )}
+        <div className="border-b border-border/50 pb-4">
+          <CardHeader id="library-books-action-header" className="px-4 sm:px-6 py-4 md:py-5 border-b mb-3">
+            <div className="flex justify-between items-center w-full">
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <CardTitle className="sm:text-2xl text-xl font-semibold">Book Catalog</CardTitle>
+                  {books.length > 0 && (
+                    <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full mt-0.5 whitespace-nowrap ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
+                      {books.length} Titles
+                    </span>
+                  )}
+                </div>
+                <p className={`hidden sm:block text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage library book titles, ISBN codes, and physical copy inventory.</p>
               </div>
-              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage library book titles, ISBN codes, and physical copy inventory.</p>
+              {/* Desktop Export PDF Button */}
+              <Button
+                variant="outline"
+                onClick={handleExportPDF}
+                disabled={exporting || books.length === 0}
+                className="hidden sm:flex items-center justify-center gap-1.5 px-4 py-2 h-10 text-sm rounded-lg border bg-primary hover:text-white text-white hover:bg-primary/90 transition-all"
+              >
+                {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                Export PDF
+              </Button>
             </div>
+          </CardHeader>
+          <div className="px-4 sm:px-6">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 w-4 h-4 opacity-50" />
-                <input
-                  type="text"
-                  placeholder="Search by Title, Author, or ISBN..."
-                  value={bookSearch}
-                  onChange={(e) => {
-                    setBookSearch(e.target.value);
-                    loadBooks(e.target.value);
-                  }}
-                  className={`w-full sm:w-72 pl-9 pr-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
-                />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-2.5 w-4 h-4 opacity-50" />
+                  <input
+                    type="text"
+                    placeholder="Search by Title, Author, or ISBN..."
+                    value={bookSearch}
+                    onChange={(e) => {
+                      setBookSearch(e.target.value);
+                      loadBooks(e.target.value);
+                    }}
+                    className={`w-full sm:w-72 pl-9 pr-4 py-2 h-10 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
+                  />
+                </div>
+                {/* Mobile Export PDF Icon Button */}
+                <Button
+                  onClick={handleExportPDF}
+                  disabled={exporting || books.length === 0}
+                  size="icon"
+                  variant="outline"
+                  className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                >
+                  {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                </Button>
               </div>
 
               <Button
@@ -295,24 +321,15 @@ const LibraryBooksCatalog = () => {
                   });
                   setShowAddModal(true);
                 }}
-                className="bg-primary hover:bg-primary/95 text-white font-semibold px-4 py-2 rounded-lg flex items-center justify-center gap-2"
+                className="bg-primary hover:bg-primary/95 text-white font-semibold px-4 py-2 h-10 rounded-lg flex items-center justify-center gap-2"
               >
                 <Plus className="w-4 h-4" /> Add Book Title
               </Button>
-
-                            <Button
-                variant="outline"
-                onClick={handleExportPDF}
-                disabled={exporting || books.length === 0}
-                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2 text-sm rounded-lg border bg-primary hover:text-white text-white hover:bg-primary/90 transition-all"
-              >
-                {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                Export PDF
-              </Button>
             </div>
           </div>
-        </CardHeader>
-        <div className="overflow-x-auto thin-scrollbar">
+        </div>
+        {/* Desktop View: Table */}
+        <div className="hidden sm:block overflow-x-auto thin-scrollbar">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className={`sticky top-0 z-10 border-b text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-card border-border text-foreground shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-900 shadow-sm'
@@ -395,6 +412,88 @@ const LibraryBooksCatalog = () => {
           </table>
         </div>
 
+        {/* Mobile View: Cards */}
+        <div className="block sm:hidden p-4 space-y-4">
+          {books.length === 0 ? (
+            <div className="p-6">
+              <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <Book size={32} className="opacity-80" />
+                </div>
+                <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Books Found</h3>
+                <p className="max-w-xs text-xs leading-relaxed opacity-80">
+                  No books cataloged matching the search query. Add a book to populate!
+                </p>
+              </div>
+            </div>
+          ) : (
+            books.slice((catalogPage - 1) * 10, catalogPage * 10).map((book) => (
+              <div key={book.id} className={`p-4 rounded-xl border shadow-sm space-y-4 transition-all ${theme === 'dark' ? 'bg-[#1c1c1e]/60 border-border text-foreground' : 'bg-gray-50/70 border-gray-200/80 text-gray-900'}`}>
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-lg break-words whitespace-normal pr-2">{book.title}</h4>
+                    <p className={`text-sm opacity-75 mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>by {book.author}</p>
+                  </div>
+                  <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-primary/20 text-primary-foreground capitalize shrink-0">
+                    {book.category || "General"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="opacity-60 block text-[11px] uppercase tracking-wider font-semibold">ISBN</span>
+                    <span className="font-mono text-sm font-medium">{book.isbn || "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="opacity-60 block text-[11px] uppercase tracking-wider font-semibold">Location</span>
+                    <span className="flex items-center gap-1.5 mt-0.5 text-sm font-medium">
+                       <MapPin className="w-4 h-4 text-primary" /> {book.physical_location || "Not set"}
+                    </span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="opacity-60 block text-[11px] uppercase tracking-wider font-semibold">Copies (Available / Total)</span>
+                    <span className="font-bold text-base mt-0.5 block">
+                      <span className={book.available_copies > 0 ? "text-emerald-500" : "text-red-500"}>
+                        {book.available_copies}
+                      </span>
+                      <span className="opacity-50"> / {book.total_copies}</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-3 border-t border-gray-100 dark:border-border">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewBookClick(book)}
+                    className="w-full h-10 px-4 text-sm text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 flex items-center justify-center gap-1.5"
+                  >
+                    <Eye className="w-4 h-4" /> View Copies
+                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditBookClick(book)}
+                      className="flex-1 h-10 px-4 text-sm text-primary hover:text-primary-foreground hover:bg-primary/10 flex items-center justify-center gap-1.5"
+                    >
+                      <Edit className="w-4 h-4" /> Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteBookClick(book)}
+                      className="flex-1 h-10 px-4 text-sm text-red-500 hover:text-red-600 hover:bg-red-500/10 flex items-center justify-center gap-1.5"
+                    >
+                      <Trash2 className="w-4 h-4" /> Delete
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
         {!loading && Math.ceil(books.length / 10) > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
@@ -427,7 +526,7 @@ const LibraryBooksCatalog = () => {
 
       {/* Add/Edit Catalog Modal */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent className={`w-[92vw] sm:max-w-lg border p-6 shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-[#2c2c2e] border-[#3a3a3c] text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+        <DialogContent className={`w-[90vw] sm:max-w-lg border p-6 shadow-2xl rounded-xl max-h-[80vh] sm:max-h-[90vh] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-[#2c2c2e] border-[#3a3a3c] text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
           <DialogHeader className="mb-4">
             <DialogTitle className="text-lg font-semibold">
               {selectedBook ? "Edit Catalog Item" : "Add New Book Title"}
@@ -610,7 +709,7 @@ const LibraryBooksCatalog = () => {
 
       {/* View Book Copies Modal */}
       <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
-        <DialogContent className={`w-[92vw] md:w-[90vw] lg:max-w-4xl p-6 rounded-2xl shadow-2xl custom-scrollbar overflow-y-auto max-h-[85vh] ${theme === 'dark' ? 'bg-[#1c1c1e] text-white border border-[#3a3a3c]' : 'bg-white text-gray-900'}`}>
+        <DialogContent className={`w-[90vw] md:w-[90vw] lg:max-w-4xl p-6 rounded-2xl shadow-2xl custom-scrollbar overflow-y-auto max-h-[80vh] md:max-h-[85vh] ${theme === 'dark' ? 'bg-[#1c1c1e] text-white border border-[#3a3a3c]' : 'bg-white text-gray-900'}`}>
           <DialogHeader className="mb-6 border-b pb-3 border-gray-200 dark:border-[#3a3a3c]">
             <DialogTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{selectedBook?.title}</DialogTitle>
             <p className="text-sm opacity-70">Physical Copies & Circulation Status</p>
@@ -648,8 +747,8 @@ const LibraryBooksCatalog = () => {
                         <td className="p-3 font-mono font-semibold text-sm text-primary">{copy.barcode_id}</td>
                         <td className="p-3">
                           <span className={`px-2 py-1 text-[14px] font-semibold rounded-full ${copy.status === 'available' ? 'bg-emerald-500/20 text-emerald-500' :
-                              copy.status === 'borrowed' ? 'bg-blue-500/20 text-blue-500' :
-                                'bg-red-500/20 text-red-500'
+                            copy.status === 'borrowed' ? 'bg-blue-500/20 text-blue-500' :
+                              'bg-red-500/20 text-red-500'
                             }`}>
                             {copy.status}
                           </span>

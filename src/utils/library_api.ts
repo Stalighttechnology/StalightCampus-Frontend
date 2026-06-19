@@ -75,10 +75,11 @@ export const returnBook = (data: { barcode_id: string }) =>
     body: JSON.stringify(data),
   }).then((r) => r.json());
 
-export const renewBook = (id: number) =>
+export const renewBook = (id: number, durationDays?: number) =>
   fetchWithTokenRefresh(`${API_BASE}/admin/renew/${id}/`, {
     method: "POST",
     headers: authHeaders(),
+    body: durationDays !== undefined ? JSON.stringify({ duration_days: durationDays }) : undefined,
   }).then((r) => r.json());
 
 export const fetchActiveBorrows = (page: number = 1) =>
@@ -116,6 +117,16 @@ export const payFine = (id: number) =>
 export const fetchReservations = (page: number = 1) =>
   fetchWithTokenRefresh(`${API_BASE}/admin/reservations/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
 
+
+export const fetchLibrarySettings = () =>
+  fetchWithTokenRefresh(`${API_BASE}/admin/settings/`, { headers: authHeaders() }).then((r) => r.json());
+
+export const updateLibrarySettings = (data: { daily_fine_rate: number }) =>
+  fetchWithTokenRefresh(`${API_BASE}/admin/settings/`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  }).then((r) => r.json());
 
 // ─── STUDENT LIBRARY ────────────────────────────────────────
 
