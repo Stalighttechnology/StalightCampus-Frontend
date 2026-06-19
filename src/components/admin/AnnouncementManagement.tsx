@@ -140,6 +140,16 @@ const AdminAnnouncementManagement = () => {
     loadAnnouncements();
   }, [myPage, receivedPage, showArchive]);
 
+  useEffect(() => {
+    const handleRefresh = () => {
+      loadAnnouncements();
+    };
+    window.addEventListener('refresh-announcements', handleRefresh);
+    return () => {
+      window.removeEventListener('refresh-announcements', handleRefresh);
+    };
+  }, []);
+
   const handlePageChange = (page: number, type: 'my' | 'received') => {
     if (type === 'my') {
       setMyPage(page);

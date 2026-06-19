@@ -654,3 +654,38 @@ export const manageWardenLeaves = async (
   }
 };
 
+export const requestGatePass = async (data: {
+  reason: string;
+  out_date: string;
+  out_time: string;
+  expected_return_date: string;
+  expected_return_time: string;
+}): Promise<HMSResponse<any>> => {
+  return hmsApiCall<any>("student/gate-pass/", "POST", data);
+};
+
+export const getMyGatePasses = async (): Promise<HMSResponse<any>> => {
+  return hmsApiCall<any>("student/gate-pass/", "GET");
+};
+
+export const actionGatePass = async (id: number, action: 'approve' | 'reject', note?: string): Promise<any> => {
+  try {
+    const url = `${API_ENDPOINT}/hms/student/gate-pass/${id}/action/`;
+    const response = await fetchWithTokenRefresh(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ action, note })
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      return { success: false, message: result.message || `HTTP ${response.status}` };
+    }
+    return result;
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+

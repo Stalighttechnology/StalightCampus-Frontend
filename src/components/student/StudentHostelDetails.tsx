@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { getStudentHostelDetails, getTodayMenuSummary, getMyIssues } from '../../utils/hms_api';
+import { getStudentHostelDetails, getTodayMenuSummary, getMyIssues, getMyGatePasses } from '../../utils/hms_api';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../hooks/use-toast';
 import RaiseIssueModal from '../hms/RaiseIssueModal';
+import RequestGatePassModal from '../hms/RequestGatePassModal';
 import {
   FaBuilding,
   FaBed,
@@ -113,10 +114,10 @@ const InfoRow: React.FC<{
       {icon}
     </div>
     <div className="min-w-0 flex-1">
-      <p className={`text-[10px] uppercase tracking-widest font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
+      <p className={`text-xs sm:text-[10px] uppercase tracking-widest font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
         {label}
       </p>
-      <p className={`text-xs font-semibold truncate mt-0.5 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-800'}`}>
+      <p className={`text-sm sm:text-xs font-semibold truncate mt-0.5 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-800'}`}>
         {value ?? '—'}
       </p>
     </div>
@@ -135,10 +136,10 @@ const OccupancyBar: React.FC<{current: number; capacity: number; theme: string;}
   return (
     <div className="space-y-1.5 mt-1.5">
       <div className="flex justify-between items-center">
-        <span className={`text-[9px] uppercase tracking-widest font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
+        <span className={`text-xs sm:text-[9px] uppercase tracking-widest font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
           Occupancy Status
         </span>
-        <span className={`text-[11px] font-extrabold px-2 py-0.5 rounded-full ${
+        <span className={`text-xs sm:text-[11px] font-extrabold px-2 py-0.5 rounded-full ${
           full 
             ? 'bg-red-500/10 text-red-500 border border-red-500/20' 
             : theme === 'dark' 
@@ -258,6 +259,9 @@ const StudentHostelDetails: React.FC = () => {
   const [isRaiseIssueModalOpen, setIsRaiseIssueModalOpen] = useState(false);
   const [myIssues, setMyIssues] = useState<any[]>([]);
   const [loadingIssues, setLoadingIssues] = useState(false);
+  const [isGatePassModalOpen, setIsGatePassModalOpen] = useState(false);
+  const [myGatePasses, setMyGatePasses] = useState<any[]>([]);
+  const [loadingGatePasses, setLoadingGatePasses] = useState(false);
   const { toast } = useToast();
 
   const load = async () => {
@@ -307,6 +311,24 @@ const StudentHostelDetails: React.FC = () => {
     loadToday();
   }, []);
 
+  const loadGatePasses = async () => {
+    setLoadingGatePasses(true);
+    try {
+      const res = await getMyGatePasses();
+      if (res.success && res.results) {
+        setMyGatePasses(res.results);
+      } else if (res.success && Array.isArray(res.data)) {
+        setMyGatePasses(res.data);
+      } else {
+        setMyGatePasses([]);
+      }
+    } catch (e) {
+      setMyGatePasses([]);
+    } finally {
+      setLoadingGatePasses(false);
+    }
+  };
+
   useEffect(() => {
     // Load student's raised issues
     const loadIssues = async () => {
@@ -328,6 +350,7 @@ const StudentHostelDetails: React.FC = () => {
       }
     };
     loadIssues();
+    loadGatePasses();
   }, []);
 
 
@@ -524,7 +547,7 @@ const StudentHostelDetails: React.FC = () => {
                         <span className={`text-[10px] uppercase tracking-widest font-semibold mb-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
                           Floor Level
                         </span>
-                        <span className={`text-xs font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                           {room.floor !== 'N/A' ? `Floor ${room.floor}` : 'Ground Floor'}
                         </span>
                       </div>
@@ -532,7 +555,7 @@ const StudentHostelDetails: React.FC = () => {
                         <span className={`text-[10px] uppercase tracking-widest font-semibold mb-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
                           Bed Style
                         </span>
-                        <span className={`text-xs font-bold uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        <span className={`text-xs font-semibold uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                           {room.room_type_display ?? room.room_type ?? 'Bunk'}
                         </span>
                       </div>
@@ -570,7 +593,7 @@ const StudentHostelDetails: React.FC = () => {
                     <FaExclamationTriangle className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className={`text-lg font-bold tracking-tight text-amber-600 dark:text-amber-400`}>
+                    <h3 className={`text-lg font-semibold tracking-tight text-amber-600 dark:text-amber-400`}>
                       Report an Issue
                     </h3>
                     <p className={`text-sm mt-1.5 leading-relaxed text-muted-foreground max-w-2xl`}>
@@ -683,6 +706,129 @@ const StudentHostelDetails: React.FC = () => {
               }
               </div>
             </div>
+          }
+
+          {/* ── Gate Pass Request Card (Combined) ──────────────────────────── */}
+          {room &&
+            <div className={`rounded-xl border shadow-sm mt-6 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+                {/* Section 1: Request a Gate Pass */}
+                <div className={`p-6 bg-gradient-to-r ${theme === 'dark' ? 'from-purple-500/10 via-purple-500/5 to-transparent border-b border-purple-500/10' : 'from-purple-50/80 via-purple-50/30 to-transparent border-b border-purple-200/50'}`}>
+                  <div className="flex flex-col sm:flex-row items-start gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-purple-500/10 text-purple-500 border border-purple-500/20 shadow-sm shadow-purple-500/5`}>
+                      <FaLayerGroup className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`text-lg font-semibold tracking-tight text-purple-600 dark:text-purple-400`}>
+                        Gate Pass Request
+                      </h3>
+                      <p className={`text-sm mt-1.5 leading-relaxed text-muted-foreground max-w-2xl`}>
+                        Need to leave the campus? Submit a gate pass request here. Your assigned hostel warden will review and approve it.
+                      </p>
+                      <button
+                        onClick={() => setIsGatePassModalOpen(true)}
+                        className="mt-4 px-5 py-2.5 rounded-xl font-semibold text-sm text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 shadow-md shadow-purple-500/15 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
+                      >
+                        <FaLayerGroup className="w-3.5 h-3.5" />
+                        Request Gate Pass
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className={`h-px ${theme === 'dark' ? 'bg-border' : 'bg-gray-200'}`} />
+
+                {/* Section 2: Gate Pass History */}
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                      <FaCalendarAlt className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>Gate Pass History</h3>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        Track all your gate pass requests and status updates
+                      </p>
+                    </div>
+                  </div>
+
+                  {loadingGatePasses ?
+                    <SkeletonList items={2} /> :
+                    myGatePasses.length === 0 ?
+                    <div className={`py-8 text-center rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-slate-900/30' : 'border-gray-200 bg-gray-50'}`}>
+                      <FaLayerGroup className={`w-10 h-10 mx-auto mb-2 opacity-50 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
+                      <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        No gate passes requested yet
+                      </p>
+                      <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-500'}`}>
+                        Submit a request above if you need to leave the campus.
+                      </p>
+                    </div> :
+                    <div className="space-y-3">
+                      {myGatePasses.map((gp) => {
+                        const statusColors: Record<string, string> = {
+                          pending: theme === 'dark' ? 'bg-yellow-900/30 text-yellow-300 border-yellow-700' : 'bg-yellow-50 text-yellow-800 border-yellow-200',
+                          approved: theme === 'dark' ? 'bg-green-900/30 text-green-300 border-green-700' : 'bg-green-50 text-green-800 border-green-200',
+                          rejected: theme === 'dark' ? 'bg-red-900/30 text-red-300 border-red-700' : 'bg-red-50 text-red-800 border-red-200',
+                        };
+
+                        const statusIcons: Record<string, React.ReactNode> = {
+                          pending: <FaClock className="w-4 h-4 text-yellow-500" />,
+                          approved: <FaCheckCircle className="w-4 h-4 text-green-500" />,
+                          rejected: <FaExclamationCircle className="w-4 h-4 text-red-500" />,
+                        };
+
+                        const colorClass = statusColors[gp.status] || statusColors.pending;
+                        const statusIcon = statusIcons[gp.status];
+
+                        return (
+                          <div
+                            key={gp.id}
+                            className={`rounded-lg border p-4 transition-all hover:shadow-md ${theme === 'dark' ? 'bg-slate-900/50 border-slate-700 hover:border-slate-600' : 'bg-gray-50/50 border-gray-200 hover:border-gray-300'}`}>
+                            
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                              <div className="flex items-center gap-2">
+                                <span className="flex items-center justify-center w-5 h-5 flex-shrink-0">{statusIcon}</span>
+                                <h4 className={`text-base font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {gp.reason}
+                                </h4>
+                              </div>
+                              <div className={`w-fit px-3 py-1 rounded-full text-xs font-semibold border capitalize whitespace-nowrap ${colorClass}`}>
+                                {gp.status}
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-base sm:text-xs mb-3">
+                              <div>
+                                <span className="font-semibold text-muted-foreground uppercase tracking-wider block text-xs sm:text-[10px] mb-0.5">Out Time</span>
+                                <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{gp.out_date} at {formatTimeToAmPm(gp.out_time)}</span>
+                              </div>
+                              <div>
+                                <span className="font-semibold text-muted-foreground uppercase tracking-wider block text-xs sm:text-[10px] mb-0.5">Expected Return</span>
+                                <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{gp.expected_return_date} at {formatTimeToAmPm(gp.expected_return_time)}</span>
+                              </div>
+                            </div>
+
+                            {gp.action_note && (
+                              <div className={`p-2.5 rounded-lg text-base sm:text-xs mb-3 ${theme === 'dark' ? 'bg-slate-800 text-gray-300 border border-slate-700/50' : 'bg-slate-100 text-gray-700 border border-slate-200'}`}>
+                                <strong className="block text-xs sm:text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Warden Action Note</strong>
+                                {gp.action_note}
+                              </div>
+                            )}
+                            
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-gray-300/30">
+                              <p className={`text-sm sm:text-xs flex items-center gap-1.5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                                <FaCalendarAlt className="w-3.5 h-3.5 flex-shrink-0" />
+                                Requested on {new Date(gp.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  }
+                </div>
+              </div>
           }
 
           {/* ── Meal Management Section ──────────────────────────────────────── */}
@@ -802,6 +948,15 @@ const StudentHostelDetails: React.FC = () => {
             variant: 'default'
           });
         }} />
+
+      {/* ── Request Gate Pass Modal ────────────────────────────────────── */}
+      <RequestGatePassModal
+        isOpen={isGatePassModalOpen}
+        onClose={() => setIsGatePassModalOpen(false)}
+        onSuccess={() => {
+          loadGatePasses();
+        }}
+      />
     </div>
   );
 };

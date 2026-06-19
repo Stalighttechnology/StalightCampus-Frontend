@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Edit2, Trash2, Eye, Clock, User, AlertCircle, MoreVertical, CheckCircle2, XCircle, Megaphone, BellOff } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { Announcement } from "@/utils/announcements_api";
+import { actionGatePass } from "@/utils/hms_api";
 import {
   Table,
   TableBody,
@@ -127,6 +128,31 @@ const SectionContentWrapper = ({
   return <>{children}</>;
 };
 
+const formatAnnouncementMessage = (msg: string) => {
+  if (!msg) return "";
+  return msg.split('\n').map(line => {
+    if (line.startsWith('Leaving:') || line.startsWith('Expected Return:')) {
+      const match = line.match(/(Leaving:|Expected Return:)\s*(\d{4}-\d{2}-\d{2})\s*(\d{2}:\d{2}(?::\d{2})?)/);
+      if (match) {
+        const prefix = match[1];
+        const datePart = match[2];
+        const timePart = match[3];
+        
+        const timeParts = timePart.split(':');
+        let hours = parseInt(timeParts[0], 10);
+        const minutes = timeParts[1];
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        const hourStr = hours < 10 ? `0${hours}` : hours.toString();
+        
+        return `${prefix} ${datePart} ${hourStr}:${minutes} ${ampm}`;
+      }
+    }
+    return line;
+  }).join('\n');
+};
+
 export const AnnouncementSections = ({
   myAnnouncements,
   receivedAnnouncements,
@@ -153,6 +179,26 @@ export const AnnouncementSections = ({
   const setShowExpired = propSetShowExpired || setLocalShowExpired;
 
   const [viewingAnnouncement, setViewingAnnouncement] = useState<Announcement | null>(null);
+  const [actionNote, setActionNote] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const handleAction = async (action: 'approve' | 'reject') => {
+    if (!viewingAnnouncement || !viewingAnnouncement.gate_pass) return;
+    setActionLoading(true);
+    try {
+      const res = await actionGatePass(viewingAnnouncement.gate_pass, action, actionNote);
+      if (res.success) {
+        setViewingAnnouncement(null);
+        setActionNote('');
+        // Trigger parent refresh
+        window.dispatchEvent(new CustomEvent('refresh-announcements'));
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const filteredMyAnnouncements = showExpired
     ? myAnnouncements
@@ -176,19 +222,19 @@ export const AnnouncementSections = ({
             gap: 4px !important;
           }
           .ann-tabs-list button span {
-            font-size: 14px !important;
+            font-size: 13px !important;
           }
           .ann-archive-btn { width: 100% !important; margin-top: 8px !important; }
           .ann-table-container { border: none !important; }
           .ann-card-mobile { padding: 12px !important; margin-bottom: 12px !important; border-radius: 12px !important; border: 1px solid hsl(var(--border)) !important; }
           .ann-card-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-          .ann-card-title { font-size: 1.15rem !important; font-weight: 600 !important; line-height: 1.3 !important; }
+          .ann-card-title { font-size: 1rem !important; font-weight: 600 !important; line-height: 1.3 !important; }
           .ann-card-meta { display: flex; flex-direction: column; gap: 4px; }
-          .ann-card-meta span { font-size: 0.8rem !important; }
+          .ann-card-meta span { font-size: 0.75rem !important; }
           .ann-card-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-          .ann-card-badges > * { font-size: 0.75rem !important; height: auto !important; padding: 2px 8px !important; }
+          .ann-card-badges > * { font-size: 0.7rem !important; height: auto !important; padding: 2px 8px !important; }
           .ann-card-actions { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid hsl(var(--border)); padding-top: 12px; margin-top: 12px; }
-          .ann-card-actions button { font-size: 0.8rem !important; }
+          .ann-card-actions button { font-size: 0.75rem !important; }
           .ann-card-actions-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; }
           .ann-card-actions-row button { flex: 1; }
           .ann-pagination { flex-direction: column !important; gap: 16px !important; align-items: center !important; text-align: center !important; }
@@ -406,7 +452,7 @@ export const AnnouncementSections = ({
                   <div key={announcement.id} className={`ann-card-mobile ${theme === 'dark' ? 'bg-muted/10' : 'bg-gray-50/50'} ${expired ? 'opacity-60' : ''}`}>
                     <div className="ann-card-header">
                       <div className="flex justify-between items-start">
-                        <Badge className={`${getPriorityColor(announcement.priority)} text-[10px] uppercase font-bold px-2 py-0.5`}>
+                        <Badge className={`${getPriorityColor(announcement.priority)} text-[10px] uppercase font-semibold px-2 py-0.5`}>
                           {announcement.priority}
                         </Badge>
                         {!announcement.is_active ? (
@@ -595,7 +641,7 @@ export const AnnouncementSections = ({
                   <div key={announcement.id} className={`ann-card-mobile ${theme === 'dark' ? 'bg-muted/10' : 'bg-gray-50/50'} ${unread ? 'border-primary/40 bg-primary/5' : ''}`}>
                     <div className="ann-card-header">
                       <div className="flex justify-between items-start">
-                        <Badge className={`${getPriorityColor(announcement.priority)} text-[10px] uppercase font-bold px-2 py-0.5`}>
+                        <Badge className={`${getPriorityColor(announcement.priority)} text-[10px] uppercase font-semibold px-2 py-0.5`}>
                           {announcement.priority}
                         </Badge>
                         {unread ? (
@@ -722,8 +768,8 @@ export const AnnouncementSections = ({
 
       {/* View Announcement Dialog */}
       <Dialog open={!!viewingAnnouncement} onOpenChange={(open) => !open && setViewingAnnouncement(null)}>
-        <DialogContent className="w-[92vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl sm:rounded-2xl p-0 border-none shadow-2xl">
-          <div className="p-6 sm:p-8 space-y-6">
+        <DialogContent className="w-[90%] sm:max-w-2xl h-[80vh] sm:h-auto max-h-[80vh] sm:max-h-[90vh] overflow-hidden rounded-xl sm:rounded-2xl p-0 border-none shadow-2xl flex flex-col bg-background">
+          <div className="p-6 sm:p-8 space-y-6 flex-1 overflow-y-auto custom-scrollbar">
             <DialogHeader className="space-y-4">
               <div className="flex items-center justify-between gap-4 pr-6 sm:pr-0">
                 <Badge className={`${viewingAnnouncement ? getPriorityColor(viewingAnnouncement.priority) : ''} h-7 px-4 text-xs font-semibold rounded-full border-none shadow-sm`}>
@@ -736,7 +782,7 @@ export const AnnouncementSections = ({
                   </div>
                 )}
               </div>
-              <DialogTitle className="text-xl font-semibold tracking-tight text-foreground">
+              <DialogTitle className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
                 {viewingAnnouncement?.title}
               </DialogTitle>
               <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground pb-4 border-b border-border/50">
@@ -763,11 +809,53 @@ export const AnnouncementSections = ({
 
             <div className="relative">
               <div className={`p-6 sm:p-8 rounded-2xl border ${theme === 'dark' ? 'bg-muted/20 border-border/50' : 'bg-gray-50/50 border-gray-100'} min-h-[120px]`}>
-                <p className="text-base sm:text-md text-foreground/90 leading-relaxed whitespace-pre-wrap font-semibold">
-                  {viewingAnnouncement?.message}
+                <p className="text-sm sm:text-base text-foreground/90 leading-relaxed whitespace-pre-wrap font-medium">
+                  {formatAnnouncementMessage(viewingAnnouncement?.message || '')}
                 </p>
               </div>
             </div>
+
+            {viewingAnnouncement?.gate_pass && (
+              <div className={`p-4 rounded-xl border space-y-3 ${theme === 'dark' ? 'bg-purple-950/20 border-purple-900/30' : 'bg-purple-50/50 border-purple-100'}`}>
+                <h4 className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Gate Pass Action Required</h4>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Action Note (Optional)</label>
+                  <textarea
+                    placeholder="Enter approval or rejection comments..."
+                    value={actionNote}
+                    onChange={(e) => setActionNote(e.target.value)}
+                    rows={2}
+                    className="w-full text-xs p-2 rounded-lg border border-border bg-background resize-none focus-visible:ring-primary focus-visible:ring-2 focus-visible:outline-none"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handleAction('approve')}
+                    disabled={actionLoading}
+                    variant="outline"
+                    className={`flex-1 text-xs font-semibold ${
+                      theme === 'dark'
+                        ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
+                        : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                    }`}
+                  >
+                    {actionLoading ? 'Processing...' : 'Approve'}
+                  </Button>
+                  <Button
+                    onClick={() => handleAction('reject')}
+                    disabled={actionLoading}
+                    variant="outline"
+                    className={`flex-1 text-xs font-semibold ${
+                      theme === 'dark'
+                        ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
+                        : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                    }`}
+                  >
+                    {actionLoading ? 'Processing...' : 'Reject'}
+                  </Button>
+                </div>
+              </div>
+            )}
 
             <div className="pt-4 flex flex-wrap gap-4 items-center justify-between border-t border-border/30">
               <div className="flex flex-wrap gap-2">

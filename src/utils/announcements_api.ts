@@ -21,6 +21,7 @@ export interface Announcement {
   read_count: number;
   is_expired: boolean;
   is_read?: boolean;
+  gate_pass?: number | null;
 }
 
 export interface AnnouncementListResponse {
