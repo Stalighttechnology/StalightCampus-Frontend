@@ -276,261 +276,187 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   const menuItems: { [key: string]: { name: string; page: string }[] } = {
     fees_manager: [
       { name: "Dashboard", page: "dashboard" },
+      { name: "Payment Settings", page: "payment-settings" },
       { name: "Components", page: "components" },
       { name: "Templates", page: "templates" },
       { name: "Assignments", page: "assignments" },
-      { name: "Individual Fees", page: "individual-fees" },
       { name: "Bulk Assignment", page: "bulk-assignment" },
+      { name: "Individual Fees", page: "individual-fees" },
       { name: "Invoices", page: "invoices" },
       { name: "Payments", page: "payments" },
-      { name: "Payment Settings", page: "payment-settings" },
+      { name: "Student Fee Reports", page: "student-reports" },
+      { name: "Reports", page: "reports" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Leave", page: "leave" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Reports", page: "reports" },
-      { name: "Student Fee Reports", page: "student-reports" },
-      { name: "Profile", page: "profile" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "profile" },
     ],
     principal: [
-      // Main
       { name: "Dashboard", page: "dashboard" },
-
-      // User Management
-      { name: "Enroll Staff", page: "enroll-user" },
-      { name: "Bulk Upload Faculty", page: "bulk-upload" },
-      { name: "Billing & Plans", page: "billing" },
-
-      // Academic Structure
       { name: getTerm("branches"), page: "branches" },
+      { name: "Batches", page: "batches" },
       { name: "Faculty Assignments", page: "teacher-assignments" },
       { name: "Question Paper Approvals", page: "qp-approvals" },
-      { name: "Batches", page: "batches" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
-
-      // Communication
-      { name: "Announcement Management", page: "announcement-management" },
-
-      // Leaves
-      { name: "HOD Leaves", page: "hod-leaves" },
-      { name: "Department Admin Leaves", page: "department-admin-leaves" },
+      { name: "Scan for Student Info", page: "scan-student-info" },
+      { name: "Users", page: "users" },
+      { name: "Enroll Staff", page: "enroll-user" },
+      { name: "Bulk Upload Faculty", page: "bulk-upload" },
       { name: "HOD Attendance", page: "hod-attendance" },
       { name: "Faculty Attendance", page: "faculty-attendance" },
-
-      { name: "My Attendance", page: "my-attendance" },
+      { name: "Announcement Management", page: "announcement-management" },
+      { name: "HOD Leaves", page: "hod-leaves" },
+      { name: "Department Admin Leaves", page: "department-admin-leaves" },
       { name: "Apply Leave", page: "apply-leave" },
-
-      // User & Profile
-      { name: "Users", page: "users" },
-      { name: "Scan for Student Info", page: "scan-student-info" },
+      { name: "My Attendance", page: "my-attendance" },
       { name: "Campus Locations", page: "campus-locations" },
+      { name: "Billing & Plans", page: "billing" },
+      { name: "Holiday Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
     org_admin: [
       { name: "Dashboard", page: "dashboard" },
-      { name: "Users", page: "users" },
-      { name: "Enroll Staff", page: "enroll-user" },
       { name: "Billing & Plans", page: "billing" },
-      { name: "Scan for Student Info", page: "scan-student-info" },
       { name: getTerm("branches"), page: "branches" },
       { name: "Batches", page: "batches" },
-      { name: "Announcement Management", page: "announcement-management" },
+      { name: "Campus Locations", page: "campus-locations" },
+      { name: "Faculty", page: "faculty" },
+      { name: "Users", page: "users" },
+      { name: "Enroll Staff", page: "enroll-user" },
+      { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Today's Attendance", page: "attendance" },
       { name: "Exams", page: "exams" },
-      { name: "Faculty", page: "faculty" },
-      { name: "Finance", page: "finance" },
       { name: "Invoices", page: "invoices" },
       { name: "Payments", page: "payments" },
+      { name: "Finance", page: "finance" },
       { name: "Reports", page: "reports" },
-      { name: "Campus Locations", page: "campus-locations" },
-      { name: "Profile", page: "profile" },
+      { name: "Announcement Management", page: "announcement-management" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "profile" },
     ],
     admin: [
-      // Main
       { name: "Dashboard", page: "dashboard" },
-
-      // User Management
-      { name: "Enroll Staff", page: "enroll-user" },
-      { name: "Bulk Upload Faculty", page: "bulk-upload" },
-      { name: "Billing & Plans", page: "billing" },
-
-      // Academic Structure
       { name: getTerm("branches"), page: "branches" },
+      { name: "Batches", page: "batches" },
       { name: "Faculty Assignments", page: "teacher-assignments" },
       { name: "Question Paper Approvals", page: "qp-approvals" },
-      { name: "Batches", page: "batches" },
-
-      // Communication
-      { name: "Announcement Management", page: "announcement-management" },
-
-      // Leaves
-      { name: "HOD Leaves", page: "hod-leaves" },
-      { name: "Department Admin Leaves", page: "department-admin-leaves" },
+      { name: "Scan for Student Info", page: "scan-student-info" },
+      { name: "Users", page: "users" },
+      { name: "Enroll Staff", page: "enroll-user" },
+      { name: "Bulk Upload Faculty", page: "bulk-upload" },
       { name: "HOD Attendance", page: "hod-attendance" },
       { name: "Faculty Attendance", page: "faculty-attendance" },
-
-      { name: "My Attendance", page: "my-attendance" },
+      { name: "Announcement Management", page: "announcement-management" },
+      { name: "HOD Leaves", page: "hod-leaves" },
+      { name: "Department Admin Leaves", page: "department-admin-leaves" },
       { name: "Apply Leave", page: "apply-leave" },
-
-      // Integrations
-
-
-      // User & Profile
-      { name: "Users", page: "users" },
-      { name: "Scan for Student Info", page: "scan-student-info" },
-      { name: "Profile", page: "profile" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
-    ],
-
-    hod: [
-      // Main
-      { name: "Dashboard", page: "dashboard" },
-
-      // Academic Management
-      { name: "Semester Management", page: "semesters" },
-      { name: "Students Enrollment", page: "students" },
-      { name: "Elective Course Enrollment", page: "student-enrollment" },
-      { name: "Courses", page: "subjects" },
-      { name: "Faculty Assignments", page: "faculty-assignments" },
-      { name: "Question Paper Approvals", page: "qp-approvals" },
-      { name: "Timetable", page: "timetable" },
-      { name: translateTerminology("Proctors"), page: "proctors" },
-
-      // Attendance & Marks
-      // { name: "Attendance", page: "attendance" },
-
-      { name: "Low Attendance", page: "low-attendance" },
-      { name: translateTerminology("CO Attainment"), page: "co-attainment" },
-      { name: "Exam Applications", page: "exam-applications" },
-      { name: "Faculty Attendance", page: "faculty-attendance" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Promotion Management", page: "promotion-management" },
-
-      // Leaves
-      { name: "Faculty Leaves", page: "leaves" },
-      { name: "Apply Leaves", page: "apply-leaves" },
-
-      // Resources & Communication
-      { name: "Study Material", page: "study-materials" },
-      { name: "Scan for Student Info", page: "scan-student-info" },
-      { name: `${getTerm("branch")} Announcements`, page: "hod-announcement-management" },
+      { name: "Billing & Plans", page: "billing" },
+      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "profile" },
+    ],
+    hod: [
+      { name: "Dashboard", page: "dashboard" },
+      { name: "Semester Management", page: "semesters" },
+      { name: "Courses", page: "subjects" },
       { name: "Syllabus Status", page: "syllabus-status" },
       { name: "Syllabus Monitor", page: "syllabus-monitor" },
-
-      // Profile
-      { name: "Profile", page: "hod-profile" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
-    ],
-
-    faculty: [
-      // Main
-      { name: "Dashboard", page: "dashboard" },
-
-      // Attendance & Marks
-      { name: "Take Attendance", page: "take-attendance" },
-      { name: "Attendance Records", page: "attendance-records" },
-      { name: "My Attendance", page: "faculty-attendance" },
-      { name: "Upload Marks", page: "upload-marks" },
-      { name: "Upload QP", page: "upload-qp" },
-      { name: translateTerminology("CO Attainment"), page: "co-attainment" },
-      { name: "Generate Statistics", page: "statistics" },
-
-      // Leave Management
-      { name: "Apply Leave", page: "apply-leave" },
-      { name: "Manage Student Leave", page: "student-leave" },
-
-      // Academic
+      { name: "Students Enrollment", page: "students" },
+      { name: "Elective Course Enrollment", page: "student-enrollment" },
       { name: "Timetable", page: "timetable" },
-      { name: "Assignments", page: "faculty-assignments" },
+      { name: "Faculty Assignments", page: "faculty-assignments" },
+      { name: translateTerminology("Proctors"), page: "proctors" },
+      { name: "Low Attendance", page: "low-attendance" },
       { name: "Exam Applications", page: "exam-applications" },
-      // { name: "Revaluation", page: "revaluation" },
-      // { name: "Makeup Exam", page: "makeupexam" },
-      { name: "Proctor Students", page: "proctor-students" },
+      { name: "Question Paper Approvals", page: "qp-approvals" },
+      { name: translateTerminology("CO Attainment"), page: "co-attainment" },
+      { name: "Promotion Management", page: "promotion-management" },
       { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Study Material", page: "study-materials" },
-      { name: "Announcements for Students", page: "faculty-announcement-management" },
-      { name: "Schedule Class", page: "schedule-class" },
-      { name: "Syllabus Status", page: "syllabus-status" },
-
-      // Profile
-      { name: "Profile", page: "faculty-profile" },
+      { name: `${getTerm("branch")} Announcements`, page: "hod-announcement-management" },
+      { name: "Faculty Attendance", page: "faculty-attendance" },
+      { name: "Faculty Leaves", page: "leaves" },
+      { name: "My Attendance", page: "my-attendance" },
+      { name: "Apply Leaves", page: "apply-leaves" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "hod-profile" },
     ],
-
-    student: [
-      // Main
+    faculty: [
       { name: "Dashboard", page: "dashboard" },
-      // Academic
+      { name: "Schedule Class", page: "schedule-class" },
       { name: "Timetable", page: "timetable" },
-      { name: "Attendance", page: "attendance" },
-      { name: "Internal Marks", page: "marks" },
+      { name: "Take Attendance", page: "take-attendance" },
+      { name: "Attendance Records", page: "attendance-records" },
+      { name: "Upload Marks", page: "upload-marks" },
+      { name: "Upload QP", page: "upload-qp" },
+      { name: "Study Material", page: "study-materials" },
+      { name: "Assignments", page: "faculty-assignments" },
+      { name: "Syllabus Status", page: "syllabus-status" },
+      { name: translateTerminology("CO Attainment"), page: "co-attainment" },
+      { name: "Exam Applications", page: "exam-applications" },
+      { name: "Proctor Students", page: "proctor-students" },
+      { name: "Scan for Student Info", page: "scan-student-info" },
+      { name: "Generate Statistics", page: "statistics" },
+      { name: "Announcements for Students", page: "faculty-announcement-management" },
+      { name: "Manage Student Leave", page: "student-leave" },
+      { name: "My Attendance", page: "faculty-attendance" },
+      { name: "Apply Leave", page: "apply-leave" },
+      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "faculty-profile" },
+    ],
+    student: [
+      { name: "Dashboard", page: "dashboard" },
+      { name: "Class Schedule", page: "class-schedule" },
+      { name: "Timetable", page: "timetable" },
       { name: "Syllabus Status", page: "student-syllabus" },
+      { name: "Attendance", page: "attendance" },
       { name: "Study Materials", page: "student-study-material" },
       { name: "Assignments", page: "student-assignment" },
+      { name: "Internal Marks", page: "marks" },
       { name: "Revaluation", page: "revaluation" },
       { name: "Makeup Exam", page: "makeupexam" },
       { name: "Fees", page: "fees" },
-      // Hostel Details
       { name: "Hostel Details", page: "student-hostel-details" },
-      // Transportation
       { name: "Transportation", page: "transportation" },
-      // Library
       { name: "Library", page: "library" },
-
-      // Communication
       { name: "Announcements", page: "announcements" },
-
-      // Leave Management
       { name: "Leaves", page: "leave-request" },
-      { name: "Class Schedule", page: "class-schedule" },
-
-      // Profile
-      { name: "Profile", page: "profile" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "profile" },
     ],
-
     coe: [
-      // Main
       { name: "Dashboard", page: "dashboard" },
-
-      // Leave Management
-      { name: "Apply Leave", page: "apply-leave" },
-
-      // Exam Management
-      { name: "Student Status", page: "student-status" },
-      { name: "Announcement Management", page: "announcement-management" },
-      { name: "Course Statistics", page: "course-statistics" },
-      { name: "Makeup Requests", page: "makeup-requests" },
-      { name: "Revaluation Requests", page: "revaluation-requests" },
+      { name: "Exam Scheduling", page: "exam-scheduling" },
       { name: "Question Paper Approvals", page: "qp-approvals" },
+      { name: "Course Statistics", page: "course-statistics" },
       { name: "Publish Results", page: "publish-results" },
       { name: "Publish Results (Reval/Makeup)", page: "publish-results-reval-makeup" },
-      { name: "Exam Scheduling", page: "exam-scheduling" },
-
+      { name: "Revaluation Requests", page: "revaluation-requests" },
+      { name: "Makeup Requests", page: "makeup-requests" },
+      { name: "Student Status", page: "student-status" },
       { name: "Scan for Student Info", page: "scan-student-info" },
-      { name: "My Attendance", page: "my-attendance" },
-
-      // Profile
+      { name: "Announcement Management", page: "announcement-management" },
       { name: "Fee Settings", page: "fee-settings" },
-      { name: "Profile", page: "profile" },
+      { name: "Apply Leave", page: "apply-leave" },
+      { name: "My Attendance", page: "my-attendance" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "profile" },
     ],
     dean: [
       { name: "Dashboard", page: "dashboard" },
-      { name: "Enroll Staff", page: "enroll-user" },
-      { name: "Billing & Plans", page: "billing" },
+      { name: "Campus Locations", page: "campus-locations" },
+      { name: "Faculty", page: "faculty" },
       { name: "Today's Attendance", page: "attendance" },
       { name: "Attendance Filters", page: "attendance-filters" },
-      { name: "Announcement Management", page: "announcement-management" },
-      { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Exams", page: "exams" },
-      { name: "Faculty", page: "faculty" },
+      { name: "Scan for Student Info", page: "scan-student-info" },
+      { name: "Enroll Staff", page: "enroll-user" },
       { name: "Finance", page: "finance" },
-      { name: "Campus Locations", page: "campus-locations" },
+      { name: "Billing & Plans", page: "billing" },
+      { name: "Announcement Management", page: "announcement-management" },
       { name: "Admin Leaves", page: "admin-leaves" },
-      { name: "Profile", page: "profile" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "profile" },
     ],
     hms: [
       { name: "Dashboard", page: "dashboard" },
@@ -538,17 +464,17 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Rooms", page: "rooms" },
       { name: "Students", page: "students" },
       { name: "Enrollment", page: "enrollment" },
-      { name: "Staff", page: "staff" },
       { name: "Menu Management", page: "menu-management" },
       { name: "Today's Menu", page: "student-meals" },
       { name: "Issue Tracking", page: "issues" },
       { name: "Visitor Logs", page: "visitor_logs" },
+      { name: "Staff", page: "staff" },
       { name: "Announcement Management", page: "announcement-management" },
-      { name: "Apply Leave", page: "apply-leave" },
       { name: "Warden Leaves", page: "manage-warden-leaves" },
+      { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Profile", page: "profile" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "profile" },
     ],
     warden: [
       { name: "Dashboard", page: "dashboard" },
@@ -558,23 +484,23 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Profile", page: "profile" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "profile" },
     ],
     transport_admin: [
       { name: "Overview", page: "dashboard" },
       { name: "Buses", page: "transport-buses" },
-      { name: "Routes & Stops", page: "transport-routes" },
       { name: "Drivers", page: "transport-drivers" },
+      { name: "Routes & Stops", page: "transport-routes" },
       { name: "Allocations", page: "transport-allocations" },
       { name: "Live Tracking", page: "transport-tracking" },
       { name: "Complaints", page: "transport-incidents" },
       { name: "Announcement Management", page: "announcement-management" },
-      { name: "Apply Leave", page: "apply-leave" },
       { name: "Driver Leaves", page: "manage-leaves" },
+      { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Profile", page: "profile" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "profile" },
     ],
     driver: [
       { name: "Dashboard", page: "dashboard" },
@@ -582,8 +508,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Complaints", page: "driver-complaints" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Profile", page: "profile" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "profile" },
     ],
     library_admin: [
       { name: "Overview", page: "dashboard" },
@@ -592,25 +518,24 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Fine Management", page: "library-fines" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Profile", page: "profile" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "profile" },
     ],
     admission_manager: [
       { name: "Dashboard", page: "admission-dashboard" },
       { name: "Campus Page Management", page: "campus-builder" },
+      { name: "Seat Matrix", page: "seat-matrix" },
+      { name: "Courses", page: "admission-courses" },
       { name: "Enquiries", page: "admission-enquiries" },
       { name: "Applications", page: "admission-applications" },
       { name: "Students", page: "admission-students" },
-      { name: "Courses", page: "admission-courses" },
-
       { name: "Fees", page: "admission-fees" },
       { name: "Documents", page: "admission-documents" },
       { name: "Communication", page: "admission-communication" },
       { name: "Reports", page: "admission-reports" },
-
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Profile", page: "profile" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "profile" },
     ],
   };
 
