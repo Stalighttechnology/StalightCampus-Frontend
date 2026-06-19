@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../../components/ui/card";
-import { Download, Search, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, Search, FileText, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../components/ui/alert-dialog";
 import { useTheme } from "../../context/ThemeContext";
 import { API_BASE_URL } from "@/utils/config";
 import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
@@ -16,6 +17,10 @@ const NDASubmissions = () => {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [total, setTotal] = useState(0);
+
+  // Delete state
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const { theme } = useTheme();
 
@@ -61,6 +66,30 @@ const NDASubmissions = () => {
 
     fetchSubmissions();
   }, [page, pageSize, debouncedSearchTerm]);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setActionLoading(true);
+    try {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/nda-submissions/${deleteId}/`, {
+        method: 'DELETE',
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
+        }
+      });
+      if (response.ok) {
+        setSubmissions(submissions.filter(s => s.id !== deleteId));
+        setTotal(total - 1);
+        setDeleteId(null);
+      } else {
+        alert('Failed to delete submission');
+      }
+    } catch (error) {
+      alert('Error deleting submission');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const totalPages = Math.ceil(total / pageSize);
   const startItem = (page - 1) * pageSize + 1;
@@ -149,19 +178,29 @@ const NDASubmissions = () => {
                         {sub.department}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        {sub.pdf_url ? (
-                          <a
-                            href={sub.pdf_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-colors shadow-sm"
+                        <div className="flex items-center justify-end gap-2">
+                          {sub.pdf_url ? (
+                            <a
+                              href={sub.pdf_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-colors shadow-sm"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              Download
+                            </a>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic px-3 py-1.5 border border-dashed rounded-md">Pending PDF</span>
+                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 h-8 w-8" 
+                            onClick={() => setDeleteId(sub.id)}
                           >
-                            <Download className="w-3.5 h-3.5" />
-                            Download
-                          </a>
-                        ) : (
-                          <span className="text-xs text-muted-foreground italic px-3 py-1.5 border border-dashed rounded-md">Pending PDF</span>
-                        )}
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -203,6 +242,31 @@ const NDASubmissions = () => {
           </CardFooter>
         )}
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the NDA submission and remove the associated PDF document from the server.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={actionLoading}
+            >
+              {actionLoading ? "Deleting..." : "Delete Record"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
