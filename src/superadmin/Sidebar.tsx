@@ -14,7 +14,8 @@ import {
   Menu,
   ShieldCheck,
   UserCircle2,
-  Tag
+  Tag,
+  FileText
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useTheme } from "../context/ThemeContext";
@@ -47,6 +48,7 @@ const menuItems = [
   { id: "support", label: "Support Panel", icon: <LifeBuoy size={20} /> },
   { id: "monitoring", label: "System Monitor", icon: <Activity size={20} /> },
   { id: "reports", label: "Reports", icon: <BarChart3 size={20} /> },
+  { id: "nda", label: "NDA & Consents", icon: <FileText size={20} /> },
   { id: "profile", label: "My Profile", icon: <UserCircle2 size={20} /> },
 ];
 

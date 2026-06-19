@@ -12,6 +12,7 @@ import Monitoring from "./pages/Monitoring";
 import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import Coupons from "./pages/Coupons";
+import NDASubmissions from "./pages/NDASubmissions";
 import { useTheme } from "../context/ThemeContext";
 
 interface Props {
@@ -58,7 +59,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
         <header className={`h-16 flex-shrink-0 border-b flex items-center justify-between px-6 sticky top-0 z-20 ${theme === 'dark' ? 'bg-zinc-950/80 backdrop-blur-md border-zinc-800' : 'bg-white/80 backdrop-blur-md border-gray-200'}`}>
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-semibold capitalize">
-              {activePage === 'dashboard' ? 'Overview' : activePage.replace('-', ' ')}
+              {activePage === 'dashboard' ? 'Overview' : activePage === 'nda' ? 'NDA & Consents' : activePage.replace('-', ' ')}
             </h2>
           </div>
           <div className="flex items-center gap-4">
@@ -98,6 +99,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
                 <Route path="support" element={<Support />} />
                 <Route path="monitoring" element={<Monitoring />} />
                 <Route path="reports" element={<Reports />} />
+                <Route path="nda" element={<NDASubmissions />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="*" element={
                   <div className="flex flex-col items-center justify-center h-[60vh]">
