@@ -216,6 +216,7 @@ const AdminAnnouncementManagement = () => {
         const response = await createAnnouncement(formData);
         if (response.success) {
           setMyAnnouncements((prev) => [response.data, ...prev]);
+          setTotalMyCount((prev) => prev + 1); // Update count immediately
           MySwal.fire({
             title: "Success",
             text: "Announcement created successfully",
@@ -280,8 +281,15 @@ const AdminAnnouncementManagement = () => {
       try {
         const response = await deleteAnnouncement(announcementId);
         if (response.success) {
+          const isMy = myAnnouncements.some((a) => a.id === announcementId);
+          const isReceived = receivedAnnouncements.some((a) => a.id === announcementId);
+          
           setMyAnnouncements((prev) => prev.filter((a) => a.id !== announcementId));
           setReceivedAnnouncements((prev) => prev.filter((a) => a.id !== announcementId));
+          
+          if (isMy) setTotalMyCount((prev) => Math.max(0, prev - 1));
+          if (isReceived) setTotalReceivedCount((prev) => Math.max(0, prev - 1));
+
           MySwal.fire({
             title: "Deleted",
             text: "Announcement deleted successfully",
@@ -403,6 +411,7 @@ const AdminAnnouncementManagement = () => {
       case "hms":
       case "hms_admin":
       case "transport_admin":
+      case "warden":
         return ["student"];
       default:
         return ["student", "hod", "faculty", "principal", "placement_officer"];
@@ -410,7 +419,7 @@ const AdminAnnouncementManagement = () => {
   };
 
   const baseRoles = getTargetRolesForUser(user?.role);
-  const roles = userTier >= 2 ? baseRoles : baseRoles.filter(r => BASIC_ROLES.includes(r));
+  const roles = (userTier >= 2 ? baseRoles : baseRoles.filter(r => BASIC_ROLES.includes(r))).filter(r => r !== user?.role);
 
   const renderHeader = (
     <CardHeader className="announcements-card-header flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

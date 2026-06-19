@@ -12,6 +12,7 @@ import FacultyAttendance from "../faculty/FacultyAttendance";
 import { HMSProvider } from "../../context/HMSContext";
 import { AcademicProvider } from "../../context/AcademicContext";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
+import AnnouncementManagement from "../admin/AnnouncementManagement";
 
 interface WardenDashboardProps {
   user: any;
@@ -55,6 +56,8 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
         return <WardenProfile user={user} />;
       case "visitor_logs":
         return <WardenVisitorLogs />;
+      case "announcement-management":
+        return <AnnouncementManagement />;
       default:
         return <WardenDashboardOverview />;
     }

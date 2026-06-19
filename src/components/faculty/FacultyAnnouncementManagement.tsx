@@ -340,7 +340,7 @@ const FacultyAnnouncementManagement = () => {
     });
   };
 
-  const roles = ["student", "faculty", "hod", "principal", "placement_officer"];
+  const roles = ["student", "hod", "principal", "placement_officer"];
 
   return (
     <>

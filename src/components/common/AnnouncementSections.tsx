@@ -221,9 +221,9 @@ export const AnnouncementSections = ({
             <TabsTrigger value="received" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
               <span className="text-sm font-semibold">Received</span>
               {receivedPagination && receivedPagination.unreadCount !== undefined ? (
-                totalUnread > 0 && (
+                receivedPagination.unreadCount > 0 && (
                   <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-primary text-white border-none shadow-sm pointer-events-none select-none">
-                    {totalUnread}
+                    {receivedPagination.unreadCount}
                   </Badge>
                 )
               ) : (

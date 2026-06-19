@@ -555,6 +555,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Resident Management", page: "residents" },
       { name: "Issue Tracking", page: "issues" },
       { name: "Visitor Logs", page: "visitor_logs" },
+      { name: "Announcement Management", page: "announcement-management" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "Profile", page: "profile" },
