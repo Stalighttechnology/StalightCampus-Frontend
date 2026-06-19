@@ -230,7 +230,7 @@ const DriverDashboard: React.FC = () => {
                 <div className="h-4 bg-muted rounded w-24"></div>
               </div>
               <div className="divide-y divide-inherit border rounded-xl overflow-hidden">
-                {[1, 2, 3].map(i => (
+                {Array.from({ length: students.length > 0 ? students.length : 3 }).map((_, i) => (
                   <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4">
                     <div className="flex items-center gap-3 w-full sm:w-1/2">
                       <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0"></div>

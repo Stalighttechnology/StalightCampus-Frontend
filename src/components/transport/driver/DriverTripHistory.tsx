@@ -17,6 +17,7 @@ const DriverTripHistory: React.FC = () => {
   const [selectedTrip, setSelectedTrip] = useState<number | null>(null);
   const [tripStudents, setTripStudents] = useState<any[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
+  const [selectedTripStudentsCount, setSelectedTripStudentsCount] = useState<number>(3);
 
   const bg = theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900';
   const cardBg = theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900';
@@ -37,10 +38,13 @@ const DriverTripHistory: React.FC = () => {
     setLoadingHistory(false);
   };
 
-  const handleViewTrip = async (tripId: number) => {
-    setSelectedTrip(tripId);
+  const handleViewTrip = async (trip: any) => {
+    setSelectedTrip(trip.id);
+    const sum = trip.attendance_summary;
+    const count = sum ? (sum.picked_up || 0) + (sum.absent || 0) + (sum.dropped_off || 0) + (sum.pending || 0) : 3;
+    setSelectedTripStudentsCount(count);
     setLoadingStudents(true);
-    const res = await fetchTripStudents(tripId);
+    const res = await fetchTripStudents(trip.id);
     if (res.success) setTripStudents(res.students || []);
     setLoadingStudents(false);
   };
@@ -113,7 +117,7 @@ const DriverTripHistory: React.FC = () => {
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      onClick={() => handleViewTrip(h.id)} 
+                      onClick={() => handleViewTrip(h)} 
                       className="flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary hover:bg-primary/10 h-8"
                     >
                       <Eye size={14} /> View
@@ -181,7 +185,7 @@ const DriverTripHistory: React.FC = () => {
               <CardContent className="p-4 overflow-y-auto flex-1 thin-scrollbar">
                 {loadingStudents ? (
                   <div className="space-y-3">
-                    {[1, 2, 3].map(i => (
+                    {Array.from({ length: selectedTripStudentsCount }).map((_, i) => (
                       <div key={i} className={`p-3 rounded-xl border flex items-center justify-between animate-pulse ${theme === 'dark' ? 'bg-card border-border' : 'bg-gray-50 border-gray-200'}`}>
                         <div className="flex items-center gap-3 w-1/2">
                           <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0"></div>
