@@ -151,8 +151,15 @@ export function useNetworkStatus() {
       setLastChangedAt(Date.now());
     }
 
+    function handleFocusOrVisibility() {
+      // Trigger a probe when user focuses or returns to the app
+      runProbe();
+    }
+
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
+    window.addEventListener("focus", handleFocusOrVisibility);
+    document.addEventListener("visibilitychange", handleFocusOrVisibility);
 
     // Start polling
     pollRef.current = window.setInterval(runProbe, POLL_INTERVAL);
@@ -161,6 +168,8 @@ export function useNetworkStatus() {
       mounted = false;
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("focus", handleFocusOrVisibility);
+      document.removeEventListener("visibilitychange", handleFocusOrVisibility);
       if (pollRef.current) window.clearInterval(pollRef.current);
     };
   }, []);
