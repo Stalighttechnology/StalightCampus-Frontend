@@ -409,7 +409,11 @@ export const AnnouncementSections = ({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className={`h-8 text-xs gap-1.5 border  ${announcement.is_active ? 'text-orange-500 hover:text-orange-600 hover:bg-orange-50' : 'text-green-500 hover:text-green-600 hover:bg-green-50'}`}
+                                className={`h-8 text-xs gap-1.5 border ${
+                                  announcement.is_active
+                                    ? theme === 'dark' ? 'text-orange-400 border-orange-950/40 hover:bg-orange-950/20 hover:text-orange-300' : 'text-orange-500 border-orange-100 hover:text-orange-600 hover:bg-orange-50'
+                                    : theme === 'dark' ? 'text-green-400 border-green-950/40 hover:bg-green-950/20 hover:text-green-300' : 'text-green-500 border-green-100 hover:text-green-600 hover:bg-green-50'
+                                }`}
                                 onClick={() => onToggleActive(announcement.id)}
                               >
                                 {announcement.is_active ? (
@@ -508,7 +512,11 @@ export const AnnouncementSections = ({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className={`w-full h-9 text-xs font-semibold border flex items-center justify-center gap-1.5 rounded-xl ${announcement.is_active ? 'text-orange-500 border-orange-100 bg-orange-50/30 hover:bg-orange-50/50' : 'text-green-500 border-green-100 bg-green-50/30 hover:bg-green-50/50'}`}
+                            className={`w-full h-9 text-xs font-semibold border flex items-center justify-center gap-1.5 rounded-xl ${
+                              announcement.is_active
+                                ? theme === 'dark' ? 'text-orange-400 border-orange-900/30 bg-orange-950/20 hover:bg-orange-950/40' : 'text-orange-500 border-orange-100 bg-orange-50/30 hover:bg-orange-50/50'
+                                : theme === 'dark' ? 'text-green-400 border-green-900/30 bg-green-950/20 hover:bg-green-950/40' : 'text-green-500 border-green-100 bg-green-50/30 hover:bg-green-50/50'
+                            }`}
                             onClick={() => onToggleActive(announcement.id)}
                           >
                             {announcement.is_active ? (
