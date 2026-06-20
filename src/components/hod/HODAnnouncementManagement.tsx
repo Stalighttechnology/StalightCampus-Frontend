@@ -542,9 +542,15 @@ const HODAnnouncementManagement = () => {
                               disabled={submitting}
                               className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 transition-all duration-200">
                               
-                            {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                            {editingId ? "Update" : "Create"} Announcement
-                          </Button>
+                             {submitting ? (
+                               <>
+                                 <Loader2 className="w-4 h-4 animate-spin mr-2 inline-block" />
+                                 {editingId ? "Updating..." : "Creating..."}
+                               </>
+                             ) : (
+                               <>{editingId ? "Update" : "Create"} Announcement</>
+                             )}
+                           </Button>
                         </div>
                       </div>
                     </DialogContent>

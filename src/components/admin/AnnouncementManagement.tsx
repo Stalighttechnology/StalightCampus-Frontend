@@ -645,8 +645,14 @@ const AdminAnnouncementManagement = () => {
                   disabled={submitting}
                   className={`${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
 
-                  {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                  {editingId ? "Update" : "Create"} Announcement
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2 inline-block" />
+                      {editingId ? "Updating..." : "Creating..."}
+                    </>
+                  ) : (
+                    <>{editingId ? "Update" : "Create"} Announcement</>
+                  )}
                 </Button>
               </div>
             </div>

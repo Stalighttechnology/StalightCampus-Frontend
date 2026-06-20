@@ -558,8 +558,14 @@ const FacultyAnnouncementManagement = () => {
                               disabled={submitting}
                               className="bg-primary text-white hover:bg-primary/90 transition-colors">
                               
-                            {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                            {editingId ? "Update" : "Create"} Announcement
+                            {submitting ? (
+                               <>
+                                 <Loader2 className="w-4 h-4 animate-spin mr-2 inline-block" />
+                                 {editingId ? "Updating..." : "Creating..."}
+                               </>
+                             ) : (
+                               <>{editingId ? "Update" : "Create"} Announcement</>
+                             )}
                           </Button>
                         </div>
                       </div>
