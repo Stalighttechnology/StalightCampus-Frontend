@@ -183,8 +183,8 @@ const ResultsView: React.FC = () => {
     <div className="min-h-screen w-full bg-slate-50/50 dark:bg-zinc-950 flex flex-col items-center justify-start p-3 sm:p-6">
       <div className={`${result ? 'my-4 sm:my-8 max-w-3xl' : 'my-auto max-w-2xl'} w-full bg-card border border-border shadow-xl rounded-2xl p-5 sm:p-8 relative overflow-hidden`}>
 
-        <div className="flex flex-row items-center justify-between gap-4 mb-4 sm:mb-6 pt-1 sm:pt-2 overflow-x-auto thin-scrollbar pb-1">
-          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6 pt-1 sm:pt-2 pb-1">
+          <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto shrink-0">
             <div className="p-1 rounded-xl border bg-white dark:bg-zinc-900 shadow-sm shrink-0">
               <img
                 src={result?.organization?.logo || orgInfo?.logo || "/logo.jpeg"}
@@ -197,7 +197,7 @@ const ResultsView: React.FC = () => {
               <p className="text-[10px] sm:text-xs text-muted-foreground font-medium mt-0.5">Official marks portal</p>
             </div>
           </div>
-          <div className="text-xs sm:text-sm text-right flex flex-col items-end gap-1.5 sm:gap-2 shrink-0">
+          <div className="text-xs sm:text-sm flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto shrink-0">
             <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-secondary text-secondary-foreground border border-border">
               Secure Public Result View
             </span>
