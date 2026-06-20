@@ -163,7 +163,25 @@ const DeanStats = () => {
         datasets: [
           {
             data: Object.values(filteredRoleDistribution),
-            backgroundColor: ['#60a5fa', '#34d399', '#f97316', '#ef4444', '#a855f7', '#ec4899', '#eab308'],
+            backgroundColor: [
+              "rgba(59, 130, 246, 0.6)",
+              "rgba(168, 85, 247, 0.6)",
+              "rgba(234, 179, 8, 0.6)",
+              "rgba(236, 72, 153, 0.6)",
+              "rgba(34, 197, 94, 0.6)",
+              "rgba(249, 115, 22, 0.6)",
+              "rgba(107, 114, 128, 0.6)"
+            ],
+            borderColor: [
+              "rgba(59, 130, 246, 1)",
+              "rgba(168, 85, 247, 1)",
+              "rgba(234, 179, 8, 1)",
+              "rgba(236, 72, 153, 1)",
+              "rgba(34, 197, 94, 1)",
+              "rgba(249, 115, 22, 1)",
+              "rgba(107, 114, 128, 1)"
+            ],
+            borderWidth: 1
           },
         ],
       }
@@ -172,7 +190,9 @@ const DeanStats = () => {
         datasets: [
           {
             data: [totalPresent, Math.max(0, totalStudents - totalPresent)],
-            backgroundColor: ['#10b981', '#ef4444'],
+            backgroundColor: ['rgba(34, 197, 94, 0.6)', 'rgba(239, 68, 68, 0.6)'],
+            borderColor: ['rgba(34, 197, 94, 1)', 'rgba(239, 68, 68, 1)'],
+            borderWidth: 1
           },
         ],
       };
@@ -183,8 +203,17 @@ const DeanStats = () => {
       {
         label: 'Students',
         data: branchStats.map((b) => b.total_students || 0),
-        backgroundColor: '#6366f1',
+        backgroundColor: "rgba(59, 130, 246, 0.6)",
+        borderColor: "rgba(59, 130, 246, 1)",
+        borderWidth: 1
       },
+      {
+        label: 'Faculty',
+        data: branchStats.map((b) => b.faculty || 0),
+        backgroundColor: "rgba(168, 85, 247, 0.6)",
+        borderColor: "rgba(168, 85, 247, 1)",
+        borderWidth: 1
+      }
     ],
   };
 
