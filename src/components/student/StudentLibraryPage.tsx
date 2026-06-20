@@ -76,7 +76,9 @@ const StudentLibraryPage: React.FC = () => {
   const loadDashboard = async () => {
     try {
       const res = await fetchStudentLibraryDashboard();
-      if (res && !res.detail) setSummary(res);
+      if (res && typeof res.total_unpaid_fine !== 'undefined') {
+        setSummary(res);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -278,9 +280,9 @@ const StudentLibraryPage: React.FC = () => {
             {/* Tabs */}
             <div className={`library-tabs flex flex-row overflow-x-auto custom-scrollbar gap-2 p-2 rounded-2xl mt-6 border ${theme === 'dark' ? 'bg-background border-border' : 'bg-gray-50 border-gray-100'} shadow-sm`}>
               {([
-                { id: 'taken', label: 'Borrowed', count: summary.taken_count },
-                { id: 'overdue', label: 'Overdue', count: summary.overdue_count },
-                { id: 'returned', label: 'Returned', count: summary.returned_count },
+                { id: 'taken', label: 'Borrowed', count: summary?.taken_count ?? 0 },
+                { id: 'overdue', label: 'Overdue', count: summary?.overdue_count ?? 0 },
+                { id: 'returned', label: 'Returned', count: summary?.returned_count ?? 0 },
                 { id: 'catalog', label: 'Search Catalog' }
               ] as const).map(t => (
                 <button
@@ -322,17 +324,17 @@ const StudentLibraryPage: React.FC = () => {
                   </div>
                   <p className={`text-sm font-semibold truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Borrowed</p>
                 </div>
-                <p className="text-2xl font-bold">{summary.taken_count}</p>
+                <p className="text-2xl font-bold">{summary?.taken_count ?? 0}</p>
               </div>
 
-              <div className={`rounded-2xl border shadow-sm p-3 sm:p-4 ${card} ${summary.overdue_count > 0 ? 'ring-2 ring-red-500/40' : ''}`}>
+              <div className={`rounded-2xl border shadow-sm p-3 sm:p-4 ${card} ${(summary?.overdue_count ?? 0) > 0 ? 'ring-2 ring-red-500/40' : ''}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
                     <AlertTriangle size={16} className="text-red-500 sm:w-4 sm:h-4" />
                   </div>
                   <p className={`text-sm font-semibold truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Overdue</p>
                 </div>
-                <p className={`text-2xl font-bold ${summary.overdue_count > 0 ? 'text-red-500' : ''}`}>{summary.overdue_count}</p>
+                <p className={`text-2xl font-bold ${(summary?.overdue_count ?? 0) > 0 ? 'text-red-500' : ''}`}>{summary?.overdue_count ?? 0}</p>
               </div>
 
               <div className={`rounded-2xl border shadow-sm p-3 sm:p-4 ${card}`}>
@@ -342,7 +344,7 @@ const StudentLibraryPage: React.FC = () => {
                   </div>
                   <p className={`text-sm font-semibold truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Returned</p>
                 </div>
-                <p className="text-2xl font-bold">{summary.returned_count}</p>
+                <p className="text-2xl font-bold">{summary?.returned_count ?? 0}</p>
               </div>
 
               <div className={`rounded-2xl border shadow-sm p-3 sm:p-4 ${card}`}>
@@ -352,8 +354,8 @@ const StudentLibraryPage: React.FC = () => {
                   </div>
                   <p className={`text-sm font-semibold truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Unpaid Fines</p>
                 </div>
-                <p className={`text-2xl font-bold ${summary.total_unpaid_fine > 0 ? 'text-amber-500' : ''}`}>
-                  ₹{summary.total_unpaid_fine.toFixed(2)}
+                <p className={`text-2xl font-bold ${(summary?.total_unpaid_fine ?? 0) > 0 ? 'text-amber-500' : ''}`}>
+                  ₹{Number(summary?.total_unpaid_fine ?? 0).toFixed(2)}
                 </p>
               </div>
             </div>
