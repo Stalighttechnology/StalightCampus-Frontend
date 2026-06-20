@@ -605,19 +605,18 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                       <TableCell className="text-right pr-6 align-middle">
                         <div className="flex justify-end gap-1">
                           <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-95"
-                        onClick={() => fetchPaymentDetails(p.id)}
-                        title="View Details">
-                        
+                            variant="ghost"
+                            size="icon"
+                            className={`h-9 w-9 rounded-full transition-all active:scale-95 ${theme === 'dark' ? 'text-blue-400 hover:bg-blue-950/30' : 'text-blue-600 hover:bg-blue-50'}`}
+                            onClick={() => fetchPaymentDetails(p.id)}
+                            title="View Details">
                             <Eye className="h-4.5 w-4.5" />
                           </Button>
                           {(p.status === 'completed' || p.status === 'success') &&
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-9 w-9 text-green-600 hover:bg-green-50 rounded-full transition-all active:scale-95"
+                              className={`h-9 w-9 rounded-full transition-all active:scale-95 ${theme === 'dark' ? 'text-green-400 hover:bg-green-950/30' : 'text-green-600 hover:bg-green-50'}`}
                               onClick={() => downloadReceipt(p.id)}
                               disabled={downloadingReceiptId !== null}
                               title="Download Receipt">
@@ -633,7 +632,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                               variant="ghost" 
                               size="icon" 
                               onClick={() => confirmRefund(p.id)}
-                              className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                              className={`h-8 w-8 transition-all active:scale-95 ${theme === 'dark' ? 'text-amber-400 hover:bg-amber-950/30' : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50'}`}
                               title="Process Refund"
                               disabled={refundLoading === p.id}
                             >
@@ -696,28 +695,28 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
 
       {/* Payment Details Dialog */}
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent className="max-w-lg w-[90vw] h-[80vh] md:h-[80vh] border border-slate-200 shadow-2xl p-0 gap-0 overflow-hidden bg-white rounded-xl flex flex-col">
+        <DialogContent className={`max-w-lg w-[90vw] h-[80vh] md:h-[80vh] border shadow-2xl p-0 gap-0 overflow-hidden rounded-xl flex flex-col ${theme === 'dark' ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
           <DialogHeader className="sr-only">
             <DialogTitle>Payment Details</DialogTitle>
             <DialogDescription>Detailed information about the selected payment transaction</DialogDescription>
           </DialogHeader>
           {/* Header */}
-          <div className="p-6 pr-12 border-b border-slate-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 bg-white flex-shrink-0">
+          <div className={`p-6 pr-12 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 flex-shrink-0 ${theme === 'dark' ? 'border-slate-800 bg-slate-900' : 'border-slate-100 bg-white'}`}>
             <div>
-              <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Transaction Statement</h2>
-              <p className="text-slate-500 text-sm mt-1">#{selectedPayment?.transaction_id?.substring(0, 12) || 'REF-N/A'}</p>
+              <h2 className={`text-xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Transaction Statement</h2>
+              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>#{selectedPayment?.transaction_id?.substring(0, 12) || 'REF-N/A'}</p>
             </div>
             <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-1.5 shrink-0">
               <div className="scale-100 origin-right">
                 {selectedPayment && getStatusBadge(selectedPayment.status)}
               </div>
-              <span className="text-slate-500 text-sm font-medium">
+              <span className={`text-sm font-medium ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
                 {selectedPayment && new Date(selectedPayment.payment_date).toLocaleDateString('en-US', { day: 'numeric', month: 'numeric', year: 'numeric' })}
               </span>
             </div>
           </div>
 
-          <div className="p-6 bg-slate-50/50 flex-1 overflow-y-auto custom-scrollbar space-y-6">
+          <div className={`p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6 ${theme === 'dark' ? 'bg-slate-950/40' : 'bg-slate-50/50'}`}>
             {isDetailLoading ? (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -739,57 +738,57 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
               selectedPayment && (
                 <>
                   {/* Payer Information */}
-                  <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-2 gap-y-4">
+                  <div className={`p-4 rounded-lg border grid grid-cols-2 gap-y-4 ${theme === 'dark' ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'}`}>
                     <div className="col-span-2">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Payer Information</p>
-                      <p className="text-base font-semibold mt-1 text-slate-900 leading-tight">{selectedPayment.invoice.student.name}</p>
+                      <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Payer Information</p>
+                      <p className={`text-base font-semibold mt-1 leading-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{selectedPayment.invoice.student.name}</p>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-mono">USN</p>
-                      <p className="text-sm font-medium mt-1 text-slate-700">{selectedPayment.invoice.student.usn}</p>
+                      <p className={`text-xs font-semibold uppercase tracking-widest font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>USN</p>
+                      <p className={`text-sm font-medium mt-1 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>{selectedPayment.invoice.student.usn}</p>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Department</p>
-                      <p className="text-sm font-medium mt-1 text-slate-700">{selectedPayment.invoice.student.department}</p>
+                      <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Department</p>
+                      <p className={`text-sm font-medium mt-1 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>{selectedPayment.invoice.student.department}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">{translateTerminology("Semester")}</p>
+                      <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>{translateTerminology("Semester")}</p>
                       <p className="text-sm font-semibold mt-1 text-primary">Semester {selectedPayment.invoice.student.semester || 'N/A'}</p>
                     </div>
                   </div>
 
                   {/* Associated Fee */}
-                  <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-2 gap-y-4">
+                  <div className={`p-4 rounded-lg border grid grid-cols-2 gap-y-4 ${theme === 'dark' ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'}`}>
                     <div className="col-span-2">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Associated Fee</p>
-                      <p className="text-base font-semibold mt-1 text-slate-900 leading-tight">
+                      <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Associated Fee</p>
+                      <p className={`text-base font-semibold mt-1 leading-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                         {selectedPayment.invoice?.fee_assignment?.template?.name || 'Manual Assignment'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Fee Type / Semester</p>
-                      <p className="text-sm font-medium mt-1 text-slate-700 capitalize">
+                      <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Fee Type / Semester</p>
+                      <p className={`text-sm font-medium mt-1 capitalize ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
                         {selectedPayment.invoice?.fee_assignment?.template?.fee_type || 'N/A'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-mono">Invoice</p>
-                      <p className="text-sm font-medium mt-1 text-slate-700 font-mono">
+                      <p className={`text-xs font-semibold uppercase tracking-widest font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Invoice</p>
+                      <p className={`text-sm font-medium mt-1 font-mono ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
                         {selectedPayment.invoice?.invoice_number}
                       </p>
                     </div>
                   </div>
 
                   {/* Financial Summary */}
-                  <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-2 gap-y-4">
+                  <div className={`p-4 rounded-lg border grid grid-cols-2 gap-y-4 ${theme === 'dark' ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'}`}>
                     <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Payment Amount</p>
-                      <p className="text-xl font-bold mt-1 text-emerald-600 tracking-tight">
+                      <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Payment Amount</p>
+                      <p className={`text-xl font-bold mt-1 tracking-tight ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         {formatCurrency(selectedPayment.amount)}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Method</p>
+                      <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Method</p>
                       <div className="mt-1 flex justify-end">
                         {getMethodBadge(selectedPayment.payment_method)}
                       </div>
@@ -797,28 +796,28 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   </div>
 
                   {/* Technical Details */}
-                  <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-1 gap-y-4">
+                  <div className={`p-4 rounded-lg border grid grid-cols-1 gap-y-4 ${theme === 'dark' ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'}`}>
                     <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Technical Details</p>
+                      <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-300' : 'text-slate-500'}`}>Technical Details</p>
                     </div>
-                    <div className="h-px bg-slate-100"></div>
+                    <div className={`h-px ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'}`}></div>
                     <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-mono">Transaction ID</p>
-                      <p className="text-sm font-medium mt-1 text-slate-700 font-mono break-all select-all">
+                      <p className={`text-xs font-semibold uppercase tracking-widest font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Transaction ID</p>
+                      <p className={`text-sm font-medium mt-1 font-mono break-all select-all ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
                         {selectedPayment.transaction_id || 'N/A'}
                       </p>
                     </div>
                     {selectedPayment.stripe_payment_intent_id && (
                       <div>
-                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-mono">Stripe Payment Intent</p>
-                        <p className="text-sm font-medium mt-1 text-slate-700 font-mono break-all select-all">
+                        <p className={`text-xs font-semibold uppercase tracking-widest font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Stripe Payment Intent</p>
+                        <p className={`text-sm font-medium mt-1 font-mono break-all select-all ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
                           {selectedPayment.stripe_payment_intent_id}
                         </p>
                       </div>
                     )}
                     <div className="flex justify-between items-center">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Logged At</p>
-                      <p className="text-sm font-medium text-slate-700">
+                      <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Logged At</p>
+                      <p className={`text-sm font-medium ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
                         {new Date(selectedPayment.created_at).toLocaleString()}
                       </p>
                     </div>
@@ -829,7 +828,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
           </div>
 
           {/* Footer Actions */}
-          <div className="p-6 bg-white border-t border-slate-100 flex flex-col sm:flex-row gap-3 flex-shrink-0">
+          <div className={`p-6 border-t flex flex-col sm:flex-row gap-3 flex-shrink-0 ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
              {selectedPayment && (selectedPayment.status === 'completed' || selectedPayment.status === 'success') && (
               <button
                 onClick={() => downloadReceipt(selectedPayment.id)}
@@ -859,7 +858,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
             )}
             <button
               onClick={() => setIsDetailsDialogOpen(false)}
-              className="px-6 py-2.5 border border-slate-200 hover:border-slate-300 text-slate-700 font-medium rounded-lg transition-colors text-sm"
+              className={`px-6 py-2.5 font-medium rounded-lg transition-colors text-sm ${theme === 'dark' ? 'bg-primary hover:bg-primary/90 text-white shadow-sm' : 'border border-slate-200 hover:border-slate-300 text-slate-700'}`}
             >
               Close Window
             </button>
