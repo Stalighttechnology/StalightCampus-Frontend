@@ -5,6 +5,7 @@ import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Check, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import { API_ENDPOINT } from '../../utils/config';
+import { useTheme } from '../../context/ThemeContext';
 
 if (typeof window !== 'undefined' && !(window as any).Razorpay) {
   const s = document.createElement('script');
@@ -64,6 +65,7 @@ export function UpgradeTierDialog({ onClose, currentPlan, orgName, currentMaxStu
   const [estimate, setEstimate] = useState<PriceEstimate | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { theme } = useTheme();
 
   const higherTiers = useMemo(
     () => TIER_OPTIONS.filter(t => t.max > currentMaxStudents),
@@ -208,16 +210,16 @@ export function UpgradeTierDialog({ onClose, currentPlan, orgName, currentMaxStu
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60"
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${theme === 'dark' ? 'bg-slate-955 bg-slate-950/80 backdrop-blur-sm' : 'bg-slate-900/60'}`}
       style={{ animation: 'fadeInDialog 0.15s ease' }}
     >
-      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-slate-200 my-4">
+      <div className={`rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col border ${theme === 'dark' ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'} my-4`}>
 
         {/* Header */}
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white flex-shrink-0">
+        <div className={`p-6 border-b flex justify-between items-center flex-shrink-0 ${theme === 'dark' ? 'border-slate-800 bg-slate-900' : 'border-slate-100 bg-white'}`}>
           <div>
-            <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Upgrade Institution Tier</h2>
-            <p className="text-slate-500 text-sm mt-1">Select a higher capacity tier for your organization</p>
+            <h2 className={`text-xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Upgrade Institution Tier</h2>
+            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Select a higher capacity tier for your organization</p>
           </div>
           <button onClick={onClose} className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors shadow-sm">Close</button>
         </div>
@@ -227,22 +229,22 @@ export function UpgradeTierDialog({ onClose, currentPlan, orgName, currentMaxStu
 
           {/* Current subscription summary */}
           <div className="px-6 pt-5">
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className={`rounded-lg p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 border ${theme === 'dark' ? 'bg-slate-900/60 border-slate-800' : 'bg-slate-55 bg-slate-50 border-slate-200'}`}>
               <div>
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Plan</p>
-                <p className="text-sm font-semibold mt-1 capitalize text-slate-800">{currentPlan}</p>
+                <p className={`text-[10px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Plan</p>
+                <p className={`text-sm font-semibold mt-1 capitalize ${theme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>{currentPlan}</p>
               </div>
               <div>
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Current Max</p>
-                <p className="text-sm font-semibold mt-1 text-slate-800">{currentMaxStudents} students</p>
+                <p className={`text-[10px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Current Max</p>
+                <p className={`text-sm font-semibold mt-1 ${theme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>{currentMaxStudents} students</p>
               </div>
               <div>
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Expires</p>
-                <p className="text-sm font-semibold mt-1 text-slate-800">{fmtDate(expiryDate)}</p>
+                <p className={`text-[10px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Expires</p>
+                <p className={`text-sm font-semibold mt-1 ${theme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>{fmtDate(expiryDate)}</p>
               </div>
               <div>
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Days Left</p>
-                <p className="text-sm font-semibold mt-1 text-slate-800">
+                <p className={`text-[10px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>Days Left</p>
+                <p className={`text-sm font-semibold mt-1 ${theme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>
                   {estimate ? `${estimate.days_remaining} days` : '—'}
                 </p>
               </div>
@@ -250,16 +252,16 @@ export function UpgradeTierDialog({ onClose, currentPlan, orgName, currentMaxStu
           </div>
 
           {/* Tier selector */}
-          <div className="p-6 bg-slate-50/50 space-y-3">
+          <div className={`p-6 space-y-3 ${theme === 'dark' ? 'bg-slate-950/40' : 'bg-slate-50/50'}`}>
             {higherTiers.length === 0 ? (
-              <div className="text-center p-6 bg-amber-50 text-amber-800 rounded-lg border border-amber-200">
+              <div className={`text-center p-6 rounded-lg border ${theme === 'dark' ? 'bg-amber-955 bg-amber-950/20 text-amber-300 border-amber-900/50' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
                 <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-80" />
                 <p className="font-medium">Maximum Tier Reached</p>
                 <p className="text-sm mt-1">You are already on the highest available tier. Contact sales for custom plans.</p>
               </div>
             ) : (
               <>
-                <label className="text-xs font-semibold text-slate-700 uppercase tracking-widest block">Select New Tier</label>
+                <label className={`text-xs font-semibold uppercase tracking-widest block ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>Select New Tier</label>
                 <div className="grid grid-cols-1 gap-2">
                   {higherTiers.map(tier => {
                     const tierYearly = tier.base * baseRate;
@@ -270,26 +272,26 @@ export function UpgradeTierDialog({ onClose, currentPlan, orgName, currentMaxStu
                         className={`p-4 border rounded-lg cursor-pointer transition-all ${
                           selectedTierBase === tier.base
                             ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                            : 'bg-white border-slate-200 hover:border-slate-300'
+                            : `${theme === 'dark' ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300'}`
                         }`}
                       >
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-3">
-                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${selectedTierBase === tier.base ? 'border-primary bg-primary' : 'border-slate-300'}`}>
+                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${selectedTierBase === tier.base ? 'border-primary bg-primary' : (theme === 'dark' ? 'border-slate-700' : 'border-slate-300')}`}>
                               {selectedTierBase === tier.base && <Check className="h-3 w-3 text-white" />}
                             </div>
                             <div>
-                              <p className="font-semibold text-slate-900">{tier.name}</p>
+                              <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{tier.name}</p>
                               <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-xs text-slate-500">Base: <strong>{tier.base}</strong> students</span>
-                                <span className="text-slate-300">·</span>
-                                <span className="text-xs text-slate-500">Max cap: <strong>{tier.max}</strong></span>
+                                <span className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Base: <strong>{tier.base}</strong> students</span>
+                                <span className={theme === 'dark' ? 'text-slate-700' : 'text-slate-300'}>·</span>
+                                <span className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Max cap: <strong>{tier.max}</strong></span>
                               </div>
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0">
                             <p className="font-semibold text-primary">{fmtINR(tierYearly)}</p>
-                            <p className="text-[10px] text-slate-400 uppercase tracking-wide">full year</p>
+                            <p className={`text-[10px] uppercase tracking-wide ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>full year</p>
                           </div>
                         </div>
                       </div>
@@ -302,50 +304,50 @@ export function UpgradeTierDialog({ onClose, currentPlan, orgName, currentMaxStu
 
           {/* Price breakdown panel */}
           {higherTiers.length > 0 && selectedTier && (
-            <div className="px-6 pb-6 space-y-4">
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
-                <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-200">
-                  <p className="text-xs font-semibold text-slate-700 uppercase tracking-widest">Price Breakdown</p>
+            <div className="p-6 space-y-4 pt-0">
+              <div className={`border rounded-lg overflow-hidden ${theme === 'dark' ? 'border-slate-800' : 'border-slate-200'}`}>
+                <div className={`px-4 py-2.5 border-b ${theme === 'dark' ? 'bg-slate-900/60 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
+                  <p className="text-xs font-semibold uppercase tracking-widest">Price Breakdown</p>
                 </div>
 
                 {estimating ? (
-                  <div className="flex items-center justify-center gap-2 p-6 text-slate-400 text-sm">
+                  <div className={`flex items-center justify-center gap-2 p-6 text-sm ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Calculating…
                   </div>
                 ) : estimate ? (
-                  <div className="divide-y divide-slate-100">
+                  <div className={`divide-y ${theme === 'dark' ? 'divide-slate-800' : 'divide-slate-100'}`}>
                     {/* Prorated plan cost */}
                     <div className="flex justify-between items-center px-4 py-3">
                       <div>
-                        <p className="text-sm text-slate-700">Prorated Cost ({estimate.days_remaining} days)</p>
-                        <p className="text-xs text-slate-400">{selectedTier.name} · {selectedTier.base} base students</p>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>Prorated Cost ({estimate.days_remaining} days)</p>
+                        <p className={`text-xs ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>{selectedTier.name} · {selectedTier.base} base students</p>
                       </div>
-                      <p className="text-sm font-medium text-slate-900">{fmtINR(estimate.new_plan_cost)}</p>
+                      <p className={`text-sm font-medium ${theme === 'dark' ? 'text-slate-200' : 'text-slate-900'}`}>{fmtINR(estimate.new_plan_cost)}</p>
                     </div>
 
                     {/* Unused credit */}
                     {estimate.unused_credit > 0 && (
-                      <div className="flex justify-between items-center px-4 py-3 bg-emerald-50">
+                      <div className={`flex justify-between items-center px-4 py-3 ${theme === 'dark' ? 'bg-emerald-950/20 text-emerald-300' : 'bg-emerald-50 text-emerald-700'}`}>
                         <div>
-                          <p className="text-sm text-emerald-700">Unused Credit</p>
-                          <p className="text-xs text-emerald-600">Applied from current subscription</p>
+                          <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-750 text-emerald-700'}`}>Unused Credit</p>
+                          <p className={`text-xs ${theme === 'dark' ? 'text-emerald-500' : 'text-emerald-600'}`}>Applied from current subscription</p>
                         </div>
-                        <p className="text-sm font-medium text-emerald-700">− {fmtINR(estimate.unused_credit)}</p>
+                        <p className={`text-sm font-medium ${theme === 'dark' ? 'text-emerald-450 text-emerald-400' : 'text-emerald-750 text-emerald-700'}`}>− {fmtINR(estimate.unused_credit)}</p>
                       </div>
                     )}
 
                     {/* Total */}
-                    <div className="flex justify-between items-center px-4 py-3 bg-primary/5 border-t border-primary/10">
+                    <div className={`flex justify-between items-center px-4 py-3 border-t ${theme === 'dark' ? 'bg-primary/10 border-primary/20 text-white' : 'bg-primary/5 border-primary/10 text-slate-900'}`}>
                       <div>
-                        <p className="text-sm font-bold text-slate-900">Total Payable Today</p>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wide">Inclusive of all taxes</p>
+                        <p className={`text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Total Payable Today</p>
+                        <p className={`text-[10px] uppercase tracking-wide ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Inclusive of all taxes</p>
                       </div>
                       <p className="text-xl font-bold text-primary">{fmtINR(totalWithGst)}</p>
                     </div>
                   </div>
                 ) : (
-                  <div className="px-4 py-4 text-xs text-slate-400 text-center">
+                  <div className={`px-4 py-4 text-xs text-center ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
                     Select a tier to see the price breakdown.
                   </div>
                 )}
@@ -353,14 +355,14 @@ export function UpgradeTierDialog({ onClose, currentPlan, orgName, currentMaxStu
 
               {/* Transition arrow */}
               {selectedTier && (
-                <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
-                  <span className="px-2 py-1 bg-slate-100 rounded text-xs font-medium">{currentMaxStudents} students</span>
+                <div className={`flex items-center justify-center gap-2 text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'}`}>{currentMaxStudents} students</span>
                   <ArrowRight className="h-4 w-4 text-primary" />
                   <span className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-semibold">{selectedTier.base} base + buffer up to {selectedTier.max}</span>
                 </div>
               )}
 
-              <p className="text-[10px] text-slate-400 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">
+              <p className={`text-[10px] leading-relaxed p-3 rounded-lg border ${theme === 'dark' ? 'bg-slate-950/40 border-slate-800 text-slate-500' : 'bg-slate-55 bg-slate-50 border-slate-100 text-slate-400'}`}>
                 By proceeding, you agree to Stalight's Terms of Service. Any existing buffer packs will be cleared and rolled into the credit calculation. All payments are final and non-refundable.
               </p>
 
@@ -383,4 +385,4 @@ export function UpgradeTierDialog({ onClose, currentPlan, orgName, currentMaxStu
     </div>,
     document.body
   );
-};
+}

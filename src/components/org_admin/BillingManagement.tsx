@@ -530,7 +530,7 @@ export const BillingManagement: React.FC = () => {
               </div>
             )}
             {org?.plan_type === 'advance' && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex gap-3 text-emerald-800">
+              <div className={`border rounded-lg p-4 flex gap-3 ${theme === 'dark' ? 'bg-emerald-950/30 border-emerald-900/60 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
                 <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-sm">Advance Plan Active</p>
@@ -539,7 +539,7 @@ export const BillingManagement: React.FC = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className={isMaxCapacityReached ? "border-emerald-300 text-emerald-700 hover:bg-emerald-100" : "border-emerald-300 text-emerald-700 hover:bg-emerald-100"} 
+                      className={theme === 'dark' ? "border-emerald-800 text-emerald-400 hover:bg-emerald-900/30 hover:text-emerald-300" : "border-emerald-300 text-emerald-700 hover:bg-emerald-100"} 
                       onClick={() => isMaxCapacityReached ? setIsTierUpgradeOpen(true) : setIsCapacityUpgradeOpen(true)}
                     >
                       {isMaxCapacityReached ? 'Upgrade Tier' : 'Increase Limit'}
