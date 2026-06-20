@@ -705,7 +705,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                           className={`border rounded-lg p-4 transition-all ${theme === 'dark' ? 'border-border hover:border-primary/50 hover:bg-card/50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}`}
                           whileHover={{ x: 4 }}>
 
-                          <div className="flex justify-between items-start mb-4">
+                          <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-4 mb-4">
                             <motion.div variants={itemVariants}>
                               <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                                 {invoice.invoice_type === 'library_fine' ? 'Library Fine' : `Semester ${invoice.semester}`} • {invoice.academic_year}
@@ -885,7 +885,66 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                           className={`border rounded-lg p-4 transition-all ${theme === 'dark' ? 'border-border hover:border-primary/50 hover:bg-card/50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}`}
                           whileHover={{ x: 4 }}>
 
-                          <div className="flex justify-between items-start gap-4">
+                          {/* Mobile Layout */}
+                          <div className="flex flex-col gap-3 md:hidden">
+                            <div className="flex justify-between items-center">
+                              <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                                {formatCurrency(payment.amount)}
+                              </h3>
+                              <Badge
+                                variant="outline"
+                                className={`font-semibold border-none rounded-full px-3 py-1 flex items-center gap-1 ${
+                                  payment.status === 'success'
+                                    ? (theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700')
+                                    : payment.status === 'failed'
+                                    ? (theme === 'dark' ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-700')
+                                    : (theme === 'dark' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700')
+                                }`}>
+                                {payment.status === 'success' ? (
+                                  <>
+                                    <CheckCircle size={12} className="shrink-0" />
+                                    Success
+                                  </>
+                                ) : payment.status === 'failed' ? (
+                                  <>
+                                    <AlertCircle size={12} className="shrink-0" />
+                                    Failed
+                                  </>
+                                ) : (
+                                  <>
+                                    <Loader2 size={12} className="animate-spin shrink-0" />
+                                    Pending
+                                  </>
+                                )}
+                              </Badge>
+                            </div>
+
+                            <div className={`h-px w-full ${theme === 'dark' ? 'bg-border/40' : 'bg-gray-200/50'}`} />
+
+                            <div className="flex justify-between items-center">
+                              <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                                {new Date(payment.timestamp).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })} • {payment.mode}
+                              </p>
+                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className={theme === 'dark' ? 'text-primary hover:bg-primary/10' : 'text-blue-600 hover:bg-blue-50'}
+                                  onClick={() => handleDownloadReceipt(payment.id)}
+                                  disabled={downloadingReceiptId === payment.id}
+                                  title="Export PDF">
+                                  {downloadingReceiptId === payment.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Download className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </motion.div>
+                            </div>
+                          </div>
+
+                          {/* Desktop Layout */}
+                          <div className="hidden md:flex justify-between items-center gap-4">
                             <motion.div variants={itemVariants} className="flex-1">
                               <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                                 {formatCurrency(payment.amount)}
@@ -894,7 +953,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                                 {new Date(payment.timestamp).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })} • {payment.mode}
                               </p>
                             </motion.div>
-                            <motion.div variants={itemVariants} className="flex gap-2 flex-shrink-0">
+                            <motion.div variants={itemVariants} className="flex items-center gap-2 flex-shrink-0">
                               <Badge
                                 variant="outline"
                                 className={`font-semibold border-none rounded-full px-3 py-1 flex items-center gap-1 ${
