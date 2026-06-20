@@ -5,12 +5,68 @@ import { useTheme } from "../../context/ThemeContext";
 import { SkeletonList, SkeletonPageHeader } from "../ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AlertTriangle, Bell, Info } from "lucide-react";
+import { Button } from "../ui/button";
+import Swal from "sweetalert2";
 
 const DeanAlerts = () => {
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [alerts, setAlerts] = useState<any[]>([]);
+  const [publishingAll, setPublishingAll] = useState(false);
+
+  const handlePublishAll = async () => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'Publish all scheduled upcoming exams?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#9147e0',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, publish all!',
+      target: document.body
+    });
+
+    if (!result.isConfirmed) return;
+
+    setPublishingAll(true);
+    try {
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/dean/reports/exams/publish-all/`, {
+        method: 'POST'
+      });
+      const json = await res.json();
+      if (json.success) {
+        Swal.fire({
+          title: 'Published',
+          text: json.message || 'All exams published successfully.',
+          icon: 'success',
+          confirmButtonColor: '#9147e0',
+          target: document.body
+        });
+        const alertsRes = await fetchWithTokenRefresh(`${API_ENDPOINT}/dean/reports/alerts/`);
+        const alertsJson = await alertsRes.json();
+        if (alertsJson.success) setAlerts(alertsJson.data || []);
+      } else {
+        Swal.fire({
+          title: 'Error',
+          text: json.message || 'Failed to publish exams.',
+          icon: 'error',
+          confirmButtonColor: '#9147e0',
+          target: document.body
+        });
+      }
+    } catch (e: any) {
+      Swal.fire({
+        title: 'Error',
+        text: e?.message || 'Network error',
+        icon: 'error',
+        confirmButtonColor: '#9147e0',
+        target: document.body
+      });
+    } finally {
+      setPublishingAll(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -66,6 +122,18 @@ const DeanAlerts = () => {
                       <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{a.created_at || a.timestamp}</span>
                     </div>
                     <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-foreground/80' : 'text-gray-700'}`}>{a.summary || a.message}</p>
+                    {a.title?.startsWith("New Exam Scheduled:") && a.message?.includes("pending publication") && (
+                      <div className="mt-3">
+                        <Button
+                          onClick={handlePublishAll}
+                          disabled={publishingAll}
+                          size="sm"
+                          className="bg-primary text-white hover:bg-primary/90 text-xs font-semibold h-8"
+                        >
+                          {publishingAll ? "Publishing..." : "Publish All Schedule"}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

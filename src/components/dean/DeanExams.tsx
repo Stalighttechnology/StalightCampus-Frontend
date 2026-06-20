@@ -709,7 +709,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
             </table>
           </div>
           <div className="mt-4 flex justify-end gap-3">
-            {currentGroup?.subjects.some(ex => !ex.is_published) && (
+            {currentGroup?.status !== 'past' && currentGroup?.subjects.some(ex => !ex.is_published) && (
               <Button onClick={() => currentGroup && publishAllExams(currentGroup)} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 Publish All Schedule
               </Button>
