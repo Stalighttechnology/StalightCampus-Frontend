@@ -27,7 +27,10 @@ const TransportIncidents: React.FC = () => {
     setLoading(true);
     try {
       const inc = await fetchIncidents();
-      if (inc.results || Array.isArray(inc)) setIncidents(inc.results || inc);
+      const rawIncidents = inc.results || inc || [];
+      // Exclude emergency tickets since they are displayed on the dashboard announcements banner
+      const nonEmergency = rawIncidents.filter((i: any) => i.type !== 'emergency');
+      setIncidents(nonEmergency);
     } finally {
       setLoading(false);
     }

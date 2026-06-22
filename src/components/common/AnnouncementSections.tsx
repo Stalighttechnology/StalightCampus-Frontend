@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit2, Trash2, Eye, Clock, User, AlertCircle, MoreVertical, CheckCircle2, XCircle, Megaphone, BellOff } from "lucide-react";
+import { Edit2, Trash2, Eye, Clock, User, AlertCircle, MoreVertical, CheckCircle2, XCircle, Megaphone, BellOff, MapPin, ExternalLink } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { Announcement } from "@/utils/announcements_api";
 import { actionGatePass } from "@/utils/hms_api";
@@ -59,6 +59,7 @@ interface AnnouncementSectionsProps {
   showExpired?: boolean;
   setShowExpired?: (val: boolean) => void;
   hideReceivedTab?: boolean;
+  onResolveEmergency?: (incidentId: number) => void;
 }
 
 const getPriorityColor = (priority: string) => {
@@ -171,6 +172,7 @@ export const AnnouncementSections = ({
   showExpired: propShowExpired,
   setShowExpired: propSetShowExpired,
   hideReceivedTab = false,
+  onResolveEmergency,
 }: AnnouncementSectionsProps) => {
   const { theme } = useTheme();
   const [localShowExpired, setLocalShowExpired] = useState(false);
@@ -587,12 +589,15 @@ export const AnnouncementSections = ({
                 <TableBody>
                   {filteredReceivedAnnouncements.map((announcement) => {
                     const unread = announcement.is_read === false;
+                    const isEmergency = announcement.is_emergency;
+                    const hasCoords = announcement.latitude !== undefined && announcement.latitude !== null &&
+                                      announcement.longitude !== undefined && announcement.longitude !== null;
                     return (
-                      <TableRow key={announcement.id} className={`${unread ? 'bg-primary/5 font-medium' : ''} ${theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50'}`}>
+                      <TableRow key={announcement.id} className={`${isEmergency ? 'bg-red-50/40 dark:bg-red-950/10 border-l-4 border-l-red-500' : unread ? 'bg-primary/5 font-medium' : ''} ${theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50'}`}>
                         <TableCell>
                           <div className="flex flex-col gap-1">
                             <div className="flex items-start gap-2">
-                              {unread && <div className="w-2 h-2 rounded-full bg-primary shrink-0 shadow-sm mt-1.5" />}
+                              {unread && !isEmergency && <div className="w-2 h-2 rounded-full bg-primary shrink-0 shadow-sm mt-1.5" />}
                               <div className="text-foreground text-sm sm:text-base font-semibold leading-tight whitespace-normal break-words">{announcement.title}</div>
                             </div>
                             <div className="flex flex-col gap-0.5 mt-0.5 ml-4.5">
@@ -604,6 +609,23 @@ export const AnnouncementSections = ({
                                 <Clock className="w-3 h-3" />
                                 {format(new Date(announcement.created_at), 'dd MMM, HH:mm')}
                               </span>
+                              {isEmergency && hasCoords && (
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-[10px] flex items-center gap-1 text-red-500 font-semibold bg-red-50 dark:bg-red-950/30 px-1.5 py-0.5 rounded border border-red-200 dark:border-red-900/50">
+                                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                                    {announcement.latitude?.toFixed(4)}, {announcement.longitude?.toFixed(4)}
+                                  </span>
+                                  <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${announcement.latitude},${announcement.longitude}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1 bg-primary/5 px-1.5 py-0.5 rounded border border-primary/20"
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                    Get Direction
+                                  </a>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </TableCell>
@@ -614,7 +636,7 @@ export const AnnouncementSections = ({
                             className="h-8 text-xs font-semibold px-3 hover:bg-primary/10 hover:text-primary border-primary/20"
                             onClick={() => {
                               setViewingAnnouncement(announcement);
-                              if (unread && onMarkRead) onMarkRead(announcement.id);
+                              if (unread && !isEmergency && onMarkRead) onMarkRead(announcement.id);
                             }}
                           >
                             View Content
@@ -629,21 +651,35 @@ export const AnnouncementSections = ({
                           {format(new Date(announcement.created_at), 'dd MMM, HH:mm')}
                         </TableCell>
                         <TableCell className="text-center">
-                          {unread && onMarkRead && (
+                          {isEmergency ? (
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
-                              className="h-8 text-xs text-primary hover:text-primary hover:bg-primary/10 mx-auto"
-                              onClick={() => onMarkRead(announcement.id)}
+                              className="h-8 text-xs font-semibold px-3 text-red-600 border-red-200 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:border-red-900 dark:bg-red-950/30 dark:hover:bg-red-900/50 flex items-center gap-1 mx-auto"
+                              onClick={() => onResolveEmergency && announcement.incident_id && onResolveEmergency(announcement.incident_id)}
                             >
-                              <Eye className="w-3 h-3 mr-1" />
-                              Mark Read
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              Resolve
                             </Button>
-                          )}
-                          {!unread && (
-                            <Badge variant="outline" className="text-xs px-2 py-0.5 h-6 text-muted-foreground font-medium mx-auto">
-                              Read
-                            </Badge>
+                          ) : (
+                            <>
+                              {unread && onMarkRead && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 text-xs text-primary hover:text-primary hover:bg-primary/10 mx-auto"
+                                  onClick={() => onMarkRead(announcement.id)}
+                                >
+                                  <Eye className="w-3 h-3 mr-1" />
+                                  Mark Read
+                                </Button>
+                              )}
+                              {!unread && (
+                                <Badge variant="outline" className="text-xs px-2 py-0.5 h-6 text-muted-foreground font-medium mx-auto">
+                                  Read
+                                </Badge>
+                              )}
+                            </>
                           )}
                         </TableCell>
                       </TableRow>
@@ -657,21 +693,26 @@ export const AnnouncementSections = ({
             <div className="block sm:hidden space-y-3 p-0">
               {filteredReceivedAnnouncements.map((announcement) => {
                 const unread = announcement.is_read === false;
+                const isEmergency = announcement.is_emergency;
+                const hasCoords = announcement.latitude !== undefined && announcement.latitude !== null &&
+                                  announcement.longitude !== undefined && announcement.longitude !== null;
                 return (
-                  <div key={announcement.id} className={`ann-card-mobile ${theme === 'dark' ? 'bg-muted/10' : 'bg-gray-50/50'} ${unread ? 'border-primary/40 bg-primary/5' : ''}`}>
+                  <div key={announcement.id} className={`ann-card-mobile ${theme === 'dark' ? 'bg-muted/10' : 'bg-gray-50/50'} ${isEmergency ? 'border-red-500 border-l-4 bg-red-50/20 dark:bg-red-950/10' : unread ? 'border-primary/40 bg-primary/5' : ''}`}>
                     <div className="ann-card-header">
                       <div className="flex justify-between items-start">
                         <Badge className={`${getPriorityColor(announcement.priority)} text-[10px] uppercase font-semibold px-2 py-0.5`}>
                           {announcement.priority}
                         </Badge>
-                        {unread ? (
+                        {isEmergency ? (
+                          <Badge className="bg-red-500 text-white text-[10px]">Emergency</Badge>
+                        ) : unread ? (
                           <Badge className="bg-primary text-white text-[10px]">Unread</Badge>
                         ) : (
                           <Badge variant="outline" className="text-[10px] text-muted-foreground">Read</Badge>
                         )}
                       </div>
                       <div className="ann-card-title text-foreground">
-                        {unread && <span className="inline-block w-2 h-2 rounded-full bg-primary mr-2 shadow-sm" />}
+                        {unread && !isEmergency && <span className="inline-block w-2 h-2 rounded-full bg-primary mr-2 shadow-sm" />}
                         {announcement.title}
                       </div>
                       <div className="ann-card-meta">
@@ -681,6 +722,23 @@ export const AnnouncementSections = ({
                         <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5" /> {format(new Date(announcement.created_at), 'dd MMM, HH:mm')}
                         </span>
+                        {isEmergency && hasCoords && (
+                          <div className="flex flex-col gap-2 mt-2">
+                            <span className="text-[11px] flex items-center gap-1 text-red-500 font-semibold bg-red-50 dark:bg-red-950/30 px-2 py-1 rounded border border-red-200 dark:border-red-900/50 w-fit">
+                              <MapPin className="w-3.5 h-3.5 shrink-0" />
+                              {announcement.latitude?.toFixed(4)}, {announcement.longitude?.toFixed(4)}
+                            </span>
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${announcement.latitude},${announcement.longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-bold text-primary hover:underline flex items-center gap-1 bg-primary/5 px-3 py-1.5 rounded border border-primary/20 w-full justify-center"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              Get Direction
+                            </a>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -691,20 +749,31 @@ export const AnnouncementSections = ({
                         className="w-full h-9 text-xs font-semibold bg-background border-primary/20 text-primary"
                         onClick={() => {
                           setViewingAnnouncement(announcement);
-                          if (unread && onMarkRead) onMarkRead(announcement.id);
+                          if (unread && !isEmergency && onMarkRead) onMarkRead(announcement.id);
                         }}
                       >
                         <Eye className="w-4 h-4 mr-2" /> View Content
                       </Button>
-                      {unread && onMarkRead && (
+                      {isEmergency ? (
                         <Button
-                          variant="ghost"
+                          variant="destructive"
                           size="sm"
-                          className="w-full h-9 text-xs text-primary bg-primary/10 hover:bg-primary/20"
-                          onClick={() => onMarkRead(announcement.id)}
+                          className="w-full h-9 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white mt-2 flex items-center justify-center gap-1.5 rounded-xl"
+                          onClick={() => onResolveEmergency && announcement.incident_id && onResolveEmergency(announcement.incident_id)}
                         >
-                          Mark as Read
+                          <CheckCircle2 className="h-4 w-4 shrink-0" /> Resolve Emergency
                         </Button>
+                      ) : (
+                        unread && onMarkRead && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full h-9 text-xs text-primary bg-primary/10 hover:bg-primary/20"
+                            onClick={() => onMarkRead(announcement.id)}
+                          >
+                            Mark as Read
+                          </Button>
+                        )
                       )}
                     </div>
                   </div>
@@ -835,6 +904,48 @@ export const AnnouncementSections = ({
               </div>
             </div>
 
+            {viewingAnnouncement?.is_emergency && (
+              <div className={`p-4 rounded-xl border space-y-3 ${theme === 'dark' ? 'bg-red-950/20 border-red-900/30' : 'bg-red-50/50 border-red-100'}`}>
+                <h4 className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                  Live Incident Details
+                </h4>
+                {viewingAnnouncement.latitude !== undefined && viewingAnnouncement.latitude !== null && (
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background/55 p-3 rounded-lg border border-border/50">
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="w-4 h-4 text-red-500 shrink-0" />
+                      <span className="font-semibold text-foreground/80">
+                        Location Co-ordinates: {viewingAnnouncement.latitude?.toFixed(6)}, {viewingAnnouncement.longitude?.toFixed(6)}
+                      </span>
+                    </div>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${viewingAnnouncement.latitude},${viewingAnnouncement.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-bold text-primary hover:underline flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded border border-primary/20 w-full sm:w-auto justify-center"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Get Direction
+                    </a>
+                  </div>
+                )}
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    onClick={() => {
+                      if (onResolveEmergency && viewingAnnouncement.incident_id) {
+                        onResolveEmergency(viewingAnnouncement.incident_id);
+                        setViewingAnnouncement(null);
+                      }
+                    }}
+                    className="w-full text-xs font-semibold h-10 bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-1.5 rounded-xl border border-transparent"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    Resolve Emergency
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {viewingAnnouncement?.gate_pass && (
               <div className={`p-4 rounded-xl border space-y-3 ${theme === 'dark' ? 'bg-purple-950/20 border-purple-900/30' : 'bg-purple-50/50 border-purple-100'}`}>
                 <h4 className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Gate Pass Action Required</h4>
@@ -892,7 +1003,7 @@ export const AnnouncementSections = ({
                 )}
               </div>
               <div className="text-sm text-muted-foreground font-semibold opacity-70">
-                Expires: {viewingAnnouncement && formatDate(viewingAnnouncement.expires_at)}
+                {viewingAnnouncement?.is_emergency ? "Active Ticket" : `Expires: ${viewingAnnouncement && formatDate(viewingAnnouncement.expires_at)}`}
               </div>
             </div>
           </div>

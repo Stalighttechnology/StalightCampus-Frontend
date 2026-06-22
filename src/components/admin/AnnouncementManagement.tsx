@@ -32,7 +32,7 @@ import {
   AlertDialogTitle
 } from
   "@/components/ui/alert-dialog";
-import { Loader2, Plus, Calendar as CalendarIcon, Check } from "lucide-react";
+import { Loader2, Plus, Calendar as CalendarIcon, Check, AlertTriangle, MapPin, ExternalLink, CheckCircle } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -51,6 +51,7 @@ import {
 } from
   "@/utils/announcements_api";
 import { manageBranches } from "@/utils/admin_api";
+import { fetchIncidents, resolveIncident } from "@/utils/transport_api";
 import AnnouncementSections from "@/components/common/AnnouncementSections";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -64,6 +65,7 @@ const AdminAnnouncementManagement = () => {
   const [error, setError] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [emergencies, setEmergencies] = useState<any[]>([]);
 
   // Pagination state
   const [myPage, setMyPage] = useState(1);
@@ -133,6 +135,20 @@ const AdminAnnouncementManagement = () => {
       setMyAnnouncements([]);
       setReceivedAnnouncements([]);
     }
+
+    if (user?.role === "transport_admin") {
+      try {
+        const inc = await fetchIncidents();
+        const rawIncidents = inc.results || inc || [];
+        const activeEmergencies = rawIncidents.filter(
+          (i: any) => i.type === "emergency" && i.status === "pending"
+        );
+        setEmergencies(activeEmergencies);
+      } catch (e) {
+        console.error("Failed to load emergencies", e);
+      }
+    }
+
     setLoading(false);
   };
 
@@ -389,6 +405,42 @@ const AdminAnnouncementManagement = () => {
       }
     } catch (error: any) {
 
+    }
+  };
+
+  const handleResolveEmergency = async (id: number) => {
+    const result = await MySwal.fire({
+      title: "Resolve Emergency",
+      input: "textarea",
+      inputLabel: "Resolution Details",
+      inputPlaceholder: "Describe actions taken to resolve this emergency...",
+      showCancelButton: true,
+      confirmButtonText: "Resolve Emergency",
+      confirmButtonColor: "#22c55e",
+      cancelButtonColor: theme === "dark" ? "#3f3f46" : "#d1d5db",
+      background: theme === "dark" ? "#1c1c1e" : "#ffffff",
+      color: theme === "dark" ? "#E4E4E7" : "#000000",
+    });
+
+    if (result.value) {
+      try {
+        const res = await resolveIncident(id, result.value);
+        if (res.success) {
+          MySwal.fire({
+            icon: "success",
+            title: "Resolved",
+            text: "Emergency ticket has been resolved and closed.",
+            background: theme === "dark" ? "#1c1c1e" : "#ffffff",
+            color: theme === "dark" ? "#E4E4E7" : "#000000",
+            confirmButtonColor: "#22c55e"
+          });
+          setEmergencies(prev => prev.filter(e => e.id !== id));
+        } else {
+          MySwal.fire("Error", res.message || "Failed to resolve emergency", "error");
+        }
+      } catch (err) {
+        MySwal.fire("Error", "Server error processing resolution", "error");
+      }
     }
   };
 
@@ -703,19 +755,41 @@ const AdminAnnouncementManagement = () => {
             <AnnouncementSections
               header={renderHeader}
               myAnnouncements={myAnnouncements}
-              receivedAnnouncements={receivedAnnouncements}
+              receivedAnnouncements={[
+                ...receivedAnnouncements,
+                ...emergencies.map(e => ({
+                  id: e.id + 1000000,
+                  title: e.title,
+                  message: e.description,
+                  target_roles: ['transport_admin'],
+                  is_global: false,
+                  branch: null,
+                  priority: 'urgent',
+                  is_active: true,
+                  expires_at: new Date(Date.now() + 86400000 * 365).toISOString(),
+                  created_at: e.created_at,
+                  created_by_name: e.reported_by_details ? `${e.reported_by_details.first_name || ''} ${e.reported_by_details.last_name || ''}`.trim() : "Driver",
+                  created_by_role: 'driver',
+                  is_read: false,
+                  is_emergency: true,
+                  latitude: e.latitude,
+                  longitude: e.longitude,
+                  incident_id: e.id
+                }))
+              ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onToggleActive={handleToggleActive}
               onMarkRead={handleMarkRead}
+              onResolveEmergency={handleResolveEmergency}
               loading={loading}
               showActions={true}
               myPagination={{ count: totalMyCount, page: myPage, pageSize }}
               receivedPagination={{
-                count: totalReceivedCount,
+                count: totalReceivedCount + emergencies.length,
                 page: receivedPage,
                 pageSize,
-                unreadCount: unreadReceivedCount
+                unreadCount: unreadReceivedCount + emergencies.length
               }}
               onPageChange={handlePageChange}
               activeTab={activeTab}

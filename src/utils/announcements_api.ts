@@ -24,6 +24,10 @@ export interface Announcement {
   is_expired: boolean;
   is_read?: boolean;
   gate_pass?: number | null;
+  is_emergency?: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  incident_id?: number | null;
 }
 
 export interface AnnouncementListResponse {
