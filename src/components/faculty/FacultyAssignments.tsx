@@ -544,6 +544,8 @@ const FacultyAssignments = () => {
     pendingGrading: assignments.reduce((acc, a) => acc + (a.submission_count - a.graded_count), 0)
   };
 
+  const hasSubmissions = !!(editingAssignment && editingAssignment.submission_count > 0);
+
   return (
     <div>
       <Card>
@@ -964,7 +966,7 @@ const FacultyAssignments = () => {
                         setTimeout(() => { branchOpenRef.current = false; }, 300);
                       }
                     }}
-                    disabled={assignedSubjects.length === 0 || uniqueBranches.length === 0}>
+                    disabled={hasSubmissions || assignedSubjects.length === 0 || uniqueBranches.length === 0}>
 
                     <SelectTrigger>
                       <SelectValue placeholder={assignedSubjects.length === 0 ? "No branches assigned" : "Select Branch"} />
@@ -996,7 +998,7 @@ const FacultyAssignments = () => {
                         setTimeout(() => { subjectOpenRef.current = false; }, 300);
                       }
                     }}
-                    disabled={!formData.branch_id || uniqueSubjects.length === 0}>
+                    disabled={hasSubmissions || !formData.branch_id || uniqueSubjects.length === 0}>
 
                     <SelectTrigger>
                       <SelectValue placeholder={!formData.branch_id ? "Select Branch first" : uniqueSubjects.length === 0 ? "No subjects assigned" : "Select Subject"} />
@@ -1028,7 +1030,7 @@ const FacultyAssignments = () => {
                         setTimeout(() => { semesterOpenRef.current = false; }, 300);
                       }
                     }}
-                    disabled={!formData.subject_id || uniqueSemesters.length === 0}>
+                    disabled={hasSubmissions || !formData.subject_id || uniqueSemesters.length === 0}>
 
                     <SelectTrigger>
                       <SelectValue placeholder={!formData.subject_id ? "Select Subject first" : uniqueSemesters.length === 0 ? "No semesters assigned" : "Select Semester"} />
@@ -1053,7 +1055,7 @@ const FacultyAssignments = () => {
                     onValueChange={(v) => setFormData({ ...formData, section_id: v })}
                     open={isSectionOpen}
                     onOpenChange={setIsSectionOpen}
-                    disabled={!formData.semester_id || uniqueSections.length === 0}>
+                    disabled={hasSubmissions || !formData.semester_id || uniqueSections.length === 0}>
 
                     <SelectTrigger>
                       <SelectValue placeholder={!formData.semester_id ? "Select Semester first" : uniqueSections.length === 0 ? "No sections assigned" : "Select Section"} />
@@ -1118,6 +1120,7 @@ const FacultyAssignments = () => {
                     type="number"
                     placeholder="e.g. 50"
                     value={formData.max_marks}
+                    disabled={hasSubmissions}
                     onChange={(e) => setFormData({ ...formData, max_marks: e.target.value })} />
 
                 </div>
@@ -1129,6 +1132,7 @@ const FacultyAssignments = () => {
                     type="number"
                     placeholder="e.g. 10"
                     value={formData.weightage}
+                    disabled={hasSubmissions}
                     onChange={(e) => setFormData({ ...formData, weightage: e.target.value })} />
 
                 </div>
@@ -1170,42 +1174,45 @@ const FacultyAssignments = () => {
                       type="file"
                       id="assignment-file"
                       className="hidden"
+                      disabled={hasSubmissions}
                       accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                       onChange={handleFileChange} />
 
                     <label
-                      htmlFor="assignment-file"
-                      className={`flex items-center gap-3 px-3 py-2 rounded-md border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors ${selectedFile ? 'border-primary bg-primary/5' : ''}`}>
+                      htmlFor={hasSubmissions ? undefined : "assignment-file"}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-md border border-dashed border-border transition-colors ${selectedFile ? 'border-primary bg-primary/5' : ''} ${hasSubmissions ? 'cursor-not-allowed opacity-50 bg-muted/20' : 'cursor-pointer hover:bg-muted/50'}`}>
 
                       <Upload size={16} className="text-muted-foreground" />
                       <span className="text-sm truncate">
-                        {selectedFile
-                          ? selectedFile.name
-                          : editingAssignment?.file_url
-                            ? 'Upload a new file to replace existing...'
-                            : 'Upload assignment questions...'}
+                        {hasSubmissions
+                          ? 'Cannot change attachment after submissions'
+                          : selectedFile
+                            ? selectedFile.name
+                            : editingAssignment?.file_url
+                              ? 'Upload a new file to replace existing...'
+                              : 'Upload assignment questions...'}
                       </span>
                     </label>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 pt-4 border-t border-border">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 pt-4 border-t border-border">
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1"
+                  className="w-full sm:flex-1 h-11 rounded-xl"
                   onClick={() => setShowCreateModal(false)}>
 
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-[2] bg-primary text-white"
+                  className="w-full sm:flex-1 h-11 rounded-xl bg-primary text-white"
                   disabled={submitting}>
 
                   {submitting ?
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 justify-center">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       {editingAssignment ? 'Updating...' : 'Publishing...'}
                     </div> :

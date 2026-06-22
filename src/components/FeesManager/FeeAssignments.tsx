@@ -656,11 +656,10 @@ const FeeAssignments: React.FC = () => {
                           <div className="flex flex-wrap gap-1">
                             {(student as any).assigned_templates?.length > 0 ?
                         (student as any).assigned_templates.map((at: any) =>
-                        <Badge key={at.id} variant="secondary" className="text-[12px] bg-green-100/50 text-green-700 hover:bg-green-100 border-green-200">
+                        <Badge key={at.id} variant="secondary" className={`text-[12px] hover:bg-green-100 dark:hover:bg-green-950/40 border transition-colors ${theme === 'dark' ? 'bg-green-950/30 text-green-400 border-green-800/60' : 'bg-green-100/50 text-green-700 border-green-200'}`}>
                                   {at.template_name}
                                 </Badge>
                         ) :
-
                         <span className="text-xs text-muted-foreground">None</span>
                         }
                           </div>
@@ -678,44 +677,45 @@ const FeeAssignments: React.FC = () => {
             )}
           </div>
         </CardContent>
-
-        <CardFooter className="py-4 bg-muted/5 flex flex-col sm:flex-row items-center justify-between border-t px-6 gap-4">
-          <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-            Showing {pagination.totalCount > 0 ? (pagination.page - 1) * pagination.pageSize + 1 : 0} to {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of {pagination.totalCount} students
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchStudents(pagination.page - 1)}
-              disabled={pagination.page === 1 || loading}
-              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-3 py-1 h-9">
-              
-              Previous
-            </Button>
-
-            <div className="flex items-center">
+        {pagination.totalPages > 1 && (
+          <CardFooter className="py-4 bg-muted/5 flex flex-col sm:flex-row items-center justify-between border-t px-6 gap-4">
+            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Showing {pagination.totalCount > 0 ? (pagination.page - 1) * pagination.pageSize + 1 : 0} to {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of {pagination.totalCount} students
+            </div>
+            <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
                 size="sm"
-                disabled
-                className={`${theme === 'dark' ? 'text-muted-foreground bg-card border border-border' : 'text-gray-700 bg-white border border-gray-300'} px-3 py-1 h-9 min-w-[36px]`}>
+                onClick={() => fetchStudents(pagination.page - 1)}
+                disabled={pagination.page === 1 || loading}
+                className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-3 py-1 h-9">
                 
-                {pagination.page}
+                Previous
+              </Button>
+
+              <div className="flex items-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  className={`${theme === 'dark' ? 'text-muted-foreground bg-card border border-border' : 'text-gray-700 bg-white border border-gray-300'} px-3 py-1 h-9 min-w-[36px]`}>
+                  
+                  {pagination.page}
+                </Button>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchStudents(pagination.page + 1)}
+                disabled={pagination.page === pagination.totalPages || loading}
+                className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-3 py-1 h-9">
+                
+                Next
               </Button>
             </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchStudents(pagination.page + 1)}
-              disabled={pagination.page === pagination.totalPages || loading}
-              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-3 py-1 h-9">
-              
-              Next
-            </Button>
-          </div>
-        </CardFooter>
+          </CardFooter>
+        )}
       </Card>
 
       {/* Assignment Dialog remains the same */}

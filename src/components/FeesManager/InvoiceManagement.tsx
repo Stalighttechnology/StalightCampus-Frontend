@@ -770,7 +770,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 text-green-600 hover:bg-green-50 rounded-full transition-all active:scale-95"
+                        className="h-9 w-9 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-full transition-all active:scale-95"
                         onClick={() => openPaymentDialog(inv)}
                         title="Record Payment">
                         
@@ -780,7 +780,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                           <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-95"
+                        className="h-9 w-9 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-full transition-all active:scale-95"
                         onClick={() => fetchInvoiceDetails(inv.id)}
                         title="View Details">
                         
@@ -789,7 +789,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-9 w-9 text-amber-600 hover:bg-amber-50 rounded-full transition-all active:scale-95"
+                            className="h-9 w-9 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-full transition-all active:scale-95"
                             onClick={() => downloadInvoice(inv.id)}
                             disabled={downloadingInvoiceId !== null}
                             title="Download PDF">
@@ -852,60 +852,60 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
       </Card>
 
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent className="max-w-lg w-[90vw] h-[80vh] md:h-[80vh] border border-slate-200 shadow-2xl p-0 gap-0 overflow-hidden bg-white rounded-xl flex flex-col">
+        <DialogContent className={`max-w-lg w-[90vw] h-[80vh] md:h-[80vh] border shadow-2xl p-0 gap-0 overflow-hidden rounded-xl flex flex-col ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-slate-200 text-slate-900'}`}>
           {/* Header */}
-          <div className="p-6 pr-12 border-b border-slate-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 bg-white flex-shrink-0">
+          <div className={`p-6 pr-12 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 flex-shrink-0 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-slate-100'}`}>
             <div>
-              <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Invoice Statement</h2>
-              <p className="text-slate-500 text-sm mt-1 font-mono">{selectedInvoice?.invoice_number}</p>
+              <h2 className={`text-xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-slate-900'}`}>Invoice Statement</h2>
+              <p className="text-muted-foreground text-sm mt-1 font-mono">{selectedInvoice?.invoice_number}</p>
             </div>
             <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-1.5 shrink-0">
               <div className="scale-100 origin-right">
                 {selectedInvoice && getStatusBadge(selectedInvoice.status)}
               </div>
-              <span className="text-slate-500 text-sm font-medium">
+              <span className="text-muted-foreground text-sm font-medium">
                 {selectedInvoice && new Date(selectedInvoice.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'numeric', year: 'numeric' })}
               </span>
             </div>
           </div>
 
-          <div className="p-6 bg-slate-50/50 flex-1 overflow-y-auto custom-scrollbar space-y-6">
+          <div className={`p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6 ${theme === 'dark' ? 'bg-muted/10' : 'bg-slate-50/50'}`}>
             {/* Bill To */}
-            <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-2 gap-y-4">
+            <div className={`p-4 rounded-lg border grid grid-cols-2 gap-y-4 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-slate-200'}`}>
               <div className="col-span-2">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Bill To</p>
-                <p className="text-base font-semibold mt-1 text-slate-900 leading-tight">{selectedInvoice?.student?.name}</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Bill To</p>
+                <p className={`text-base font-semibold mt-1 leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-slate-900'}`}>{selectedInvoice?.student?.name}</p>
               </div>
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-mono">USN</p>
-                <p className="text-sm font-medium mt-1 text-slate-700">{selectedInvoice?.student?.usn}</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest font-mono">USN</p>
+                <p className={`text-sm font-medium mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-slate-700'}`}>{selectedInvoice?.student?.usn}</p>
               </div>
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Department</p>
-                <p className="text-sm font-medium mt-1 text-slate-700">{selectedInvoice?.student?.department}</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Department</p>
+                <p className={`text-sm font-medium mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-slate-700'}`}>{selectedInvoice?.student?.department}</p>
               </div>
               <div className="col-span-2">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">{translateTerminology("Semester")}</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{translateTerminology("Semester")}</p>
                 <p className="text-sm font-semibold mt-1 text-primary">Semester {selectedInvoice?.student?.semester || 'N/A'}</p>
               </div>
             </div>
 
             {/* Fee Details */}
-            <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-2 gap-y-4">
+            <div className={`p-4 rounded-lg border grid grid-cols-2 gap-y-4 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-slate-200'}`}>
               <div className="col-span-2">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Fee Details</p>
-                <p className="text-base font-semibold mt-1 text-slate-900 leading-tight">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Fee Details</p>
+                <p className={`text-base font-semibold mt-1 leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-slate-900'}`}>
                   {selectedInvoice?.fee_assignment?.template?.name || 'Custom Assignment'}
                 </p>
               </div>
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Fee Type / Year</p>
-                <p className="text-sm font-medium mt-1 text-slate-700 capitalize">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Fee Type / Year</p>
+                <p className={`text-sm font-medium mt-1 capitalize ${theme === 'dark' ? 'text-muted-foreground' : 'text-slate-700'}`}>
                   {selectedInvoice?.fee_assignment?.template?.fee_type || 'Annual'} ({selectedInvoice?.academic_year})
                 </p>
               </div>
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Due Date</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Due Date</p>
                 <p className="text-sm font-semibold mt-1 text-red-500">
                   {selectedInvoice?.due_date ? new Date(selectedInvoice.due_date).toLocaleDateString('en-US', { day: 'numeric', month: 'numeric', year: 'numeric' }) : 'N/A'}
                 </p>
@@ -913,45 +913,45 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
             </div>
 
             {/* Financial Summary */}
-            <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-3 gap-4">
-              <div className="text-center border-r border-slate-100">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Total</p>
-                <p className="text-base font-bold text-slate-900">{formatCurrency(selectedInvoice?.total_amount || 0)}</p>
+            <div className={`p-4 rounded-lg border grid grid-cols-3 gap-4 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-slate-200'}`}>
+              <div className={`text-center border-r ${theme === 'dark' ? 'border-border' : 'border-slate-100'}`}>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">Total</p>
+                <p className={`text-base font-bold ${theme === 'dark' ? 'text-foreground' : 'text-slate-900'}`}>{formatCurrency(selectedInvoice?.total_amount || 0)}</p>
               </div>
-              <div className="text-center border-r border-slate-100">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Paid</p>
+              <div className={`text-center border-r ${theme === 'dark' ? 'border-border' : 'border-slate-100'}`}>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">Paid</p>
                 <p className="text-base font-bold text-emerald-600">{formatCurrency(selectedInvoice?.paid_amount || 0)}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Balance</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">Balance</p>
                 <p className="text-base font-bold text-red-600">{formatCurrency(selectedInvoice?.pending_amount || 0)}</p>
               </div>
             </div>
 
             {/* Payment History */}
             <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-widest block px-1">Payment History</h4>
-              <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
+              <h4 className={`text-xs font-semibold uppercase tracking-widest block px-1 ${theme === 'dark' ? 'text-foreground/85' : 'text-slate-700'}`}>Payment History</h4>
+              <div className={`border rounded-lg overflow-hidden ${theme === 'dark' ? 'bg-card border-border' : 'border-slate-200 bg-white'}`}>
                 {payments.length === 0 ? (
-                  <div className="p-6 text-center bg-slate-50/30">
-                    <p className="text-xs text-slate-500 font-medium italic">No payments recorded for this invoice</p>
+                  <div className={`p-6 text-center ${theme === 'dark' ? 'bg-muted/10' : 'bg-slate-50/30'}`}>
+                    <p className="text-xs text-muted-foreground font-medium italic">No payments recorded for this invoice</p>
                   </div>
                 ) : (
                   <Table>
-                    <TableHeader className="bg-slate-50 border-b border-slate-200">
+                    <TableHeader className={`border-b ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-slate-50 border-slate-200'}`}>
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="h-9 text-xs font-semibold uppercase text-slate-600 px-4">Date</TableHead>
-                        <TableHead className="h-9 text-xs font-semibold uppercase text-slate-600">Method</TableHead>
-                        <TableHead className="h-9 text-right text-xs font-semibold uppercase text-slate-600 px-4">Amount</TableHead>
+                        <TableHead className="h-9 text-xs font-semibold uppercase text-muted-foreground px-4">Date</TableHead>
+                        <TableHead className="h-9 text-xs font-semibold uppercase text-muted-foreground">Method</TableHead>
+                        <TableHead className="h-9 text-right text-xs font-semibold uppercase text-muted-foreground px-4">Amount</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {payments.map((p) => (
-                        <TableRow key={p.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
-                          <TableCell className="py-2.5 px-4 text-xs font-medium text-slate-700">
+                        <TableRow key={p.id} className={`transition-colors border-b last:border-0 ${theme === 'dark' ? 'border-border hover:bg-muted/20' : 'border-slate-100 hover:bg-slate-50/50'}`}>
+                          <TableCell className={`py-2.5 px-4 text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-slate-700'}`}>
                             {new Date(p.payment_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
                           </TableCell>
-                          <TableCell className="py-2.5 text-xs font-semibold uppercase text-slate-500">
+                          <TableCell className="py-2.5 text-xs font-semibold uppercase text-muted-foreground">
                             {p.payment_method}
                           </TableCell>
                           <TableCell className="py-2.5 px-4 text-right font-bold text-emerald-600 text-xs">
@@ -967,7 +967,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
           </div>
 
           {/* Footer Actions */}
-          <div className="p-6 bg-white border-t border-slate-100 flex flex-col sm:flex-row gap-3 flex-shrink-0">
+          <div className={`p-6 border-t flex flex-col sm:flex-row gap-3 flex-shrink-0 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-slate-100'}`}>
             <button
               onClick={() => downloadInvoice(selectedInvoice?.id || 0)}
               disabled={downloadingInvoiceId !== null}
@@ -987,7 +987,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
             </button>
             <button
               onClick={() => setIsDetailsDialogOpen(false)}
-              className="px-6 py-2.5 border border-slate-200 hover:border-slate-300 text-slate-700 font-medium rounded-lg transition-colors text-sm"
+              className={`px-6 py-2.5 border font-medium rounded-lg transition-colors text-sm ${theme === 'dark' ? 'border-border hover:bg-muted text-foreground' : 'border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700'}`}
             >
               Close
             </button>

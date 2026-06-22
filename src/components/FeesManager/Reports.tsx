@@ -499,31 +499,30 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
       </Card>
 
       <Dialog open={isCalendarDialogOpen} onOpenChange={setIsCalendarDialogOpen}>
-        <DialogContent className="w-[90%] sm:max-w-md h-[580px] bg-card rounded-xl border-none shadow-2xl p-0 overflow-hidden mx-auto flex flex-col">
-          <DialogHeader className="p-6 bg-muted/20 border-b shrink-0 h-[85px]">
-            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+        <DialogContent className="w-[92%] sm:max-w-md max-h-[90vh] sm:max-h-[600px] h-auto bg-card rounded-2xl border-none shadow-2xl p-0 overflow-hidden mx-auto flex flex-col">
+          <DialogHeader className="p-5 sm:p-6 bg-muted/20 border-b shrink-0">
+            <DialogTitle className="text-lg sm:text-xl font-semibold flex items-center gap-2">
               <CalendarIcon className="h-5 w-5 text-primary" />
               Attendance History
             </DialogTitle>
-            <DialogDescription className="text-sm font-medium mt-1">
+            <DialogDescription className="text-xs sm:text-sm font-medium mt-1 truncate">
               Visual audit for <span className="text-foreground font-semibold">{selectedStaff?.name}</span>
             </DialogDescription>
           </DialogHeader>
  
-          <div className="p-6 pt-0 space-y-4 flex-1 flex flex-col justify-between overflow-hidden">
-            {loadingDetails ?
-            <div className="space-y-4 flex-1 justify-center flex flex-col">
-                <Skeleton className="h-[250px] w-full rounded-2xl" />
+          <div className="p-5 sm:p-6 pt-4 space-y-4 flex-1 flex flex-col overflow-y-auto custom-scrollbar">
+            {loadingDetails ? (
+              <div className="space-y-4 flex-1 justify-center flex flex-col">
+                <Skeleton className="h-[200px] sm:h-[250px] w-full rounded-2xl" />
                 <div className="grid grid-cols-2 gap-3">
-                  <Skeleton className="h-16 rounded-xl" />
-                  <Skeleton className="h-16 rounded-xl" />
+                  <Skeleton className="h-14 sm:h-16 rounded-xl" />
+                  <Skeleton className="h-14 sm:h-16 rounded-xl" />
                 </div>
-              </div> :
- 
- 
-            <>
-                <div className="rounded-2xl border border-border/50 p-4 bg-muted/5 h-[280px] overflow-y-auto custom-scrollbar shrink-0">
-                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+              </div>
+            ) : (
+              <>
+                <div className="rounded-2xl border border-border/50 p-3 sm:p-4 bg-muted/5 max-h-[240px] sm:max-h-[280px] overflow-y-auto custom-scrollbar shrink-0">
+                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-3">
                     {getDatesInRange(startDate, endDate)
                       .filter((date) => {
                         const dateStr = format(date, "yyyy-MM-dd");
@@ -543,59 +542,59 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                         const isPresent = record?.status === 'present';
                         const isAbsent = !isNonWorkingDay && (record?.status === 'absent' || (!record && !isPresent));
  
-                    return (
-                      <div
-                        key={idx}
-                        className={cn(
-                          "flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all duration-300 shadow-sm",
-                          isPresent ? "bg-green-500/10 border-green-500/30 text-green-700 shadow-green-500/5" :
-                          isAbsent ? "bg-red-500/10 border-red-500/30 text-red-700 shadow-red-500/5" :
-                          isNonWorkingDay ? "bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-400" :
-                          "bg-muted/30 border-border/50 text-muted-foreground opacity-30"
-                        )}>
-                        
-                          <span className={cn(
-                          "text-[10px] font-semibold uppercase tracking-tighter opacity-70",
-                          (isPresent || isAbsent || isNonWorkingDay) && "opacity-100"
-                        )}>
-                            {format(date, "EEE")}
-                          </span>
-                          <span className="text-sm font-semibold leading-tight">
-                            {format(date, "d")}
-                          </span>
-                          <div className={cn(
-                          "w-1.5 h-1.5 rounded-full mt-1.5",
-                          isPresent ? "bg-green-500" : isAbsent ? "bg-red-500" : isNonWorkingDay ? "bg-slate-300 dark:bg-slate-600" : "bg-muted-foreground/30"
-                        )} />
-                        </div>);
- 
-                  })}
+                        return (
+                          <div
+                            key={idx}
+                            className={cn(
+                              "flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-xl border transition-all duration-300 shadow-sm",
+                              isPresent ? "bg-green-500/10 border-green-500/30 text-green-700 shadow-green-500/5" :
+                              isAbsent ? "bg-red-500/10 border-red-500/30 text-red-700 shadow-red-500/5" :
+                              isNonWorkingDay ? "bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-400" :
+                              "bg-muted/30 border-border/50 text-muted-foreground opacity-30"
+                            )}
+                          >
+                            <span className={cn(
+                              "text-[9px] sm:text-[10px] font-semibold uppercase tracking-tighter opacity-70",
+                              (isPresent || isAbsent || isNonWorkingDay) && "opacity-100"
+                            )}>
+                              {format(date, "EEE")}
+                            </span>
+                            <span className="text-xs sm:text-sm font-semibold leading-tight mt-0.5">
+                              {format(date, "d")}
+                            </span>
+                            <div className={cn(
+                              "w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full mt-1",
+                              isPresent ? "bg-green-500" : isAbsent ? "bg-red-500" : isNonWorkingDay ? "bg-slate-300 dark:bg-slate-600" : "bg-muted-foreground/30"
+                            )} />
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
  
-                <div className="grid grid-cols-2 gap-3 shrink-0">
-                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-green-500/10 border border-green-500/20">
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-green-700/70">Present Days</span>
-                      <span className="text-lg font-semibold text-green-700">{selectedStaff?.present}</span>
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 shrink-0">
+                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-green-500/10 border border-green-500/20">
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500 shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-green-700/70 truncate">Present Days</span>
+                      <span className="text-base sm:text-lg font-semibold text-green-700 leading-none mt-0.5">{selectedStaff?.present}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-500/10 border border-red-500/20">
-                    <div className="w-3 h-3 rounded-full bg-red-500" />
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-red-700/70">Absent Days</span>
-                      <span className="text-lg font-semibold text-red-700">{selectedStaff?.absent}</span>
+                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-red-500/10 border border-red-500/20">
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-red-700/70 truncate">Absent Days</span>
+                      <span className="text-base sm:text-lg font-semibold text-red-700 leading-none mt-0.5">{selectedStaff?.absent}</span>
                     </div>
                   </div>
                 </div>
               </>
-            }
+            )}
  
             <Button
-              className="w-full h-12 rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98] shrink-0"
-              onClick={() => setIsCalendarDialogOpen(false)}>
-              
+              className="w-full h-11 sm:h-12 rounded-xl sm:rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all font-semibold uppercase text-[11px] sm:text-[12px] tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98] shrink-0"
+              onClick={() => setIsCalendarDialogOpen(false)}
+            >
               Close History
             </Button>
           </div>

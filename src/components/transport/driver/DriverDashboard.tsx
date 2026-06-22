@@ -115,6 +115,30 @@ const DriverDashboard: React.FC = () => {
 
   const handleEndTrip = async () => {
     if (!activeTrip) return;
+
+    const unmarkedStudents = students.filter(s => s.status === 'pending');
+    const boardedStudents = students.filter(s => s.status === 'picked_up');
+
+    if (unmarkedStudents.length > 0 || boardedStudents.length > 0) {
+      let warningText = "";
+      if (unmarkedStudents.length > 0 && boardedStudents.length > 0) {
+        warningText = `There are ${unmarkedStudents.length} unmarked student(s) and ${boardedStudents.length} student(s) boarded but not dropped off.`;
+      } else if (unmarkedStudents.length > 0) {
+        warningText = `There are ${unmarkedStudents.length} unmarked student(s).`;
+      } else {
+        warningText = `There are ${boardedStudents.length} student(s) boarded but not dropped off.`;
+      }
+
+      Swal.fire({
+        title: "Cannot End Trip",
+        text: `${warningText} All students must be marked as either Absent or Dropped Off before ending the trip.`,
+        icon: "warning",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK"
+      });
+      return;
+    }
+
     setIsEndingTrip(true);
     try {
       const res = await endTrip(activeTrip.id);

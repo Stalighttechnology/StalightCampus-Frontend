@@ -42,7 +42,7 @@ interface Caretaker {
 
 const StaffManagementOverview: React.FC = () => {
   const { toast } = useToast();
-  const { skeletonMode, setWardens: setContextWardens, setCaretakers: setContextCaretakers, setStatistics } = useHMSContext();
+  const { skeletonMode, setWardens: setContextWardens, setCaretakers: setContextCaretakers, setStatistics, setHostels } = useHMSContext();
   const [loading, setLoading] = useState(true);
   const [wardens, setWardens] = useState<Warden[]>([]);
   const [caretakers, setCaretakers] = useState<Caretaker[]>([]);
@@ -101,6 +101,7 @@ const StaffManagementOverview: React.FC = () => {
         const updatedWarden = response.data || editingWarden;
         setWardens(prev => prev.map(w => w.id === editingWarden.id ? updatedWarden : w));
         setContextWardens(prev => prev.map(w => w.id === editingWarden.id ? { ...w, ...updatedWarden } : w));
+        setHostels(prev => prev.map(h => h.warden === editingWarden.id ? { ...h, warden_name: updatedWarden.name } : h));
       }
     } catch (err) {
       toast({ title: "Error", description: "Failed to save warden.", variant: "destructive" });
@@ -128,6 +129,7 @@ const StaffManagementOverview: React.FC = () => {
         toast({ title: "Success", description: "Warden deleted." });
         setWardens(prev => prev.filter(w => w.id !== id));
         setContextWardens(prev => prev.filter(w => w.id !== id));
+        setHostels(prev => prev.map(h => h.warden === id ? { ...h, warden: null, warden_name: undefined } : h));
         setWardensTotal(prev => prev - 1);
         setStatistics(prev => ({ ...prev, total_wardens: prev.total_wardens - 1 }));
       }
@@ -149,6 +151,7 @@ const StaffManagementOverview: React.FC = () => {
         const updatedCaretaker = response.data || editingCaretaker;
         setCaretakers(prev => prev.map(c => c.id === editingCaretaker.id ? updatedCaretaker : c));
         setContextCaretakers(prev => prev.map(c => c.id === editingCaretaker.id ? { ...c, ...updatedCaretaker } : c));
+        setHostels(prev => prev.map(h => h.caretaker === editingCaretaker.id ? { ...h, caretaker_name: updatedCaretaker.name } : h));
       }
     } catch (err) {
       toast({ title: "Error", description: "Failed to save caretaker.", variant: "destructive" });
@@ -176,6 +179,7 @@ const StaffManagementOverview: React.FC = () => {
         toast({ title: "Success", description: "Caretaker deleted." });
         setCaretakers(prev => prev.filter(c => c.id !== id));
         setContextCaretakers(prev => prev.filter(c => c.id !== id));
+        setHostels(prev => prev.map(h => h.caretaker === id ? { ...h, caretaker: null, caretaker_name: undefined } : h));
         setCaretakersTotal(prev => prev - 1);
         setStatistics(prev => ({ ...prev, total_caretakers: prev.total_caretakers - 1 }));
       }
@@ -210,12 +214,12 @@ const StaffManagementOverview: React.FC = () => {
         {/* Wardens List */}
         <Card className="shadow-sm">
           <CardHeader className="pb-3 border-b">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
               <CardTitle className="text-xl font-semibold flex items-center gap-2">
                 <UserCheck className="w-6 h-6 sm:w-5 sm:h-5 text-primary" />
                 Wardens
               </CardTitle>
-              <div className="relative w-48">
+              <div className="relative w-full sm:w-48">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 {isSkeleton ? (
                   <div className="h-8 w-full rounded bg-muted animate-pulse border" />
@@ -387,12 +391,12 @@ const StaffManagementOverview: React.FC = () => {
         {/* Caretakers List */}
         <Card className="shadow-sm">
           <CardHeader className="pb-3 border-b">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
               <CardTitle className="text-xl font-semibold flex items-center gap-2 pr-2">
                 <Users className="w-6 h-6 sm:w-5 sm:h-5 text-blue-500" />
                 Caretakers
               </CardTitle>
-              <div className="relative w-48">
+              <div className="relative w-full sm:w-48">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 {isSkeleton ? (
                   <div className="h-8 w-full rounded bg-muted animate-pulse border" />

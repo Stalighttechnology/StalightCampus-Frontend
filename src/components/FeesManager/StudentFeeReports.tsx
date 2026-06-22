@@ -26,7 +26,9 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  XCircle
+  XCircle,
+  Loader2,
+  FileDown
 } from
   'lucide-react';
 import { motion } from "framer-motion";
@@ -330,15 +332,16 @@ const StudentFeeReports: React.FC = () => {
   };
 
   const getStatusBadge = (status: string) => {
+    const baseClass = "shrink-0 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[11px] sm:text-xs font-semibold flex items-center";
     switch (status.toLowerCase()) {
       case 'paid':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Paid</Badge>;
+        return <Badge className={`${baseClass} bg-green-100 text-green-800 hover:bg-green-100/80`}><CheckCircle className="w-3 h-3 mr-1 shrink-0" />Paid</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+        return <Badge className={`${baseClass} bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80`}><Clock className="w-3 h-3 mr-1 shrink-0" />Pending</Badge>;
       case 'overdue':
-        return <Badge className="bg-red-100 text-red-800"><AlertCircle className="w-3 h-3 mr-1" />Overdue</Badge>;
+        return <Badge className={`${baseClass} bg-red-100 text-red-800 hover:bg-red-100/80`}><AlertCircle className="w-3 h-3 mr-1 shrink-0" />Overdue</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Badge variant="secondary" className="shrink-0">{status}</Badge>;
     }
   };
 
@@ -432,25 +435,26 @@ const StudentFeeReports: React.FC = () => {
               className="pb-10">
               <Card>
                 <CardHeader className="border-b bg-muted/20 pb-6 px-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2.5 bg-primary/10 rounded-xl">
+                  <div className="flex flex-row items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                      <div className="p-2.5 bg-primary/10 rounded-xl shrink-0 mt-0.5">
                         <FileText className="w-5 h-5 text-primary" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <CardTitle className="text-xl sm:text-2xl font-semibold tracking-tight">Student Fee Report</CardTitle>
-                        <p className="text-muted-foreground text-sm font-medium mt-0.5">Comprehensive financial audit and transaction history</p>
+                        <p className="text-muted-foreground text-sm font-medium mt-1">Comprehensive financial audit and transaction history</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0 mt-0.5">
+                      {/* Desktop Export PDF Button */}
                       <Button
                         onClick={handleExportPdf}
                         disabled={exportingPdf}
-                        className="bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl h-9 px-4 transition-all shadow-md shadow-primary/10"
+                        className="hidden sm:flex bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl h-9 px-4 transition-all shadow-md shadow-primary/10 items-center justify-center"
                       >
                         {exportingPdf ? (
                           <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/50 border-t-white mr-2" />
+                            <Loader2 className="animate-spin w-4 h-4 mr-2" />
                             Exporting...
                           </>
                         ) : (
@@ -460,6 +464,18 @@ const StudentFeeReports: React.FC = () => {
                           </>
                         )}
                       </Button>
+
+                      {/* Mobile Export PDF Icon Button */}
+                      <Button
+                        onClick={handleExportPdf}
+                        disabled={exportingPdf}
+                        size="icon"
+                        variant="outline"
+                        className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background rounded-xl"
+                      >
+                        {exportingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                      </Button>
+
                       <Button
                         variant="outline"
                         size="sm"
@@ -630,15 +646,17 @@ const StudentFeeReports: React.FC = () => {
                                   <div className="space-y-2.5 pt-2">
                                     <p className="text-[14px] font-semibold text-muted-foreground uppercase tracking-widest px-1">Detailed Invoices</p>
                                     {semester.invoices.map((invoice) => (
-                                      <div key={invoice.id} className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/50 shadow-sm transition-hover hover:border-primary/30">
-                                        <div className="flex items-center gap-3">
-                                          <div className="p-1.5 bg-muted rounded-lg text-muted-foreground">
+                                      <div key={invoice.id} className="flex flex-row items-center justify-between p-3 rounded-xl bg-background border border-border/50 shadow-sm hover:border-primary/30 gap-3 min-w-0">
+                                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                          <div className="p-1.5 bg-muted rounded-lg text-muted-foreground shrink-0">
                                             <FileText className="w-3.5 h-3.5" />
                                           </div>
-                                          <span className="font-semibold text-xs font-mono">{invoice.invoice_number}</span>
+                                          <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3 min-w-0">
+                                            <span className="font-semibold text-xs font-mono break-words">{invoice.invoice_number}</span>
+                                            <span className="font-bold text-xs sm:text-sm text-muted-foreground sm:text-foreground">{formatCurrency(invoice.total_amount)}</span>
+                                          </div>
                                         </div>
-                                        <div className="flex items-center gap-4">
-                                          <span className="font-bold text-sm">{formatCurrency(invoice.total_amount)}</span>
+                                        <div className="shrink-0">
                                           {getStatusBadge(invoice.status)}
                                         </div>
                                       </div>
@@ -993,27 +1011,41 @@ const StudentFeeReports: React.FC = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Student Fee Reports ({totalStudents} students)</span>
-                    <Button
-                      onClick={handleExportBulkPdf}
-                      disabled={exportingBulkPdf}
-                      variant="outline"
-                      size="sm"
-                      className='bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
-                    >
-                      {exportingBulkPdf ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/50 border-t-white mr-2" />
-                          Exporting...
-                        </>
-                      ) : (
-                        <>
-                          <Download className="w-4 h-4 mr-2" />
-                          Export
-                        </>
-                      )}
-                    </Button>
+                  <CardTitle className="flex flex-row items-center justify-between gap-4">
+                    <span className="min-w-0 flex-1 break-words">Student Fee Reports <span className="whitespace-nowrap">({totalStudents} students)</span></span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Desktop Export Button */}
+                      <Button
+                        onClick={handleExportBulkPdf}
+                        disabled={exportingBulkPdf}
+                        variant="outline"
+                        size="sm"
+                        className='hidden sm:flex bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground items-center justify-center'
+                      >
+                        {exportingBulkPdf ? (
+                          <>
+                            <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                            Exporting...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="w-4 h-4 mr-2" />
+                            Export
+                          </>
+                        )}
+                      </Button>
+
+                      {/* Mobile Export Icon Button */}
+                      <Button
+                        onClick={handleExportBulkPdf}
+                        disabled={exportingBulkPdf}
+                        size="icon"
+                        variant="outline"
+                        className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background rounded-xl"
+                      >
+                        {exportingBulkPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                      </Button>
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

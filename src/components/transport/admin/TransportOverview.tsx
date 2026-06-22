@@ -4,8 +4,8 @@ import { fetchTransportDashboardStats, fetchLiveTracking } from "../../../utils/
 import { Badge, Stats } from "./TransportCommon";
 import DashboardCard from "../../common/DashboardCard";
 import { Card, CardHeader, CardTitle, CardContent } from "../../ui/card";
-import { Button } from "../../ui/button";
-import { Bus, Navigation, UserCheck, Users, Activity, AlertTriangle, Radio, RefreshCw } from "lucide-react";
+import { Radio } from "lucide-react";
+import { Bus, Navigation, UserCheck, Users, Activity, AlertTriangle } from "lucide-react";
 
 import { SkeletonStatsGrid, SkeletonCard } from "../../ui/skeleton";
 

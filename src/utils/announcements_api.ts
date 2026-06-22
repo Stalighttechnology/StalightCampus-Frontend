@@ -12,6 +12,8 @@ export interface Announcement {
   is_global: boolean;
   branch: number | null;
   branch_name: string | null;
+  section: number | null;
+  section_name: string | null;
   target_roles: string[];
   is_active: boolean;
   expires_at: string;
@@ -23,6 +25,10 @@ export interface Announcement {
   is_read?: boolean;
   gate_pass?: number | null;
   exam_data?: any[];
+  is_emergency?: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  incident_id?: number | null;
 }
 
 export interface AnnouncementListResponse {
@@ -43,6 +49,7 @@ export interface CreateAnnouncementRequest {
   target_roles: string[];
   is_global: boolean;
   branch?: number | null;
+  section?: number | null;
   expires_at?: string;
   priority?: "low" | "normal" | "high" | "urgent";
 }
@@ -60,8 +67,7 @@ export interface AnnouncementStats {
 
 // Fetch announcements visible to user (split into my/received)
 export const fetchAnnouncements = async (
-options: any = {}) =>
-{
+  options: any = {}) => {
   let page: any = 1;
   let pageSize: any = 20;
   let myPage: any;
@@ -160,9 +166,8 @@ export const createAnnouncement = async (payload: CreateAnnouncementRequest) => 
 
 // Update announcement
 export const updateAnnouncement = async (
-announcementId: number,
-payload: Partial<CreateAnnouncementRequest>) =>
-{
+  announcementId: number,
+  payload: Partial<CreateAnnouncementRequest>) => {
   try {
     const response = await fetchWithTokenRefresh(
       `${API_ENDPOINT}/announcements/${announcementId}/`,
@@ -321,15 +326,14 @@ export const getAnnouncementStats = async (branchId: number) => {
 
 // Admin: Get all announcements
 export const getAllAnnouncements = async (
-page = 1,
-pageSize = 50,
-filters?: {
-  is_active?: boolean;
-  is_global?: boolean;
-  branch?: number;
-  priority?: string;
-}) =>
-{
+  page = 1,
+  pageSize = 50,
+  filters?: {
+    is_active?: boolean;
+    is_global?: boolean;
+    branch?: number;
+    priority?: string;
+  }) => {
   try {
     const params = new URLSearchParams({
       page: String(page),
