@@ -58,7 +58,7 @@ interface HMSResponse<T> {
 // Generic HMS API function
 const hmsApiCall = async <T,>(
 endpoint: string,
-method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
+method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" = "GET",
 data?: any)
 : Promise<HMSResponse<T>> => {
   try {
@@ -241,7 +241,7 @@ export const getFloorsByHostel = async (hostelId: number): Promise<HMSResponse<n
 export const manageHostelStudents = async (
 data?: Partial<HostelStudent>,
 studentId?: number,
-method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
+method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" = "GET",
 params?: Record<string, any>)
 : Promise<HMSResponse<HostelStudent>> => {
   let endpoint = studentId ? `students/${studentId}/` : "students/";

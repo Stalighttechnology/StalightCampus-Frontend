@@ -272,7 +272,7 @@ const StudentManagement: React.FC = () => {
 
     if (!result.isConfirmed) return;
 
-    const response = await manageHostelStudents(formData, editingStudent.id, 'PUT');
+    const response = await manageHostelStudents(formData, editingStudent.id, 'PATCH');
     if (response.success) {
       // Find the selected hostel and room names for manual update fallback if needed
       const selectedHostel = hostels.find((h) => h.id === selectedHostelInDialog);
