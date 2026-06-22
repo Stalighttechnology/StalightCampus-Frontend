@@ -409,7 +409,7 @@ const ExamApplication: React.FC = () => {
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
       <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0 pb-4">
         <div className="flex items-start justify-between w-full sm:w-auto">
-          <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Exam Applications</CardTitle>
+          <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Exam Applications</CardTitle>
           {/* Mobile Download PDF Icon Button */}
           <Button
             onClick={exportPDF}

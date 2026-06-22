@@ -733,7 +733,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
         </div>
       </CardContent>
 
-      {proctorPagination?.paginationState && proctorPagination.paginationState.totalItems > 1 && (
+      {proctorPagination?.paginationState && proctorPagination.paginationState.totalPages > 1 && (
         <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
           <div>
             Showing {Math.min((proctorPagination.paginationState.page - 1) * proctorPagination.paginationState.pageSize + 1, proctorPagination.paginationState.totalItems)} to {Math.min(proctorPagination.paginationState.page * proctorPagination.paginationState.pageSize, proctorPagination.paginationState.totalItems)} of {proctorPagination.paginationState.totalItems} records
