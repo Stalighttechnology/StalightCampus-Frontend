@@ -748,13 +748,23 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             }
 
             {selectedQP?.has_exam_started && (
-              <div className={`p-3 rounded-md border text-sm mb-4 ${
-                theme === 'dark' 
-                  ? 'bg-red-950/40 border-red-500/30 text-red-400' 
-                  : 'bg-red-50 border-red-200 text-red-700'
-              }`}>
-                ⚠️ <strong>Exam Locked:</strong> This exam started on {selectedQP.exam_start ? new Date(selectedQP.exam_start).toLocaleString() : 'N/A'}. Question paper approvals and actions are disabled.
-              </div>
+              selectedQP?.status === 'approved' ? (
+                <div className={`p-3 rounded-md border text-sm mb-4 ${
+                  theme === 'dark' 
+                    ? 'bg-green-950/40 border-green-500/30 text-green-400' 
+                    : 'bg-green-50 border-green-200 text-green-700'
+                }`}>
+                  ✅ <strong>Approved & Locked:</strong> This question paper is approved for the exam. Actions are locked as the exam has started.
+                </div>
+              ) : (
+                <div className={`p-3 rounded-md border text-sm mb-4 ${
+                  theme === 'dark' 
+                    ? 'bg-red-950/40 border-red-500/30 text-red-400' 
+                    : 'bg-red-50 border-red-200 text-red-700'
+                }`}>
+                  ⚠️ <strong>Exam Locked:</strong> This exam started on {selectedQP.exam_start ? new Date(selectedQP.exam_start).toLocaleString() : 'N/A'}. Question paper approvals and actions are disabled.
+                </div>
+              )
             )}
 
             <div>
@@ -795,14 +805,33 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
               <Button
                 onClick={() => selectedQP && handleReject(selectedQP.id)}
                 disabled={actionLoading || selectedQP?.has_exam_started}
-                className={`flex-1 sm:w-auto justify-center transition-none text-xs px-2 h-10 sm:h-9 ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}
+                className={`flex-1 sm:w-auto justify-center transition-none text-xs px-2 h-10 sm:h-9 ${
+                  selectedQP?.status === 'approved' && selectedQP?.has_exam_started
+                    ? theme === 'dark'
+                      ? 'border-green-500 text-green-400 bg-green-500/10 border'
+                      : 'border-green-500 text-green-700 bg-green-50 border'
+                    : theme === 'dark'
+                      ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border'
+                      : 'border-red-500 text-red-700 bg-red-50 hover:bg-green-100 border'
+                }`}
               >
-                <XCircle className={`w-3.5 h-3.5 mr-1 shrink-0 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                {selectedQP?.status === 'approved' && selectedQP?.has_exam_started ? (
+                  <CheckCircle className={`w-3.5 h-3.5 mr-1 shrink-0 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                ) : (
+                  <XCircle className={`w-3.5 h-3.5 mr-1 shrink-0 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                )}
                 {selectedQP?.status === 'approved' ? (
-                  <>
-                    <span className="hidden sm:inline">Revoke & Send Back</span>
-                    <span className="inline sm:hidden">Revoke</span>
-                  </>
+                  selectedQP?.has_exam_started ? (
+                    <>
+                      <span className="hidden sm:inline">Approved</span>
+                      <span className="inline sm:hidden">Approved</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="hidden sm:inline">Revoke & Send Back</span>
+                      <span className="inline sm:hidden">Revoke</span>
+                    </>
+                  )
                 ) : (
                   <>
                     <span className="hidden sm:inline">Reject & Send Back</span>
