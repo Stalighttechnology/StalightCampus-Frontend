@@ -672,7 +672,10 @@ const FeeTemplates: React.FC = () => {
                   <Button
                     variant="outline"
                     onClick={() => setIsCreateDialogOpen(false)}
-                    className="border-gray-300 text-gray-700 hover:bg-gray-100 flex-1 sm:flex-none">
+                    className={cn(
+                      "flex-1 sm:flex-none",
+                      theme === 'dark' ? 'border-border text-foreground hover:bg-muted' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                    )}>
                     
                     <X className="h-4 w-4 mr-2" />
                     Cancel
