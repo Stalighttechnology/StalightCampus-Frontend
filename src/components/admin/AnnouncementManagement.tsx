@@ -435,6 +435,8 @@ const AdminAnnouncementManagement = () => {
             confirmButtonColor: "#22c55e"
           });
           setEmergencies(prev => prev.filter(e => e.id !== id));
+          // Trigger global unread count refresh
+          window.dispatchEvent(new CustomEvent('refresh-unread-count', { detail: { decrement: 1 } }));
         } else {
           MySwal.fire("Error", res.message || "Failed to resolve emergency", "error");
         }
