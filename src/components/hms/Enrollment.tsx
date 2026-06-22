@@ -288,7 +288,7 @@ const Enrollment: React.FC = () => {
                         value={formData.address}
                         onChange={handleInputChange}
                         placeholder="Complete residential address..."
-                        className="w-full pl-10 pr-3 py-2 text-sm border rounded-md focus:ring-1 focus:ring-primary outline-none min-h-[60px] resize-none custom-scrollbar" />
+                        className="w-full pl-10 pr-3 py-2 text-sm border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:ring-1 focus:ring-primary outline-none min-h-[60px] resize-none custom-scrollbar" />
 
                       }
                       </div>
@@ -308,7 +308,7 @@ const Enrollment: React.FC = () => {
                       value={formData.address}
                       onChange={handleInputChange}
                       placeholder="Complete residential address..."
-                      className="w-full pl-10 pr-3 py-2 text-sm border rounded-md focus:ring-1 focus:ring-primary outline-none min-h-[108px] resize-none custom-scrollbar" />
+                      className="w-full pl-10 pr-3 py-2 text-sm border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:ring-1 focus:ring-primary outline-none min-h-[108px] resize-none custom-scrollbar" />
 
                     }
                     </div>

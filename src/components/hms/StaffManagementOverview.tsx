@@ -210,12 +210,12 @@ const StaffManagementOverview: React.FC = () => {
         {/* Wardens List */}
         <Card className="shadow-sm">
           <CardHeader className="pb-3 border-b">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
               <CardTitle className="text-xl font-semibold flex items-center gap-2">
                 <UserCheck className="w-6 h-6 sm:w-5 sm:h-5 text-primary" />
                 Wardens
               </CardTitle>
-              <div className="relative w-48">
+              <div className="relative w-full sm:w-48">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 {isSkeleton ? (
                   <div className="h-8 w-full rounded bg-muted animate-pulse border" />
@@ -387,12 +387,12 @@ const StaffManagementOverview: React.FC = () => {
         {/* Caretakers List */}
         <Card className="shadow-sm">
           <CardHeader className="pb-3 border-b">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
               <CardTitle className="text-xl font-semibold flex items-center gap-2 pr-2">
                 <Users className="w-6 h-6 sm:w-5 sm:h-5 text-blue-500" />
                 Caretakers
               </CardTitle>
-              <div className="relative w-48">
+              <div className="relative w-full sm:w-48">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 {isSkeleton ? (
                   <div className="h-8 w-full rounded bg-muted animate-pulse border" />
