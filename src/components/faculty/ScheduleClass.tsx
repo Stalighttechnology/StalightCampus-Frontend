@@ -647,8 +647,6 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
   const initVals = getInitialScheduleState();
   const [date, setDate] = useState(initVals.date);
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
   const [meetingType, setMeetingType] = useState<"online" | "offline">("online");
   const [classroomRoom, setClassroomRoom] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -662,26 +660,24 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
   const [endMinute, setEndMinute] = useState(initVals.endMinute);
   const [endPeriod, setEndPeriod] = useState(initVals.endPeriod);
 
-  // Sync AM/PM states to 24h format strings for backend
-  useEffect(() => {
-    let hr = parseInt(startHour, 10);
-    if (startPeriod === "PM" && hr < 12) hr += 12;
-    if (startPeriod === "AM" && hr === 12) hr = 0;
-    setStartTime(`${String(hr).padStart(2, "0")}:${startMinute}`);
-  }, [startHour, startMinute, startPeriod]);
-
-  useEffect(() => {
-    let hr = parseInt(endHour, 10);
-    if (endPeriod === "PM" && hr < 12) hr += 12;
-    if (endPeriod === "AM" && hr === 12) hr = 0;
-    setEndTime(`${String(hr).padStart(2, "0")}:${endMinute}`);
-  }, [endHour, endMinute, endPeriod]);
-
-  // Optimistic history (prepend from POST response, no GET after save)
+  // Optimistically prepend new class to immediate history list
   const [immediateHistory, setImmediateHistory] = useState<ScheduledClassRecord[]>([]);
 
   // ── Section 2: History dropdowns ─────────────────────────────────────────
   const historyDropdowns = useAssignmentDropdowns(rawAssignments);
+
+  const filteredImmediateHistory = useMemo(() => {
+    const assignment = historyDropdowns.currentAssignment;
+    return immediateHistory.filter((cls) =>
+      !assignment || (
+        cls.subject === assignment.subject_name &&
+        cls.branch_id === assignment.branch_id &&
+        cls.semester_id === assignment.semester_id &&
+        cls.section_id === assignment.section_id
+      )
+    );
+  }, [immediateHistory, historyDropdowns.currentAssignment]);
+
   const [historyClasses, setHistoryClasses] = useState<ScheduledClassRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [exportingPDF, setExportingPDF] = useState(false);
@@ -817,8 +813,6 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
     const freshVals = getInitialScheduleState();
     setDate(freshVals.date);
-    setStartTime("");
-    setEndTime("");
     setMeetingType("online");
     setClassroomRoom("");
     setStartHour(freshVals.startHour);
@@ -875,7 +869,18 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
   // Submit schedule class — POST only, prepend result to immediateHistory
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!topic || !date || !startTime || !endTime) {
+
+    let startHr = parseInt(startHour, 10);
+    if (startPeriod === "PM" && startHr < 12) startHr += 12;
+    if (startPeriod === "AM" && startHr === 12) startHr = 0;
+    const computedStartTime = `${String(startHr).padStart(2, "0")}:${startMinute}`;
+
+    let endHr = parseInt(endHour, 10);
+    if (endPeriod === "PM" && endHr < 12) endHr += 12;
+    if (endPeriod === "AM" && endHr === 12) endHr = 0;
+    const computedEndTime = `${String(endHr).padStart(2, "0")}:${endMinute}`;
+
+    if (!topic || !date || !computedStartTime || !computedEndTime) {
       toast({ title: "Missing Fields", description: "Please fill in all required fields.", variant: "destructive" });
       return;
     }
@@ -887,8 +892,8 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     if (!assignment) return;
 
     // Date/Time validation
-    const startDateTime = new Date(`${date}T${startTime}`);
-    const endDateTime = new Date(`${date}T${endTime}`);
+    const startDateTime = new Date(`${date}T${computedStartTime}`);
+    const endDateTime = new Date(`${date}T${computedEndTime}`);
     const now = new Date();
 
     if (startDateTime < now) {
@@ -915,8 +920,8 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
           topic,
           description,
           date,
-          start_time: startTime,
-          end_time: endTime,
+          start_time: computedStartTime,
+          end_time: computedEndTime,
           meeting_type: meetingType,
           classroom_room: classroomRoom,
         }),
@@ -937,8 +942,8 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
           topic: data.topic,
           description,
           date,
-          start_time: startTime,
-          end_time: endTime,
+          start_time: computedStartTime,
+          end_time: computedEndTime,
           meeting_type: meetingType,
           classroom_room: meetingType === "offline" ? classroomRoom : null,
           meeting_link: data.meeting_link || null,
@@ -962,8 +967,23 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
         handleDialogClose();
       } else {
         const msg = data.error || "Failed to schedule class.";
-        setError(msg);
-        toast({ title: "Scheduling Failed", description: msg, variant: "destructive" });
+        if (msg.includes("already scheduled a class")) {
+          Swal.fire({
+            title: "Scheduling Conflict",
+            text: msg,
+            icon: "error",
+            confirmButtonText: "Okay",
+            confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+            background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+            color: theme === 'dark' ? '#ffffff' : '#000000',
+            customClass: {
+              popup: 'rounded-2xl border border-border shadow-2xl'
+            }
+          });
+        } else {
+          setError(msg);
+          toast({ title: "Scheduling Failed", description: msg, variant: "destructive" });
+        }
       }
     } catch {
       setError("A network error occurred. Please try again.");
@@ -1028,7 +1048,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
       {/* ── Schedule Class Dialog Modal ──────────────────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) handleDialogClose(); }}>
-        <DialogContent className="w-[90%] h-[80vh] sm:w-full sm:max-w-[540px] sm:h-auto overflow-y-auto custom-scrollbar rounded-xl">
+        <DialogContent className="w-[90%] max-h-[80vh] sm:max-w-[540px] overflow-y-auto custom-scrollbar rounded-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg">
               <CalendarDays className="w-5 h-5 text-primary" />
@@ -1275,7 +1295,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
           {/* History list */}
           {historyDropdowns.isFullySelected && (
             <div className="mt-4 space-y-4">
-              {immediateHistory.length > 0 && (
+              {filteredImmediateHistory.length > 0 && (
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500" />
@@ -1283,7 +1303,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                       Just Scheduled This Session
                     </h3>
                   </div>
-                  {immediateHistory.map((cls) => (
+                  {filteredImmediateHistory.map((cls) => (
                     <ClassHistoryCard key={`immediate-${cls.id}`} cls={cls} theme={theme} currentTime={currentTime} />
                   ))}
                 </div>
