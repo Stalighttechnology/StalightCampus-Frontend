@@ -147,15 +147,25 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
         <div className="space-y-3 flex flex-col md:h-[calc(100vh-130px)] pb-2 w-full max-w-full overflow-hidden">
             <Card className={`flex-1 flex flex-col border min-h-[480px] w-full max-w-full rounded-lg ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
                 {/* Header Section */}
-                <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between pb-3 gap-3 border-b border-gray-100 dark:border-border/30">
+                <CardHeader className="flex flex-col md:flex-row items-stretch md:items-center justify-between pb-3 gap-3 border-b border-gray-100 dark:border-border/30">
                     {/* Month Title & Navigation */}
-                    <div className="flex flex-row items-center justify-between md:justify-start gap-3 w-full md:w-auto">
-                        <h2 className={`text-2xl md:text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                            {format(currentDate, 'MMMM')}
-                        </h2>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 w-full md:w-auto">
+                        <div className="flex flex-row items-center justify-between w-full sm:w-auto gap-2">
+                            <h2 className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {format(currentDate, 'MMMM')}
+                            </h2>
+                            <div className="flex sm:hidden items-center gap-2.5 text-[10px] text-muted-foreground font-medium shrink-0">
+                                <span className="flex items-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-rose-500"></span> Holiday
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-primary"></span> Event
+                                </span>
+                            </div>
+                        </div>
                         
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <div className={`flex items-center gap-1 p-1 rounded-lg border ${theme === 'dark' ? 'bg-muted/10 border-border/50' : 'bg-gray-50 border-gray-200'}`}>
+                        <div className="flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                            <div className={`flex flex-1 sm:flex-initial items-center justify-between sm:justify-start gap-1 p-1 rounded-lg border ${theme === 'dark' ? 'bg-muted/10 border-border/50' : 'bg-gray-50 border-gray-200'}`}>
                                 <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md hover:bg-primary/10" onClick={handlePreviousMonth}>
                                     <ChevronLeft className="h-3.5 w-3.5" />
                                 </Button>
@@ -174,7 +184,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
 
                     {/* Legend & Actions */}
                     <div className="flex flex-row items-center justify-between md:justify-end gap-3 w-full md:w-auto pt-1 md:pt-0">
-                        <div className="flex items-center gap-3 text-[11px] md:text-xs text-muted-foreground font-medium">
+                        <div className="hidden sm:flex items-center gap-3 text-[11px] md:text-xs text-muted-foreground font-medium">
                             <span className="flex items-center gap-1.5">
                                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Holiday / Break
                             </span>
@@ -200,8 +210,8 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                 </CardHeader>
 
                 {/* Calendar Grid Section */}
-                <CardContent className="flex-1 p-0 m-1 md:m-2 border rounded-2xl overflow-x-auto overflow-y-hidden flex flex-col custom-scrollbar">
-                    <div className="min-w-[700px] flex-1 flex flex-col">
+                <CardContent className="flex-1 p-0 m-1 md:m-2 border rounded-2xl overflow-x-auto sm:overflow-x-visible overflow-y-hidden flex flex-col custom-scrollbar">
+                    <div className="w-full sm:min-w-[700px] flex-1 flex flex-col">
                         {/* Weekday Headers */}
                         <div className="grid grid-cols-7 bg-primary text-white rounded-t-2xl">
                             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
@@ -252,7 +262,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                         </div>
 
                                         {/* Holiday details text & Pill */}
-                                        <div className="mt-2 flex-1 flex flex-col justify-between">
+                                        <div className="mt-2 flex-1 flex-col justify-between hidden sm:flex">
                                             {dayHolidays.length > 0 ? (
                                                 <div className="flex flex-col gap-1.5 items-start">
                                                     <span className={`text-[10px] md:text-xs font-medium leading-tight line-clamp-2 ${dayHolidays[0].holiday_type === 'event' ? 'text-primary' : 'text-rose-500'
