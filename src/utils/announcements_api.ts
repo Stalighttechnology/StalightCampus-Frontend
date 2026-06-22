@@ -12,6 +12,8 @@ export interface Announcement {
   is_global: boolean;
   branch: number | null;
   branch_name: string | null;
+  section: number | null;
+  section_name: string | null;
   target_roles: string[];
   is_active: boolean;
   expires_at: string;
@@ -42,6 +44,7 @@ export interface CreateAnnouncementRequest {
   target_roles: string[];
   is_global: boolean;
   branch?: number | null;
+  section?: number | null;
   expires_at?: string;
   priority?: "low" | "normal" | "high" | "urgent";
 }

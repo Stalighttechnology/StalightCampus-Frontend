@@ -54,6 +54,7 @@ import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
 import { SkeletonList } from "@/components/ui/skeleton";
+import { getAssignedSubjectsGrouped } from "@/utils/faculty_api";
 
 const FacultyAnnouncementManagement = () => {
   const [myAnnouncements, setMyAnnouncements] = useState<Announcement[]>([]);
@@ -82,7 +83,37 @@ const FacultyAnnouncementManagement = () => {
   const [unreadReceivedCount, setUnreadReceivedCount] = useState(0);
   const [activeTab, setActiveTab] = useState("my");
   const [showArchive, setShowArchive] = useState(false);
+  const [assignedSections, setAssignedSections] = useState<any[]>([]);
   const pageSize = 10;
+
+  useEffect(() => {
+    const fetchAssigned = async () => {
+      try {
+        const res = await getAssignedSubjectsGrouped();
+        if (res.success && res.data) {
+          const sectionsList: any[] = [];
+          const seen = new Set();
+          res.data.forEach((item: any) => {
+            const key = `${item.branch_id}-${item.semester_id}-${item.section_id}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              sectionsList.push({
+                section_id: item.section_id,
+                section_name: item.section,
+                semester: item.semester,
+                branch: item.branch,
+                label: `${item.branch} - Sem ${item.semester} (Sec ${item.section})`
+              });
+            }
+          });
+          setAssignedSections(sectionsList);
+        }
+      } catch (err) {
+        console.error("Failed to load assigned subjects/sections", err);
+      }
+    };
+    fetchAssigned();
+  }, []);
 
   const loadAnnouncements = async () => {
     setLoading(true);
@@ -213,6 +244,7 @@ const FacultyAnnouncementManagement = () => {
       target_roles: announcement.target_roles || ["student"],
       is_global: false,
       branch: announcement.branch,
+      section: announcement.section || null,
       expires_at: announcement.expires_at?.split("T")[0] || "",
       priority: announcement.priority
     });
@@ -335,6 +367,7 @@ const FacultyAnnouncementManagement = () => {
       message: "",
       target_roles: ["student"],
       is_global: false,
+      section: null,
       expires_at: "",
       priority: "normal"
     });
@@ -499,50 +532,36 @@ const FacultyAnnouncementManagement = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Target Roles *</Label>
-                          <div className="grid grid-cols-2 gap-3">
-                            {roles.map((role) => {
-                              const isSelected = formData.target_roles?.includes(role) || false;
-                              return (
-                                <button
-                                  key={role}
-                                  type="button"
-                                  onClick={() => {
-                                    if (isSelected) {
-                                      setFormData({
-                                        ...formData,
-                                        target_roles: (formData.target_roles || []).filter((r) => r !== role)
-                                      });
-                                    } else {
-                                      setFormData({
-                                        ...formData,
-                                        target_roles: [...(formData.target_roles || []), role]
-                                      });
-                                    }
-                                  }}
-                                  className={`flex items-center justify-between p-3 rounded-lg border text-sm font-medium transition-all duration-200 ${
-                                    isSelected
-                                      ? theme === 'dark'
-                                        ? 'bg-primary/20 border-primary text-primary-foreground shadow-sm'
-                                        : 'bg-primary/10 border-primary text-primary shadow-sm'
-                                      : theme === 'dark'
-                                        ? 'bg-card border-border hover:bg-accent text-muted-foreground'
-                                        : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'
-                                  }`}
-                                >
-                                  <span className="capitalize">{role.replace('_', ' ')}</span>
-                                  {isSelected && (
-                                    <Check className="h-4 w-4 text-primary" />
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
+                          <Label htmlFor="target-audience">Target Audience</Label>
+                          <Select
+                            value={formData.section ? String(formData.section) : "proctor"}
+                            onValueChange={(val) => {
+                              if (val === "proctor") {
+                                setFormData({ ...formData, section: null });
+                              } else {
+                                setFormData({ ...formData, section: Number(val) });
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder="Select target audience" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[200px] overflow-y-auto custom-scrollbar">
+                              <SelectItem value="proctor">My Proctor Students</SelectItem>
+                              {assignedSections.map((sec) => (
+                                <SelectItem key={`${sec.branch}-${sec.semester}-${sec.section_id}`} value={String(sec.section_id)}>
+                                  {sec.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         <div className="p-3 rounded-lg bg-muted">
                           <p className="text-sm text-muted-foreground">
-                            ℹ️ This announcement will be visible to your proctor students only
+                            ℹ️ {formData.section 
+                              ? `This announcement will be targeted to students in the selected class/section.`
+                              : "This announcement will be visible to your proctor students only."}
                           </p>
                         </div>
 
