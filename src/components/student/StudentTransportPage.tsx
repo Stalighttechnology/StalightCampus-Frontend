@@ -97,7 +97,12 @@ const StudentTransportPage: React.FC = () => {
     }
   };
 
-  const statusIcon = (s: string) => s === 'boarded' ? <CheckCircle size={14} className="text-emerald-500" /> : s === 'absent' ? <XCircle size={14} className="text-red-500" /> : <Clock size={14} className="text-amber-500" />;
+  const statusIcon = (s: string) => 
+    s === 'boarded' || s === 'picked_up' || s === 'dropped_off' 
+      ? <CheckCircle size={14} className="text-emerald-500" /> 
+      : s === 'absent' 
+        ? <XCircle size={14} className="text-red-500" /> 
+        : <Clock size={14} className="text-amber-500" />;
 
   const totalPages = Math.ceil(history.length / itemsPerPage);
   const paginatedHistory = history.slice(
@@ -318,7 +323,15 @@ const StudentTransportPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${h.status === 'boarded' ? 'bg-emerald-100 text-emerald-700' : h.status === 'absent' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}`}>{h.status}</span>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${
+                    h.status === 'boarded' || h.status === 'picked_up' || h.status === 'dropped_off' 
+                      ? 'bg-emerald-100 text-emerald-700' 
+                      : h.status === 'absent' 
+                        ? 'bg-red-100 text-red-600' 
+                        : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {h.status === 'picked_up' ? 'boarded' : h.status.replace('_', ' ')}
+                  </span>
                 </div>
               ))}
             </div>
