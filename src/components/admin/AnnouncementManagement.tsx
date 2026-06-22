@@ -592,7 +592,7 @@ const AdminAnnouncementManagement = () => {
 
               <div className="space-y-2">
                 <Label>Target Roles *</Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {roles.map((role) => {
                     const isSelected = formData.target_roles?.includes(role) || false;
                     return (
@@ -633,18 +633,17 @@ const AdminAnnouncementManagement = () => {
                 </div>
               </div>
 
-              <div className="flex gap-3 justify-end pt-4">
+              <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end pt-4">
                 <Button
                   variant="outline"
-                  onClick={() => setShowCreateDialog(false)}>
-
+                  onClick={() => setShowCreateDialog(false)}
+                  className="w-full sm:w-auto">
                   Cancel
                 </Button>
                 <Button
                   onClick={handleCreateOrUpdate}
                   disabled={submitting}
-                  className={`${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
-
+                  className={`w-full sm:w-auto ${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
                   {submitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin mr-2 inline-block" />
@@ -665,7 +664,7 @@ const AdminAnnouncementManagement = () => {
   return (
     <>
       <style>{`
-        @media (max-width: 480px) {
+        @media (max-width: 768px) {
           .announcements-card { border-radius: 12px !important; }
           .announcements-card-header { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
           .announcements-card-title { font-size: 1.25rem !important; line-height: 1.2 !important; }
