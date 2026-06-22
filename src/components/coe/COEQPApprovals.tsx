@@ -31,6 +31,8 @@ interface QPPending {
   status?: string;
   current_holder?: string | null;
   last_action?: {actor?: string;role?: string;action?: string;comment?: string;} | null;
+  exam_start?: string;
+  has_exam_started?: boolean;
 }
 
 interface PaginationInfo {
@@ -745,6 +747,16 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             <div className="text-center py-4 text-muted-foreground">Failed to load QP details</div>
             }
 
+            {selectedQP?.has_exam_started && (
+              <div className={`p-3 rounded-md border text-sm mb-4 ${
+                theme === 'dark' 
+                  ? 'bg-red-950/40 border-red-500/30 text-red-400' 
+                  : 'bg-red-50 border-red-200 text-red-700'
+              }`}>
+                ⚠️ <strong>Exam Locked:</strong> This exam started on {selectedQP.exam_start ? new Date(selectedQP.exam_start).toLocaleString() : 'N/A'}. Question paper approvals and actions are disabled.
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium mb-2">Comment (optional)</label>
               <Textarea
@@ -761,7 +773,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
               {selectedQP?.status !== 'approved' && (
                 <Button
                   onClick={() => selectedQP && handleFinalize(selectedQP.id)}
-                  disabled={actionLoading}
+                  disabled={actionLoading || selectedQP?.has_exam_started}
                   className={`flex-1 sm:w-auto justify-center transition-none text-xs px-2 h-10 sm:h-9 ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}
                 >
                   <CheckCircle className={`w-3.5 h-3.5 mr-1 shrink-0 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
@@ -782,7 +794,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
               {/* Show Reject & Send Back for all statuses — COE can reject an approved QP or re-reject */}
               <Button
                 onClick={() => selectedQP && handleReject(selectedQP.id)}
-                disabled={actionLoading}
+                disabled={actionLoading || selectedQP?.has_exam_started}
                 className={`flex-1 sm:w-auto justify-center transition-none text-xs px-2 h-10 sm:h-9 ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}
               >
                 <XCircle className={`w-3.5 h-3.5 mr-1 shrink-0 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
@@ -858,7 +870,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             </Button>
             <Button 
               onClick={handleRevokeAndApprove}
-              disabled={actionLoading}
+              disabled={actionLoading || selectedQP?.has_exam_started}
               className="bg-amber-600 hover:bg-amber-700 text-white"
             >
               {actionLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
