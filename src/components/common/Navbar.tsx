@@ -176,7 +176,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
             {theme === 'dark' ? <FiSun size={18} /> : <FiMoon size={18} />}
           </Button>
 
-          {['student', 'faculty', 'hod', 'admin', 'principal', 'coe', 'dean', 'hms_admin', 'transport_admin', 'org_admin', 'warden'].includes(role || '') && (
+          {['student', 'faculty', 'hod', 'admin', 'principal', 'coe', 'dean', 'hms', 'hms_admin', 'fees_manager', 'transport_admin', 'org_admin', 'warden'].includes(role || '') && (
             <Button
               variant="ghost"
               size="icon"
@@ -189,7 +189,9 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                   'principal': '/admin/announcement-management',
                   'coe': '/coe/announcement-management',
                   'dean': '/dean/announcement-management',
+                  'hms': '/hms/announcement-management',
                   'hms_admin': '/hms/announcement-management',
+                  'fees_manager': '/fees-manager/announcement-management',
                   'transport_admin': '/transport-admin/announcement-management',
                   'org_admin': '/org-admin/announcement-management',
                   'warden': '/warden/announcement-management'
