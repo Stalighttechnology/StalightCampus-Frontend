@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { SkeletonList, SkeletonTable } from "@/components/ui/skeleton";
 import { useDebouncedSearch } from "@/hooks/useOptimizations";
 import { FileDown, Loader2, Users } from "lucide-react";
+import { showWarningAlert } from "@/utils/sweetalert";
 
 const ExamApplication: React.FC = () => {
   const { theme } = useTheme();
@@ -386,7 +387,12 @@ const ExamApplication: React.FC = () => {
         }
         setOpen(false);
       } else {
-        toast({ title: "Error", description: json.message || "Failed to submit applications", variant: "destructive" });
+        const errorMsg = json.message || "Failed to submit applications";
+        if (errorMsg.toLowerCase().includes('window') && errorMsg.toLowerCase().includes('closed')) {
+          showWarningAlert("Application Blocked", "Exam application is not opened for this selected batch, semester and exam period. COE is not configured in the student status page.");
+        } else {
+          toast({ title: "Error", description: errorMsg, variant: "destructive" });
+        }
       }
     } catch (e) {
       toast({ title: "Error", description: "An error occurred", variant: "destructive" });

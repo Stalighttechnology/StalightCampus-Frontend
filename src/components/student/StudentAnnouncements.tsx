@@ -147,34 +147,18 @@ const parseAnnouncements = (announcements: Announcement[]) => {
   const examGroupsMap: Record<string, ExamAnnouncementGroup> = {};
 
   announcements.forEach(a => {
-    const titleMatch = a.title.match(/^New Exam Scheduled:\s*(.*)$/i);
-    const msgMatch = a.message.match(/A new (.*?) has been scheduled for (.*?) at (.*?)\.\s*(?:Venue:\s*(.*?)\.?)?$/i);
+    const groupTitleMatch = a.title.match(/^Exam Schedule Published:\s*(.*)$/i);
+    const examData = (a as any).exam_data;
+    const hasExamData = !!examData;
 
-    if (titleMatch && msgMatch) {
-      const titleContent = titleMatch[1];
-      let examName = titleContent;
-      let subjectName = "General Subject";
-
-      if (titleContent.includes(" - ")) {
-        const parts = titleContent.split(" - ");
-        examName = parts[0].trim();
-        subjectName = parts.slice(1).join(" - ").trim();
-      }
-
-      const examType = msgMatch[1].trim();
-      const dateStr = msgMatch[2].trim();
-      const timeStr = msgMatch[3].trim();
-      const venueStr = msgMatch[4]?.trim() || "TBD";
-
-      let dateObj = new Date(dateStr);
-      if (isNaN(dateObj.getTime())) {
-        dateObj = new Date(); // fallback
-      }
+    if (groupTitleMatch && hasExamData) {
+      const examName = groupTitleMatch[1].trim();
+      let parsedSubjects: any[] = Array.isArray(examData) ? examData : [];
 
       if (!examGroupsMap[examName]) {
         examGroupsMap[examName] = {
           examName,
-          examType,
+          examType: "exam",
           publishedAt: a.created_at,
           publishedBy: a.created_by_name || "Administrator",
           priority: a.priority,
@@ -189,19 +173,78 @@ const parseAnnouncements = (announcements: Announcement[]) => {
       }
       examGroupsMap[examName].markReadIds.push(a.id);
 
-      examGroupsMap[examName].subjects.push({
-        id: a.id,
-        original: a,
-        examName,
-        subjectName,
-        examType,
-        dateStr,
-        timeStr,
-        venue: venueStr,
-        dateObj
+      parsedSubjects.forEach(sub => {
+        let dateObj = new Date(sub.dateStr);
+        if (isNaN(dateObj.getTime())) dateObj = new Date();
+        examGroupsMap[examName].subjects.push({
+          id: a.id + Math.random(),
+          original: a,
+          examName,
+          subjectName: sub.subjectName,
+          examType: "exam",
+          dateStr: sub.dateStr,
+          timeStr: sub.timeStr,
+          venue: sub.venue,
+          dateObj
+        });
       });
     } else {
-      regular.push(a);
+      const titleMatch = a.title.match(/^New Exam Scheduled:\s*(.*)$/i);
+      const msgMatch = a.message.match(/A new (.*?) has been scheduled for (.*?) at (.*?)\.\s*(?:Venue:\s*(.*?)\.?)?$/i);
+
+      if (titleMatch && msgMatch) {
+        const titleContent = titleMatch[1];
+        let examName = titleContent;
+        let subjectName = "General Subject";
+
+        if (titleContent.includes(" - ")) {
+          const parts = titleContent.split(" - ");
+          examName = parts[0].trim();
+          subjectName = parts.slice(1).join(" - ").trim();
+        }
+
+        const examType = msgMatch[1].trim();
+        const dateStr = msgMatch[2].trim();
+        const timeStr = msgMatch[3].trim();
+        const venueStr = msgMatch[4]?.trim() || "TBD";
+
+        let dateObj = new Date(dateStr);
+        if (isNaN(dateObj.getTime())) {
+          dateObj = new Date(); // fallback
+        }
+
+        if (!examGroupsMap[examName]) {
+          examGroupsMap[examName] = {
+            examName,
+            examType,
+            publishedAt: a.created_at,
+            publishedBy: a.created_by_name || "Administrator",
+            priority: a.priority,
+            is_read: true,
+            subjects: [],
+            markReadIds: []
+          };
+        }
+
+        if (!a.is_read) {
+          examGroupsMap[examName].is_read = false;
+        }
+        examGroupsMap[examName].markReadIds.push(a.id);
+
+        examGroupsMap[examName].subjects.push({
+          id: a.id,
+          original: a,
+          examName,
+          subjectName,
+          examType,
+          dateStr,
+          timeStr,
+          venue: venueStr,
+          dateObj
+        });
+      } else {
+        regular.push(a);
+      }
     }
   });
 
@@ -251,9 +294,11 @@ const ExamAnnouncementCard = ({ exam, theme, handleMarkRead }: { exam: ExamAnnou
   const isValidPublishedDate = !isNaN(publishedDate.getTime());
 
   const handleMarkAllRead = () => {
-    exam.subjects.forEach(sub => {
-      if (!sub.original.is_read) {
-        handleMarkRead(sub.id);
+    const uniqueIds = Array.from(new Set(exam.markReadIds));
+    uniqueIds.forEach(id => {
+      const subWithId = exam.subjects.find(sub => sub.original.id === id);
+      if (subWithId && !subWithId.original.is_read) {
+        handleMarkRead(id);
       }
     });
   };

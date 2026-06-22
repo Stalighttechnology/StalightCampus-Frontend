@@ -22,6 +22,7 @@ export interface Announcement {
   is_expired: boolean;
   is_read?: boolean;
   gate_pass?: number | null;
+  exam_data?: any[];
 }
 
 export interface AnnouncementListResponse {

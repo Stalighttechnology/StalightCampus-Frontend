@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useTheme } from "@/context/ThemeContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../ui/dialog";
 import "./StudentStatus.css";
+import ExamWindowConfig from './ExamWindowConfig';
 
 
 const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
@@ -250,6 +251,15 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
             </div>
           </CardContent>
         </Card>
+
+        {filters.batch && filters.exam_period && filters.semester && (
+          <ExamWindowConfig 
+            batchId={filters.batch} 
+            examPeriod={filters.exam_period} 
+            branchId={filters.branch} 
+            semesterId={filters.semester} 
+          />
+        )}
 
         {/* Summary Cards */}
         {data &&

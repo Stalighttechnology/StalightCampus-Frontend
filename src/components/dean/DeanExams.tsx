@@ -298,11 +298,18 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
     
     try {
       setLoading(true);
-      await Promise.all(unpublished.map(ex => 
-        fetchWithTokenRefresh(`${API_ENDPOINT}/dean/reports/exams/${ex.id}/publish/`, { method: 'POST' })
-      ));
-      
       const publishedIds = unpublished.map(ex => ex.id);
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/dean/reports/exams/publish-all/`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exam_ids: publishedIds })
+      });
+      
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.message || 'Failed to publish exams');
+      }
+
       setExams((prev) => prev.map((ex) => publishedIds.includes(ex.id) ? { ...ex, is_published: true } : ex));
       setActiveExams((prev) => prev.map((ex) => publishedIds.includes(ex.id) ? { ...ex, is_published: true } : ex));
       MySwal.fire({

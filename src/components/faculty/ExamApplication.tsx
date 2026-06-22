@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { SkeletonList, SkeletonTable } from "@/components/ui/skeleton";
 import { useDebouncedSearch } from "@/hooks/useOptimizations";
 import { FileDown, Loader2, ClipboardList } from "lucide-react";
+import { showWarningAlert } from "@/utils/sweetalert";
 
 interface ExamApplicationProps {
   proctorStudents?: ProctorStudent[];
@@ -368,12 +369,16 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
       }
 
     } catch (error) {
-
-      toast({
-        title: "Update Failed",
-        description: error instanceof Error ? error.message : "Failed to update application. Please try again.",
-        variant: "destructive"
-      });
+      const errorMsg = error instanceof Error ? error.message : "Failed to update application. Please try again.";
+      if (errorMsg.toLowerCase().includes("window") && errorMsg.toLowerCase().includes("closed")) {
+         showWarningAlert("Application Blocked", "Exam application is not opened for this selected batch, semester and exam period. COE is not configured in the student status page in COE.");
+      } else {
+         toast({
+          title: "Update Failed",
+          description: errorMsg,
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -1092,11 +1097,16 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
 
                           setOpen(false);
                         } catch (error) {
-                          toast({
-                            title: "Application Failed",
-                            description: error instanceof Error ? error.message : "Failed to submit applications. Please try again.",
-                            variant: "destructive"
-                          });
+                          const errorMsg = error instanceof Error ? error.message : "Failed to submit applications. Please try again.";
+                          if (errorMsg.toLowerCase().includes("window") && errorMsg.toLowerCase().includes("closed")) {
+                             showWarningAlert("Application Blocked", "Exam application is not opened for this selected batch, semester and exam period. COE is not configured in the student status page in COE.");
+                          } else {
+                             toast({
+                              title: "Application Failed",
+                              description: errorMsg,
+                              variant: "destructive"
+                            });
+                          }
                         }
                       }} className="bg-primary hover:bg-[#9147e0] text-white h-10 rounded-xl font-semibold w-full sm:w-auto">
                         Save / Apply Applications

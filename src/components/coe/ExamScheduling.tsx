@@ -1,5 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Select,
   SelectContent,
@@ -86,6 +87,14 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [isEndDateOpen, setIsEndDateOpen] = useState(false);
   const [subjectDateOpens, setSubjectDateOpens] = useState<Record<number, boolean>>({});
 
+  // Category-based scheduling states
+  const [schedulingMode, setSchedulingMode] = useState<'individual' | 'category'>('individual');
+  const [selectedCategory, setSelectedCategory] = useState<'elective' | 'open_elective'>('elective');
+  const [categoryDate, setCategoryDate] = useState<string>('');
+  const [categoryStartTime, setCategoryStartTime] = useState<string>('09:00');
+  const [categoryEndTime, setCategoryEndTime] = useState<string>('12:00');
+  const [isCategoryDateOpen, setIsCategoryDateOpen] = useState(false);
+
   const displayDate = (dateStr: string) => {
     if (!dateStr) return "Pick a date";
     try {
@@ -93,6 +102,29 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
     } catch (e) {
       return dateStr;
     }
+  };
+
+  const handleModeChange = (mode: 'individual' | 'category') => {
+    setSchedulingMode(mode);
+  };
+
+  const resetForm = () => {
+    setShowForm(false);
+    setFormData({
+      title: '', batch_id: '', branch_id: '', semester_id: '',
+      exam_type: '', exam_period: '',
+      start_date: '', end_date: '', room: '',
+      subjects: []
+    });
+    setRoomsList(['']);
+    setRoomsSaved(false);
+    setSubjectDateOpens({});
+    setSchedulingMode('individual');
+    setSelectedCategory('elective');
+    setCategoryDate('');
+    setCategoryStartTime('09:00');
+    setCategoryEndTime('12:00');
+    setIsCategoryDateOpen(false);
   };
 
   // Form State
@@ -243,6 +275,36 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
     }
   }, [formData.branch_id, formData.semester_id, formData.batch_id, formData.exam_type, formData.exam_period]);
 
+  const addCategorySubjects = () => {
+    const filtered = subjects.filter(s => s.subject_type === selectedCategory);
+    if (filtered.length === 0) {
+      toast.error("No subjects found for this category.");
+      return;
+    }
+    
+    const newSubjects = [...formData.subjects];
+    let addedCount = 0;
+    filtered.forEach(s => {
+      if (!newSubjects.some(sub => sub.subject_id === s.id.toString())) {
+        newSubjects.unshift({
+          subject_id: s.id.toString(),
+          date: categoryDate || '',
+          start_time: categoryStartTime,
+          end_time: categoryEndTime
+        });
+        addedCount++;
+      }
+    });
+    
+    setFormData(prev => ({
+      ...prev,
+      subjects: newSubjects
+    }));
+    
+    toast.success(`Added ${addedCount} subjects to the schedule list.`);
+    setSchedulingMode('individual');
+  };
+
   useEffect(() => {
     loadFilters();
     loadData();
@@ -299,16 +361,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
             }));
           }
         }
-        setShowForm(false);
-        setFormData({
-          title: '', batch_id: '', branch_id: '', semester_id: '',
-          exam_type: '', exam_period: '',
-          start_date: '', end_date: '', room: '',
-          subjects: []
-        });
-        setRoomsList(['']);
-        setRoomsSaved(false);
-        setSubjectDateOpens({});
+        resetForm();
       } else {
         toast.error(res.message || "Failed to schedule exam");
       }
@@ -363,6 +416,74 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
     return 'past';
   };
 
+  const [viewGroupId, setViewGroupId] = useState<string | null>(null);
+
+  const groupExams = (examsList: any[]): any[] => {
+    const groups: Record<string, any> = {};
+    examsList.forEach(ex => {
+      const batchName = ex.batch?.name || 'All Batches';
+      const branchName = ex.subject?.branch || 'All Branches';
+      const semNumber = ex.semester?.number ? `Sem ${ex.semester.number}` : '';
+      const key = `${batchName}-${branchName}-${semNumber}-${ex.exam_type}-${ex.exam_period}`;
+      if (!groups[key]) {
+        groups[key] = {
+          id: key,
+          title: ex.title || ex.exam_type?.replace('_', ' ') || 'Exam',
+          batch: batchName,
+          branch: branchName,
+          semester: semNumber,
+          exam_type: ex.exam_type || '',
+          exam_period: ex.exam_period || '',
+          dateStr: '',
+          status: 'upcoming',
+          subjects: [],
+        };
+      }
+      groups[key].subjects.push(ex);
+    });
+
+    return Object.values(groups).map(g => {
+      let hasOngoing = false;
+      let allPast = true;
+
+      g.subjects.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      g.subjects.forEach((ex: any) => {
+        const s = computeStatus(ex);
+        if (s === 'ongoing') hasOngoing = true;
+        if (s !== 'past') allPast = false;
+      });
+
+      g.status = hasOngoing ? 'ongoing' : allPast ? 'past' : 'upcoming';
+      
+      if (g.subjects.length > 0) {
+        const firstD = new Date(g.subjects[0].date).toLocaleDateString();
+        const lastD = new Date(g.subjects[g.subjects.length - 1].date).toLocaleDateString();
+        if (firstD === lastD) {
+          if (g.subjects[0].start_time && g.subjects[0].end_time) {
+            const timeStr = `${formatTo12h(g.subjects[0].start_time)} - ${formatTo12h(g.subjects[0].end_time)}`;
+            g.dateStr = `${firstD}, ${timeStr}`;
+          } else {
+            g.dateStr = firstD;
+          }
+        } else {
+          g.dateStr = `${firstD} - ${lastD}`;
+        }
+      }
+      
+      return g;
+    });
+  };
+
+  useEffect(() => {
+    if (viewGroupId) {
+      const g = groupExams(exams).find(x => x.id === viewGroupId);
+      if (!g || g.subjects.length === 0) {
+        setViewGroupId(null);
+      }
+    }
+  }, [exams, viewGroupId]);
+
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
@@ -379,6 +500,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
           </div>
           <Button
             onClick={() => {
+              resetForm();
               loadFilters();
               setShowForm(true);
             }}
@@ -389,7 +511,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
           </Button>
         </CardHeader>
 
-        <Dialog open={showForm} onOpenChange={setShowForm}>
+        <Dialog open={showForm} onOpenChange={(open) => { if (!open) resetForm(); else setShowForm(true); }}>
           <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'} max-w-2xl w-[90vw] sm:w-full max-h-[80vh] overflow-y-auto rounded-xl custom-scrollbar`}>
             <DialogHeader>
               <DialogTitle className="text-xl font-semibold flex items-center gap-2">
@@ -647,56 +769,81 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                 )}
               </div>
 
-              <div className="sm:col-span-2 mt-4 space-y-4">
-                <div className="flex justify-between items-center border-b pb-2">
-                  <label className="text-lg font-semibold">Subjects Schedule</label>
-                  <Button type="button" variant="outline" size="sm" onClick={() => setFormData({ ...formData, subjects: [...formData.subjects, { subject_id: '', date: '', start_time: '09:00', end_time: '12:00' }] })} disabled={!formData.end_date || !roomsSaved}>
-                    <Plus className="w-4 h-4 mr-2" /> Add Subject
-                  </Button>
+              {/* Scheduling Mode Selector */}
+              <div className="sm:col-span-2 space-y-2 border-t pt-4">
+                <label className="text-[18px] sm:text-sm font-medium">Scheduling Mode</label>
+                <div className="grid grid-cols-2 gap-2 bg-muted/40 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => handleModeChange('individual')}
+                    className={`py-2 text-sm font-semibold rounded-lg transition-all ${
+                      schedulingMode === 'individual'
+                        ? 'bg-background shadow text-primary'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Individual Subjects
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleModeChange('category')}
+                    className={`py-2 text-sm font-semibold rounded-lg transition-all ${
+                      schedulingMode === 'category'
+                        ? 'bg-background shadow text-primary'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Elective / Open Elective
+                  </button>
                 </div>
-                {formData.subjects.map((sub, index) => (
-                  <div key={index} className="grid grid-cols-1 sm:grid-cols-6 gap-4 p-4 border rounded-xl relative bg-secondary/10">
-                    <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8 text-destructive" onClick={() => { const newSubs = [...formData.subjects]; newSubs.splice(index, 1); setFormData({ ...formData, subjects: newSubs }); }}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                    <div className="space-y-2 sm:col-span-6 pr-8">
-                      <label className="text-sm font-medium">Subject</label>
-                      <Select value={sub.subject_id} onValueChange={(v) => { const newSubs = [...formData.subjects]; newSubs[index].subject_id = v; setFormData({ ...formData, subjects: newSubs }); }}>
-                        <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select Subject" /></SelectTrigger>
+              </div>
+
+              <AnimatePresence mode="wait">
+                {schedulingMode === 'category' ? (
+                  <motion.div
+                    key="category"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.15 }}
+                    className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border rounded-xl bg-secondary/5"
+                  >
+                    <div className="space-y-2 sm:col-span-2">
+                      <label className="text-sm font-medium">Subject Category</label>
+                      <Select
+                        value={selectedCategory}
+                        onValueChange={(v: any) => setSelectedCategory(v)}
+                      >
+                        <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select Category" /></SelectTrigger>
                         <SelectContent>
-                          {subjects
-                            .filter(s => !formData.subjects.some((sub, i) => i !== index && sub.subject_id === s.id.toString()))
-                            .map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name} ({s.subject_code})</SelectItem>)}
+                          <SelectItem value="elective">Elective Subjects</SelectItem>
+                          <SelectItem value="open_elective">Open Elective Subjects</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2 sm:col-span-2 flex flex-col">
-                      <label className="text-sm font-medium">Date</label>
-                      <Popover
-                        open={!!subjectDateOpens[index]}
-                        onOpenChange={(open) => setSubjectDateOpens(prev => ({ ...prev, [index]: open }))}
-                      >
+
+                    <div className="space-y-2 flex flex-col">
+                      <label className="text-sm font-medium">Exam Date</label>
+                      <Popover open={isCategoryDateOpen} onOpenChange={isCategoryDateOpen => setIsCategoryDateOpen(isCategoryDateOpen)}>
                         <PopoverTrigger asChild>
                           <Button
                             type="button"
                             variant="outline"
                             disabled={!formData.start_date || !formData.end_date}
-                            className={`w-full justify-start text-left font-normal bg-background ${!sub.date && "text-muted-foreground"}`}
+                            className={`w-full justify-start text-left font-normal bg-background ${!categoryDate && "text-muted-foreground"}`}
                           >
                             <Calendar className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                            {sub.date ? displayDate(sub.date) : <span>Pick subject date</span>}
+                            {categoryDate ? displayDate(categoryDate) : <span>Pick date</span>}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
                           <CalendarComponent
                             mode="single"
-                            selected={sub.date ? parse(sub.date, 'yyyy-MM-dd', new Date()) : undefined}
+                            selected={categoryDate ? parse(categoryDate, 'yyyy-MM-dd', new Date()) : undefined}
                             onSelect={(date) => {
                               if (date) {
-                                const newSubs = [...formData.subjects];
-                                newSubs[index].date = format(date, "yyyy-MM-dd");
-                                setFormData({ ...formData, subjects: newSubs });
-                                setSubjectDateOpens(prev => ({ ...prev, [index]: false }));
+                                setCategoryDate(format(date, "yyyy-MM-dd"));
+                                setIsCategoryDateOpen(false);
                               }
                             }}
                             disabled={(date) => {
@@ -715,123 +862,336 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                         </PopoverContent>
                       </Popover>
                     </div>
+
                     <div className="space-y-2 sm:col-span-2">
-                      <label className="text-sm font-medium">Start Time</label>
-                      <div className="flex gap-1 items-center">
-                        <Select
-                          value={from24h(sub.start_time).h}
-                          onValueChange={(hVal) => {
-                            const current = from24h(sub.start_time);
-                            const newSubs = [...formData.subjects];
-                            newSubs[index].start_time = to24h(hVal, current.m, current.p);
-                            setFormData({ ...formData, subjects: newSubs });
-                          }}
-                        >
-                          <SelectTrigger className="w-[70px] bg-background px-2"><SelectValue /></SelectTrigger>
-                          <SelectContent className="max-h-[200px]">
-                            {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => (
-                              <SelectItem key={h} value={h}>{h}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <span className="text-muted-foreground font-bold">:</span>
-                        <Select
-                          value={from24h(sub.start_time).m}
-                          onValueChange={(mVal) => {
-                            const current = from24h(sub.start_time);
-                            const newSubs = [...formData.subjects];
-                            newSubs[index].start_time = to24h(current.h, mVal, current.p);
-                            setFormData({ ...formData, subjects: newSubs });
-                          }}
-                        >
-                          <SelectTrigger className="w-[70px] bg-background px-2"><SelectValue /></SelectTrigger>
-                          <SelectContent className="max-h-[200px]">
-                            {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map(m => (
-                              <SelectItem key={m} value={m}>{m}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Select
-                          value={from24h(sub.start_time).p}
-                          onValueChange={(pVal) => {
-                            const current = from24h(sub.start_time);
-                            const newSubs = [...formData.subjects];
-                            newSubs[index].start_time = to24h(current.h, current.m, pVal);
-                            setFormData({ ...formData, subjects: newSubs });
-                          }}
-                        >
-                          <SelectTrigger className="w-[75px] bg-background px-2"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="AM">AM</SelectItem>
-                            <SelectItem value="PM">PM</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <label className="text-sm font-medium">Time Slot (Start - End)</label>
+                      <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                        <div className="flex gap-1 items-center">
+                          <Select
+                            value={from24h(categoryStartTime).h}
+                            onValueChange={(hVal) => {
+                              const current = from24h(categoryStartTime);
+                              setCategoryStartTime(to24h(hVal, current.m, current.p));
+                            }}
+                          >
+                            <SelectTrigger className="w-[65px] bg-background px-1.5"><SelectValue /></SelectTrigger>
+                            <SelectContent className="max-h-[200px]">
+                              {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => (
+                                <SelectItem key={h} value={h}>{h}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <span className="text-muted-foreground font-bold">:</span>
+                          <Select
+                            value={from24h(categoryStartTime).m}
+                            onValueChange={(mVal) => {
+                              const current = from24h(categoryStartTime);
+                              setCategoryStartTime(to24h(current.h, mVal, current.p));
+                            }}
+                          >
+                            <SelectTrigger className="w-[65px] bg-background px-1.5"><SelectValue /></SelectTrigger>
+                            <SelectContent className="max-h-[200px]">
+                              {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map(m => (
+                                <SelectItem key={m} value={m}>{m}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Select
+                            value={from24h(categoryStartTime).p}
+                            onValueChange={(pVal) => {
+                              const current = from24h(categoryStartTime);
+                              setCategoryStartTime(to24h(current.h, current.m, pVal));
+                            }}
+                          >
+                            <SelectTrigger className="w-[70px] bg-background px-1.5"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="AM">AM</SelectItem>
+                              <SelectItem value="PM">PM</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <span className="text-muted-foreground font-semibold text-center sm:text-left">to</span>
+
+                        <div className="flex gap-1 items-center">
+                          <Select
+                            value={from24h(categoryEndTime).h}
+                            onValueChange={(hVal) => {
+                              const current = from24h(categoryEndTime);
+                              setCategoryEndTime(to24h(hVal, current.m, current.p));
+                            }}
+                          >
+                            <SelectTrigger className="w-[65px] bg-background px-1.5"><SelectValue /></SelectTrigger>
+                            <SelectContent className="max-h-[200px]">
+                              {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => (
+                                <SelectItem key={h} value={h}>{h}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <span className="text-muted-foreground font-bold">:</span>
+                          <Select
+                            value={from24h(categoryEndTime).m}
+                            onValueChange={(mVal) => {
+                              const current = from24h(categoryEndTime);
+                              setCategoryEndTime(to24h(current.h, mVal, current.p));
+                            }}
+                          >
+                            <SelectTrigger className="w-[65px] bg-background px-1.5"><SelectValue /></SelectTrigger>
+                            <SelectContent className="max-h-[200px]">
+                              {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map(m => (
+                                <SelectItem key={m} value={m}>{m}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Select
+                            value={from24h(categoryEndTime).p}
+                            onValueChange={(pVal) => {
+                              const current = from24h(categoryEndTime);
+                              setCategoryEndTime(to24h(current.h, current.m, pVal));
+                            }}
+                          >
+                            <SelectTrigger className="w-[70px] bg-background px-1.5"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="AM">AM</SelectItem>
+                              <SelectItem value="PM">PM</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
-                    <div className="space-y-2 sm:col-span-2">
-                      <label className="text-sm font-medium">End Time</label>
-                      <div className="flex gap-1 items-center">
-                        <Select
-                          value={from24h(sub.end_time).h}
-                          onValueChange={(hVal) => {
-                            const current = from24h(sub.end_time);
-                            const newSubs = [...formData.subjects];
-                            newSubs[index].end_time = to24h(hVal, current.m, current.p);
-                            setFormData({ ...formData, subjects: newSubs });
-                          }}
-                        >
-                          <SelectTrigger className="w-[70px] bg-background px-2"><SelectValue /></SelectTrigger>
-                          <SelectContent className="max-h-[200px]">
-                            {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => (
-                              <SelectItem key={h} value={h}>{h}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <span className="text-muted-foreground font-bold">:</span>
-                        <Select
-                          value={from24h(sub.end_time).m}
-                          onValueChange={(mVal) => {
-                            const current = from24h(sub.end_time);
-                            const newSubs = [...formData.subjects];
-                            newSubs[index].end_time = to24h(current.h, mVal, current.p);
-                            setFormData({ ...formData, subjects: newSubs });
-                          }}
-                        >
-                          <SelectTrigger className="w-[70px] bg-background px-2"><SelectValue /></SelectTrigger>
-                          <SelectContent className="max-h-[200px]">
-                            {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map(m => (
-                              <SelectItem key={m} value={m}>{m}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Select
-                          value={from24h(sub.end_time).p}
-                          onValueChange={(pVal) => {
-                            const current = from24h(sub.end_time);
-                            const newSubs = [...formData.subjects];
-                            newSubs[index].end_time = to24h(current.h, current.m, pVal);
-                            setFormData({ ...formData, subjects: newSubs });
-                          }}
-                        >
-                          <SelectTrigger className="w-[75px] bg-background px-2"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="AM">AM</SelectItem>
-                            <SelectItem value="PM">PM</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+
+                    <div className="sm:col-span-2 mt-2">
+                      <label className="text-xs font-semibold text-muted-foreground block mb-2">
+                        Subjects in this Category ({subjects.filter(s => s.subject_type === selectedCategory).length}):
+                      </label>
+                      {subjects.filter(s => s.subject_type === selectedCategory).length > 0 ? (
+                        <>
+                          <div className="max-h-[150px] overflow-y-auto border rounded-lg divide-y bg-background p-2">
+                            {subjects.filter(s => s.subject_type === selectedCategory).map((sub, idx) => {
+                              return (
+                                <div key={idx} className="flex justify-between items-center py-1.5 px-2 text-sm">
+                                  <div>
+                                    <span className="font-semibold">{sub.name}</span>
+                                    <span className="text-xs text-muted-foreground ml-2">({sub.subject_code || 'N/A'})</span>
+                                  </div>
+                                  <Badge variant="outline" className="text-xs">
+                                    {categoryDate ? displayDate(categoryDate) : 'No date set'} @ {formatTo12h(categoryStartTime)}
+                                  </Badge>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={addCategorySubjects}
+                            className="w-full mt-3 h-11 bg-primary hover:bg-primary/95 text-white font-semibold rounded-xl flex items-center justify-center gap-2"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Add Electives to Schedule
+                          </Button>
+                        </>
+                      ) : (
+                        <div className="text-center py-4 text-xs text-muted-foreground border border-dashed rounded-lg">
+                          No subjects found for this category in the selected semester/branch.
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
-                {formData.subjects.length === 0 && (
-                  <div className="text-center py-4 text-muted-foreground text-sm border-2 border-dashed rounded-xl">
-                    No subjects added. Click 'Add Subject' to schedule.
-                  </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="individual"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.15 }}
+                    className="sm:col-span-2 mt-4 space-y-4"
+                  >
+                    <div className="flex justify-between items-center border-b pb-2">
+                      <label className="text-lg font-semibold">Subjects Schedule</label>
+                      <Button type="button" variant="outline" size="sm" onClick={() => setFormData({ ...formData, subjects: [{ subject_id: '', date: '', start_time: '09:00', end_time: '12:00' }, ...formData.subjects] })} disabled={!formData.branch_id || !formData.semester_id}>
+                        <Plus className="w-4 h-4 mr-2" /> Add Subject
+                      </Button>
+                    </div>
+                    {formData.subjects.map((sub, index) => (
+                      <div key={index} className="grid grid-cols-1 sm:grid-cols-6 gap-4 p-4 border rounded-xl relative bg-secondary/10">
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8 text-destructive" onClick={() => { const newSubs = [...formData.subjects]; newSubs.splice(index, 1); setFormData({ ...formData, subjects: newSubs }); }}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                        <div className="space-y-2 sm:col-span-6 pr-8">
+                          <label className="text-sm font-medium">Subject</label>
+                          <Select value={sub.subject_id} onValueChange={(v) => { const newSubs = [...formData.subjects]; newSubs[index].subject_id = v; setFormData({ ...formData, subjects: newSubs }); }}>
+                            <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select Subject" /></SelectTrigger>
+                            <SelectContent>
+                              {subjects
+                                .filter(s => !formData.subjects.some((sub, i) => i !== index && sub.subject_id === s.id.toString()))
+                                .map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name} ({s.subject_code})</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2 sm:col-span-2 flex flex-col">
+                          <label className="text-sm font-medium">Date</label>
+                          <Popover
+                            open={!!subjectDateOpens[index]}
+                            onOpenChange={(open) => setSubjectDateOpens(prev => ({ ...prev, [index]: open }))}
+                          >
+                            <PopoverTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                disabled={!formData.start_date || !formData.end_date}
+                                className={`w-full justify-start text-left font-normal bg-background ${!sub.date && "text-muted-foreground"}`}
+                              >
+                                <Calendar className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                                {sub.date ? displayDate(sub.date) : <span>Pick subject date</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <CalendarComponent
+                                mode="single"
+                                selected={sub.date ? parse(sub.date, 'yyyy-MM-dd', new Date()) : undefined}
+                                onSelect={(date) => {
+                                  if (date) {
+                                    const newSubs = [...formData.subjects];
+                                    newSubs[index].date = format(date, "yyyy-MM-dd");
+                                    setFormData({ ...formData, subjects: newSubs });
+                                    setSubjectDateOpens(prev => ({ ...prev, [index]: false }));
+                                  }
+                                }}
+                                disabled={(date) => {
+                                  if (formData.start_date && formData.end_date) {
+                                    const start = parse(formData.start_date, 'yyyy-MM-dd', new Date());
+                                    const end = parse(formData.end_date, 'yyyy-MM-dd', new Date());
+                                    start.setHours(0, 0, 0, 0);
+                                    end.setHours(0, 0, 0, 0);
+                                    return date < start || date > end;
+                                  }
+                                  return false;
+                                }}
+                                initialFocus
+                                className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div className="space-y-2 sm:col-span-2">
+                          <label className="text-sm font-medium">Start Time</label>
+                          <div className="flex gap-1 items-center">
+                            <Select
+                              value={from24h(sub.start_time).h}
+                              onValueChange={(hVal) => {
+                                const current = from24h(sub.start_time);
+                                const newSubs = [...formData.subjects];
+                                newSubs[index].start_time = to24h(hVal, current.m, current.p);
+                                setFormData({ ...formData, subjects: newSubs });
+                              }}
+                            >
+                              <SelectTrigger className="w-[70px] bg-background px-2"><SelectValue /></SelectTrigger>
+                              <SelectContent className="max-h-[200px]">
+                                {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => (
+                                  <SelectItem key={h} value={h}>{h}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <span className="text-muted-foreground font-bold">:</span>
+                            <Select
+                              value={from24h(sub.start_time).m}
+                              onValueChange={(mVal) => {
+                                const current = from24h(sub.start_time);
+                                const newSubs = [...formData.subjects];
+                                newSubs[index].start_time = to24h(current.h, mVal, current.p);
+                                setFormData({ ...formData, subjects: newSubs });
+                              }}
+                            >
+                              <SelectTrigger className="w-[70px] bg-background px-2"><SelectValue /></SelectTrigger>
+                              <SelectContent className="max-h-[200px]">
+                                {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map(m => (
+                                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Select
+                              value={from24h(sub.start_time).p}
+                              onValueChange={(pVal) => {
+                                const current = from24h(sub.start_time);
+                                const newSubs = [...formData.subjects];
+                                newSubs[index].start_time = to24h(current.h, current.m, pVal);
+                                setFormData({ ...formData, subjects: newSubs });
+                              }}
+                            >
+                              <SelectTrigger className="w-[75px] bg-background px-2"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="AM">AM</SelectItem>
+                                <SelectItem value="PM">PM</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="space-y-2 sm:col-span-2">
+                          <label className="text-sm font-medium">End Time</label>
+                          <div className="flex gap-1 items-center">
+                            <Select
+                              value={from24h(sub.end_time).h}
+                              onValueChange={(hVal) => {
+                                const current = from24h(sub.end_time);
+                                const newSubs = [...formData.subjects];
+                                newSubs[index].end_time = to24h(hVal, current.m, current.p);
+                                setFormData({ ...formData, subjects: newSubs });
+                              }}
+                            >
+                              <SelectTrigger className="w-[70px] bg-background px-2"><SelectValue /></SelectTrigger>
+                              <SelectContent className="max-h-[200px]">
+                                {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => (
+                                  <SelectItem key={h} value={h}>{h}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <span className="text-muted-foreground font-bold">:</span>
+                            <Select
+                              value={from24h(sub.end_time).m}
+                              onValueChange={(mVal) => {
+                                const current = from24h(sub.end_time);
+                                const newSubs = [...formData.subjects];
+                                newSubs[index].end_time = to24h(current.h, mVal, current.p);
+                                setFormData({ ...formData, subjects: newSubs });
+                              }}
+                            >
+                              <SelectTrigger className="w-[70px] bg-background px-2"><SelectValue /></SelectTrigger>
+                              <SelectContent className="max-h-[200px]">
+                                {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map(m => (
+                                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Select
+                              value={from24h(sub.end_time).p}
+                              onValueChange={(pVal) => {
+                                const current = from24h(sub.end_time);
+                                const newSubs = [...formData.subjects];
+                                newSubs[index].end_time = to24h(current.h, current.m, pVal);
+                                setFormData({ ...formData, subjects: newSubs });
+                              }}
+                            >
+                              <SelectTrigger className="w-[75px] bg-background px-2"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="AM">AM</SelectItem>
+                                <SelectItem value="PM">PM</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {formData.subjects.length === 0 && (
+                      <div className="text-center py-4 text-muted-foreground text-sm border-2 border-dashed rounded-xl">
+                        No subjects added. Click 'Add Subject' to schedule.
+                      </div>
+                    )}
+                  </motion.div>
                 )}
-              </div>
+              </AnimatePresence>
 
               <div className="sm:col-span-2 flex flex-row items-center justify-end gap-3 pt-6 border-t mt-4 w-full">
-                <Button type="button" variant="outline" className="flex-1 sm:flex-none h-12 sm:h-10 text-[18px] sm:text-sm" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type="button" variant="outline" className="flex-1 sm:flex-none h-12 sm:h-10 text-[18px] sm:text-sm" onClick={() => resetForm()}>Cancel</Button>
                 <Button type="submit" disabled={loading} className="flex-1 sm:flex-none h-12 sm:h-10 text-[18px] sm:text-sm font-bold sm:font-semibold">
                   {loading ? "Scheduling..." : "Create Schedule"}
                 </Button>
@@ -933,48 +1293,44 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                       </tr>
                     </thead>
                     <tbody className={`whitespace-nowrap divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                      {Array.isArray(exams) && exams.map((ex) =>
-                        <tr key={ex.id} className={`hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
+                      {groupExams(exams).map((g) =>
+                        <tr key={g.id} className={`hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
                           <td className="px-6 py-4">
-                            <div className="font-semibold text-foreground">{ex.title}</div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {ex.subject?.name ? `${ex.subject.name}${ex.subject.code ? ` (${ex.subject.code})` : ''}` : 'General'}
-                            </div>
+                            <div className="font-semibold text-foreground">{g.title}</div>
                             <div className="mt-1 flex gap-1">
-                              <Badge variant="outline" className="text-[10px] py-0">{ex.exam_type?.replace('_', ' ')}</Badge>
+                              {g.exam_type && <Badge variant="outline" className="text-[10px] py-0">{g.exam_type.replace('_', ' ')}</Badge>}
+                              {g.exam_period && <Badge variant="outline" className="text-[10px] py-0">{g.exam_period.replace('_', '/')}</Badge>}
                             </div>
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <div className="font-medium">{ex.batch?.name || 'All Batches'}</div>
-                            <div className="text-xs text-muted-foreground">{ex.subject?.branch || 'All Branches'}</div>
-                            <div className="text-xs text-muted-foreground">{ex.semester?.number ? `Sem ${ex.semester.number}` : ''}</div>
+                            <div className="font-medium">{g.batch}</div>
+                            <div className="text-xs text-muted-foreground">{g.branch} • {g.semester}</div>
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <div className="font-medium">{new Date(ex.date).toLocaleDateString()}</div>
+                            <div className="font-medium">{g.dateStr}</div>
                             <div className="text-xs text-muted-foreground flex items-center justify-center gap-1 mt-1">
-                              <Clock className="w-3 h-3" />
-                              {formatTo12h(ex.start_time)} - {formatTo12h(ex.end_time)}
+                              <BookOpen className="w-3 h-3" />
+                              {g.subjects.length} Subjects
                             </div>
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <Badge variant="secondary" className="font-medium">{ex.room || 'TBD'}</Badge>
+                            <Badge variant="secondary" className="font-medium">{g.subjects[0]?.room || 'TBD'}</Badge>
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <Badge className={`capitalize ${computeStatus(ex) === 'ongoing' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                              computeStatus(ex) === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                            <Badge className={`capitalize ${g.status === 'ongoing' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
+                              g.status === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
                                 'bg-gray-500/10 text-gray-600 border-gray-500/20'}`
                             } variant="outline">
-                              {computeStatus(ex)}
+                              {g.status}
                             </Badge>
                           </td>
                           <td className="px-6 py-4 text-right">
                             <Button
-                              variant="ghost"
+                              variant="default"
                               size="sm"
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => handleDelete(ex.id)}>
-
-                              <Trash2 className="w-4 h-4" />
+                              onClick={() => setViewGroupId(g.id)}
+                              className="h-8 text-xs font-semibold">
+                              View
                             </Button>
                           </td>
                         </tr>
@@ -985,40 +1341,27 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
                 {/* Mobile Card List */}
                 <div className="sm:hidden space-y-4 px-4 py-2">
-                  {Array.isArray(exams) && exams.map((ex) => (
-                    <Card key={ex.id} className="p-5 border shadow-sm bg-card">
+                  {groupExams(exams).map((g) => (
+                    <Card key={g.id} className="p-5 border shadow-sm bg-card">
                       <div className="flex flex-col gap-4">
                         {/* Title Area */}
                         <div className="flex items-start justify-between gap-3">
                           <div className="space-y-1">
                             <span className="text-[10px] tracking-wider uppercase font-bold text-muted-foreground px-2 py-0.5 rounded-full bg-secondary border border-border">
-                              {ex.exam_type?.replace('_', ' ') || 'Exam'}
+                              {g.exam_type?.replace('_', ' ') || 'Exam'}
                             </span>
-                            <h3 className="font-bold text-lg text-foreground mt-1.5 tracking-tight leading-snug">{ex.title}</h3>
+                            <h3 className="font-bold text-lg text-foreground mt-1.5 tracking-tight leading-snug">{g.title}</h3>
                           </div>
 
                           <Badge className={`capitalize font-semibold text-xs px-2.5 py-1 rounded-lg border ${
-                            computeStatus(ex) === 'ongoing' 
+                            g.status === 'ongoing' 
                               ? 'bg-green-500/10 text-green-600 border-green-500/20 dark:bg-green-500/20 dark:text-green-400' 
-                              : computeStatus(ex) === 'upcoming' 
+                              : g.status === 'upcoming' 
                                 ? 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:bg-blue-500/20 dark:text-blue-400' 
                                 : 'bg-gray-500/10 text-gray-600 border-gray-500/20 dark:bg-gray-800 dark:text-gray-400'
                           }`} variant="outline">
-                            {computeStatus(ex)}
+                            {g.status}
                           </Badge>
-                        </div>
-
-                        {/* Subject Details Box */}
-                        <div className="p-3.5 rounded-xl border border-border bg-transparent">
-                          <p className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest">Subject</p>
-                          <p className="font-semibold text-foreground text-sm mt-0.5 leading-snug">
-                            {ex.subject?.name || 'General'}
-                          </p>
-                          {ex.subject?.code && (
-                            <span className="inline-block text-[11px] font-mono bg-muted text-muted-foreground px-1.5 py-0.5 rounded mt-1.5">
-                              {ex.subject.code}
-                            </span>
-                          )}
                         </div>
 
                         {/* Metadata Rows */}
@@ -1029,30 +1372,26 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                             <div>
                               <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Class Info</span>
                               <span className="font-semibold text-foreground text-[13px] leading-snug break-words">
-                                {ex.batch?.name || 'All Batches'} / {ex.subject?.branch || 'All Branches'} / Sem {ex.semester?.number || 'All'}
+                                {g.batch} / {g.branch} / {g.semester}
                               </span>
                             </div>
                           </div>
 
-                          {/* Date and Time info side-by-side */}
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="flex items-start gap-2">
-                              <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                              <div>
-                                <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Date</span>
-                                <span className="font-semibold text-foreground text-[13px]">{new Date(ex.date).toLocaleDateString()}</span>
-                              </div>
+                          {/* Date and Time info */}
+                          <div className="flex items-start gap-2">
+                            <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                            <div>
+                              <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Date & Time</span>
+                              <span className="font-semibold text-foreground text-[13px]">{g.dateStr}</span>
                             </div>
+                          </div>
 
-                            <div className="flex items-start gap-2">
-                              <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                              <div>
-                                <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Time</span>
-                                <span className="font-semibold text-foreground text-[13px] leading-snug">
-                                  {formatTo12h(ex.start_time)}
-                                  <span className="block text-[11px] text-muted-foreground font-normal">to {formatTo12h(ex.end_time)}</span>
-                                </span>
-                              </div>
+                          {/* Subjects info */}
+                          <div className="flex items-start gap-2">
+                            <BookOpen className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                            <div>
+                              <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Subjects</span>
+                              <span className="font-semibold text-foreground text-[13px]">{g.subjects.length} Subjects</span>
                             </div>
                           </div>
 
@@ -1061,7 +1400,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                             <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                             <div>
                               <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Venue / Room</span>
-                              <span className="font-semibold text-foreground text-[13px]">{ex.room || 'TBD'}</span>
+                              <span className="font-semibold text-foreground text-[13px]">{g.subjects[0]?.room || 'TBD'}</span>
                             </div>
                           </div>
                         </div>
@@ -1069,12 +1408,11 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                         {/* Footer Action */}
                         <div className="pt-3 border-t border-border">
                           <Button
-                            variant="outline"
+                            variant="default"
                             size="sm"
-                            onClick={() => handleDelete(ex.id)}
-                            className="w-full h-10 flex items-center justify-center gap-2 text-sm font-semibold rounded-xl border-border text-destructive hover:bg-destructive/10">
-                            <Trash2 className="w-4 h-4" />
-                            Delete Schedule
+                            onClick={() => setViewGroupId(g.id)}
+                            className="w-full h-10 flex items-center justify-center gap-2 text-sm font-semibold rounded-xl">
+                            View Details
                           </Button>
                         </div>
                       </div>
@@ -1121,6 +1459,68 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
           </CardFooter>
         )}
       </Card>
+
+      <Dialog open={!!viewGroupId} onOpenChange={(open) => !open && setViewGroupId(null)}>
+        <DialogContent 
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+          className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'} w-[90vw] max-h-[80vh] md:max-w-2xl md:max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl`}>
+          <DialogHeader>
+            {(() => {
+              const currentGroup = groupExams(exams).find(g => g.id === viewGroupId);
+              return (
+                <>
+                  <DialogTitle>{currentGroup?.title} - Detailed Schedule</DialogTitle>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {currentGroup?.batch} • {currentGroup?.branch} • {currentGroup?.semester}
+                  </div>
+                </>
+              );
+            })()}
+          </DialogHeader>
+          <div className="mt-4 border rounded-md overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-muted/50 border-b">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Subject</th>
+                  <th className="px-4 py-3 font-semibold">Date</th>
+                  <th className="px-4 py-3 font-semibold">Time</th>
+                  <th className="px-4 py-3 font-semibold">Room</th>
+                  <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {(() => {
+                  const currentGroup = groupExams(exams).find(g => g.id === viewGroupId);
+                  return currentGroup?.subjects.map((ex: any) => (
+                    <tr key={ex.id} className="hover:bg-muted/30">
+                      <td className="px-4 py-3 font-medium">
+                        {ex.subject?.name || 'General'} {ex.subject?.code ? `(${ex.subject.code})` : ''}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">{new Date(ex.date).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">{formatTo12h(ex.start_time)} - {formatTo12h(ex.end_time)}</td>
+                      <td className="px-4 py-3">{ex.room || 'TBD'}</td>
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDelete(ex.id)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ));
+                })()}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 flex justify-end gap-3">
+            <Button variant="outline" className="bg-primary hover:bg-primary/90 text-white hover:text-white" onClick={() => setViewGroupId(null)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>);
 
 });

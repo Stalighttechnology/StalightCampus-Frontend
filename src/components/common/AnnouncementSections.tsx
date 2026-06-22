@@ -835,6 +835,34 @@ export const AnnouncementSections = ({
               </div>
             </div>
 
+            {viewingAnnouncement?.exam_data && viewingAnnouncement.exam_data.length > 0 && (
+              <div className="mt-6 space-y-4">
+                <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">Detailed Schedule</h4>
+                <div className={`overflow-x-auto rounded-xl border ${theme === 'dark' ? 'border-border/50' : 'border-gray-200'}`}>
+                  <Table>
+                    <TableHeader className={theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'}>
+                      <TableRow>
+                        <TableHead className="font-semibold py-3 text-xs uppercase tracking-wider">Subject</TableHead>
+                        <TableHead className="font-semibold py-3 text-xs uppercase tracking-wider">Date</TableHead>
+                        <TableHead className="font-semibold py-3 text-xs uppercase tracking-wider">Time</TableHead>
+                        <TableHead className="font-semibold py-3 text-xs uppercase tracking-wider">Room</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {viewingAnnouncement.exam_data.map((exam: any, idx: number) => (
+                        <TableRow key={idx} className={theme === 'dark' ? 'hover:bg-muted/20 border-border/50' : 'hover:bg-gray-50/50'}>
+                          <TableCell className="font-medium">{exam.subjectName}</TableCell>
+                          <TableCell>{format(new Date(exam.dateStr), 'dd/MM/yyyy')}</TableCell>
+                          <TableCell className="text-muted-foreground whitespace-nowrap">{exam.timeStr}</TableCell>
+                          <TableCell>{exam.venue || 'TBD'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+
             {viewingAnnouncement?.gate_pass && (
               <div className={`p-4 rounded-xl border space-y-3 ${theme === 'dark' ? 'bg-purple-950/20 border-purple-900/30' : 'bg-purple-50/50 border-purple-100'}`}>
                 <h4 className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Gate Pass Action Required</h4>
