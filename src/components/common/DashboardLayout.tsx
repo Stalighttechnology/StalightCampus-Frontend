@@ -72,12 +72,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   // Synchronize native Status Bar and Navigation Bar colors when Dashboard mounts or theme updates
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
+      StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
       StatusBar.setStyle({
-        style: theme === 'dark' ? Style.Dark : Style.Light
+        style: Style.Light
       }).catch(() => {});
       StatusBar.setBackgroundColor({
-        color: theme === 'dark' ? '#0a0a0c' : '#ffffff'
+        color: '#00000000'
       }).catch(() => {});
       NavigationBar.setNavigationBarColor({
         color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
