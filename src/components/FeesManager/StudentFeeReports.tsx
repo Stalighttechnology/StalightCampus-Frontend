@@ -652,7 +652,7 @@ const StudentFeeReports: React.FC = () => {
                                             <FileText className="w-3.5 h-3.5" />
                                           </div>
                                           <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3 min-w-0">
-                                            <span className="font-semibold text-xs font-mono break-all">{invoice.invoice_number}</span>
+                                            <span className="font-semibold text-xs font-mono break-words">{invoice.invoice_number}</span>
                                             <span className="font-bold text-xs sm:text-sm text-muted-foreground sm:text-foreground">{formatCurrency(invoice.total_amount)}</span>
                                           </div>
                                         </div>
@@ -1012,7 +1012,7 @@ const StudentFeeReports: React.FC = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex flex-row items-center justify-between gap-4">
-                    <span className="truncate min-w-0 flex-1">Student Fee Reports ({totalStudents} students)</span>
+                    <span className="min-w-0 flex-1 break-words">Student Fee Reports <span className="whitespace-nowrap">({totalStudents} students)</span></span>
                     <div className="flex items-center gap-2 shrink-0">
                       {/* Desktop Export Button */}
                       <Button
