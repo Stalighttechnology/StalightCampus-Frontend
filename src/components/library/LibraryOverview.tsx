@@ -146,8 +146,25 @@ const LibraryOverview = () => {
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
       {/* Metrics Cards */}
       <div id="library-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <DashboardCard
@@ -333,7 +350,7 @@ const LibraryOverview = () => {
           </form>
         </Card>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

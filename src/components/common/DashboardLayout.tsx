@@ -57,6 +57,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const navigate = useNavigate();
   const mainContentRef = useRef<HTMLElement>(null);
 
+  // Lock document viewport and scroll when library admin dashboard is active to prevent double scrolling
+  useEffect(() => {
+    if (role === 'library_admin') {
+      document.documentElement.classList.add("dashboard-active");
+      document.body.classList.add("dashboard-active");
+    }
+    return () => {
+      document.documentElement.classList.remove("dashboard-active");
+      document.body.classList.remove("dashboard-active");
+    };
+  }, [role]);
+
   // Synchronize native Status Bar and Navigation Bar colors when Dashboard mounts or theme updates
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -272,7 +284,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Main Content Area */}
       <div
-        className={`flex-1 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 pb-[env(safe-area-inset-bottom,0px)] ${sidebarCollapsed ? 'ml-0' : 'lg:ml-64'}`
+        className={`flex-1 min-h-0 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 pb-[env(safe-area-inset-bottom,0px)] ${sidebarCollapsed ? 'ml-0' : 'lg:ml-64'}`
         }>
 
         {/* Navbar */}
@@ -290,10 +302,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
         </div>
 
-        {/* Page Content */}
         <motion.main
           ref={mainContentRef}
-          className={`flex-1 min-w-0 p-4 pb-32 md:pb-8 overflow-y-auto overflow-x-hidden thin-scrollbar ${theme === "dark" ? "bg-background" : "bg-gray-50"}`
+          className={`flex-1 min-h-0 min-w-0 p-4 pb-6 md:pb-8 overflow-y-auto overflow-x-hidden thin-scrollbar ${theme === "dark" ? "bg-background" : "bg-gray-50"}`
           }
           initial={isNoAnimation ? false : { opacity: 0, y: 20 }}
           animate={isNoAnimation ? false : { opacity: 1, y: 0 }}

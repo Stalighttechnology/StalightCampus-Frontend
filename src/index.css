@@ -223,6 +223,14 @@ body {
   min-height: 100% !important;
 }
 
+html.dashboard-active,
+body.dashboard-active,
+body.dashboard-active #root {
+  overflow: hidden !important;
+  height: 100% !important;
+  height: 100dvh !important;
+}
+
 /* Global Custom Scrollbar Styling - Hidden but still scrollable */
 ::-webkit-scrollbar {
   width: 0px !important;
