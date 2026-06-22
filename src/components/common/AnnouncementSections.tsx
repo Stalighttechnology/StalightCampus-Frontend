@@ -154,6 +154,76 @@ const formatAnnouncementMessage = (msg: string) => {
   }).join('\n');
 };
 
+const formatRoleName = (role: string) => {
+  if (!role) return "";
+  return role
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+const renderTargetRoles = (targetRoles: string[]) => {
+  if (!targetRoles || targetRoles.length === 0) return null;
+  const ALL_POSSIBLE_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager"];
+  
+  if (targetRoles.length >= ALL_POSSIBLE_ROLES.length - 1) {
+    return (
+      <Badge variant="outline" className="text-xs px-2 py-0.5 h-5 bg-primary/10 text-primary border-primary/20 font-semibold rounded-md">
+        All Roles
+      </Badge>
+    );
+  }
+
+  const visibleRoles = targetRoles.slice(0, 2);
+  const remainingCount = targetRoles.length - visibleRoles.length;
+
+  return (
+    <div className="flex flex-wrap justify-center gap-1.5 max-w-[200px] mx-auto">
+      {visibleRoles.map((role) => (
+        <Badge key={role} variant="outline" className="text-xs px-2 py-0.5 h-5 font-medium whitespace-nowrap rounded-md">
+          {formatRoleName(role)}
+        </Badge>
+      ))}
+      {remainingCount > 0 && (
+        <Badge variant="secondary" className="text-xs px-2 py-0.5 h-5 font-semibold bg-muted text-muted-foreground border-none rounded-md">
+          +{remainingCount} more
+        </Badge>
+      )}
+    </div>
+  );
+};
+
+const renderTargetRolesMobile = (targetRoles: string[]) => {
+  if (!targetRoles || targetRoles.length === 0) return null;
+  const ALL_POSSIBLE_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager"];
+  
+  if (targetRoles.length >= ALL_POSSIBLE_ROLES.length - 1) {
+    return (
+      <Badge variant="outline" className="text-[10px] px-2 h-5 bg-primary/10 text-primary border-primary/20 font-semibold rounded-md">
+        All Roles
+      </Badge>
+    );
+  }
+
+  const visibleRoles = targetRoles.slice(0, 2);
+  const remainingCount = targetRoles.length - visibleRoles.length;
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {visibleRoles.map((role) => (
+        <Badge key={role} variant="outline" className="text-[10px] px-2 h-5 bg-background font-medium whitespace-nowrap rounded-md">
+          {formatRoleName(role)}
+        </Badge>
+      ))}
+      {remainingCount > 0 && (
+        <Badge variant="secondary" className="text-[10px] px-2 h-5 font-semibold bg-muted text-muted-foreground border-none rounded-md">
+          +{remainingCount}
+        </Badge>
+      )}
+    </div>
+  );
+};
+
 export const AnnouncementSections = ({
   myAnnouncements,
   receivedAnnouncements,
@@ -364,19 +434,13 @@ export const AnnouncementSections = ({
                           </Button>
                         </TableCell>
                         <TableCell className="text-center">
-                          <div className="flex flex-wrap justify-center gap-1.5">
-                            {activeTab === 'received' ? (
-                              <Badge variant="outline" className="text-xs px-2 py-0.5 h-5 capitalize font-medium">
-                                {announcement.created_by_role}
-                              </Badge>
-                            ) : (
-                              announcement.target_roles.map((role) => (
-                                <Badge key={role} variant="outline" className="text-xs px-2 py-0.5 h-5 capitalize font-medium">
-                                  {role}
-                                </Badge>
-                              ))
-                            )}
-                          </div>
+                          {activeTab === 'received' ? (
+                            <Badge variant="outline" className="text-xs px-2 py-0.5 h-5 font-medium rounded-md">
+                              {formatRoleName(announcement.created_by_role)}
+                            </Badge>
+                          ) : (
+                            renderTargetRoles(announcement.target_roles)
+                          )}
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge className={`${getPriorityColor(announcement.priority)} text-xs px-2.5 py-0.5 h-6 font-semibold mx-auto`}>
@@ -488,15 +552,11 @@ export const AnnouncementSections = ({
                     
                     <div className="ann-card-badges">
                       {activeTab === 'received' ? (
-                        <Badge variant="outline" className="text-[10px] capitalize px-2 h-5 bg-background">
-                          {announcement.created_by_role}
+                        <Badge variant="outline" className="text-[10px] px-2 h-5 bg-background font-medium rounded-md">
+                          {formatRoleName(announcement.created_by_role)}
                         </Badge>
                       ) : (
-                        announcement.target_roles.map((role) => (
-                          <Badge key={role} variant="outline" className="text-[10px] capitalize px-2 h-5 bg-background">
-                            {role}
-                          </Badge>
-                        ))
+                        renderTargetRolesMobile(announcement.target_roles)
                       )}
                     </div>
 
@@ -785,7 +845,7 @@ export const AnnouncementSections = ({
       </TabsContent>
         </SectionContentWrapper>
 
-        {activeTab === "my" && myPagination && myPagination.count > 1 && (
+        {activeTab === "my" && myPagination && myPagination.count > myPagination.pageSize && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((myPagination.page - 1) * myPagination.pageSize + 1, myPagination.count)} to {Math.min(myPagination.page * myPagination.pageSize, myPagination.count)} of {myPagination.count} announcements
@@ -820,7 +880,7 @@ export const AnnouncementSections = ({
           </CardFooter>
         )}
 
-        {activeTab === "received" && receivedPagination && receivedPagination.count > 1 && (
+        {activeTab === "received" && receivedPagination && receivedPagination.count > receivedPagination.pageSize && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((receivedPagination.page - 1) * receivedPagination.pageSize + 1, receivedPagination.count)} to {Math.min(receivedPagination.page * receivedPagination.pageSize, receivedPagination.count)} of {receivedPagination.count} announcements
@@ -991,13 +1051,13 @@ export const AnnouncementSections = ({
             <div className="pt-4 flex flex-wrap gap-4 items-center justify-between border-t border-border/30">
               <div className="flex flex-wrap gap-2">
                 {activeTab === 'received' ? (
-                  <Badge variant="outline" className="capitalize text-sm font-semibold px-3 py-1 rounded-lg bg-background">
-                    {viewingAnnouncement?.created_by_role}
+                  <Badge variant="outline" className="text-sm font-semibold px-3 py-1 rounded-lg bg-background">
+                    {formatRoleName(viewingAnnouncement?.created_by_role || '')}
                   </Badge>
                 ) : (
                   viewingAnnouncement?.target_roles.map((role) => (
-                    <Badge key={role} variant="outline" className="capitalize text-sm font-semibold px-3 py-1 rounded-lg bg-background">
-                      {role}
+                    <Badge key={role} variant="outline" className="text-sm font-semibold px-3 py-1 rounded-lg bg-background">
+                      {formatRoleName(role)}
                     </Badge>
                   ))
                 )}
