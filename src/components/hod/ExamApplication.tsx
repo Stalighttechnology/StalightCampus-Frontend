@@ -674,123 +674,143 @@ const ExamApplication: React.FC = () => {
         <DialogContent className="w-[90vw] sm:max-w-[650px] h-[80vh] sm:max-h-[85vh] overflow-y-auto custom-scrollbar rounded-lg">
           <DialogTitle className="sr-only">Exam Application</DialogTitle>
           <div className="p-1 md:p-2 lg:p-4">
-            <div ref={printRef} className="mt-2">
-              <div className="space-y-6 text-gray-900 bg-white p-4 rounded-xl border border-gray-100">
-                <div className="border-b pb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Student Info</h3>
-                </div>
+              <div ref={printRef} className="mt-2">
+                <div className={`space-y-6 p-4 rounded-xl border transition-all ${
+                  theme === 'dark' 
+                    ? 'text-foreground bg-zinc-950 border-zinc-800 shadow-xl' 
+                    : 'text-gray-900 bg-white border-gray-100 shadow-sm'
+                }`}>
+                  <div className={`border-b pb-4 ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-100'}`}>
+                    <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-zinc-100' : 'text-gray-900'}`}>Student Info</h3>
+                  </div>
 
-                {/* Student Details Stack */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="border-b border-gray-100 pb-2">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</span>
-                    <div className="text-sm font-semibold text-gray-900 mt-0.5">
-                      {selectedStudent?.name || ''} {formattedBatch ? `${formattedBatch}` : ''}
+                  {/* Student Details Stack */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className={`border-b pb-2 ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-100'}`}>
+                      <span className={`text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>Name</span>
+                      <div className={`text-sm font-semibold mt-0.5 ${theme === 'dark' ? 'text-zinc-200' : 'text-gray-900'}`}>
+                        {selectedStudent?.name || ''} {formattedBatch ? `${formattedBatch}` : ''}
+                      </div>
+                    </div>
+                    <div className={`border-b pb-2 ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-100'}`}>
+                      <span className={`text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>USN</span>
+                      <div className={`text-sm font-semibold mt-0.5 font-mono ${theme === 'dark' ? 'text-zinc-200' : 'text-gray-900'}`}>{selectedStudent?.usn || ''}</div>
+                    </div>
+                    <div className={`border-b pb-2 ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-100'}`}>
+                      <span className={`text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>Department</span>
+                      <div className={`text-sm font-semibold mt-0.5 ${theme === 'dark' ? 'text-zinc-200' : 'text-gray-900'}`}>{selectedStudent?.branch || 'Computer Science'}</div>
+                    </div>
+                    <div className={`border-b pb-2 ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-100'}`}>
+                      <span className={`text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-500'}`}>Semester</span>
+                      <div className={`text-sm font-semibold mt-0.5 ${theme === 'dark' ? 'text-zinc-200' : 'text-gray-900'}`}>{selectedStudent?.semester || ''}</div>
                     </div>
                   </div>
-                  <div className="border-b border-gray-100 pb-2">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">USN</span>
-                    <div className="text-sm font-semibold text-gray-900 mt-0.5 font-mono">{selectedStudent?.usn || ''}</div>
-                  </div>
-                  <div className="border-b border-gray-100 pb-2">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</span>
-                    <div className="text-sm font-semibold text-gray-900 mt-0.5">{selectedStudent?.branch || 'Computer Science'}</div>
-                  </div>
-                  <div className="border-b border-gray-100 pb-2">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Semester</span>
-                    <div className="text-sm font-semibold text-gray-900 mt-0.5">{selectedStudent?.semester || ''}</div>
-                  </div>
-                </div>
 
-                {/* Regular Courses */}
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Regular Courses</h4>
-                  <div className="space-y-3">
-                    {semesterSubjects.length > 0 ? (
-                      semesterSubjects.map((sub) => (
-                        <div
-                          key={sub.subject_code}
-                          onClick={() => handleApplyToggle(sub.subject_code)}
-                          className="p-3 border border-gray-100 rounded-xl bg-gray-50/50 flex items-center justify-between gap-3 shadow-sm hover:border-primary/20 transition-all cursor-pointer select-none"
-                        >
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="checkbox"
-                              checked={appliedSubjects[sub.subject_code] || false}
-                              onChange={() => handleApplyToggle(sub.subject_code)}
-                              onClick={(e) => e.stopPropagation()}
-                              className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary shrink-0 cursor-pointer"
-                            />
-                            <div>
-                              <div className="text-[10px] text-gray-400 font-mono uppercase tracking-wider">{sub.subject_code}</div>
-                              <div className="font-semibold text-sm text-gray-800">{sub.name}</div>
+                  {/* Regular Courses */}
+                  <div>
+                    <h4 className={`text-sm font-semibold uppercase tracking-wider mb-3 ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-900'}`}>Regular Courses</h4>
+                    <div className="space-y-3">
+                      {semesterSubjects.length > 0 ? (
+                        semesterSubjects.map((sub) => (
+                          <div
+                            key={sub.subject_code}
+                            onClick={() => handleApplyToggle(sub.subject_code)}
+                            className={`p-3 border rounded-xl flex items-center justify-between gap-3 shadow-sm hover:border-primary/40 transition-all cursor-pointer select-none ${
+                              theme === 'dark' 
+                                ? 'border-zinc-800 bg-zinc-900/40 hover:bg-zinc-900/60' 
+                                : 'border-gray-100 bg-gray-50/50 hover:bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={appliedSubjects[sub.subject_code] || false}
+                                onChange={() => handleApplyToggle(sub.subject_code)}
+                                onClick={(e) => e.stopPropagation()}
+                                className={`w-5 h-5 rounded text-primary focus:ring-primary accent-primary shrink-0 cursor-pointer ${
+                                  theme === 'dark' ? 'border-zinc-700 bg-zinc-800' : 'border-gray-300'
+                                }`}
+                              />
+                              <div>
+                                <div className={`text-[10px] font-mono uppercase tracking-wider ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-400'}`}>{sub.subject_code}</div>
+                                <div className={`font-semibold text-sm ${theme === 'dark' ? 'text-zinc-200' : 'text-gray-800'}`}>{sub.name}</div>
+                              </div>
                             </div>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
+                              subjectStatuses[sub.subject_code] === 'Applied' 
+                                ? theme === 'dark' ? 'bg-green-950/40 text-green-400 border border-green-900/30' : 'bg-green-100 text-green-800' 
+                                : theme === 'dark' ? 'bg-zinc-900 text-zinc-400 border border-zinc-800' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {subjectStatuses[sub.subject_code] || 'Not Applied'}
+                            </span>
                           </div>
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
-                            subjectStatuses[sub.subject_code] === 'Applied' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            {subjectStatuses[sub.subject_code] || 'Not Applied'}
-                          </span>
+                        ))
+                      ) : (
+                        <div className={`text-center py-4 text-xs border border-dashed rounded-xl ${
+                          theme === 'dark' ? 'text-zinc-500 border-zinc-800' : 'text-gray-500 border-gray-200'
+                        }`}>
+                          No subjects available.
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-4 text-xs text-gray-500 border border-dashed border-gray-200 rounded-xl">
-                        No subjects available.
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {/* Elective Courses */}
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Elective Courses (Registered)</h4>
-                  <div className="space-y-3">
-                    {(studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective').length > 0 ? (
-                      (studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective').map((r: any) => (
-                        <div
-                          key={r.subject_code}
-                          onClick={() => handleApplyToggle(r.subject_code)}
-                          className="p-3 border border-gray-100 rounded-xl bg-gray-50/50 flex items-center justify-between gap-3 shadow-sm hover:border-primary/20 transition-all cursor-pointer select-none"
-                        >
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="checkbox"
-                              checked={appliedSubjects[r.subject_code] || false}
-                              onChange={() => handleApplyToggle(r.subject_code)}
-                              onClick={(e) => e.stopPropagation()}
-                              className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary shrink-0 cursor-pointer"
-                            />
-                            <div>
-                              <div className="text-[10px] text-gray-400 font-mono uppercase tracking-wider">{r.subject_code}</div>
-                              <div className="font-semibold text-sm text-gray-800">{r.subject_name}</div>
+                  {/* Elective Courses */}
+                  <div>
+                    <h4 className={`text-sm font-semibold uppercase tracking-wider mb-3 ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-900'}`}>Elective Courses (Registered)</h4>
+                    <div className="space-y-3">
+                      {(studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective').length > 0 ? (
+                        (studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective').map((r: any) => (
+                          <div
+                            key={r.subject_code}
+                            onClick={() => handleApplyToggle(r.subject_code)}
+                            className={`p-3 border rounded-xl flex items-center justify-between gap-3 shadow-sm hover:border-primary/40 transition-all cursor-pointer select-none ${
+                              theme === 'dark' 
+                                ? 'border-zinc-800 bg-zinc-900/40 hover:bg-zinc-900/60' 
+                                : 'border-gray-100 bg-gray-50/50 hover:bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={appliedSubjects[r.subject_code] || false}
+                                onChange={() => handleApplyToggle(r.subject_code)}
+                                onClick={(e) => e.stopPropagation()}
+                                className={`w-5 h-5 rounded text-primary focus:ring-primary accent-primary shrink-0 cursor-pointer ${
+                                  theme === 'dark' ? 'border-zinc-700 bg-zinc-800' : 'border-gray-300'
+                                }`}
+                              />
+                              <div>
+                                <div className={`text-[10px] font-mono uppercase tracking-wider ${theme === 'dark' ? 'text-zinc-500' : 'text-gray-400'}`}>{r.subject_code}</div>
+                                <div className={`font-semibold text-sm ${theme === 'dark' ? 'text-zinc-200' : 'text-gray-800'}`}>{r.subject_name}</div>
+                              </div>
                             </div>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
+                              subjectStatuses[r.subject_code] === 'Applied' 
+                                ? theme === 'dark' ? 'bg-green-950/40 text-green-400 border border-green-900/30' : 'bg-green-100 text-green-800' 
+                                : theme === 'dark' ? 'bg-zinc-900 text-zinc-400 border border-zinc-800' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {subjectStatuses[r.subject_code] || 'Not Applied'}
+                            </span>
                           </div>
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
-                            subjectStatuses[r.subject_code] === 'Applied' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            {subjectStatuses[r.subject_code] || 'Not Applied'}
-                          </span>
+                        ))
+                      ) : (
+                        <div className={`text-center py-4 text-xs border border-dashed rounded-xl ${
+                          theme === 'dark' ? 'text-zinc-500 border-zinc-800' : 'text-gray-500 border-gray-200'
+                        }`}>
+                          No elective subjects registered.
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-4 text-xs text-gray-500 border border-dashed border-gray-200 rounded-xl">
-                        No elective subjects registered.
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                <div className="pt-4 border-t border-gray-100">
-                  <Button onClick={submitApplications} className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-2.5 rounded-xl shadow-lg transition-all">
-                    Save Applications
-                  </Button>
+                  <div className={`pt-4 border-t ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-100'}`}>
+                    <Button onClick={submitApplications} className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-2.5 rounded-xl shadow-lg transition-all border-0">
+                      Save Applications
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
           </div>
         </DialogContent>
       </Dialog>
