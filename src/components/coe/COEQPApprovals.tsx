@@ -801,44 +801,31 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </Button>
               )}
 
-              {/* Show Reject & Send Back for all statuses — COE can reject an approved QP or re-reject */}
-              <Button
-                onClick={() => selectedQP && handleReject(selectedQP.id)}
-                disabled={actionLoading || selectedQP?.has_exam_started}
-                className={`flex-1 sm:w-auto justify-center transition-none text-xs px-2 h-10 sm:h-9 ${
-                  selectedQP?.status === 'approved' && selectedQP?.has_exam_started
-                    ? theme === 'dark'
-                      ? 'border-green-500 text-green-400 bg-green-500/10 border'
-                      : 'border-green-500 text-green-700 bg-green-50 border'
-                    : theme === 'dark'
+              {/* Show Reject & Send Back / Revoke & Send Back button only if exam has not started */}
+              {!(selectedQP?.status === 'approved' && selectedQP?.has_exam_started) && (
+                <Button
+                  onClick={() => selectedQP && handleReject(selectedQP.id)}
+                  disabled={actionLoading || selectedQP?.has_exam_started}
+                  className={`flex-1 sm:w-auto justify-center transition-none text-xs px-2 h-10 sm:h-9 ${
+                    theme === 'dark'
                       ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border'
-                      : 'border-red-500 text-red-700 bg-red-50 hover:bg-green-100 border'
-                }`}
-              >
-                {selectedQP?.status === 'approved' && selectedQP?.has_exam_started ? (
-                  <CheckCircle className={`w-3.5 h-3.5 mr-1 shrink-0 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
-                ) : (
+                      : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'
+                  }`}
+                >
                   <XCircle className={`w-3.5 h-3.5 mr-1 shrink-0 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
-                )}
-                {selectedQP?.status === 'approved' ? (
-                  selectedQP?.has_exam_started ? (
-                    <>
-                      <span className="hidden sm:inline">Approved</span>
-                      <span className="inline sm:hidden">Approved</span>
-                    </>
-                  ) : (
+                  {selectedQP?.status === 'approved' ? (
                     <>
                       <span className="hidden sm:inline">Revoke & Send Back</span>
                       <span className="inline sm:hidden">Revoke</span>
                     </>
-                  )
-                ) : (
-                  <>
-                    <span className="hidden sm:inline">Reject & Send Back</span>
-                    <span className="inline sm:hidden">Reject</span>
-                  </>
-                )}
-              </Button>
+                  ) : (
+                    <>
+                      <span className="hidden sm:inline">Reject & Send Back</span>
+                      <span className="inline sm:hidden">Reject</span>
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
 
             {qpDetail && (
