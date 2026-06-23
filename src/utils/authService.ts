@@ -353,8 +353,11 @@ export const loginUser = async ({ username, password }: LoginRequest): Promise<L
     return result;
   } catch (error: any) {
     console.error("LOGIN ERROR:", error);
-    const errorDetails = error instanceof Error ? `${error.name}: ${error.message}` : JSON.stringify(error);
-    return { success: false, message: `Failed to connect: ${errorDetails}` };
+    if (error.message === "Failed to fetch" || error.name === "TypeError") {
+      return { success: false, message: "Campus servers unreachable. Please check your network connection." };
+    }
+    const errorDetails = error instanceof Error ? error.message : JSON.stringify(error);
+    return { success: false, message: `Oops! Something went wrong: ${errorDetails}` };
   }
 };
 
