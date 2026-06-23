@@ -732,7 +732,16 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         <AnimatePresence>
           {!collapsed && (
             <motion.div
-              className="fixed top-0 right-0 bottom-0 left-0 bg-black/50 z-30"
+              className="bg-black/50 z-30"
+              style={{
+                top: Capacitor.isNativePlatform()
+                  ? 'env(safe-area-inset-top, 0px)'
+                  : '0px',
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0
+              }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
