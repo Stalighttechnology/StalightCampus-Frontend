@@ -74,7 +74,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     if (Capacitor.isNativePlatform()) {
       StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
       StatusBar.setStyle({
-        style: theme === 'dark' ? Style.Light : Style.Dark
+        style: theme === 'dark' ? Style.Dark : Style.Light
       }).catch(() => {});
       StatusBar.setBackgroundColor({
         color: '#00000000'
