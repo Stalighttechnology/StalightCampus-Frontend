@@ -144,7 +144,18 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
       options.signal = isExportRequest ? AbortSignal.timeout(60000) : AbortSignal.timeout(10000);
     }
 
-    let response = await fetch(url, options);
+    let response: Response;
+    try {
+      response = await fetch(url, options);
+    } catch (e: any) {
+      if (e.message === 'Failed to fetch' || e.name === 'TypeError') {
+        // Silent retry once after 1.5s to handle OS/Browser wake-up lag
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        response = await fetch(url, options);
+      } else {
+        throw e;
+      }
+    }
 
     if (response.status === 401) {
       let isRevoked = false;
