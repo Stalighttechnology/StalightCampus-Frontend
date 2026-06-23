@@ -586,11 +586,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         className={`px-4 pb-3 lg:pb-0 flex items-center border-b ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
         style={{
           height: window.innerWidth >= 1024 ? '5rem' : undefined,
-          paddingTop: Capacitor.isNativePlatform()
-            ? 'var(--sat)'
-            : window.innerWidth < 1024
-              ? '16px'
-              : '0px'
+          paddingTop: '16px'
         }}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -735,7 +731,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
               className="fixed right-0 bottom-0 left-0 bg-black/50 z-30"
               style={{
                 top: Capacitor.isNativePlatform()
-                  ? 'var(--sat)'
+                  ? 'var(--sat, env(safe-area-inset-top, 0px))'
                   : '0px'
               }}
               initial={{ opacity: 0 }}
@@ -753,11 +749,12 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           transition={{ duration: 0.3, ease: "easeInOut" }}
           style={{
             top: Capacitor.isNativePlatform()
-              ? 'var(--sat)'
+              ? 'var(--sat, env(safe-area-inset-top, 0px))'
               : '0px',
             bottom: 0,
             left: 0,
             position: 'fixed',
+            zIndex: 50,
             willChange: "transform"
           }}
         >
