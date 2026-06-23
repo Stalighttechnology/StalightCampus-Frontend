@@ -131,6 +131,8 @@ const StudentInfoScanner = () => {
   const codeReader = useRef<BrowserMultiFormatReader | null>(null);
   const { theme } = useTheme();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
 
   const handleExportPDF = async () => {
     if (!studentData || !studentData.student_info.usn) return;
@@ -161,6 +163,23 @@ const StudentInfoScanner = () => {
   // Initialize code reader
   useEffect(() => {
     codeReader.current = new BrowserMultiFormatReader();
+
+    // Get video input devices
+    codeReader.current.listVideoInputDevices()
+      .then((devices) => {
+        setVideoDevices(devices);
+        if (devices.length > 0) {
+          // Try to default to the rear/back camera
+          const backCamera = devices.find(d => /back|rear|environment/i.test(d.label));
+          if (backCamera) {
+            setSelectedDeviceId(backCamera.deviceId);
+          } else {
+            setSelectedDeviceId(devices[0].deviceId);
+          }
+        }
+      })
+      .catch(err => console.error(err));
+
     return () => {
       if (codeReader.current) {
         codeReader.current.reset();
@@ -228,7 +247,7 @@ const StudentInfoScanner = () => {
     setScanError(null);
 
     try {
-      const result = await codeReader.current.decodeOnceFromVideoDevice(undefined, videoRef.current);
+      const result = await codeReader.current.decodeOnceFromVideoDevice(selectedDeviceId, videoRef.current);
       if (result) {
         const scannedText = result.getText();
         const scannedUsn = scannedText.toUpperCase();
@@ -260,6 +279,36 @@ const StudentInfoScanner = () => {
     }
     setScanning(false);
     setScanError(null);
+  };
+
+  const handleSwitchCamera = () => {
+    if (videoDevices.length > 1) {
+      const currentIndex = videoDevices.findIndex(d => d.deviceId === selectedDeviceId);
+      const nextIndex = (currentIndex + 1) % videoDevices.length;
+      const nextDeviceId = videoDevices[nextIndex].deviceId;
+      setSelectedDeviceId(nextDeviceId);
+      
+      if (scanning && codeReader.current) {
+        codeReader.current.reset();
+        // Immediately start scanning with new device
+        codeReader.current.decodeOnceFromVideoDevice(nextDeviceId, videoRef.current)
+          .then(async result => {
+            if (result) {
+              const scannedText = result.getText();
+              const scannedUsn = scannedText.toUpperCase();
+              setUsn(scannedUsn);
+              setShowScanner(false);
+              showSuccessAlert("Barcode Scanned", `USN: ${scannedUsn}`);
+              await fetchStudentData(scannedUsn);
+            }
+          })
+          .catch(err => {
+            if (!(err instanceof NotFoundException)) {
+              console.error(err);
+            }
+          });
+      }
+    }
   };
 
   const toggleScanner = () => {
@@ -698,13 +747,20 @@ const StudentInfoScanner = () => {
                       Start Scanning
                     </Button> :
 
-                <Button
-                  onClick={stopScanning}
-                  variant="outline"
-                  className="flex-1">
-                  
-                      Stop Scanning
+                <>
+                  {videoDevices.length > 1 && (
+                    <Button onClick={handleSwitchCamera} variant="outline" className="flex-1" title="Switch Camera">
+                      Switch Cam
                     </Button>
+                  )}
+                  <Button
+                    onClick={stopScanning}
+                    variant="outline"
+                    className="flex-1">
+                    
+                    Stop
+                  </Button>
+                </>
                 }
                   <Button
                   onClick={() => setShowScanner(false)}

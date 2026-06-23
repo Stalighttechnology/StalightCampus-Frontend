@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Search, Plus, MapPin, X, Plus as PlusIcon,
-  Eye, Edit, Trash2, Download, Loader2, Book, CheckCircle
+  Eye, Edit, Trash2, Download, Loader2, Book, CheckCircle, ScanLine, Printer
 } from "lucide-react";
 import Swal from "sweetalert2";
+import JsBarcode from "jsbarcode";
 import { Card, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
+import BarcodeScannerModal from "../ui/BarcodeScannerModal";
 import {
   Select,
   SelectContent,
@@ -50,6 +52,9 @@ const LibraryBooksCatalog = () => {
   const [copiesPage, setCopiesPage] = useState(1);
   const [copiesTotalPages, setCopiesTotalPages] = useState(1);
   const [copiesCount, setCopiesCount] = useState(0);
+  
+  // Scanner Modal state
+  const [showCatalogScanner, setShowCatalogScanner] = useState(false);
 
   // Dynamic Category list
   const [categories, setCategories] = useState<string[]>(() => {
@@ -249,6 +254,174 @@ const LibraryBooksCatalog = () => {
     }
   };
 
+  const handleDownloadBarcode = (barcodeId: string) => {
+    const canvas = document.createElement("canvas");
+    JsBarcode(canvas, barcodeId, {
+      format: "CODE128",
+      width: 2,
+      height: 100,
+      displayValue: true,
+      textMargin: 5,
+      fontSize: 16,
+      margin: 10,
+      background: "#ffffff"
+    });
+    
+    const url = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${barcodeId}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePrintBarcode = (barcodeId: string) => {
+    const canvas = document.createElement("canvas");
+    JsBarcode(canvas, barcodeId, {
+      format: "CODE128",
+      width: 2,
+      height: 100,
+      displayValue: true,
+      textMargin: 5,
+      fontSize: 16,
+      margin: 10,
+      background: "#ffffff"
+    });
+    
+    const url = canvas.toDataURL("image/png");
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head><title>Print Barcode - ${barcodeId}</title></head>
+          <body style="margin: 0; padding: 40px; text-align: center;">
+            <img src="${url}" style="max-width: 100%; height: auto; border: 1px dashed #ccc; padding: 10px;" />
+            <p style="font-family: sans-serif; font-size: 12px; color: #666; margin-top: 20px;">Affix this sticker to the inside cover of the book.</p>
+            <script>
+              window.onload = function() {
+                setTimeout(function() {
+                  window.print();
+                  window.close();
+                }, 250);
+              }
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
+  const handlePrintAllBarcodes = async (book: any) => {
+    Swal.fire({
+      title: "Generating barcodes...",
+      text: "Fetching all copies...",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    try {
+      let allCopies: any[] = [];
+      let currentPage = 1;
+      let totalPages = 1;
+
+      // Fetch first page to get total pages
+      const firstPageRes = await fetchBookCopies(book.id, currentPage);
+      if (firstPageRes && firstPageRes.results) {
+        allCopies = [...firstPageRes.results];
+        totalPages = Math.ceil(firstPageRes.count / 15) || 1;
+      } else {
+        allCopies = Array.isArray(firstPageRes) ? firstPageRes : [];
+      }
+
+      // Fetch remaining pages
+      for (let p = 2; p <= totalPages; p++) {
+        const res = await fetchBookCopies(book.id, p);
+        if (res && res.results) {
+          allCopies = [...allCopies, ...res.results];
+        }
+      }
+
+      if (allCopies.length === 0) {
+        Swal.fire("No Copies", "There are no physical copies to print barcodes for.", "info");
+        return;
+      }
+
+      let htmlContent = `
+        <html>
+          <head>
+            <title>Print All Barcodes - ${book.title}</title>
+            <style>
+              body { margin: 0; padding: 20px; font-family: sans-serif; background: #fff; }
+              .header { text-align: center; margin-bottom: 30px; }
+              .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+              .sticker { border: 1px dashed #ccc; padding: 15px 10px; text-align: center; page-break-inside: avoid; border-radius: 8px; }
+              img { max-width: 100%; height: auto; margin-bottom: 5px; }
+              .book-title { font-size: 11px; color: #333; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+              .book-location { font-size: 10px; color: #666; margin-top: 3px; }
+              @media print {
+                 .sticker { page-break-inside: avoid; border: 1px dashed #ccc; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h2>Barcodes for: ${book.title}</h2>
+              <p>Total Copies: ${allCopies.length} | ISBN: ${book.isbn || 'N/A'}</p>
+            </div>
+            <div class="grid">
+      `;
+
+      for (const copy of allCopies) {
+        const canvas = document.createElement("canvas");
+        JsBarcode(canvas, copy.barcode_id, {
+          format: "CODE128",
+          width: 2,
+          height: 60,
+          displayValue: true,
+          textMargin: 5,
+          fontSize: 14,
+          margin: 0,
+          background: "#ffffff"
+        });
+        const url = canvas.toDataURL("image/png");
+        htmlContent += `
+          <div class="sticker">
+            <img src="${url}" />
+            <div class="book-title">${book.title}</div>
+            <div class="book-location">Loc: ${book.physical_location || 'Not set'}</div>
+          </div>
+        `;
+      }
+
+      htmlContent += `
+            </div>
+            <script>
+              window.onload = function() {
+                setTimeout(function() {
+                  window.print();
+                  window.close();
+                }, 500);
+              }
+            </script>
+          </body>
+        </html>
+      `;
+
+      Swal.close();
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+      }
+
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to generate barcodes", "error");
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Books List — all inside one Card */}
@@ -292,8 +465,15 @@ const LibraryBooksCatalog = () => {
                       setBookSearch(e.target.value);
                       loadBooks(e.target.value);
                     }}
-                    className={`w-full sm:w-72 pl-9 pr-4 py-2 h-10 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
+                    className={`w-full sm:w-72 pl-9 pr-10 py-2 h-10 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowCatalogScanner(true)}
+                    className="absolute right-2 top-2 p-1 text-primary hover:text-primary/80 transition-colors"
+                  >
+                    <ScanLine className="w-5 h-5" />
+                  </button>
                 </div>
                 {/* Mobile Export PDF Icon Button */}
                 <Button
@@ -383,6 +563,15 @@ const LibraryBooksCatalog = () => {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => handlePrintAllBarcodes(book)}
+                        title="Print All Barcodes"
+                        className="h-8 w-8 p-0 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                      >
+                        <Printer className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleViewBookClick(book)}
                         className="h-8 w-8 p-0 text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
                       >
@@ -462,14 +651,24 @@ const LibraryBooksCatalog = () => {
                 </div>
 
                 <div className="space-y-2 pt-3 border-t border-gray-100 dark:border-border">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleViewBookClick(book)}
-                    className="w-full h-10 px-4 text-sm text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 flex items-center justify-center gap-1.5"
-                  >
-                    <Eye className="w-4 h-4" /> View Copies
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewBookClick(book)}
+                      className="flex-1 h-10 px-4 text-sm text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 flex items-center justify-center gap-1.5"
+                    >
+                      <Eye className="w-4 h-4" /> View Copies
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePrintAllBarcodes(book)}
+                      className="flex-1 h-10 px-4 text-sm text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 flex items-center justify-center gap-1.5"
+                    >
+                      <Printer className="w-4 h-4" /> Print All Barcodes
+                    </Button>
+                  </div>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -710,9 +909,14 @@ const LibraryBooksCatalog = () => {
       {/* View Book Copies Modal */}
       <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
         <DialogContent className={`w-[90vw] md:w-[90vw] lg:max-w-4xl p-6 rounded-2xl shadow-2xl custom-scrollbar overflow-y-auto max-h-[80vh] md:max-h-[85vh] ${theme === 'dark' ? 'bg-[#1c1c1e] text-white border border-[#3a3a3c]' : 'bg-white text-gray-900'}`}>
-          <DialogHeader className="mb-6 border-b pb-3 border-gray-200 dark:border-[#3a3a3c]">
-            <DialogTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{selectedBook?.title}</DialogTitle>
-            <p className="text-sm opacity-70">Physical Copies & Circulation Status</p>
+          <DialogHeader className="mb-6 border-b pb-3 border-gray-200 dark:border-[#3a3a3c] flex flex-row items-start justify-between">
+            <div>
+              <DialogTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{selectedBook?.title}</DialogTitle>
+              <p className="text-sm opacity-70">Physical Copies & Circulation Status</p>
+            </div>
+            <Button onClick={() => handlePrintAllBarcodes(selectedBook)} variant="outline" className="h-9 gap-2 mt-0">
+              <Printer className="w-4 h-4" /> Print All Barcodes
+            </Button>
           </DialogHeader>
 
           {loadingCopies ? (
@@ -744,7 +948,31 @@ const LibraryBooksCatalog = () => {
                   ) : (
                     viewingBookCopies.map((copy) => (
                       <tr key={copy.id} className={`border-b last:border-0 ${theme === 'dark' ? 'border-[#3a3a3c]' : 'border-gray-100'} hover:bg-black/5`}>
-                        <td className="p-3 font-mono font-semibold text-sm text-primary">{copy.barcode_id}</td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-semibold text-sm text-primary">{copy.barcode_id}</span>
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ opacity: 1 }}>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 w-6 p-0 text-gray-500 hover:text-blue-500" 
+                                onClick={() => handleDownloadBarcode(copy.barcode_id)}
+                                title="Download Barcode"
+                              >
+                                <Download className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 w-6 p-0 text-gray-500 hover:text-emerald-500" 
+                                onClick={() => handlePrintBarcode(copy.barcode_id)}
+                                title="Print Barcode"
+                              >
+                                <Printer className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        </td>
                         <td className="p-3">
                           <span className={`px-2 py-1 text-[14px] font-semibold rounded-full ${copy.status === 'available' ? 'bg-emerald-500/20 text-emerald-500' :
                             copy.status === 'borrowed' ? 'bg-blue-500/20 text-blue-500' :
@@ -822,6 +1050,17 @@ const LibraryBooksCatalog = () => {
           )}
         </DialogContent>
       </Dialog>
+      
+      {/* Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        isOpen={showCatalogScanner}
+        onClose={() => setShowCatalogScanner(false)}
+        onScan={(result) => {
+          setBookSearch(result);
+          loadBooks(result);
+        }}
+        title="Scan Book ISBN / Barcode"
+      />
     </div>
   );
 };
