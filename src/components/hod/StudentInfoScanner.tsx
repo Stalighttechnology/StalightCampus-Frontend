@@ -170,14 +170,6 @@ const StudentInfoScanner = () => {
     codeReader.current = new BrowserMultiFormatReader();
 
     const initDevices = async () => {
-      try {
-        // Briefly request stream to force permission prompt and populate device labels on mobile
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        stream.getTracks().forEach(t => t.stop());
-      } catch (e) {
-        console.warn("Initial stream request failed", e);
-      }
-
       codeReader.current?.listVideoInputDevices()
         .then((devices) => {
           setVideoDevices(devices);
@@ -479,15 +471,22 @@ const StudentInfoScanner = () => {
           await fetchStudentData(data.usn);
         }, 2500);
       } else {
-        // If the backend returns "multiple faces", it will display here
-        setFaceScanError(data.message || 'Face not recognized');
+        if (showFaceScanner) {
+          setFaceScanError(data.message || 'Face not recognized');
+          setTimeout(() => setFaceScanError(null), 3000);
+        } else {
+          showErrorAlert("Face Not Recognized", data.message || 'Face not recognized');
+        }
         setIsRecognizingFace(false);
-        setTimeout(() => setFaceScanError(null), 3000);
       }
     } catch (error) {
-      setFaceScanError('Upload failed. Please try again.');
+      if (showFaceScanner) {
+        setFaceScanError('Upload failed. Please try again.');
+        setTimeout(() => setFaceScanError(null), 3000);
+      } else {
+        showErrorAlert("Upload Failed", "Please try again.");
+      }
       setIsRecognizingFace(false);
-      setTimeout(() => setFaceScanError(null), 3000);
     }
     
     if (fileInputRef.current) {
@@ -575,9 +574,19 @@ const StudentInfoScanner = () => {
                 onClick={toggleFaceScanner}
                 variant="outline"
                 size="sm"
+                title="Open Face Scanner"
                 className={`h-11 ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
                 
                 <Camera className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isRecognizingFace}
+                variant="outline"
+                size="sm"
+                title="Upload Photo for Face Recognition"
+                className={`h-11 ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
+                {isRecognizingFace ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
               </Button>
               <Button
                 onClick={() => fetchStudentData()}
@@ -610,6 +619,13 @@ const StudentInfoScanner = () => {
               )}
             </div>
           </div>
+          <input 
+            type="file" 
+            accept="image/*" 
+            className="hidden" 
+            ref={fileInputRef} 
+            onChange={handleUploadPhoto} 
+          />
         </CardContent>
       </Card>
 
@@ -1462,31 +1478,18 @@ const StudentInfoScanner = () => {
                   </div>
               }
                 <div className="flex gap-2">
-                  {!faceScanning ?
-                <>
-                <Button
-                  onClick={() => startFaceScanning(faceCameraMode)}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-white">
-                  
+                  {!faceScanning ? (
+                    <Button
+                      onClick={() => startFaceScanning(faceCameraMode)}
+                      className="flex-1 bg-primary hover:bg-primary/90 text-white">
                       <Camera className="h-4 w-4 mr-2" />
                       Start Scanning
                     </Button>
-                <Button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isRecognizingFace}
-                  variant="outline"
-                  className="flex-1">
-                  {isRecognizingFace ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
-                  {isRecognizingFace ? "Uploading..." : "Upload Photo"}
-                </Button>
-                </>
-                 :
-
-                <Button
-                  onClick={captureAndRecognizeFace}
-                  disabled={isRecognizingFace}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white">
-                  
+                  ) : (
+                    <Button
+                      onClick={captureAndRecognizeFace}
+                      disabled={isRecognizingFace}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white">
                       {isRecognizingFace ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -1496,7 +1499,16 @@ const StudentInfoScanner = () => {
                         "Capture & Recognize"
                       )}
                     </Button>
-                }
+                  )}
+
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isRecognizingFace}
+                    variant="outline"
+                    className="flex-none px-3"
+                    title="Upload Photo">
+                    {isRecognizingFace ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  </Button>
                   
                   <Button onClick={handleSwitchFaceCamera} variant="outline" className="flex-none px-3" title="Switch Camera">
                     <RefreshCw className="h-4 w-4" />
@@ -1508,20 +1520,11 @@ const StudentInfoScanner = () => {
                     stopFaceScanning();
                   }}
                   variant="outline">
-                  
                     Close
                   </Button>
                 </div>
                 
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  className="hidden" 
-                  ref={fileInputRef} 
-                  onChange={handleUploadPhoto} 
-                />
-
-                <div className="text-center text-xs text-gray-500">
+                <div className="text-center text-xs text-gray-500 mt-2">
                   Ensure good lighting and clear face visibility for best results
                 </div>
               </div>
