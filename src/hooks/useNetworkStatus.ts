@@ -12,7 +12,7 @@ const PING_URLS = [
 
 const POLL_INTERVAL = 20000; // 20s
 const TIMEOUT = 5000;
-const FAILURE_THRESHOLD = 1; // mark offline on single failure for Google-first checks
+const FAILURE_THRESHOLD = 2; // Require 2 consecutive failures to show offline UI
 
 async function imageProbe(url: string, timeout = TIMEOUT): Promise<boolean> {
   return new Promise((resolve) => {
@@ -146,14 +146,21 @@ export function useNetworkStatus() {
     }
 
     function handleOffline() {
-      setIsNavigatorOnline(false);
-      setIsReachable(false);
-      setLastChangedAt(Date.now());
+      // Wait briefly and verify before marking offline, as OS wakeups often emit false 'offline' events
+      setTimeout(() => {
+        if (!navigator.onLine) {
+          setIsNavigatorOnline(false);
+          setIsReachable(false);
+          setLastChangedAt(Date.now());
+        }
+      }, 2000);
     }
 
     function handleFocusOrVisibility() {
-      // Trigger a probe when user focuses or returns to the app
-      runProbe();
+      if (document.visibilityState === "visible" || !document.hidden) {
+        // Only trigger probe when returning to foreground, not when going to background
+        runProbe();
+      }
     }
 
     window.addEventListener("online", handleOnline);
