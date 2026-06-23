@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Upload, Camera, CheckCircle, AlertCircle, Eye, EyeOff, Monitor, Smartphone, Tablet, Globe, RefreshCw, ShieldCheck, Clock , Trash} from 'lucide-react';
+import { Upload, Camera, CheckCircle, AlertCircle, Eye, EyeOff, Monitor, Smartphone, Tablet, Globe, RefreshCw, ShieldCheck, Clock , Trash, ScanFace, Check } from 'lucide-react';
 import { useTheme } from "@/context/ThemeContext";
+import { motion, AnimatePresence } from "framer-motion";
 import { getFullStudentProfile } from "@/utils/student_api";
 import { useStudentProfileUpdateMutation } from "@/hooks/useApiQueries";
 import { useFileUpload } from "../../hooks/useOptimizations";
@@ -295,8 +296,9 @@ const StudentProfile: React.FC = () => {
   // Face upload / training states
   const [faceImages, setFaceImages] = useState<File[]>([]);
   const [faceTrainingStatus, setFaceTrainingStatus] = useState<'idle'|'training'|'success'|'error'>('idle');
-  const [faceTrainingProgress, setFaceTrainingProgress] = useState<number>(0);
-  const [faceTrainingMessage, setFaceTrainingMessage] = useState<string>('');
+  const [faceTrainingMessage, setFaceTrainingMessage] = useState('');
+  const [faceTrainingProgress, setFaceTrainingProgress] = useState(0);
+  const [showFaceIDAnimation, setShowFaceIDAnimation] = useState(false);
   const [hasFaceTrained, setHasFaceTrained] = useState<boolean>(false);
 
   // Login activity state
@@ -724,8 +726,19 @@ const StudentProfile: React.FC = () => {
       const resp = await fetch(`${API_ENDPOINT}/student/train-face/`, { method: 'POST', headers: { 'Authorization': `Bearer ${sessionStorage.getItem("access_token")}` }, body: fd });
       const j = await resp.json();
       setFaceTrainingProgress(75);setFaceTrainingMessage('Training face recognition...');
-      if (j.success) {setFaceTrainingProgress(100);setFaceTrainingStatus('success');setHasFaceTrained(true);setFaceImages([]);showSuccessAlert('Success', 'Face updated successfully!');} else
-      {setFaceTrainingStatus('error');setFaceTrainingMessage(j.message || 'Face training failed');showErrorAlert('Error', j.message || 'Face training failed');}
+      if (j.success) {
+        setFaceTrainingProgress(100);
+        setFaceTrainingStatus('success');
+        setShowFaceIDAnimation(true);
+        setTimeout(() => {
+          setShowFaceIDAnimation(false);
+          setHasFaceTrained(true);
+          setFaceImages([]);
+          showSuccessAlert('Success', 'Face updated successfully!');
+        }, 2500);
+      } else {
+        setFaceTrainingStatus('error');setFaceTrainingMessage(j.message || 'Face training failed');showErrorAlert('Error', j.message || 'Face training failed');
+      }
     } catch (err) {
       setFaceTrainingStatus('error');setFaceTrainingMessage('Network error occurred');showErrorAlert('Error', 'Network error occurred');
     }
@@ -889,7 +902,7 @@ const StudentProfile: React.FC = () => {
                 <button onClick={() => { setActiveTab('activity'); if (loginHistory.length === 0) fetchLoginHistory(); }} className={`px-4 sm:px-3 md:px-4 py-2.5 sm:py-2 text-base sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
               </div>
 
-              <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
+              <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 relative overflow-hidden ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                 {activeTab === 'profile' &&
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1347,6 +1360,53 @@ const StudentProfile: React.FC = () => {
                     )}
                   </div>
                 }
+
+                <AnimatePresence>
+                  {showFaceIDAnimation && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm rounded-lg"
+                    >
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        transition={{ type: "spring", bounce: 0.5 }}
+                        className="relative bg-white/10 dark:bg-black/40 backdrop-blur-md border border-white/20 p-8 rounded-[3rem] shadow-2xl flex flex-col items-center justify-center overflow-hidden w-[200px] h-[200px]"
+                      >
+                        {/* The spinning/scanning face */}
+                        <motion.div
+                          initial={{ opacity: 1, scale: 1 }}
+                          animate={{ opacity: 0, scale: 0.5 }}
+                          transition={{ delay: 1.2, duration: 0.4 }}
+                          className="absolute"
+                        >
+                          <motion.div
+                            animate={{ 
+                              y: [0, -10, 0, 10, 0],
+                              color: ["#ffffff", "#4ade80", "#ffffff"]
+                            }}
+                            transition={{ duration: 1.2, ease: "easeInOut" }}
+                          >
+                            <ScanFace className="w-24 h-24 text-white drop-shadow-lg" strokeWidth={1.5} />
+                          </motion.div>
+                        </motion.div>
+
+                        {/* The Checkmark that appears */}
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 1.4, type: "spring", bounce: 0.6 }}
+                          className="absolute text-emerald-400"
+                        >
+                          <Check className="w-24 h-24 drop-shadow-lg" strokeWidth={3} />
+                        </motion.div>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 
                 {activeTab === 'settings' && (
