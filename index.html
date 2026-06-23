@@ -12,7 +12,7 @@
       var dpr = window.devicePixelRatio || 1;
 
       if (isCapacitor && isAndroid) {
-        var h = dpr >= 3 ? 32 : dpr >= 2 ? 28 : 24;
+        var h = dpr >= 3 ? 28 : dpr >= 2 ? 24 : 20;
         document.documentElement.style.setProperty('--sat', h + 'px');
       } else if (isCapacitor && isIOS) {
         document.documentElement.style.setProperty('--sat', '44px');

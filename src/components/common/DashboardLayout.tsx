@@ -101,11 +101,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             height = Math.round(diff / dpr);
           }
 
-          // Clamp 20-40px + 4px breathing room
-          height = Math.max(20, Math.min(40, height)) + 4;
+          // Strict clamp: 20-28px only + 2px breathing room
+          // Prevents overshooting on large-status-bar devices
+          height = Math.max(20, Math.min(28, height)) + 2;
           
           document.documentElement.style.setProperty('--sat', `${height}px`);
-          console.log('[SAT] Android final:', height);
+          console.log('[SAT] final:', height);
         };
 
         refineStatusBarHeight();

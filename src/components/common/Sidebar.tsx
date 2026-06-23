@@ -748,7 +748,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           animate={{ x: collapsed ? "-100%" : "0%" }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           style={{
-            top: window.innerWidth < 1024 
+            top: Capacitor.isNativePlatform() && window.innerWidth < 1024 
               ? 'var(--sat)' 
               : '0px',
             bottom: 0,
