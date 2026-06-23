@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   BookOpen, Users, RefreshCw, AlertTriangle,
-  CreditCard, Search, Plus, Check, X, Tag, BookOpen as BookIcon
+  CreditCard, Search, Plus, Check, X, Tag, BookOpen as BookIcon, ScanLine
 } from "lucide-react";
 import Swal from "sweetalert2";
+import BarcodeScannerModal from "../ui/BarcodeScannerModal";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import {
@@ -43,6 +44,10 @@ const LibraryOverview = () => {
   const [durationDays, setDurationDays] = useState(14);
   const [isCustom, setIsCustom] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState("");
+  
+  // Scanner Modal states
+  const [showIssueScanner, setShowIssueScanner] = useState(false);
+  const [showReturnScanner, setShowReturnScanner] = useState(false);
 
   const loadStats = async () => {
     try {
@@ -251,14 +256,24 @@ const LibraryOverview = () => {
 
             <div>
               <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Book Copy Barcode ID</label>
-              <input
-                type="text"
-                placeholder="e.g. BAR-1-001"
-                value={issueBarcode}
-                onChange={(e) => setIssueBarcode(e.target.value)}
-                className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                  }`}
-              />
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  placeholder="e.g. BAR-1-001"
+                  value={issueBarcode}
+                  onChange={(e) => setIssueBarcode(e.target.value)}
+                  className={`w-full sm:flex-1 px-4 py-2 h-10 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                    }`}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowIssueScanner(true)}
+                  className="w-full sm:w-auto h-10 px-4 flex items-center justify-center gap-2 border-primary text-primary hover:bg-primary/10"
+                >
+                  <ScanLine className="w-4 h-4" /> Scan
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -322,14 +337,23 @@ const LibraryOverview = () => {
             <div>
               <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Scan or Enter Barcode ID</label>
               <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  placeholder="Scan book barcode sticker..."
-                  value={barcodeInput}
-                  onChange={(e) => setBarcodeInput(e.target.value)}
-                  className={`w-full sm:flex-1 px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                    }`}
-                />
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Scan book barcode sticker..."
+                    value={barcodeInput}
+                    onChange={(e) => setBarcodeInput(e.target.value)}
+                    className={`w-full pl-4 pr-10 py-2 h-10 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                      }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowReturnScanner(true)}
+                    className="absolute right-2 top-2 p-1 text-primary hover:text-primary/80 transition-colors"
+                  >
+                    <ScanLine className="w-5 h-5" />
+                  </button>
+                </div>
                 <Button
                   type="submit"
                   disabled={loading}
@@ -350,6 +374,20 @@ const LibraryOverview = () => {
           </form>
         </Card>
       </div>
+
+      {/* Barcode Scanner Modals */}
+      <BarcodeScannerModal
+        isOpen={showIssueScanner}
+        onClose={() => setShowIssueScanner(false)}
+        onScan={(result) => setIssueBarcode(result)}
+        title="Scan Issue Barcode"
+      />
+      <BarcodeScannerModal
+        isOpen={showReturnScanner}
+        onClose={() => setShowReturnScanner(false)}
+        onScan={(result) => setBarcodeInput(result)}
+        title="Scan Return Barcode"
+      />
     </motion.div>
   );
 };
