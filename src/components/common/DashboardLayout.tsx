@@ -85,24 +85,34 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       }).catch(() => {});
 
       const setStatusBarHeight = () => {
-        const totalHeight = window.screen.height;
-        const availHeight = window.innerHeight;
-        const diff = totalHeight - availHeight;
-        const dpr = window.devicePixelRatio || 1;
-        const statusBarPx = Math.round(diff / dpr);
+        // Use screen.availTop which gives status bar height directly
+        // on Android WebView
+        let statusBarHeight = 0;
         
-        if (statusBarPx > 0 && statusBarPx < 120) {
-          document.documentElement.style.setProperty(
-            '--sat', `${statusBarPx}px`
-          );
+        // Method 1: screen.availTop (most accurate on Android)
+        if ((window.screen as any).availTop > 0) {
+          statusBarHeight = (window.screen as any).availTop;
         }
-        console.log('Status bar height calculated:', statusBarPx);
+        // Method 2: Calculate from heights
+        else {
+          const dpr = window.devicePixelRatio || 1;
+          const diff = window.screen.height - window.screen.availHeight;
+          statusBarHeight = Math.round(diff / dpr);
+        }
+        
+        // Sanity check: status bar should be 20-32px on Android
+        if (statusBarHeight < 20 || statusBarHeight > 60) {
+          statusBarHeight = 24; // safe fallback
+        }
+        
+        document.documentElement.style.setProperty(
+          '--sat', `${statusBarHeight}px`
+        );
+        console.log('Status bar height final:', statusBarHeight);
       };
 
-      // Run immediately and after short delay
       setStatusBarHeight();
-      setTimeout(setStatusBarHeight, 300);
-      setTimeout(setStatusBarHeight, 800);
+      setTimeout(setStatusBarHeight, 500);
     }
   }, [theme]);
 
