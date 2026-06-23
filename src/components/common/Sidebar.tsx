@@ -734,9 +734,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
             <motion.div
               className="bg-black/50 z-30"
               style={{
-                top: Capacitor.isNativePlatform()
-                  ? 'env(safe-area-inset-top, 0px)'
-                  : '0px',
+                top: 'env(safe-area-inset-top, 0px)',
                 position: 'fixed',
                 bottom: 0,
                 left: 0,
@@ -751,11 +749,14 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           )}
         </AnimatePresence>
         <motion.div
-          className={`fixed top-0 bottom-0 left-0 z-40 shadow-2xl w-64 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
+          className={`fixed bottom-0 left-0 z-40 shadow-2xl w-64 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
           initial={{ x: "-100%" }}
           animate={{ x: collapsed ? "-100%" : "0%" }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          style={{ willChange: "transform" }}
+          style={{
+            willChange: "transform",
+            top: 'env(safe-area-inset-top, 0px)'
+          }}
         >
           {sidebarContent}
         </motion.div>
