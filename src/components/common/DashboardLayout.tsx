@@ -83,8 +83,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         ? parseInt(androidMatch[1]) 
         : 0;
       
-      console.log('[SAT] Android version:', androidVersion);
-
       if (androidVersion >= 14) {
         // Android 14+: overlay works correctly
         // env(safe-area-inset-top) reports correctly
@@ -113,7 +111,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               '--sat', `${h}px`
             );
           }
-          console.log('[SAT] Android 14 probe:', h);
         }, 300);
 
       } else {
@@ -128,7 +125,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         document.documentElement.style.setProperty(
           '--sat', '0px'
         );
-        console.log('[SAT] Android 13 overlay:false, sat:0px');
       }
 
       // Set style based on theme
