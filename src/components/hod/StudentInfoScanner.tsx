@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useTheme } from "@/context/ThemeContext";
-import { Search, User, Calendar, BookOpen, TrendingUp, CreditCard, Users, Clock, MapPin, Phone, Mail, Heart, QrCode, X, Camera, AlertCircle, FileDown, Loader2 } from "lucide-react";
+import { Search, User, Calendar, BookOpen, TrendingUp, CreditCard, Users, Clock, MapPin, Phone, Mail, Heart, QrCode, X, Camera, AlertCircle, FileDown, Loader2, ScanFace, Check } from "lucide-react";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { showErrorAlert, showSuccessAlert } from "../../utils/sweetalert";
 import { BrowserMultiFormatReader, NotFoundException, ChecksumException, FormatException } from '@zxing/library';
@@ -131,6 +131,7 @@ const StudentInfoScanner = () => {
   const codeReader = useRef<BrowserMultiFormatReader | null>(null);
   const { theme } = useTheme();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [showFaceIDAnimation, setShowFaceIDAnimation] = useState(false);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
 
@@ -380,12 +381,16 @@ const StudentInfoScanner = () => {
         const data = await response.json();
 
         if (data.success) {
-          setUsn(data.usn);
-          setShowFaceScanner(false);
-          stopFaceScanning();
-          showSuccessAlert("Face Recognized", `USN: ${data.usn}`);
-          // Automatically fetch data after recognition
-          await fetchStudentData(data.usn);
+          setShowFaceIDAnimation(true);
+          setTimeout(async () => {
+            setShowFaceIDAnimation(false);
+            setUsn(data.usn);
+            setShowFaceScanner(false);
+            stopFaceScanning();
+            showSuccessAlert("Face Recognized", `USN: ${data.usn}`);
+            // Automatically fetch data after recognition
+            await fetchStudentData(data.usn);
+          }, 2500);
         } else {
           setFaceScanError(data.message || 'Face not recognized');
         }
@@ -1258,9 +1263,53 @@ const StudentInfoScanner = () => {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className={`relative ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-3xl shadow-xl p-4 sm:p-6`}
+            className={`relative overflow-hidden ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-3xl shadow-xl p-4 sm:p-6`}
             onClick={(e) => e.stopPropagation()}>
             
+            <AnimatePresence>
+              {showFaceIDAnimation && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm rounded-3xl"
+                >
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.8, opacity: 0 }}
+                    transition={{ type: "spring", bounce: 0.5 }}
+                    className="relative bg-white/10 dark:bg-black/40 backdrop-blur-md border border-white/20 p-8 rounded-[3rem] shadow-2xl flex flex-col items-center justify-center overflow-hidden w-[200px] h-[200px]"
+                  >
+                    <motion.div
+                      initial={{ opacity: 1, scale: 1 }}
+                      animate={{ opacity: 0, scale: 0.5 }}
+                      transition={{ delay: 1.2, duration: 0.4 }}
+                      className="absolute"
+                    >
+                      <motion.div
+                        animate={{ 
+                          y: [0, -10, 0, 10, 0],
+                          color: ["#ffffff", "#4ade80", "#ffffff"]
+                        }}
+                        transition={{ duration: 1.2, ease: "easeInOut" }}
+                      >
+                        <ScanFace className="w-24 h-24 text-white drop-shadow-lg" strokeWidth={1.5} />
+                      </motion.div>
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 1.4, type: "spring", bounce: 0.6 }}
+                      className="absolute text-emerald-400"
+                    >
+                      <Check className="w-24 h-24 drop-shadow-lg" strokeWidth={3} />
+                    </motion.div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
               <div className="flex items-center justify-between mb-4">
                 <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   Face Recognition Scan
