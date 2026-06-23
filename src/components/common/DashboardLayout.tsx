@@ -71,19 +71,90 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   // Synchronize native Status Bar and Navigation Bar colors when Dashboard mounts or theme updates
   useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
+    if (!Capacitor.isNativePlatform()) return;
+
+    const platform = Capacitor.getPlatform();
+
+    if (platform === 'android') {
+      // Detect Android version
+      const ua = navigator.userAgent;
+      const androidMatch = ua.match(/Android (\d+)/);
+      const androidVersion = androidMatch 
+        ? parseInt(androidMatch[1]) 
+        : 0;
+      
+      console.log('[SAT] Android version:', androidVersion);
+
+      if (androidVersion >= 14) {
+        // Android 14+: overlay works correctly
+        // env(safe-area-inset-top) reports correctly
+        StatusBar.setOverlaysWebView({ overlay: true })
+          .catch(() => {});
+        StatusBar.setBackgroundColor({ color: '#00000000' })
+          .catch(() => {});
+        
+        // env() works on Android 14
+        document.documentElement.style.setProperty(
+          '--sat', 'env(safe-area-inset-top, 28px)'
+        );
+        
+        // Verify with probe after render
+        setTimeout(() => {
+          const probe = document.createElement('div');
+          probe.style.cssText = 
+            'position:fixed;top:0;left:0;width:1px;' +
+            'height:env(safe-area-inset-top,0px);' +
+            'opacity:0;pointer-events:none;';
+          document.body.appendChild(probe);
+          const h = probe.getBoundingClientRect().height;
+          document.body.removeChild(probe);
+          if (h > 0) {
+            document.documentElement.style.setProperty(
+              '--sat', `${h}px`
+            );
+          }
+          console.log('[SAT] Android 14 probe:', h);
+        }, 300);
+
+      } else {
+        // Android 13 and below:
+        // overlay:true breaks env() reporting
+        // Use overlay:false - OS handles status bar space
+        StatusBar.setOverlaysWebView({ overlay: false })
+          .catch(() => {});
+        
+        // With overlay:false, no padding needed
+        // OS already pushes WebView below status bar
+        document.documentElement.style.setProperty(
+          '--sat', '0px'
+        );
+        console.log('[SAT] Android 13 overlay:false, sat:0px');
+      }
+
+      // Set style based on theme
       StatusBar.setStyle({
         style: theme === 'dark' ? Style.Dark : Style.Light
       }).catch(() => {});
-      StatusBar.setBackgroundColor({
-        color: '#00000000'
-      }).catch(() => {});
+
       NavigationBar.setNavigationBarColor({
         color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
         darkButtons: theme === 'light'
       }).catch(() => {});
+
+    } else if (platform === 'ios') {
+      // iOS: overlay:true + env() always works
+      StatusBar.setOverlaysWebView({ overlay: true })
+        .catch(() => {});
+      StatusBar.setBackgroundColor({ color: '#00000000' })
+        .catch(() => {});
+      document.documentElement.style.setProperty(
+        '--sat', 'env(safe-area-inset-top, 44px)'
+      );
+      StatusBar.setStyle({
+        style: theme === 'dark' ? Style.Dark : Style.Light
+      }).catch(() => {});
     }
+
   }, [theme]);
 
   // Mount FCM listener for all roles — keeps bell count real-time
