@@ -733,11 +733,6 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           {!collapsed && (
             <motion.div
               className="fixed top-0 right-0 bottom-0 left-0 bg-black/50 z-30"
-              style={{
-                marginTop: Capacitor.isNativePlatform()
-                  ? 'env(safe-area-inset-top, 0px)'
-                  : '0px'
-              }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -751,12 +746,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           initial={{ x: "-100%" }}
           animate={{ x: collapsed ? "-100%" : "0%" }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          style={{
-            willChange: "transform",
-            marginTop: Capacitor.isNativePlatform()
-              ? 'env(safe-area-inset-top, 0px)'
-              : '0px'
-          }}
+          style={{ willChange: "transform" }}
         >
           {sidebarContent}
         </motion.div>
