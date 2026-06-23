@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useTheme } from "@/context/ThemeContext";
-import { Search, User, Calendar, BookOpen, TrendingUp, CreditCard, Users, Clock, MapPin, Phone, Mail, Heart, QrCode, X, Camera, AlertCircle, FileDown, Loader2, ScanFace, Check, RefreshCw } from "lucide-react";
+import { Search, User, Calendar, BookOpen, TrendingUp, CreditCard, Users, Clock, MapPin, Phone, Mail, Heart, QrCode, X, Camera, AlertCircle, FileDown, Loader2, ScanFace, Check, RefreshCw, Upload } from "lucide-react";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { showErrorAlert, showSuccessAlert } from "../../utils/sweetalert";
 import { BrowserMultiFormatReader, NotFoundException, ChecksumException, FormatException } from '@zxing/library';
@@ -128,6 +128,7 @@ const StudentInfoScanner = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const faceVideoRef = useRef<HTMLVideoElement>(null);
   const faceCanvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const codeReader = useRef<BrowserMultiFormatReader | null>(null);
   const { theme } = useTheme();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
@@ -445,6 +446,53 @@ const StudentInfoScanner = () => {
         setTimeout(() => setFaceScanError(null), 3000);
       }
     }, 'image/jpeg');
+  };
+
+  const handleUploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsRecognizingFace(true);
+    setFaceScanError(null);
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const url = `${API_ENDPOINT}/recognize-face/`;
+      const response = await fetchWithTokenRefresh(url, {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setShowFaceIDAnimation(true);
+        setTimeout(async () => {
+          setShowFaceIDAnimation(false);
+          setUsn(data.usn);
+          setShowFaceScanner(false);
+          stopFaceScanning();
+          setIsRecognizingFace(false);
+          showSuccessAlert("Face Recognized", `USN: ${data.usn}`);
+          await fetchStudentData(data.usn);
+        }, 2500);
+      } else {
+        // If the backend returns "multiple faces", it will display here
+        setFaceScanError(data.message || 'Face not recognized');
+        setIsRecognizingFace(false);
+        setTimeout(() => setFaceScanError(null), 3000);
+      }
+    } catch (error) {
+      setFaceScanError('Upload failed. Please try again.');
+      setIsRecognizingFace(false);
+      setTimeout(() => setFaceScanError(null), 3000);
+    }
+    
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const toggleFaceScanner = () => {
@@ -1415,13 +1463,24 @@ const StudentInfoScanner = () => {
               }
                 <div className="flex gap-2">
                   {!faceScanning ?
+                <>
                 <Button
                   onClick={() => startFaceScanning(faceCameraMode)}
                   className="flex-1 bg-primary hover:bg-primary/90 text-white">
                   
                       <Camera className="h-4 w-4 mr-2" />
                       Start Scanning
-                    </Button> :
+                    </Button>
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isRecognizingFace}
+                  variant="outline"
+                  className="flex-1">
+                  {isRecognizingFace ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                  {isRecognizingFace ? "Uploading..." : "Upload Photo"}
+                </Button>
+                </>
+                 :
 
                 <Button
                   onClick={captureAndRecognizeFace}
@@ -1453,6 +1512,15 @@ const StudentInfoScanner = () => {
                     Close
                   </Button>
                 </div>
+                
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  ref={fileInputRef} 
+                  onChange={handleUploadPhoto} 
+                />
+
                 <div className="text-center text-xs text-gray-500">
                   Ensure good lighting and clear face visibility for best results
                 </div>
