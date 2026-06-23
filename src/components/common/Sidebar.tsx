@@ -586,7 +586,11 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         className={`px-4 pb-3 lg:pb-0 flex items-center border-b ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
         style={{
           height: window.innerWidth >= 1024 ? '5rem' : undefined,
-          paddingTop: window.innerWidth < 1024 ? '16px' : '0px'
+          paddingTop: Capacitor.isNativePlatform()
+            ? 'env(safe-area-inset-top, 0px)'
+            : window.innerWidth < 1024
+              ? '16px'
+              : '0px'
         }}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
