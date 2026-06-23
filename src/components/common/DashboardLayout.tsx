@@ -83,41 +83,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
         darkButtons: theme === 'light'
       }).catch(() => {});
-
-      const platform = Capacitor.getPlatform();
-
-      if (platform === 'android') {
-        const refineStatusBarHeight = () => {
-          let height = 0;
-
-          // Method 1: screen.availTop
-          if ((window.screen as any).availTop > 0) {
-            height = Math.round((window.screen as any).availTop);
-          }
-          // Method 2: screen height diff
-          else {
-            const dpr = window.devicePixelRatio || 1;
-            const diff = window.screen.height - window.screen.availHeight;
-            height = Math.round(diff / dpr);
-          }
-
-          // Strict clamp: 20-28px only + 2px breathing room
-          // Prevents overshooting on large-status-bar devices
-          height = Math.max(20, Math.min(28, height)) + 2;
-          
-          document.documentElement.style.setProperty('--sat', `${height}px`);
-          console.log('[SAT] final:', height);
-        };
-
-        refineStatusBarHeight();
-        setTimeout(refineStatusBarHeight, 300);
-
-      } else if (platform === 'ios') {
-        // iOS: env() works perfectly, just ensure it's set
-        document.documentElement.style.setProperty(
-          '--sat', 'env(safe-area-inset-top, 44px)'
-        );
-      }
     }
   }, [theme]);
 

@@ -5,22 +5,75 @@
   <meta charset="UTF-8" />
   <script>
     (function() {
-      var isCapacitor = window.location.protocol === 'capacitor:';
-      var ua = navigator.userAgent;
-      var isIOS = /iPad|iPhone|iPod/.test(ua);
-      var isAndroid = /Android/.test(ua);
-      var dpr = window.devicePixelRatio || 1;
-
-      if (isCapacitor && isAndroid) {
-        var h = dpr >= 3 ? 28 : dpr >= 2 ? 24 : 20;
-        document.documentElement.style.setProperty('--sat', h + 'px');
-      } else if (isCapacitor && isIOS) {
-        document.documentElement.style.setProperty('--sat', '44px');
-      } else {
-        document.documentElement.style.setProperty(
-          '--sat', 'env(safe-area-inset-top, 0px)'
-        );
+      // Create invisible probe element to read 
+      // actual safe area from CSS env()
+      var probe = document.createElement('div');
+      probe.style.cssText = [
+        'position:fixed',
+        'top:0',
+        'left:0', 
+        'width:1px',
+        'height:env(safe-area-inset-top, 0px)',
+        'opacity:0',
+        'pointer-events:none',
+        'visibility:hidden'
+      ].join(';');
+      
+      document.documentElement.appendChild(probe);
+      
+      function readAndSet() {
+        var h = probe.getBoundingClientRect().height;
+        console.log('[SAT] probe height:', h);
+        
+        if (h > 0) {
+          document.documentElement.style.setProperty(
+            '--sat', h + 'px'
+          );
+        } else {
+          // Fallback based on device pixel ratio
+          var dpr = window.devicePixelRatio || 1;
+          var fallback = dpr >= 3 ? 28 : dpr >= 2 ? 24 : 20;
+          document.documentElement.style.setProperty(
+            '--sat', fallback + 'px'
+          );
+        }
+        
+        document.documentElement.removeChild(probe);
       }
+      
+      // Read immediately and after DOM ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', readAndSet);
+      } else {
+        readAndSet();
+      }
+      
+      // Also re-read after 500ms as final correction
+      setTimeout(function() {
+        var probe2 = document.createElement('div');
+        probe2.style.cssText = [
+          'position:fixed',
+          'top:0',
+          'left:0',
+          'width:1px',
+          'height:env(safe-area-inset-top, 0px)',
+          'opacity:0',
+          'pointer-events:none'
+        ].join(';');
+        document.documentElement.appendChild(probe2);
+        
+        setTimeout(function() {
+          var h2 = probe2.getBoundingClientRect().height;
+          console.log('[SAT] probe2 height:', h2);
+          if (h2 > 0) {
+            document.documentElement.style.setProperty(
+              '--sat', h2 + 'px'
+            );
+          }
+          document.documentElement.removeChild(probe2);
+        }, 100);
+      }, 500);
+      
     })();
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />

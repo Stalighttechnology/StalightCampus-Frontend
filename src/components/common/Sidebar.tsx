@@ -730,7 +730,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
             <motion.div
               className="fixed right-0 bottom-0 left-0 bg-black/50 z-30"
               style={{
-                top: window.innerWidth < 1024
+                top: Capacitor.isNativePlatform() && window.innerWidth < 1024
                   ? 'var(--sat)'
                   : '0px'
               }}
