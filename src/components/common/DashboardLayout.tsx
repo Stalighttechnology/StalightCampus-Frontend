@@ -86,11 +86,38 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         darkButtons: theme === 'light'
       }).catch(() => {});
 
-      SafeArea.getStatusBarHeight().then(({ statusBarHeight }) => {
-        document.documentElement.style.setProperty(
-          '--sat', `${statusBarHeight}px`
-        );
-      });
+      // Try SafeArea plugin first (most accurate)
+      SafeArea.getStatusBarHeight()
+        .then(({ statusBarHeight }) => {
+          if (statusBarHeight > 0) {
+            document.documentElement.style.setProperty(
+              '--sat', `${statusBarHeight}px`
+            );
+          }
+        })
+        .catch(() => {
+          // Fallback to StatusBar plugin
+          StatusBar.getInfo()
+            .then((info) => {
+              // Calculate from window dimensions
+              const height = window.screen.height 
+                - window.innerHeight;
+              const pxHeight = Math.round(
+                height / window.devicePixelRatio
+              );
+              if (pxHeight > 0 && pxHeight < 100) {
+                document.documentElement.style.setProperty(
+                  '--sat', `${pxHeight}px`
+                );
+              }
+            })
+            .catch(() => {
+              // Final fallback - env() or keep default
+              document.documentElement.style.setProperty(
+                '--sat', 'env(safe-area-inset-top, 28px)'
+              );
+            });
+        });
     }
   }, [theme]);
 

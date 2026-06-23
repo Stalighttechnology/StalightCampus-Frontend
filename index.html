@@ -3,6 +3,26 @@
 
 <head>
   <meta charset="UTF-8" />
+  <script>
+    (function() {
+      var isNative = window.location.protocol === 'capacitor:' 
+        || window.location.hostname === 'localhost' 
+        && navigator.userAgent.includes('wv');
+      if (isNative) {
+        // Safe default covering all Android devices
+        // Typical range: 24px-32px depending on screen density
+        var dpr = window.devicePixelRatio || 1;
+        var defaultHeight = dpr >= 3 ? 32 : dpr >= 2 ? 28 : 24;
+        document.documentElement.style.setProperty(
+          '--sat', defaultHeight + 'px'
+        );
+      } else {
+        document.documentElement.style.setProperty(
+          '--sat', '0px'
+        );
+      }
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <style>
     :root {

@@ -731,7 +731,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
               className="fixed right-0 bottom-0 left-0 bg-black/50 z-30"
               style={{
                 top: Capacitor.isNativePlatform()
-                  ? 'var(--sat, env(safe-area-inset-top, 0px))'
+                  ? 'var(--sat)'
                   : '0px'
               }}
               initial={{ opacity: 0 }}
@@ -749,7 +749,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           transition={{ duration: 0.3, ease: "easeInOut" }}
           style={{
             top: Capacitor.isNativePlatform()
-              ? 'var(--sat, env(safe-area-inset-top, 0px))'
+              ? 'var(--sat)'
               : '0px',
             bottom: 0,
             left: 0,
