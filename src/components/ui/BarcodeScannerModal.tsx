@@ -62,14 +62,6 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
     codeReader.current = new BrowserMultiFormatReader();
     
     const initDevices = async () => {
-      try {
-        // Briefly request stream to force permission prompt and populate device labels on mobile
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        stream.getTracks().forEach(t => t.stop());
-      } catch (e) {
-        console.warn("Initial stream request failed", e);
-      }
-
       codeReader.current?.listVideoInputDevices()
         .then((devices) => {
           setVideoDevices(devices);
