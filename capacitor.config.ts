@@ -40,14 +40,6 @@ const config: CapacitorConfig = {
       overlaysWebView: true,
       style: 'LIGHT',
       backgroundColor: '#00000000'
-    },
-    SafeArea: {
-      enabled: true,
-      customColorsForSystemBars: true,
-      statusBarColor: '#00000000',
-      statusBarContent: 'light',
-      navigationBarColor: '#00000000',
-      navigationBarContent: 'light',
     }
   }
 };
