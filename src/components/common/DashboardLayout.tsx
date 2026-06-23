@@ -84,35 +84,39 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         darkButtons: theme === 'light'
       }).catch(() => {});
 
-      const setStatusBarHeight = () => {
-        // Use screen.availTop which gives status bar height directly
-        // on Android WebView
-        let statusBarHeight = 0;
-        
-        // Method 1: screen.availTop (most accurate on Android)
-        if ((window.screen as any).availTop > 0) {
-          statusBarHeight = (window.screen as any).availTop;
-        }
-        // Method 2: Calculate from heights
-        else {
-          const dpr = window.devicePixelRatio || 1;
-          const diff = window.screen.height - window.screen.availHeight;
-          statusBarHeight = Math.round(diff / dpr);
-        }
-        
-        // Sanity check: status bar should be 20-32px on Android
-        if (statusBarHeight < 20 || statusBarHeight > 60) {
-          statusBarHeight = 24; // safe fallback
-        }
-        
-        document.documentElement.style.setProperty(
-          '--sat', `${statusBarHeight}px`
-        );
-        console.log('Status bar height final:', statusBarHeight);
-      };
+      const platform = Capacitor.getPlatform();
 
-      setStatusBarHeight();
-      setTimeout(setStatusBarHeight, 500);
+      if (platform === 'android') {
+        const refineStatusBarHeight = () => {
+          let height = 0;
+
+          // Method 1: screen.availTop
+          if ((window.screen as any).availTop > 0) {
+            height = Math.round((window.screen as any).availTop);
+          }
+          // Method 2: screen height diff
+          else {
+            const dpr = window.devicePixelRatio || 1;
+            const diff = window.screen.height - window.screen.availHeight;
+            height = Math.round(diff / dpr);
+          }
+
+          // Clamp 20-40px + 4px breathing room
+          height = Math.max(20, Math.min(40, height)) + 4;
+          
+          document.documentElement.style.setProperty('--sat', `${height}px`);
+          console.log('[SAT] Android final:', height);
+        };
+
+        refineStatusBarHeight();
+        setTimeout(refineStatusBarHeight, 300);
+
+      } else if (platform === 'ios') {
+        // iOS: env() works perfectly, just ensure it's set
+        document.documentElement.style.setProperty(
+          '--sat', 'env(safe-area-inset-top, 44px)'
+        );
+      }
     }
   }, [theme]);
 

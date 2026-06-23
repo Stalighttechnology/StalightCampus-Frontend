@@ -103,11 +103,9 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
       className={`w-full flex items-center justify-between px-4 pb-3 lg:pb-0 relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
       style={{
         height: window.innerWidth >= 1024 ? '5rem' : undefined,
-        paddingTop: Capacitor.isNativePlatform()
-          ? 'var(--sat)'
-          : window.innerWidth < 1024
-            ? '16px'
-            : '0px'
+        paddingTop: window.innerWidth >= 1024 
+          ? '0px'
+          : 'var(--sat)'
       }}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}

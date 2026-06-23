@@ -730,7 +730,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
             <motion.div
               className="fixed right-0 bottom-0 left-0 bg-black/50 z-30"
               style={{
-                top: Capacitor.isNativePlatform()
+                top: window.innerWidth < 1024
                   ? 'var(--sat)'
                   : '0px'
               }}
@@ -748,14 +748,12 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           animate={{ x: collapsed ? "-100%" : "0%" }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           style={{
-            top: Capacitor.isNativePlatform()
-              ? 'var(--sat)'
+            top: window.innerWidth < 1024 
+              ? 'var(--sat)' 
               : '0px',
             bottom: 0,
             left: 0,
-            position: 'fixed',
-            zIndex: 50,
-            willChange: "transform"
+            position: 'fixed'
           }}
         >
           {sidebarContent}
