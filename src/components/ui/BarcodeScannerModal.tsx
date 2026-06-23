@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { BrowserMultiFormatReader, NotFoundException } from "@zxing/library";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./dialog";
 import { useTheme } from "../../context/ThemeContext";
-import { Camera, AlertCircle } from "lucide-react";
+import { Camera, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "./button";
 
 interface BarcodeScannerModalProps {
@@ -25,6 +25,7 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
   const [scanError, setScanError] = useState<string | null>(null);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
+  const [isCameraStarting, setIsCameraStarting] = useState(false);
 
   const playBeep = () => {
     try {
@@ -107,6 +108,7 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
   const startScanning = async () => {
     if (!codeReader.current || !videoRef.current) return;
     setScanning(true);
+    setIsCameraStarting(true);
     setScanError(null);
 
     try {
@@ -122,8 +124,10 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
       } else {
         console.error(err);
         setScanError("Camera access denied or no camera found.");
+        setTimeout(() => setScanError(null), 3000);
       }
     } finally {
+      setIsCameraStarting(false);
       setScanning(false);
     }
   };
@@ -133,6 +137,7 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
       codeReader.current.reset();
     }
     setScanning(false);
+    setIsCameraStarting(false);
     setScanError(null);
   };
 
@@ -145,6 +150,7 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
       
       if (scanning && codeReader.current) {
         codeReader.current.reset();
+        setIsCameraStarting(true);
         // Immediately start scanning with new device
         codeReader.current.decodeOnceFromVideoDevice(nextDeviceId, videoRef.current)
           .then(result => {
@@ -173,7 +179,8 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
         <div className="relative aspect-square w-full max-w-sm mx-auto bg-black rounded-lg overflow-hidden">
           <video
             ref={videoRef}
-            className="w-full h-full object-cover"
+            onPlaying={() => setIsCameraStarting(false)}
+            className="w-full h-full object-cover rounded-lg bg-black"
             playsInline
             muted 
           />
@@ -206,14 +213,23 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
             </Button>
           ) : (
             <>
-              {videoDevices.length > 1 && (
-                <Button onClick={handleSwitchCamera} variant="outline" className="flex-1" title="Switch Camera">
-                  Switch Cam
+              {isCameraStarting ? (
+                <Button disabled className="flex-1 bg-primary hover:bg-primary/90 text-white">
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Starting Camera...
                 </Button>
+              ) : (
+                <>
+                  {videoDevices.length > 1 && (
+                    <Button onClick={handleSwitchCamera} variant="outline" className="flex-1" title="Switch Camera">
+                      Switch Cam
+                    </Button>
+                  )}
+                  <Button onClick={stopScanning} variant="outline" className="flex-1">
+                    Stop
+                  </Button>
+                </>
               )}
-              <Button onClick={stopScanning} variant="outline" className="flex-1">
-                Stop
-              </Button>
             </>
           )}
           <Button onClick={() => onClose()} variant="outline">

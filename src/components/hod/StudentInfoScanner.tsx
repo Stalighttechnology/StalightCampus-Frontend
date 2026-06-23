@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useTheme } from "@/context/ThemeContext";
-import { Search, User, Calendar, BookOpen, TrendingUp, CreditCard, Users, Clock, MapPin, Phone, Mail, Heart, QrCode, X, Camera, AlertCircle, FileDown, Loader2, ScanFace, Check } from "lucide-react";
+import { Search, User, Calendar, BookOpen, TrendingUp, CreditCard, Users, Clock, MapPin, Phone, Mail, Heart, QrCode, X, Camera, AlertCircle, FileDown, Loader2, ScanFace, Check, RefreshCw } from "lucide-react";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { showErrorAlert, showSuccessAlert } from "../../utils/sweetalert";
 import { BrowserMultiFormatReader, NotFoundException, ChecksumException, FormatException } from '@zxing/library';
@@ -134,6 +134,9 @@ const StudentInfoScanner = () => {
   const [showFaceIDAnimation, setShowFaceIDAnimation] = useState(false);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
+  const [faceCameraMode, setFaceCameraMode] = useState<'environment' | 'user'>('environment');
+  const [isRecognizingFace, setIsRecognizingFace] = useState(false);
+  const [isCameraStarting, setIsCameraStarting] = useState(false);
 
   const handleExportPDF = async () => {
     if (!studentData || !studentData.student_info.usn) return;
@@ -257,6 +260,7 @@ const StudentInfoScanner = () => {
     if (!codeReader.current || !videoRef.current) return;
 
     setScanning(true);
+    setIsCameraStarting(true);
     setScanError(null);
 
     try {
@@ -280,8 +284,9 @@ const StudentInfoScanner = () => {
       } else {
         setScanError("Scanning failed. Please try again.");
       }
-
+      setTimeout(() => setScanError(null), 3000);
     } finally {
+      setIsCameraStarting(false);
       setScanning(false);
     }
   };
@@ -291,6 +296,7 @@ const StudentInfoScanner = () => {
       codeReader.current.reset();
     }
     setScanning(false);
+    setIsCameraStarting(false);
     setScanError(null);
   };
 
@@ -303,6 +309,7 @@ const StudentInfoScanner = () => {
       
       if (scanning && codeReader.current) {
         codeReader.current.reset();
+        setIsCameraStarting(true);
         // Immediately start scanning with new device
         codeReader.current.decodeOnceFromVideoDevice(nextDeviceId, videoRef.current)
           .then(async result => {
@@ -338,12 +345,18 @@ const StudentInfoScanner = () => {
   };
 
   // Face scanning functions
-  const startFaceScanning = async () => {
+  const startFaceScanning = async (mode = faceCameraMode) => {
     setFaceScanning(true);
     setFaceScanError(null);
 
+    // Stop existing stream if any before switching
+    if (faceVideoRef.current && faceVideoRef.current.srcObject) {
+      const existingStream = faceVideoRef.current.srcObject as MediaStream;
+      existingStream.getTracks().forEach(t => t.stop());
+    }
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode } });
       if (faceVideoRef.current) {
         faceVideoRef.current.srcObject = stream;
         faceVideoRef.current.play();
@@ -351,6 +364,14 @@ const StudentInfoScanner = () => {
     } catch (error) {
       setFaceScanError('Unable to access camera');
       setFaceScanning(false);
+    }
+  };
+
+  const handleSwitchFaceCamera = () => {
+    const nextMode = faceCameraMode === 'environment' ? 'user' : 'environment';
+    setFaceCameraMode(nextMode);
+    if (faceScanning) {
+      startFaceScanning(nextMode);
     }
   };
 
@@ -366,18 +387,27 @@ const StudentInfoScanner = () => {
   const captureAndRecognizeFace = async () => {
     if (!faceVideoRef.current || !faceCanvasRef.current) return;
 
+    setIsRecognizingFace(true);
+    setFaceScanError(null);
+
     const canvas = faceCanvasRef.current;
     const video = faceVideoRef.current;
     const context = canvas.getContext('2d');
 
-    if (!context) return;
+    if (!context) {
+      setIsRecognizingFace(false);
+      return;
+    }
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     canvas.toBlob(async (blob) => {
-      if (!blob) return;
+      if (!blob) {
+        setIsRecognizingFace(false);
+        return;
+      }
 
       const formData = new FormData();
       formData.append('image', blob, 'face.jpg');
@@ -399,15 +429,20 @@ const StudentInfoScanner = () => {
             setUsn(data.usn);
             setShowFaceScanner(false);
             stopFaceScanning();
+            setIsRecognizingFace(false);
             showSuccessAlert("Face Recognized", `USN: ${data.usn}`);
             // Automatically fetch data after recognition
             await fetchStudentData(data.usn);
           }, 2500);
         } else {
           setFaceScanError(data.message || 'Face not recognized');
+          setIsRecognizingFace(false);
+          setTimeout(() => setFaceScanError(null), 3000);
         }
       } catch (error) {
         setFaceScanError('Recognition failed');
+        setIsRecognizingFace(false);
+        setTimeout(() => setFaceScanError(null), 3000);
       }
     }, 'image/jpeg');
   };
@@ -735,6 +770,7 @@ const StudentInfoScanner = () => {
                 <div className="relative bg-black rounded-lg overflow-hidden">
                   <video
                   ref={videoRef}
+                  onPlaying={() => setIsCameraStarting(false)}
                   className="w-full h-64 object-cover"
                   playsInline
                   muted />
@@ -765,18 +801,27 @@ const StudentInfoScanner = () => {
                     </Button> :
 
                 <>
-                  {videoDevices.length > 1 && (
-                    <Button onClick={handleSwitchCamera} variant="outline" className="flex-1" title="Switch Camera">
-                      Switch Cam
+                  {isCameraStarting ? (
+                    <Button disabled className="flex-1 bg-primary hover:bg-primary/90 text-white">
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Starting Camera...
                     </Button>
+                  ) : (
+                    <>
+                      {videoDevices.length > 1 && (
+                        <Button onClick={handleSwitchCamera} variant="outline" className="flex-1" title="Switch Camera">
+                          Switch Cam
+                        </Button>
+                      )}
+                      <Button
+                        onClick={stopScanning}
+                        variant="outline"
+                        className="flex-1">
+                        
+                        Stop
+                      </Button>
+                    </>
                   )}
-                  <Button
-                    onClick={stopScanning}
-                    variant="outline"
-                    className="flex-1">
-                    
-                    Stop
-                  </Button>
                 </>
                 }
                   <Button
@@ -1371,7 +1416,7 @@ const StudentInfoScanner = () => {
                 <div className="flex gap-2">
                   {!faceScanning ?
                 <Button
-                  onClick={startFaceScanning}
+                  onClick={() => startFaceScanning(faceCameraMode)}
                   className="flex-1 bg-primary hover:bg-primary/90 text-white">
                   
                       <Camera className="h-4 w-4 mr-2" />
@@ -1380,11 +1425,24 @@ const StudentInfoScanner = () => {
 
                 <Button
                   onClick={captureAndRecognizeFace}
+                  disabled={isRecognizingFace}
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white">
                   
-                      Capture & Recognize
+                      {isRecognizingFace ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Recognizing...
+                        </>
+                      ) : (
+                        "Capture & Recognize"
+                      )}
                     </Button>
                 }
+                  
+                  <Button onClick={handleSwitchFaceCamera} variant="outline" className="flex-none px-3" title="Switch Camera">
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+
                   <Button
                   onClick={() => {
                     setShowFaceScanner(false);
