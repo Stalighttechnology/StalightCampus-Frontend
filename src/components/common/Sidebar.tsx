@@ -586,11 +586,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         className={`px-4 pb-3 lg:pb-0 flex items-center border-b ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
         style={{
           height: window.innerWidth >= 1024 ? '5rem' : undefined,
-          paddingTop: Capacitor.isNativePlatform()
-            ? 'env(safe-area-inset-top, 0px)'
-            : window.innerWidth < 1024
-              ? '16px'
-              : '0px'
+          paddingTop: window.innerWidth < 1024 ? '16px' : '0px'
         }}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -732,7 +728,12 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         <AnimatePresence>
           {!collapsed && (
             <motion.div
-              className="fixed top-0 right-0 bottom-0 left-0 bg-black/50 z-30"
+              className="fixed right-0 bottom-0 left-0 bg-black/50 z-30"
+              style={{
+                top: Capacitor.isNativePlatform()
+                  ? 'env(safe-area-inset-top, 0px)'
+                  : '0px'
+              }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -742,11 +743,16 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           )}
         </AnimatePresence>
         <motion.div
-          className={`fixed top-0 bottom-0 left-0 z-40 shadow-2xl w-64 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
+          className={`fixed bottom-0 left-0 z-40 shadow-2xl w-64 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
           initial={{ x: "-100%" }}
           animate={{ x: collapsed ? "-100%" : "0%" }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          style={{ willChange: "transform" }}
+          style={{
+            willChange: "transform",
+            top: Capacitor.isNativePlatform()
+              ? 'env(safe-area-inset-top, 0px)'
+              : '0px'
+          }}
         >
           {sidebarContent}
         </motion.div>
