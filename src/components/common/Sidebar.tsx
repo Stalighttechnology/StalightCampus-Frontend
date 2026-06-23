@@ -587,7 +587,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         style={{
           height: window.innerWidth >= 1024 ? '5rem' : undefined,
           paddingTop: Capacitor.isNativePlatform()
-            ? 'var(--safe-area-inset-top)'
+            ? 'var(--sat)'
             : window.innerWidth < 1024
               ? '16px'
               : '0px'
@@ -735,7 +735,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
               className="fixed right-0 bottom-0 left-0 bg-black/50 z-30"
               style={{
                 top: Capacitor.isNativePlatform()
-                  ? 'var(--safe-area-inset-top)'
+                  ? 'var(--sat)'
                   : '0px'
               }}
               initial={{ opacity: 0 }}
@@ -753,7 +753,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           transition={{ duration: 0.3, ease: "easeInOut" }}
           style={{
             top: Capacitor.isNativePlatform()
-              ? 'var(--safe-area-inset-top)'
+              ? 'var(--sat)'
               : '0px',
             bottom: 0,
             left: 0,

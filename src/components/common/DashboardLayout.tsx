@@ -17,6 +17,8 @@ import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { NavigationBar } from "@capgo/capacitor-navigation-bar";
 
+import { SafeArea } from '@capacitor-community/safe-area';
+
 interface User {
   username: string;
   email: string;
@@ -82,6 +84,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       NavigationBar.setNavigationBarColor({
         color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
         darkButtons: theme === 'light'
+      }).catch(() => {});
+
+      SafeArea.getStatusBarHeight().then(({ statusBarHeight }) => {
+        document.documentElement.style.setProperty(
+          '--sat', `${statusBarHeight}px`
+        );
+        console.log('Status bar height:', statusBarHeight);
+        console.log('--sat value:', 
+          getComputedStyle(document.documentElement)
+            .getPropertyValue('--sat'));
       }).catch(() => {});
     }
   }, [theme]);
