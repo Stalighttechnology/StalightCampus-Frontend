@@ -165,21 +165,33 @@ const StudentInfoScanner = () => {
   useEffect(() => {
     codeReader.current = new BrowserMultiFormatReader();
 
-    // Get video input devices
-    codeReader.current.listVideoInputDevices()
-      .then((devices) => {
-        setVideoDevices(devices);
-        if (devices.length > 0) {
-          // Try to default to the rear/back camera
-          const backCamera = devices.find(d => /back|rear|environment/i.test(d.label));
-          if (backCamera) {
-            setSelectedDeviceId(backCamera.deviceId);
-          } else {
-            setSelectedDeviceId(devices[0].deviceId);
+    const initDevices = async () => {
+      try {
+        // Briefly request stream to force permission prompt and populate device labels on mobile
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        stream.getTracks().forEach(t => t.stop());
+      } catch (e) {
+        console.warn("Initial stream request failed", e);
+      }
+
+      codeReader.current?.listVideoInputDevices()
+        .then((devices) => {
+          setVideoDevices(devices);
+          if (devices.length > 0) {
+            // Try to default to the rear/back camera
+            const backCamera = devices.find(d => /back|rear|environment/i.test(d.label));
+            if (backCamera) {
+              setSelectedDeviceId(backCamera.deviceId);
+            } else {
+              // Fallback to the last device (often the back camera on Android if labels are generic)
+              setSelectedDeviceId(devices[devices.length - 1].deviceId);
+            }
           }
-        }
-      })
-      .catch(err => console.error(err));
+        })
+        .catch(err => console.error(err));
+    };
+
+    initDevices();
 
     return () => {
       if (codeReader.current) {
