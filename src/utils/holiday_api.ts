@@ -9,9 +9,13 @@ export interface Holiday {
     created_at: string;
 }
 
-export const getHolidays = async (): Promise<Holiday[]> => {
+export const getHolidays = async (startDate?: string, endDate?: string): Promise<Holiday[]> => {
     try {
-        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/holidays/`, {
+        let url = `${API_ENDPOINT}/admin/holidays/`;
+        if (startDate && endDate) {
+            url += `?start_date=${startDate}&end_date=${endDate}`;
+        }
+        const response = await fetchWithTokenRefresh(url, {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,

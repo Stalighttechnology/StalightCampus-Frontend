@@ -740,26 +740,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     }
   };
 
-  // Pagination States for History
-  const [currentHistoryPage, setCurrentHistoryPage] = useState(1);
-  const HISTORY_ITEMS_PER_PAGE = 5;
-
-  // Reset history page to 1 when filters change
-  useEffect(() => {
-    setCurrentHistoryPage(1);
-  }, [
-    historyDropdowns.subjectId,
-    historyDropdowns.branchId,
-    historyDropdowns.semesterId,
-    historyDropdowns.sectionId,
-  ]);
-
-  const totalHistoryPages = Math.ceil(historyClasses.length / HISTORY_ITEMS_PER_PAGE);
-
-  const paginatedHistoryClasses = useMemo(() => {
-    const startIndex = (currentHistoryPage - 1) * HISTORY_ITEMS_PER_PAGE;
-    return historyClasses.slice(startIndex, startIndex + HISTORY_ITEMS_PER_PAGE);
-  }, [historyClasses, currentHistoryPage]);
+  // Backend now limits history to recent 5 classes.
 
   // ── Google Connection State ──────────────────────────────────────────────
   const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
@@ -1316,51 +1297,13 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
               ) : historyClasses.length > 0 ? (
                 <div className="space-y-4">
                   <p className="text-xs text-muted-foreground font-medium mb-2">
-                    Showing {((currentHistoryPage - 1) * HISTORY_ITEMS_PER_PAGE) + 1} - {Math.min(currentHistoryPage * HISTORY_ITEMS_PER_PAGE, historyClasses.length)} of {historyClasses.length} scheduled class{historyClasses.length !== 1 ? "es" : ""}
+                    Showing recent {historyClasses.length} scheduled class{historyClasses.length !== 1 ? "es" : ""}
                   </p>
                   <div className="space-y-2">
-                    {paginatedHistoryClasses.map((cls) => (
+                    {historyClasses.map((cls) => (
                       <ClassHistoryCard key={cls.id} cls={cls} theme={theme} currentTime={currentTime} />
                     ))}
                   </div>
-
-                  {/* Pagination Controls */}
-                  {historyClasses.length > HISTORY_ITEMS_PER_PAGE && (
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground pt-4 border-t border-border mt-4">
-                      <div>
-                        Showing {Math.min((currentHistoryPage - 1) * HISTORY_ITEMS_PER_PAGE + 1, historyClasses.length)} to {Math.min(currentHistoryPage * HISTORY_ITEMS_PER_PAGE, historyClasses.length)} of {historyClasses.length} classes
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCurrentHistoryPage(Math.max(1, currentHistoryPage - 1))}
-                          disabled={currentHistoryPage === 1}
-                          className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                        >
-                          Previous
-                        </Button>
-
-                        <div className="flex items-center justify-center min-w-[2rem]">
-                          <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                            {currentHistoryPage}
-                          </span>
-                        </div>
-
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCurrentHistoryPage(Math.min(totalHistoryPages, currentHistoryPage + 1))}
-                          disabled={currentHistoryPage === totalHistoryPages || totalHistoryPages <= 1}
-                          className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                        >
-                          Next
-                        </Button>
-                      </div>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-10 text-center space-y-2">

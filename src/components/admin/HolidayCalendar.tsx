@@ -29,10 +29,14 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
     const [isEditModeActive, setIsEditModeActive] = useState(false);
     const [isDialogReadOnly, setIsDialogReadOnly] = useState(false);
 
-    const fetchHolidays = async () => {
+    const fetchHolidays = async (date: Date = currentDate) => {
         try {
             setLoading(true);
-            const data = await getHolidays();
+            const startDate = format(startOfMonth(date), 'yyyy-MM-dd');
+            const nextMonth = addMonths(date, 1);
+            const endDate = format(new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 10), 'yyyy-MM-dd');
+            
+            const data = await getHolidays(startDate, endDate);
             setHolidays(data);
         } catch (err) {
             console.error('Failed to fetch holidays');
@@ -42,8 +46,8 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
     };
 
     useEffect(() => {
-        fetchHolidays();
-    }, []);
+        fetchHolidays(currentDate);
+    }, [currentDate.getMonth(), currentDate.getFullYear()]);
 
     const handlePreviousMonth = () => setCurrentDate(subMonths(currentDate, 1));
     const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));

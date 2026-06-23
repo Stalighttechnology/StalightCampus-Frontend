@@ -2168,26 +2168,30 @@ export interface SemesterSyllabusMonitorResponse {
   success: boolean;
   message?: string;
   semester_number?: number;
-  subjects?: Array<{
+  semester_id?: number;
+  semesters?: { id: number; number: number }[];
+  subjects?: {
     subject_id: number;
     subject_name: string;
     subject_code: string;
     subject_type: string;
     total_weeks: number;
-    sections_progress: Array<{
+    avg_progress: number;
+    sections_progress: {
       section_name: string;
-      section_id: number | null;
+      section_id: number;
       faculty_name: string;
       completed_weeks: number;
       total_weeks: number;
       progress_percentage: number;
-    }>;
-  }>;
+    }[];
+  }[];
 }
 
-export const getSemesterSyllabusMonitor = async (semesterId: string): Promise<SemesterSyllabusMonitorResponse> => {
+export const getSemesterSyllabusMonitor = async (semesterId?: string): Promise<SemesterSyllabusMonitorResponse> => {
   try {
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/semester-monitor/?semester_id=${semesterId}`, {
+    const query = semesterId ? `?semester_id=${semesterId}` : '';
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/semester-monitor/${query}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
@@ -2197,6 +2201,35 @@ export const getSemesterSyllabusMonitor = async (semesterId: string): Promise<Se
     return await response.json();
   } catch (error) {
     return { success: false, message: "Network error while fetching semester syllabus monitor data" };
+  }
+};
+
+export interface SubjectSyllabusMonitorResponse {
+  success: boolean;
+  message?: string;
+  subject_id?: number;
+  sections_progress?: Array<{
+    section_name: string;
+    section_id: number | null;
+    faculty_name: string;
+    completed_weeks: number;
+    total_weeks: number;
+    progress_percentage: number;
+  }>;
+}
+
+export const getSubjectSyllabusMonitor = async (semesterId: string, subjectId: string): Promise<SubjectSyllabusMonitorResponse> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/subject-monitor/?semester_id=${semesterId}&subject_id=${subjectId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error while fetching subject section progress data" };
   }
 };
 

@@ -20,6 +20,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { 
   getSyllabusBootstrap, 
   getSemesterSyllabusMonitor,
+  getSubjectSyllabusMonitor,
   SemesterSyllabusMonitorResponse,
   exportSemesterSyllabusMonitorPdf,
   exportSyllabusPdf,
@@ -46,6 +47,7 @@ const HODSemesterMonitor = () => {
   const [monitorData, setMonitorData] = useState<SemesterSyllabusMonitorResponse | null>(null);
   const [loadingMonitor, setLoadingMonitor] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<any | null>(null);
+  const [loadingSubjectProgress, setLoadingSubjectProgress] = useState(false);
   const [exportingSubjectId, setExportingSubjectId] = useState<number | null>(null);
   const [exportingSectionId, setExportingSectionId] = useState<number | null>(null);
 
@@ -120,50 +122,20 @@ const HODSemesterMonitor = () => {
     }
   };
 
-  // Load HOD bootstrap data
-  useEffect(() => {
-    const loadBootstrap = async () => {
-      setBootstrapLoading(true);
-      try {
-        const res = await getSyllabusBootstrap();
-        if (res.success) {
-          setSemesters(res.semesters || []);
-          // Auto select first semester if available
-          if (res.semesters && res.semesters.length > 0) {
-            setSemesterId(res.semesters[0].id);
-          }
-        } else {
-          toast({ title: "Error", description: res.message || "Failed to load department structure", variant: "destructive" });
-        }
-      } catch (e) {
-        toast({ title: "Error", description: "Failed to fetch bootstrap details", variant: "destructive" });
-      } finally {
-        setBootstrapLoading(false);
-      }
-    };
-    loadBootstrap();
-  }, []);
-
   // Fetch Semester syllabus monitoring metrics
-  const fetchMonitorData = async (showLoader = false) => {
-    if (!semesterId) {
-      setMonitorData(null);
-      return;
-    }
+  const fetchMonitorData = async (showLoader = false, overrideSemesterId?: string) => {
+    const sId = overrideSemesterId || semesterId?.toString();
     if (showLoader) setLoadingMonitor(true);
     try {
-      const res = await getSemesterSyllabusMonitor(semesterId.toString());
+      const res = await getSemesterSyllabusMonitor(sId);
       if (res.success) {
-        // Update monitor data
-        setMonitorData(res);
-        
-        // Also dynamically update selected subject details if modal is open
-        if (selectedSubject) {
-          const updatedSubject = res.subjects?.find((s: any) => s.subject_id === selectedSubject.subject_id);
-          if (updatedSubject) {
-            setSelectedSubject(updatedSubject);
-          }
+        if (res.semesters && res.semesters.length > 0 && semesters.length === 0) {
+          setSemesters(res.semesters);
         }
+        if (res.semester_id && res.semester_id !== semesterId) {
+          setSemesterId(res.semester_id);
+        }
+        setMonitorData(res);
       } else {
         if (showLoader) {
           toast({ title: "Error", description: res.message || "Failed to load monitor data", variant: "destructive" });
@@ -175,14 +147,40 @@ const HODSemesterMonitor = () => {
       }
     } finally {
       if (showLoader) setLoadingMonitor(false);
+      setBootstrapLoading(false);
     }
   };
 
   useEffect(() => {
-    if (semesterId) {
-      fetchMonitorData(true);
+    // Initial fetch to get default semester and data
+    fetchMonitorData(true);
+  }, []);
+
+  const handleSemesterChange = (val: string) => {
+    const newId = Number(val);
+    setSemesterId(newId);
+    fetchMonitorData(true, val);
+  };
+
+  const handleViewSectionProgress = async (subj: any) => {
+    if (!semesterId) return;
+    setSelectedSubject({ ...subj, sections_progress: [] });
+    setLoadingSubjectProgress(true);
+    try {
+      const res = await getSubjectSyllabusMonitor(semesterId.toString(), subj.subject_id.toString());
+      if (res.success) {
+        setSelectedSubject({ ...subj, sections_progress: res.sections_progress || [] });
+      } else {
+        toast({ title: "Error", description: res.message || "Failed to load section progress", variant: "destructive" });
+        setSelectedSubject(null);
+      }
+    } catch (error) {
+      toast({ title: "Error", description: "Network error", variant: "destructive" });
+      setSelectedSubject(null);
+    } finally {
+      setLoadingSubjectProgress(false);
     }
-  }, [semesterId]);
+  };
 
   // Color helper for progress status
   const getProgressColor = (pct: number) => {
@@ -212,7 +210,7 @@ const HODSemesterMonitor = () => {
               <span className="text-xs font-semibold uppercase opacity-80 shrink-0">{translateTerminology("Semester")}</span>
               <Select 
                 value={semesterId?.toString() || ""} 
-                onValueChange={(v) => setSemesterId(Number(v))}
+                onValueChange={handleSemesterChange}
                 disabled={bootstrapLoading}
               >
                 <SelectTrigger className="w-full sm:w-40">
@@ -257,11 +255,7 @@ const HODSemesterMonitor = () => {
           ) : monitorData && monitorData.subjects && monitorData.subjects.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {monitorData.subjects.map((subj) => {
-                // Calculate average progress across sections
-                const totalSections = subj.sections_progress.length;
-                const avgProgress = totalSections > 0
-                  ? Math.round(subj.sections_progress.reduce((acc: number, curr: any) => acc + curr.progress_percentage, 0) / totalSections)
-                  : 0;
+                const avgProgress = subj.avg_progress || 0;
 
                 return (
                   <Card 
@@ -305,7 +299,7 @@ const HODSemesterMonitor = () => {
                           variant="outline" 
                           size="sm" 
                           className="gap-2"
-                          onClick={() => setSelectedSubject(subj)}
+                          onClick={() => handleViewSectionProgress(subj)}
                         >
                           <Eye className="w-4 h-4" /> View Section Progress
                         </Button>
@@ -370,57 +364,63 @@ const HODSemesterMonitor = () => {
               </DialogHeader>
 
               <div className="flex-1 overflow-y-auto py-4 space-y-4 custom-scrollbar pr-1">
-                {selectedSubject?.sections_progress.map((sec: any, idx: number) => (
-                  <div 
-                    key={idx} 
-                    className={`p-4 rounded-xl border space-y-3 ${
-                      theme === 'dark' ? 'bg-muted/20 border-border/40' : 'bg-gray-50 border-gray-100'
-                    }`}
-                  >
-                    <div className="flex justify-between items-center text-sm font-medium">
-                      <span className="flex items-center gap-1.5 font-semibold text-indigo-500">
-                        <Clock className="w-4 h-4 shrink-0" />
-                        {sec.section_name}
-                      </span>
-                      <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${getProgressBadgeClass(sec.progress_percentage)}`}>
-                        {sec.progress_percentage}% Completed
-                      </span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="w-full h-3 bg-muted rounded-full overflow-hidden relative">
-                      <div
-                        className={`h-full rounded-full bg-gradient-to-r ${getProgressColor(sec.progress_percentage)} transition-all duration-500`}
-                        style={{ width: `${sec.progress_percentage}%` }}
-                      />
-                    </div>
-
-                    <div className="flex justify-between items-center text-xs opacity-80 pt-1">
-                      <span className="flex items-center gap-1">
-                        <Users className="w-3.5 h-3.5 text-muted-foreground" />
-                        <strong>Faculty:</strong> {sec.faculty_name}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold mr-1">
-                          {sec.completed_weeks} / {sec.total_weeks} Weeks
+                {loadingSubjectProgress ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  selectedSubject?.sections_progress?.map((sec: any, idx: number) => (
+                    <div 
+                      key={idx} 
+                      className={`p-4 rounded-xl border space-y-3 ${
+                        theme === 'dark' ? 'bg-muted/20 border-border/40' : 'bg-gray-50 border-gray-100'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center text-sm font-medium">
+                        <span className="flex items-center gap-1.5 font-semibold text-indigo-500">
+                          <Clock className="w-4 h-4 shrink-0" />
+                          {sec.section_name}
                         </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 p-0 text-primary hover:bg-primary/10"
-                          onClick={() => handleExportSectionPDF(selectedSubject, sec.section_id, sec.section_name)}
-                          disabled={exportingSubjectId === selectedSubject.subject_id && exportingSectionId === sec.section_id}
-                        >
-                          {exportingSubjectId === selectedSubject.subject_id && exportingSectionId === sec.section_id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <FileDown className="w-3.5 h-3.5" />
-                          )}
-                        </Button>
+                        <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${getProgressBadgeClass(sec.progress_percentage)}`}>
+                          {sec.progress_percentage}% Completed
+                        </span>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="w-full h-3 bg-muted rounded-full overflow-hidden relative">
+                        <div
+                          className={`h-full rounded-full bg-gradient-to-r ${getProgressColor(sec.progress_percentage)} transition-all duration-500`}
+                          style={{ width: `${sec.progress_percentage}%` }}
+                        />
+                      </div>
+
+                      <div className="flex justify-between items-center text-xs opacity-80 pt-1">
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                          <strong>Faculty:</strong> {sec.faculty_name}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold mr-1">
+                            {sec.completed_weeks} / {sec.total_weeks} Weeks
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-primary hover:bg-primary/10"
+                            onClick={() => handleExportSectionPDF(selectedSubject, sec.section_id, sec.section_name)}
+                            disabled={exportingSubjectId === selectedSubject.subject_id && exportingSectionId === sec.section_id}
+                          >
+                            {exportingSubjectId === selectedSubject.subject_id && exportingSectionId === sec.section_id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <FileDown className="w-3.5 h-3.5" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               <DialogFooter>
