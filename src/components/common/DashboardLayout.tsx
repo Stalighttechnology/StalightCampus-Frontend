@@ -90,11 +90,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         document.documentElement.style.setProperty(
           '--sat', `${statusBarHeight}px`
         );
-        console.log('Status bar height:', statusBarHeight);
-        console.log('--sat value:', 
-          getComputedStyle(document.documentElement)
-            .getPropertyValue('--sat'));
-      }).catch(() => {});
+      });
     }
   }, [theme]);
 
