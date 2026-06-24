@@ -58,6 +58,13 @@ export const deleteLibraryBook = (id: number) =>
 export const fetchBookCopies = (bookId: number, page: number = 1) =>
   fetchWithTokenRefresh(`${API_BASE}/admin/books/${bookId}/copies/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
 
+export const addBookCopy = (bookId: number, data: { barcode_id?: string }) =>
+  fetchWithTokenRefresh(`${API_BASE}/admin/books/${bookId}/add-copy/`, {
+    method: "POST",
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  }).then((r) => r.json());
+
 export const searchBorrowers = (search = "") =>
   fetchWithTokenRefresh(`${API_BASE}/admin/borrowers/search/?search=${encodeURIComponent(search)}`, { headers: authHeaders() }).then((r) => r.json());
 

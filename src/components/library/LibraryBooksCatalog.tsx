@@ -31,6 +31,7 @@ import {
   updateLibraryBook,
   deleteLibraryBook,
   fetchBookCopies,
+  addBookCopy,
   fetchLibraryCategories,
   createLibraryCategory
 } from "../../utils/library_api";
@@ -52,7 +53,9 @@ const LibraryBooksCatalog = () => {
   const [copiesPage, setCopiesPage] = useState(1);
   const [copiesTotalPages, setCopiesTotalPages] = useState(1);
   const [copiesCount, setCopiesCount] = useState(0);
-  
+  const [newSpecificBarcode, setNewSpecificBarcode] = useState("");
+  const [isAddingSpecificCopy, setIsAddingSpecificCopy] = useState(false);
+
   // Scanner Modal state
   const [showCatalogScanner, setShowCatalogScanner] = useState(false);
 
@@ -85,7 +88,8 @@ const LibraryBooksCatalog = () => {
     category: "",
     description: "",
     total_copies: 1,
-    physical_location: ""
+    physical_location: "",
+    custom_barcodes: [] as string[]
   });
 
   const loadCategories = async () => {
@@ -146,13 +150,37 @@ const LibraryBooksCatalog = () => {
         category: "",
         description: "",
         total_copies: 1,
-        physical_location: ""
+        physical_location: "",
+        custom_barcodes: []
       });
       loadBooks(bookSearch);
     } catch (err) {
       Swal.fire("Error", "Failed to save book catalog item", "error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddSpecificCopy = async () => {
+    if (!selectedBook) return;
+    setIsAddingSpecificCopy(true);
+    try {
+      const res = await addBookCopy(selectedBook.id, { barcode_id: newSpecificBarcode.trim() });
+      if (res && res.id) {
+        Swal.fire("Success", "Copy added successfully", "success");
+        setNewSpecificBarcode("");
+        // Refresh copies and book list
+        loadBookCopiesPage(selectedBook.id, copiesPage);
+        loadBooks(bookSearch);
+      } else if (res && res.message) {
+        Swal.fire("Error", res.message, "error");
+      } else {
+        throw new Error("Invalid response");
+      }
+    } catch (err) {
+      Swal.fire("Error", "Failed to add specific copy", "error");
+    } finally {
+      setIsAddingSpecificCopy(false);
     }
   };
 
@@ -194,7 +222,8 @@ const LibraryBooksCatalog = () => {
       category: book.category || "",
       description: book.description || "",
       total_copies: book.total_copies || 1,
-      physical_location: book.physical_location || ""
+      physical_location: book.physical_location || "",
+      custom_barcodes: []
     });
     setShowAddModal(true);
   };
@@ -266,7 +295,7 @@ const LibraryBooksCatalog = () => {
       margin: 10,
       background: "#ffffff"
     });
-    
+
     const url = canvas.toDataURL("image/png");
     const link = document.createElement("a");
     link.href = url;
@@ -288,7 +317,7 @@ const LibraryBooksCatalog = () => {
       margin: 10,
       background: "#ffffff"
     });
-    
+
     const url = canvas.toDataURL("image/png");
     const printWindow = window.open('', '_blank');
     if (printWindow) {
@@ -497,13 +526,14 @@ const LibraryBooksCatalog = () => {
                     category: "",
                     description: "",
                     total_copies: 1,
-                    physical_location: ""
+                    physical_location: "",
+                    custom_barcodes: []
                   });
                   setShowAddModal(true);
                 }}
                 className="bg-primary hover:bg-primary/95 text-white font-semibold px-4 py-2 h-10 rounded-lg flex items-center justify-center gap-2"
               >
-                <Plus className="w-4 h-4" /> Add Book Title
+                <Plus className="w-4 h-4" /> Add Book
               </Button>
             </div>
           </div>
@@ -636,7 +666,7 @@ const LibraryBooksCatalog = () => {
                   <div>
                     <span className="opacity-60 block text-[11px] uppercase tracking-wider font-semibold">Location</span>
                     <span className="flex items-center gap-1.5 mt-0.5 text-sm font-medium">
-                       <MapPin className="w-4 h-4 text-primary" /> {book.physical_location || "Not set"}
+                      <MapPin className="w-4 h-4 text-primary" /> {book.physical_location || "Not set"}
                     </span>
                   </div>
                   <div className="col-span-2">
@@ -873,17 +903,46 @@ const LibraryBooksCatalog = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs uppercase tracking-wider font-semibold opacity-70 mb-1">Total Copies</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={bookForm.total_copies}
-                  onChange={(e) => setBookForm({ ...bookForm, total_copies: Number(e.target.value) })}
-                  className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                    }`}
-                />
-              </div>
+              {!selectedBook && (
+                <>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-semibold opacity-70 mb-1">Total Copies</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={bookForm.total_copies}
+                      onChange={(e) => setBookForm({ ...bookForm, total_copies: Number(e.target.value) })}
+                      className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                        }`}
+                    />
+                  </div>
+
+                  <div className="col-span-2 mt-2 p-4 border rounded-lg bg-gray-50/50 dark:bg-black/20 dark:border-[#3a3a3c]">
+                    <label className="block text-xs uppercase tracking-wider font-semibold opacity-70 mb-2">Custom Barcodes (Optional)</label>
+                    <p className="text-xs text-gray-500 mb-3">
+                      To use your own barcodes, scan or type them below. If left blank, the system will auto-generate them.
+                    </p>
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                      {Array.from({ length: bookForm.total_copies }).map((_, idx) => (
+                        <div key={idx} className="flex items-center gap-3">
+                          <span className="text-xs font-mono w-16 opacity-50">Copy {idx + 1}</span>
+                          <input
+                            type="text"
+                            placeholder="Scan or type custom barcode..."
+                            value={bookForm.custom_barcodes[idx] || ""}
+                            onChange={(e) => {
+                              const newBarcodes = [...bookForm.custom_barcodes];
+                              newBarcodes[idx] = e.target.value;
+                              setBookForm({ ...bookForm, custom_barcodes: newBarcodes });
+                            }}
+                            className={`flex-1 px-3 py-1.5 text-sm rounded-md border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-white border-gray-200'}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-[#3a3a3c]">
@@ -919,6 +978,27 @@ const LibraryBooksCatalog = () => {
             </Button>
           </DialogHeader>
 
+          <div className={`mb-4 p-4 rounded-lg border ${theme === 'dark' ? 'bg-[#2c2c2e] border-[#3a3a3c]' : 'bg-gray-50 border-gray-200'}`}>
+            <h4 className="text-sm font-semibold mb-2">Add Specific Copy</h4>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Scan or type custom barcode (leave blank to auto-generate)"
+                value={newSpecificBarcode}
+                onChange={(e) => setNewSpecificBarcode(e.target.value)}
+                className={`flex-1 px-3 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-white border-gray-200'}`}
+              />
+              <Button
+                onClick={handleAddSpecificCopy}
+                disabled={isAddingSpecificCopy}
+                className="bg-primary hover:bg-primary/90 text-white gap-2"
+              >
+                {isAddingSpecificCopy ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlusIcon className="w-4 h-4" />}
+                Add Copy
+              </Button>
+            </div>
+          </div>
+
           {loadingCopies ? (
             <div className="p-10 text-center opacity-70">Loading barcode copies...</div>
           ) : (
@@ -952,19 +1032,19 @@ const LibraryBooksCatalog = () => {
                           <div className="flex items-center gap-2">
                             <span className="font-mono font-semibold text-sm text-primary">{copy.barcode_id}</span>
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ opacity: 1 }}>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 w-6 p-0 text-gray-500 hover:text-blue-500" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-gray-500 hover:text-blue-500"
                                 onClick={() => handleDownloadBarcode(copy.barcode_id)}
                                 title="Download Barcode"
                               >
                                 <Download className="h-3.5 w-3.5" />
                               </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 w-6 p-0 text-gray-500 hover:text-emerald-500" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-gray-500 hover:text-emerald-500"
                                 onClick={() => handlePrintBarcode(copy.barcode_id)}
                                 title="Print Barcode"
                               >
@@ -1050,7 +1130,7 @@ const LibraryBooksCatalog = () => {
           )}
         </DialogContent>
       </Dialog>
-      
+
       {/* Barcode Scanner Modal */}
       <BarcodeScannerModal
         isOpen={showCatalogScanner}
