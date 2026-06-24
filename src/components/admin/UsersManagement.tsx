@@ -139,6 +139,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [editData, setEditData] = useState<User | null>(null);
   const [promoteData, setPromoteData] = useState<User | null>(null);
   const [selectedNewRole, setSelectedNewRole] = useState<string>("");
+  const [promoteConfirmText, setPromoteConfirmText] = useState("");
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -520,6 +521,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           }
           setPromoteData(null);
           setSelectedNewRole("");
+          setPromoteConfirmText("");
           toast({ title: "Success", description: "User promoted successfully" });
         } else {
           setError(response.message || "Failed to promote user");
@@ -923,7 +925,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={promoteData !== null} onOpenChange={() => { setPromoteData(null); setSelectedNewRole(""); }}>
+      <Dialog open={promoteData !== null} onOpenChange={() => { setPromoteData(null); setSelectedNewRole(""); setPromoteConfirmText(""); }}>
         <DialogContent
           className={
           theme === 'dark' ?
@@ -954,11 +956,25 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
             <div className={`p-3 text-xs rounded-md ${theme === 'dark' ? 'bg-primary/10 text-primary-foreground border border-primary/20' : 'bg-blue-50 text-blue-800 border border-blue-100'}`}>
               <strong>Note:</strong> Promoting a user will automatically log them out and notify them via email. If promoting a Teacher or HOD, their current class assignments or branch leadership will be unassigned automatically.
             </div>
+            <div className={`p-3 text-xs rounded-md ${theme === 'dark' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+              <strong>Warning:</strong> This action is irreversible. Please confirm you want to proceed.
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                Type <strong>promote</strong> to confirm
+              </label>
+              <Input
+                value={promoteConfirmText}
+                onChange={(e) => setPromoteConfirmText(e.target.value)}
+                placeholder="Type promote here"
+                className={`w-full ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
           </div>
           <DialogFooter className="flex flex-row justify-end gap-2">
             <Button
               variant="outline"
-              onClick={() => { setPromoteData(null); setSelectedNewRole(""); }}
+              onClick={() => { setPromoteData(null); setSelectedNewRole(""); setPromoteConfirmText(""); }}
               disabled={loading}
               className={theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
             >
@@ -966,7 +982,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
             </Button>
             <Button
               onClick={savePromote}
-              disabled={loading || !selectedNewRole}
+              disabled={loading || !selectedNewRole || promoteConfirmText !== 'promote'}
               className="bg-purple-600 hover:bg-purple-700 text-white"
             >
               {loading ? "Promoting..." : "Promote"}
