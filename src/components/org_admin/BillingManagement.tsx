@@ -20,6 +20,7 @@ import { useTheme } from '../../context/ThemeContext';
 import UpgradePlanDialog from '../common/UpgradePlanDialog';
 import { IncreaseCapacityDialog } from '../common/IncreaseCapacityDialog';
 import { UpgradeTierDialog } from '../common/UpgradeTierDialog';
+import { downloadFile } from '../../utils/downloadHelper';
 
 export const BillingManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -322,16 +323,8 @@ export const BillingManagement: React.FC = () => {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/subscription-receipt/${paymentId}/`);
       if (response.ok) {
         const contentType = response.headers.get('content-type');
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
         const extension = contentType?.includes('html') ? 'html' : 'pdf';
-        a.download = `Stalight_Receipt_${paymentId}.${extension}`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        await downloadFile(response, `Stalight_Receipt_${paymentId}.${extension}`);
         showSuccessAlert('Success', 'Receipt downloaded successfully');
       } else {
         const result = await response.json();

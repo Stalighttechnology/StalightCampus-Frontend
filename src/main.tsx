@@ -7,12 +7,28 @@ import './index.css';
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
 import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 if (Capacitor.isNativePlatform()) {
   CapacitorUpdater.notifyAppReady().then(() => {
     // Optionally hide splash screen here or keep it in App.tsx
   }).catch(console.error);
 }
+
+// Helper to convert Blob to base64
+const blobToBase64Helper = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64String = result.split(',')[1];
+      resolve(base64String);
+    };
+    reader.readAsDataURL(blob);
+  });
+};
 
 // Global Mobile/PWA/Capacitor Download & View Interceptor
 if (typeof window !== 'undefined') {
@@ -56,6 +72,26 @@ if (typeof window !== 'undefined') {
           mimeType = 'application/pdf';
         }
         
+        // Handle Capacitor Native Platform
+        if (Capacitor.isNativePlatform()) {
+          try {
+            const base64Data = await blobToBase64Helper(fileBlob);
+            const savedFile = await Filesystem.writeFile({
+              path: downloadAttr,
+              data: base64Data,
+              directory: Directory.Cache,
+            });
+
+            await Share.share({
+              title: downloadAttr,
+              url: savedFile.uri,
+            });
+            return;
+          } catch (nativeErr) {
+            console.error("Native write/share failed in global click interceptor:", nativeErr);
+          }
+        }
+
         const file = new File([fileBlob], downloadAttr, { type: mimeType });
 
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -88,9 +124,9 @@ if (typeof window !== 'undefined') {
       const urlStr = url.toString();
       if (urlStr.startsWith('blob:') || urlStr.startsWith('data:')) {
         (async () => {
+          let filename = 'document.pdf';
           try {
             let fileBlob: Blob;
-            let filename = 'document.pdf';
             let mimeType = 'application/pdf';
 
             if (urlStr.startsWith('blob:')) {
@@ -114,6 +150,26 @@ if (typeof window !== 'undefined') {
             else if (mimeType.includes('image/png')) filename = 'image.png';
             else if (mimeType.includes('image/jpeg')) filename = 'image.jpg';
             else if (mimeType.includes('msword') || mimeType.includes('wordprocessingml')) filename = 'document.docx';
+
+            // Handle Capacitor Native Platform
+            if (Capacitor.isNativePlatform()) {
+              try {
+                const base64Data = await blobToBase64Helper(fileBlob);
+                const savedFile = await Filesystem.writeFile({
+                  path: filename,
+                  data: base64Data,
+                  directory: Directory.Cache,
+                });
+
+                await Share.share({
+                  title: filename,
+                  url: savedFile.uri,
+                });
+                return;
+              } catch (nativeErr) {
+                console.error("Native write/share failed in global window.open interceptor:", nativeErr);
+              }
+            }
 
             const file = new File([fileBlob], filename, { type: mimeType });
 

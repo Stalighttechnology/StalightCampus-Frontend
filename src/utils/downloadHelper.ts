@@ -1,6 +1,25 @@
 import { fetchWithTokenRefresh } from './authService';
 import { showErrorAlert } from './sweetalert';
 import { API_ENDPOINT, API_BASE_URL } from './config';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+
+/**
+ * Converts a Blob to a raw base64 string.
+ */
+const blobToBase64 = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64String = result.split(',')[1];
+      resolve(base64String);
+    };
+    reader.readAsDataURL(blob);
+  });
+};
 
 /**
  * Reusable utility to handle file downloads (specifically PDFs) across
@@ -48,6 +67,30 @@ export const downloadFile = async (source: Response | string, defaultFilename: s
     // Enforce correct application/pdf MIME type if downloading a PDF
     const mimeType = defaultFilename.toLowerCase().endsWith('.pdf') ? 'application/pdf' : blob.type;
     const file = new Blob([blob], { type: mimeType });
+
+    // Handle Capacitor Native Platform download
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const base64Data = await blobToBase64(file);
+        
+        // Write the file to device's Cache directory
+        const savedFile = await Filesystem.writeFile({
+          path: defaultFilename,
+          data: base64Data,
+          directory: Directory.Cache,
+        });
+
+        // Use native OS sharing to open / save file
+        await Share.share({
+          title: defaultFilename,
+          url: savedFile.uri,
+        });
+        return;
+      } catch (nativeError) {
+        console.error("Native download or sharing failed, trying web fallback:", nativeError);
+      }
+    }
+
     const downloadUrl = window.URL.createObjectURL(file);
     
     if (isMobile) {

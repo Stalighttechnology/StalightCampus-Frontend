@@ -23,6 +23,7 @@ import { Badge } from "../ui/badge";
 import { format } from "date-fns";
 import UpgradePlanDialog from "../common/UpgradePlanDialog";
 import { ScrollArea } from "../ui/scroll-area";
+import { downloadFile } from "../../utils/downloadHelper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Skeleton, SkeletonForm } from "../ui/skeleton";
 import LoginActivity from '../common/LoginActivity';
@@ -182,19 +183,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/subscription-receipt/${paymentId}/`);
       if (response.ok) {
         const contentType = response.headers.get('content-type');
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-
-        // Use PDF as default extension, but respect content-type if it's HTML fallback
         const extension = contentType?.includes('html') ? 'html' : 'pdf';
-        a.download = `Stalight_Receipt_${paymentId}.${extension}`;
-
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        await downloadFile(response, `Stalight_Receipt_${paymentId}.${extension}`);
         showSuccessAlert('Success', 'Receipt downloaded successfully');
       } else {
         const result = await response.json();
