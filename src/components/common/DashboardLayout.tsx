@@ -69,112 +69,107 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     };
   }, [role]);
 
-  // Synchronize native Status Bar and Navigation Bar colors when Dashboard mounts or theme updates
+  // Effect 1: ONE TIME setup on mount only
   useEffect(() => {
-    const init = async () => {
-      if (!Capacitor.isNativePlatform()) return;
-
+    if (!Capacitor.isNativePlatform()) return;
+    
+    const setup = async () => {
+      const ua = navigator.userAgent;
+      const androidMatch = ua.match(/Android (\d+)/);
+      const androidVersion = androidMatch
+        ? parseInt(androidMatch[1]) : 0;
       const platform = Capacitor.getPlatform();
 
-      if (platform === 'android') {
-        // Detect Android version
-        const ua = navigator.userAgent;
-        const androidMatch = ua.match(/Android (\d+)/);
-        const androidVersion = androidMatch 
-          ? parseInt(androidMatch[1]) 
-          : 0;
+      if (platform === 'android' && androidVersion >= 14) {
+        await StatusBar.setOverlaysWebView({ overlay: true })
+          .catch(() => {});
+        await StatusBar.setBackgroundColor({ 
+          color: '#00000000' 
+        }).catch(() => {});
         
-        if (androidVersion >= 14) {
-          await StatusBar.setOverlaysWebView({ overlay: true })
-            .catch(() => {});
-          await StatusBar.setBackgroundColor({ color: '#00000000' })
-            .catch(() => {});
-
-          // Wait for WebView to settle after overlay change
-          await new Promise(resolve => setTimeout(resolve, 100));
-
-          // Read actual status bar height multiple times
-          const readHeight = () => new Promise<number>((resolve) => {
-            const probe = document.createElement('div');
-            probe.style.cssText = 
-              'position:fixed;top:0;left:0;width:1px;' +
-              'height:env(safe-area-inset-top,0px);' +
-              'opacity:0;pointer-events:none;z-index:-1;';
-            document.body.appendChild(probe);
-            
+        await new Promise(r => setTimeout(r, 100));
+        
+        const readHeight = () => new Promise<number>((resolve) => {
+          const probe = document.createElement('div');
+          probe.style.cssText = 
+            'position:fixed;top:0;left:0;width:1px;' +
+            'height:env(safe-area-inset-top,0px);' +
+            'opacity:0;pointer-events:none;z-index:-1;';
+          document.body.appendChild(probe);
+          requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                const h = probe.getBoundingClientRect().height;
-                document.body.removeChild(probe);
-                resolve(h);
-              });
+              const h = probe.getBoundingClientRect().height;
+              document.body.removeChild(probe);
+              resolve(h);
             });
           });
+        });
 
-          // Try reading height 5 times until non-zero
-          let height = 0;
-          for (let i = 0; i < 5; i++) {
-            height = await readHeight();
-            console.log(`[SAT] attempt ${i+1}:`, height);
-            if (height > 0) break;
-            await new Promise(r => setTimeout(r, 200));
-          }
+        let height = 0;
+        for (let i = 0; i < 5; i++) {
+          height = await readHeight();
+          if (height > 0) break;
+          await new Promise(r => setTimeout(r, 200));
+        }
 
-          if (height > 0) {
-            document.documentElement.style.setProperty(
-              '--sat', `${height}px`
-            );
-          } else {
-            // Fallback by dpr
-            const dpr = window.devicePixelRatio || 1;
-            const h = dpr >= 3 ? 32 : dpr >= 2 ? 28 : 24;
-            document.documentElement.style.setProperty(
-              '--sat', `${h}px`
-            );
-          }
-          console.log('[SAT] Android 14 final:', 
-            getComputedStyle(document.documentElement)
-              .getPropertyValue('--sat'));
-        } else {
-          // Android 13 and below:
-          // overlay:true breaks env() reporting
-          // Use overlay:false - OS handles status bar space
-          await StatusBar.setOverlaysWebView({ overlay: false })
-            .catch(() => {});
-          
-          // With overlay:false, no padding needed
-          // OS already pushes WebView below status bar
+        if (height > 0) {
           document.documentElement.style.setProperty(
-            '--sat', '0px'
+            '--sat', `${height}px`
+          );
+        } else {
+          const dpr = window.devicePixelRatio || 1;
+          const h = dpr >= 3 ? 32 : dpr >= 2 ? 28 : 24;
+          document.documentElement.style.setProperty(
+            '--sat', `${h}px`
           );
         }
 
-        // Set style based on theme
-        await StatusBar.setStyle({
-          style: theme === 'dark' ? Style.Dark : Style.Light
-        }).catch(() => {});
-
-        await NavigationBar.setNavigationBarColor({
-          color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
-          darkButtons: theme === 'light'
-        }).catch(() => {});
-
+      } else if (platform === 'android') {
+        await StatusBar.setOverlaysWebView({ overlay: false })
+          .catch(() => {});
+        document.documentElement.style.setProperty(
+          '--sat', '0px'
+        );
       } else if (platform === 'ios') {
-        // iOS: overlay:true + env() always works
         await StatusBar.setOverlaysWebView({ overlay: true })
           .catch(() => {});
-        await StatusBar.setBackgroundColor({ color: '#00000000' })
-          .catch(() => {});
+        await StatusBar.setBackgroundColor({ 
+          color: '#00000000' 
+        }).catch(() => {});
         document.documentElement.style.setProperty(
           '--sat', 'env(safe-area-inset-top, 44px)'
         );
-        await StatusBar.setStyle({
-          style: theme === 'dark' ? Style.Dark : Style.Light
-        }).catch(() => {});
       }
+
+      NavigationBar.setNavigationBarColor({
+        color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
+        darkButtons: theme === 'light'
+      }).catch(() => {});
     };
-    init();
-  }, [theme]);
+
+    setup();
+  }, []); // ← EMPTY dependency - runs ONCE only
+
+  // Effect 2: THEME REACTIVE - only updates style
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    // Small delay to ensure theme is fully applied
+    const timer = setTimeout(() => {
+      StatusBar.setStyle({
+        style: theme === 'dark' ? Style.Light : Style.Dark
+      }).catch(() => {});
+
+      NavigationBar.setNavigationBarColor({
+        color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
+        darkButtons: theme === 'light'
+      }).catch(() => {});
+
+      console.log('[Theme] StatusBar style set for:', theme);
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [theme]); // ← ONLY theme dependency
 
   // Mount FCM listener for all roles — keeps bell count real-time
   const accessToken = sessionStorage.getItem('access_token');
