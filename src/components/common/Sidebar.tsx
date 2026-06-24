@@ -58,6 +58,30 @@ interface SidebarProps {
 const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse }: SidebarProps) => {
   const isMobile = useIsMobile();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [satValue, setSatValue] = useState('0px');
+
+  useEffect(() => {
+    const updateSat = () => {
+      const sat = getComputedStyle(document.documentElement)
+        .getPropertyValue('--sat').trim();
+      if (sat && sat !== '0px') {
+        setSatValue(sat);
+      }
+    };
+    
+    updateSat();
+    // Poll until non-zero
+    const interval = setInterval(() => {
+      const sat = getComputedStyle(document.documentElement)
+        .getPropertyValue('--sat').trim();
+      if (sat && sat !== '0px') {
+        setSatValue(sat);
+        clearInterval(interval);
+      }
+    }, 100);
+    
+    return () => clearInterval(interval);
+  }, []);
   const [showPwaBadge, setShowPwaBadge] = useState(false);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
   const { theme } = useTheme();
@@ -731,7 +755,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
               className="fixed right-0 bottom-0 left-0 bg-black/50 z-30"
               style={{
                 top: Capacitor.isNativePlatform() && window.innerWidth < 1024
-                  ? 'var(--sat)'
+                  ? satValue
                   : '0px'
               }}
               initial={{ opacity: 0 }}
@@ -749,7 +773,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           transition={{ duration: 0.3, ease: "easeInOut" }}
           style={{
             top: Capacitor.isNativePlatform() && window.innerWidth < 1024 
-              ? 'var(--sat)' 
+              ? satValue 
               : '0px',
             bottom: 0,
             left: 0,
