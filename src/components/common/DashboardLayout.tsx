@@ -165,14 +165,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         // Android 14: overlay:true - icons must contrast 
         // against transparent status bar showing app bg
         StatusBar.setStyle({
-          style: theme === 'dark' ? Style.Light : Style.Dark
+          style: theme === 'dark' ? Style.Dark : Style.Light
         }).catch(() => {});
         // No background color - stays transparent
 
       } else if (platform === 'android') {
         // Android 13: overlay:false - set solid bg color
         StatusBar.setStyle({
-          style: theme === 'dark' ? Style.Light : Style.Dark
+          style: theme === 'dark' ? Style.Dark : Style.Light
         }).catch(() => {});
         StatusBar.setBackgroundColor({
           color: theme === 'dark' ? '#0a0a0c' : '#ffffff'
@@ -180,7 +180,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       } else if (platform === 'ios') {
         StatusBar.setStyle({
-          style: theme === 'dark' ? Style.Light : Style.Dark
+          style: theme === 'dark' ? Style.Dark : Style.Light
         }).catch(() => {});
       }
 
@@ -192,8 +192,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       console.log('[Theme] platform:', platform, 
         'android:', androidVersion, 
         'theme:', theme,
-        'style:', theme === 'dark' ? 'Light(white icons)' 
-                                   : 'Dark(black icons)');
+        'style:', theme === 'dark' ? 'Dark(white icons)' 
+                                   : 'Light(black icons)');
     }, 50);
 
     return () => clearTimeout(timer);
