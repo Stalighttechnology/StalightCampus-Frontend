@@ -25,13 +25,13 @@ export const createLibraryCategory = (data: { name: string }) =>
 export const fetchLibraryBooks = (search = "") =>
   fetchWithTokenRefresh(`${API_BASE}/admin/books/?search=${encodeURIComponent(search)}`, { headers: authHeaders() }).then((r) => r.json());
 
-export const exportLibraryBooksPdf = (search = ""): Promise<Blob> =>
-  fetchWithTokenRefresh(`${API_BASE}/admin/books/export-pdf/?search=${encodeURIComponent(search)}`, {
+export const exportLibraryBooksCsv = (search = ""): Promise<Blob> =>
+  fetchWithTokenRefresh(`${API_BASE}/admin/books/export-csv/?search=${encodeURIComponent(search)}`, {
     headers: {
       Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
     },
   }).then((r) => {
-    if (!r.ok) throw new Error("Failed to export PDF");
+    if (!r.ok) throw new Error("Failed to export CSV");
     return r.blob();
   });
 
@@ -92,26 +92,26 @@ export const renewBook = (id: number, durationDays?: number) =>
 export const fetchActiveBorrows = (page: number = 1) =>
   fetchWithTokenRefresh(`${API_BASE}/admin/borrows/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
 
-export const exportLibraryBorrowsPdf = (): Promise<Blob> =>
-  fetchWithTokenRefresh(`${API_BASE}/admin/borrows/export-pdf/`, {
+export const exportLibraryBorrowsCsv = (): Promise<Blob> =>
+  fetchWithTokenRefresh(`${API_BASE}/admin/borrows/export-csv/`, {
     headers: {
       Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
     },
   }).then((r) => {
-    if (!r.ok) throw new Error("Failed to export PDF");
+    if (!r.ok) throw new Error("Failed to export CSV");
     return r.blob();
   });
 
 export const fetchFines = (page: number = 1) =>
   fetchWithTokenRefresh(`${API_BASE}/admin/fines/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
 
-export const exportLibraryFinesPdf = (): Promise<Blob> =>
-  fetchWithTokenRefresh(`${API_BASE}/admin/fines/export-pdf/`, {
+export const exportLibraryFinesCsv = (): Promise<Blob> =>
+  fetchWithTokenRefresh(`${API_BASE}/admin/fines/export-csv/`, {
     headers: {
       Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
     },
   }).then((r) => {
-    if (!r.ok) throw new Error("Failed to export PDF");
+    if (!r.ok) throw new Error("Failed to export CSV");
     return r.blob();
   });
 

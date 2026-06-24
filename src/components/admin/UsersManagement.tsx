@@ -10,7 +10,8 @@ import {
 } from "../ui/select";
 import { cn } from "../../lib/utils";
 import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
-import { Search, FileDownIcon, Loader2, ArrowUpCircle } from "lucide-react";
+import { Search, Loader2, Download } from "lucide-react";
+import { downloadFile } from "../../utils/downloadHelper";
 import { Input } from "../ui/input";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
@@ -140,6 +141,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [promoteData, setPromoteData] = useState<User | null>(null);
   const [selectedNewRole, setSelectedNewRole] = useState<string>("");
   const [promoteConfirmText, setPromoteConfirmText] = useState("");
+  const [promoteStep, setPromoteStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -147,7 +149,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [pageSize] = useState(10); // Fixed page size for consistency
   const normalize = (str: string) => str.toLowerCase().trim();
   const { theme } = useTheme();
-  const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [downloadingCSV, setDownloadingCSV] = useState(false);
 
   const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
@@ -161,8 +163,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
     (roleFilter === "" && departmentFilter !== "") ||
     appliedSearch !== "";
 
-  const handleDownloadPDF = async () => {
-    setDownloadingPDF(true);
+  const handleDownloadCSV = async () => {
+    setDownloadingCSV(true);
     try {
       let queryParams = `?page_size=5000`;
       if (roleFilter) {
@@ -175,37 +177,20 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         queryParams += `&search=${encodeURIComponent(appliedSearch.trim())}`;
       }
 
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/users/export-pdf/${queryParams}`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `User_List_${new Date().toISOString().slice(0, 10)}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-        toast({
-          title: "Success",
-          description: "User list PDF exported successfully",
-        });
-      } else {
-        const result = await response.json().catch(() => ({}));
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.message || "Failed to export PDF",
-        });
-      }
-    } catch (err) {
+      const url = `${API_ENDPOINT}/admin/users/export-csv/${queryParams}`;
+      await downloadFile(url, `User_List_${new Date().toISOString().slice(0, 10)}.csv`);
+      toast({
+        title: "Success",
+        description: "User list CSV exported successfully",
+      });
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Network error while exporting PDF",
+        description: "An unexpected error occurred during export",
       });
     } finally {
-      setDownloadingPDF(false);
+      setDownloadingCSV(false);
     }
   };
 
@@ -522,6 +507,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           setPromoteData(null);
           setSelectedNewRole("");
           setPromoteConfirmText("");
+          setPromoteStep(1);
           toast({ title: "Success", description: "User promoted successfully" });
         } else {
           setError(response.message || "Failed to promote user");
@@ -629,16 +615,20 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                 <p className={`users-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage all users in the system</p>
               </div>
               
-              {/* Desktop Download PDF Button */}
+              {/* Desktop Download CSV Button */}
               <Button
-                onClick={handleDownloadPDF}
-                disabled={!isAnyFilterActive || downloadingPDF}
-                className={`hidden sm:flex items-center gap-2 px-4 py-2 font-medium transition-all duration-200 shrink-0 w-auto justify-center ${
-                  theme === 'dark' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                }`}
+                onClick={handleDownloadCSV}
+                className="hidden md:flex gap-2 items-center dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200 hover:bg-zinc-100"
+                variant="outline"
+                size="sm"
+                disabled={downloadingCSV}
               >
-                {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
-                {downloadingPDF ? "Exporting..." : "Download PDF"}
+                {downloadingCSV ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                {downloadingCSV ? "Exporting..." : "Export CSV"}
               </Button>
             </CardHeader>
              <CardContent className="users-card-content pb-0">
@@ -692,15 +682,15 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                           </button>
                         )}
                       </div>
-                      {/* Mobile Download PDF Icon Button */}
+                      {/* Mobile Download CSV Icon Button */}
                       <Button
-                        onClick={handleDownloadPDF}
-                        disabled={!isAnyFilterActive || downloadingPDF}
-                        size="icon"
+                        onClick={handleDownloadCSV}
                         variant="outline"
-                        className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                        size="icon"
+                        className="flex md:hidden dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200"
+                        disabled={downloadingCSV}
                       >
-                        {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
+                        {downloadingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
@@ -798,7 +788,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => { setPromoteData(user); setSelectedNewRole(""); }}
+                                onClick={() => { setPromoteData(user); setSelectedNewRole(""); setPromoteStep(1); }}
                                 disabled={loading || (user.role !== 'teacher' && user.role !== 'hod')}
                                 className={theme === 'dark' ?
                                   'p-2 rounded hover:bg-accent' :
@@ -925,7 +915,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={promoteData !== null} onOpenChange={() => { setPromoteData(null); setSelectedNewRole(""); setPromoteConfirmText(""); }}>
+      <Dialog open={promoteData !== null} onOpenChange={(open) => { if(!open) { setPromoteData(null); setSelectedNewRole(""); setPromoteConfirmText(""); setPromoteStep(1); }}}>
         <DialogContent
           className={
           theme === 'dark' ?
@@ -933,60 +923,91 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           'bg-white border border-gray-200 text-gray-900 w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto'
           }>
           <DialogHeader>
-            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Promote / Change Role</DialogTitle>
+            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+              {promoteStep === 1 ? 'Promote / Change Role' : 'Confirm Promotion'}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Select a new role for <strong>{promoteData?.name}</strong>. Their current role is <strong>{promoteData?.role}</strong>.
-            </p>
-            <div className="space-y-2">
-              <label className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>New Role</label>
-              <SelectMenu
-                label=""
-                placeholder="Choose New Role"
-                value={Object.keys(roleMap).find(key => roleMap[key] === selectedNewRole) || ""}
-                onChange={(val) => setSelectedNewRole(roleMap[val])}
-                options={roles.filter(r => {
-                  if (promoteData?.role === 'teacher' && roleMap[r] === 'hod') return true;
-                  if (promoteData?.role === 'hod' && roleMap[r] === 'principal') return true;
-                  return false;
-                })}
-              />
-            </div>
-            <div className={`p-3 text-xs rounded-md ${theme === 'dark' ? 'bg-primary/10 text-primary-foreground border border-primary/20' : 'bg-blue-50 text-blue-800 border border-blue-100'}`}>
-              <strong>Note:</strong> Promoting a user will automatically log them out and notify them via email. If promoting a Teacher or HOD, their current class assignments or branch leadership will be unassigned automatically.
-            </div>
-            <div className={`p-3 text-xs rounded-md ${theme === 'dark' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-600 border border-red-200'}`}>
-              <strong>Warning:</strong> This action is irreversible. Please confirm you want to proceed.
-            </div>
-            <div className="space-y-2">
-              <label className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                Type <strong>promote</strong> to confirm
-              </label>
-              <Input
-                value={promoteConfirmText}
-                onChange={(e) => setPromoteConfirmText(e.target.value)}
-                placeholder="Type promote here"
-                className={`w-full ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`}
-              />
-            </div>
+            {promoteStep === 1 ? (
+              <>
+                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Select a new role for <strong>{promoteData?.name}</strong>. Their current role is <strong>{promoteData?.role}</strong>.
+                </p>
+                <div className="space-y-2">
+                  <label className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>New Role</label>
+                  <SelectMenu
+                    label=""
+                    placeholder="Choose New Role"
+                    value={Object.keys(roleMap).find(key => roleMap[key] === selectedNewRole) || ""}
+                    onChange={(val) => setSelectedNewRole(roleMap[val])}
+                    options={roles.filter(r => {
+                      if (promoteData?.role === 'teacher' && roleMap[r] === 'hod') return true;
+                      if (promoteData?.role === 'hod' && roleMap[r] === 'principal') return true;
+                      return false;
+                    })}
+                  />
+                </div>
+                <div className={`p-3 text-xs rounded-md ${theme === 'dark' ? 'bg-primary/10 text-primary-foreground border border-primary/20' : 'bg-blue-50 text-blue-800 border border-blue-100'}`}>
+                  <strong>Note:</strong> Promoting a user will automatically log them out and notify them via email. If promoting a Teacher or HOD, their current class assignments or branch leadership will be unassigned automatically.
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={`p-3 text-xs rounded-md ${theme === 'dark' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+                  <strong>Warning:</strong> This action is irreversible. Please confirm you want to proceed.
+                </div>
+                <div className="space-y-2">
+                  <label className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                    Type <strong>promote</strong> to confirm
+                  </label>
+                  <Input
+                    value={promoteConfirmText}
+                    onChange={(e) => setPromoteConfirmText(e.target.value)}
+                    placeholder="Type promote here"
+                    className={`w-full ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`}
+                  />
+                </div>
+              </>
+            )}
           </div>
           <DialogFooter className="flex flex-row justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => { setPromoteData(null); setSelectedNewRole(""); setPromoteConfirmText(""); }}
-              disabled={loading}
-              className={theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={savePromote}
-              disabled={loading || !selectedNewRole || promoteConfirmText !== 'promote'}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              {loading ? "Promoting..." : "Promote"}
-            </Button>
+            {promoteStep === 1 ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => { setPromoteData(null); setSelectedNewRole(""); setPromoteConfirmText(""); setPromoteStep(1); }}
+                  disabled={loading}
+                  className={theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => setPromoteStep(2)}
+                  disabled={loading || !selectedNewRole}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  Next
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setPromoteStep(1)}
+                  disabled={loading}
+                  className={theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={savePromote}
+                  disabled={loading || promoteConfirmText !== 'promote'}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  {loading ? "Promoting..." : "Promote"}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

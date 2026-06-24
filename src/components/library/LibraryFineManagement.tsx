@@ -3,10 +3,12 @@ import { Download, Loader2, CheckCircle, Settings } from "lucide-react";
 import Swal from "sweetalert2";
 import { Card, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
+import { downloadFile } from "../../utils/downloadHelper";
 import { useTheme } from "../../context/ThemeContext";
+import { API_ENDPOINT } from "../../utils/config";
 import {
   fetchFines,
-  exportLibraryFinesPdf,
+  exportLibraryFinesCsv,
   payFine,
   fetchLibrarySettings,
   updateLibrarySettings
@@ -149,28 +151,21 @@ const LibraryFineManagement = () => {
     }
   };
 
-  const handleExportPDF = async () => {
+  const handleExportCSV = async () => {
     setExporting(true);
     try {
-      const blob = await exportLibraryFinesPdf();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `Library_Fines_${new Date().toISOString().split("T")[0]}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      const url = `${API_ENDPOINT}/library/admin/fines/export-csv/`;
+      await downloadFile(url, `Library_Fines_${new Date().toISOString().split("T")[0]}.csv`);
 
       Swal.fire({
         title: "Success",
-        text: "Library fines PDF exported successfully",
+        text: "Library fines CSV exported successfully",
         icon: "success",
         timer: 1500,
         showConfirmButton: false
       });
     } catch (error) {
-      Swal.fire("Error", "Failed to export library fines PDF", "error");
+      Swal.fire("Error", "Failed to export library fines CSV", "error");
     } finally {
       setExporting(false);
     }
@@ -215,19 +210,19 @@ const LibraryFineManagement = () => {
               Set Fine Rate
             </Button>
 
-            {/* Desktop Export PDF Button */}
+            {/* Desktop Export CSV Button */}
             <Button
               variant="outline"
-              onClick={handleExportPDF}
+              onClick={handleExportCSV}
               disabled={exporting || fines.length === 0}
               className="hidden sm:flex items-center justify-center gap-1.5 px-4 py-2 h-10 text-sm rounded-lg border bg-primary hover:text-white text-white hover:bg-primary/90 transition-all"
             >
               {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              Export PDF
+              Export CSV
             </Button>
-            {/* Mobile Export PDF Icon Button */}
+            {/* Mobile Export CSV Icon Button */}
             <Button
-              onClick={handleExportPDF}
+              onClick={handleExportCSV}
               disabled={exporting || fines.length === 0}
               size="icon"
               variant="outline"
