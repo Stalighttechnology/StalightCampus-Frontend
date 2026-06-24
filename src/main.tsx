@@ -16,6 +16,34 @@ if (Capacitor.isNativePlatform()) {
   }).catch(console.error);
 }
 
+// Global cache to map created Blob URLs directly to their corresponding Blob binaries.
+// This allows Capacitor WebView to access the file contents instantly without blocked fetch requests.
+const blobMap = new Map<string, Blob>();
+
+if (typeof window !== 'undefined') {
+  const originalCreateObjectURL = window.URL.createObjectURL;
+  window.URL.createObjectURL = function (obj: any) {
+    const url = originalCreateObjectURL.call(window.URL, obj);
+    if (obj instanceof Blob) {
+      blobMap.set(url, obj);
+    }
+    return url;
+  };
+
+  const originalRevokeObjectURL = window.URL.revokeObjectURL;
+  window.URL.revokeObjectURL = function (url: string) {
+    // Delay removing from map to allow click events and storage processes to complete
+    setTimeout(() => {
+      blobMap.delete(url);
+    }, 15000);
+    try {
+      originalRevokeObjectURL.call(window.URL, url);
+    } catch (e) {
+      // Ignore invalid or already revoked URLs
+    }
+  };
+}
+
 // Helper to convert Blob to base64
 const blobToBase64Helper = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -42,17 +70,21 @@ if (typeof window !== 'undefined') {
     const downloadAttr = anchor.getAttribute('download');
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    if (isMobile && downloadAttr && (href.startsWith('blob:') || href.startsWith('data:'))) {
+    if ((isMobile || Capacitor.isNativePlatform()) && downloadAttr && (href.startsWith('blob:') || href.startsWith('data:'))) {
       event.preventDefault();
       event.stopPropagation();
       
       try {
-        let fileBlob: Blob;
+        let fileBlob: Blob | undefined;
         let mimeType = 'application/pdf';
         
         if (href.startsWith('blob:')) {
-          const res = await fetch(href);
-          fileBlob = await res.blob();
+          // Look up in our local blobMap first to bypass WebView fetch blockages
+          fileBlob = blobMap.get(href);
+          if (!fileBlob) {
+            const res = await fetch(href);
+            fileBlob = await res.blob();
+          }
           mimeType = fileBlob.type;
         } else {
           // data: URL
@@ -120,18 +152,22 @@ if (typeof window !== 'undefined') {
   const originalWindowOpen = window.open;
   window.open = function (url?: string | URL, target?: string, features?: string): Window | null {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (isMobile && url) {
+    if ((isMobile || Capacitor.isNativePlatform()) && url) {
       const urlStr = url.toString();
       if (urlStr.startsWith('blob:') || urlStr.startsWith('data:')) {
         (async () => {
           let filename = 'document.pdf';
           try {
-            let fileBlob: Blob;
+            let fileBlob: Blob | undefined;
             let mimeType = 'application/pdf';
 
             if (urlStr.startsWith('blob:')) {
-              const res = await fetch(urlStr);
-              fileBlob = await res.blob();
+              // Retrieve Blob directly from our custom mapping first
+              fileBlob = blobMap.get(urlStr);
+              if (!fileBlob) {
+                const res = await fetch(urlStr);
+                fileBlob = await res.blob();
+              }
               mimeType = fileBlob.type;
             } else {
               const parts = urlStr.split(',');
