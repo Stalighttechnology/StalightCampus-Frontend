@@ -154,18 +154,46 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    // Small delay to ensure theme is fully applied
     const timer = setTimeout(() => {
-      StatusBar.setStyle({
-        style: theme === 'dark' ? Style.Light : Style.Dark
-      }).catch(() => {});
+      const platform = Capacitor.getPlatform();
+      const ua = navigator.userAgent;
+      const androidMatch = ua.match(/Android (\d+)/);
+      const androidVersion = androidMatch
+        ? parseInt(androidMatch[1]) : 0;
+
+      if (platform === 'android' && androidVersion >= 14) {
+        // Android 14: overlay:true - icons must contrast 
+        // against transparent status bar showing app bg
+        StatusBar.setStyle({
+          style: theme === 'dark' ? Style.Light : Style.Dark
+        }).catch(() => {});
+        // No background color - stays transparent
+
+      } else if (platform === 'android') {
+        // Android 13: overlay:false - set solid bg color
+        StatusBar.setStyle({
+          style: theme === 'dark' ? Style.Light : Style.Dark
+        }).catch(() => {});
+        StatusBar.setBackgroundColor({
+          color: theme === 'dark' ? '#0a0a0c' : '#ffffff'
+        }).catch(() => {});
+
+      } else if (platform === 'ios') {
+        StatusBar.setStyle({
+          style: theme === 'dark' ? Style.Light : Style.Dark
+        }).catch(() => {});
+      }
 
       NavigationBar.setNavigationBarColor({
         color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
         darkButtons: theme === 'light'
       }).catch(() => {});
 
-      console.log('[Theme] StatusBar style set for:', theme);
+      console.log('[Theme] platform:', platform, 
+        'android:', androidVersion, 
+        'theme:', theme,
+        'style:', theme === 'dark' ? 'Light(white icons)' 
+                                   : 'Dark(black icons)');
     }, 50);
 
     return () => clearTimeout(timer);
