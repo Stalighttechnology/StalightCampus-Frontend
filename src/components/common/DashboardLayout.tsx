@@ -72,9 +72,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    // overlay:false = OS pushes WebView below status bar
-    // Same as LinkedIn, Zomato, every native app
-    StatusBar.setOverlaysWebView({ overlay: false })
+    // overlay:true = transparent status bar overlay
+    StatusBar.setOverlaysWebView({ overlay: true })
+      .catch(() => {});
+    StatusBar.setBackgroundColor({ color: '#00000000' })
       .catch(() => {});
 
     NavigationBar.setNavigationBarColor({
