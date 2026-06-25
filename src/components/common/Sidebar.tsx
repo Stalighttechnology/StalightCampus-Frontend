@@ -587,7 +587,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         style={{
           height: window.innerWidth >= 1024 ? '5rem' : undefined,
           paddingTop: Capacitor.isNativePlatform()
-            ? 'env(safe-area-inset-top, 24px)'
+            ? 'calc(env(safe-area-inset-top, 24px) + 2px)'
             : window.innerWidth < 1024 ? '16px' : '0px'
         }}
         initial={{ opacity: 0, y: -20 }}
