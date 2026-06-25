@@ -3,6 +3,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { Download, Building2, CreditCard, Users, BadgeCheck, Ticket, Loader2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 
 import { API_BASE_URL } from "@/utils/config";
 import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
@@ -88,66 +89,73 @@ const Reports = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className={`text-3xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-          Reports
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Download platform-wide reports as CSV. All data is generated live from the database.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
+        <CardHeader>
+          <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            Reports
+          </CardTitle>
+          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            Download platform-wide reports as CSV. All data is generated live from the database.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {REPORTS.map((report) => {
+              const Icon = report.icon;
+              const isLoading = downloading === report.type;
+              return (
+                <Card
+                  key={report.type}
+                  className={`backdrop-blur-sm shadow-sm transition-all duration-300 border p-6 flex flex-col gap-4 hover:shadow-md ${
+                    theme === 'dark'
+                      ? "bg-card/40 border-border text-foreground"
+                      : "bg-white border-gray-100 text-gray-900"
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={`w-12 h-12 rounded-xl ${report.bg} flex items-center justify-center flex-shrink-0`}>
+                      <Icon className={`w-6 h-6 ${report.color}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`font-bold text-base ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{report.title}</h3>
+                      <p className={`text-sm mt-1 leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{report.description}</p>
+                    </div>
+                  </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {REPORTS.map((report) => {
-          const Icon = report.icon;
-          const isLoading = downloading === report.type;
-          return (
-            <div
-              key={report.type}
-              className={`rounded-xl border p-6 flex flex-col gap-4 transition-all ${report.border} ${theme === 'dark' ? 'bg-zinc-900/60' : 'bg-white'} hover:shadow-md`}>
-              
-              <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-xl ${report.bg} flex items-center justify-center flex-shrink-0`}>
-                  <Icon className={`w-6 h-6 ${report.color}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-base">{report.title}</h3>
-                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{report.description}</p>
-                </div>
-              </div>
+                  {/* Column preview */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {report.columns.map((col) => (
+                      <Badge key={col} variant="secondary" className="text-xs font-normal">
+                        {col}
+                      </Badge>
+                    ))}
+                  </div>
 
-              {/* Column preview */}
-              <div className="flex flex-wrap gap-1.5">
-                {report.columns.map((col) =>
-                <Badge key={col} variant="secondary" className="text-xs font-normal">
-                    {col}
-                  </Badge>
-                )}
-              </div>
+                  <Button
+                    className={`w-full gap-2 mt-auto ${isLoading ? 'opacity-80' : ''}`}
+                    onClick={() => handleDownload(report.type, report.title)}
+                    disabled={!!downloading}
+                  >
+                    {isLoading ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</>
+                    ) : (
+                      <><Download className="w-4 h-4" /> Download CSV</>
+                    )}
+                  </Button>
+                </Card>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
-              <Button
-                className={`w-full gap-2 mt-auto ${isLoading ? 'opacity-80' : ''}`}
-                onClick={() => handleDownload(report.type, report.title)}
-                disabled={!!downloading}>
-                
-                {isLoading ?
-                <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</> :
-
-                <><Download className="w-4 h-4" /> Download CSV</>
-                }
-              </Button>
-            </div>);
-
-        })}
-      </div>
-
-      <div className={`rounded-xl border p-5 text-sm text-muted-foreground ${theme === 'dark' ? 'bg-zinc-900/40 border-zinc-800' : 'bg-gray-50 border-gray-200'}`}>
-        <strong className="text-foreground">Note:</strong> All reports are generated in real-time from the live database.
+      <div className={`rounded-xl border p-5 text-sm ${theme === 'dark' ? 'bg-card/20 border-border text-muted-foreground' : 'bg-gray-50 border-gray-200 text-gray-600'}`}>
+        <strong className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Note:</strong> All reports are generated in real-time from the live database.
         Resolved/Closed support tickets older than 2 days are automatically excluded from the Support Tickets report.
         Revenue figures are based on active subscriptions at their yearly plan rates.
       </div>
     </div>);
-
 };
+
 export default Reports;

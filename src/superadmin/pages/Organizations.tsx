@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
+import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { Search, MoreVertical, Building2, Trash2, Edit, Eye } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
@@ -198,101 +199,107 @@ const Organizations = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className={`text-3xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Organizations</h1>
-          <p className="text-muted-foreground mt-1">Manage tenant institutions across the platform.</p>
-        </div>
-        <Button className="bg-primary shadow-sm" onClick={() => navigate('/stalightcampus')}>
-          <Building2 className="w-4 h-4 mr-2" /> Add New Organization
-        </Button>
-      </div>
+      <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
+        <CardHeader className="pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="w-full">
+            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              Organizations
+            </CardTitle>
+            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Manage tenant institutions across the platform.
+            </p>
+          </div>
+          <Button className="bg-primary shadow-sm w-full md:w-auto flex-shrink-0" onClick={() => navigate('/stalightcampus')}>
+            <Building2 className="w-4 h-4 mr-2" /> Add New Organization
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center w-full max-w-sm space-x-2">
+            <div className="relative w-full">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search organizations..."
+                className="pl-8 bg-background shadow-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)} />
+            </div>
+          </div>
 
-      <div className="flex items-center w-full max-w-sm space-x-2">
-        <div className="relative w-full">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search organizations..."
-            className="pl-8 bg-background shadow-sm"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)} />
-          
-        </div>
-      </div>
-
-      <div className="rounded-md border bg-card shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
-              <TableHead className="w-[300px]">Organization Name</TableHead>
-              <TableHead>Plan</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Users</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ?
-            <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">Loading...</TableCell>
-              </TableRow> :
-            filteredOrgs.length === 0 ?
-            <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No organizations found.</TableCell>
-              </TableRow> :
-
-            filteredOrgs.map((org) =>
-            <TableRow key={org.id} className="hover:bg-muted/50">
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold">
-                        {org.name.substring(0, 1).toUpperCase()}
-                      </div>
-                      {org.name}
-                    </div>
-                  </TableCell>
-                  <TableCell>{getPlanBadge(org.plan_type)}</TableCell>
-                  <TableCell>{getStatusBadge(org)}</TableCell>
-                  <TableCell className="text-muted-foreground">{org.user_count} users</TableCell>
-                  <TableCell className="text-muted-foreground">{new Date(org.created_at).toLocaleDateString()}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => fetchOrgDetail(org)}>
-                          <Eye className="w-4 h-4 mr-2 text-indigo-500" /> View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                      setPlanOrg(org);
-                      setNewPlan(org.plan_type);
-                    }}>
-                          <Edit className="w-4 h-4 mr-2 text-blue-500" /> Change Plan
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                      className={`${org.name === "Stalight HQ" ? "text-gray-400 cursor-not-allowed" : "text-red-600 focus:text-red-600"}`}
-                      onClick={() => org.name !== "Stalight HQ" && setDeleteOrg(org)}
-                      disabled={org.name === "Stalight HQ"}>
-                      
-                          <Trash2 className="w-4 h-4 mr-2" /> Delete Organization
-                          {org.name === "Stalight HQ" && <span className="text-xs ml-auto">(System Org)</span>}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          <div className="rounded-md border overflow-hidden">
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead className="w-[300px]">Organization Name</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Users</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-            )
-            }
-          </TableBody>
-        </Table>
-      </div>
+              </TableHeader>
+              <TableBody>
+                {loading ?
+                <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">Loading...</TableCell>
+                  </TableRow> :
+                filteredOrgs.length === 0 ?
+                <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No organizations found.</TableCell>
+                  </TableRow> :
+
+                filteredOrgs.map((org) =>
+                <TableRow key={org.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            {org.name.substring(0, 1).toUpperCase()}
+                          </div>
+                          {org.name}
+                        </div>
+                      </TableCell>
+                      <TableCell>{getPlanBadge(org.plan_type)}</TableCell>
+                      <TableCell>{getStatusBadge(org)}</TableCell>
+                      <TableCell className="text-muted-foreground">{org.user_count} users</TableCell>
+                      <TableCell className="text-muted-foreground">{new Date(org.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => fetchOrgDetail(org)}>
+                              <Eye className="w-4 h-4 mr-2 text-indigo-500" /> View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                          setPlanOrg(org);
+                          setNewPlan(org.plan_type);
+                        }}>
+                              <Edit className="w-4 h-4 mr-2 text-blue-500" /> Change Plan
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                          className={`${org.name === "Stalight HQ" ? "text-gray-400 cursor-not-allowed" : "text-red-600 focus:text-red-600"}`}
+                          onClick={() => org.name !== "Stalight HQ" && setDeleteOrg(org)}
+                          disabled={org.name === "Stalight HQ"}>
+                          
+                              <Trash2 className="w-4 h-4 mr-2" /> Delete Organization
+                              {org.name === "Stalight HQ" && <span className="text-xs ml-auto">(System Org)</span>}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                )
+                }
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteOrg} onOpenChange={(open) => !open && setDeleteOrg(null)}>

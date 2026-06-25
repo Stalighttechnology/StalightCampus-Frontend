@@ -97,32 +97,27 @@ const NDASubmissions = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className={`text-3xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>NDA & Consents</h1>
-          <p className="text-muted-foreground mt-1">View and download all signed NDA documents.</p>
-        </div>
-      </div>
-
-      <Card className="border-0 shadow-sm">
-        <CardHeader className="pb-3 border-b border-border/50">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle className="text-lg font-medium flex items-center gap-2">
-              <FileText className="w-5 h-5 text-indigo-500" />
-              Submissions Directory
+      <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
+        <CardHeader className="pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border/50">
+          <div className="w-full">
+            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              NDA & Consents
             </CardTitle>
-            <div className="relative w-full sm:w-64">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <input
-                type="text"
-                className="w-full pl-10 pr-4 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                placeholder="Search name, ID, or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              View and download all signed NDA documents.
+            </p>
+          </div>
+          <div className="relative w-full sm:w-64 flex-shrink-0">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Search className="w-4 h-4 text-muted-foreground" />
             </div>
+            <input
+              type="text"
+              className="w-full pl-10 pr-4 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              placeholder="Search name, ID, or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
         </CardHeader>
         <CardContent className="p-0">

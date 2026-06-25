@@ -192,33 +192,35 @@ const EnrollDeveloper = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className={`text-3xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Enroll Developer</h1>
-          <p className="text-muted-foreground mt-1">Manage platform developers and assign technical skills.</p>
-        </div>
-      </div>
-
-      <div className="flex space-x-1 p-1 bg-muted/50 rounded-lg w-fit">
-        <button
-          onClick={() => setActiveTab("pending")}
-          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-            activeTab === "pending" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          }`}
-        >
-          Pending NDAs
-        </button>
-        <button
-          onClick={() => setActiveTab("active")}
-          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-            activeTab === "active" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          }`}
-        >
-          Active Developers
-        </button>
-      </div>
-
-      <Card className="border-0 shadow-sm">
+      <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
+        <CardHeader className="pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border/50">
+          <div className="w-full">
+            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              Enroll Developer
+            </CardTitle>
+            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Manage platform developers and assign technical skills.
+            </p>
+          </div>
+          <div className="flex space-x-1 p-1 bg-muted/50 dark:bg-slate-800/80 rounded-lg w-full md:w-auto flex-shrink-0">
+            <button
+              onClick={() => setActiveTab("pending")}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors w-1/2 md:w-auto ${
+                activeTab === "pending" ? "bg-background dark:bg-slate-900 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Pending NDAs
+            </button>
+            <button
+              onClick={() => setActiveTab("active")}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors w-1/2 md:w-auto ${
+                activeTab === "active" ? "bg-background dark:bg-slate-900 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Active Developers
+            </button>
+          </div>
+        </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto min-h-[400px]">
             <table className="w-full text-sm text-left">

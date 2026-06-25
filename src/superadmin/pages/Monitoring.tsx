@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
+import { Calendar as ShadcnCalendar } from "../../components/ui/calendar";
+import { Button } from "../../components/ui/button";
+import { format, parseISO } from "date-fns";
 import { useTheme } from "../../context/ThemeContext";
 import {
   Server,
@@ -85,6 +90,8 @@ const Monitoring = () => {
   const [errorStatusCode, setErrorStatusCode] = useState("");
   const [errorStartDate, setErrorStartDate] = useState("");
   const [errorEndDate, setErrorEndDate] = useState("");
+  const [isStartDateOpen, setIsStartDateOpen] = useState(false);
+  const [isEndDateOpen, setIsEndDateOpen] = useState(false);
 
   // Filter States for Audit Logs
   const [auditSearch, setAuditSearch] = useState("");
@@ -473,54 +480,53 @@ const Monitoring = () => {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-2 border-b border-gray-200 dark:border-gray-800">
-        <div>
-          <h1 className={`text-3xl font-extrabold tracking-tight ${theme === "dark" ? "text-white" : "text-gray-900"}`}>
-            Stalight HQ Monitor
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Centralized health dashboard, error logger, and audit log viewer.
-          </p>
-        </div>
+      {/* Card Wrapper */}
+      <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
+        <CardHeader className="pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border/50">
+          <div className="w-full">
+            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              Stalight HQ Monitor
+            </CardTitle>
+            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Centralized health dashboard, error logger, and audit log viewer.
+            </p>
+          </div>
 
-        {/* Tab Controls */}
-        <div className="flex items-center bg-gray-100 dark:bg-slate-800 rounded-lg p-1.5 mt-4 md:mt-0 shadow-inner">
-          <button
-            onClick={() => setActiveTab("health")}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${activeTab === "health"
-                ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600 dark:text-blue-400"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
-          >
-            <Activity className="w-3.5 h-3.5" />
-            <span>Live Health</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("errors")}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${activeTab === "errors"
-                ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600 dark:text-blue-400"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
-          >
-            <AlertTriangle className="w-3.5 h-3.5" />
-            <span>Error Logs</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("audit")}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${activeTab === "audit"
-                ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600 dark:text-blue-400"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
-          >
-            <FileText className="w-3.5 h-3.5" />
-            <span>Audit Logs</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Tab Content Panel */}
-      <div className="mt-6">
+          {/* Tab Controls */}
+          <div className="flex items-center bg-gray-100 dark:bg-slate-800 rounded-lg p-1.5 mt-4 md:mt-0 shadow-inner flex-shrink-0">
+            <button
+              onClick={() => setActiveTab("health")}
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${activeTab === "health"
+                  ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600 dark:text-blue-400"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                }`}
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span>Live Health</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("errors")}
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${activeTab === "errors"
+                  ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600 dark:text-blue-400"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                }`}
+            >
+              <AlertTriangle className="w-3.5 h-3.5" />
+              <span>Error Logs</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("audit")}
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${activeTab === "audit"
+                  ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600 dark:text-blue-400"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Audit Logs</span>
+            </button>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
         {/* TAB 1: LIVE HEALTH STATUS */}
         {activeTab === "health" && (
           <div className="space-y-6">
@@ -842,63 +848,75 @@ const Monitoring = () => {
                 {/* Organization filter */}
                 <div>
                   <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Tenant Org</label>
-                  <select
-                    value={errorOrgId}
-                    onChange={(e) => {
-                      setErrorOrgId(e.target.value);
+                  <Select 
+                    value={String(errorOrgId)} 
+                    onValueChange={(val) => {
+                      setErrorOrgId(val);
                       setLogPage(1);
                     }}
-                    className="w-full mt-1 py-1.5 px-3 text-xs rounded-lg border border-gray-200 dark:border-slate-800 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
-                    <option value="All">All Tenants</option>
-                    {organizations.map((org) => (
-                      <option key={org.id} value={org.id}>
-                        {org.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full mt-1 h-8 text-xs bg-transparent">
+                      <SelectValue placeholder="All Tenants" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Tenants</SelectItem>
+                      {organizations.map((org) => (
+                        <SelectItem key={org.id} value={String(org.id)}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Category filter */}
                 <div>
                   <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Category</label>
-                  <select
+                  <Select
                     value={errorCategory}
-                    onChange={(e) => {
-                      setErrorCategory(e.target.value);
+                    onValueChange={(val) => {
+                      setErrorCategory(val);
                       setLogPage(1);
                     }}
-                    className="w-full mt-1 py-1.5 px-3 text-xs rounded-lg border border-gray-200 dark:border-slate-800 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
-                    <option value="All">All Categories</option>
-                    <option value="API">API</option>
-                    <option value="Frontend">Frontend</option>
-                    <option value="Database">Database</option>
-                    <option value="Queue">Queue</option>
-                    <option value="Auth">Auth</option>
-                    <option value="Payment">Payment</option>
-                    <option value="Security">Security</option>
-                  </select>
+                    <SelectTrigger className="w-full mt-1 h-8 text-xs bg-transparent">
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Categories</SelectItem>
+                      <SelectItem value="API">API</SelectItem>
+                      <SelectItem value="Frontend">Frontend</SelectItem>
+                      <SelectItem value="Database">Database</SelectItem>
+                      <SelectItem value="Queue">Queue</SelectItem>
+                      <SelectItem value="Auth">Auth</SelectItem>
+                      <SelectItem value="Payment">Payment</SelectItem>
+                      <SelectItem value="Security">Security</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Severity filter */}
                 <div>
                   <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Severity</label>
-                  <select
+                  <Select
                     value={errorSeverity}
-                    onChange={(e) => {
-                      setErrorSeverity(e.target.value);
+                    onValueChange={(val) => {
+                      setErrorSeverity(val);
                       setLogPage(1);
                     }}
-                    className="w-full mt-1 py-1.5 px-3 text-xs rounded-lg border border-gray-200 dark:border-slate-800 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
-                    <option value="All">All Severities</option>
-                    <option value="Critical">Critical</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                    <option value="Info">Info</option>
-                  </select>
+                    <SelectTrigger className="w-full mt-1 h-8 text-xs bg-transparent">
+                      <SelectValue placeholder="All Severities" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Severities</SelectItem>
+                      <SelectItem value="Critical">Critical</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="Info">Info</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Status Code */}
@@ -919,51 +937,105 @@ const Monitoring = () => {
                 {/* Resolution Status */}
                 <div>
                   <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Incident Status</label>
-                  <select
+                  <Select
                     value={errorResolved}
-                    onChange={(e) => {
-                      setErrorResolved(e.target.value);
+                    onValueChange={(val) => {
+                      setErrorResolved(val);
                       setLogPage(1);
                     }}
-                    className="w-full mt-1 py-1.5 px-3 text-xs rounded-lg border border-gray-200 dark:border-slate-800 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
-                    <option value="All">All Logs</option>
-                    <option value="false">Active / Unresolved</option>
-                    <option value="true">Resolved</option>
-                  </select>
+                    <SelectTrigger className="w-full mt-1 h-8 text-xs bg-transparent">
+                      <SelectValue placeholder="Active / Unresolved" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Logs</SelectItem>
+                      <SelectItem value="false">Active / Unresolved</SelectItem>
+                      <SelectItem value="true">Resolved</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Start Date */}
                 <div>
                   <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Start Date</label>
-                  <input
-                    type="date"
-                    value={errorStartDate}
-                    onChange={(e) => {
-                      setErrorStartDate(e.target.value);
-                      setLogPage(1);
-                    }}
-                    className="w-full mt-1 py-1.5 px-3 text-xs rounded-lg border border-gray-200 dark:border-slate-800 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
+                  <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`w-full mt-1 justify-start text-left font-normal text-xs h-8 ${
+                          theme === 'dark' 
+                            ? 'bg-transparent text-foreground border-border hover:bg-accent hover:text-foreground' 
+                            : 'bg-transparent text-gray-900 border-gray-200 hover:bg-gray-100 hover:text-gray-900'
+                        }`}
+                      >
+                        <Calendar className="mr-2 h-3.5 w-3.5 text-gray-400" />
+                        {errorStartDate ? format(parseISO(errorStartDate), "dd-MM-yyyy") : <span className="text-gray-400">Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <ShadcnCalendar
+                        mode="single"
+                        selected={errorStartDate ? parseISO(errorStartDate) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            setErrorStartDate(format(date, "yyyy-MM-dd"));
+                          } else {
+                            setErrorStartDate("");
+                          }
+                          setLogPage(1);
+                          setIsStartDateOpen(false);
+                        }}
+                        disabled={(date) =>
+                          errorEndDate ? date > parseISO(errorEndDate) : false
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 {/* End Date & Reset Button */}
                 <div className="flex items-end space-x-2">
                   <div className="flex-1">
                     <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">End Date</label>
-                    <input
-                      type="date"
-                      value={errorEndDate}
-                      onChange={(e) => {
-                        setErrorEndDate(e.target.value);
-                        setLogPage(1);
-                      }}
-                      className="w-full mt-1 py-1.5 px-3 text-xs rounded-lg border border-gray-200 dark:border-slate-800 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
+                    <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={`w-full mt-1 justify-start text-left font-normal text-xs h-8 ${
+                            theme === 'dark' 
+                              ? 'bg-transparent text-foreground border-border hover:bg-accent hover:text-foreground' 
+                              : 'bg-transparent text-gray-900 border-gray-200 hover:bg-gray-100 hover:text-gray-900'
+                          }`}
+                        >
+                          <Calendar className="mr-2 h-3.5 w-3.5 text-gray-400" />
+                          {errorEndDate ? format(parseISO(errorEndDate), "dd-MM-yyyy") : <span className="text-gray-400">Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <ShadcnCalendar
+                          mode="single"
+                          selected={errorEndDate ? parseISO(errorEndDate) : undefined}
+                          onSelect={(date) => {
+                            if (date) {
+                              setErrorEndDate(format(date, "yyyy-MM-dd"));
+                            } else {
+                              setErrorEndDate("");
+                            }
+                            setLogPage(1);
+                            setIsEndDateOpen(false);
+                          }}
+                          disabled={(date) =>
+                            errorStartDate ? date < parseISO(errorStartDate) : false
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <button
                     onClick={resetLogFilters}
-                    className="py-1.5 px-3 text-xs font-semibold rounded-lg bg-gray-100 hover:bg-gray-250 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 transition-colors border border-gray-250 dark:border-slate-700"
+                    className="py-1.5 px-3 text-xs font-semibold rounded-lg bg-gray-100 hover:bg-gray-250 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 transition-colors border border-gray-250 dark:border-slate-700 h-8"
                   >
                     Reset
                   </button>
@@ -1185,41 +1257,49 @@ const Monitoring = () => {
                 {/* Organization */}
                 <div>
                   <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Tenant Org</label>
-                  <select
-                    value={auditOrgId}
-                    onChange={(e) => {
-                      setAuditOrgId(e.target.value);
+                  <Select
+                    value={String(auditOrgId)}
+                    onValueChange={(val) => {
+                      setAuditOrgId(val);
                       setAuditPage(1);
                     }}
-                    className="w-full mt-1 py-1.5 px-3 text-xs rounded-lg border border-gray-200 dark:border-slate-800 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
-                    <option value="All">All Tenants</option>
-                    {organizations.map((org) => (
-                      <option key={org.id} value={org.id}>
-                        {org.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full mt-1 h-8 text-xs bg-transparent">
+                      <SelectValue placeholder="All Tenants" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Tenants</SelectItem>
+                      {organizations.map((org) => (
+                        <SelectItem key={org.id} value={String(org.id)}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Action Type */}
                 <div>
                   <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Action Type</label>
-                  <select
+                  <Select
                     value={auditAction}
-                    onChange={(e) => {
-                      setAuditAction(e.target.value);
+                    onValueChange={(val) => {
+                      setAuditAction(val);
                       setAuditPage(1);
                     }}
-                    className="w-full mt-1 py-1.5 px-3 text-xs rounded-lg border border-gray-200 dark:border-slate-800 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
-                    <option value="All">All Actions</option>
-                    <option value="CREATE">CREATE</option>
-                    <option value="UPDATE">UPDATE</option>
-                    <option value="DELETE">DELETE</option>
-                    <option value="LOGIN">LOGIN</option>
-                    <option value="LOGOUT">LOGOUT</option>
-                  </select>
+                    <SelectTrigger className="w-full mt-1 h-8 text-xs bg-transparent">
+                      <SelectValue placeholder="All Actions" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Actions</SelectItem>
+                      <SelectItem value="CREATE">CREATE</SelectItem>
+                      <SelectItem value="UPDATE">UPDATE</SelectItem>
+                      <SelectItem value="DELETE">DELETE</SelectItem>
+                      <SelectItem value="LOGIN">LOGIN</SelectItem>
+                      <SelectItem value="LOGOUT">LOGOUT</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Reset Buttons */}
@@ -1417,7 +1497,8 @@ const Monitoring = () => {
             </div>
           </div>
         )}
-      </div>
+        </CardContent>
+      </Card>
 
       {/* DETAIL SIDE DRAWER PANEL */}
       {selectedLog && (

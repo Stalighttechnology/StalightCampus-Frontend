@@ -5,6 +5,7 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../components/ui/dialog";
 import { useTheme } from "../../context/ThemeContext";
+import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
 import { Eye, Loader2, Clock } from "lucide-react";
 
@@ -54,44 +55,52 @@ const Billing = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className={`text-3xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Billing & Payments</h1>
-        <p className="text-muted-foreground mt-1">Track organization payments and revenue.</p>
-      </div>
-      <div className="rounded-md border bg-card shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
-              <TableHead>Organization</TableHead>
-              <TableHead>Current Plan</TableHead>
-              <TableHead>Total Paid</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date Added</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? <TableRow><TableCell colSpan={6} className="h-24 text-center">Loading...</TableCell></TableRow> : data.map((item) =>
-            <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.org_name}</TableCell>
-                <TableCell>{item.plan}</TableCell>
-                <TableCell>{item.amount}</TableCell>
-                <TableCell>
-                  <Badge variant={item.status === 'Paid' ? 'default' : 'secondary'} className={item.status === 'Paid' ? 'bg-emerald-100 text-emerald-800' : ''}>
-                    {item.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-muted-foreground">{item.date}</TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleViewHistory(item)}>
-                    <Eye className="h-4 w-4 mr-1" /> View History
-                  </Button>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
+        <CardHeader>
+          <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            Billing & Payments
+          </CardTitle>
+          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            Track organization payments and revenue.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border overflow-hidden">
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead>Organization</TableHead>
+                  <TableHead>Current Plan</TableHead>
+                  <TableHead>Total Paid</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date Added</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? <TableRow><TableCell colSpan={6} className="h-24 text-center">Loading...</TableCell></TableRow> : data.map((item) =>
+                <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.org_name}</TableCell>
+                    <TableCell>{item.plan}</TableCell>
+                    <TableCell>{item.amount}</TableCell>
+                    <TableCell>
+                      <Badge variant={item.status === 'Paid' ? 'default' : 'secondary'} className={item.status === 'Paid' ? 'bg-emerald-100 text-emerald-800' : ''}>
+                        {item.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{item.date}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm" onClick={() => handleViewHistory(item)}>
+                        <Eye className="h-4 w-4 mr-1" /> View History
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">

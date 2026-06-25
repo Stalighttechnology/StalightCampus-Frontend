@@ -3,7 +3,9 @@ import { API_BASE_URL } from "@/utils/config";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { useTheme } from "../../context/ThemeContext";
+import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
+import { Loader2 } from "lucide-react";
 
 const Subscriptions = () => {
   const [data, setData] = useState<any[]>([]);
@@ -46,41 +48,48 @@ const Subscriptions = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className={`text-3xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Subscriptions</h1>
-        <p className="text-muted-foreground mt-1">Manage active trials and subscription expirations.</p>
-      </div>
-      <div className="rounded-md border bg-card shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
-              <TableHead>Organization</TableHead>
-              <TableHead>Plan</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Expires At</TableHead>
-              <TableHead>Auto Renew</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? <TableRow><TableCell colSpan={5} className="h-24 text-center">Loading...</TableCell></TableRow> : data.map((item) =>
-            <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.org_name}</TableCell>
-                <TableCell>{getPlanBadge(item.plan)}</TableCell>
-                <TableCell>{getStatusBadge(item.status)}</TableCell>
-                <TableCell className="text-muted-foreground">{item.expires_at}</TableCell>
-                <TableCell>
-                  {item.auto_renew ?
-                <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">Yes</Badge> :
-
-                <Badge variant="outline" className="border-gray-200 text-gray-500 bg-gray-50">No</Badge>
-                }
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
+        <CardHeader>
+          <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            Subscriptions
+          </CardTitle>
+          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            Manage active trials and subscription expirations.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border overflow-hidden">
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead>Organization</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Expires At</TableHead>
+                  <TableHead>Auto Renew</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? <TableRow><TableCell colSpan={5} className="h-24 text-center">Loading...</TableCell></TableRow> : data.map((item) =>
+                <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.org_name}</TableCell>
+                    <TableCell>{getPlanBadge(item.plan)}</TableCell>
+                    <TableCell>{getStatusBadge(item.status)}</TableCell>
+                    <TableCell className="text-muted-foreground">{item.expires_at}</TableCell>
+                    <TableCell>
+                      {item.auto_renew ?
+                      <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">Yes</Badge> :
+                      <Badge variant="outline" className="border-gray-200 text-gray-500 bg-gray-50">No</Badge>
+                      }
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>);
-
 };
+
 export default Subscriptions;

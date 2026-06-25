@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -8,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import { manageCoupons } from '@/utils/authService';
-import { Plus, Tag, Calendar, Users, Activity, Trash2, Loader2, IndianRupee } from 'lucide-react';
+import { Plus, Tag, Calendar, Activity, Trash2, Loader2, IndianRupee } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { useTheme } from '../../context/ThemeContext';
 
 interface Coupon {
   id: number;
@@ -29,6 +29,7 @@ export const AdminCoupons: React.FC = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
+  const { theme } = useTheme();
 
   const [formData, setFormData] = useState({
     code: '',
@@ -114,22 +115,20 @@ export const AdminCoupons: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">Coupon Management</h1>
-          <p className="text-muted-foreground mt-1">Create and manage discount coupons for organizations.</p>
-        </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-          <Plus size={16} /> Create Coupon
-        </Button>
-      </div>
-
-      <Card className="border-border/50 shadow-sm">
-        <CardHeader className="bg-muted/20 border-b pb-4">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Tag className="w-5 h-5 text-primary" /> Active Coupons
-          </CardTitle>
+    <div className="space-y-6">
+      <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
+        <CardHeader className="pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="w-full">
+            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              Coupons
+            </CardTitle>
+            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Create and manage discount coupons for organizations.
+            </p>
+          </div>
+          <Button onClick={() => setIsCreateOpen(true)} className="bg-primary shadow-sm w-full md:w-auto flex-shrink-0 gap-2">
+            <Plus size={16} /> Create Coupon
+          </Button>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (

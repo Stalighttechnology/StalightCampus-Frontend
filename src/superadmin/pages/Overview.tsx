@@ -57,11 +57,6 @@ const Overview = () => {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className={`text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>System Overview</h1>
-        <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Welcome to the Super Admin Control Center.</p>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {statCards.map((card, idx) => (
           <div key={idx} className="rounded-lg">

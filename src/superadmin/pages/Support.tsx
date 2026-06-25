@@ -6,6 +6,8 @@ import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
 import { useTheme } from "../../context/ThemeContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import { ChevronLeft, ChevronRight, Eye, Building, Mail, Phone, User as UserIcon, ShieldCheck, Wrench } from "lucide-react";
 
@@ -110,144 +112,154 @@ const Support = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className={`text-3xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Support Panel</h1>
-        <p className="text-muted-foreground mt-1">Handle organization support requests.</p>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="flex items-center gap-2">
-          <Label className="text-sm font-medium whitespace-nowrap">Priority:</Label>
-          <select
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}>
-            
-            {['All', 'Critical', 'High', 'Medium', 'Low'].map((v) =>
-            <option key={v} value={v}>{v}</option>
-            )}
-          </select>
-        </div>
-        <div className="flex items-center gap-2">
-          <Label className="text-sm font-medium whitespace-nowrap">Status:</Label>
-          <select
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}>
-            
-            {['All', 'Open', 'Pending', 'Resolved', 'Closed'].map((v) =>
-            <option key={v} value={v}>{v}</option>
-            )}
-          </select>
-        </div>
-        <div className="ml-auto text-sm text-muted-foreground">
-          {total} ticket{total !== 1 ? 's' : ''} found
-        </div>
-      </div>
-
-      <div className="rounded-md border bg-card shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
-              <TableHead>Ticket ID</TableHead>
-              <TableHead>Organization</TableHead>
-              <TableHead>Subject</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Assigned To</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ?
-            <TableRow><TableCell colSpan={8} className="h-24 text-center">Loading...</TableCell></TableRow> :
-            data.length === 0 ?
-            <TableRow><TableCell colSpan={8} className="h-24 text-center text-muted-foreground">No tickets found.</TableCell></TableRow> :
-            data.map((item) =>
-            <TableRow
-              key={item.id}
-              className="cursor-pointer hover:bg-muted/50 transition-colors"
-              onClick={() => {
-                setSelectedTicket(item);
-                setUpdateForm({ 
-                  status: item.status, 
-                  response: item.response || '', 
-                  assigned_developer_id: item.assigned_developer?.id || '',
-                  deadline: item.deadline ? item.deadline.slice(0, 16) : '' // format for datetime-local
-                });
-              }}>
-              
-                <TableCell className="font-medium text-primary">{item.id}</TableCell>
-                <TableCell>{item.org_name}</TableCell>
-                <TableCell>
-                  {item.subject}
-                  {item.description && <p className="text-xs text-muted-foreground truncate max-w-xs">{item.description}</p>}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={getPriorityClass(item.priority)}>{item.priority}</Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={getStatusClass(item.status)}>{item.status}</Badge>
-                </TableCell>
-                <TableCell>
-                  {item.assigned_developer ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">
-                        {item.assigned_developer.name ? item.assigned_developer.name.charAt(0).toUpperCase() : 'U'}
-                      </div>
-                      <span className="text-sm font-medium">{item.assigned_developer.name || 'Unknown'}</span>
-                    </div>
-                  ) : (
-                    <span className="text-sm text-muted-foreground italic">Unassigned</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-muted-foreground whitespace-nowrap">{item.date}</TableCell>
-                <TableCell>
-                  <Button variant="outline" size="sm" className="gap-2" onClick={(e) => {
-                     e.stopPropagation();
-                     setSelectedTicket(item);
-                     setUpdateForm({ 
-                       status: item.status, 
-                       response: item.response || '', 
-                       assigned_developer_id: item.assigned_developer?.id || '',
-                       deadline: item.deadline ? item.deadline.slice(0, 16) : ''
-                     });
-                  }}>
-                    <Eye size={16} /> View
-                  </Button>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 &&
-      <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Page {page} of {totalPages}
-          </p>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-            const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
-            return (
-              <Button key={p} variant={p === page ? "default" : "outline"} size="sm" onClick={() => setPage(p)}>
-                  {p}
-                </Button>);
-
-          })}
-            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+      <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
+        <CardHeader className="pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border/50">
+          <div className="w-full">
+            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              Support Panel
+            </CardTitle>
+            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Handle organization support requests.
+            </p>
           </div>
-        </div>
-      }
+        </CardHeader>
+        <CardContent className="space-y-4 pt-6">
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3 items-center pb-2">
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium whitespace-nowrap">Priority:</Label>
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-[140px] h-9">
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  {['All', 'Critical', 'High', 'Medium', 'Low'].map((v) => (
+                    <SelectItem key={v} value={v}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium whitespace-nowrap">Status:</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[140px] h-9">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {['All', 'Open', 'Pending', 'Resolved', 'Closed'].map((v) => (
+                    <SelectItem key={v} value={v}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="ml-auto text-sm text-muted-foreground">
+              {total} ticket{total !== 1 ? 's' : ''} found
+            </div>
+          </div>
+
+          <div className="rounded-md border overflow-hidden">
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead>Ticket ID</TableHead>
+                  <TableHead>Organization</TableHead>
+                  <TableHead>Subject</TableHead>
+                  <TableHead>Priority</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Assigned To</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ?
+                  <TableRow><TableCell colSpan={8} className="h-24 text-center">Loading...</TableCell></TableRow> :
+                  data.length === 0 ?
+                    <TableRow><TableCell colSpan={8} className="h-24 text-center text-muted-foreground">No tickets found.</TableCell></TableRow> :
+                    data.map((item) =>
+                      <TableRow
+                        key={item.id}
+                        className="cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => {
+                          setSelectedTicket(item);
+                          setUpdateForm({ 
+                            status: item.status, 
+                            response: item.response || '', 
+                            assigned_developer_id: item.assigned_developer?.id || '',
+                            deadline: item.deadline ? item.deadline.slice(0, 16) : ''
+                          });
+                        }}>
+                        <TableCell className="font-medium text-primary">{item.id}</TableCell>
+                        <TableCell>{item.org_name}</TableCell>
+                        <TableCell>
+                          {item.subject}
+                          {item.description && <p className="text-xs text-muted-foreground truncate max-w-xs">{item.description}</p>}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={getPriorityClass(item.priority)}>{item.priority}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={getStatusClass(item.status)}>{item.status}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {item.assigned_developer ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">
+                                {item.assigned_developer.name ? item.assigned_developer.name.charAt(0).toUpperCase() : 'U'}
+                              </div>
+                              <span className="text-sm font-medium">{item.assigned_developer.name || 'Unknown'}</span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground italic">Unassigned</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground whitespace-nowrap">{item.date}</TableCell>
+                        <TableCell>
+                          <Button variant="outline" size="sm" className="gap-2" onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedTicket(item);
+                            setUpdateForm({ 
+                              status: item.status, 
+                              response: item.response || '', 
+                              assigned_developer_id: item.assigned_developer?.id || '',
+                              deadline: item.deadline ? item.deadline.slice(0, 16) : ''
+                            });
+                          }}>
+                            <Eye size={16} /> View
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 &&
+            <div className="flex items-center justify-between pt-4">
+              <p className="text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
+                  return (
+                    <Button key={p} variant={p === page ? "default" : "outline"} size="sm" onClick={() => setPage(p)}>
+                      {p}
+                    </Button>
+                  );
+                })}
+                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          }
+        </CardContent>
+      </Card>
 
       {/* Ticket Detail Dialog */}
       <Dialog open={!!selectedTicket} onOpenChange={(open) => !open && setSelectedTicket(null)}>
@@ -334,14 +346,16 @@ const Support = () => {
               
               <div>
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Update Status</Label>
-                <select
-                  className="w-full mt-1.5 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-                  value={updateForm.status}
-                  onChange={(e) => setUpdateForm({ ...updateForm, status: e.target.value })}>
-                  {['Open', 'Pending', 'Resolved', 'Closed'].map((s) =>
-                    <option key={s} value={s}>{s}</option>
-                  )}
-                </select>
+                <Select value={updateForm.status} onValueChange={(val) => setUpdateForm({ ...updateForm, status: val })}>
+                  <SelectTrigger className="w-full mt-1.5 h-10">
+                    <SelectValue placeholder="Select Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['Open', 'Pending', 'Resolved', 'Closed'].map((s) => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -380,17 +394,22 @@ const Support = () => {
                   </div>
                 )}
 
-                <select
-                  className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-                  value={updateForm.assigned_developer_id}
-                  onChange={(e) => setUpdateForm({ ...updateForm, assigned_developer_id: e.target.value })}>
-                  <option value="">Unassigned</option>
-                  {filteredDevelopers.map(dev => (
-                    <option key={dev.id} value={dev.id}>
-                      {dev.first_name} {dev.last_name} ({dev.developer_skills?.join(', ') || 'No skills'})
-                    </option>
-                  ))}
-                </select>
+                <Select 
+                  value={updateForm.assigned_developer_id ? String(updateForm.assigned_developer_id) : "unassigned"} 
+                  onValueChange={(val) => setUpdateForm({ ...updateForm, assigned_developer_id: val === "unassigned" ? "" : val })}
+                >
+                  <SelectTrigger className="w-full mt-1.5 h-10">
+                    <SelectValue placeholder="Select Developer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                    {filteredDevelopers.map(dev => (
+                      <SelectItem key={dev.id} value={String(dev.id)}>
+                        {dev.first_name} {dev.last_name} ({dev.developer_skills?.join(', ') || 'No skills'})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

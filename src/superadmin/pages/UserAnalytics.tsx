@@ -31,31 +31,38 @@ const UserAnalytics = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className={`text-3xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>User Analytics</h1>
-        <p className="text-muted-foreground mt-1">Cross-tenant demographic and role distribution.</p>
-      </div>
-      
       {loading ? <div className="h-64 flex items-center justify-center">Loading...</div> :
       <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle></CardHeader>
-              <CardContent><div className="text-3xl font-bold">{data?.total_users}</div></CardContent>
+            <Card className={`backdrop-blur-sm shadow-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
+              <CardHeader className="pb-2">
+                <CardTitle className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Total Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={`text-3xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{data?.total_users}</div>
+              </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Active Users</CardTitle></CardHeader>
-              <CardContent><div className="text-3xl font-bold text-emerald-500">{data?.active_users}</div></CardContent>
+            <Card className={`backdrop-blur-sm shadow-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
+              <CardHeader className="pb-2">
+                <CardTitle className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Active Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-emerald-500">{data?.active_users}</div>
+              </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Inactive Users</CardTitle></CardHeader>
-              <CardContent><div className="text-3xl font-bold text-red-500">{data?.inactive_users}</div></CardContent>
+            <Card className={`backdrop-blur-sm shadow-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
+              <CardHeader className="pb-2">
+                <CardTitle className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Inactive Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-red-500">{data?.inactive_users}</div>
+              </CardContent>
             </Card>
           </div>
           
-          <Card className="col-span-1 shadow-sm border-0 mt-6">
+          <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border mt-6 ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
             <CardHeader>
-              <CardTitle>Role Distribution</CardTitle>
+              <CardTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Role Distribution</CardTitle>
             </CardHeader>
             <CardContent className="h-80 mx-2 mb-6">
               {data?.roles_distribution && data.roles_distribution.length > 0 ?

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation, Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
@@ -15,7 +15,7 @@ import EnrollDeveloper from "./pages/EnrollDeveloper";
 import Coupons from "./pages/Coupons";
 import NDASubmissions from "./pages/NDASubmissions";
 import { useTheme } from "../context/ThemeContext";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Menu } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Capacitor } from "@capacitor/core";
 
@@ -24,10 +24,24 @@ interface Props {
 }
 
 const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(window.innerWidth < 1024);
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setCollapsed(false);
+      } else {
+        setCollapsed(true);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const getActivePage = () => {
     const path = location.pathname.split("/").pop();
@@ -61,7 +75,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
       <main className="flex-1 flex flex-col h-screen h-[100dvh] overflow-hidden relative">
         {/* Top Navbar */}
         <header 
-          className={`flex-shrink-0 border-b flex items-center justify-between px-6 sticky top-0 z-20 transition-all duration-500 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
+          className={`w-full flex-shrink-0 border-b flex items-center justify-between px-4 pb-3 lg:pb-0 relative z-20 transition-all duration-500 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
           style={{
             height: window.innerWidth >= 1024 ? '5rem' : undefined,
             paddingTop: Capacitor.isNativePlatform()
@@ -69,13 +83,26 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
               : window.innerWidth < 1024 ? '16px' : '0px'
           }}
         >
-          <div className="flex flex-col">
-            <h2 className={`font-semibold text-base leading-tight capitalize ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              {activePage === 'dashboard' ? 'Overview' : activePage === 'nda' ? 'NDA & Consents' : activePage.replace('-', ' ')}
-            </h2>
-            <p className={`text-[9px] uppercase tracking-wider font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Super Admin Portal
-            </p>
+          <div className="flex items-center gap-4">
+            {/* Hamburger for mobile view */}
+            <div className="block lg:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={theme === 'dark' ? 'hover:bg-zinc-800' : 'hover:bg-gray-100'}
+                onClick={() => setCollapsed(!collapsed)}
+              >
+                <Menu size={20} />
+              </Button>
+            </div>
+            <div className="flex flex-col">
+              <h2 className={`font-semibold text-base leading-tight capitalize ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                {activePage === 'dashboard' ? 'Overview' : activePage === 'nda' ? 'NDA & Consents' : activePage.replace('-', ' ')}
+              </h2>
+              <p className={`text-[9px] uppercase tracking-wider font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Super Admin Portal
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <Button
@@ -103,37 +130,35 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
         </header>
 
         <div className={`flex-1 overflow-y-auto p-4 pb-6 md:pb-8 thin-scrollbar ${theme === "dark" ? "bg-background" : "bg-gray-50"}`}>
-          <div className="container mx-auto max-w-7xl">
-            <motion.div
-              key={activePage}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Routes>
-                <Route path="/" element={<Navigate to="dashboard" replace />} />
-                <Route path="dashboard" element={<Overview />} />
-                <Route path="organizations" element={<Organizations />} />
-                <Route path="billing" element={<Billing />} />
-                <Route path="subscriptions" element={<Subscriptions />} />
-                <Route path="coupons" element={<Coupons />} />
-                <Route path="users" element={<UserAnalytics />} />
-                <Route path="support" element={<Support />} />
-                <Route path="enroll-developer" element={<EnrollDeveloper />} />
-                <Route path="monitoring" element={<Monitoring />} />
-                <Route path="reports" element={<Reports />} />
-                <Route path="nda" element={<NDASubmissions />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="*" element={
-                  <div className="flex flex-col items-center justify-center h-[60vh]">
-                    <h2 className="text-2xl font-bold text-muted-foreground mb-4">Coming Soon</h2>
-                    <p className="text-gray-500">This module is currently under development.</p>
-                  </div>
-                } />
-              </Routes>
-            </motion.div>
-          </div>
+          <motion.div
+            key={activePage}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Routes>
+              <Route path="/" element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<Overview />} />
+              <Route path="organizations" element={<Organizations />} />
+              <Route path="billing" element={<Billing />} />
+              <Route path="subscriptions" element={<Subscriptions />} />
+              <Route path="coupons" element={<Coupons />} />
+              <Route path="users" element={<UserAnalytics />} />
+              <Route path="support" element={<Support />} />
+              <Route path="enroll-developer" element={<EnrollDeveloper />} />
+              <Route path="monitoring" element={<Monitoring />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="nda" element={<NDASubmissions />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="*" element={
+                <div className="flex flex-col items-center justify-center h-[60vh]">
+                  <h2 className="text-2xl font-bold text-muted-foreground mb-4">Coming Soon</h2>
+                  <p className="text-gray-500">This module is currently under development.</p>
+                </div>
+              } />
+            </Routes>
+          </motion.div>
         </div>
       </main>
     </div>
