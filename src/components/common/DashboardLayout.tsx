@@ -69,135 +69,30 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     };
   }, [role]);
 
-  // Effect 1: ONE TIME setup on mount only
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    // overlay:false = OS pushes WebView below status bar
+    // Same as LinkedIn, Zomato, every native app
+    StatusBar.setOverlaysWebView({ overlay: false })
+      .catch(() => {});
+
+    NavigationBar.setNavigationBarColor({
+      color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
+      darkButtons: theme === 'light'
+    }).catch(() => {});
+
+  }, [theme]);
+
+  // Separate effect for StatusBar style only
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     
-    const setup = async () => {
-      const ua = navigator.userAgent;
-      const androidMatch = ua.match(/Android (\d+)/);
-      const androidVersion = androidMatch
-        ? parseInt(androidMatch[1]) : 0;
-      const platform = Capacitor.getPlatform();
+    StatusBar.setStyle({
+      style: theme === 'dark' ? Style.Dark : Style.Light
+    }).catch(() => {});
 
-      if (platform === 'android' && androidVersion >= 14) {
-        await StatusBar.setOverlaysWebView({ overlay: true })
-          .catch(() => {});
-        await StatusBar.setBackgroundColor({ 
-          color: '#00000000' 
-        }).catch(() => {});
-        
-        await new Promise(r => setTimeout(r, 100));
-        
-        const readHeight = () => new Promise<number>((resolve) => {
-          const probe = document.createElement('div');
-          probe.style.cssText = 
-            'position:fixed;top:0;left:0;width:1px;' +
-            'height:env(safe-area-inset-top,0px);' +
-            'opacity:0;pointer-events:none;z-index:-1;';
-          document.body.appendChild(probe);
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              const h = probe.getBoundingClientRect().height;
-              document.body.removeChild(probe);
-              resolve(h);
-            });
-          });
-        });
-
-        let height = 0;
-        for (let i = 0; i < 5; i++) {
-          height = await readHeight();
-          if (height > 0) break;
-          await new Promise(r => setTimeout(r, 200));
-        }
-
-        if (height > 0) {
-          document.documentElement.style.setProperty(
-            '--sat', `${height}px`
-          );
-        } else {
-          const dpr = window.devicePixelRatio || 1;
-          const h = dpr >= 3 ? 32 : dpr >= 2 ? 28 : 24;
-          document.documentElement.style.setProperty(
-            '--sat', `${h}px`
-          );
-        }
-
-      } else if (platform === 'android') {
-        await StatusBar.setOverlaysWebView({ overlay: false })
-          .catch(() => {});
-        document.documentElement.style.setProperty(
-          '--sat', '0px'
-        );
-      } else if (platform === 'ios') {
-        await StatusBar.setOverlaysWebView({ overlay: true })
-          .catch(() => {});
-        await StatusBar.setBackgroundColor({ 
-          color: '#00000000' 
-        }).catch(() => {});
-        document.documentElement.style.setProperty(
-          '--sat', 'env(safe-area-inset-top, 44px)'
-        );
-      }
-
-      NavigationBar.setNavigationBarColor({
-        color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
-        darkButtons: theme === 'light'
-      }).catch(() => {});
-    };
-
-    setup();
-  }, []); // ← EMPTY dependency - runs ONCE only
-
-  // Effect 2: THEME REACTIVE - only updates style
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-
-    const timer = setTimeout(() => {
-      const platform = Capacitor.getPlatform();
-      const ua = navigator.userAgent;
-      const androidMatch = ua.match(/Android (\d+)/);
-      const androidVersion = androidMatch
-        ? parseInt(androidMatch[1]) : 0;
-
-      if (platform === 'android' && androidVersion >= 14) {
-        // Android 14: overlay:true - icons must contrast 
-        // against transparent status bar showing app bg
-        StatusBar.setStyle({
-          style: theme === 'dark' ? Style.Dark : Style.Light
-        }).catch(() => {});
-        // No background color - stays transparent
-
-      } else if (platform === 'android') {
-        // Android 13: overlay:false - set solid bg color
-        StatusBar.setStyle({
-          style: theme === 'dark' ? Style.Dark : Style.Light
-        }).catch(() => {});
-        StatusBar.setBackgroundColor({
-          color: theme === 'dark' ? '#0a0a0c' : '#ffffff'
-        }).catch(() => {});
-
-      } else if (platform === 'ios') {
-        StatusBar.setStyle({
-          style: theme === 'dark' ? Style.Dark : Style.Light
-        }).catch(() => {});
-      }
-
-      NavigationBar.setNavigationBarColor({
-        color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
-        darkButtons: theme === 'light'
-      }).catch(() => {});
-
-      console.log('[Theme] platform:', platform, 
-        'android:', androidVersion, 
-        'theme:', theme,
-        'style:', theme === 'dark' ? 'Dark(white icons)' 
-                                   : 'Light(black icons)');
-    }, 50);
-
-    return () => clearTimeout(timer);
-  }, [theme]); // ← ONLY theme dependency
+  }, [theme]);
 
   // Mount FCM listener for all roles — keeps bell count real-time
   const accessToken = sessionStorage.getItem('access_token');

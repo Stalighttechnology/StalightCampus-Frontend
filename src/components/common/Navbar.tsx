@@ -37,30 +37,6 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [satValue, setSatValue] = useState('0px');
-
-  useEffect(() => {
-    const updateSat = () => {
-      const sat = getComputedStyle(document.documentElement)
-        .getPropertyValue('--sat').trim();
-      if (sat && sat !== '0px') {
-        setSatValue(sat);
-      }
-    };
-    
-    updateSat();
-    // Poll until non-zero
-    const interval = setInterval(() => {
-      const sat = getComputedStyle(document.documentElement)
-        .getPropertyValue('--sat').trim();
-      if (sat && sat !== '0px') {
-        setSatValue(sat);
-        clearInterval(interval);
-      }
-    }, 100);
-    
-    return () => clearInterval(interval);
-  }, []);
 
   // Update time every minute
   useEffect(() => {
@@ -128,7 +104,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
       style={{
         height: window.innerWidth >= 1024 ? '5rem' : undefined,
         paddingTop: Capacitor.isNativePlatform()
-          ? satValue
+          ? '0px'
           : window.innerWidth < 1024 ? '16px' : '0px'
       }}
       initial={{ opacity: 0, y: -20 }}
