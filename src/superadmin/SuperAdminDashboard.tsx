@@ -11,6 +11,7 @@ import Support from "./pages/Support";
 import Monitoring from "./pages/Monitoring";
 import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
+import EnrollDeveloper from "./pages/EnrollDeveloper";
 import Coupons from "./pages/Coupons";
 import NDASubmissions from "./pages/NDASubmissions";
 import { useTheme } from "../context/ThemeContext";
@@ -41,7 +42,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
     localStorage.removeItem("superadmin_refresh");
     localStorage.removeItem("superadmin_role");
     setIsAuthenticated(false);
-    navigate("/stalightcampus/admin");
+    window.location.href = "/stalightcampus/admin";
   };
 
   return (
@@ -97,6 +98,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
                 <Route path="coupons" element={<Coupons />} />
                 <Route path="users" element={<UserAnalytics />} />
                 <Route path="support" element={<Support />} />
+                <Route path="enroll-developer" element={<EnrollDeveloper />} />
                 <Route path="monitoring" element={<Monitoring />} />
                 <Route path="reports" element={<Reports />} />
                 <Route path="nda" element={<NDASubmissions />} />

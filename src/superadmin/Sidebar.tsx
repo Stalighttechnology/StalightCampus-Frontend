@@ -46,6 +46,7 @@ const menuItems = [
   { id: "coupons", label: "Coupons", icon: <Tag size={20} /> },
   { id: "users", label: "User Analytics", icon: <Users size={20} /> },
   { id: "support", label: "Support Panel", icon: <LifeBuoy size={20} /> },
+  { id: "enroll-developer", label: "Enroll Developer", icon: <Users size={20} /> },
   { id: "monitoring", label: "System Monitor", icon: <Activity size={20} /> },
   { id: "reports", label: "Reports", icon: <BarChart3 size={20} /> },
   { id: "nda", label: "NDA & Consents", icon: <FileText size={20} /> },

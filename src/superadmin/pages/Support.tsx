@@ -7,7 +7,7 @@ import { Textarea } from "../../components/ui/textarea";
 import { useTheme } from "../../context/ThemeContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Building, Mail, Phone, User as UserIcon, ShieldCheck, Wrench } from "lucide-react";
 
 import { API_BASE_URL } from "@/utils/config";
 import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
@@ -28,13 +28,20 @@ const Support = () => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
-  const [updateForm, setUpdateForm] = useState({ status: '', response: '' });
+  const [updateForm, setUpdateForm] = useState({ status: '', response: '', assigned_developer_id: '', deadline: '' });
+  const [developers, setDevelopers] = useState<any[]>([]);
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const pageSize = 10;
   const { theme } = useTheme();
+
+  const allSkills = Array.from(new Set(developers.flatMap(d => d.developer_skills || [])));
+  const filteredDevelopers = developers.filter(dev => 
+    selectedSkills.length === 0 || selectedSkills.every(skill => dev.developer_skills?.includes(skill))
+  );
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -59,6 +66,19 @@ const Support = () => {
   }, [page, priorityFilter, statusFilter]);
 
   useEffect(() => {fetchData();}, [fetchData]);
+
+  useEffect(() => {
+    const fetchDevs = async () => {
+      try {
+        const res = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/support/developers/`, {
+          headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
+        });
+        const data = await res.json();
+        if (data.developers) setDevelopers(data.developers);
+      } catch(e) {}
+    };
+    fetchDevs();
+  }, []);
 
   // Reset to page 1 when filters change
   useEffect(() => {setPage(1);}, [priorityFilter, statusFilter]);
@@ -135,19 +155,29 @@ const Support = () => {
               <TableHead>Subject</TableHead>
               <TableHead>Priority</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Assigned To</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ?
-            <TableRow><TableCell colSpan={6} className="h-24 text-center">Loading...</TableCell></TableRow> :
+            <TableRow><TableCell colSpan={8} className="h-24 text-center">Loading...</TableCell></TableRow> :
             data.length === 0 ?
-            <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No tickets found.</TableCell></TableRow> :
+            <TableRow><TableCell colSpan={8} className="h-24 text-center text-muted-foreground">No tickets found.</TableCell></TableRow> :
             data.map((item) =>
             <TableRow
               key={item.id}
               className="cursor-pointer hover:bg-muted/50 transition-colors"
-              onClick={() => {setSelectedTicket(item);setUpdateForm({ status: item.status, response: item.response || '' });}}>
+              onClick={() => {
+                setSelectedTicket(item);
+                setUpdateForm({ 
+                  status: item.status, 
+                  response: item.response || '', 
+                  assigned_developer_id: item.assigned_developer?.id || '',
+                  deadline: item.deadline ? item.deadline.slice(0, 16) : '' // format for datetime-local
+                });
+              }}>
               
                 <TableCell className="font-medium text-primary">{item.id}</TableCell>
                 <TableCell>{item.org_name}</TableCell>
@@ -161,7 +191,33 @@ const Support = () => {
                 <TableCell>
                   <Badge variant="outline" className={getStatusClass(item.status)}>{item.status}</Badge>
                 </TableCell>
+                <TableCell>
+                  {item.assigned_developer ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">
+                        {item.assigned_developer.name ? item.assigned_developer.name.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                      <span className="text-sm font-medium">{item.assigned_developer.name || 'Unknown'}</span>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground italic">Unassigned</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-muted-foreground whitespace-nowrap">{item.date}</TableCell>
+                <TableCell>
+                  <Button variant="outline" size="sm" className="gap-2" onClick={(e) => {
+                     e.stopPropagation();
+                     setSelectedTicket(item);
+                     setUpdateForm({ 
+                       status: item.status, 
+                       response: item.response || '', 
+                       assigned_developer_id: item.assigned_developer?.id || '',
+                       deadline: item.deadline ? item.deadline.slice(0, 16) : ''
+                     });
+                  }}>
+                    <Eye size={16} /> View
+                  </Button>
+                </TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -195,65 +251,163 @@ const Support = () => {
 
       {/* Ticket Detail Dialog */}
       <Dialog open={!!selectedTicket} onOpenChange={(open) => !open && setSelectedTicket(null)}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle className="flex justify-between items-center pr-4">
-              <span>{selectedTicket?.id}</span>
-              <Badge variant="outline" className={getPriorityClass(selectedTicket?.priority || '')}>{selectedTicket?.priority}</Badge>
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="flex justify-between items-center pr-4 text-xl">
+              <span className="flex items-center gap-2">
+                <span className="text-primary font-bold">{selectedTicket?.id}</span>
+                <span className="text-muted-foreground text-sm font-normal">| {selectedTicket?.org_name}</span>
+              </span>
+              <Badge variant="outline" className={`text-sm px-3 py-1 ${getPriorityClass(selectedTicket?.priority || '')}`}>
+                {selectedTicket?.priority} Priority
+              </Badge>
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+            
+            {/* Left Column: Ticket Details */}
+            <div className="space-y-5">
               <div>
-                <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">Organization</h4>
-                <p className="text-sm font-medium mt-1">{selectedTicket?.org_name}</p>
+                <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide mb-1">Issue Overview</h4>
+                <div className="p-4 bg-muted/30 border rounded-lg space-y-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Subject</Label>
+                    <p className="font-medium">{selectedTicket?.subject}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Description</Label>
+                    <div className="text-sm text-foreground mt-1 whitespace-pre-wrap">
+                      {selectedTicket?.description}
+                    </div>
+                  </div>
+                  <div className="pt-2 flex justify-between items-center border-t border-border/50 text-xs text-muted-foreground">
+                    <span>Opened: {selectedTicket?.date}</span>
+                    <span>Status: <strong className="text-foreground">{selectedTicket?.status}</strong></span>
+                  </div>
+                </div>
               </div>
+
               <div>
-                <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">Date</h4>
-                <p className="text-sm font-medium mt-1">{selectedTicket?.date}</p>
+                <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide mb-2">Organization Contacts</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  {/* Admin Contact */}
+                  <div className="p-3 border rounded-lg bg-card shadow-sm flex items-start gap-3">
+                    <div className="bg-blue-100 text-blue-600 p-2 rounded-full dark:bg-blue-900/20 dark:text-blue-400">
+                      <ShieldCheck size={18} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold flex items-center gap-2">
+                        {selectedTicket?.org_details?.admin_name}
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Admin</Badge>
+                      </p>
+                      <div className="flex flex-col gap-1 mt-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1.5"><Mail size={12} /> {selectedTicket?.org_details?.admin_email}</span>
+                        <span className="flex items-center gap-1.5"><Phone size={12} /> {selectedTicket?.org_details?.admin_mobile}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tech POC */}
+                  <div className="p-3 border rounded-lg bg-card shadow-sm flex items-start gap-3">
+                    <div className="bg-emerald-100 text-emerald-600 p-2 rounded-full dark:bg-emerald-900/20 dark:text-emerald-400">
+                      <Wrench size={18} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold flex items-center gap-2">
+                        {selectedTicket?.org_details?.tech_poc_name}
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Tech POC</Badge>
+                      </p>
+                      <div className="flex flex-col gap-1 mt-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1.5"><Mail size={12} /> {selectedTicket?.org_details?.tech_poc_email}</span>
+                        <span className="flex items-center gap-1.5"><Phone size={12} /> {selectedTicket?.org_details?.tech_poc_mobile}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div>
-              <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">Subject</h4>
-              <p className="text-sm font-medium mt-1">{selectedTicket?.subject}</p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">Description</h4>
-              <div className="text-sm text-muted-foreground p-3 bg-muted rounded-md min-h-[80px] mt-1">
-                {selectedTicket?.description}
-              </div>
-            </div>
 
-            <hr />
-
-            <div>
-              <Label>Update Status</Label>
-              <select
-                className="w-full mt-1 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={updateForm.status}
-                onChange={(e) => setUpdateForm({ ...updateForm, status: e.target.value })}>
-                
-                {['Open', 'Pending', 'Resolved', 'Closed'].map((s) =>
-                <option key={s} value={s}>{s}</option>
-                )}
-              </select>
-            </div>
-
-            <div>
-              <Label>Official HQ Response</Label>
-              <Textarea
-                className="mt-1"
-                placeholder="Enter response to the organization..."
-                rows={4}
-                value={updateForm.response}
-                onChange={(e) => setUpdateForm({ ...updateForm, response: e.target.value })} />
+            {/* Right Column: Resolution & Assignment */}
+            <div className="space-y-5 bg-muted/20 p-5 rounded-xl border">
+              <h4 className="font-semibold text-sm border-b pb-2">Resolution & Assignment</h4>
               
-            </div>
+              <div>
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Update Status</Label>
+                <select
+                  className="w-full mt-1.5 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                  value={updateForm.status}
+                  onChange={(e) => setUpdateForm({ ...updateForm, status: e.target.value })}>
+                  {['Open', 'Pending', 'Resolved', 'Closed'].map((s) =>
+                    <option key={s} value={s}>{s}</option>
+                  )}
+                </select>
+              </div>
 
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setSelectedTicket(null)}>Cancel</Button>
-              <Button className="bg-primary text-white" onClick={handleUpdate}>Save Changes</Button>
+              <div>
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Official HQ Response</Label>
+                <Textarea
+                  className="mt-1.5 resize-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  placeholder="Enter response to the organization..."
+                  rows={4}
+                  value={updateForm.response}
+                  onChange={(e) => setUpdateForm({ ...updateForm, response: e.target.value })} 
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mt-2">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Assign Developer</Label>
+                  {selectedSkills.length > 0 && (
+                    <Button variant="ghost" size="sm" className="h-6 text-xs text-primary/80 hover:text-primary" onClick={() => setSelectedSkills([])}>Clear Filters</Button>
+                  )}
+                </div>
+                
+                {allSkills.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2 mb-3">
+                    {allSkills.map(skill => (
+                      <Badge 
+                        key={skill} 
+                        variant={selectedSkills.includes(skill) ? "default" : "outline"}
+                        className={`cursor-pointer transition-all ${selectedSkills.includes(skill) ? 'shadow-sm' : 'hover:border-primary/50'}`}
+                        onClick={() => setSelectedSkills(prev => 
+                          prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
+                        )}
+                      >
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                <select
+                  className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                  value={updateForm.assigned_developer_id}
+                  onChange={(e) => setUpdateForm({ ...updateForm, assigned_developer_id: e.target.value })}>
+                  <option value="">Unassigned</option>
+                  {filteredDevelopers.map(dev => (
+                    <option key={dev.id} value={dev.id}>
+                      {dev.first_name} {dev.last_name} ({dev.developer_skills?.join(', ') || 'No skills'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Deadline (Optional)</Label>
+                <input 
+                  type="datetime-local" 
+                  className="w-full mt-1.5 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                  value={updateForm.deadline}
+                  onChange={(e) => setUpdateForm({ ...updateForm, deadline: e.target.value })}
+                />
+              </div>
             </div>
+          </div>
+          
+          <div className="flex justify-end pt-4 border-t gap-3">
+            <Button variant="outline" onClick={() => setSelectedTicket(null)}>Cancel</Button>
+            <Button onClick={handleUpdate}>Save Changes</Button>
           </div>
         </DialogContent>
       </Dialog>

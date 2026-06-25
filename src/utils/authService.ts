@@ -577,7 +577,7 @@ export const fetchWithSuperadminTokenRefresh = async (url: string, options: Requ
 
   let response = await fetch(url, { ...options, headers: safeHeaders });
 
-  if (response.status === 401 || response.status === 403) {
+  if (response.status === 401) {
     const refreshData = await refreshSuperadminToken();
     if (refreshData?.success) {
       accessToken = refreshData.access;
@@ -587,9 +587,15 @@ export const fetchWithSuperadminTokenRefresh = async (url: string, options: Requ
       };
       response = await fetch(url, { ...options, headers: newHeaders });
     } else {
+      const role = localStorage.getItem("superadmin_role");
       localStorage.removeItem("superadmin_token");
       localStorage.removeItem("superadmin_refresh");
-      window.location.href = "/stalightcampus/admin";
+      localStorage.removeItem("superadmin_role");
+      if (role === "developer") {
+        window.location.href = "/stalightcampus/developer";
+      } else {
+        window.location.href = "/stalightcampus/admin";
+      }
     }
   }
 
