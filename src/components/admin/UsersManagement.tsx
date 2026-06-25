@@ -10,7 +10,7 @@ import {
 } from "../ui/select";
 import { cn } from "../../lib/utils";
 import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
-import { Search, Loader2, Download } from "lucide-react";
+import { Search, Loader2, Download, ArrowUpCircle } from "lucide-react";
 import { downloadFile } from "../../utils/downloadHelper";
 import { Input } from "../ui/input";
 import { fetchWithTokenRefresh } from "../../utils/authService";
