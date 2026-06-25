@@ -58,30 +58,46 @@ const Overview = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className={`text-3xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>System Overview</h1>
-        <p className="text-muted-foreground mt-2">Welcome to the Super Admin Control Center.</p>
+        <h1 className={`text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>System Overview</h1>
+        <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Welcome to the Super Admin Control Center.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {statCards.map((card, idx) =>
-        <Card key={idx} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
-              {card.icon}
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{card.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">{card.desc}</p>
-            </CardContent>
-          </Card>
-        )}
+        {statCards.map((card, idx) => (
+          <div key={idx} className="rounded-lg">
+            <Card
+              className={`h-full flex flex-col transition-all duration-300 cursor-default backdrop-blur-sm shadow-sm hover:shadow-md ${
+                theme === 'dark'
+                  ? "bg-card/40 border-border hover:bg-card/60 hover:border-primary/40"
+                  : "bg-white border-gray-100 hover:bg-gray-50/80 hover:border-blue-200"
+              }`}
+            >
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
+                  {card.title}
+                </CardTitle>
+                <div className={theme === 'dark' ? "w-5 h-5 text-primary" : "w-5 h-5 text-blue-500"}>
+                  {card.icon}
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1">
+                <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {card.value}
+                </div>
+                <p className={`text-xs mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  {card.desc}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        ))}
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <Card className="col-span-1 shadow-sm border-0">
+        <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border' : 'bg-white border-gray-100'}`}>
           <CardHeader>
-            <CardTitle>Organization Growth</CardTitle>
+            <CardTitle className={`text-base font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Organization Growth</CardTitle>
           </CardHeader>
           <CardContent className="h-80 mx-2 mb-6">
             {stats?.org_growth && stats.org_growth.length > 0 ?
@@ -104,9 +120,9 @@ const Overview = () => {
             }
           </CardContent>
         </Card>
-        <Card className="col-span-1 shadow-sm border-0">
+        <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border' : 'bg-white border-gray-100'}`}>
           <CardHeader>
-            <CardTitle>Plan Distribution</CardTitle>
+            <CardTitle className={`text-base font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Plan Distribution</CardTitle>
           </CardHeader>
           <CardContent className="h-80 mx-2 mb-6">
             {stats?.plan_distribution && stats.plan_distribution.length > 0 ?

@@ -60,16 +60,18 @@ const Sidebar = ({ activePage, setActivePage, onLogout, collapsed, toggleCollaps
   return (
     <motion.div
       className={`h-screen flex flex-col border-r shadow-xl z-30 transition-all duration-300 ${
-        theme === 'dark' ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-gray-200'
+        theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'
       } ${collapsed ? 'w-20' : 'w-64'}`}
       initial={false}
     >
       {/* Header */}
       <div 
-        className={`px-4 pb-3 lg:pb-0 flex items-center justify-between border-b ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-200'}`}
+        className={`px-4 pb-3 lg:pb-0 flex items-center justify-between border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}
         style={{
           height: window.innerWidth >= 1024 ? '5rem' : undefined,
-          paddingTop: Capacitor.getPlatform() === 'android' ? 'max(2.5rem, env(safe-area-inset-top, 0px))' : 'env(safe-area-inset-top, 0px)'
+          paddingTop: Capacitor.isNativePlatform()
+            ? 'calc(env(safe-area-inset-top, 24px) + 2px)'
+            : window.innerWidth < 1024 ? '16px' : '0px'
         }}
       >
         <div className="flex items-center gap-3 overflow-hidden">
@@ -78,41 +80,40 @@ const Sidebar = ({ activePage, setActivePage, onLogout, collapsed, toggleCollaps
           </div>
           {!collapsed && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="whitespace-nowrap">
-              <h1 className="font-bold text-lg leading-tight tracking-tight">Super Admin</h1>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Stalight HQ</p>
+              <h1 className={`font-bold text-lg leading-tight tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Super Admin</h1>
+              <p className={`text-[10px] uppercase tracking-widest font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Stalight HQ</p>
             </motion.div>
           )}
         </div>
-        <Button variant="ghost" size="icon" onClick={toggleCollapse} className="flex-shrink-0">
-          <Menu size={20} />
-        </Button>
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
-        {menuItems.map((item) => (
-          <Button
-            key={item.id}
-            variant={activePage === item.id ? "default" : "ghost"}
-            className={`w-full justify-start h-12 transition-all ${
-              activePage === item.id 
-                ? "bg-primary text-primary-foreground shadow-md" 
-                : theme === 'dark' ? "text-zinc-400 hover:text-white hover:bg-zinc-900" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-            } ${collapsed ? "px-0 justify-center" : "px-4 gap-3"}`}
-            onClick={() => setActivePage(item.id)}
-            title={collapsed ? item.label : undefined}
-          >
-            {item.icon}
-            {!collapsed && <span>{item.label}</span>}
-          </Button>
-        ))}
+      <div className="flex-1 overflow-y-auto py-4 thin-scrollbar">
+        <div className="space-y-1 px-3">
+          {menuItems.map((item) => (
+            <Button
+              key={item.id}
+              variant={activePage === item.id ? "default" : "ghost"}
+              className={`w-full justify-start h-10 transition-all duration-200 ${
+                activePage === item.id 
+                  ? "bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" 
+                  : theme === 'dark' ? "text-muted-foreground hover:text-foreground hover:bg-accent" : "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+              } ${collapsed ? "px-2 justify-center" : "px-3 gap-3"}`}
+              onClick={() => setActivePage(item.id)}
+              title={collapsed ? item.label : undefined}
+            >
+              {item.icon}
+              {!collapsed && <span>{item.label}</span>}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Footer */}
-      <div className={`p-4 border-t ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-200'}`}>
+      <div className={`p-4 border-t ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
         <Button
           variant="ghost"
-          className={`w-full text-red-500 hover:bg-red-50 hover:text-red-600 ${theme === 'dark' ? 'hover:bg-red-950/30' : ''} ${collapsed ? 'px-0 justify-center' : 'justify-start gap-3'}`}
+          className={`w-full text-red-500 hover:bg-red-50 hover:text-red-600 ${theme === 'dark' ? 'hover:bg-red-950/30' : ''} ${collapsed ? 'px-2 justify-center' : 'justify-start gap-3 px-3 h-10'}`}
           onClick={() => setShowLogoutDialog(true)}
           title={collapsed ? "Logout" : undefined}
         >

@@ -15,6 +15,9 @@ import EnrollDeveloper from "./pages/EnrollDeveloper";
 import Coupons from "./pages/Coupons";
 import NDASubmissions from "./pages/NDASubmissions";
 import { useTheme } from "../context/ThemeContext";
+import { Sun, Moon } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Capacitor } from "@capacitor/core";
 
 interface Props {
   setIsAuthenticated: (val: boolean) => void;
@@ -22,7 +25,7 @@ interface Props {
 
 const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
   const [collapsed, setCollapsed] = useState(false);
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -46,7 +49,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
   };
 
   return (
-    <div className={`flex h-screen h-[100dvh] overflow-hidden ${theme === 'dark' ? 'bg-black text-white' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`flex h-screen h-[100dvh] overflow-hidden ${theme === 'dark' ? 'dark bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Sidebar
         activePage={activePage}
         setActivePage={handlePageChange}
@@ -57,13 +60,32 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
 
       <main className="flex-1 flex flex-col h-screen h-[100dvh] overflow-hidden relative">
         {/* Top Navbar */}
-        <header className={`h-16 flex-shrink-0 border-b flex items-center justify-between px-6 sticky top-0 z-20 ${theme === 'dark' ? 'bg-zinc-950/80 backdrop-blur-md border-zinc-800' : 'bg-white/80 backdrop-blur-md border-gray-200'}`}>
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-semibold capitalize">
+        <header 
+          className={`flex-shrink-0 border-b flex items-center justify-between px-6 sticky top-0 z-20 transition-all duration-500 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
+          style={{
+            height: window.innerWidth >= 1024 ? '5rem' : undefined,
+            paddingTop: Capacitor.isNativePlatform()
+              ? 'calc(env(safe-area-inset-top, 24px) + 2px)'
+              : window.innerWidth < 1024 ? '16px' : '0px'
+          }}
+        >
+          <div className="flex flex-col">
+            <h2 className={`font-semibold text-base leading-tight capitalize ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               {activePage === 'dashboard' ? 'Overview' : activePage === 'nda' ? 'NDA & Consents' : activePage.replace('-', ' ')}
             </h2>
+            <p className={`text-[9px] uppercase tracking-wider font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Super Admin Portal
+            </p>
           </div>
           <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className={theme === 'dark' ? 'text-yellow-400 hover:bg-zinc-800' : 'text-gray-600 hover:bg-gray-100'}
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </Button>
             <div className="flex items-center gap-2">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium leading-none">Super Admin</p>
@@ -80,14 +102,14 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 lg:p-8 pb-32 md:pb-8">
+        <div className={`flex-1 overflow-y-auto p-4 pb-6 md:pb-8 thin-scrollbar ${theme === "dark" ? "bg-background" : "bg-gray-50"}`}>
           <div className="container mx-auto max-w-7xl">
             <motion.div
               key={activePage}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
             >
               <Routes>
                 <Route path="/" element={<Navigate to="dashboard" replace />} />
