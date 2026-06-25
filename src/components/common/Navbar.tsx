@@ -104,7 +104,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
       style={{
         height: window.innerWidth >= 1024 ? '5rem' : undefined,
         paddingTop: Capacitor.isNativePlatform()
-          ? '0px'
+          ? 'env(safe-area-inset-top, 24px)'
           : window.innerWidth < 1024 ? '16px' : '0px'
       }}
       initial={{ opacity: 0, y: -20 }}
