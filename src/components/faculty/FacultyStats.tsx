@@ -345,7 +345,13 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                             <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
                             <XAxis dataKey="subject" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={45} />
                             <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-                            <Tooltip formatter={(value: any) => `${value}%`} />
+                            <Tooltip
+                              formatter={(value: any) => `${value}%`}
+                              contentStyle={{ backgroundColor: theme === 'dark' ? '#1c1c1e' : '#fff', borderRadius: "8px", border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e5e7eb' }}
+                              labelStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
+                              itemStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
+                              cursor={{ fill: theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)' }}
+                            />
                             <Bar dataKey="attendance" fill="#3b82f6" radius={[6, 6, 0, 0]}>
                               <LabelList dataKey="attendance" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: 10 }} />
                             </Bar>
@@ -365,7 +371,11 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                             <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
                             <XAxis dataKey="subject" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={45} />
                             <YAxis />
-                            <Tooltip />
+                            <Tooltip
+                              contentStyle={{ backgroundColor: theme === 'dark' ? '#1c1c1e' : '#fff', borderRadius: "8px", border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e5e7eb' }}
+                              labelStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
+                              itemStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
+                            />
                             <Line type="monotone" dataKey="iaMarks" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
                           </LineChart>
                         </ResponsiveContainer>

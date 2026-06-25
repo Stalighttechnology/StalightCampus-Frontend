@@ -614,12 +614,12 @@ const QPApprovals = () => {
                                       {isExpanded ? s.content : shortContent}
                                     </div>
                                     <div className="ml-2 flex-shrink-0">
-                                      <Badge className="text-black font-semibold text-sm bg-transparent">{s.max_marks}m</Badge>
+                                      <Badge className="text-gray-900 dark:text-gray-100 font-semibold text-sm bg-transparent">{s.max_marks}m</Badge>
                                     </div>
                                   </div>
                                   <div className="flex flex-wrap items-center gap-2 mt-2">
-                                    <Badge className="text-black bg-transparent">CO: {q.co}</Badge>
-                                    <Badge className="text-black bg-transparent">{q.blooms_level}</Badge>
+                                    <Badge className="text-gray-600 dark:text-gray-400 bg-transparent">CO: {q.co}</Badge>
+                                    <Badge className="text-gray-600 dark:text-gray-400 bg-transparent">{q.blooms_level}</Badge>
                                     {(s.content || '').length > 160 &&
                                  <button onClick={() => toggleExpanded(key)} className="text-sm text-primary-600 dark:text-primary-400 ml-2">
                                          {isExpanded ? 'Show less' : 'Show more'}
