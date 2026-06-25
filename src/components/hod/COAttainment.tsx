@@ -340,9 +340,7 @@ const COAttainment = () => {
                 </SelectTrigger>
                 <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                   {dropdownData.semester.length === 0 ? (
-                    <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
-                      No semester available
-                    </div>
+                    <SelectItem value="none" disabled>No semester available</SelectItem>
                   ) : (
                     dropdownData.semester.map((item) =>
                       <SelectItem key={item.id} value={item.id.toString()}>
@@ -373,13 +371,9 @@ const COAttainment = () => {
                 </SelectTrigger>
                 <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                   {!selected.semester_id ? (
-                    <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
-                      Select semester first
-                    </div>
+                    <SelectItem value="none" disabled>Select semester first</SelectItem>
                   ) : dropdownData.subject.length === 0 ? (
-                    <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
-                      No subject available
-                    </div>
+                    <SelectItem value="none" disabled>No subject available</SelectItem>
                   ) : (
                     dropdownData.subject.map((item) =>
                       <SelectItem key={item.id} value={item.id.toString()}>

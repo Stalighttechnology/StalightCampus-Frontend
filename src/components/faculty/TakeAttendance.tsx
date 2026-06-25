@@ -588,9 +588,7 @@ const TakeAttendance = () => {
                       {subjects.length > 0 ? (
                         subjects.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
                       ) : (
-                        <div className="p-2 text-sm text-center text-muted-foreground">
-                          No subject
-                        </div>
+                        <SelectItem value="none" disabled>No subject found</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
@@ -605,9 +603,7 @@ const TakeAttendance = () => {
                       {branches.length > 0 ? (
                         branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
                       ) : (
-                        <div className="p-2 text-sm text-center text-muted-foreground">
-                          No branch
-                        </div>
+                        <SelectItem value="none" disabled>No branch found</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
@@ -622,9 +618,7 @@ const TakeAttendance = () => {
                       {semesters.length > 0 ? (
                         semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
                       ) : (
-                        <div className="p-2 text-sm text-center text-muted-foreground">
-                          No semester
-                        </div>
+                        <SelectItem value="none" disabled>No semester found</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
@@ -636,9 +630,7 @@ const TakeAttendance = () => {
                       {sections.length > 0 ? (
                         sections.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
                       ) : (
-                        <div className="p-2 text-sm text-center text-muted-foreground">
-                          No section
-                        </div>
+                        <SelectItem value="none" disabled>No section found</SelectItem>
                       )}
                     </SelectContent>
                   </Select>

@@ -617,7 +617,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                       type="button"
                       variant="outline"
                       disabled={!formData.exam_type}
-                      className={`h-12 text-[18px] sm:text-sm rounded-xl justify-start text-left font-normal ${!formData.start_date && "text-muted-foreground"}`}
+                      className={`h-12 text-[18px] sm:text-sm rounded-xl justify-start text-left font-normal ${!formData.start_date && "text-muted-foreground disabled:text-muted-foreground"}`}
                     >
                       <Calendar className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                       {formData.start_date ? displayDate(formData.start_date) : <span>Pick a start date</span>}
@@ -653,7 +653,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                       type="button"
                       variant="outline"
                       disabled={!formData.start_date}
-                      className={`h-12 text-[18px] sm:text-sm rounded-xl justify-start text-left font-normal ${!formData.end_date && "text-muted-foreground"}`}
+                      className={`h-12 text-[18px] sm:text-sm rounded-xl justify-start text-left font-normal ${!formData.end_date && "text-muted-foreground disabled:text-muted-foreground"}`}
                     >
                       <Calendar className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                       {formData.end_date ? displayDate(formData.end_date) : <span>Pick an end date</span>}
@@ -1022,9 +1022,13 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                           <Select value={sub.subject_id} onValueChange={(v) => { const newSubs = [...formData.subjects]; newSubs[index].subject_id = v; setFormData({ ...formData, subjects: newSubs }); }}>
                             <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select Subject" /></SelectTrigger>
                             <SelectContent>
-                              {subjects
-                                .filter(s => !formData.subjects.some((sub, i) => i !== index && sub.subject_id === s.id.toString()))
-                                .map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name} ({s.subject_code})</SelectItem>)}
+                              {subjects.filter(s => !formData.subjects.some((sub, i) => i !== index && sub.subject_id === s.id.toString())).length > 0 ? (
+                                subjects
+                                  .filter(s => !formData.subjects.some((sub, i) => i !== index && sub.subject_id === s.id.toString()))
+                                  .map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name} ({s.subject_code})</SelectItem>)
+                              ) : (
+                                <SelectItem value="none" disabled>No subjects found</SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                         </div>
