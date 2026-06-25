@@ -524,12 +524,10 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     admission_manager: [
       { name: "Dashboard", page: "admission-dashboard" },
       { name: "Campus Page Management", page: "campus-builder" },
-      { name: "Seat Matrix", page: "seat-matrix" },
       { name: "Courses", page: "admission-courses" },
       { name: "Enquiries", page: "admission-enquiries" },
       { name: "Applications", page: "admission-applications" },
       { name: "Students", page: "admission-students" },
-      { name: "Fees", page: "admission-fees" },
       { name: "Documents", page: "admission-documents" },
       { name: "Communication", page: "admission-communication" },
       { name: "Reports", page: "admission-reports" },

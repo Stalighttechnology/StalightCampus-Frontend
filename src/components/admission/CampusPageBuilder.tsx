@@ -261,10 +261,10 @@ const CampusPageBuilder: React.FC = () => {
                               <div key={i} className="flex gap-2 mb-2">
                                 <input type="text" placeholder="Value (e.g. 25+)" value={stat.value} onChange={e => {
                                   const n = [...block.data.stats]; n[i].value = e.target.value; updateBlock(block.id, {stats: n});
-                                }} className="w-1/3 p-1.5 text-sm border rounded" />
+                                }} className="w-1/3 p-1.5 text-sm border border-input bg-background text-foreground rounded" />
                                 <input type="text" placeholder="Label (e.g. Years)" value={stat.label} onChange={e => {
                                   const n = [...block.data.stats]; n[i].label = e.target.value; updateBlock(block.id, {stats: n});
-                                }} className="flex-1 p-1.5 text-sm border rounded" />
+                                }} className="flex-1 p-1.5 text-sm border border-input bg-background text-foreground rounded" />
                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
                                   const n = block.data.stats.filter((_:any, idx:number) => idx !== i); updateBlock(block.id, {stats: n});
                                 }}><Trash2 size={14}/></Button>
@@ -286,17 +286,17 @@ const CampusPageBuilder: React.FC = () => {
                       )}
                       {block.type === 'facilities' && (
                         <div className="space-y-3">
-                          {(block.data.facilities || []).map((fac: any, i: number) => (
+                           {(block.data.facilities || []).map((fac: any, i: number) => (
                             <div key={i} className="p-3 border rounded bg-muted/20 space-y-2 relative">
                               <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 text-destructive" onClick={() => {
                                 const n = block.data.facilities.filter((_:any, idx:number) => idx !== i); updateBlock(block.id, {facilities: n});
                               }}><Trash2 size={12}/></Button>
                               <input type="text" placeholder="Facility Title" value={fac.title} onChange={e => {
                                 const n = [...block.data.facilities]; n[i].title = e.target.value; updateBlock(block.id, {facilities: n});
-                              }} className="w-[90%] p-1.5 text-sm border rounded font-semibold" />
+                              }} className="w-[90%] p-1.5 text-sm border border-input bg-background text-foreground rounded font-semibold" />
                               <input type="text" placeholder="Description" value={fac.desc} onChange={e => {
                                 const n = [...block.data.facilities]; n[i].desc = e.target.value; updateBlock(block.id, {facilities: n});
-                              }} className="w-full p-1.5 text-sm border rounded" />
+                              }} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" />
                             </div>
                           ))}
                           <Button variant="secondary" size="sm" onClick={() => updateBlock(block.id, {facilities: [...(block.data.facilities||[]), {title:'', desc:''}]})} className="text-xs">Add Facility</Button>
@@ -305,9 +305,9 @@ const CampusPageBuilder: React.FC = () => {
                       {block.type === 'placement' && (
                         <div className="space-y-3">
                           <div className="grid grid-cols-3 gap-2">
-                            <div><label className="text-xs">Placement %</label><input type="text" value={block.data.percentage || ''} onChange={e=>updateBlock(block.id, {percentage: e.target.value})} className="w-full p-1.5 text-sm border rounded" /></div>
-                            <div><label className="text-xs">Highest Pkg</label><input type="text" value={block.data.highest || ''} onChange={e=>updateBlock(block.id, {highest: e.target.value})} className="w-full p-1.5 text-sm border rounded" /></div>
-                            <div><label className="text-xs">Avg Pkg</label><input type="text" value={block.data.average || ''} onChange={e=>updateBlock(block.id, {average: e.target.value})} className="w-full p-1.5 text-sm border rounded" /></div>
+                            <div><label className="text-xs">Placement %</label><input type="text" value={block.data.percentage || ''} onChange={e=>updateBlock(block.id, {percentage: e.target.value})} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" /></div>
+                            <div><label className="text-xs">Highest Pkg</label><input type="text" value={block.data.highest || ''} onChange={e=>updateBlock(block.id, {highest: e.target.value})} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" /></div>
+                            <div><label className="text-xs">Avg Pkg</label><input type="text" value={block.data.average || ''} onChange={e=>updateBlock(block.id, {average: e.target.value})} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" /></div>
                           </div>
                           <div>
                             <label className="text-xs font-semibold">Recruiter Logos (URLs)</label>
@@ -315,7 +315,7 @@ const CampusPageBuilder: React.FC = () => {
                               <div key={i} className="flex gap-2 mt-1">
                                 <input type="text" value={url} onChange={e=>{
                                   const n=[...block.data.recruiters]; n[i]=e.target.value; updateBlock(block.id, {recruiters: n});
-                                }} className="flex-1 p-1.5 text-sm border rounded" />
+                                }} className="flex-1 p-1.5 text-sm border border-input bg-background text-foreground rounded" />
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={()=>{
                                   const n=block.data.recruiters.filter((_:any, idx:number)=>idx!==i); updateBlock(block.id, {recruiters: n});
                                 }}><Trash2 size={14}/></Button>
@@ -335,17 +335,17 @@ const CampusPageBuilder: React.FC = () => {
                               <div className="grid grid-cols-2 gap-2 w-[90%]">
                                 <input type="text" placeholder="Name" value={item.name || ''} onChange={e => {
                                   const n = [...block.data.items]; n[i].name = e.target.value; updateBlock(block.id, {items: n});
-                                }} className="w-full p-1.5 text-sm border rounded" />
+                                }} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" />
                                 <input type="text" placeholder="Course/Alumni" value={item.courseName || ''} onChange={e => {
                                   const n = [...block.data.items]; n[i].courseName = e.target.value; updateBlock(block.id, {items: n});
-                                }} className="w-full p-1.5 text-sm border rounded" />
+                                }} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" />
                               </div>
                               <textarea placeholder="Quote..." value={item.quote || ''} onChange={e => {
                                 const n = [...block.data.items]; n[i].quote = e.target.value; updateBlock(block.id, {items: n});
-                              }} className="w-full p-1.5 text-sm border rounded" rows={2} />
+                              }} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" rows={2} />
                               <input type="text" placeholder="Upload Profile Image URL (Optional)" value={item.image || ''} onChange={e => {
-                                const n = [...block.data.items]; n[i].image = e.target.value; updateBlock(block.id, {items: n});
-                              }} className="w-full p-1.5 text-sm border rounded bg-background" />
+                                  const n = [...block.data.items]; n[i].image = e.target.value; updateBlock(block.id, {items: n});
+                                }} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" />
                             </div>
                           ))}
                           <Button variant="secondary" size="sm" onClick={() => updateBlock(block.id, {items: [...(block.data.items||[]), {name:'', quote:''}]})} className="text-xs">Add Testimonial</Button>
@@ -358,7 +358,7 @@ const CampusPageBuilder: React.FC = () => {
                               <ImageIcon className="w-4 h-4 text-muted-foreground mt-2 shrink-0" />
                               <input type="text" placeholder="Upload Image/Video URL" value={img} onChange={e => {
                                 const n = [...block.data.images]; n[i] = e.target.value; updateBlock(block.id, {images: n});
-                              }} className="flex-1 p-1.5 text-sm border rounded" />
+                              }} className="flex-1 p-1.5 text-sm border border-input bg-background text-foreground rounded" />
                               <Button variant="ghost" size="icon" className="text-destructive h-8 w-8" onClick={() => {
                                 const n = block.data.images.filter((_:any, idx:number) => idx !== i); updateBlock(block.id, {images: n});
                               }}><Trash2 size={14}/></Button>
@@ -376,10 +376,10 @@ const CampusPageBuilder: React.FC = () => {
                               }}><Trash2 size={12}/></Button>
                               <input type="text" placeholder="Question" value={faq.question || ''} onChange={e => {
                                 const n = [...block.data.items]; n[i].question = e.target.value; updateBlock(block.id, {items: n});
-                              }} className="w-[90%] p-1.5 text-sm border rounded font-semibold" />
+                              }} className="w-[90%] p-1.5 text-sm border border-input bg-background text-foreground rounded font-semibold" />
                               <textarea placeholder="Answer" value={faq.answer || ''} onChange={e => {
                                 const n = [...block.data.items]; n[i].answer = e.target.value; updateBlock(block.id, {items: n});
-                              }} className="w-full p-1.5 text-sm border rounded" rows={2} />
+                              }} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" rows={2} />
                             </div>
                           ))}
                           <Button variant="secondary" size="sm" onClick={() => updateBlock(block.id, {items: [...(block.data.items||[]), {question:'', answer:''}]})} className="text-xs">Add FAQ</Button>
@@ -387,13 +387,13 @@ const CampusPageBuilder: React.FC = () => {
                       )}
                       {block.type === 'contact' && (
                         <div className="space-y-3">
-                          <input type="text" placeholder="Address" value={block.data.address || ''} onChange={e=>updateBlock(block.id, {address: e.target.value})} className="w-full p-1.5 text-sm border rounded" />
+                          <input type="text" placeholder="Address" value={block.data.address || ''} onChange={e=>updateBlock(block.id, {address: e.target.value})} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" />
                           <div className="grid grid-cols-2 gap-2">
-                            <input type="text" placeholder="Email" value={block.data.email || ''} onChange={e=>updateBlock(block.id, {email: e.target.value})} className="w-full p-1.5 text-sm border rounded" />
-                            <input type="text" placeholder="Phone" value={block.data.phone || ''} onChange={e=>updateBlock(block.id, {phone: e.target.value})} className="w-full p-1.5 text-sm border rounded" />
+                            <input type="text" placeholder="Email" value={block.data.email || ''} onChange={e=>updateBlock(block.id, {email: e.target.value})} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" />
+                            <input type="text" placeholder="Phone" value={block.data.phone || ''} onChange={e=>updateBlock(block.id, {phone: e.target.value})} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" />
                           </div>
-                          <input type="text" placeholder="Google Maps Embed URL" value={block.data.googleMapsUrl || ''} onChange={e=>updateBlock(block.id, {googleMapsUrl: e.target.value})} className="w-full p-1.5 text-sm border rounded" />
-                          <input type="text" placeholder="WhatsApp Chat Link (Optional)" value={block.data.whatsappLink || ''} onChange={e=>updateBlock(block.id, {whatsappLink: e.target.value})} className="w-full p-1.5 text-sm border rounded" />
+                          <input type="text" placeholder="Google Maps Embed URL" value={block.data.googleMapsUrl || ''} onChange={e=>updateBlock(block.id, {googleMapsUrl: e.target.value})} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" />
+                          <input type="text" placeholder="WhatsApp Chat Link (Optional)" value={block.data.whatsappLink || ''} onChange={e=>updateBlock(block.id, {whatsappLink: e.target.value})} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" />
                         </div>
                       )}
                       {block.type === 'enquiry' && (
@@ -401,8 +401,8 @@ const CampusPageBuilder: React.FC = () => {
                           <p className="font-semibold text-primary mb-2 flex items-center gap-2"><MessageSquare size={16}/> Admission CRM Connected</p>
                           <p className="text-muted-foreground mb-4">The Enquiry form is directly integrated with your Lead Pipeline. Leads captured here will appear on your Admission Dashboard automatically.</p>
                           <div className="grid grid-cols-2 gap-2">
-                            <div><label className="text-xs">Support Phone</label><input type="text" value={block.data.phone || ''} onChange={e=>updateBlock(block.id, {phone: e.target.value})} className="w-full p-1.5 border rounded mt-1" /></div>
-                            <div><label className="text-xs">Support Email</label><input type="text" value={block.data.email || ''} onChange={e=>updateBlock(block.id, {email: e.target.value})} className="w-full p-1.5 border rounded mt-1" /></div>
+                            <div><label className="text-xs">Support Phone</label><input type="text" value={block.data.phone || ''} onChange={e=>updateBlock(block.id, {phone: e.target.value})} className="w-full p-1.5 border border-input bg-background text-foreground rounded mt-1" /></div>
+                            <div><label className="text-xs">Support Email</label><input type="text" value={block.data.email || ''} onChange={e=>updateBlock(block.id, {email: e.target.value})} className="w-full p-1.5 border border-input bg-background text-foreground rounded mt-1" /></div>
                           </div>
                         </div>
                       )}

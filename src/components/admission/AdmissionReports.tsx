@@ -7,6 +7,7 @@ import { fetchWithTokenRefresh } from '../../utils/authService';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function AdmissionReports() {
   const [analytics, setAnalytics] = useState<any>(null);
@@ -31,6 +32,8 @@ export default function AdmissionReports() {
       setLoading(false);
     }
   };
+
+  const { theme } = useTheme();
 
   if (loading || !analytics) {
     return (
@@ -241,8 +244,19 @@ export default function AdmissionReports() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value, name: string) => [value, reportType === 'status' ? name.replace(/_/g, ' ').toUpperCase() : (name || 'Unknown Course')]} />
-                    <Legend formatter={(value) => reportType === 'status' ? value.replace(/_/g, ' ').toUpperCase() : (value || 'Unknown Course')} />
+                    <Tooltip
+                      formatter={(value, name: string) => [value, reportType === 'status' ? name.replace(/_/g, ' ').toUpperCase() : (name || 'Unknown Course')]}
+                      contentStyle={{ backgroundColor: theme === 'dark' ? '#1c1c1e' : '#fff', borderRadius: "8px", border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e5e7eb' }}
+                      labelStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
+                      itemStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
+                    />
+                    <Legend
+                      formatter={(value) => (
+                        <span className="text-sm font-medium" style={{ color: theme === 'dark' ? '#e5e7eb' : '#374151' }}>
+                          {reportType === 'status' ? value.replace(/_/g, ' ').toUpperCase() : (value || 'Unknown Course')}
+                        </span>
+                      )}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (

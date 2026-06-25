@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, FileText, CheckCircle, UserCheck, Loader2, AlertCircle, TrendingUp, BarChart2 } from 'lucide-react';
+import { Users, FileText, CheckCircle, UserCheck, AlertCircle, BarChart2 } from 'lucide-react';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { useTheme } from "../../context/ThemeContext";
+import { Bar, Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend
+} from "chart.js";
+
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
 
 interface AnalyticsData {
   total_enquiries: number;
@@ -14,11 +27,28 @@ interface AnalyticsData {
   course_counts?: Array<{ course_interested__name: string; count: number }>;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#ffc658'];
+const COLORS = [
+  "rgba(59, 130, 246, 0.6)",
+  "rgba(168, 85, 247, 0.6)",
+  "rgba(234, 179, 8, 0.6)",
+  "rgba(236, 72, 153, 0.6)",
+  "rgba(34, 197, 94, 0.6)",
+  "rgba(249, 115, 22, 0.6)"
+];
+
+const BORDER_COLORS = [
+  "rgba(59, 130, 246, 1)",
+  "rgba(168, 85, 247, 1)",
+  "rgba(234, 179, 8, 1)",
+  "rgba(236, 72, 153, 1)",
+  "rgba(34, 197, 94, 1)",
+  "rgba(249, 115, 22, 1)"
+];
 
 const AdmissionDashboard: React.FC = () => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { theme } = useTheme();
 
   useEffect(() => {
     fetchAnalytics();
@@ -77,6 +107,33 @@ const AdmissionDashboard: React.FC = () => {
 
   // Calculate new leads
   const newLeads = data?.status_counts?.find(s => s.status.toLowerCase() === 'new' || s.status.toLowerCase() === 'enquiry_received' || s.status.toLowerCase() === 'pending')?.count || 0;
+
+  // Prepare Pie Chart Data
+  const pieData = {
+    labels: data?.status_counts?.map(s => s.status.replace(/_/g, ' ').toUpperCase()) || [],
+    datasets: [
+      {
+        data: data?.status_counts?.map(s => s.count) || [],
+        backgroundColor: COLORS,
+        borderColor: BORDER_COLORS,
+        borderWidth: 1
+      }
+    ]
+  };
+
+  // Prepare Bar Chart Data
+  const barData = {
+    labels: data?.course_counts?.map(c => c.course_interested__name || 'Unknown') || [],
+    datasets: [
+      {
+        label: "Enquiries",
+        data: data?.course_counts?.map(c => c.count) || [],
+        backgroundColor: "rgba(59, 130, 246, 0.6)",
+        borderColor: "rgba(59, 130, 246, 1)",
+        borderWidth: 1
+      }
+    ]
+  };
 
   return (
     <div className="space-y-6">
@@ -152,32 +209,26 @@ const AdmissionDashboard: React.FC = () => {
             <p className="text-xs text-muted-foreground">Distribution of students across stages</p>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] w-full mt-2">
+            <div className="h-[300px] w-full mt-2 flex items-center justify-center">
               {data?.status_counts && data.status_counts.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={data.status_counts}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={2}
-                      dataKey="count"
-                      nameKey="status"
-                      label={(entry) => entry.status.replace(/_/g, ' ').toUpperCase()}
-                    >
-                      {data.status_counts.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip 
-                      formatter={(value, name: string) => [value, name.replace(/_/g, ' ').toUpperCase()]} 
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <Pie
+                  data={pieData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: "right",
+                        labels: {
+                          color: theme === 'dark' ? "#fff" : "#000"
+                        }
+                      },
+                      tooltip: { enabled: true }
+                    }
+                  }}
+                />
               ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
+                <div className="h-full w-full flex items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
                   No pipeline data available
                 </div>
               )}
@@ -195,30 +246,48 @@ const AdmissionDashboard: React.FC = () => {
             <p className="text-xs text-muted-foreground">Number of enquiries per course</p>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] w-full mt-2">
+            <div className="h-[300px] w-full mt-2 flex items-center justify-center">
               {data?.course_counts && data.course_counts.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data.course_counts} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis 
-                      dataKey="course_interested__name" 
-                      tick={{ fontSize: 12 }} 
-                      tickFormatter={(val) => val || 'Unknown'} 
-                    />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-                    <RechartsTooltip 
-                      formatter={(value) => [value, 'Enquiries']}
-                      labelFormatter={(label) => label || 'Unknown Course'}
-                    />
-                    <Bar dataKey="count" fill="#8884d8" radius={[4, 4, 0, 0]} maxBarSize={60}>
-                      {data.course_counts.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <Bar
+                  data={barData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                      duration: 800,
+                      easing: "easeInOutQuart"
+                    },
+                    plugins: {
+                      legend: {
+                        position: "top",
+                        labels: {
+                          color: theme === 'dark' ? "#fff" : "#000"
+                        }
+                      },
+                      tooltip: { enabled: true }
+                    },
+                    scales: {
+                      x: {
+                        ticks: {
+                          color: theme === 'dark' ? "#fff" : "#000"
+                        }
+                      },
+                      y: {
+                        beginAtZero: true,
+                        title: {
+                          display: true,
+                          text: "Count",
+                          color: theme === 'dark' ? "#fff" : "#000"
+                        },
+                        ticks: {
+                          color: theme === 'dark' ? "#fff" : "#000"
+                        }
+                      }
+                    }
+                  }}
+                />
               ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
+                <div className="h-full w-full flex items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
                   No course preference data available
                 </div>
               )}
@@ -229,4 +298,5 @@ const AdmissionDashboard: React.FC = () => {
     </div>
   );
 };
+
 export default AdmissionDashboard;

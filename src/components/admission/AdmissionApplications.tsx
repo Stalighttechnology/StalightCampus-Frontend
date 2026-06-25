@@ -168,7 +168,7 @@ export default function AdmissionApplications() {
       </Card>
 
       <Dialog open={!!selectedApp} onOpenChange={(open) => !open && setSelectedApp(null)}>
-        <DialogContent className="w-[90vw] rounded-xl sm:max-w-2xl max-h-[85vh] overflow-y-auto thin-scrollbar">
+        <DialogContent className="w-[90vw] rounded-xl sm:max-w-2xl max-h-[85vh] overflow-y-auto custom-scrollbar">
           <DialogHeader className="border-b pb-4">
             <DialogTitle className="text-lg font-semibold">Application Review: {selectedApp?.enquiry_details?.name}</DialogTitle>
           </DialogHeader>
