@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Swal from "sweetalert2";
 import { useTheme } from "../../../context/ThemeContext";
-import { fetchRoutes, createRoute, updateRoute, deleteRoute, updateRouteStops, fetchBuses, exportRoutesPDF } from "../../../utils/transport_api";
+import { fetchRoutes, createRoute, updateRoute, deleteRoute, updateRouteStops, fetchBuses, exportRoutesCSV } from "../../../utils/transport_api";
 import { RouteT, StopT } from "./TransportCommon";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../ui/card";
 import { Button } from "../../ui/button";
+import { downloadFile } from "../../../utils/downloadHelper";
+import { API_ENDPOINT } from "../../../utils/config";
 import { SkeletonList } from "../../ui/skeleton";
 import { Navigation, MapPin, Plus, Trash2, Save, X, RefreshCw, Calendar, MapPin as StopIcon, Pencil, FileDown, Loader2, Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
@@ -103,7 +105,7 @@ const TransportRoutes: React.FC = () => {
   // Form states
   const [showRouteForm, setShowRouteForm] = useState(false);
   const [routeForm, setRouteForm] = useState({ route_name: '', start_location: '', end_location: '', distance: '', duration_minutes: 0, morning_start_time: '', evening_start_time: '', bus_id: '' });
-  const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [downloadingCSV, setDownloadingCSV] = useState(false);
 
   // Buses for dropdown
   const [buses, setBuses] = useState<{ id: number; bus_number: string; registration_number: string }[]>([]);
@@ -327,28 +329,16 @@ const TransportRoutes: React.FC = () => {
   const cardBg = theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900';
   const input = theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white focus:ring-primary' : 'bg-gray-50 border-gray-200 focus:ring-primary';
 
-  const handleDownloadPDF = async () => {
-    setDownloadingPDF(true);
+  const handleDownloadCSV = async () => {
+    setDownloadingCSV(true);
     try {
-      const response = await exportRoutesPDF();
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `Active_Routes_${new Date().toISOString().slice(0, 10)}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-        Swal.fire("Success", "Route list PDF exported successfully", "success");
-      } else {
-        Swal.fire("Error", "Failed to export PDF", "error");
-      }
+      const url = `${API_ENDPOINT}/transport/routes/export-csv/`;
+      await downloadFile(url, `Active_Routes_${new Date().toISOString().slice(0, 10)}.csv`);
+      Swal.fire("Success", "Route list CSV exported successfully", "success");
     } catch (err) {
-      Swal.fire("Error", "Network error while exporting PDF", "error");
+      Swal.fire("Error", "Network error while exporting CSV", "error");
     } finally {
-      setDownloadingPDF(false);
+      setDownloadingCSV(false);
     }
   };
 
@@ -603,15 +593,15 @@ const TransportRoutes: React.FC = () => {
                   <span className="flex items-center gap-2">
                       Active Route Register
                   </span>
-                  {/* Mobile Download PDF Icon Button */}
+                  {/* Mobile Download CSV Icon Button */}
                   <Button
-                    onClick={handleDownloadPDF}
-                    disabled={downloadingPDF}
+                    onClick={handleDownloadCSV}
+                    disabled={downloadingCSV}
                     size="icon"
                     variant="outline"
                     className="flex sm:hidden h-8 w-8 items-center justify-center shrink-0 border border-input bg-background"
                   >
-                    {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown size={15} />}
+                    {downloadingCSV ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown size={15} />}
                   </Button>
                 </CardTitle>
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
@@ -619,16 +609,16 @@ const TransportRoutes: React.FC = () => {
                     <Plus size={15} /> Add Route
                   </Button>
                   <Button
-                    onClick={handleDownloadPDF}
-                    disabled={downloadingPDF}
+                    onClick={handleDownloadCSV}
+                    disabled={downloadingCSV}
                     className="hidden sm:flex w-full sm:w-auto bg-primary hover:bg-primary/90 text-white items-center justify-center gap-1.5 h-9"
                   >
-                    {downloadingPDF ? (
+                    {downloadingCSV ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <FileDown size={15} />
                     )}
-                    {downloadingPDF ? "Exporting..." : "Export PDF"}
+                    {downloadingCSV ? "Exporting..." : "Export CSV"}
                   </Button>
                 </div>
               </div>

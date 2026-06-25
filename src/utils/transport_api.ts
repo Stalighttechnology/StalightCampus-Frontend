@@ -28,8 +28,8 @@ export const updateBus = (id: number, data: any) =>
 export const deleteBus = (id: number) =>
   fetchWithTokenRefresh(`${API_BASE}/buses/${id}/`, { method: "DELETE", headers: authHeaders() }).then((r) => r.json());
 
-export const exportBusesPDF = () =>
-  fetchWithTokenRefresh(`${API_BASE}/buses/export-pdf/`, { headers: authHeaders() });
+export const exportBusesCSV = () =>
+  fetchWithTokenRefresh(`${API_BASE}/buses/export-csv/`, { headers: authHeaders() });
 
 // Routes
 export const fetchRoutes = (page = 1) =>
@@ -47,8 +47,8 @@ export const deleteRoute = (id: number) =>
 export const updateRouteStops = (routeId: number, stops: any[]) =>
   fetchWithTokenRefresh(`${API_BASE}/routes/${routeId}/update_stops/`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ stops }) }).then((r) => r.json());
 
-export const exportRoutesPDF = () =>
-  fetchWithTokenRefresh(`${API_BASE}/routes/export-pdf/`, { headers: authHeaders() });
+export const exportRoutesCSV = () =>
+  fetchWithTokenRefresh(`${API_BASE}/routes/export-csv/`, { headers: authHeaders() });
 
 // Assignments
 export const fetchAssignments = (page = 1) =>

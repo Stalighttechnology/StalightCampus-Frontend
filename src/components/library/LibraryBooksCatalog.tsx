@@ -4,6 +4,7 @@ import {
   Search, Plus, MapPin, X, Plus as PlusIcon,
   Eye, Edit, Trash2, Download, Loader2, Book, CheckCircle, ScanLine, Printer
 } from "lucide-react";
+import { downloadFile } from "../../utils/downloadHelper";
 import Swal from "sweetalert2";
 import JsBarcode from "jsbarcode";
 import { Card, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -23,10 +24,11 @@ import {
   DialogTitle,
   DialogFooter
 } from "../ui/dialog";
+import { API_ENDPOINT } from "../../utils/config";
 import { useTheme } from "../../context/ThemeContext";
 import {
   fetchLibraryBooks,
-  exportLibraryBooksPdf,
+  exportLibraryBooksCsv,
   createLibraryBook,
   updateLibraryBook,
   deleteLibraryBook,
@@ -256,28 +258,21 @@ const LibraryBooksCatalog = () => {
     }
   };
 
-  const handleExportPDF = async () => {
+  const handleExportCSV = async () => {
     setExporting(true);
     try {
-      const blob = await exportLibraryBooksPdf(bookSearch);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `Book_Catalog_${new Date().toISOString().split("T")[0]}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      const url = `${API_ENDPOINT}/library/admin/books/export-csv/?search=${encodeURIComponent(bookSearch)}`;
+      await downloadFile(url, `Book_Catalog_${new Date().toISOString().split("T")[0]}.csv`);
 
       Swal.fire({
         title: "Success",
-        text: "Book catalog PDF exported successfully",
+        text: "Book catalog CSV exported successfully",
         icon: "success",
         timer: 1500,
         showConfirmButton: false
       });
     } catch (error) {
-      Swal.fire("Error", "Failed to export book catalog PDF", "error");
+      Swal.fire("Error", "Failed to export book catalog CSV", "error");
     } finally {
       setExporting(false);
     }
@@ -469,15 +464,15 @@ const LibraryBooksCatalog = () => {
                 </div>
                 <p className={`hidden sm:block text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage library book titles, ISBN codes, and physical copy inventory.</p>
               </div>
-              {/* Desktop Export PDF Button */}
+              {/* Desktop Export CSV Button */}
               <Button
                 variant="outline"
-                onClick={handleExportPDF}
+                onClick={handleExportCSV}
                 disabled={exporting || books.length === 0}
                 className="hidden sm:flex items-center justify-center gap-1.5 px-4 py-2 h-10 text-sm rounded-lg border bg-primary hover:text-white text-white hover:bg-primary/90 transition-all"
               >
                 {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                Export PDF
+                Export CSV
               </Button>
             </div>
           </CardHeader>
@@ -504,9 +499,9 @@ const LibraryBooksCatalog = () => {
                     <ScanLine className="w-5 h-5" />
                   </button>
                 </div>
-                {/* Mobile Export PDF Icon Button */}
+                {/* Mobile Export CSV Icon Button */}
                 <Button
-                  onClick={handleExportPDF}
+                  onClick={handleExportCSV}
                   disabled={exporting || books.length === 0}
                   size="icon"
                   variant="outline"

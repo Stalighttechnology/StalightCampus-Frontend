@@ -3,6 +3,7 @@ import { RefreshCw, Download, Loader2, CheckCircle } from "lucide-react";
 import Swal from "sweetalert2";
 import { Card, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
+import { downloadFile } from "../../utils/downloadHelper";
 import { useTheme } from "../../context/ThemeContext";
 import {
   Select,
@@ -17,9 +18,10 @@ import {
   DialogHeader,
   DialogTitle
 } from "../ui/dialog";
+import { API_ENDPOINT } from "../../utils/config";
 import {
   fetchActiveBorrows,
-  exportLibraryBorrowsPdf,
+  exportLibraryBorrowsCsv,
   renewBook
 } from "../../utils/library_api";
 
@@ -103,28 +105,21 @@ const LibraryCirculation = () => {
     await handleRenewClick(selectedBorrowId, modalDurationDays);
   };
 
-  const handleExportPDF = async () => {
+  const handleExportCSV = async () => {
     setExporting(true);
     try {
-      const blob = await exportLibraryBorrowsPdf();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `Active_Circulation_${new Date().toISOString().split("T")[0]}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      const url = `${API_ENDPOINT}/library/admin/borrows/export-csv/`;
+      await downloadFile(url, `Active_Circulation_${new Date().toISOString().split("T")[0]}.csv`);
 
       Swal.fire({
         title: "Success",
-        text: "Active circulation PDF exported successfully",
+        text: "Active circulation CSV exported successfully",
         icon: "success",
         timer: 1500,
         showConfirmButton: false
       });
     } catch (error) {
-      Swal.fire("Error", "Failed to export active circulation PDF", "error");
+      Swal.fire("Error", "Failed to export active circulation CSV", "error");
     } finally {
       setExporting(false);
     }
@@ -148,19 +143,19 @@ const LibraryCirculation = () => {
               <p className={`hidden sm:block text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Books currently checked out and their return deadlines.</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              {/* Desktop Export PDF Button */}
+              {/* Desktop Export CSV Button */}
               <Button
                 variant="outline"
-                onClick={handleExportPDF}
+                onClick={handleExportCSV}
                 disabled={exporting || activeBorrows.length === 0}
                 className="hidden sm:flex items-center justify-center gap-1.5 px-4 py-2 h-10 text-sm rounded-lg border bg-primary hover:text-white text-white hover:bg-primary/90 transition-all"
               >
                 {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                Export PDF
+                Export CSV
               </Button>
-              {/* Mobile Export PDF Icon Button */}
+              {/* Mobile Export CSV Icon Button */}
               <Button
-                onClick={handleExportPDF}
+                onClick={handleExportCSV}
                 disabled={exporting || activeBorrows.length === 0}
                 size="icon"
                 variant="outline"
