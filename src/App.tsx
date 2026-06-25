@@ -44,6 +44,7 @@ const AIInterview = lazy(() => import("./components/common/AIInterview"));
 const TrialExpired = lazy(() => import("./components/common/TrialExpired"));
 const OnboardingSuccess = lazy(() => import("./components/common/OnboardingSuccess"));
 const SuperAdminIndex = lazy(() => import("./superadmin/index"));
+const DeveloperIndex = lazy(() => import("./developer/index"));
 const PrivacyPolicy = lazy(() => import("./components/legal/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./components/legal/TermsOfService"));
 const Home = lazy(() => import("./components/public/Home"));
@@ -254,6 +255,7 @@ const AppContent = () => {
           {/* Onboarding routes */}
           <Route path="/stalightcampus" element={<Pricing />} />
           <Route path="/stalightcampus/admin/*" element={<SuperAdminIndex />} />
+          <Route path="/stalightcampus/developer/*" element={<DeveloperIndex />} />
           <Route path="/stalightcampus/:plan" element={<Onboarding />} />
           <Route path="/onboarding/success" element={<OnboardingSuccess />} />
           <Route path="/trial-expired" element={<TrialExpired />} />
