@@ -1,7 +1,7 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { Plus, Trash2, Layers, Loader2, FileDown, Image } from "lucide-react";
+import { Plus, Trash2, Layers, Loader2, FileDown, Image, Eraser, RotateCcw, Check, X, Undo, Redo } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
@@ -114,6 +115,13 @@ const UploadQP = () => {
   const [currentQPMeta, setCurrentQPMeta] = useState<QPMetadata | null>(null);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [isDrawingOpen, setIsDrawingOpen] = useState(false);
+  const [drawingQuestionId, setDrawingQuestionId] = useState<string | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [brushColor, setBrushColor] = useState("#000000");
+  const [brushSize, setBrushSize] = useState(3);
+  const [isEraser, setIsEraser] = useState(false);
+  const [drawingSubmitting, setDrawingSubmitting] = useState(false);
 
   const [tabValue, setTabValue] = useState('questionFormat');
   const [qpId, setQpId] = useState<number | null>(null);
@@ -244,6 +252,193 @@ const UploadQP = () => {
 
     // update total marks when questions change
   }, [questions]);
+  const drawingRef = useRef(false);
+  const lastXRef = useRef(0);
+  const lastYRef = useRef(0);
+
+  const historyRef = useRef<string[]>([]);
+  const historyStepRef = useRef(-1);
+
+  const saveHistory = () => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const dataUrl = canvas.toDataURL();
+    
+    // Discard any redo states if we drew something new
+    const nextHistory = historyRef.current.slice(0, historyStepRef.current + 1);
+    nextHistory.push(dataUrl);
+    
+    historyRef.current = nextHistory;
+    historyStepRef.current = nextHistory.length - 1;
+  };
+
+  // Initialize canvas with white background on open
+  useEffect(() => {
+    if (isDrawingOpen && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      // Reset history and save initial blank white state
+      historyRef.current = [];
+      historyStepRef.current = -1;
+      saveHistory();
+    }
+  }, [isDrawingOpen]);
+
+  const getCoordinates = (e: any) => {
+    if (!canvasRef.current) return { x: 0, y: 0 };
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    
+    // Scale coordinates in case canvas bounding box is resized
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    if (e.touches && e.touches.length > 0) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top) * scaleY
+      };
+    }
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    };
+  };
+
+  const startDrawing = (e: any) => {
+    e.preventDefault();
+    const coords = getCoordinates(e);
+    lastXRef.current = coords.x;
+    lastYRef.current = coords.y;
+    drawingRef.current = true;
+  };
+
+  const draw = (e: any) => {
+    if (!drawingRef.current || !canvasRef.current) return;
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const coords = getCoordinates(e);
+    
+    ctx.beginPath();
+    ctx.moveTo(lastXRef.current, lastYRef.current);
+    ctx.lineTo(coords.x, coords.y);
+    
+    ctx.strokeStyle = isEraser ? '#ffffff' : brushColor;
+    ctx.lineWidth = brushSize;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    lastXRef.current = coords.x;
+    lastYRef.current = coords.y;
+  };
+
+  const stopDrawing = () => {
+    if (drawingRef.current) {
+      drawingRef.current = false;
+      saveHistory();
+    }
+  };
+
+  const handleUndo = () => {
+    if (historyStepRef.current > 0 && canvasRef.current) {
+      historyStepRef.current -= 1;
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        const img = new window.Image();
+        img.src = historyRef.current[historyStepRef.current];
+        img.onload = () => {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+        };
+      }
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyStepRef.current < historyRef.current.length - 1 && canvasRef.current) {
+      historyStepRef.current += 1;
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        const img = new window.Image();
+        img.src = historyRef.current[historyStepRef.current];
+        img.onload = () => {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+        };
+      }
+    }
+  };
+
+  const clearCanvas = () => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      saveHistory();
+    }
+  };
+
+  const saveCanvasDrawing = async () => {
+    if (!canvasRef.current || !drawingQuestionId) return;
+    setDrawingSubmitting(true);
+    try {
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvasRef.current?.toBlob((b) => resolve(b), 'image/png');
+      });
+
+      if (!blob) {
+        throw new Error("Failed to export canvas to Blob");
+      }
+
+      const filename = `drawing_${drawingQuestionId}_${Date.now()}.png`;
+      const file = new File([blob], filename, { type: 'image/png' });
+
+      const fileUrl = await performR2Upload(file, 'question_papers');
+      if (fileUrl) {
+        const imageHtml = `<br/><img src="${fileUrl}" style="max-width: 100%; max-height: 250px; display: block; margin: 10px 0; border-radius: 6px; border: 1px solid #e2e8f0;" />`;
+        const question = questions.find(q => q.id === drawingQuestionId);
+        if (question) {
+          updateQuestion(drawingQuestionId, 'content', question.content + imageHtml);
+        }
+        
+        toast({
+          title: "Drawing Saved",
+          description: "Your drawing has been uploaded and inserted into the question content."
+        });
+        setIsDrawingOpen(false);
+        setDrawingQuestionId(null);
+      } else {
+        toast({
+          title: "Upload Failed",
+          description: "Failed to upload drawing. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "Drawing Error",
+        description: err.message || "An error occurred while saving the drawing.",
+        variant: "destructive"
+      });
+    } finally {
+      setDrawingSubmitting(false);
+    }
+  };
+
   const addQuestion = () => {
     const nextId = `${Date.now()}`;
     setQuestions((prev) => [...prev, { id: nextId, number: `q${prev.length + 1}`, content: `Question ${prev.length + 1}`, maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply' }]);
@@ -735,9 +930,29 @@ const UploadQP = () => {
                                                 disabled={uploadingId !== null}
                                                 className="h-8 w-8 p-0 hover:bg-muted"
                                                 onClick={() => {
-                                                  const fileInput = document.getElementById(`diagram-upload-${q.id}`);
-                                                  if (fileInput) (fileInput as HTMLInputElement).click();
-                                                }}
+                                                   const MySwal = withReactContent(Swal);
+                                                   MySwal.fire({
+                                                     title: 'Add Diagram / Image',
+                                                     text: 'Select how you want to add a diagram/image to this question',
+                                                     icon: 'question',
+                                                     showCancelButton: true,
+                                                     showDenyButton: true,
+                                                     confirmButtonColor: 'hsl(var(--primary))',
+                                                     denyButtonColor: '#0ea5e9',
+                                                     cancelButtonColor: '#6c757d',
+                                                     confirmButtonText: 'Upload Local Image',
+                                                     denyButtonText: 'Draw Diagram',
+                                                     cancelButtonText: 'Cancel'
+                                                   }).then((result) => {
+                                                     if (result.isConfirmed) {
+                                                       const fileInput = document.getElementById(`diagram-upload-${q.id}`);
+                                                       if (fileInput) (fileInput as HTMLInputElement).click();
+                                                     } else if (result.isDenied) {
+                                                       setDrawingQuestionId(q.id);
+                                                       setIsDrawingOpen(true);
+                                                     }
+                                                   });
+                                                 }}
                                               >
                                                 {uploadingId === q.id ? (
                                                   <Loader2 size={16} className="animate-spin text-primary" />
@@ -753,6 +968,24 @@ const UploadQP = () => {
                                                 onChange={async (e) => {
                                                   const file = e.target.files?.[0];
                                                   if (!file) return;
+                                                  if (!file.type.startsWith('image/')) {
+                                                    toast({
+                                                      title: "Invalid File Type",
+                                                      description: "Only image files are allowed. Please select an image (PNG, JPG, etc.).",
+                                                      variant: "destructive"
+                                                    });
+                                                    e.target.value = '';
+                                                    return;
+                                                  }
+                                                  if (file.size > 2 * 1024 * 1024) {
+                                                    toast({
+                                                      title: "File Too Large",
+                                                      description: "The selected image must be less than 2MB in size.",
+                                                      variant: "destructive"
+                                                    });
+                                                    e.target.value = '';
+                                                    return;
+                                                  }
                                                   setUploadingId(q.id);
                                                   try {
                                                     const fileUrl = await performR2Upload(file, 'question_papers');
@@ -999,6 +1232,138 @@ const UploadQP = () => {
           </CardContent>
         </Tabs>
       </Card>
+
+      <Dialog open={isDrawingOpen} onOpenChange={(open) => {
+        if (!open) {
+          setIsDrawingOpen(false);
+          setDrawingQuestionId(null);
+        }
+      }}>
+        <DialogContent 
+          onInteractOutside={(e) => e.preventDefault()} 
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          className={`max-w-2xl ${theme === 'dark' ? 'bg-card text-foreground border-gray-700' : 'bg-white text-gray-900'}`}
+        >
+          <DialogHeader>
+            <DialogTitle>Draw Diagram</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 items-center">
+            {/* Control Panel */}
+            <div className="flex flex-wrap items-center gap-4 justify-between w-full p-2 border rounded-md">
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant={isEraser ? "outline" : "default"}
+                  size="sm"
+                  onClick={() => setIsEraser(false)}
+                  className="flex items-center gap-1"
+                >
+                  Pen
+                </Button>
+                <Button
+                  variant={isEraser ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsEraser(true)}
+                  className="flex items-center gap-1"
+                >
+                  <Eraser size={14} /> Eraser
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs">Color:</span>
+                <input 
+                  type="color" 
+                  value={brushColor} 
+                  onChange={(e) => setBrushColor(e.target.value)} 
+                  disabled={isEraser}
+                  className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                />
+              </div>
+              <div className="flex items-center gap-2 flex-1 max-w-[150px]">
+                <span className="text-xs whitespace-nowrap">Size: {brushSize}px</span>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="20" 
+                  value={brushSize} 
+                  onChange={(e) => setBrushSize(Number(e.target.value))}
+                  className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUndo}
+                  title="Undo"
+                  className="h-8 w-8 p-0"
+                >
+                  <Undo size={14} />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRedo}
+                  title="Redo"
+                  className="h-8 w-8 p-0"
+                >
+                  <Redo size={14} />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearCanvas}
+                  title="Clear Canvas"
+                  className="flex items-center gap-1 text-red-500 hover:text-red-600 hover:bg-red-50 h-8 px-2"
+                >
+                  <RotateCcw size={14} /> Clear
+                </Button>
+              </div>
+            </div>
+
+            {/* Drawing Area */}
+            <div className="relative border-2 border-dashed border-gray-300 rounded-lg bg-white overflow-hidden w-full max-w-[600px] h-[400px]">
+              <canvas
+                ref={canvasRef}
+                width={600}
+                height={400}
+                className="absolute inset-0 cursor-crosshair touch-none"
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+                onTouchStart={startDrawing}
+                onTouchMove={draw}
+                onTouchEnd={stopDrawing}
+              />
+            </div>
+
+            {/* Save / Close Actions */}
+            <div className="flex justify-end gap-2 w-full">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsDrawingOpen(false);
+                  setDrawingQuestionId(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={saveCanvasDrawing} 
+                disabled={drawingSubmitting}
+                className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white"
+              >
+                {drawingSubmitting ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Check size={16} />
+                )}
+                Save & Insert
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 
