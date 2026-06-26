@@ -59,11 +59,18 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
   // Get active page from URL path
   const getActivePageFromPath = (pathname: string) => {
     const path = pathname.replace('/', '');
-    if (path === '' || path === 'dashboard') return 'dashboard';
+    if (path === '' || path === 'dashboard') {
+      return user?.is_outside_student ? 'student-hostel-details' : 'dashboard';
+    }
     return path;
   };
 
-  const activePage = getActivePageFromPath(location.pathname);
+  let activePage = getActivePageFromPath(location.pathname);
+
+  // Redirect outside students to hostel details if they try to access disallowed pages
+  if (user?.is_outside_student && activePage !== 'student-hostel-details' && activePage !== 'profile') {
+    activePage = 'student-hostel-details';
+  }
 
   // Handle page changes by updating URL
   const handlePageChange = (page: string) => {

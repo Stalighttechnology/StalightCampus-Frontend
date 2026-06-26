@@ -463,6 +463,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Hostels", page: "hostels" },
       { name: "Rooms", page: "rooms" },
       { name: "Students", page: "students" },
+      { name: "Outside Students", page: "outside-students" },
       { name: "Enrollment", page: "enrollment" },
       { name: "Menu Management", page: "menu-management" },
       { name: "Today's Menu", page: "student-meals" },
@@ -536,6 +537,13 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Profile", page: "profile" },
     ],
   };
+
+  if (role === 'student' && user?.is_outside_student) {
+    menuItems['student'] = [
+      { name: "Hostel Details", page: "student-hostel-details" },
+      { name: "Profile", page: "profile" },
+    ];
+  }
 
   if (user?.role === 'hod') {
     if (role === 'hod') {

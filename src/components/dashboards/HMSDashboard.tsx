@@ -7,6 +7,7 @@ import HMSOverview from "../hms/HMSOverview";
 import HostelManagement from "../hms/HostelManagement";
 import RoomManagement from "../hms/RoomManagement";
 import StudentManagement from "../hms/StudentManagement";
+import OutsideStudentManagement from "../hms/OutsideStudentManagement";
 import Enrollment from "../hms/Enrollment";
 import StaffManagementOverview from "../hms/StaffManagementOverview";
 import MenuManagement from "../hms/MenuManagement";
@@ -81,6 +82,8 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
         return <RoomManagement />;
       case "students":
         return <StudentManagement />;
+      case "outside-students":
+        return <OutsideStudentManagement />;
       case "enrollment":
         return <Enrollment />;
       case "staff":

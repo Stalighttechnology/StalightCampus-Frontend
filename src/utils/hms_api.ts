@@ -689,3 +689,26 @@ export const actionGatePass = async (id: number, action: 'approve' | 'reject', n
   }
 };
 
+export const manageOutsideStudents = async (
+  id?: number,
+  data?: any,
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET',
+  params?: Record<string, any>
+): Promise<HMSResponse<any>> => {
+  let endpoint = 'outside-students/';
+  if (id) endpoint += `${id}/`;
+  if (params) {
+    const qs = new URLSearchParams(params).toString();
+    endpoint += `?${qs}`;
+  }
+  return hmsApiCall<any>(endpoint, method, data);
+};
+
+export const getOutsideStudentFilterOptions = async (): Promise<HMSResponse<{
+  courses: string[];
+  years: string[];
+}>> => {
+  return hmsApiCall<any>("outside-students/get_filter_options/", "GET");
+};
+
+
