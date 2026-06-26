@@ -803,11 +803,13 @@ const AdminHODAttendance: React.FC = () => {
                     today.setHours(0, 0, 0, 0);
                     const effectiveEnd = end < today ? end : today;
                     
-                    const start = new Date(effectiveEnd);
-                    if (selectedHOD && selectedHOD.total_days > 0) {
-                      start.setDate(effectiveEnd.getDate() - (selectedHOD.total_days - 1));
-                    } else {
-                      start.setTime(new Date(dateRange.start_date).getTime());
+                    const start = new Date(dateRange.start_date);
+                    if (selectedHOD && (selectedHOD as any).date_joined) {
+                      const joinDate = new Date((selectedHOD as any).date_joined);
+                      joinDate.setHours(0, 0, 0, 0);
+                      if (joinDate > start) {
+                        start.setTime(joinDate.getTime());
+                      }
                     }
                     const todayStr = new Date().toLocaleDateString('sv-SE');
                     const days = [];

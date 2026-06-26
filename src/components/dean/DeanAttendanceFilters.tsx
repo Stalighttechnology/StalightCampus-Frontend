@@ -685,12 +685,8 @@ const DeanAttendanceFilters = () => {
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-4">
                 {(() => {
                   const end = endDate ? new Date(endDate) : new Date();
-                  const start = new Date(end);
-                  if (selectedPersonSummary?.attendance_summary?.total_days > 0) {
-                    start.setDate(end.getDate() - (selectedPersonSummary.attendance_summary.total_days - 1));
-                  } else if (startDate) {
-                    start.setTime(new Date(startDate).getTime());
-                  } else {
+                  const start = startDate ? new Date(startDate) : new Date();
+                  if (!startDate) {
                     start.setDate(end.getDate() - 29);
                   }
 

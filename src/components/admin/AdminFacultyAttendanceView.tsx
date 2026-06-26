@@ -1172,12 +1172,13 @@ const AdminFacultyAttendanceView: React.FC = () => {
                   const today = new Date();
                   today.setHours(0, 0, 0, 0);
                   const effectiveEnd = end < today ? end : today;
-                  
-                  const start = new Date(effectiveEnd);
-                  if (selectedFaculty && selectedFaculty.total_days > 0) {
-                    start.setDate(effectiveEnd.getDate() - (selectedFaculty.total_days - 1));
-                  } else {
-                    start.setTime(new Date(dateRange.start_date).getTime());
+                  const start = new Date(dateRange.start_date);
+                  if (selectedFaculty && (selectedFaculty as any).date_joined) {
+                    const joinDate = new Date((selectedFaculty as any).date_joined);
+                    joinDate.setHours(0, 0, 0, 0);
+                    if (joinDate > start) {
+                      start.setTime(joinDate.getTime());
+                    }
                   }
                   const todayStr = new Date().toLocaleDateString('sv-SE');
                   const days = [];
