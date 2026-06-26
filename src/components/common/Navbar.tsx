@@ -38,6 +38,40 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
   const { theme, toggleTheme } = useTheme();
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  const [childrenList, setChildrenList] = useState<any[]>([]);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(localStorage.getItem('selectedStudentId'));
+  const [showParentDropdown, setShowParentDropdown] = useState(false);
+  const [showDesktopSwitcher, setShowDesktopSwitcher] = useState(false);
+
+  useEffect(() => {
+    if (role === 'parent') {
+      const fetchChildren = async () => {
+        try {
+          const { fetchWithTokenRefresh } = await import("../../utils/authService");
+          const response = await fetchWithTokenRefresh(`${API_BASE_URL}/api/student/parent-children/`);
+          const data = await response.json();
+          if (data.success && data.children) {
+            setChildrenList(data.children);
+            if (data.children.length > 0 && !localStorage.getItem('selectedStudentId')) {
+              localStorage.setItem('selectedStudentId', data.children[0].id.toString());
+              setSelectedChildId(data.children[0].id.toString());
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch children", error);
+        }
+      };
+      fetchChildren();
+    }
+  }, [role]);
+
+  const handleChildSwitch = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const childId = e.target.value;
+    localStorage.setItem('selectedStudentId', childId);
+    setSelectedChildId(childId);
+    window.location.reload();
+  };
+
   // Update time every minute
   useEffect(() => {
     const timer = setInterval(() => {
@@ -55,6 +89,13 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
   };
 
   const handleProfileClick = () => {
+    if (role === "parent") {
+      // Only trigger custom dropdown from profile icon on mobile
+      if (window.innerWidth < 640) {
+        setShowParentDropdown(!showParentDropdown);
+      }
+      return;
+    }
     if (setPage) {
       if (role === "faculty") {
         setPage("faculty-profile");
@@ -152,6 +193,56 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           </div>
         </div>
 
+        {/* Custom Desktop Switcher for Parents */}
+        {role === "parent" && childrenList.length > 0 && (
+          <div className="hidden sm:block relative mr-2">
+            <button
+              onClick={() => setShowDesktopSwitcher(!showDesktopSwitcher)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium transition-colors ${
+                theme === 'dark' 
+                  ? 'bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700' 
+                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <div className="text-xs truncate max-w-[140px]">
+                {childrenList.find((c: any) => c.id.toString() === selectedChildId)?.name || 'Switch Child'}
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            
+            {showDesktopSwitcher && (
+              <div className={`absolute top-full right-0 mt-2 w-56 rounded-lg shadow-lg py-1 z-50 border ${theme === 'dark' ? 'bg-gray-800 border-gray-700 shadow-black/50' : 'bg-white border-gray-200 shadow-gray-200/50'}`}>
+                <div className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider border-b ${theme === 'dark' ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-100'}`}>
+                  Select Student
+                </div>
+                <div className="max-h-[300px] overflow-y-auto">
+                  {childrenList.map((child: any) => (
+                    <button
+                      key={child.id}
+                      onClick={() => {
+                        localStorage.setItem('selectedStudentId', child.id.toString());
+                        setSelectedChildId(child.id.toString());
+                        setShowDesktopSwitcher(false);
+                        window.location.reload();
+                      }}
+                      className={`block w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                        selectedChildId == child.id.toString() 
+                          ? (theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary font-semibold')
+                          : (theme === 'dark' ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50')
+                      }`}
+                    >
+                      <div className="truncate">{child.name}</div>
+                      <div className={`text-[10px] mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {child.usn || child.enrollment_number}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Plan Badge */}
         <motion.div
           initial={{ opacity: 0, x: 10 }}
@@ -208,26 +299,60 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           )}
 
           {/* Profile Button */}
-          <div
-            className={`flex items-center gap-3 p-1 lg:pl-3 lg:pr-1 lg:py-1 rounded-full border transition-all duration-200 cursor-pointer ${theme === 'dark' ? 'border-border bg-accent/50 hover:bg-accent' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
-              }`}
-            onClick={handleProfileClick}
-          >
-            <div className="text-right hidden lg:block">
-              <div className={`text-xs font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                {user?.first_name ? `${user.first_name} ` : "User"}
+          <div className="relative">
+            <div
+              className={`flex items-center gap-3 p-1 lg:pl-3 lg:pr-1 lg:py-1 rounded-full border transition-all duration-200 cursor-pointer ${theme === 'dark' ? 'border-border bg-accent/50 hover:bg-accent' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
+                }`}
+              onClick={handleProfileClick}
+            >
+              <div className="text-right hidden lg:block">
+                <div className={`text-xs font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {user?.first_name ? `${user.first_name} ` : "User"}
+                </div>
+                <div className="text-[10px] opacity-60 capitalize">
+                  {(role === "admin" || role === "principal") ? "Principal" : role}
+                </div>
               </div>
-              <div className="text-[10px] opacity-60 capitalize">
-                {(role === "admin" || role === "principal") ? "Principal" : role}
+              <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-xs shadow-inner overflow-hidden">
+                {avatarSrc ? (
+                  <img src={avatarSrc} alt="P" className="w-full h-full object-cover" />
+                ) : (
+                  user?.first_name?.[0] || role?.[0]?.toUpperCase()
+                )}
               </div>
             </div>
-            <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-xs shadow-inner overflow-hidden">
-              {avatarSrc ? (
-                <img src={avatarSrc} alt="P" className="w-full h-full object-cover" />
-              ) : (
-                user?.first_name?.[0] || role?.[0]?.toUpperCase()
-              )}
-            </div>
+            
+            {/* Custom Dropdown for Parents (Mobile Only) */}
+            {showParentDropdown && role === "parent" && childrenList.length > 0 && window.innerWidth < 640 && (
+              <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 z-50 border ${theme === 'dark' ? 'bg-gray-800 border-gray-700 shadow-black/50' : 'bg-white border-gray-200 shadow-gray-200/50'}`}>
+                <div className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider border-b ${theme === 'dark' ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-100'}`}>
+                  Switch Child
+                </div>
+                <div className="max-h-[300px] overflow-y-auto">
+                  {childrenList.map((child: any) => (
+                    <button
+                      key={child.id}
+                      onClick={() => {
+                        localStorage.setItem('selectedStudentId', child.id.toString());
+                        setSelectedChildId(child.id.toString());
+                        setShowParentDropdown(false);
+                        window.location.reload();
+                      }}
+                      className={`block w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                        selectedChildId == child.id.toString() 
+                          ? (theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary font-semibold')
+                          : (theme === 'dark' ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50')
+                      }`}
+                    >
+                      <div className="truncate">{child.name}</div>
+                      <div className={`text-[10px] mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {child.usn || child.enrollment_number}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

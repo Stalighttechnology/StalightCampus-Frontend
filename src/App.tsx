@@ -337,7 +337,7 @@ const AppContent = () => {
 
           
           <Route path="/holiday-calendar" element={
-            <ProtectedRoute allowedRoles={["student"]}>
+            <ProtectedRoute allowedRoles={["student", "parent"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -345,7 +345,7 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
           <Route path="/dashboard" element={
-            <ProtectedRoute allowedRoles={["student"]}>
+            <ProtectedRoute allowedRoles={["student", "parent"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -354,7 +354,7 @@ const AppContent = () => {
           } />
 
           <Route path="/timetable" element={
-            <ProtectedRoute allowedRoles={["student"]}>
+            <ProtectedRoute allowedRoles={["student", "parent"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -363,7 +363,7 @@ const AppContent = () => {
           } />
 
           <Route path="/attendance" element={
-            <ProtectedRoute allowedRoles={["student"]}>
+            <ProtectedRoute allowedRoles={["student", "parent"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -372,7 +372,7 @@ const AppContent = () => {
           } />
 
           <Route path="/marks" element={
-            <ProtectedRoute allowedRoles={["student"]}>
+            <ProtectedRoute allowedRoles={["student", "parent"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -408,7 +408,7 @@ const AppContent = () => {
           } />
 
           <Route path="/fees" element={
-            <ProtectedRoute allowedRoles={["student"]}>
+            <ProtectedRoute allowedRoles={["student", "parent"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -425,7 +425,7 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
           <Route path="/student-hostel-details" element={
-            <ProtectedRoute allowedRoles={["student"]}>
+            <ProtectedRoute allowedRoles={["student", "parent"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -434,7 +434,7 @@ const AppContent = () => {
           } />
 
           <Route path="/transportation" element={
-            <ProtectedRoute allowedRoles={["student"]}>
+            <ProtectedRoute allowedRoles={["student", "parent"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -443,7 +443,7 @@ const AppContent = () => {
           } />
 
           <Route path="/library" element={
-            <ProtectedRoute allowedRoles={["student"]}>
+            <ProtectedRoute allowedRoles={["student", "parent"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -452,7 +452,7 @@ const AppContent = () => {
           } />
 
           <Route path="/announcements" element={
-            <ProtectedRoute allowedRoles={["student"]}>
+            <ProtectedRoute allowedRoles={["student", "parent"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -497,7 +497,7 @@ const AppContent = () => {
           } />
 
           <Route path="/student-syllabus" element={
-            <ProtectedRoute allowedRoles={["student"]}>
+            <ProtectedRoute allowedRoles={["student", "parent"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -506,7 +506,7 @@ const AppContent = () => {
           } />
 
           <Route path="/student-assignment" element={
-            <ProtectedRoute allowedRoles={["student"]}>
+            <ProtectedRoute allowedRoles={["student", "parent"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}

@@ -70,6 +70,30 @@ const Profile = ({ role, user }: ProfileProps) => {
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
+  const [parentData, setParentData] = useState({ parent_name: "", parent_email: "" });
+  const [linkingParent, setLinkingParent] = useState(false);
+
+  const handleLinkParent = async () => {
+    setLinkingParent(true);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/link-parent/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(parentData)
+      });
+      const res = await response.json();
+      if (res.success) {
+        showSuccessAlert('Success', 'Parent account linked successfully!');
+        setParentData({ parent_name: "", parent_email: "" });
+      } else {
+        showErrorAlert('Error', res.message || 'Failed to link parent account');
+      }
+    } catch (e) {
+      showErrorAlert('Error', 'An error occurred while linking parent.');
+    } finally {
+      setLinkingParent(false);
+    }
+  };
 
   
   const handleDeleteProfilePicture = async () => {
@@ -343,17 +367,62 @@ const Profile = ({ role, user }: ProfileProps) => {
           <div className="animate-in fade-in duration-300">
             <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Settings</h3>
             
-            <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
-              <div className="space-y-0.5">
-                <Label className="text-base font-medium">Push Notifications</Label>
-                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Receive real-time alerts for attendance, leaves, exams, and more.
-                </p>
+            <div className="space-y-6">
+              <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+                <div className="space-y-0.5">
+                  <Label className="text-base font-medium">Push Notifications</Label>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Receive real-time alerts for attendance, leaves, exams, and more.
+                  </p>
+                </div>
+                <Switch
+                  checked={notificationsEnabled}
+                  onCheckedChange={(checked) => handleNotificationToggle(checked, setNotificationsEnabled)}
+                />
               </div>
-              <Switch
-                checked={notificationsEnabled}
-                onCheckedChange={(checked) => handleNotificationToggle(checked, setNotificationsEnabled)}
-              />
+
+              {role === 'student' && (
+                <div>
+                  <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Parent Access</h3>
+                  <div className={`p-4 border rounded-lg space-y-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      Grant your parents read-only access to your dashboard. <br />
+                      <strong>Note:</strong> Your parents can login with this email ID and your USN as the password.
+                    </p>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="parent_name" className="text-sm mb-1.5 block">Parent's Name</Label>
+                        <Input 
+                          id="parent_name" 
+                          placeholder="e.g. John Doe" 
+                          value={parentData.parent_name}
+                          onChange={(e) => setParentData({...parentData, parent_name: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="parent_email" className="text-sm mb-1.5 block">Parent's Email</Label>
+                        <Input 
+                          id="parent_email" 
+                          type="email"
+                          placeholder="e.g. parent@example.com" 
+                          value={parentData.parent_email}
+                          onChange={(e) => setParentData({...parentData, parent_email: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button 
+                        disabled={!parentData.parent_name || !parentData.parent_email || linkingParent}
+                        onClick={handleLinkParent}
+                        className="bg-primary hover:bg-primary/90 text-white"
+                      >
+                        {linkingParent ? 'Linking...' : 'Enable Parent Access'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );

@@ -89,6 +89,7 @@ export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
             case "coe":
               navigate("/coe", { replace: true });
               break;
+            case "parent":
             case "student":
               navigate("/dashboard", { replace: true });
               break;
