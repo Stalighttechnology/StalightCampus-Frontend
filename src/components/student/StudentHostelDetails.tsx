@@ -29,6 +29,7 @@ import {
 'react-icons/fa';
 import { SkeletonCard, SkeletonList } from '../ui/skeleton';
 import { Card, CardHeader, CardContent } from '../ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 
 type Warden = {
   id?: number;
@@ -262,6 +263,10 @@ const StudentHostelDetails: React.FC = () => {
   const [isGatePassModalOpen, setIsGatePassModalOpen] = useState(false);
   const [myGatePasses, setMyGatePasses] = useState<any[]>([]);
   const [loadingGatePasses, setLoadingGatePasses] = useState(false);
+  const [hasLoadedGatePasses, setHasLoadedGatePasses] = useState(false);
+  const [hasLoadedIssues, setHasLoadedIssues] = useState(false);
+  const [hasLoadedMeals, setHasLoadedMeals] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
   const { toast } = useToast();
 
   const load = async () => {
@@ -291,25 +296,27 @@ const StudentHostelDetails: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Load compact today's menu for student dashboard
     const loadToday = async () => {
       try {
         const res = await getTodayMenuSummary();
         if (res.success && res.results) {
           setTodayMenus(res.results);
         } else if (res.success && res.data) {
-          // some endpoints return single object
           setTodayMenus(Array.isArray(res.data) ? res.data : [res.data]);
         } else {
           setTodayMenus([]);
         }
       } catch (e) {
-
         setTodayMenus([]);
+      } finally {
+        setHasLoadedMeals(true);
       }
     };
-    loadToday();
-  }, []);
+
+    if (activeTab === 'meals' && !hasLoadedMeals) {
+      loadToday();
+    }
+  }, [activeTab, hasLoadedMeals]);
 
   const loadGatePasses = async () => {
     setLoadingGatePasses(true);
@@ -326,11 +333,17 @@ const StudentHostelDetails: React.FC = () => {
       setMyGatePasses([]);
     } finally {
       setLoadingGatePasses(false);
+      setHasLoadedGatePasses(true);
     }
   };
 
   useEffect(() => {
-    // Load student's raised issues
+    if (activeTab === 'gate-passes' && !hasLoadedGatePasses) {
+      loadGatePasses();
+    }
+  }, [activeTab, hasLoadedGatePasses]);
+
+  useEffect(() => {
     const loadIssues = async () => {
       setLoadingIssues(true);
       try {
@@ -343,15 +356,17 @@ const StudentHostelDetails: React.FC = () => {
           setMyIssues([]);
         }
       } catch (e) {
-
         setMyIssues([]);
       } finally {
         setLoadingIssues(false);
+        setHasLoadedIssues(true);
       }
     };
-    loadIssues();
-    loadGatePasses();
-  }, []);
+
+    if (activeTab === 'issues' && !hasLoadedIssues) {
+      loadIssues();
+    }
+  }, [activeTab, hasLoadedIssues]);
 
 
 
@@ -444,8 +459,17 @@ const StudentHostelDetails: React.FC = () => {
         </CardHeader>
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
 
-          {/* ── Hostel + Room + Warden row ────────────────────────────────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6 h-auto gap-1">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="gate-passes">Gate Passes</TabsTrigger>
+              <TabsTrigger value="issues">Issues</TabsTrigger>
+              <TabsTrigger value="meals">Meals</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="mt-0">
+              {/* ── Hostel + Room + Warden row ────────────────────────────────────── */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
             {/* Hostel card */}
             {hostel && (
@@ -580,11 +604,13 @@ const StudentHostelDetails: React.FC = () => {
               color={theme === 'dark' ? 'bg-emerald-900/40 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}
               theme={theme} />
 
-          </div>
+              </div>
+            </TabsContent>
 
-          {/* ── Issue Management Card (Combined) ──────────────────────────── */}
-          {room &&
-          <div className={`rounded-xl border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+            <TabsContent value="issues" className="mt-0">
+              {/* ── Issue Management Card (Combined) ──────────────────────────── */}
+              {room &&
+              <div className={`rounded-xl border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
               
               {/* Section 1: Report an Issue */}
               <div className={`p-6 bg-gradient-to-r ${theme === 'dark' ? 'from-amber-500/10 via-amber-500/5 to-transparent border-b border-amber-500/10' : 'from-amber-50/80 via-amber-50/30 to-transparent border-b border-amber-200/50'}`}>
@@ -707,10 +733,12 @@ const StudentHostelDetails: React.FC = () => {
               </div>
             </div>
           }
+          </TabsContent>
 
-          {/* ── Gate Pass Request Card (Combined) ──────────────────────────── */}
-          {room &&
-            <div className={`rounded-xl border shadow-sm mt-6 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+            <TabsContent value="gate-passes" className="mt-0">
+              {/* ── Gate Pass Request Card (Combined) ──────────────────────────── */}
+              {room &&
+                <div className={`rounded-xl border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
                 {/* Section 1: Request a Gate Pass */}
                 <div className={`p-6 bg-gradient-to-r ${theme === 'dark' ? 'from-purple-500/10 via-purple-500/5 to-transparent border-b border-purple-500/10' : 'from-purple-50/80 via-purple-50/30 to-transparent border-b border-purple-200/50'}`}>
                   <div className="flex flex-col sm:flex-row items-start gap-4">
@@ -829,11 +857,13 @@ const StudentHostelDetails: React.FC = () => {
                   }
                 </div>
               </div>
-          }
+            }
+            </TabsContent>
 
-          {/* ── Meal Management Section ──────────────────────────────────────── */}
-          <div className="mt-6">
-            <div className={`rounded-xl border p-4 shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+            <TabsContent value="meals" className="mt-0">
+              {/* ── Meal Management Section ──────────────────────────────────────── */}
+              <div>
+                <div className={`rounded-xl border p-4 shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className={`text-[10px] uppercase tracking-wider font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>Today's Menu</p>
@@ -913,10 +943,11 @@ const StudentHostelDetails: React.FC = () => {
 
                 })}
                 </div>
-              }
-            </div>
-          </div>
-
+                  }
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
