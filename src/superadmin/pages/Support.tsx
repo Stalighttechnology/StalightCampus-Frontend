@@ -338,6 +338,23 @@ const Support = () => {
                   </div>
                 </div>
               </div>
+
+              {selectedTicket?.transfer_history?.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide mb-2 mt-4">Transfer History</h4>
+                  <div className="space-y-3">
+                    {selectedTicket.transfer_history.map((log: any, idx: number) => (
+                      <div key={idx} className="p-3 border rounded-lg bg-muted/10 text-sm">
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="font-semibold">{log.from} &rarr; {log.to}</span>
+                          <span className="text-xs text-muted-foreground">{new Date(log.date).toLocaleString()}</span>
+                        </div>
+                        {log.reason && <p className="text-muted-foreground text-xs italic mt-1">&quot;{log.reason}&quot;</p>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Right Column: Resolution & Assignment */}
