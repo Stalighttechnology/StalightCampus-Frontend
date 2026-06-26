@@ -30,6 +30,9 @@ const AssignedIssues = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [updateForm, setUpdateForm] = useState({ status: '', response: '' });
+  const [colleagues, setColleagues] = useState<any[]>([]);
+  const [transferMode, setTransferMode] = useState(false);
+  const [transferForm, setTransferForm] = useState({ transfer_to_id: '', transfer_reason: '' });
   const { theme } = useTheme();
 
   const fetchData = async (p = page) => {
@@ -49,21 +52,35 @@ const AssignedIssues = () => {
     }
   };
 
-  useEffect(() => { fetchData(page); }, [page]);
+  const fetchColleagues = async () => {
+    try {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/developer/colleagues/`, {
+        headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
+      });
+      const res = await response.json();
+      if (res.developers) setColleagues(res.developers);
+    } catch (e) {}
+  };
+
+  useEffect(() => { 
+    fetchData(page); 
+    fetchColleagues();
+  }, [page]);
 
   const handleUpdate = async () => {
     try {
+      const payload = transferMode ? { ...transferForm } : updateForm;
       const res = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/developer/assigned-tickets/${selectedTicket.internal_id}/`, {
         method: 'PUT',
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(updateForm)
+        body: JSON.stringify(payload)
       });
       const result = await res.json();
       if (result.success) {
-        showSuccessAlert('Success', 'Ticket updated successfully');
+        showSuccessAlert('Success', result.transferred ? 'Ticket transferred successfully' : 'Ticket updated successfully');
         setSelectedTicket(null);
         fetchData();
       } else {
@@ -161,7 +178,13 @@ const AssignedIssues = () => {
         </div>
       </div>
 
-      <Dialog open={!!selectedTicket} onOpenChange={(open) => !open && setSelectedTicket(null)}>
+      <Dialog open={!!selectedTicket} onOpenChange={(open) => {
+        if (!open) {
+          setSelectedTicket(null);
+          setTransferMode(false);
+          setTransferForm({ transfer_to_id: '', transfer_reason: '' });
+        }
+      }}>
         <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader className="border-b pb-4">
             <DialogTitle className="flex justify-between items-center pr-4 text-xl">
@@ -242,28 +265,62 @@ const AssignedIssues = () => {
             <div className="space-y-5 bg-muted/20 p-5 rounded-xl border">
               <h4 className="font-semibold text-sm border-b pb-2">Ticket Resolution</h4>
               
-              <div>
-                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Update Status</Label>
-                <select
-                  className="w-full mt-1.5 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-                  value={updateForm.status}
-                  onChange={(e) => setUpdateForm({ ...updateForm, status: e.target.value })}>
-                  {['Open', 'Pending', 'Resolved', 'Closed'].map((s) =>
-                    <option key={s} value={s}>{s}</option>
-                  )}
-                </select>
-              </div>
+              {transferMode ? (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Transfer To</Label>
+                    <Button variant="ghost" size="sm" onClick={() => setTransferMode(false)} className="h-6 text-xs px-2">Cancel Transfer</Button>
+                  </div>
+                  <select
+                    className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                    value={transferForm.transfer_to_id}
+                    onChange={(e) => setTransferForm({ ...transferForm, transfer_to_id: e.target.value })}>
+                    <option value="" disabled>Select a developer</option>
+                    {colleagues.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Transfer Reason</Label>
+                    <Textarea
+                      className="mt-1.5 resize-none focus:ring-2 focus:ring-primary/20 transition-all"
+                      placeholder="Why are you transferring this ticket?"
+                      rows={4}
+                      value={transferForm.transfer_reason}
+                      onChange={(e) => setTransferForm({ ...transferForm, transfer_reason: e.target.value })} 
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Update Status</Label>
+                    <select
+                      className="w-full mt-1.5 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                      value={updateForm.status}
+                      onChange={(e) => setUpdateForm({ ...updateForm, status: e.target.value })}>
+                      {['Open', 'Pending', 'Resolved', 'Closed'].map((s) =>
+                        <option key={s} value={s}>{s}</option>
+                      )}
+                    </select>
+                  </div>
 
-              <div>
-                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Official Response</Label>
-                <Textarea
-                  className="mt-1.5 resize-none focus:ring-2 focus:ring-primary/20 transition-all"
-                  placeholder="Enter response or resolution notes..."
-                  rows={6}
-                  value={updateForm.response}
-                  onChange={(e) => setUpdateForm({ ...updateForm, response: e.target.value })} 
-                />
-              </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Official Response</Label>
+                    <Textarea
+                      className="mt-1.5 resize-none focus:ring-2 focus:ring-primary/20 transition-all"
+                      placeholder="Enter response or resolution notes..."
+                      rows={6}
+                      value={updateForm.response}
+                      onChange={(e) => setUpdateForm({ ...updateForm, response: e.target.value })} 
+                    />
+                  </div>
+                  
+                  <div className="pt-2 border-t">
+                    <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => setTransferMode(true)}>
+                      Transfer Ticket
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
           
