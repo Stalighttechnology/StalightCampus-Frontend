@@ -1,7 +1,7 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Plus, Trash2, Layers, Loader2, FileDown } from "lucide-react";
+import { Plus, Trash2, Layers, Loader2, FileDown, Image } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { useFacultyAssignmentsQuery } from "../../hooks/useApiQueries";
 import { createQuestionPaper, updateQuestionPaper, getQuestionPapers, submitQPForApproval, getQuestionPaperDetail, getBatches } from "../../utils/faculty_api";
+import { performR2Upload } from "../../utils/common_api";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonList, SkeletonTable } from "@/components/ui/skeleton";
 import { API_ENDPOINT } from "../../utils/config";
@@ -112,6 +113,7 @@ const UploadQP = () => {
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
   const [currentQPMeta, setCurrentQPMeta] = useState<QPMetadata | null>(null);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   const [tabValue, setTabValue] = useState('questionFormat');
   const [qpId, setQpId] = useState<number | null>(null);
@@ -723,7 +725,66 @@ const UploadQP = () => {
                                         <Input value={q.number} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'number', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3" />
                                       </TableCell>
                                       <TableCell className="p-1 sm:p-2 whitespace-nowrap">
-                                        <Input value={q.content} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'content', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full focus-visible:ring-1 px-1 sm:px-3" />
+                                        <div className="flex items-center gap-2">
+                                          <Input value={q.content} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'content', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full focus-visible:ring-1 px-1 sm:px-3" />
+                                          {!isLocked && (
+                                            <div className="relative">
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                disabled={uploadingId !== null}
+                                                className="h-8 w-8 p-0 hover:bg-muted"
+                                                onClick={() => {
+                                                  const fileInput = document.getElementById(`diagram-upload-${q.id}`);
+                                                  if (fileInput) (fileInput as HTMLInputElement).click();
+                                                }}
+                                              >
+                                                {uploadingId === q.id ? (
+                                                  <Loader2 size={16} className="animate-spin text-primary" />
+                                                ) : (
+                                                  <Image size={16} className="text-muted-foreground hover:text-primary" />
+                                                )}
+                                              </Button>
+                                              <input
+                                                id={`diagram-upload-${q.id}`}
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={async (e) => {
+                                                  const file = e.target.files?.[0];
+                                                  if (!file) return;
+                                                  setUploadingId(q.id);
+                                                  try {
+                                                    const fileUrl = await performR2Upload(file, 'question_papers');
+                                                    if (fileUrl) {
+                                                      const imageHtml = `<br/><img src="${fileUrl}" style="max-width: 100%; max-height: 250px; display: block; margin: 10px 0; border-radius: 6px; border: 1px solid #e2e8f0;" />`;
+                                                      updateQuestion(q.id, 'content', q.content + imageHtml);
+                                                      toast({
+                                                        title: "Diagram Uploaded",
+                                                        description: "Diagram has been uploaded and inserted into the question content."
+                                                      });
+                                                    } else {
+                                                      toast({
+                                                        title: "Upload Failed",
+                                                        description: "Failed to upload diagram. Please try again.",
+                                                        variant: "destructive"
+                                                      });
+                                                    }
+                                                  } catch (err) {
+                                                    toast({
+                                                      title: "Upload Error",
+                                                      description: "An error occurred during upload.",
+                                                      variant: "destructive"
+                                                    });
+                                                  } finally {
+                                                    setUploadingId(null);
+                                                    e.target.value = '';
+                                                  }
+                                                }}
+                                              />
+                                            </div>
+                                          )}
+                                        </div>
                                       </TableCell>
                                       <TableCell className="p-1 sm:p-2 whitespace-nowrap">
                                         <Input value={q.maxMarks} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'maxMarks', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3" />
@@ -875,9 +936,10 @@ const UploadQP = () => {
                                           {s.maxMarks}m
                                         </Badge>
                                       </div>
-                                      <div className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} text-left whitespace-pre-line break-words`}>
-                                        {isExpanded ? s.content : shortContent}
-                                      </div>
+                                      <div 
+                                        className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} text-left whitespace-pre-line break-words`}
+                                        dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
+                                      />
                                       {(s.content || '').length > 160 && (
                                         <div className="pt-1 text-left">
                                           <button
@@ -900,9 +962,10 @@ const UploadQP = () => {
                                       </div>
                                       <div className="flex-1 pt-2">
                                         <div className="flex justify-between items-start gap-4">
-                                          <div className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left whitespace-pre-line break-words`}>
-                                            {isExpanded ? s.content : shortContent}
-                                          </div>
+                                          <div 
+                                            className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left whitespace-pre-line break-words`}
+                                            dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
+                                          />
                                           <div className="ml-2 flex-shrink-0">
                                             <Badge className={`font-semibold text-sm ${getBadgeClassName()}`}>{s.maxMarks}m</Badge>
                                           </div>

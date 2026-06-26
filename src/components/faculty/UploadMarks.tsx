@@ -1585,9 +1585,10 @@ const UploadMarks = () => {
                                         {s.maxMarks}m
                                       </Badge>
                                     </div>
-                                    <div className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} text-left whitespace-pre-line break-words`}>
-                                      {isExpanded ? s.content : shortContent}
-                                    </div>
+                                    <div 
+                                      className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} text-left whitespace-pre-line break-words`}
+                                      dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
+                                    />
                                     {(s.content || '').length > 160 && (
                                       <div className="pt-1 text-left">
                                         <button
@@ -1610,9 +1611,10 @@ const UploadMarks = () => {
                                     </div>
                                     <div className="flex-1 pt-2">
                                       <div className="flex justify-between items-start gap-4">
-                                        <div className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left whitespace-pre-line break-words`}>
-                                          {isExpanded ? s.content : shortContent}
-                                        </div>
+                                        <div 
+                                          className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left whitespace-pre-line break-words`}
+                                          dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
+                                        />
                                         <div className="ml-2 flex-shrink-0">
                                           <Badge className={`font-semibold text-sm ${getBadgeClassName()}`}>{s.maxMarks}m</Badge>
                                         </div>
