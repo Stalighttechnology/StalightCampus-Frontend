@@ -613,8 +613,10 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                           studentStatuses[student.usn] === 'Applied'
                             ? theme === 'dark' ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
                             : 'bg-primary hover:bg-[#9147e0] text-white border-0'
-                        }`}
+                        } ${!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? 'opacity-50 cursor-not-allowed' : ''}`}
                         variant={studentStatuses[student.usn] === 'Applied' ? 'outline' : 'default'}
+                        disabled={!student.is_window_open && studentStatuses[student.usn] !== 'Applied'}
+                        title={!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? "Exam application is closed for this period" : ""}
                       >
                         {studentStatuses[student.usn] === 'Applied' ? 'Edit Application' : 'Apply'}
                       </Button>
@@ -689,8 +691,10 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                             studentStatuses[student.usn] === 'Applied'
                               ? theme === 'dark' ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
                               : 'bg-primary hover:bg-[#9147e0] text-white border-0'
-                          }`}
+                          } ${!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? 'opacity-50 cursor-not-allowed' : ''}`}
                           variant={studentStatuses[student.usn] === 'Applied' ? 'outline' : 'default'}
+                          disabled={!student.is_window_open && studentStatuses[student.usn] !== 'Applied'}
+                          title={!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? "Exam application is closed for this period" : ""}
                         >
                           {studentStatuses[student.usn] === 'Applied' ? 'Edit Application' : 'Apply'}
                         </Button>

@@ -604,14 +604,18 @@ const ExamApplication: React.FC = () => {
                             {studentStatuses[student.usn] === 'Applied' ? (
                               <Button
                                 onClick={() => openFor(student)}
-                                className="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-950/20 dark:text-purple-400 dark:border-purple-900/50 h-8 px-3 flex items-center gap-2 font-medium transition-colors"
+                                className={`bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-950/20 dark:text-purple-400 dark:border-purple-900/50 h-8 px-3 flex items-center gap-2 font-medium transition-colors ${!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                disabled={!student.is_window_open && studentStatuses[student.usn] !== 'Applied'}
+                                title={!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? "Exam application is closed for this period" : ""}
                               >
                                 Edit Application
                               </Button>
                             ) : (
                               <Button
                                 onClick={() => openFor(student)}
-                                className="bg-primary hover:bg-primary/90 text-white h-8 px-3"
+                                className={`bg-primary hover:bg-primary/90 text-white h-8 px-3 ${!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                disabled={!student.is_window_open && studentStatuses[student.usn] !== 'Applied'}
+                                title={!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? "Exam application is closed for this period" : ""}
                               >
                                 Apply
                               </Button>
