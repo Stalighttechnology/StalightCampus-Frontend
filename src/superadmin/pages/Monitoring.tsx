@@ -101,6 +101,7 @@ const Monitoring = () => {
 
   // Selected Log for detail drawer
   const [selectedLog, setSelectedLog] = useState<any | null>(null);
+  const [selectedAuditLog, setSelectedAuditLog] = useState<any | null>(null);
   const [selectedLogTab, setSelectedLogTab] = useState<"details" | "trace" | "payloads">("details");
   const [resolveNotes, setResolveNotes] = useState("");
   const [resolvingState, setResolvingState] = useState(false);
@@ -414,13 +415,14 @@ const Monitoring = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setSelectedLog(null);
+        setSelectedAuditLog(null);
       }
     };
-    if (selectedLog) {
+    if (selectedLog || selectedAuditLog) {
       window.addEventListener("keydown", handleKeyDown);
     }
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedLog]);
+  }, [selectedLog, selectedAuditLog]);
 
   // Prettify JSON object view
   const renderJsonPayload = (data: any) => {
@@ -1385,6 +1387,7 @@ const Monitoring = () => {
                       <th className="px-6 py-4">Tenant / User</th>
                       <th className="px-6 py-4">Client IP</th>
                       <th className="px-6 py-4">Incident Details</th>
+                      <th className="px-6 py-4 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-slate-800/60 text-xs text-gray-700 dark:text-slate-300">
@@ -1397,11 +1400,12 @@ const Monitoring = () => {
                           <td className="px-6 py-4"><div className="h-3 bg-gray-200 dark:bg-slate-800 rounded w-36"></div></td>
                           <td className="px-6 py-4"><div className="h-3 bg-gray-200 dark:bg-slate-800 rounded w-20"></div></td>
                           <td className="px-6 py-4"><div className="h-3 bg-gray-200 dark:bg-slate-800 rounded w-48"></div></td>
+                          <td className="px-6 py-4 text-right"><div className="h-7 bg-gray-200 dark:bg-slate-800 rounded w-16 ml-auto"></div></td>
                         </tr>
                       ))
                     ) : auditLogs.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                           <div className="flex flex-col items-center space-y-2">
                             <FileText className="w-8 h-8 text-gray-300" />
                             <span className="font-semibold text-sm">No activity audit logs found</span>
@@ -1411,7 +1415,11 @@ const Monitoring = () => {
                       </tr>
                     ) : (
                       auditLogs.map((log) => (
-                        <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-850/30 transition-colors">
+                        <tr 
+                          key={log.id} 
+                          className="hover:bg-slate-50 dark:hover:bg-slate-850/30 transition-colors cursor-pointer group"
+                          onClick={() => setSelectedAuditLog(log)}
+                        >
                           <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">
                             {formatTime(log.timestamp)}
                           </td>
@@ -1450,6 +1458,17 @@ const Monitoring = () => {
                           </td>
                           <td className="px-6 py-4 max-w-sm text-gray-600 dark:text-gray-400 font-mono text-[11px] truncate">
                             {typeof log.details === "object" ? JSON.stringify(log.details) : log.details}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedAuditLog(log);
+                              }}
+                              className="text-xs font-semibold bg-gray-100 hover:bg-blue-600 hover:text-white dark:bg-slate-800 dark:hover:bg-blue-500 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-lg transition-colors border border-transparent dark:border-slate-700"
+                            >
+                              Inspect
+                            </button>
                           </td>
                         </tr>
                       ))
@@ -1878,6 +1897,114 @@ const Monitoring = () => {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
+
+      {/* AUDIT LOG DETAIL MODAL */}
+      {selectedAuditLog && createPortal(
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+            onClick={() => setSelectedAuditLog(null)}
+          ></div>
+
+          {/* Modal Container Wrapper */}
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 overflow-hidden"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedAuditLog(null);
+            }}
+          >
+            {/* Modal Dialog Content Box */}
+            <div
+              className="relative w-full max-w-2xl max-h-[85vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl flex flex-col transform transition-all duration-300 ease-in-out scale-100 overflow-hidden"
+            >
+              {/* Header */}
+              <div className="p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/50 flex justify-between items-start">
+                <div className="space-y-1.5">
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${
+                      selectedAuditLog.action === "DELETE"
+                        ? "bg-red-100 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900/50"
+                        : selectedAuditLog.action === "CREATE"
+                          ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-950/40 dark:text-green-400 dark:border-green-900/50"
+                          : selectedAuditLog.action === "UPDATE"
+                            ? "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/50"
+                            : "bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-350"
+                    }`}>
+                      {selectedAuditLog.action}
+                    </span>
+                    <span className="font-mono text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-1.5 py-0.5 rounded">
+                      {selectedAuditLog.model_name}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-extrabold text-gray-900 dark:text-white leading-tight pr-8">
+                    Audit Log Details
+                  </h3>
+                </div>
+
+                <button
+                  onClick={() => setSelectedAuditLog(null)}
+                  className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Grid Metadata */}
+                <div className="bg-slate-50 dark:bg-slate-950/40 rounded-xl p-5 border border-slate-150 dark:border-slate-800 grid grid-cols-2 gap-y-4 gap-x-6 text-xs">
+                  <div>
+                    <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Timestamp</span>
+                    <span className="font-medium text-gray-900 dark:text-white mt-1 inline-block">
+                      {formatTime(selectedAuditLog.timestamp)}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Client IP Address</span>
+                    <span className="font-mono text-gray-950 dark:text-slate-100 mt-1 inline-block">
+                      {selectedAuditLog.ip_address || "Unavailable"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Organization Tenant</span>
+                    <span className="font-medium text-gray-950 dark:text-slate-100 mt-1 inline-block">
+                      {selectedAuditLog.org?.name || "Stalight HQ (System-level)"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">User Actor Context</span>
+                    <span className="font-medium text-gray-950 dark:text-slate-100 mt-1 inline-block">
+                      {selectedAuditLog.user ? `${selectedAuditLog.user.name} (${selectedAuditLog.user.email})` : "System / Anonymous"}
+                    </span>
+                  </div>
+
+                  {selectedAuditLog.object_id && (
+                    <div>
+                      <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Object ID</span>
+                      <span className="font-mono text-gray-950 dark:text-slate-100 mt-1 inline-block">
+                        {selectedAuditLog.object_id}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Details Payload */}
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Operation Details / Payload
+                  </span>
+                  {renderJsonPayload(selectedAuditLog.details)}
+                </div>
               </div>
             </div>
           </div>
