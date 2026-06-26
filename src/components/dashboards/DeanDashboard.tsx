@@ -22,6 +22,7 @@ import UpgradeRequired from "../common/UpgradeRequired";
 import BillingManagement from "../org_admin/BillingManagement";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
+import AlumniDirectory from "../common/AlumniDirectory";
 
 interface DeanUser {
   username: string;
@@ -115,8 +116,10 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <BillingManagement />;
       case 'announcement-management':
         return <AnnouncementManagement />;
-            case "holiday-calendar":
+      case "holiday-calendar":
         return <HolidayCalendar readOnly />;
+      case "alumni-directory":
+        return <AlumniDirectory />;
       default:
         return <div>Welcome, Dean.</div>;
     }

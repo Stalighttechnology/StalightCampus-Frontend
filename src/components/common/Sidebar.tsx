@@ -260,6 +260,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "class-schedule": <Calendar size={20} />,
       "act-as-teacher": <UserCheck size={20} />,
       "return-to-hod": <LogOut size={20} />,
+      "alumni-directory": <GraduationCap size={20} />,
     };
     return iconMap[page] || <LayoutDashboard size={20} />;
   };
@@ -312,6 +313,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Campus Locations", page: "campus-locations" },
       { name: "Billing & Plans", page: "billing" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Alumni Directory", page: "alumni-directory" },
       { name: "Profile", page: "profile" },
     ],
     org_admin: [
@@ -332,6 +334,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Reports", page: "reports" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Alumni Directory", page: "alumni-directory" },
       { name: "Profile", page: "profile" },
     ],
     admin: [
@@ -469,6 +472,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Admin Leaves", page: "admin-leaves" },
       { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Alumni Directory", page: "alumni-directory" },
       { name: "Profile", page: "profile" },
     ],
     hms: [

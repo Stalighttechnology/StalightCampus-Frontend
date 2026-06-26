@@ -27,6 +27,7 @@ import GoogleSetup from "../admin/GoogleSetup";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 import BillingManagement from "../org_admin/BillingManagement";
 import CampusLocationManager from "../dean/CampusLocationManager";
+import AlumniDirectory from "../common/AlumniDirectory";
 
 import {
   Users,
@@ -221,6 +222,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <GoogleSetup setError={setError} toast={toast} />
+          </div>);
+
+      case "alumni-directory":
+        return (
+          <div>
+            <AlumniDirectory />
           </div>);
 
       default:

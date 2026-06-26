@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import AdminStats from "../admin/AdminStats";
+import AlumniDirectory from "../common/AlumniDirectory";
 import EnrollUser from "../admin/EnrollUser";
 import UsersManagement from "../admin/UsersManagement";
 import AdminProfile from "../admin/AdminProfile";
@@ -12,6 +13,7 @@ import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import StudentInfoScanner from "../hod/StudentInfoScanner";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
+import AlumniDirectory from "../common/AlumniDirectory";
 
 import BranchesManagement from "../admin/BranchesManagement";
 import BatchManagement from "../admin/BatchManagement";
@@ -103,6 +105,9 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
         return <Reports isReadOnly={true} />;
       case "campus-locations":
         return <CampusLocationManager />;
+
+      case "alumni-directory":
+        return <AlumniDirectory />;
 
       default:
         return <AdminStats setError={setError} onNavigate={handlePageChange} />;
