@@ -10,7 +10,7 @@ import {
 } from "../ui/select";
 import { cn } from "../../lib/utils";
 import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
-import { Search, Loader2, Download, ArrowUpCircle } from "lucide-react";
+import { Search, Loader2, Download, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { downloadFile } from "../../utils/downloadHelper";
 import { Input } from "../ui/input";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -139,6 +139,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<User | null>(null);
   const [promoteData, setPromoteData] = useState<User | null>(null);
+  const [roleChangeAction, setRoleChangeAction] = useState<"promote" | "demote">("promote");
   const [selectedNewRole, setSelectedNewRole] = useState<string>("");
   const [promoteConfirmText, setPromoteConfirmText] = useState("");
   const [promoteStep, setPromoteStep] = useState<1 | 2>(1);
@@ -489,7 +490,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
       try {
         const response = await manageUserAction({
           user_id: promoteData.id.toString(),
-          action: "promote",
+          action: roleChangeAction,
           updates: { role: selectedNewRole }
         });
         if (response.success) {
@@ -508,10 +509,10 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           setSelectedNewRole("");
           setPromoteConfirmText("");
           setPromoteStep(1);
-          toast({ title: "Success", description: "User promoted successfully" });
+          toast({ title: "Success", description: `User ${roleChangeAction}d successfully` });
         } else {
-          setError(response.message || "Failed to promote user");
-          toast({ variant: "destructive", title: "Error", description: response.message || "Failed to promote user" });
+          setError(response.message || `Failed to ${roleChangeAction} user`);
+          toast({ variant: "destructive", title: "Error", description: response.message || `Failed to ${roleChangeAction} user` });
         }
       } catch (err) {
         setError("Network error");
@@ -788,13 +789,24 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => { setPromoteData(user); setSelectedNewRole(""); setPromoteStep(1); }}
+                                onClick={() => { setPromoteData(user); setRoleChangeAction("promote"); setSelectedNewRole(""); setPromoteStep(1); }}
                                 disabled={loading || (user.role !== 'teacher' && user.role !== 'hod')}
                                 className={theme === 'dark' ?
                                   'p-2 rounded hover:bg-accent' :
                                   'p-2 rounded hover:bg-gray-100'}
                                 title="Promote Role">
                                 <ArrowUpCircle className={theme === 'dark' ? 'w-5 h-5 text-purple-400' : 'w-5 h-5 text-purple-500'} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => { setPromoteData(user); setRoleChangeAction("demote"); setSelectedNewRole(""); setPromoteStep(1); }}
+                                disabled={loading || (user.role !== 'hod' && user.role !== 'principal')}
+                                className={theme === 'dark' ?
+                                  'p-2 rounded hover:bg-accent' :
+                                  'p-2 rounded hover:bg-gray-100'}
+                                title="Demote Role">
+                                <ArrowDownCircle className={theme === 'dark' ? 'w-5 h-5 text-orange-400' : 'w-5 h-5 text-orange-500'} />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -924,7 +936,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           }>
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-              {promoteStep === 1 ? 'Promote / Change Role' : 'Confirm Promotion'}
+              {promoteStep === 1 ? `${roleChangeAction === 'promote' ? 'Promote' : 'Demote'} / Change Role` : `Confirm ${roleChangeAction === 'promote' ? 'Promotion' : 'Demotion'}`}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -941,14 +953,19 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                     value={Object.keys(roleMap).find(key => roleMap[key] === selectedNewRole) || ""}
                     onChange={(val) => setSelectedNewRole(roleMap[val])}
                     options={roles.filter(r => {
-                      if (promoteData?.role === 'teacher' && roleMap[r] === 'hod') return true;
-                      if (promoteData?.role === 'hod' && roleMap[r] === 'principal') return true;
+                      if (roleChangeAction === 'promote') {
+                        if (promoteData?.role === 'teacher' && roleMap[r] === 'hod') return true;
+                        if (promoteData?.role === 'hod' && roleMap[r] === 'principal') return true;
+                      } else {
+                        if (promoteData?.role === 'hod' && roleMap[r] === 'teacher') return true;
+                        if (promoteData?.role === 'principal' && roleMap[r] === 'hod') return true;
+                      }
                       return false;
                     })}
                   />
                 </div>
                 <div className={`p-3 text-xs rounded-md ${theme === 'dark' ? 'bg-primary/10 text-primary-foreground border border-primary/20' : 'bg-blue-50 text-blue-800 border border-blue-100'}`}>
-                  <strong>Note:</strong> Promoting a user will automatically log them out and notify them via email. If promoting a Teacher or HOD, their current class assignments or branch leadership will be unassigned automatically.
+                  <strong>Note:</strong> {roleChangeAction === 'promote' ? 'Promoting' : 'Demoting'} a user will automatically log them out and notify them via email. If changing to a Teacher or HOD, their current class assignments or branch leadership will be unassigned automatically.
                 </div>
               </>
             ) : (
@@ -958,12 +975,12 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                 </div>
                 <div className="space-y-2">
                   <label className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                    Type <strong>promote</strong> to confirm
+                    Type <strong>{roleChangeAction}</strong> to confirm
                   </label>
                   <Input
                     value={promoteConfirmText}
                     onChange={(e) => setPromoteConfirmText(e.target.value)}
-                    placeholder="Type promote here"
+                    placeholder={`Type ${roleChangeAction} here`}
                     className={`w-full ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`}
                   />
                 </div>
@@ -1001,10 +1018,10 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                 </Button>
                 <Button
                   onClick={savePromote}
-                  disabled={loading || promoteConfirmText !== 'promote'}
+                  disabled={loading || promoteConfirmText !== roleChangeAction}
                   className="bg-purple-600 hover:bg-purple-700 text-white"
                 >
-                  {loading ? "Promoting..." : "Promote"}
+                  {loading ? (roleChangeAction === 'promote' ? "Promoting..." : "Demoting...") : (roleChangeAction === 'promote' ? "Promote" : "Demote")}
                 </Button>
               </>
             )}
