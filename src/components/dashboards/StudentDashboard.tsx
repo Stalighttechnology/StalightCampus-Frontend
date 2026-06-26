@@ -159,7 +159,7 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
     <>
       <TutorialController />
       <DashboardLayout
-        role="student"
+        role={user?.role === 'parent' ? 'parent' : 'student'}
         user={user}
         activePage={activePage}
         onPageChange={handlePageChange}
