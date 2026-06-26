@@ -417,7 +417,7 @@ const AppContent = () => {
           } />
 
           <Route path="/profile" element={
-            <ProtectedRoute allowedRoles={["student"]}>
+            <ProtectedRoute allowedRoles={["student", "parent", "outside_student"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -425,7 +425,7 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
           <Route path="/student-hostel-details" element={
-            <ProtectedRoute allowedRoles={["student", "parent"]}>
+            <ProtectedRoute allowedRoles={["student", "parent", "outside_student"]}>
               <>
                 <StudentDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}

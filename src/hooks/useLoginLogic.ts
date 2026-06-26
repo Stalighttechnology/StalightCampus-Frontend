@@ -93,6 +93,9 @@ export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
             case "student":
               navigate("/dashboard", { replace: true });
               break;
+            case "outside_student":
+              navigate("/student-hostel-details", { replace: true });
+              break;
             default:
               navigate("/", { replace: true });
           }

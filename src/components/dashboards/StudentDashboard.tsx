@@ -17,6 +17,7 @@ const StudentAttendance = lazy(() => import("../student/StudentAttendance"));
 const InternalMarks = lazy(() => import("../student/InternalMarks"));
 const SubmitLeaveRequest = lazy(() => import("../student/SubmitLeaveRequest"));
 const StudentProfile = lazy(() => import("../student/StudentProfile"));
+const Profile = lazy(() => import("../common/Profile"));
 const StudentAnnouncements = lazy(() => import("../student/StudentAnnouncements"));
 const StudentNotifications = lazy(() => import("../student/StudentNotifications"));
 const FaceRecognition = lazy(() => import("../student/FaceRecognition"));
@@ -60,7 +61,7 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
   const getActivePageFromPath = (pathname: string) => {
     const path = pathname.replace('/', '');
     if (path === '' || path === 'dashboard') {
-      return user?.is_outside_student ? 'student-hostel-details' : 'dashboard';
+      return user?.role === 'outside_student' ? 'student-hostel-details' : 'dashboard';
     }
     return path;
   };
@@ -68,7 +69,7 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
   let activePage = getActivePageFromPath(location.pathname);
 
   // Redirect outside students to hostel details if they try to access disallowed pages
-  if (user?.is_outside_student && activePage !== 'student-hostel-details' && activePage !== 'profile') {
+  if (user?.role === 'outside_student' && activePage !== 'student-hostel-details' && activePage !== 'profile') {
     activePage = 'student-hostel-details';
   }
 
@@ -130,6 +131,9 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
             case "holiday-calendar":
         return <HolidayCalendar readOnly />;
       case "profile":
+        if (user?.role === "outside_student" || user?.role === "parent") {
+          return <Profile role={user?.role} user={user} />;
+        }
         return <StudentProfile />;
       case "announcements":
         return <StudentAnnouncements />;
@@ -166,7 +170,7 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
     <>
       <TutorialController />
       <DashboardLayout
-        role={user?.role === 'parent' ? 'parent' : 'student'}
+        role={user?.role === 'outside_student' ? 'outside_student' : (user?.role === 'parent' ? 'parent' : 'student')}
         user={user}
         activePage={activePage}
         onPageChange={handlePageChange}

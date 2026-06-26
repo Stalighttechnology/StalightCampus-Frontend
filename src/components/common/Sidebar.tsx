@@ -549,14 +549,11 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Holiday Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
-  };
-
-  if (role === 'student' && user?.is_outside_student) {
-    menuItems['student'] = [
+    outside_student: [
       { name: "Hostel Details", page: "student-hostel-details" },
       { name: "Profile", page: "profile" },
-    ];
-  }
+    ],
+  };
 
   if (user?.role === 'hod') {
     if (role === 'hod') {
