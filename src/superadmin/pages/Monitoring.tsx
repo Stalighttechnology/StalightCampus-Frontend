@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
@@ -408,6 +409,19 @@ const Monitoring = () => {
     }
   }, [auditSearch]);
 
+  // Esc key listener to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedLog(null);
+      }
+    };
+    if (selectedLog) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedLog]);
+
   // Prettify JSON object view
   const renderJsonPayload = (data: any) => {
     if (!data) return <span className="text-gray-400 dark:text-gray-600 italic">No Payload</span>;
@@ -473,11 +487,12 @@ const Monitoring = () => {
   return (
     <div className="space-y-6 relative min-h-screen pb-12">
       {/* Dynamic Floating Toast Alerts */}
-      {toastMessage && (
+      {toastMessage && createPortal(
         <div className="fixed top-5 right-5 z-[100] animate-bounce bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 px-4 py-3 rounded-lg shadow-2xl flex items-center space-x-2 border border-slate-700 dark:border-slate-300 font-medium">
           <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           <span>{toastMessage}</span>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Card Wrapper */}
@@ -1500,8 +1515,7 @@ const Monitoring = () => {
         </CardContent>
       </Card>
 
-      {/* DETAIL SIDE DRAWER PANEL */}
-      {selectedLog && (
+      {/* DETAIL SIDE DRAWER PANEL */}      {selectedLog && createPortal(
         <>
           {/* Backdrop */}
           <div
@@ -1509,265 +1523,366 @@ const Monitoring = () => {
             onClick={() => setSelectedLog(null)}
           ></div>
 
-          {/* Drawer container */}
-          <div
-            className="fixed inset-y-0 right-0 z-50 w-full max-w-2xl bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out translation-x-0"
+          {/* Modal Container Wrapper */}
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 overflow-hidden"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedLog(null);
+            }}
           >
-            {/* Header */}
-            <div className="p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/50 flex justify-between items-start">
-              <div className="space-y-1.5">
-                <div className="flex items-center space-x-2">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${getSeverityBadgeClass(selectedLog.severity)}`}>
-                    {selectedLog.severity}
-                  </span>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getCategoryColor(selectedLog.category)}`}>
-                    {selectedLog.category}
-                  </span>
-                  {selectedLog.status_code && (
-                    <span className="font-mono text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-1.5 py-0.5 rounded">
-                      {selectedLog.status_code}
+            {/* Modal Dialog Content Box */}
+            <div
+              className="relative w-full max-w-2xl max-h-[85vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl flex flex-col transform transition-all duration-300 ease-in-out scale-100 overflow-hidden"
+            >
+              {/* Header */}
+              <div className="p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/50 flex justify-between items-start">
+                <div className="space-y-1.5">
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${getSeverityBadgeClass(selectedLog.severity)}`}>
+                      {selectedLog.severity}
                     </span>
-                  )}
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getCategoryColor(selectedLog.category)}`}>
+                      {selectedLog.category}
+                    </span>
+                    {selectedLog.status_code && (
+                      <span className="font-mono text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-1.5 py-0.5 rounded">
+                        {selectedLog.status_code}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-base font-extrabold text-gray-900 dark:text-white leading-tight pr-8">
+                    {selectedLog.error_message}
+                  </h3>
+                  <div className="text-xs text-gray-400 font-mono flex items-center space-x-1 mt-1">
+                    {selectedLog.method && <span className="font-bold text-gray-600 dark:text-gray-300">{selectedLog.method}</span>}
+                    <span className="truncate">{selectedLog.endpoint}</span>
+                  </div>
                 </div>
-                <h3 className="text-base font-extrabold text-gray-900 dark:text-white leading-tight pr-8">
-                  {selectedLog.error_message}
-                </h3>
-                <div className="text-xs text-gray-400 font-mono flex items-center space-x-1 mt-1">
-                  {selectedLog.method && <span className="font-bold text-gray-600 dark:text-gray-300">{selectedLog.method}</span>}
-                  <span className="truncate">{selectedLog.endpoint}</span>
-                </div>
+
+                <button
+                  onClick={() => setSelectedLog(null)}
+                  className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <button
-                onClick={() => setSelectedLog(null)}
-                className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Inner Drawer Tabs */}
-            <div className="flex border-b border-gray-100 dark:border-slate-800 px-6 bg-white dark:bg-slate-900">
-              <button
-                onClick={() => setSelectedLogTab("details")}
-                className={`py-3 px-4 text-xs font-semibold tracking-wide border-b-2 transition-all ${selectedLogTab === "details"
-                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                    : "border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
-                  }`}
-              >
-                Incident Overview
-              </button>
-              {selectedLog.stack_trace && (
+              {/* Inner Drawer Tabs */}
+              <div className="flex border-b border-gray-100 dark:border-slate-800 px-6 bg-white dark:bg-slate-900">
                 <button
-                  onClick={() => setSelectedLogTab("trace")}
-                  className={`py-3 px-4 text-xs font-semibold tracking-wide border-b-2 transition-all ${selectedLogTab === "trace"
+                  onClick={() => setSelectedLogTab("details")}
+                  className={`py-3 px-4 text-xs font-semibold tracking-wide border-b-2 transition-all ${selectedLogTab === "details"
                       ? "border-blue-500 text-blue-600 dark:text-blue-400"
                       : "border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
                     }`}
                 >
-                  Stack Trace
+                  Incident Overview
                 </button>
-              )}
-              <button
-                onClick={() => setSelectedLogTab("payloads")}
-                className={`py-3 px-4 text-xs font-semibold tracking-wide border-b-2 transition-all ${selectedLogTab === "payloads"
-                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                    : "border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
-                  }`}
-              >
-                Request & Response
-              </button>
-            </div>
+                {selectedLog.stack_trace && (
+                  <button
+                    onClick={() => setSelectedLogTab("trace")}
+                    className={`py-3 px-4 text-xs font-semibold tracking-wide border-b-2 transition-all ${selectedLogTab === "trace"
+                        ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                        : "border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-350"
+                      }`}
+                  >
+                    Stack Trace
+                  </button>
+                )}
+                <button
+                  onClick={() => setSelectedLogTab("payloads")}
+                  className={`py-3 px-4 text-xs font-semibold tracking-wide border-b-2 transition-all ${selectedLogTab === "payloads"
+                      ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                      : "border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
+                    }`}
+                >
+                  Request & Response
+                </button>
+              </div>
 
-            {/* Drawer Body Scroll Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* TAB A: OVERVIEW & RESOLUTION */}
-              {selectedLogTab === "details" && (
-                <div className="space-y-6">
-                  {/* Grid Metadata */}
-                  <div className="bg-slate-50 dark:bg-slate-950/40 rounded-xl p-5 border border-slate-150 dark:border-slate-800 grid grid-cols-2 gap-y-4 gap-x-6 text-xs">
-                    <div>
-                      <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Timestamp</span>
-                      <span className="font-medium text-gray-900 dark:text-white mt-1 inline-block">
-                        {formatTime(selectedLog.timestamp)}
-                      </span>
+              {/* Drawer Body Scroll Area */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* TAB A: OVERVIEW & RESOLUTION */}
+                {selectedLogTab === "details" && (
+                  <div className="space-y-6">
+                    {/* Grid Metadata */}
+                    <div className="bg-slate-50 dark:bg-slate-950/40 rounded-xl p-5 border border-slate-150 dark:border-slate-800 grid grid-cols-2 gap-y-4 gap-x-6 text-xs">
+                      <div>
+                        <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Timestamp</span>
+                        <span className="font-medium text-gray-900 dark:text-white mt-1 inline-block">
+                          {formatTime(selectedLog.timestamp)}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Client IP Address</span>
+                        <span className="font-mono text-gray-950 dark:text-slate-100 mt-1 inline-block">
+                          {selectedLog.ip_address || "Unavailable"}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Organization Tenant</span>
+                        <span className="font-medium text-gray-950 dark:text-slate-100 mt-1 inline-block">
+                          {selectedLog.org?.name || "Stalight HQ (System-level)"}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">User Actor Context</span>
+                        <span className="font-medium text-gray-950 dark:text-slate-100 mt-1 inline-block">
+                          {selectedLog.user ? `${selectedLog.user.name} (${selectedLog.user.email})` : "Anonymous Session"}
+                        </span>
+                      </div>
+
+                      <div className="col-span-2 border-t border-slate-200 dark:border-slate-800/80 pt-3 space-y-3">
+                        {(() => {
+                          const info = selectedLog.device_info || "";
+                          if (!info) {
+                            return (
+                              <div>
+                                <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Device & Origin Metadata</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 inline-block">No device metadata available.</span>
+                              </div>
+                            );
+                          }
+
+                          // Check if it's the formatted frontend log style
+                          if (info.includes(" | ")) {
+                            const parts = info.split(" | ");
+                            const parsedParts = parts.reduce((acc: any, part: string) => {
+                              const [key, ...value] = part.split(": ");
+                              if (key && value.length) {
+                                acc[key.trim().toLowerCase()] = value.join(": ").trim();
+                              }
+                              return acc;
+                            }, {});
+
+                            return (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Client Browser / Device</span>
+                                  <span className="font-medium text-gray-900 dark:text-white mt-1.5 inline-block bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+                                    {parsedParts.browser || "Unknown Browser"} {parsedParts.device ? `(${parsedParts.device})` : ""}
+                                  </span>
+                                </div>
+                                {parsedParts.page && (
+                                  <div>
+                                    <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Frontend Page Route</span>
+                                    <span className="font-mono text-[11px] text-blue-600 dark:text-blue-400 mt-1.5 inline-block break-all hover:underline cursor-pointer">
+                                      {parsedParts.page}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          }
+
+                          // Otherwise, it's a raw user agent string from API logs
+                          const parseUA = (ua: string) => {
+                            let browser = "Unknown Browser";
+                            let os = "Unknown OS";
+                            
+                            if (ua.includes("Firefox/")) {
+                              const match = ua.match(/Firefox\/([0-9.]+)/);
+                              browser = match ? `Firefox ${match[1].split('.')[0]}` : "Firefox";
+                            } else if (ua.includes("Edg/")) {
+                              const match = ua.match(/Edg\/([0-9.]+)/);
+                              browser = match ? `Edge ${match[1].split('.')[0]}` : "Edge";
+                            } else if (ua.includes("Chrome/")) {
+                              const match = ua.match(/Chrome\/([0-9.]+)/);
+                              browser = match ? `Chrome ${match[1].split('.')[0]}` : "Chrome";
+                            } else if (ua.includes("Safari/") && !ua.includes("Chrome")) {
+                              const match = ua.match(/Version\/([0-9.]+)/);
+                              browser = match ? `Safari ${match[1].split('.')[0]}` : "Safari";
+                            }
+                            
+                            if (ua.includes("Windows NT 10.0")) os = "Windows 10/11";
+                            else if (ua.includes("Windows NT 6.3")) os = "Windows 8.1";
+                            else if (ua.includes("Windows NT 6.2")) os = "Windows 8";
+                            else if (ua.includes("Windows NT 6.1")) os = "Windows 7";
+                            else if (ua.includes("Macintosh; Intel Mac OS X")) {
+                              const match = ua.match(/Mac OS X ([0-9._]+)/);
+                              os = match ? `macOS ${match[1].replace(/_/g, ".")}` : "macOS";
+                            } else if (ua.includes("Android")) {
+                              const match = ua.match(/Android ([0-9.]+)/);
+                              os = match ? `Android ${match[1]}` : "Android";
+                            } else if (ua.includes("iPhone") || ua.includes("iPad")) {
+                              const match = ua.match(/OS ([0-9_]+)/);
+                              os = match ? `iOS ${match[1].replace(/_/g, ".")}` : "iOS";
+                            } else if (ua.includes("Linux")) os = "Linux";
+                            
+                            return `${browser} on ${os}`;
+                          };
+
+                          return (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Device & Browser Info</span>
+                                <span className="font-medium text-gray-900 dark:text-white mt-1.5 inline-block bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+                                  {parseUA(info)}
+                                </span>
+                              </div>
+                              <div className="md:col-span-2">
+                                <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Full User Agent String</span>
+                                <span className="font-mono text-[10px] text-gray-500 dark:text-gray-400 mt-1.5 inline-block leading-normal break-all">
+                                  {info}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
                     </div>
 
-                    <div>
-                      <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Client IP Address</span>
-                      <span className="font-mono text-gray-950 dark:text-slate-100 mt-1 inline-block">
-                        {selectedLog.ip_address || "Unavailable"}
-                      </span>
-                    </div>
+                    {/* Incident Resolution Status Section */}
+                    <div className="border border-slate-150 dark:border-slate-800 bg-white dark:bg-slate-900/60 rounded-xl p-5 space-y-4 shadow-sm">
+                      <div className="flex items-center space-x-2 border-b border-gray-100 dark:border-slate-800 pb-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                        <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                          Incident Resolution
+                        </h4>
+                      </div>
 
-                    <div>
-                      <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Organization Tenant</span>
-                      <span className="font-medium text-gray-950 dark:text-slate-100 mt-1 inline-block">
-                        {selectedLog.org?.name || "Stalight HQ (System-level)"}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">User Actor Context</span>
-                      <span className="font-medium text-gray-950 dark:text-slate-100 mt-1 inline-block">
-                        {selectedLog.user ? `${selectedLog.user.name} (${selectedLog.user.email})` : "Anonymous Session"}
-                      </span>
-                    </div>
-
-                    <div className="col-span-2 border-t border-slate-200 dark:border-slate-800/80 pt-3">
-                      <span className="text-[10px] font-semibold text-gray-400 uppercase block tracking-wider">Device User Agent / Page URI</span>
-                      <span className="font-mono text-[11px] text-gray-600 dark:text-gray-300 mt-1.5 inline-block leading-relaxed break-all">
-                        {selectedLog.device_info || "No device metadata available."}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Incident Resolution Status Section */}
-                  <div className="border border-slate-150 dark:border-slate-800 bg-white dark:bg-slate-900/60 rounded-xl p-5 space-y-4 shadow-sm">
-                    <div className="flex items-center space-x-2 border-b border-gray-100 dark:border-slate-800 pb-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
-                        Incident Resolution
-                      </h4>
-                    </div>
-
-                    {selectedLog.resolved ? (
-                      <div className="space-y-3">
-                        <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 rounded-lg text-xs text-emerald-800 dark:text-emerald-400">
-                          <p className="font-bold flex items-center space-x-1">
-                            <span>✓ Resolved Log Item</span>
-                          </p>
-                          <p className="mt-1 text-[11px] text-emerald-700 dark:text-emerald-400/90">
-                            Marked resolved by <span className="font-bold font-mono">{selectedLog.resolved_by || "system"}</span>{" "}
-                            on {formatTime(selectedLog.resolved_at)}
-                          </p>
-                        </div>
-
-                        {selectedLog.notes && (
-                          <div className="p-3 bg-gray-50 dark:bg-slate-900 rounded-lg text-xs text-gray-700 dark:text-gray-300">
-                            <span className="font-semibold block text-gray-400 text-[10px] uppercase">Resolution Notes:</span>
-                            <span className="mt-1 block italic">{selectedLog.notes}</span>
+                      {selectedLog.resolved ? (
+                        <div className="space-y-3">
+                          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 rounded-lg text-xs text-emerald-800 dark:text-emerald-400">
+                            <p className="font-bold flex items-center space-x-1">
+                              <span>✓ Resolved Log Item</span>
+                            </p>
+                            <p className="mt-1 text-[11px] text-emerald-700 dark:text-emerald-400/90">
+                              Marked resolved by <span className="font-bold font-mono">{selectedLog.resolved_by || "system"}</span>{" "}
+                              on {formatTime(selectedLog.resolved_at)}
+                            </p>
                           </div>
-                        )}
 
-                        <button
-                          onClick={() => handleResolveLog(selectedLog.id, false)}
-                          disabled={resolvingState}
-                          className="w-full text-xs font-semibold py-2 px-4 rounded-lg bg-gray-100 hover:bg-red-50 hover:text-red-600 dark:bg-slate-800 dark:hover:bg-red-950/20 dark:hover:text-red-400 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-300 transition-colors disabled:opacity-40"
-                        >
-                          Reopen Log Incident (Mark Active)
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-3.5">
-                        <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-lg text-xs text-red-800 dark:text-red-400 font-semibold flex items-center space-x-1">
-                          <AlertCircle className="w-4 h-4 text-red-500" />
-                          <span>This incident is currently ACTIVE and unresolved.</span>
-                        </div>
-
-                        <div>
-                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">
-                            Troubleshooting / Action Notes
-                          </label>
-                          <textarea
-                            value={resolveNotes}
-                            onChange={(e) => setResolveNotes(e.target.value)}
-                            placeholder="Document investigation steps or the fix here..."
-                            rows={3}
-                            className="w-full mt-1.5 p-3 text-xs rounded-lg border border-gray-200 dark:border-slate-800 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          />
-                        </div>
-
-                        <button
-                          onClick={() => handleResolveLog(selectedLog.id, true)}
-                          disabled={resolvingState}
-                          className="w-full text-xs font-bold py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-40"
-                        >
-                          {resolvingState ? (
-                            <>
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                              <span>Saving...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Check className="w-4 h-4" />
-                              <span>Mark as Resolved</span>
-                            </>
+                          {selectedLog.notes && (
+                            <div className="p-3 bg-gray-50 dark:bg-slate-900 rounded-lg text-xs text-gray-700 dark:text-gray-300">
+                              <span className="font-semibold block text-gray-400 text-[10px] uppercase">Resolution Notes:</span>
+                              <span className="mt-1 block italic">{selectedLog.notes}</span>
+                            </div>
                           )}
-                        </button>
+
+                          <button
+                            onClick={() => handleResolveLog(selectedLog.id, false)}
+                            disabled={resolvingState}
+                            className="w-full text-xs font-semibold py-2 px-4 rounded-lg bg-gray-100 hover:bg-red-50 hover:text-red-600 dark:bg-slate-800 dark:hover:bg-red-950/20 dark:hover:text-red-400 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-300 transition-colors disabled:opacity-40"
+                          >
+                            Reopen Log Incident (Mark Active)
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-3.5">
+                          <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-lg text-xs text-red-800 dark:text-red-400 font-semibold flex items-center space-x-1">
+                            <AlertCircle className="w-4 h-4 text-red-500" />
+                            <span>This incident is currently ACTIVE and unresolved.</span>
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">
+                              Troubleshooting / Action Notes
+                            </label>
+                            <textarea
+                              value={resolveNotes}
+                              onChange={(e) => setResolveNotes(e.target.value)}
+                              placeholder="Document investigation steps or the fix here..."
+                              rows={3}
+                              className="w-full mt-1.5 p-3 text-xs rounded-lg border border-gray-200 dark:border-slate-800 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <button
+                            onClick={() => handleResolveLog(selectedLog.id, true)}
+                            disabled={resolvingState}
+                            className="w-full text-xs font-bold py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-40"
+                          >
+                            {resolvingState ? (
+                              <>
+                                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                <span>Saving...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Check className="w-4 h-4" />
+                                <span>Mark as Resolved</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB B: SYSTEM EXCEPTION STACK TRACE */}
+                {selectedLogTab === "trace" && selectedLog.stack_trace && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
+                        Error Stack Trace
+                      </span>
+                      <button
+                        onClick={() => copyToClipboard(selectedLog.stack_trace)}
+                        className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy Trace</span>
+                      </button>
+                    </div>
+
+                    <pre className="bg-slate-950 dark:bg-black text-red-400 p-5 rounded-xl font-mono text-[11px] overflow-auto max-h-[480px] leading-relaxed border border-slate-900 shadow-inner select-text whitespace-pre">
+                      {selectedLog.stack_trace}
+                    </pre>
+                  </div>
+                )}
+
+                {/* TAB C: REQUEST / RESPONSE PAYLOADS */}
+                {selectedLogTab === "payloads" && (
+                  <div className="space-y-6">
+                    {/* Request Payload */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Request Body & Query Parameters
+                        </span>
+                        {selectedLog.request_payload && (
+                          <button
+                            onClick={() => copyToClipboard(JSON.stringify(selectedLog.request_payload, null, 2))}
+                            className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            <Copy className="w-3 h-3" />
+                            <span>Copy Request</span>
+                          </button>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* TAB B: SYSTEM EXCEPTION STACK TRACE */}
-              {selectedLogTab === "trace" && selectedLog.stack_trace && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
-                      Error Stack Trace
-                    </span>
-                    <button
-                      onClick={() => copyToClipboard(selectedLog.stack_trace)}
-                      className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy Trace</span>
-                    </button>
-                  </div>
-
-                  <pre className="bg-slate-950 dark:bg-black text-red-400 p-5 rounded-xl font-mono text-[11px] overflow-auto max-h-[480px] leading-relaxed border border-slate-900 shadow-inner select-text whitespace-pre">
-                    {selectedLog.stack_trace}
-                  </pre>
-                </div>
-              )}
-
-              {/* TAB C: REQUEST / RESPONSE PAYLOADS */}
-              {selectedLogTab === "payloads" && (
-                <div className="space-y-6">
-                  {/* Request Payload */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Request Body & Query Parameters
-                      </span>
-                      {selectedLog.request_payload && (
-                        <button
-                          onClick={() => copyToClipboard(JSON.stringify(selectedLog.request_payload, null, 2))}
-                          className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                          <Copy className="w-3 h-3" />
-                          <span>Copy Request</span>
-                        </button>
-                      )}
+                      {renderJsonPayload(selectedLog.request_payload)}
                     </div>
-                    {renderJsonPayload(selectedLog.request_payload)}
-                  </div>
 
-                  {/* Response Payload */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Response Body Details
-                      </span>
-                      {selectedLog.response_payload && (
-                        <button
-                          onClick={() => copyToClipboard(JSON.stringify(selectedLog.response_payload, null, 2))}
-                          className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                          <Copy className="w-3 h-3" />
-                          <span>Copy Response</span>
-                        </button>
-                      )}
+                    {/* Response Payload */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Response Body Details
+                        </span>
+                        {selectedLog.response_payload && (
+                          <button
+                            onClick={() => copyToClipboard(JSON.stringify(selectedLog.response_payload, null, 2))}
+                            className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            <Copy className="w-3 h-3" />
+                            <span>Copy Response</span>
+                          </button>
+                        )}
+                      </div>
+                      {renderJsonPayload(selectedLog.response_payload)}
                     </div>
-                    {renderJsonPayload(selectedLog.response_payload)}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );
