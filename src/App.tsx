@@ -111,6 +111,8 @@ const MobileRestrictionScreen = ({ onLogout }: { onLogout: () => void }) => {
   );
 };
 
+
+
 // Protected Route Component
 const ProtectedRoute = ({
   children,
