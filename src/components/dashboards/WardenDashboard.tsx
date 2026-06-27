@@ -54,7 +54,7 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
       case "my-attendance":
         return <FacultyAttendance />;
             case "holiday-calendar":
-        return <HolidayCalendar readOnly />;
+        return <HolidayCalendar readOnly showLeaves userRole="warden" />;
       case "profile":
         return <WardenProfile user={user} />;
       case "visitor_logs":

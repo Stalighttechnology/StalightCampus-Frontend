@@ -164,7 +164,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       case 'announcement-management':
         return <AnnouncementManagement />;
             case "holiday-calendar":
-        return <HolidayCalendar readOnly />;
+        return <HolidayCalendar readOnly showLeaves userRole="coe" />;
       default:
         return <COEDashboardStats />;
     }

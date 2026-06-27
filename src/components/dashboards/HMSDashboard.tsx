@@ -108,7 +108,7 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
       case "my-attendance":
         return <FacultyAttendance />;
             case "holiday-calendar":
-        return <HolidayCalendar readOnly />;
+        return <HolidayCalendar readOnly showLeaves userRole="hms_admin" />;
       case "profile":
         return <HMSProfile user={user} />;
       default:

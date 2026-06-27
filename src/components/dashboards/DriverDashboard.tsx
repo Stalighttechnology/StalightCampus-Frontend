@@ -48,7 +48,7 @@ const DriverDashboard = ({ user }: DashboardProps) => {
       case "my-attendance":
         return <FacultyAttendance />;
             case "holiday-calendar":
-        return <HolidayCalendar readOnly />;
+        return <HolidayCalendar readOnly showLeaves userRole="driver" />;
       case "profile":
         return <Profile role="driver" user={user} />;
       default:

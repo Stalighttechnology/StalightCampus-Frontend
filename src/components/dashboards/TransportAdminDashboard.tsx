@@ -67,7 +67,7 @@ const TransportAdminDashboard = ({ user }: DashboardProps) => {
       case "manage-leaves":
         return <DriverLeavesManagement />;
             case "holiday-calendar":
-        return <HolidayCalendar readOnly />;
+        return <HolidayCalendar readOnly showLeaves userRole="transport_admin" />;
       case "profile":
         return <Profile role="transport_admin" user={user} />;
       default:

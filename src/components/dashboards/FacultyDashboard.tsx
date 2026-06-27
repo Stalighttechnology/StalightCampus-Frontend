@@ -211,7 +211,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       case "syllabus-status":
         return <SyllabusTracker />;
       case "holiday-calendar":
-        return <HolidayCalendar readOnly />;
+        return <HolidayCalendar readOnly showLeaves userRole="teacher" />;
       case "reimbursements":
         return <EmployeeReimbursements />;
       default:
