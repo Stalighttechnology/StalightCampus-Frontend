@@ -110,7 +110,6 @@ const DriverTripHistory: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-inherit">
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{h.attendance_summary?.picked_up || 0} Boarded</span>
                       <span className="text-red-500 dark:text-red-400 font-semibold">{h.attendance_summary?.absent || 0} Absent</span>
                       <span className="text-blue-600 dark:text-blue-400 font-semibold">{h.attendance_summary?.dropped_off || 0} Dropped Off</span>
                     </div>
