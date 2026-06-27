@@ -893,7 +893,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                     value={selectedFacultyId}
                     onValueChange={setSelectedFacultyId}>
                     <SelectTrigger className={cn(
-                      "w-full justify-start text-left font-normal h-9 text-xs sm:text-sm",
+                      "w-full h-9 text-xs sm:text-sm",
                       theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
                     )}>
                       <SelectValue placeholder="Choose Faculty" />

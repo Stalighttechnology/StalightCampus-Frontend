@@ -282,7 +282,13 @@ const HODSyllabusTracker = () => {
                   <SelectValue placeholder={!semesterId ? "Select Semester first" : "Select Subject"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {subjects.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name} ({s.subject_code})</SelectItem>)}
+                  {subjects.length > 0 ? (
+                    subjects.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name} ({s.subject_code})</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled className="text-center text-xs text-muted-foreground">
+                      No subjects available
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>

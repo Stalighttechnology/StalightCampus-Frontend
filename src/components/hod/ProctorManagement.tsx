@@ -687,9 +687,9 @@ const ProctorStudents = () => {
                       setIsProctorOpen(open);
                     }}
                     onValueChange={(value) => updateState({ selectedProctor: value })}
-                    disabled={state.loading || state.proctors.length === 0}>
+                    disabled={state.loading}>
                     <SelectTrigger className={`text-base w-full ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
-                      <SelectValue placeholder={state.loadingProctors ? "Loading..." : (state.proctors.length === 0 ? "No proctors" : "Choose a proctor")} />
+                      <SelectValue placeholder={state.loadingProctors ? "Loading..." : "Choose a proctor"} />
                     </SelectTrigger>
                     <SelectContent 
                       className={`max-h-[320px] overflow-hidden flex flex-col z-[9999] ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}
@@ -764,7 +764,9 @@ const ProctorStudents = () => {
                           if (state.proctors.length === 0) {
                             return (
                               <>
-                                <div className="p-4 text-center text-sm text-muted-foreground">No proctor found</div>
+                                <SelectItem value="none" disabled className="text-center text-xs text-muted-foreground py-4">
+                                  No proctors available
+                                </SelectItem>
                                 {selected && (
                                   <SelectItem key={selected.id} value={selected.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                                     {selected.first_name} {selected.last_name || ""}
@@ -890,19 +892,25 @@ const ProctorStudents = () => {
                       onOpenChange={setIsSectionOpen}
                       value={state.filters.section_id}
                       onValueChange={(value) => handleFilterChange("section_id", value)}
-                      disabled={state.loading || state.sections.length === 0 || !state.filters.semester_id}
+                      disabled={state.loading || !state.filters.semester_id}
                     >
-                      <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || state.sections.length === 0 || !state.filters.semester_id}>
+                      <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || !state.filters.semester_id}>
                         <SelectValue placeholder="Choose Section" />
                       </SelectTrigger>
                       <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white border border-gray-300 text-gray-900 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                        {state.sections
-                          .filter((section) => section.semester_id === state.filters.semester_id)
-                          .map((section) => (
-                            <SelectItem key={section.id} value={section.id}>
-                              Section {section.name}
-                            </SelectItem>
-                          ))}
+                        {state.sections.filter((section) => section.semester_id === state.filters.semester_id).length > 0 ? (
+                          state.sections
+                            .filter((section) => section.semester_id === state.filters.semester_id)
+                            .map((section) => (
+                              <SelectItem key={section.id} value={section.id}>
+                                Section {section.name}
+                              </SelectItem>
+                            ))
+                        ) : (
+                          <SelectItem value="none" disabled className="text-center text-xs text-muted-foreground">
+                            No sections available
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -920,9 +928,9 @@ const ProctorStudents = () => {
                       }}
                       value={state.filters.proctor_id}
                       onValueChange={(value) => handleFilterChange("proctor_id", value)}
-                      disabled={state.loading || state.proctors.length === 0 || !state.filters.section_id}
+                      disabled={state.loading || !state.filters.section_id}
                     >
-                      <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || state.proctors.length === 0 || !state.filters.section_id}>
+                      <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || !state.filters.section_id}>
                         <SelectValue placeholder={state.loadingProctors ? "Loading..." : translateTerminology("Choose Proctor")} />
                       </SelectTrigger>
                       <SelectContent 
@@ -996,7 +1004,9 @@ const ProctorStudents = () => {
                             if (state.proctors.length === 0) {
                               return (
                                 <>
-                                  <div className="p-4 text-center text-sm text-muted-foreground">No proctor found</div>
+                                  <SelectItem value="none" disabled className="text-center text-xs text-muted-foreground py-4">
+                                    No proctors available
+                                  </SelectItem>
                                   {selected && (
                                     <SelectItem key={selected.id} value={selected.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                                       {selected.first_name} {selected.last_name || ""}

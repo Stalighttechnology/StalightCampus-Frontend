@@ -762,17 +762,23 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                       updateState({ selectedBranchForFaculty: value, facultyPage: 1, facultyId: "" });
                       setTimeout(() => setIsFacultyOpen(true), 150);
                     }}
-                    disabled={state.loading || state.isAssigning || state.allBranches.length === 0}>
+                    disabled={state.loading || state.isAssigning}>
                     
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectValue placeholder={translateTerminology("Choose Branch")} />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                    {state.allBranches.map((branch) =>
-                      <SelectItem key={branch.id} value={branch.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                        {branch.name}
+                    {state.allBranches.length > 0 ? (
+                      state.allBranches.map((branch) => (
+                        <SelectItem key={branch.id} value={branch.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                          {branch.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled className="text-center text-xs text-muted-foreground">
+                        No branches available
                       </SelectItem>
-                      )}
+                    )}
                   </SelectContent>
                 </Select>
                 </label>
@@ -882,7 +888,9 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                         if (state.faculties.length === 0) {
                           return (
                             <>
-                              <div className="p-4 text-center text-sm text-muted-foreground">No faculty found</div>
+                              <SelectItem value="none" disabled className="text-center text-xs text-muted-foreground py-4">
+                                No faculty available
+                              </SelectItem>
                               {selected && (
                                 <SelectItem key={selected.id} value={selected.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                                   {selected.first_name} {selected.last_name || ""}
@@ -955,17 +963,23 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                       updateState({ semesterId: value, subjectId: "", sectionId: "" });
                       setTimeout(() => setIsSubjectOpen(true), 150);
                     }}
-                    disabled={state.loading || state.isAssigning || state.semesters.length === 0}>
+                    disabled={state.loading || state.isAssigning || !state.facultyId}>
                     
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder={state.semesters.length === 0 ? "No Semesters" : "Choose Semester"} />
+                    <SelectValue placeholder="Choose Semester" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                    {state.semesters.map((semester) =>
-                      <SelectItem key={semester.id} value={semester.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                        Semester {semester.number}
+                    {state.semesters.length > 0 ? (
+                      state.semesters.map((semester) => (
+                        <SelectItem key={semester.id} value={semester.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                          Semester {semester.number}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled className="text-center text-xs text-muted-foreground">
+                        No semesters available
                       </SelectItem>
-                      )}
+                    )}
                   </SelectContent>
                 </Select>
                 </label>
@@ -980,18 +994,23 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                       updateState({ subjectId: value });
                       setTimeout(() => setIsSectionOpen(true), 150);
                     }}
-                    disabled={state.loading || state.isAssigning || !state.semesterId || state.subjects.length === 0}>
+                    disabled={state.loading || state.isAssigning || !state.semesterId}>
                     
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder={state.subjects.length === 0 ? "No Courses" : "Choose Course"} />
+                    <SelectValue placeholder="Choose Course" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                    {state.subjects.
-                      map((subject) =>
-                      <SelectItem key={subject.id} value={subject.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                    {state.subjects.length > 0 ? (
+                      state.subjects.map((subject) => (
+                        <SelectItem key={subject.id} value={subject.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                           {subject.name} ({subject.subject_code})
                         </SelectItem>
-                      )}
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled className="text-center text-xs text-muted-foreground">
+                        No courses available
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
                 </label>
@@ -1005,18 +1024,23 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                     onValueChange={(value) => {
                       updateState({ sectionId: value });
                     }}
-                    disabled={state.loading || state.isAssigning || !state.semesterId || state.sections.length === 0}>
+                    disabled={state.loading || state.isAssigning || !state.subjectId}>
                     
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder={state.sections.length === 0 ? "No Sections" : "Choose Section"} />
+                    <SelectValue placeholder="Choose Section" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                    {state.sections.
-                      map((section) =>
-                      <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                    {state.sections.length > 0 ? (
+                      state.sections.map((section) => (
+                        <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                           Section {section.name}
                         </SelectItem>
-                      )}
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled className="text-center text-xs text-muted-foreground">
+                        No sections available
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
                 </label>

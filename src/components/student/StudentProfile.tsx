@@ -1646,66 +1646,70 @@ const StudentProfile: React.FC = () => {
                           return (
                             <div
                               key={entry.id}
-                              className={`relative flex items-start gap-4 p-4 rounded-xl border transition-all
+                              className={`flex items-start gap-4 p-4 rounded-xl border transition-all
                                 ${isRecent
                                   ? (theme === 'dark' ? 'border-primary/40 bg-primary/5' : 'border-primary/30 bg-primary/3')
                                   : (theme === 'dark' ? 'border-border bg-card hover:border-border/80' : 'border-gray-100 bg-white hover:border-gray-200 shadow-sm')
                                 }`}
                             >
-                              {/* Current session badge */}
-                              {isRecent && (
-                                <span className="absolute top-3 right-3 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary text-white">
-                                  Latest
-                                </span>
-                              )}
-
-                              {/* Logout button */}
-                              <div className="absolute top-3 right-3">
-                                <button
-                                  onClick={() => terminateSession(entry.id)}
-                                  disabled={!!entry.is_current}
-                                  className={`text-xs px-2 py-1 rounded ${entry.is_current ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-red-50 text-red-700 hover:bg-red-100'}`}
-                                >
-                                  {entry.is_current ? 'Current' : 'Logout'}
-                                </button>
-                              </div>
-
                               {/* Device Icon */}
                               <div className={`flex-shrink-0 h-12 w-12 rounded-xl flex items-center justify-center ${iconBg}`}>
                                 <DeviceIcon className={`h-6 w-6 ${iconColor}`} />
                               </div>
 
-                              {/* Info */}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className={`font-semibold text-sm truncate ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                                    {entry.device}
-                                  </span>
-                                  {entry.brand && entry.brand !== 'Unknown' && entry.brand !== entry.device && (
-                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-600'}`}>
-                                      {entry.brand}
+                              {/* Info & Badges Container */}
+                              <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className={`font-semibold text-sm truncate ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                      {entry.device}
+                                    </span>
+                                    {entry.brand && entry.brand !== 'Unknown' && entry.brand !== entry.device && (
+                                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-600'}`}>
+                                        {entry.brand}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* OS + Browser */}
+                                  <div className={`flex items-center gap-2 mt-1 text-xs flex-wrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                                    <span>{entry.os}</span>
+                                    <span className="opacity-40">·</span>
+                                    <span>{entry.browser}</span>
+                                  </div>
+
+                                  {/* IP + Time */}
+                                  <div className={`flex items-center gap-3 mt-2 flex-wrap`}>
+                                    <span className={`flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded-md ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-600'}`}>
+                                      <Globe className="h-3 w-3 opacity-60" />
+                                      {entry.ip_address}
+                                    </span>
+                                    <span className={`flex items-center gap-1 text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                                      <Clock className="h-3 w-3 opacity-60" />
+                                      <span title={dt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}>{timeAgo}</span>
+                                      <span className="opacity-50 ml-1">{dt.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })}</span>
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Action / Status Badges */}
+                                <div className="flex items-center gap-2 mt-1 md:mt-0 self-start md:self-center">
+                                  {isRecent && (
+                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary text-white">
+                                      Latest
                                     </span>
                                   )}
-                                </div>
-
-                                {/* OS + Browser */}
-                                <div className={`flex items-center gap-2 mt-1 text-xs flex-wrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                                  <span>{entry.os}</span>
-                                  <span className="opacity-40">·</span>
-                                  <span>{entry.browser}</span>
-                                </div>
-
-                                {/* IP + Time */}
-                                <div className={`flex items-center gap-3 mt-2 flex-wrap`}>
-                                  <span className={`flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded-md ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-600'}`}>
-                                    <Globe className="h-3 w-3 opacity-60" />
-                                    {entry.ip_address}
-                                  </span>
-                                  <span className={`flex items-center gap-1 text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                                    <Clock className="h-3 w-3 opacity-60" />
-                                    <span title={dt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}>{timeAgo}</span>
-                                    <span className="opacity-50 ml-1">{dt.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })}</span>
-                                  </span>
+                                  <button
+                                    onClick={() => terminateSession(entry.id)}
+                                    disabled={!!entry.is_current}
+                                    className={`text-xs px-2.5 py-1 rounded-md transition-all font-medium ${
+                                      entry.is_current
+                                        ? 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400 cursor-not-allowed'
+                                        : 'bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50 dark:border dark:border-red-900/30'
+                                    }`}
+                                  >
+                                    {entry.is_current ? 'Current' : 'Logout'}
+                                  </button>
                                 </div>
                               </div>
                             </div>
