@@ -102,9 +102,10 @@ interface FeeDataResponse {
 
 interface StudentFeesProps {
   user: any;
+  readOnly?: boolean;
 }
 
-const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
+const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentType, setPaymentType] = useState<'full' | 'component'>('full');
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
@@ -649,7 +650,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                     </div>
                   </motion.div>
                   <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3">
-                    {(feeData?.fee_summary?.remaining_fees || 0) > 0 && (
+                    {(feeData?.fee_summary?.remaining_fees || 0) > 0 && !readOnly && (
                       <>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
                           <Button
@@ -754,7 +755,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                               </p>
                             </motion.div>
                           </div>
-                          {invoice.balance_amount > 0 && (
+                          {invoice.balance_amount > 0 && !readOnly && (
                             <motion.div
                               variants={itemVariants}
                               className="flex flex-col sm:flex-row gap-2">

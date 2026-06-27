@@ -35,7 +35,7 @@ import { normalizePaginatedResponse } from "../../utils/normalizePagination";
 import Swal from 'sweetalert2';
 import { downloadFile } from '@/utils/downloadHelper';
 
-const StudentAssignments = () => {
+const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
   const { theme } = useTheme();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -432,8 +432,8 @@ const StudentAssignments = () => {
                               {/* Row 2: Submit / Details / Re-submit */}
                               <div className="flex gap-2 w-full sm:w-auto">
                                 {!assignment.is_submitted ? (
-                                  /* Not yet submitted → Submit button (only if within deadline) */
-                                  withinDeadline ? (
+                                  /* Not yet submitted → Submit button (only if within deadline and not parent) */
+                                  withinDeadline && !readOnly ? (
                                     <Button
                                       size="sm"
                                       className="bg-primary text-white gap-2 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 w-full sm:w-auto justify-center"
@@ -460,7 +460,7 @@ const StudentAssignments = () => {
                                       Details
                                     </Button>
  
-                                    {withinDeadline && assignment.marks_obtained === null && (assignment.resubmission_count || 0) < 3 && (
+                                    {withinDeadline && !readOnly && assignment.marks_obtained === null && (assignment.resubmission_count || 0) < 3 && (
                                       <Button
                                         size="sm"
                                         variant="outline"
@@ -698,7 +698,7 @@ const StudentAssignments = () => {
 
             <div className="p-6 pt-0 flex gap-3">
               {/* Re-submit button inside Details modal — only if deadline not passed and not graded and under limit */}
-              {isWithinDeadline(selectedAssignment) && selectedAssignment.marks_obtained === null && (selectedAssignment.resubmission_count || 0) < 3 && (
+              {isWithinDeadline(selectedAssignment) && !readOnly && selectedAssignment.marks_obtained === null && (selectedAssignment.resubmission_count || 0) < 3 && (
                 <Button
                   className={`flex-1 gap-2 rounded-xl ${theme === 'dark'
                       ? 'border-amber-500/50 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'

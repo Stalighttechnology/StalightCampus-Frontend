@@ -123,7 +123,7 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
       case "leave":
         return <SubmitLeaveRequest />;
       case "fees":
-        return <StudentFees user={user} />;
+        return <StudentFees user={user} readOnly={user?.role === 'parent'} />;
       case "payment-success":
         return <PaymentSuccess setPage={handlePageChange} />;
       case "payment-cancel":
@@ -144,7 +144,7 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
       case "student-study-material":
         return <StudyMaterialsStudent />;
       case "student-assignment":
-        return <StudentAssignments />;
+        return <StudentAssignments readOnly={user?.role === 'parent'} />;
       case "study-mode":
         return <Chat role="student" />;
       case "ai-interview":
@@ -154,9 +154,9 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
       case "makeupexam":
         return <MakeupExam />;
       case "student-hostel-details":
-        return <StudentHostelDetails />;
+        return <StudentHostelDetails readOnly={user?.role === 'parent'} />;
       case "transportation":
-        return <StudentTransportPage />;
+        return <StudentTransportPage readOnly={user?.role === 'parent'} />;
       case "library":
         return <StudentLibraryPage />;
       case "class-schedule":

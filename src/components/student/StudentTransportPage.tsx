@@ -30,7 +30,7 @@ const formatTimeTo12Hour = (timeStr: string) => {
   }
 };
 
-const StudentTransportPage: React.FC = () => {
+const StudentTransportPage: React.FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const { theme } = useTheme();
   const { toast } = useToast();
   const [busData, setBusData] = useState<any>(null);
@@ -360,13 +360,15 @@ const StudentTransportPage: React.FC = () => {
                 onChange={e => setComplaintDesc(e.target.value)}
               />
             </div>
-            <button
-              disabled={submitting}
-              onClick={handleComplaint}
-              className="flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-xl font-semibold text-sm sm:text-base hover:bg-primary/90 transition-all disabled:opacity-60 shadow-sm"
-            >
-              <Send size={16} /> {submitting ? 'Submitting...' : 'Submit Complaint'}
-            </button>
+            {!readOnly && (
+              <button
+                disabled={submitting}
+                onClick={handleComplaint}
+                className="flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-xl font-semibold text-sm sm:text-base hover:bg-primary/90 transition-all disabled:opacity-60 shadow-sm"
+              >
+                <Send size={16} /> {submitting ? 'Submitting...' : 'Submit Complaint'}
+              </button>
+            )}
           </div>
  
           {/* Recent Complaints */}

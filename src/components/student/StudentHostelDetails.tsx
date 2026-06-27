@@ -248,7 +248,7 @@ const StaffCard: React.FC<{
 
 
 // ── Main component ───────────────────────────────────────────────────────────
-const StudentHostelDetails: React.FC = () => {
+const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -298,11 +298,11 @@ const StudentHostelDetails: React.FC = () => {
   useEffect(() => {
     const loadToday = async () => {
       try {
-        const res = await getTodayMenuSummary();
+        const res = await getTodayMenuSummary(hostel?.id || room?.hostel);
         if (res.success && res.results) {
           setTodayMenus(res.results);
-        } else if (res.success && res.data) {
-          setTodayMenus(Array.isArray(res.data) ? res.data : [res.data]);
+        } else if (res.success && Array.isArray(res.data)) {
+          setTodayMenus(res.data);
         } else {
           setTodayMenus([]);
         }
@@ -313,10 +313,10 @@ const StudentHostelDetails: React.FC = () => {
       }
     };
 
-    if (activeTab === 'meals' && !hasLoadedMeals) {
+    if (activeTab === 'meals' && !hasLoadedMeals && (hostel?.id || room?.hostel)) {
       loadToday();
     }
-  }, [activeTab, hasLoadedMeals]);
+  }, [activeTab, hasLoadedMeals, hostel, room]);
 
   const loadGatePasses = async () => {
     setLoadingGatePasses(true);
@@ -625,6 +625,7 @@ const StudentHostelDetails: React.FC = () => {
                     <p className={`text-sm mt-1.5 leading-relaxed text-muted-foreground max-w-2xl`}>
                       Have a maintenance problem, leak, or facility issue? Let us know and our team will resolve it within 2 days.
                     </p>
+                  {!readOnly && (
                     <button
                       onClick={() => setIsRaiseIssueModalOpen(true)}
                       className="mt-4 px-5 py-2.5 rounded-xl font-semibold text-sm text-white bg-amber-600 hover:bg-amber-700 dark:bg-amber-600 dark:hover:bg-amber-500 shadow-md shadow-amber-500/15 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
@@ -632,6 +633,7 @@ const StudentHostelDetails: React.FC = () => {
                       <FaExclamationTriangle className="w-3.5 h-3.5" />
                       Raise an Issue
                     </button>
+                  )}
                   </div>
                 </div>
               </div>
@@ -752,6 +754,7 @@ const StudentHostelDetails: React.FC = () => {
                       <p className={`text-sm mt-1.5 leading-relaxed text-muted-foreground max-w-2xl`}>
                         Need to leave the campus? Submit a gate pass request here. Your assigned hostel warden will review and approve it.
                       </p>
+                    {!readOnly && (
                       <button
                         onClick={() => setIsGatePassModalOpen(true)}
                         className="mt-4 px-5 py-2.5 rounded-xl font-semibold text-sm text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 shadow-md shadow-purple-500/15 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
@@ -759,6 +762,7 @@ const StudentHostelDetails: React.FC = () => {
                         <FaLayerGroup className="w-3.5 h-3.5" />
                         Request Gate Pass
                       </button>
+                    )}
                     </div>
                   </div>
                 </div>
