@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { showConfirmAlert, showSweetAlert } from "@/utils/sweetalert";
+import Swal from 'sweetalert2';
 import DashboardCard from '../common/DashboardCard';
 import { 
   IndianRupee, 
@@ -286,19 +287,75 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
     }
   };
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
   const handleSaveStructure = async () => {
-    // Validations
+    const errors: Record<string, string> = {};
+    const missingLabels: string[] = [];
+
+    // Basic Salary
     if (!editStructureData.basic_salary || editStructureData.basic_salary <= 0) {
-      showErrorAlert('Basic Salary must be greater than 0.');
-      return;
+      errors['basic_salary'] = 'Required & must be greater than 0';
+      missingLabels.push('Basic Salary (must be > ₹0)');
     }
 
+    // PAN — exactly 10 chars if provided
+    const pan = String(editStructureData.pan || '').trim();
+    if (pan && pan.length !== 10) {
+      errors['pan'] = 'PAN must be exactly 10 characters (e.g. ABCDE1234F)';
+      missingLabels.push('PAN Card Number (must be exactly 10 characters)');
+    }
+
+    // Bank fields — required
+    if (!editStructureData.bank_name || !String(editStructureData.bank_name).trim()) {
+      errors['bank_name'] = 'Required';
+      missingLabels.push('Bank Name');
+    }
+    const acct = String(editStructureData.bank_account_number || '').trim();
+    if (!acct) {
+      errors['bank_account_number'] = 'Required';
+      missingLabels.push('Bank Account Number');
+    } else if (acct.length < 9 || acct.length > 18) {
+      errors['bank_account_number'] = 'Must be 9–18 digits';
+      missingLabels.push('Bank Account Number (must be 9–18 digits)');
+    }
+    const ifsc = String(editStructureData.bank_ifsc || '').trim();
+    if (!ifsc) {
+      errors['bank_ifsc'] = 'Required';
+      missingLabels.push('Bank IFSC Code');
+    } else if (ifsc.length !== 11) {
+      errors['bank_ifsc'] = 'IFSC must be exactly 11 characters';
+      missingLabels.push('Bank IFSC Code (must be exactly 11 characters)');
+    }
+
+    // UAN — exactly 12 digits if provided
+    const uan = String(editStructureData.uan || '').trim();
+    if (uan && uan.length !== 12) {
+      errors['uan'] = 'UAN must be exactly 12 digits';
+      missingLabels.push('UAN Number (must be exactly 12 digits)');
+    }
+
+    // Numeric allowances — no negatives
     const numericFields = ['hra', 'special_allowance', 'travel_allowance', 'medical_allowance', 'food_allowance', 'internet_allowance', 'other_allowance', 'variable_pay', 'employer_pf', 'employer_esi'];
     for (const field of numericFields) {
-      if (editStructureData[field as keyof typeof editStructureData] < 0) {
-        showErrorAlert('Salary components and allowances cannot be negative.');
-        return;
+      if ((editStructureData[field as keyof typeof editStructureData] as number) < 0) {
+        errors[field] = 'Cannot be negative';
+        missingLabels.push(`${field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} (cannot be negative)`);
       }
+    }
+
+    setFieldErrors(errors);
+
+    if (missingLabels.length > 0) {
+      const listHtml = missingLabels.map(l => `<li style="text-align:left;padding:2px 0">• ${l}</li>`).join('');
+      Swal.fire({
+        icon: 'error',
+        title: 'Validation Errors',
+        html: `<p style="margin-bottom:8px;text-align:left">Please fix the following before saving:</p><ul style="margin:0;padding-left:8px">${listHtml}</ul>`,
+        confirmButtonText: 'Fix Now',
+        confirmButtonColor: '#6366f1',
+      });
+      return;
     }
 
     setLoading(true);
@@ -613,7 +670,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                   <th className="px-6 py-4">Structure</th>
                   <th className="px-6 py-4 text-right">Basic Salary</th>
                   <th className="px-6 py-4 text-right">Monthly Gross</th>
-                  <th className="px-6 py-4 text-right">CTC</th>
+                  <th className="px-6 py-4 text-right">Annual CTC</th>
                   <th className="px-6 py-4 text-right">Action</th>
                 </tr>
               </thead>
@@ -667,7 +724,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         <div className={`p-6 rounded-lg border ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Configure Salary Structure</h2>
+              <h2 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{selectedEmployee.salary_structure ? 'Edit Salary Structure' : 'Configure Salary Structure'}</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400">{selectedEmployee.name} - {selectedEmployee.designation}</p>
             </div>
             <Button variant="ghost" onClick={() => setSelectedEmployee(null)}>Back to list</Button>
@@ -711,15 +768,18 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                 </Select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">PAN Card Number</label>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">PAN Card Number <span className="text-slate-400 font-normal">(10 chars)</span></label>
                 <input
                   type="text"
                   maxLength={10}
                   value={editStructureData.pan}
-                  onChange={(e) => setEditStructureData({ ...editStructureData, pan: e.target.value.toUpperCase() })}
-                  className={formInputClass}
+                  onChange={(e) => { setEditStructureData({ ...editStructureData, pan: e.target.value.toUpperCase() }); setFieldErrors(p => ({...p, pan: ''})); }}
+                  className={`${formInputClass} ${fieldErrors['pan'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                   placeholder="e.g. ABCDE1234F"
                 />
+                <p className={`text-[10px] mt-0.5 ${fieldErrors['pan'] ? 'text-red-500' : 'text-slate-400'}`}>
+                  {fieldErrors['pan'] || `${String(editStructureData.pan||'').length}/10`}
+                </p>
               </div>
             </div>
 
@@ -728,13 +788,15 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
               <h3 className="text-md font-semibold text-blue-500 border-b border-slate-200 dark:border-slate-800 pb-2">Salary Allowances</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Basic Salary</label>
+                  <label className="text-xs font-semibold text-slate-400 block mb-1">Basic Salary <span className="text-red-500">*</span></label>
                   <input
                     type="number"
+                    min={0}
                     value={editStructureData.basic_salary}
-                    onChange={(e) => setEditStructureData({ ...editStructureData, basic_salary: Number(e.target.value) })}
-                    className={formInputClass}
+                    onChange={(e) => { setEditStructureData({ ...editStructureData, basic_salary: Number(e.target.value) }); setFieldErrors(p => ({...p, basic_salary: false})); }}
+                    className={`${formInputClass} ${fieldErrors['basic_salary'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                   />
+                  {fieldErrors['basic_salary'] && <p className="text-[10px] text-red-500 mt-0.5">Required &amp; must be greater than 0</p>}
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-slate-400 block mb-1">HRA Allowance</label>
@@ -788,48 +850,64 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
             <div className="space-y-4">
               <h3 className="text-md font-semibold text-blue-500 border-b border-slate-200 dark:border-slate-800 pb-2">Bank & Compliance</h3>
               <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Bank Name</label>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Bank Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   value={editStructureData.bank_name}
-                  onChange={(e) => setEditStructureData({ ...editStructureData, bank_name: e.target.value })}
-                  className={formInputClass}
+                  onChange={(e) => { setEditStructureData({ ...editStructureData, bank_name: e.target.value }); setFieldErrors(p => ({...p, bank_name: false})); }}
+                  className={`${formInputClass} ${fieldErrors['bank_name'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                   placeholder="e.g. HDFC Bank"
                 />
+                {fieldErrors['bank_name'] && <p className="text-[10px] text-red-500 mt-0.5">Required</p>}
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Bank Account Number</label>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Bank Account Number <span className="text-red-500">*</span> <span className="text-slate-400 font-normal">(9–18 digits)</span></label>
                 <input
                   type="text"
+                  maxLength={18}
                   value={editStructureData.bank_account_number}
-                  onChange={(e) => setEditStructureData({ ...editStructureData, bank_account_number: e.target.value })}
-                  className={formInputClass}
+                  onChange={(e) => { setEditStructureData({ ...editStructureData, bank_account_number: e.target.value.replace(/\D/g, '') }); setFieldErrors(p => ({...p, bank_account_number: ''})); }}
+                  className={`${formInputClass} ${fieldErrors['bank_account_number'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                  placeholder="9 to 18 digit account number"
                 />
+                <p className={`text-[10px] mt-0.5 ${fieldErrors['bank_account_number'] ? 'text-red-500' : 'text-slate-400'}`}>
+                  {fieldErrors['bank_account_number'] || `${String(editStructureData.bank_account_number||'').length}/18`}
+                </p>
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Bank IFSC Code</label>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Bank IFSC Code <span className="text-red-500">*</span> <span className="text-slate-400 font-normal">(11 chars)</span></label>
                 <input
                   type="text"
+                  maxLength={11}
                   value={editStructureData.bank_ifsc}
-                  onChange={(e) => setEditStructureData({ ...editStructureData, bank_ifsc: e.target.value.toUpperCase() })}
-                  className={formInputClass}
+                  onChange={(e) => { setEditStructureData({ ...editStructureData, bank_ifsc: e.target.value.toUpperCase() }); setFieldErrors(p => ({...p, bank_ifsc: ''})); }}
+                  className={`${formInputClass} ${fieldErrors['bank_ifsc'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                   placeholder="e.g. HDFC0001234"
                 />
+                <p className={`text-[10px] mt-0.5 ${fieldErrors['bank_ifsc'] ? 'text-red-500' : 'text-slate-400'}`}>
+                  {fieldErrors['bank_ifsc'] || `${String(editStructureData.bank_ifsc||'').length}/11`}
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">UAN Number</label>
+                  <label className="text-xs font-semibold text-slate-400 block mb-1">UAN Number <span className="text-slate-400 font-normal">(12 digits)</span></label>
                   <input
                     type="text"
+                    maxLength={12}
                     value={editStructureData.uan}
-                    onChange={(e) => setEditStructureData({ ...editStructureData, uan: e.target.value })}
-                    className={formInputClass}
+                    onChange={(e) => { setEditStructureData({ ...editStructureData, uan: e.target.value.replace(/\D/g, '') }); setFieldErrors(p => ({...p, uan: ''})); }}
+                    className={`${formInputClass} ${fieldErrors['uan'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                    placeholder="12 digit UAN"
                   />
+                  <p className={`text-[10px] mt-0.5 ${fieldErrors['uan'] ? 'text-red-500' : 'text-slate-400'}`}>
+                    {fieldErrors['uan'] || `${String(editStructureData.uan||'').length}/12`}
+                  </p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-slate-400 block mb-1">PF Code</label>
                   <input
                     type="text"
+                    maxLength={30}
                     value={editStructureData.pf_number}
                     onChange={(e) => setEditStructureData({ ...editStructureData, pf_number: e.target.value })}
                     className={formInputClass}
