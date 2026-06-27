@@ -142,7 +142,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
     start_date: '',
     end_date: '',
     room: '',
-    subjects: [] as { subject_id: string; date: string; start_time: string; end_time: string }[]
+    subjects: [] as { _id: string; subject_id: string; date: string; start_time: string; end_time: string }[]
   });
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -287,6 +287,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
     filtered.forEach(s => {
       if (!newSubjects.some(sub => sub.subject_id === s.id.toString())) {
         newSubjects.unshift({
+          _id: Math.random().toString(36).substr(2, 9),
           subject_id: s.id.toString(),
           date: categoryDate || '',
           start_time: categoryStartTime,
@@ -338,7 +339,11 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
     setLoading(true);
     const finalRooms = roomsList.map(r => r.trim()).filter(r => r).join(', ');
-    const finalData = { ...formData, room: finalRooms };
+    const finalData = { 
+      ...formData, 
+      room: finalRooms,
+      subjects: formData.subjects.map(({ _id, ...rest }) => rest)
+    };
     try {
       const res = await scheduleExam(finalData);
       if (res.success) {
@@ -1008,12 +1013,12 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                   >
                     <div className="flex justify-between items-center border-b pb-2">
                       <label className="text-lg font-semibold">Subjects Schedule</label>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setFormData({ ...formData, subjects: [{ subject_id: '', date: '', start_time: '09:00', end_time: '12:00' }, ...formData.subjects] })} disabled={!formData.branch_id || !formData.semester_id}>
+                      <Button type="button" variant="outline" size="sm" onClick={() => setFormData({ ...formData, subjects: [{ _id: Math.random().toString(36).substr(2, 9), subject_id: '', date: '', start_time: '09:00', end_time: '12:00' }, ...formData.subjects] })} disabled={!formData.branch_id || !formData.semester_id}>
                         <Plus className="w-4 h-4 mr-2" /> Add Subject
                       </Button>
                     </div>
                     {formData.subjects.map((sub, index) => (
-                      <div key={index} className="grid grid-cols-1 sm:grid-cols-6 gap-4 p-4 border rounded-xl relative bg-secondary/10">
+                      <div key={sub._id} className="grid grid-cols-1 sm:grid-cols-6 gap-4 p-4 border rounded-xl relative bg-secondary/10">
                         <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8 text-destructive" onClick={() => { const newSubs = [...formData.subjects]; newSubs.splice(index, 1); setFormData({ ...formData, subjects: newSubs }); }}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -1022,12 +1027,12 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                           <Select value={sub.subject_id} onValueChange={(v) => { const newSubs = [...formData.subjects]; newSubs[index].subject_id = v; setFormData({ ...formData, subjects: newSubs }); }}>
                             <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select Subject" /></SelectTrigger>
                             <SelectContent>
-                              {subjects.filter(s => !formData.subjects.some((sub, i) => i !== index && sub.subject_id === s.id.toString())).length > 0 ? (
+                              {subjects.filter(s => s.subject_type !== 'elective' && s.subject_type !== 'open_elective' && !formData.subjects.some((subItem, i) => i !== index && subItem.subject_id === s.id.toString())).length > 0 ? (
                                 subjects
-                                  .filter(s => !formData.subjects.some((sub, i) => i !== index && sub.subject_id === s.id.toString()))
+                                  .filter(s => s.subject_type !== 'elective' && s.subject_type !== 'open_elective' && !formData.subjects.some((subItem, i) => i !== index && subItem.subject_id === s.id.toString()))
                                   .map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name} ({s.subject_code})</SelectItem>)
                               ) : (
-                                <SelectItem value="none" disabled>No subjects found</SelectItem>
+                                <SelectItem value="none" disabled>No standard subjects found</SelectItem>
                               )}
                             </SelectContent>
                           </Select>
