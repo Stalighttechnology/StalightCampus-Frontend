@@ -412,6 +412,7 @@ body,
    work when the root element has no class prefix */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
+  height: 5px;
   -webkit-appearance: none !important;
   appearance: none !important;
   display: block !important;
