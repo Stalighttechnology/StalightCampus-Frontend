@@ -10,6 +10,7 @@ import COEQPApprovals from "../coe/COEQPApprovals";
 import PublishResults from "../coe/PublishResults";
 import PublishResultsRevalMakeup from "../coe/PublishResultsRevalMakeup";
 import ApplyLeave from "../coe/ApplyLeave";
+import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import MakeupRequests from "../coe/MakeupRequests";
 import RevaluationRequests from "../coe/RevaluationRequests";
 import ExamScheduling from "../coe/ExamScheduling";
@@ -60,6 +61,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'exam-scheduling': 'exam-scheduling',
       'qp-approvals': 'qp-approvals',
       'apply-leave': 'apply-leave',
+      'reimbursements': 'reimbursements',
       'scan-student-info': 'scan-student-info',
       'my-attendance': 'my-attendance',
       'announcement-management': 'announcement-management',
@@ -99,6 +101,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'exam-scheduling': '/coe/exam-scheduling',
       'qp-approvals': '/coe/qp-approvals',
       'apply-leave': '/coe/apply-leave',
+      'reimbursements': '/coe/reimbursements',
       'scan-student-info': '/coe/scan-student-info',
       'my-attendance': '/coe/my-attendance',
       'announcement-management': '/coe/announcement-management',
@@ -148,6 +151,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
         return <COEQPApprovals />;
       case 'apply-leave':
         return <ApplyLeave />;
+      case 'reimbursements':
+        return <EmployeeReimbursements />;
       case 'profile':
         return <COEProfile />;
       case 'fee-settings':

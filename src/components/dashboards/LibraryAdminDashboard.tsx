@@ -6,6 +6,7 @@ import LibraryBooksCatalog from "../library/LibraryBooksCatalog";
 import LibraryCirculation from "../library/LibraryCirculation";
 import LibraryFineManagement from "../library/LibraryFineManagement";
 import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
+import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import Profile from "../common/Profile";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import { TutorialController } from "../../onboarding/components/TutorialController";
@@ -45,6 +46,8 @@ const LibraryAdminDashboard = ({ user }: DashboardProps) => {
         return <LibraryFineManagement />;
       case "apply-leave":
         return <ApplyLeaveDepartmentAdmin />;
+      case "reimbursements":
+        return <EmployeeReimbursements />;
       case "my-attendance":
         return <FacultyAttendance />;
             case "holiday-calendar":

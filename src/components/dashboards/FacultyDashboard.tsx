@@ -24,6 +24,7 @@ import FacultyAnnouncementManagement from "../faculty/FacultyAnnouncementManagem
 import FacultyAssignments from "../faculty/FacultyAssignments";
 import ScheduleClass from "../faculty/ScheduleClass";
 import SyllabusTracker from "../faculty/SyllabusTracker";
+import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import { API_ENDPOINT } from "../../utils/config";
 import { useTheme } from "../../context/ThemeContext";
 import { useProctorStudentsQuery } from "../../hooks/useApiQueries";
@@ -79,7 +80,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'study-materials': 'study-materials',
       'assignments': 'faculty-assignments',
       'schedule-class': 'schedule-class',
-      'syllabus-status': 'syllabus-status'
+      'syllabus-status': 'syllabus-status',
+      'reimbursements': 'reimbursements'
     };
 
     // Add direct mappings for additional top-level routes
@@ -130,6 +132,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'faculty-assignments': '/faculty/assignments',
       'schedule-class': '/faculty/schedule-class',
       'syllabus-status': '/faculty/syllabus-status',
+      'reimbursements': '/faculty/reimbursements',
       'return-to-hod': '/hod/dashboard'
     };
 
@@ -207,8 +210,10 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
         return <ScheduleClass user={user} setError={setError} toast={null} />;
       case "syllabus-status":
         return <SyllabusTracker />;
-            case "holiday-calendar":
+      case "holiday-calendar":
         return <HolidayCalendar readOnly />;
+      case "reimbursements":
+        return <EmployeeReimbursements />;
       default:
         return <FacultyStats setActivePage={handlePageChange} />;
     }

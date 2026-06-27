@@ -8,6 +8,7 @@ import WardenHostelOverview from "../warden/WardenHostelOverview";
 import WardenProfile from "../warden/WardenProfile";
 import WardenVisitorLogs from "../warden/WardenVisitorLogs";
 import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
+import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import { HMSProvider } from "../../context/HMSContext";
 import { AcademicProvider } from "../../context/AcademicContext";
@@ -48,6 +49,8 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
         return <WardenHostelOverview />;
       case "apply-leave":
         return <ApplyLeaveDepartmentAdmin routedTo="Hostel Administrator" />;
+      case "reimbursements":
+        return <EmployeeReimbursements />;
       case "my-attendance":
         return <FacultyAttendance />;
             case "holiday-calendar":

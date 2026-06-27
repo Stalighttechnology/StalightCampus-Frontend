@@ -58,6 +58,7 @@ import PaymentSettings from './PaymentSettings';
 import FacultyAttendance from '../faculty/FacultyAttendance';
 import AnnouncementManagement from '../admin/AnnouncementManagement';
 import { HolidayCalendar } from '../admin/HolidayCalendar';
+import FeesManagerPayroll from './FeesManagerPayroll';
 
 interface DashboardStats {
   total_students: number;
@@ -358,6 +359,12 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
           icon={<UserCheck size={20} />}
           onClick={() => handlePageChange("student-reports")}
         />
+        <DashboardCard
+          title="Payroll Management"
+          description="Manage salaries, TDS & payouts"
+          icon={<IndianRupee size={20} />}
+          onClick={() => handlePageChange("payroll")}
+        />
       </div>
     </div>
   );
@@ -380,6 +387,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
       case 'my-attendance': return <FacultyAttendance />;
       case 'profile': return <FeesManagerProfile user={user} />;
       case 'holiday-calendar': return <HolidayCalendar readOnly />;
+      case 'payroll': return <FeesManagerPayroll user={user} />;
       default: return renderDashboard();
     }
   };

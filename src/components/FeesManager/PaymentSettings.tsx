@@ -12,6 +12,7 @@ import {
   ExternalLink, 
   Copy, 
   CheckCircle2, 
+  IndianRupee,
   ShieldAlert, 
   BookOpen, 
   Lock, 
@@ -32,6 +33,7 @@ const PaymentSettings: React.FC = () => {
   const [configured, setConfigured] = useState(false);
   const [keyId, setKeyId] = useState('');
   const [keySecret, setKeySecret] = useState('');
+  const [razorpayxAccountNumber, setRazorpayxAccountNumber] = useState('');
   const [editing, setEditing] = useState(false);
   const [validating, setValidating] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -51,6 +53,7 @@ const PaymentSettings: React.FC = () => {
       if (res.success) {
         setConfigured(res.data.configured || false);
         setKeyId(res.data.razorpay_key_id || '');
+        setRazorpayxAccountNumber(res.data.razorpayx_account_number || '');
         setEditing(!res.data.configured);
       } else {
         showErrorAlert('Error', res.message || 'Failed to fetch settings');
@@ -63,14 +66,22 @@ const PaymentSettings: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!keyId || !keySecret) {
-      showErrorAlert('Missing fields', 'Please enter both Key ID and Key Secret');
+    if (!keyId) {
+      showErrorAlert('Missing Key ID', 'Please enter a Key ID');
+      return;
+    }
+    if (!configured && !keySecret) {
+      showErrorAlert('Missing Key Secret', 'Please enter a Key Secret');
       return;
     }
     setSaving(true);
     setValidating(true);
     try {
-      const res = await savePaymentSettings({ razorpay_key_id: keyId.trim(), razorpay_key_secret: keySecret.trim() });
+      const res = await savePaymentSettings({ 
+        razorpay_key_id: keyId.trim(), 
+        razorpay_key_secret: keySecret.trim(),
+        razorpayx_account_number: razorpayxAccountNumber.trim()
+      });
       if (res.success) {
         showSuccessAlert('Saved', res.message || 'Payment settings saved');
         setConfigured(true);
@@ -142,49 +153,45 @@ const PaymentSettings: React.FC = () => {
           </CardHeader>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Instructions Box */}
-          <div className="lg:col-span-1 space-y-6">
-            <Card className="border-border/50 shadow-sm">
-              <CardHeader className="border-b bg-muted/10 p-4">
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-primary" />
-                  Quick Setup
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                <ol className="list-decimal list-outside text-sm space-y-4 text-muted-foreground ml-4">
-                  <li className="leading-relaxed">
-                    Open the <a className="text-primary hover:underline font-semibold inline-flex items-center gap-1" href={RAZORPAY_DASHBOARD} target="_blank" rel="noreferrer">Razorpay Dashboard <ExternalLink className="h-3.5 w-3.5" /></a>.
-                  </li>
-                  <li className="leading-relaxed">Sign in or create an account for your college.</li>
-                  <li className="leading-relaxed">In the Dashboard, go to <strong>Settings → API Keys</strong> and generate a new key pair.</li>
-                  <li className="leading-relaxed">Copy the <strong>Key ID</strong> and <strong>Key Secret</strong>.</li>
-                  <li className="leading-relaxed">Paste Key ID below and paste Key Secret once — it will not be shown again.</li>
-                  <li className="leading-relaxed">Click <strong>Save & Validate</strong>. Our dashboard will validate the keys and save them securely for your organization.</li>
-                </ol>
+        {/* Instructions Box */}
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="border-b bg-muted/10 p-4">
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-primary" />
+              Quick Setup
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            <ol className="list-decimal list-outside text-sm space-y-4 text-muted-foreground ml-4">
+              <li className="leading-relaxed">
+                Open the <a className="text-primary hover:underline font-semibold inline-flex items-center gap-1" href={RAZORPAY_DASHBOARD} target="_blank" rel="noreferrer">Razorpay Dashboard <ExternalLink className="h-3.5 w-3.5" /></a>.
+              </li>
+              <li className="leading-relaxed">Sign in or create an account for your college.</li>
+              <li className="leading-relaxed">In the Dashboard, go to <strong>Settings → API Keys</strong> and generate a new key pair.</li>
+              <li className="leading-relaxed">Copy the <strong>Key ID</strong> and <strong>Key Secret</strong>.</li>
+              <li className="leading-relaxed">Paste Key ID below and paste Key Secret once — it will not be shown again.</li>
+              <li className="leading-relaxed">Click <strong>Save & Validate</strong>. Our dashboard will validate the keys and save them securely for your organization.</li>
+            </ol>
 
-                <div className="mt-6 pt-6 border-t border-border/50 space-y-3">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Helpful Links</span>
-                  <div>
-                    <a className="text-sm text-primary hover:underline font-semibold inline-flex items-center gap-1.5" href={RAZORPAY_DOCS_KEYS} target="_blank" rel="noreferrer">
-                      Razorpay Docs — API Keys <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  </div>
-                </div>
+            <div className="mt-6 pt-6 border-t border-border/50 space-y-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Helpful Links</span>
+              <div>
+                <a className="text-sm text-primary hover:underline font-semibold inline-flex items-center gap-1.5" href={RAZORPAY_DOCS_KEYS} target="_blank" rel="noreferrer">
+                  Razorpay Docs — API Keys <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            </div>
 
-                <div className="mt-6">
-                  <Button variant="outline" onClick={openRazorpay} className="w-full flex items-center justify-center gap-2 h-11">
-                    Open Razorpay Dashboard
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            <div className="mt-6">
+              <Button variant="outline" onClick={openRazorpay} className="w-full flex items-center justify-center gap-2 h-11">
+                Open Razorpay Dashboard
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Configuration Form */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="border-border/50 shadow-sm">
+        {/* Configuration Form */}
+        <Card className="border-border/50 shadow-sm">
               <CardHeader className="border-b bg-muted/10 p-4">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Key className="h-5 w-5 text-primary" />
@@ -264,8 +271,77 @@ const PaymentSettings: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </div>
+
+        <Card className="border-border/50 shadow-sm mt-6">
+          <CardHeader className="border-b bg-muted/10 p-4">
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <IndianRupee className="h-5 w-5 text-emerald-500" />
+              RazorpayX Payouts Integration
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6 space-y-6">
+            <div className="space-y-5">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Stalight Campus uses <strong>RazorpayX Payouts</strong> to automate salary disbursements, reimbursement claims, and advances. This allows direct bank transfers (IMPS/NEFT) to employee accounts.
+              </p>
+
+              <div className="p-4 border border-blue-500/20 bg-blue-500/5 text-blue-900 dark:text-blue-200 rounded-xl text-sm space-y-2">
+                <span className="font-semibold block">How Payouts Work:</span>
+                <ul className="list-disc list-inside space-y-1 opacity-90 ml-1">
+                  <li><strong>Same API Credentials</strong>: RazorpayX uses the same Key ID and Secret configured above to authorize transactions.</li>
+                  <li><strong>Employee Bank Details</strong>: Employees must have valid PAN, UAN, Bank Account Numbers, and exactly 11-digit IFSC codes configured in their Salary Structure profiles.</li>
+                </ul>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">Merchant Virtual Account Number</Label>
+                <Input 
+                  value={razorpayxAccountNumber} 
+                  onChange={(e) => setRazorpayxAccountNumber(e.target.value)} 
+                  placeholder="e.g. 456456456456" 
+                  disabled={!isAllowed} 
+                  className="h-11 bg-background border-border"
+                />
+                <p className="text-xs text-muted-foreground ml-1">
+                  Configure your campus virtual account number to draw payout funds directly from your organization's virtual account.
+                </p>
+              </div>
+
+              <div className="space-y-4 pt-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Setup Checklist:</span>
+                <ol className="list-decimal list-inside text-sm space-y-3 text-muted-foreground ml-1">
+                  <li className="leading-relaxed">Log in to your <a className="text-primary hover:underline font-semibold inline-flex items-center gap-1" href="https://x.razorpay.com" target="_blank" rel="noreferrer">RazorpayX Portal <ExternalLink className="h-3.5 w-3.5" /></a>.</li>
+                  <li className="leading-relaxed">Ensure your account is active and loaded with sufficient funds.</li>
+                  <li className="leading-relaxed">Copy your Virtual Account Number from the top of the RazorpayX dashboard.</li>
+                  <li className="leading-relaxed">Paste your Virtual Account Number in the input field above and save settings.</li>
+                </ol>
+              </div>
+
+              <div className="pt-4 border-t border-border/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Lock className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span>Payout transactions are executed securely using server-side REST requests.</span>
+                </div>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => window.open('https://razorpay.com/docs/razorpayx/', '_blank')}
+                    className="gap-1.5 h-11"
+                  >
+                    API Docs <ExternalLink className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button 
+                    onClick={handleSave} 
+                    disabled={!isAllowed || saving || validating} 
+                    className="bg-primary text-white hover:bg-primary/90 shadow-md font-semibold h-11 px-6 w-full md:w-auto md:min-w-[150px]"
+                  >
+                    {saving || validating ? 'Saving...' : 'Save Payout Config'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

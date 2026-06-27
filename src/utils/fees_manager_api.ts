@@ -749,3 +749,205 @@ export const STAFF_ROLES = [
 { value: 'library_admin', label: 'Library Admin' },
 { value: 'transport_admin', label: 'Transport Admin' },
 { value: 'placement_officer', label: 'Placement Officer' }];
+
+// Payroll Management API Helpers
+export const getPayrollSettings = async () => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/settings/`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error fetching payroll settings' };
+  }
+};
+
+export const savePayrollSettings = async (data: any) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/settings/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error saving payroll settings' };
+  }
+};
+
+export const getSalaryStructures = async (page: number = 1, search: string = '', role: string = '') => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/salary-structures/?page=${page}&search=${encodeURIComponent(search)}&role=${encodeURIComponent(role)}`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error fetching salary structures' };
+  }
+};
+
+export const saveSalaryStructure = async (data: any) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/salary-structures/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error saving salary structure' };
+  }
+};
+
+export const getTaxDeclarations = async (financialYear: string, page: number = 1) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/declarations/?financial_year=${financialYear}&page=${page}`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error fetching tax declarations' };
+  }
+};
+
+export const verifyTaxDeclaration = async (declarationId: number, isVerified: boolean) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/declarations/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ declaration_id: declarationId, is_verified: isVerified })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error verifying tax declaration' };
+  }
+};
+
+export const getReimbursementClaims = async (page: number = 1) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/reimbursements/?page=${page}`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error fetching reimbursement claims' };
+  }
+};
+
+export const updateReimbursementClaim = async (claimId: number, action: 'approve' | 'reject') => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/reimbursements/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ claim_id: claimId, action })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error updating reimbursement claim' };
+  }
+};
+
+export const getLoanRequests = async (page: number = 1) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/loans/?page=${page}`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error fetching loans' };
+  }
+};
+
+export const updateLoanRequest = async (loanId: number, action: 'approve' | 'cancel') => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/loans/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ loan_id: loanId, action })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error updating loan request' };
+  }
+};
+
+export const getPayrollRuns = async (page: number = 1) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/runs/?page=${page}`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error fetching payroll runs' };
+  }
+};
+
+export const initiatePayrollRun = async (month: number, year: number) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/runs/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ month, year })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error initiating payroll run' };
+  }
+};
+
+export const getPayrollRunDetails = async (runId: number, page: number = 1, search: string = '', role: string = '') => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/runs/${runId}/?page=${page}&search=${encodeURIComponent(search)}&role=${encodeURIComponent(role)}`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error fetching payroll details' };
+  }
+};
+
+export const updatePayrollRunStatus = async (runId: number, action: 'approve' | 'cancel') => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/runs/${runId}/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error updating payroll run status' };
+  }
+};
+
+export const disbursePayrollRun = async (runId: number) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/runs/${runId}/payout/`, {
+      method: 'POST'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error disbursing payroll run' };
+  }
+};
+
+export const downloadPayslipPDF = async (payslipId: number, filename: string) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/payslips/${payslipId}/pdf/`);
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      return { success: true };
+    } else {
+      return { success: false, message: 'Failed to download PDF payslip' };
+    }
+  } catch (error) {
+    return { success: false, message: 'Network error downloading PDF' };
+  }
+};

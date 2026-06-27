@@ -2258,4 +2258,38 @@ export const exportSubjectSyllabusMonitorPdf = async (semesterId: string, subjec
   }
   return response.blob();
 };
+
+// ─── Employee Reimbursements & Claims ────────────────────────────────────────
+
+export const getMyReimbursements = async (page: number = 1) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/payroll/reimbursements/?page=${page}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    return { success: true, ...data };
+  } catch {
+    return { success: false, message: 'Network error fetching reimbursement claims' };
+  }
+};
+
+export const submitReimbursementClaim = async (payload: {
+  type: string;
+  amount: number;
+  description: string;
+  receipt_file?: string;
+}) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/payroll/reimbursements/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    return { success: data.success ?? response.ok, ...data };
+  } catch {
+    return { success: false, message: 'Network error submitting reimbursement claim' };
+  }
+};
 

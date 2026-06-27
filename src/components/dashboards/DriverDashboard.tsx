@@ -5,6 +5,7 @@ import DriverDashboardContent from "../transport/driver/DriverDashboard";
 import DriverTripHistory from "../transport/driver/DriverTripHistory";
 import DriverComplaints from "../transport/driver/DriverComplaints";
 import ApplyLeaveDriver from "../transport/driver/ApplyLeave";
+import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import Profile from "../common/Profile";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import { TutorialController } from "../../onboarding/components/TutorialController";
@@ -42,6 +43,8 @@ const DriverDashboard = ({ user }: DashboardProps) => {
         return <DriverComplaints />;
       case "apply-leave":
         return <ApplyLeaveDriver />;
+      case "reimbursements":
+        return <EmployeeReimbursements />;
       case "my-attendance":
         return <FacultyAttendance />;
             case "holiday-calendar":

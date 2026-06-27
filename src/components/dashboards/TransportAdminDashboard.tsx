@@ -12,6 +12,7 @@ import TransportAllocations from "../transport/admin/TransportAllocations";
 import TransportTracking from "../transport/admin/TransportTracking";
 import TransportIncidents from "../transport/admin/TransportIncidents";
 import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
+import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import DriverLeavesManagement from "../transport/admin/LeaveManagement";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
@@ -59,6 +60,8 @@ const TransportAdminDashboard = ({ user }: DashboardProps) => {
         return <AnnouncementManagement />;
       case "apply-leave":
         return <ApplyLeaveDepartmentAdmin />;
+      case "reimbursements":
+        return <EmployeeReimbursements />;
       case "my-attendance":
         return <FacultyAttendance />;
       case "manage-leaves":

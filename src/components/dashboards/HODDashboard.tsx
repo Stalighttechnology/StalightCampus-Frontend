@@ -13,6 +13,7 @@ import FacultyAssignments from "../hod/FacultyAssignments";
 import Timetable from "../hod/Timetable";
 import LeaveManagement from "../hod/LeaveManagement";
 import ApplyLeave from "../hod/ApplyLeave";
+import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import AttendanceView from "../hod/AttendanceView";
 import MarksView from "../hod/MarksView";
 import NotificationsManagement from "../hod/NotificationsManagement";
@@ -133,6 +134,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'timetable': 'timetable',
       'leaves': 'leaves',
       'apply-leaves': 'apply-leaves',
+      'reimbursements': 'reimbursements',
       'attendance': 'attendance',
       'faculty-attendance': 'faculty-attendance',
       'my-attendance': 'my-attendance',
@@ -190,6 +192,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'timetable': '/hod/timetable',
       'leaves': '/hod/leaves',
       'apply-leaves': '/hod/apply-leaves',
+      'reimbursements': '/hod/reimbursements',
       'attendance': '/hod/attendance',
       'faculty-attendance': '/hod/faculty-attendance',
       'my-attendance': '/hod/my-attendance',
@@ -266,6 +269,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         return <LeaveManagement />;
       case "apply-leaves":
         return <ApplyLeave />;
+      case "reimbursements":
+        return <EmployeeReimbursements />;
       case "attendance":
         return <AttendanceView />;
       case "faculty-attendance":
