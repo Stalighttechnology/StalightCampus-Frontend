@@ -287,6 +287,20 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   };
 
   const handleSaveStructure = async () => {
+    // Validations
+    if (!editStructureData.basic_salary || editStructureData.basic_salary <= 0) {
+      showErrorAlert('Basic Salary must be greater than 0.');
+      return;
+    }
+
+    const numericFields = ['hra', 'special_allowance', 'travel_allowance', 'medical_allowance', 'food_allowance', 'internet_allowance', 'other_allowance', 'variable_pay', 'employer_pf', 'employer_esi'];
+    for (const field of numericFields) {
+      if (editStructureData[field as keyof typeof editStructureData] < 0) {
+        showErrorAlert('Salary components and allowances cannot be negative.');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const payload = {
@@ -631,7 +645,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Button size="sm" variant="outline" onClick={() => handleEditStructure(emp)}>
-                        Configure Structure
+                        {emp.salary_structure ? 'Edit Structure' : 'Configure Structure'}
                       </Button>
                     </td>
                   </tr>
