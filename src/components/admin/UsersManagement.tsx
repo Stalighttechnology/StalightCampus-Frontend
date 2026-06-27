@@ -756,7 +756,9 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                         <th className="py-2 px-4 sm:w-[200px]">Full Name</th>
                         <th className="py-2 px-1 md:w-[200px]">Email</th>
                         <th className="py-2 px-1 md:w-[120px]">Role</th>
-                        <th className="py-2 px-1 md:w-[250px]">Department</th>
+                        {(roleFilter === "" || rolesNeedingDept.includes(roleFilter)) && (
+                          <th className="py-2 px-1 md:w-[250px]">Department</th>
+                        )}
                         <th className="py-2 px-1 md:w-[120px]">Status</th>
                         <th className="py-2 px-1 text-right md:w-[120px]">Actions</th>
                       </tr>
@@ -778,11 +780,13 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                             {user.email}
                           </td>
                           <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getRoleBadge(user.role, theme)}</td>
-                          <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[250px]">
-                            <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                              {user.department !== "N/A" ? user.department : "-"}
-                            </span>
-                          </td>
+                          {(roleFilter === "" || rolesNeedingDept.includes(roleFilter)) && (
+                            <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[250px]">
+                              <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                {user.department !== "N/A" ? user.department : "-"}
+                              </span>
+                            </td>
+                          )}
                           <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getStatusBadge(user.status, theme)}</td>
                           <td className="table-cell py-2 px-1 text-right">
                             <div className="action-buttons whitespace-nowrap justify-end gap-2">
