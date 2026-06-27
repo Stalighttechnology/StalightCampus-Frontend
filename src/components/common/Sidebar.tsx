@@ -295,7 +295,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Leave", page: "leave" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
     principal: [
@@ -317,7 +317,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "My Attendance", page: "my-attendance" },
       { name: "Campus Locations", page: "campus-locations" },
       { name: "Billing & Plans", page: "billing" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Alumni Directory", page: "alumni-directory" },
       { name: "Profile", page: "profile" },
     ],
@@ -338,7 +338,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Finance", page: "finance" },
       { name: "Reports", page: "reports" },
       { name: "Announcement Management", page: "announcement-management" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Alumni Directory", page: "alumni-directory" },
       { name: "Profile", page: "profile" },
     ],
@@ -360,7 +360,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "Billing & Plans", page: "billing" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
     hod: [
@@ -387,7 +387,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "My Attendance", page: "my-attendance" },
       { name: "Apply Leaves", page: "apply-leaves" },
       { name: "Reimbursements & Claims", page: "reimbursements" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "hod-profile" },
     ],
     faculty: [
@@ -411,7 +411,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "My Attendance", page: "faculty-attendance" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "Reimbursements & Claims", page: "reimbursements" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "faculty-profile" },
     ],
     student: [
@@ -431,7 +431,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Library", page: "library" },
       { name: "Announcements", page: "announcements" },
       { name: "Leaves", page: "leave-request" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
     parent: [
@@ -445,7 +445,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Hostel Details", page: "student-hostel-details" },
       { name: "Transportation", page: "transportation" },
       { name: "Announcements", page: "announcements" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
     ],
     coe: [
       { name: "Dashboard", page: "dashboard" },
@@ -463,7 +463,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Apply Leave", page: "apply-leave" },
       { name: "Reimbursements & Claims", page: "reimbursements" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
     dean: [
@@ -479,7 +479,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Billing & Plans", page: "billing" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Admin Leaves", page: "admin-leaves" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Alumni Directory", page: "alumni-directory" },
       { name: "Profile", page: "profile" },
     ],
@@ -500,7 +500,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Apply Leave", page: "apply-leave" },
       { name: "Reimbursements & Claims", page: "reimbursements" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
     warden: [
@@ -512,7 +512,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Apply Leave", page: "apply-leave" },
       { name: "Reimbursements & Claims", page: "reimbursements" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
     transport_admin: [
@@ -528,7 +528,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Apply Leave", page: "apply-leave" },
       { name: "Reimbursements & Claims", page: "reimbursements" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
     driver: [
@@ -538,7 +538,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Apply Leave", page: "apply-leave" },
       { name: "Reimbursements & Claims", page: "reimbursements" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
     library_admin: [
@@ -549,7 +549,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Apply Leave", page: "apply-leave" },
       { name: "Reimbursements & Claims", page: "reimbursements" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
     admission_manager: [
@@ -563,7 +563,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Communication", page: "admission-communication" },
       { name: "Reports", page: "admission-reports" },
       { name: "My Attendance", page: "my-attendance" },
-      { name: "Holiday Calendar", page: "holiday-calendar" },
+      { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
     outside_student: [

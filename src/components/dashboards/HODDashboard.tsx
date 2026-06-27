@@ -304,7 +304,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       case "syllabus-monitor":
         return <HODSemesterMonitor />;
             case "holiday-calendar":
-        return <HolidayCalendar readOnly />;
+        return <HolidayCalendar readOnly showLeaves userRole="hod" />;
       default:
         return <HODStats setError={setError} setPage={handlePageChange} />;
     }

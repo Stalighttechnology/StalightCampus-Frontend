@@ -129,7 +129,7 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
       case "payment-cancel":
         return <PaymentCancel setPage={handlePageChange} />;
             case "holiday-calendar":
-        return <HolidayCalendar readOnly />;
+        return <HolidayCalendar readOnly showExams showLeaves userRole="student" />;
       case "profile":
         if (user?.role === "outside_student" || user?.role === "parent") {
           return <Profile role={user?.role} user={user} />;

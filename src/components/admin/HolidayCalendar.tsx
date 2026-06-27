@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight, Plus, Trash2, Calendar as CalendarIcon, Star, ArrowRight, Edit } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO } from 'date-fns';
-import { getHolidays, createHoliday, deleteHoliday, Holiday } from '../../utils/holiday_api';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO, isWithinInterval, startOfDay } from 'date-fns';
+import { getHolidays, createHoliday, deleteHoliday, Holiday, getStudentExams, ExamEvent, getMyApprovedLeaves, LeaveEvent } from '../../utils/holiday_api';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useTheme } from '../../context/ThemeContext';
@@ -11,10 +11,15 @@ import { showConfirmAlert, showSuccessAlert, showErrorAlert } from '../../utils/
 
 interface HolidayCalendarProps {
     readOnly?: boolean;
+    showExams?: boolean;
+    showLeaves?: boolean;
+    userRole?: string;
 }
 
-export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = false }) => {
+export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = false, showExams = false, showLeaves = false, userRole }) => {
     const [holidays, setHolidays] = useState<Holiday[]>([]);
+    const [examEvents, setExamEvents] = useState<ExamEvent[]>([]);
+    const [leaveEvents, setLeaveEvents] = useState<LeaveEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentDate, setCurrentDate] = useState(new Date());
     const { theme } = useTheme();
@@ -25,6 +30,14 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
     const [holidayType, setHolidayType] = useState('holiday');
     const [existingHoliday, setExistingHoliday] = useState<Holiday | null>(null);
 
+    // Exam info dialog
+    const [selectedExam, setSelectedExam] = useState<ExamEvent | null>(null);
+    const [isExamModalOpen, setIsExamModalOpen] = useState(false);
+
+    // Leave info dialog
+    const [selectedLeave, setSelectedLeave] = useState<LeaveEvent | null>(null);
+    const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+
     // Edit Mode states
     const [isEditModeActive, setIsEditModeActive] = useState(false);
     const [isDialogReadOnly, setIsDialogReadOnly] = useState(false);
@@ -33,8 +46,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
         try {
             setLoading(true);
             const startDate = format(startOfMonth(date), 'yyyy-MM-dd');
-            const nextMonth = addMonths(date, 1);
-            const endDate = format(new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 10), 'yyyy-MM-dd');
+            const endDate = format(endOfMonth(date), 'yyyy-MM-dd');
             
             const data = await getHolidays(startDate, endDate);
             setHolidays(data);
@@ -48,6 +60,24 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
     useEffect(() => {
         fetchHolidays(currentDate);
     }, [currentDate.getMonth(), currentDate.getFullYear()]);
+
+    // Fetch student exams for the current month when showExams is enabled
+    useEffect(() => {
+        if (!showExams) return;
+        const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
+        const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
+        
+        getStudentExams(startDate, endDate).then(setExamEvents).catch(() => setExamEvents([]));
+    }, [showExams, currentDate.getMonth(), currentDate.getFullYear()]);
+
+    // Fetch approved leaves for the current month when showLeaves is enabled
+    useEffect(() => {
+        if (!showLeaves) return;
+        const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
+        const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
+        
+        getMyApprovedLeaves(userRole, startDate, endDate).then(setLeaveEvents).catch(() => setLeaveEvents([]));
+    }, [showLeaves, userRole, currentDate.getMonth(), currentDate.getFullYear()]);
 
     const handlePreviousMonth = () => setCurrentDate(subMonths(currentDate, 1));
     const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
@@ -63,6 +93,41 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
 
     const getHolidaysForDay = (day: Date) => {
         return holidays.filter(h => isSameDay(parseISO(h.date), day));
+    };
+
+    const getExamsForDay = (day: Date): ExamEvent[] => {
+        if (!showExams) return [];
+        return examEvents.filter(e => {
+            const d = typeof e.date === 'string' ? parseISO(e.date) : new Date(e.date);
+            return isSameDay(d, day);
+        });
+    };
+
+    const getLeavesForDay = (day: Date): LeaveEvent[] => {
+        if (!showLeaves) return [];
+        return leaveEvents.filter(leave => {
+            if (!leave.start_date || !leave.end_date) return false;
+            try {
+                const start = startOfDay(parseISO(leave.start_date));
+                const end = startOfDay(parseISO(leave.end_date));
+                const current = startOfDay(day);
+                return isWithinInterval(current, { start, end });
+            } catch (error) {
+                return false;
+            }
+        });
+    };
+
+    const handleExamClick = (e: React.MouseEvent, exam: ExamEvent) => {
+        e.stopPropagation();
+        setSelectedExam(exam);
+        setIsExamModalOpen(true);
+    };
+
+    const handleLeaveClick = (e: React.MouseEvent, leave: LeaveEvent) => {
+        e.stopPropagation();
+        setSelectedLeave(leave);
+        setIsLeaveModalOpen(true);
     };
 
     const handleDayClick = (day: Date) => {
@@ -195,6 +260,16 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                             <span className="flex items-center gap-1.5">
                                 <span className="w-2.5 h-2.5 rounded-full bg-primary"></span> Event
                             </span>
+                            {showExams && (
+                                <span className="flex items-center gap-1.5">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Exam
+                                </span>
+                            )}
+                            {showLeaves && (
+                                <span className="flex items-center gap-1.5">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-teal-500"></span> Approved Leave
+                                </span>
+                            )}
                         </div>
                         {!readOnly && (
                             <Button 
@@ -214,7 +289,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                 </CardHeader>
 
                 {/* Calendar Grid Section */}
-                <CardContent className="flex-1 p-0 m-1 md:m-2 border rounded-2xl overflow-x-auto sm:overflow-x-visible overflow-y-hidden flex flex-col custom-scrollbar">
+                <CardContent className="flex-1 p-0 m-1 md:m-2 border rounded-2xl overflow-x-auto overflow-y-auto sm:overflow-x-visible flex flex-col custom-scrollbar">
                     <div className="w-full sm:min-w-[700px] flex-1 flex flex-col">
                         {/* Weekday Headers */}
                         <div className="grid grid-cols-7 bg-primary text-white rounded-t-2xl">
@@ -229,69 +304,109 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                         <div className={`flex-1 grid grid-cols-7 auto-rows-fr divide-x divide-y ${theme === 'dark' ? 'divide-border bg-card' : 'divide-gray-100 bg-white'}`}>
                             {daysInMonth.map((day, idx) => {
                                 const dayHolidays = getHolidaysForDay(day);
+                                const dayExams = getExamsForDay(day);
+                                const dayLeaves = getLeavesForDay(day);
                                 const isCurrentMonth = isSameMonth(day, currentDate);
                                 const isToday = isSameDay(day, new Date());
                                 const hasHoliday = dayHolidays.length > 0;
+                                const hasExam = dayExams.length > 0;
+                                const hasLeave = dayLeaves.length > 0;
 
                                 return (
                                     <div
                                         key={day.toString()}
                                         onClick={() => handleDayClick(day)}
-                                        className={`h-full min-h-0 p-1.5 hover:bg-primary/5 transition-colors relative flex flex-col justify-between ${hasHoliday || (!readOnly && isEditModeActive) ? 'cursor-pointer' : ''
-                                            } ${!isCurrentMonth ? (theme === 'dark' ? 'bg-muted/10 text-muted-foreground/30' : 'bg-gray-50/50 text-gray-400') : (
-                                                hasHoliday ? (
-                                                    dayHolidays[0].holiday_type === 'event'
-                                                        ? (theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5')
-                                                        : (theme === 'dark' ? 'bg-rose-500/10' : 'bg-rose-50/50')
-                                                ) : (theme === 'dark' ? 'bg-card' : 'bg-white')
-                                            )} ${isToday ? 'bg-primary/5 ring-1 ring-primary/30' : ''
-                                            }`}
+                                        className={`h-full min-h-0 p-1.5 hover:bg-primary/5 transition-colors relative flex flex-col justify-between ${
+                                            hasHoliday || hasExam || hasLeave || (!readOnly && isEditModeActive) ? 'cursor-pointer' : ''
+                                        } ${!isCurrentMonth ? (theme === 'dark' ? 'bg-muted/10 text-muted-foreground/30' : 'bg-gray-50/50 text-gray-400') : (
+                                            hasHoliday ? (
+                                                dayHolidays[0].holiday_type === 'event'
+                                                    ? (theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5')
+                                                    : (theme === 'dark' ? 'bg-rose-500/10' : 'bg-rose-50/50')
+                                            ) : hasExam ? (theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50/60') : hasLeave ? (theme === 'dark' ? 'bg-teal-500/10' : 'bg-teal-50/60') : (theme === 'dark' ? 'bg-card' : 'bg-white')
+                                        )} ${isToday ? 'ring-1 ring-primary/30' : ''}`}
                                     >
-                                        {/* Holiday left border strip */}
+                                        {/* Left border strip */}
                                         {hasHoliday && (
-                                            <span className={`absolute left-0 top-0 bottom-0 w-1 ${dayHolidays[0].holiday_type === 'event' ? 'bg-primary' : 'bg-rose-500'
-                                                }`} />
+                                            <span className={`absolute left-0 top-0 bottom-0 w-1 ${dayHolidays[0].holiday_type === 'event' ? 'bg-primary' : 'bg-rose-500'}`} />
+                                        )}
+                                        {!hasHoliday && hasExam && (
+                                            <span className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500" />
+                                        )}
+                                        {!hasHoliday && !hasExam && hasLeave && (
+                                            <span className="absolute left-0 top-0 bottom-0 w-1 bg-teal-500" />
                                         )}
 
                                         {/* Day header: number and star */}
                                         <div className="flex justify-between items-center w-full">
-                                            <span className={`text-xs md:text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-primary text-white shadow-sm' : (theme === 'dark' ? 'text-foreground' : 'text-gray-800')
-                                                }`}>
-                                                {format(day, 'dd')}
+                                            <span className={`text-xs md:text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-primary text-white shadow-sm' : (theme === 'dark' ? 'text-foreground' : 'text-gray-800')}`}>
+                                                {isCurrentMonth ? format(day, 'dd') : ''}
                                             </span>
-                                            {hasHoliday && (
-                                                <Star className={`w-3.5 h-3.5 fill-current ${dayHolidays[0].holiday_type === 'event' ? 'text-primary' : 'text-rose-500'
-                                                    }`} />
+                                            {isCurrentMonth && hasHoliday && (
+                                                <Star className={`w-3.5 h-3.5 fill-current ${dayHolidays[0].holiday_type === 'event' ? 'text-primary' : 'text-rose-500'}`} />
                                             )}
                                         </div>
 
                                         {/* Holiday details text & Pill */}
-                                        <div className="mt-2 flex-1 flex-col justify-between hidden sm:flex">
-                                            {dayHolidays.length > 0 ? (
-                                                <div className="flex flex-col gap-1.5 items-start">
-                                                    <span className={`text-[10px] md:text-xs font-medium leading-tight line-clamp-2 ${dayHolidays[0].holiday_type === 'event' ? 'text-primary' : 'text-rose-500'
-                                                        }`} title={dayHolidays[0].description}>
+                                        <div className="mt-1 flex-1 flex-col gap-1 hidden sm:flex overflow-y-auto custom-scrollbar">
+                                            {isCurrentMonth && hasHoliday && (
+                                                <div className="flex flex-col gap-1 items-start">
+                                                    <span className={`text-[10px] md:text-xs font-medium leading-tight line-clamp-1 ${dayHolidays[0].holiday_type === 'event' ? 'text-primary' : 'text-rose-500'}`} title={dayHolidays[0].description}>
                                                         {dayHolidays[0].description}
                                                     </span>
                                                     <span
                                                         onClick={(e) => handleEventClick(e, dayHolidays[0])}
-                                                        className={`text-[8px] md:text-[9px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider cursor-pointer ${dayHolidays[0].holiday_type === 'event' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20'
-                                                            }`}
+                                                        className={`text-[8px] md:text-[9px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider cursor-pointer ${dayHolidays[0].holiday_type === 'event' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20'}`}
                                                     >
                                                         {!readOnly && isEditModeActive ? 'Tap to Edit' : 'View Details'}
                                                     </span>
                                                 </div>
-                                            ) : (
-                                                !readOnly && isEditModeActive ? (
-                                                    <div className="flex justify-start items-end h-full">
-                                                        <span className="text-[8px] md:text-[9px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-gray-100 text-gray-500 border border-gray-200 animate-pulse">
-                                                            Tap to Add
-                                                        </span>
-                                                    </div>
-                                                ) : (
-                                                    <div />
-                                                )
                                             )}
+
+                                            {/* Exam chips */}
+                                            {isCurrentMonth && !hasLeave && dayExams.slice(0, 2).map(exam => (
+                                                <div key={exam.id} className="flex flex-col gap-0.5 items-start">
+                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 text-amber-600 dark:text-amber-400" title={exam.subject}>
+                                                        {exam.subject}
+                                                    </span>
+                                                    <span
+                                                        onClick={(e) => handleExamClick(e, exam)}
+                                                        className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider cursor-pointer bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
+                                                    >
+                                                        Exam
+                                                    </span>
+                                                </div>
+                                            ))}
+                                            {isCurrentMonth && !hasLeave && dayExams.length > 2 && (
+                                                <span className="text-[9px] font-medium text-amber-600">+{dayExams.length - 2} more</span>
+                                            )}
+
+                                            {/* Leave chips */}
+                                            {isCurrentMonth && dayLeaves.slice(0, 1).map(leave => (
+                                                <div key={leave.id} className="flex flex-col gap-0.5 items-start">
+                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 text-teal-600 dark:text-teal-400" title={leave.leave_type}>
+                                                        {leave.leave_type?.replace(/_/g, ' ')}
+                                                    </span>
+                                                    <span
+                                                        onClick={(e) => handleLeaveClick(e, leave)}
+                                                        className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider cursor-pointer bg-teal-500/10 text-teal-600 hover:bg-teal-500/20"
+                                                    >
+                                                        Approved Leave
+                                                    </span>
+                                                </div>
+                                            ))}
+                                            {isCurrentMonth && dayLeaves.length > 1 && (
+                                                <span className="text-[9px] font-medium text-teal-600">+{dayLeaves.length - 1} more</span>
+                                            )}
+
+                                            {isCurrentMonth && !hasHoliday && !hasExam && !hasLeave && !readOnly && isEditModeActive && (
+                                                <div className="flex justify-start items-end h-full">
+                                                    <span className="text-[8px] md:text-[9px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-gray-100 text-gray-500 border border-gray-200 animate-pulse">
+                                                        Tap to Add
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {!hasHoliday && !hasExam && !hasLeave && (readOnly || !isEditModeActive) && <div />}
                                         </div>
                                     </div>
                                 );
@@ -404,6 +519,99 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                 </div>
                             </>
                         )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Exam info dialog */}
+            <Dialog open={isExamModalOpen} onOpenChange={setIsExamModalOpen}>
+                <DialogContent
+                    onPointerDownOutside={(e) => e.preventDefault()}
+                    className={theme === 'dark' ? 'bg-card text-foreground border border-border w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}
+                >
+                    <DialogHeader>
+                        <DialogTitle className={`flex items-center gap-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
+                            Exam Details
+                        </DialogTitle>
+                    </DialogHeader>
+                    {selectedExam && (
+                        <div className="space-y-3 py-3">
+                            <div className={`rounded-lg p-3 border ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-100'}`}>
+                                <p className="text-sm font-bold text-amber-600 dark:text-amber-400">{selectedExam.subject}</p>
+                                {selectedExam.subject_code && (
+                                    <p className="text-xs text-muted-foreground mt-0.5">{selectedExam.subject_code}</p>
+                                )}
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div className={`rounded-lg p-3 border ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50 border-gray-100'}`}>
+                                    <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-medium">Exam Type</p>
+                                    <p className="font-semibold capitalize">{selectedExam.exam_type?.replace(/_/g, ' ')}</p>
+                                </div>
+                                <div className={`rounded-lg p-3 border ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50 border-gray-100'}`}>
+                                    <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-medium">Venue</p>
+                                    <p className="font-semibold">{selectedExam.room || 'TBD'}</p>
+                                </div>
+                                <div className={`rounded-lg p-3 border ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50 border-gray-100'}`}>
+                                    <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-medium">Date</p>
+                                    <p className="font-semibold">{selectedExam.date ? format(parseISO(selectedExam.date as string), 'dd MMM yyyy') : '—'}</p>
+                                </div>
+                                <div className={`rounded-lg p-3 border ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50 border-gray-100'}`}>
+                                    <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-medium">Time</p>
+                                    <p className="font-semibold">
+                                        {selectedExam.start_time} – {selectedExam.end_time}
+                                    </p>
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground italic pt-1">{selectedExam.title}</p>
+                        </div>
+                    )}
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsExamModalOpen(false)}>Close</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Leave info dialog */}
+            <Dialog open={isLeaveModalOpen} onOpenChange={setIsLeaveModalOpen}>
+                <DialogContent
+                    onPointerDownOutside={(e) => e.preventDefault()}
+                    className={theme === 'dark' ? 'bg-card text-foreground border border-border w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}
+                >
+                    <DialogHeader>
+                        <DialogTitle className={`flex items-center gap-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            <span className="w-2.5 h-2.5 rounded-full bg-teal-500 inline-block"></span>
+                            Approved Leave Details
+                        </DialogTitle>
+                    </DialogHeader>
+                    {selectedLeave && (
+                        <div className="space-y-3 py-3">
+                            <div className={`rounded-lg p-3 border ${theme === 'dark' ? 'bg-teal-500/10 border-teal-500/20' : 'bg-teal-50 border-teal-100'}`}>
+                                <p className="text-sm font-bold text-teal-600 dark:text-teal-400 capitalize">{selectedLeave.leave_type?.replace(/_/g, ' ')}</p>
+                                {selectedLeave.title && (
+                                    <p className="text-xs text-muted-foreground mt-0.5">{selectedLeave.title}</p>
+                                )}
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div className={`rounded-lg p-3 border ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50 border-gray-100'}`}>
+                                    <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-medium">Start Date</p>
+                                    <p className="font-semibold">{selectedLeave.start_date ? format(parseISO(selectedLeave.start_date), 'dd MMM yyyy') : '—'}</p>
+                                </div>
+                                <div className={`rounded-lg p-3 border ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50 border-gray-100'}`}>
+                                    <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-medium">End Date</p>
+                                    <p className="font-semibold">{selectedLeave.end_date ? format(parseISO(selectedLeave.end_date), 'dd MMM yyyy') : '—'}</p>
+                                </div>
+                            </div>
+                            {selectedLeave.reason && (
+                                <div className={`rounded-lg p-3 border mt-2 ${theme === 'dark' ? 'bg-muted/5 border-border/20' : 'bg-gray-50/50 border-gray-50'}`}>
+                                    <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-medium">Reason</p>
+                                    <p className="text-sm">{selectedLeave.reason}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsLeaveModalOpen(false)}>Close</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

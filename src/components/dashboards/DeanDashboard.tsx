@@ -117,7 +117,7 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
       case 'announcement-management':
         return <AnnouncementManagement />;
       case "holiday-calendar":
-        return <HolidayCalendar readOnly />;
+        return <HolidayCalendar readOnly showLeaves userRole="dean" />;
       case "alumni-directory":
         return <AlumniDirectory />;
       default:

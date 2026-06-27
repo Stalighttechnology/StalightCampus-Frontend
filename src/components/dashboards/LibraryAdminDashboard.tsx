@@ -51,7 +51,7 @@ const LibraryAdminDashboard = ({ user }: DashboardProps) => {
       case "my-attendance":
         return <FacultyAttendance />;
             case "holiday-calendar":
-        return <HolidayCalendar readOnly />;
+        return <HolidayCalendar readOnly showLeaves userRole="library_admin" />;
       case "profile":
         return <Profile role="library_admin" user={user} />;
       default:

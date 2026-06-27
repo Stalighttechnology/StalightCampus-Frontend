@@ -67,7 +67,7 @@ const AdmissionManagerDashboard = ({ user }: DashboardProps) => {
       case "admission-settings":
         return <AdmissionSettings />;
             case "holiday-calendar":
-        return <HolidayCalendar readOnly />;
+        return <HolidayCalendar readOnly showLeaves userRole="admission_manager" />;
       case "profile":
         return <Profile role="admission_manager" user={user} />;
       case "my-attendance":
