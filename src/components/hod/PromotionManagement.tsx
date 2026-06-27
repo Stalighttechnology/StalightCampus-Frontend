@@ -71,17 +71,37 @@ interface Student {
 const PromotionManagement = () => {
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<"overview" | "promote" | "demote">("overview");
+  const [stats, setStats] = useState({
+    promoted_this_month: 0,
+    demoted_this_month: 0,
+    active_operations: 0
+  });
+
+  const fetchStats = async () => {
+    try {
+      const res = await getPromotionBootstrap();
+      if (res.success && res.data?.stats) {
+        setStats(res.data.stats);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
   const renderContent = () => {
     switch (activeTab) {
       case "overview":
-        return <PromotionOverview onTabChange={setActiveTab} theme={theme} />;
+        return <PromotionOverview onTabChange={setActiveTab} theme={theme} stats={stats} />;
       case "promote":
-        return <PromotionPage theme={theme} onTabChange={setActiveTab} />;
+        return <PromotionPage theme={theme} onTabChange={setActiveTab} onSuccess={fetchStats} />;
       case "demote":
-        return <DemotionPage theme={theme} onTabChange={setActiveTab} />;
+        return <DemotionPage theme={theme} onTabChange={setActiveTab} onSuccess={fetchStats} />;
       default:
-        return <PromotionOverview onTabChange={setActiveTab} theme={theme} />;
+        return <PromotionOverview onTabChange={setActiveTab} theme={theme} stats={stats} />;
     }
   };
 
@@ -92,7 +112,7 @@ const PromotionManagement = () => {
 
 };
 
-const PromotionOverview = ({ onTabChange, theme }: {onTabChange: (tab: "overview" | "promote" | "demote") => void;theme: string;}) => {
+const PromotionOverview = ({ onTabChange, theme, stats }: {onTabChange: (tab: "overview" | "promote" | "demote") => void;theme: string;stats: { promoted_this_month: number; demoted_this_month: number; active_operations: number; };}) => {
   return (
     <div className="space-y-6">
       <div id="hod-promotion-cards-wrapper" className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -176,15 +196,15 @@ const PromotionOverview = ({ onTabChange, theme }: {onTabChange: (tab: "overview
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
-              <div className="text-2xl font-bold text-green-400">0</div>
+              <div className="text-2xl font-bold text-green-400">{stats.promoted_this_month}</div>
               <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Students Promoted This Month</div>
             </div>
             <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
-              <div className="text-2xl font-bold text-red-400">0</div>
+              <div className="text-2xl font-bold text-red-400">{stats.demoted_this_month}</div>
               <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Students Demoted This Month</div>
             </div>
             <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
-              <div className="text-2xl font-bold text-blue-400">0</div>
+              <div className="text-2xl font-bold text-blue-400">{stats.active_operations}</div>
               <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Active Operations</div>
             </div>
           </div>
@@ -195,7 +215,7 @@ const PromotionOverview = ({ onTabChange, theme }: {onTabChange: (tab: "overview
 
 };
 
-const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: "overview" | "promote" | "demote") => void;}) => {
+const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabChange: (tab: "overview" | "promote" | "demote") => void;onSuccess?: () => void;}) => {
   const [state, setState] = useState({
     semesters: [] as Semester[],
     sections: [] as Section[],
@@ -549,6 +569,7 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
           background: theme === 'dark' ? '#0f172a' : '#fff',
           color: theme === 'dark' ? '#fff' : '#000'
         });
+        onSuccess?.();
       } else {
         // Revert optimistic update on failure
         updateState({
@@ -682,6 +703,7 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
           background: theme === 'dark' ? '#0f172a' : '#fff',
           color: theme === 'dark' ? '#fff' : '#000'
         });
+        onSuccess?.();
       } else {
         // Revert optimistic update on failure
         updateState({
@@ -922,7 +944,7 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
 
 };
 
-const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: "overview" | "promote" | "demote") => void;}) => {
+const DemotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabChange: (tab: "overview" | "promote" | "demote") => void;onSuccess?: () => void;}) => {
   const [state, setState] = useState({
     semesters: [] as Semester[],
     sections: [] as Section[],
@@ -1254,6 +1276,7 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
           background: theme === 'dark' ? '#0f172a' : '#fff',
           color: theme === 'dark' ? '#fff' : '#000'
         });
+        onSuccess?.();
       } else {
         // Revert optimistic update on failure
         updateState({
