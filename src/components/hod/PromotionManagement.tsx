@@ -1338,11 +1338,13 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
                   {state.semesters.length === 0 ? (
                     <SelectItem value="none" disabled className="text-muted-foreground">No Semester</SelectItem>
                   ) : (
-                    state.semesters.map((semester) => (
-                      <SelectItem key={semester.id} value={`${semester.number}th Semester`} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
-                        Semester {semester.number}
-                      </SelectItem>
-                    ))
+                    state.semesters
+                      .filter((semester) => semester.number !== 1)
+                      .map((semester) => (
+                        <SelectItem key={semester.id} value={`${semester.number}th Semester`} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
+                          Semester {semester.number}
+                        </SelectItem>
+                      ))
                   )}
                 </SelectContent>
               </Select>
