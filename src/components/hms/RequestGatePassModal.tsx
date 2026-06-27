@@ -68,6 +68,12 @@ const RequestGatePassModal = ({
   const [outCalendarOpen, setOutCalendarOpen] = useState(false);
   const [returnCalendarOpen, setReturnCalendarOpen] = useState(false);
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const minReturnDate = formData.out_date ? new Date(formData.out_date) : today;
+  minReturnDate.setHours(0, 0, 0, 0);
+
   const outTimeParts = timeTo12hOrEmpty(formData.out_time);
   const returnTimeParts = timeTo12hOrEmpty(formData.expected_return_time);
 
@@ -184,6 +190,7 @@ const RequestGatePassModal = ({
                       setFormData({ ...formData, out_date: date ? format(date, "yyyy-MM-dd") : '' });
                       setOutCalendarOpen(false);
                     }}
+                    disabled={(date) => date < today}
                     initialFocus
                   />
                 </PopoverContent>
@@ -248,6 +255,7 @@ const RequestGatePassModal = ({
                       setFormData({ ...formData, expected_return_date: date ? format(date, "yyyy-MM-dd") : '' });
                       setReturnCalendarOpen(false);
                     }}
+                    disabled={(date) => date < minReturnDate}
                     initialFocus
                   />
                 </PopoverContent>
