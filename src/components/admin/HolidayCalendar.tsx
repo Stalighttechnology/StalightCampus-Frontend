@@ -289,7 +289,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                 </CardHeader>
 
                 {/* Calendar Grid Section */}
-                <CardContent className="flex-1 p-0 m-1 md:m-2 border rounded-2xl overflow-x-auto sm:overflow-x-visible overflow-y-hidden flex flex-col custom-scrollbar">
+                <CardContent className="flex-1 p-0 m-1 md:m-2 border rounded-2xl overflow-x-auto overflow-y-auto sm:overflow-x-visible flex flex-col custom-scrollbar">
                     <div className="w-full sm:min-w-[700px] flex-1 flex flex-col">
                         {/* Weekday Headers */}
                         <div className="grid grid-cols-7 bg-primary text-white rounded-t-2xl">
@@ -348,7 +348,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                         </div>
 
                                         {/* Holiday details text & Pill */}
-                                        <div className="mt-1 flex-1 flex-col gap-1 hidden sm:flex">
+                                        <div className="mt-1 flex-1 flex-col gap-1 hidden sm:flex overflow-y-auto custom-scrollbar">
                                             {isCurrentMonth && hasHoliday && (
                                                 <div className="flex flex-col gap-1 items-start">
                                                     <span className={`text-[10px] md:text-xs font-medium leading-tight line-clamp-1 ${dayHolidays[0].holiday_type === 'event' ? 'text-primary' : 'text-rose-500'}`} title={dayHolidays[0].description}>
