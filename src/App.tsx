@@ -218,11 +218,14 @@ const AppContent = () => {
       });
 
       // Handle hardware back button for app exit confirmation
-      backListenerPromise = CapApp.addListener('backButton', ({ canGoBack }) => {
+      backListenerPromise = CapApp.addListener('backButton', () => {
         const currentPath = window.location.pathname;
-        const isDashboard = currentPath === "/" || currentPath.includes("dashboard") || currentPath.includes("admin");
+        const isDashboard = currentPath === "/" || 
+                            currentPath === "/dashboard" || 
+                            currentPath === "/admin" || 
+                            /^\/[^\/]+\/dashboard$/.test(currentPath);
         
-        if (!canGoBack || isDashboard) {
+        if (isDashboard) {
           setShowExitDialog(true);
         } else {
           window.history.back();
