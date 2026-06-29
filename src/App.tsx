@@ -752,39 +752,43 @@ const AppContent = () => {
       <Toaster />
       <Sonner />
       <NetworkStatus />
-      {/* Exit App Bottom Sheet Modal */}
+      {/* Exit App Premium Centered Modal */}
       {showExitDialog && (
-        <div className="fixed inset-0 z-[99999] flex items-end justify-center bg-slate-950/40 backdrop-blur-[2px] animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-t-[32px] p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-300 flex flex-col text-slate-800 dark:text-slate-100">
-            {/* Grab Handle */}
-            <div className="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-6" />
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-[90%] max-w-sm bg-white/95 dark:bg-slate-900/95 rounded-[28px] border border-white/20 dark:border-slate-800/80 p-6 text-center shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col items-center">
+            
+            {/* Styled Glowing Brand Icon */}
+            <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-tr from-primary to-[#ff59f8] text-white shadow-lg shadow-primary/30 mx-auto mb-6">
+              <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping duration-[2000ms]"></div>
+              <LogOut className="w-9 h-9 relative z-10" />
+            </div>
             
             {/* Title */}
-            <h3 className="text-2xl font-extrabold text-primary mb-2 px-2">
-              Exit?
+            <h3 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
+              Close Campus ERP?
             </h3>
             
             {/* Message */}
-            <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 px-2">
-              Confirm to Exit App
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium px-4 mb-8">
+              Confirm if you want to exit the application. You will remain signed in.
             </p>
             
             {/* Actions */}
-            <div className="flex gap-4 px-2">
+            <div className="flex gap-4 w-full">
               <button
                 onClick={() => {
                   setShowExitDialog(false);
                   CapApp.exitApp();
                 }}
-                className="flex-1 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-semibold py-3.5 rounded-xl transition-all shadow-sm active:scale-[0.98]"
+                className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold py-3.5 rounded-2xl transition-all active:scale-[0.98]"
               >
-                Yes
+                Yes, Exit
               </button>
               <button
                 onClick={() => setShowExitDialog(false)}
-                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-sm active:scale-[0.98]"
+                className="flex-1 bg-gradient-to-r from-primary to-[#8b5cf6] hover:opacity-95 text-white font-semibold py-3.5 rounded-2xl transition-all shadow-md shadow-primary/25 active:scale-[0.98]"
               >
-                No
+                No, Stay
               </button>
             </div>
           </div>
