@@ -233,9 +233,13 @@ const AppContent = () => {
                             currentPath.endsWith("/admin") || 
                             currentPath.endsWith("/admin/");
         
+        console.log('[BACK_BUTTON] Pressed. Pathname:', currentPath, 'isDashboard:', isDashboard);
+        
         if (isDashboard) {
+          console.log('[BACK_BUTTON] Showing exit dialog');
           setShowExitDialog(true);
         } else {
+          console.log('[BACK_BUTTON] Navigating back');
           window.history.back();
         }
       });
