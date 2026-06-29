@@ -201,7 +201,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.removeItem("has_session");
       setIsLoggingOut(false);
       navigate("/", { replace: true });
-    }, 1500);
+    }, 300);
   }, [navigate]);
 
   // ─── logout ─────────────────────────────────────────────────────────────────
@@ -222,7 +222,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem("has_session");
         setIsLoggingOut(false);
         navigate("/", { replace: true });
-      }, 1500);
+      }, 300);
     }
   }, [navigate]);
 
