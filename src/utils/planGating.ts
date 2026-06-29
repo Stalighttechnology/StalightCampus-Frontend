@@ -54,6 +54,7 @@ export const PAGE_REQUIRED_TIERS: Record<string, number> = {
   'bulk-upload': 2,
   'schedule-class': 2,
   'class-schedule': 2,
+  'schedule-meeting': 2,
 
   // Advance Features (Tier 3)
   'department-admin-leaves': 3,
@@ -98,6 +99,8 @@ export const PAGE_REQUIRED_TIERS: Record<string, number> = {
   'admission-documents': 3,
   'admission-communication': 3,
   'admission-reports': 3,
+  'payroll': 3,
+  'alumni-directory': 3,
   'admission-settings': 3,
   'statistics': 3,
 };
