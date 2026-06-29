@@ -172,40 +172,58 @@ const AppContent = () => {
   const [showExitDialog, setShowExitDialog] = useState(false);
   const location = useLocation();
   const currentPathRef = useRef(location.pathname);
+  currentPathRef.current = location.pathname;
+  
+  // Swipe to close bottom sheet state
+  const [dragY, setDragY] = useState(0);
+  const touchStartY = useRef(0);
 
-  // Sync ref with pathname updates
-  useEffect(() => {
-    currentPathRef.current = location.pathname;
-  }, [location.pathname]);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+    if (deltaY > 0) {
+      setDragY(deltaY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (dragY > 100) {
+      setShowExitDialog(false);
+    }
+    setDragY(0);
+  };
+
+  // Helper to determine if a route is a top-level dashboard landing page
+  const isDashboardPath = (path: string) => {
+    const p = path.endsWith('/') ? path.slice(0, -1) : path;
+    if (p === "" || p === "/") return true;
+    if (p.endsWith("/dashboard")) return true;
+    
+    const topDashboards = [
+      "/dashboard",
+      "/admin",
+      "/org-admin",
+      "/hod",
+      "/faculty",
+      "/fees-manager",
+      "/dean",
+      "/coe",
+      "/hms",
+      "/warden",
+      "/transport-admin",
+      "/driver",
+      "/library-admin",
+      "/admission-manager"
+    ];
+    return topDashboards.includes(p);
+  };
 
   useEffect(() => {
     initErrorLogger();
     let backListenerPromise: Promise<any> | null = null;
-
-    // Helper to determine if a route is a top-level dashboard landing page
-    const isDashboardPath = (path: string) => {
-      const p = path.endsWith('/') ? path.slice(0, -1) : path;
-      if (p === "" || p === "/") return true;
-      if (p.endsWith("/dashboard")) return true;
-      
-      const topDashboards = [
-        "/dashboard",
-        "/admin",
-        "/org-admin",
-        "/hod",
-        "/faculty",
-        "/fees-manager",
-        "/dean",
-        "/coe",
-        "/hms",
-        "/warden",
-        "/transport-admin",
-        "/driver",
-        "/library-admin",
-        "/admission-manager"
-      ];
-      return topDashboards.includes(p);
-    };
 
     // Handle browser/webview popstate (history back) navigation
     const handlePopState = (event: PopStateEvent) => {
@@ -754,18 +772,31 @@ const AppContent = () => {
       <NetworkStatus />
       {/* Exit App Premium Bottom Sheet Modal */}
       {showExitDialog && (
-        <div className="fixed inset-0 z-[99999] flex items-end justify-center bg-slate-950/40 backdrop-blur-[2px] animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-t-[32px] border-t border-slate-100 dark:border-slate-800 p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-300 flex flex-col text-slate-800 dark:text-slate-100">
+        <div 
+          onClick={() => setShowExitDialog(false)}
+          className="fixed inset-0 z-[99999] flex items-end justify-center bg-slate-950/40 backdrop-blur-[2px] animate-in fade-in duration-200"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ 
+              transform: `translateY(${dragY}px)`, 
+              transition: dragY === 0 ? 'transform 0.3s ease-out' : 'none' 
+            }}
+            className="w-full max-w-md bg-white dark:bg-slate-900 rounded-t-[32px] border-t border-slate-100 dark:border-slate-800 p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-300 flex flex-col text-slate-800 dark:text-slate-100 touch-none"
+          >
             {/* Grab Handle */}
-            <div className="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-6" />
+            <div className="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-6 cursor-grab active:cursor-grabbing" />
             
             {/* Title */}
-            <h3 className="text-2xl font-extrabold text-primary mb-2 px-2">
+            <h3 className="text-2xl font-extrabold text-primary mb-2 px-2 select-none">
               Exit?
             </h3>
             
             {/* Message */}
-            <p className="text-slate-550 dark:text-slate-450 font-medium mb-8 px-2">
+            <p className="text-slate-550 dark:text-slate-450 font-medium mb-8 px-2 select-none">
               Confirm to Exit App
             </p>
             
