@@ -104,7 +104,7 @@ export default function GoogleIntegrationTab() {
                   <>
                     <Avatar className="h-10 w-10 border shadow-sm">
                       {googleUserInfo.picture ? (
-                        <AvatarImage src={googleUserInfo.picture} alt={googleUserInfo.name} />
+                        <AvatarImage src={googleUserInfo.picture} alt={googleUserInfo.name} referrerPolicy="no-referrer" />
                       ) : (
                         <AvatarFallback className="text-sm font-medium">{googleUserInfo.name?.[0] || googleUserInfo.email?.[0]}</AvatarFallback>
                       )}
