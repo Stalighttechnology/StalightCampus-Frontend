@@ -5,9 +5,14 @@ const DEVICE_ID_KEY = 'device_id';
 
 // In-memory cache fallback for WebView environment stability
 let _inMemoryAccessToken: string | null = null;
+export let isLoggingOutFlag = false;
 
 export const setInMemoryAccessToken = (token: string | null) => {
   _inMemoryAccessToken = token;
+};
+
+export const setIsLoggingOutFlag = (value: boolean) => {
+  isLoggingOutFlag = value;
 };
 
 export const getOrCreateDeviceId = (): string => {
@@ -161,6 +166,11 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
     }
 
     if (response.status === 401) {
+      if (isLoggingOutFlag) {
+        // Silently ignore 401s during intentional logout to avoid race conditions
+        return response;
+      }
+
       let isRevoked = false;
       try {
         const clone = response.clone();
@@ -174,6 +184,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
         sessionStorage.clear();
         _inMemoryAccessToken = null;
         localStorage.removeItem("has_session");
+        localStorage.removeItem("session_id");
         stopTokenRefresh();
         
         // Dynamically import SweetAlert to avoid blocking initial load
@@ -500,6 +511,7 @@ export const resetPassword = async ({
 };
 
 export const logoutUser = async (): Promise<GenericResponse> => {
+  isLoggingOutFlag = true;
   try {
     // Logout endpoint clears the HttpOnly refresh token cookie on the server.
     const response = await fetch(`${API_ENDPOINT}/logout/`, {
@@ -515,6 +527,7 @@ export const logoutUser = async (): Promise<GenericResponse> => {
     sessionStorage.clear();
     _inMemoryAccessToken = null;
     localStorage.removeItem("has_session");
+    localStorage.removeItem("session_id");
     // AuthContext will stop its refresh interval after logout.
     if (!response.ok) {
       return { success: true, message: "Logged out successfully (server error ignored)" };
