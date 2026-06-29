@@ -2578,6 +2578,7 @@ export const getPromotionBootstrap = async (): Promise<{
       email: string;
       branch: string;
       branch_id: string;
+      total_semesters: number;
     };
     semesters: Array<{id: string;number: number;}>;
     sections: Array<{id: string;name: string;semester_id: string | null;}>;

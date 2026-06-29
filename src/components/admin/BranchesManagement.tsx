@@ -36,9 +36,9 @@ const MySwal = withReactContent(Swal);
 interface Branch {
   id: number;
   name: string;
-  branch_code: string | null;
   hod: string | null;
   hod_contact: string | null;
+  total_semesters?: number;
 }
 
 interface User {
@@ -62,7 +62,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
   const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
   const [confirmName, setConfirmName] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newBranch, setNewBranch] = useState({ name: "", branch_code: "" });
+  const [newBranch, setNewBranch] = useState({ name: "", branch_code: "", total_semesters: 8 });
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
   const [newHodId, setNewHodId] = useState("");
@@ -108,6 +108,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
               id: b.id,
               name: b.name || "",
               branch_code: b.branch_code || null,
+              total_semesters: b.total_semesters || 8,
               hod: hodName,
               hod_contact: hodContact || (b.hod ? "--" : null)
             };
@@ -175,6 +176,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
     if (editData) {
       const trimmedName = editData.name.trim();
       const trimmedCode = editData.branch_code?.trim() || "";
+      const totalSemesters = Number(editData.total_semesters) || 8;
 
       if (!trimmedName) {
         toast({ variant: "destructive", title: "Error", description: "Branch name is required" });
@@ -216,6 +218,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
           {
             name: trimmedName,
             branch_code: trimmedCode || null,
+            total_semesters: totalSemesters,
             hod_id: editData.hod ? users.find((u) => `${u.first_name} ${u.last_name}`.trim() === editData.hod)?.id?.toString() : null
           },
           editData.id,
@@ -226,7 +229,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
         const dataSource = hasResults ? (response as any).results : response as any;
 
         if (dataSource && dataSource.success) {
-          setBranches(branches.map((b) => b.id === editData.id ? { ...editData, name: trimmedName, branch_code: trimmedCode || null } : b));
+          setBranches(branches.map((b) => b.id === editData.id ? { ...editData, name: trimmedName, branch_code: trimmedCode || null, total_semesters: totalSemesters } : b));
           setEditingId(null);
           setEditData(null);
           toast({ title: "Success", description: "Branch updated successfully" });
@@ -296,6 +299,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
   const handleAddBranch = async () => {
     const trimmedName = newBranch.name.trim();
     const trimmedCode = newBranch.branch_code.trim();
+    const totalSemesters = Number(newBranch.total_semesters) || 8;
 
     if (!trimmedName) {
       toast({ variant: "destructive", title: "Error", description: "Branch name is required" });
@@ -330,7 +334,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
     setLoading(true);
     try {
       const response = await manageBranches(
-        { name: trimmedName, branch_code: trimmedCode || null },
+        { name: trimmedName, branch_code: trimmedCode || null, total_semesters: totalSemesters },
         undefined,
         "POST"
       );
@@ -341,7 +345,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
       if (dataSource && dataSource.success) {
         fetchData(1);
         setIsAddDialogOpen(false);
-        setNewBranch({ name: "", branch_code: "" });
+        setNewBranch({ name: "", branch_code: "", total_semesters: 8 });
         toast({ title: "Success", description: "Branch added successfully" });
       } else {
         setError(response.message || "Failed to add branch");
@@ -690,6 +694,18 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
                 />
               </div>
               <div className="space-y-2">
+                <label className="text-sm font-semibold">Total Semesters</label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="20"
+                  name="total_semesters"
+                  value={editData?.total_semesters || 8}
+                  onChange={handleEditChange}
+                  className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}
+                />
+              </div>
+              <div className="space-y-2">
                 <label className="text-sm font-semibold">Assigned HOD</label>
                 <Select
                   value={editData?.hod || "none"}
@@ -736,6 +752,16 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
                   value={newBranch.branch_code}
                   onChange={(e) => setNewBranch({ ...newBranch, branch_code: e.target.value })} />
 
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Total Semesters</label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="20"
+                  placeholder="e.g. 8"
+                  value={newBranch.total_semesters}
+                  onChange={(e) => setNewBranch({ ...newBranch, total_semesters: parseInt(e.target.value) || 8 })} />
               </div>
             </div>
             <DialogFooter className="flex gap-3">

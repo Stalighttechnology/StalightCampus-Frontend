@@ -179,8 +179,8 @@ const StudentManagement = () => {
 
   const handleAddSemester = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSemesterNumber || isNaN(Number(newSemesterNumber)) || Number(newSemesterNumber) < 1 || Number(newSemesterNumber) > 8) {
-      showErrorAlert("Error", "Please enter a valid semester number (1-8)");
+    if (!newSemesterNumber || isNaN(Number(newSemesterNumber)) || Number(newSemesterNumber) < 1 || Number(newSemesterNumber) > 20) {
+      showErrorAlert("Error", "Please enter a valid semester number (1-20)");
       return;
     }
     setAddingSemester(true);
@@ -1608,8 +1608,8 @@ const StudentManagement = () => {
                         state.semesterFilter === "" ?
                           "Select semester first" :
                           state.listSections.filter((section) => section.semester_id === state.semesterFilter).length === 0 ?
-                          "No section available" :
-                          "Choose Section"
+                            "No section available" :
+                            "Choose Section"
                       } />
 
                   </SelectTrigger>
@@ -1934,7 +1934,7 @@ const StudentManagement = () => {
             <p className={`text-xs mb-3 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               or
             </p>
-            
+
             <input
               type="file"
               accept=".csv,.xls,.xlsx"
@@ -1946,14 +1946,14 @@ const StudentManagement = () => {
                 }
               }}
               style={{ display: "none" }} />
-              
+
             <Button
               type="button"
               className="bg-primary text-white border-primary hover:bg-[#9147e0] hover:border-[#9147e0] px-4 py-2 flex items-center gap-2 mx-auto mb-3">
               <UploadCloud size={16} />
               Upload File
             </Button>
-            
+
             <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Supports CSV, XLS, XLSX (max 5MB, 500 records)
             </p>
@@ -2229,9 +2229,9 @@ const StudentManagement = () => {
                     e.preventDefault();
                   }
                 }}
-                placeholder="Enter semester number (1-8)"
+                placeholder="Enter semester number "
                 min="1"
-                max="8"
+                max="20"
                 disabled={addingSemester}
                 className={`text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
               />
