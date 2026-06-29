@@ -709,7 +709,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
                           <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-4 mb-4">
                             <motion.div variants={itemVariants}>
                               <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                                {invoice.invoice_type === 'library_fine' ? 'Library Fine' : `Semester ${invoice.semester}`} • {invoice.academic_year}
+                                {invoice.invoice_type === 'library_fine' ? 'Library Fine' : invoice.invoice_type === 'annual' ? 'Annual Fee' : invoice.invoice_type === 'one_time' ? 'One-time Fee' : `Semester ${invoice.semester || feeData?.student?.semester || 'N/A'}`} • {invoice.academic_year}
                               </h3>
                               <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                                 Invoice #{invoice.invoice_number}

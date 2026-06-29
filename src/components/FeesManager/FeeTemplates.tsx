@@ -421,7 +421,6 @@ const FeeTemplates: React.FC = () => {
         background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
         color: currentTheme === 'dark' ? '#ffffff' : '#000000'
       });
-      setError(err instanceof Error ? err.message : 'Failed to delete template');
     }
   };
 

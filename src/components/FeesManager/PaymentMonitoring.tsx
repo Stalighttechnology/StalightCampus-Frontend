@@ -138,11 +138,10 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Clear search query when dropdown filters change
+  // Reset pagination when dropdown filters change
   useEffect(() => {
-    setSearchQuery("");
-    setAppliedSearch("");
-  }, [statusFilter, methodFilter, dateRange]);
+    setCurrentPage(1);
+  }, [statusFilter, methodFilter, dateRange, appliedSearch]);
 
   const fetchData = async () => {
     try {
@@ -366,7 +365,8 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
-  if (loading) {
+  // Initial load skeleton - only if we have no data and no stats
+  if (loading && payments.length === 0 && !stats) {
     return (
       <div className="space-y-8 p-6">
         <SkeletonPageHeader />
@@ -448,7 +448,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="success">Completed</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="failed">Failed</SelectItem>
                     <SelectItem value="refunded">Refunded</SelectItem>
@@ -470,10 +470,13 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Methods</SelectItem>
-                    <SelectItem value="stripe">Stripe</SelectItem>
+                    <SelectItem value="razorpay">Razorpay</SelectItem>
                     <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
                     <SelectItem value="cheque">Cheque</SelectItem>
+                    <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                    <SelectItem value="upi">UPI</SelectItem>
+                    <SelectItem value="dd">DD</SelectItem>
+                    <SelectItem value="neft">NEFT</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -562,7 +565,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   <TableHead className="px-6 py-4 text-right pr-6 text-[13px] font-semibold uppercase tracking-wider">Actions</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className={loading ? "opacity-50 pointer-events-none transition-opacity duration-200" : "transition-opacity duration-200"}>
                 {payments.length === 0 ?
                 <TableRow>
                     <TableCell colSpan={6} className="h-72 text-center">
