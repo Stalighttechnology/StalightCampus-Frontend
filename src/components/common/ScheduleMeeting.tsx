@@ -24,6 +24,8 @@ import { format } from "date-fns";
 const AVAILABLE_ROLES = [
   { id: 'org_admin', label: 'Org Admin' },
   { id: 'principal', label: 'Principal' },
+  { id: 'dean', label: 'Dean' },
+  { id: 'hod', label: 'HOD' },
   { id: 'coe', label: 'COE' },
   { id: 'admission_manager', label: 'Admission Manager' },
   { id: 'placement_officer', label: 'Placement Officer' },
@@ -409,6 +411,9 @@ export default function ScheduleMeeting() {
                         return false;
                       }
                       if (userRole === 'principal' && role.id === 'principal') {
+                        return false;
+                      }
+                      if (userRole === 'dean' && role.id === 'dean') {
                         return false;
                       }
                       if (userRole === 'hod' && role.id === 'hod') {
