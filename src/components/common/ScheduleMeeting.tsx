@@ -228,299 +228,303 @@ export default function ScheduleMeeting() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 animate-in fade-in max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className={`text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-            Role-Based Meetings
-          </h1>
-          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-            Schedule and manage online meetings across staff roles.
-          </p>
-        </div>
-        
-        <Dialog open={showDialog} onOpenChange={setShowDialog}>
-          <DialogTrigger asChild onClick={() => {
-            const freshVals = getInitialScheduleState();
-            setDate(freshVals.date);
-            setStartHour(freshVals.startHour);
-            setStartMinute(freshVals.startMinute);
-            setStartPeriod(freshVals.startPeriod);
-            setEndHour(freshVals.endHour);
-            setEndMinute(freshVals.endMinute);
-            setEndPeriod(freshVals.endPeriod);
-          }}>
-            <Button className="bg-primary hover:bg-primary/90 text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              Schedule Meeting
-            </Button>
-          </DialogTrigger>
-          <DialogContent className={`sm:max-w-[500px] ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-            <DialogHeader>
-              <DialogTitle>Schedule New Meeting</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="title">Meeting Title *</Label>
-                <Input 
-                  id="title" 
-                  value={formData.title} 
-                  onChange={e => setFormData({...formData, title: e.target.value})} 
-                  placeholder="e.g. Urgent Faculty Sync"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                  id="description" 
-                  value={formData.description} 
-                  onChange={e => setFormData({...formData, description: e.target.value})} 
-                  placeholder="Meeting agenda..."
-                  rows={2}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" /> Date <span className="text-destructive">*</span>
-                  </label>
-                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal h-10 px-3 relative pl-10",
-                          !date && "text-muted-foreground",
-                          theme === 'dark' ?
-                            'bg-background border-border text-foreground hover:bg-muted/50' :
-                            'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                        )}
-                      >
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-                        <span className="truncate text-xs">
-                          {date ? format(new Date(date), "dd-MM-yyyy") : "dd-mm-yyyy"}
-                        </span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 rounded-xl shadow-xl" align="start">
-                      <ShadcnCalendar
-                        mode="single"
-                        selected={date ? new Date(date) : undefined}
-                        onSelect={(d) => {
-                          setDate(d ? format(d, "yyyy-MM-dd") : "");
-                          setIsCalendarOpen(false);
-                        }}
-                        disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" /> Start Time <span className="text-destructive">*</span>
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <Select value={startHour} onValueChange={setStartHour}>
-                      <SelectTrigger className="w-full h-10 px-2 text-xs">
-                        <SelectValue placeholder="Hr" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[200px]">
-                        {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
-                          <SelectItem key={h} value={h}>{h}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <span className="font-semibold text-xs">:</span>
-                    <Select value={startMinute} onValueChange={setStartMinute}>
-                      <SelectTrigger className="w-full h-10 px-2 text-xs">
-                        <SelectValue placeholder="Min" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[200px]">
-                        {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")).map((m) => (
-                          <SelectItem key={m} value={m}>{m}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select value={startPeriod} onValueChange={setStartPeriod}>
-                      <SelectTrigger className="w-full h-10 px-2 text-xs">
-                        <SelectValue placeholder="AM/PM" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="AM">AM</SelectItem>
-                        <SelectItem value="PM">PM</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" /> End Time <span className="text-destructive">*</span>
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <Select value={endHour} onValueChange={setEndHour}>
-                      <SelectTrigger className="w-full h-10 px-2 text-xs">
-                        <SelectValue placeholder="Hr" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[200px]">
-                        {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
-                          <SelectItem key={h} value={h}>{h}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <span className="font-semibold text-xs">:</span>
-                    <Select value={endMinute} onValueChange={setEndMinute}>
-                      <SelectTrigger className="w-full h-10 px-2 text-xs">
-                        <SelectValue placeholder="Min" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[200px]">
-                        {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")).map((m) => (
-                          <SelectItem key={m} value={m}>{m}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select value={endPeriod} onValueChange={setEndPeriod}>
-                      <SelectTrigger className="w-full h-10 px-2 text-xs">
-                        <SelectValue placeholder="AM/PM" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="AM">AM</SelectItem>
-                        <SelectItem value="PM">PM</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <Label>Target Roles (Select at least one) *</Label>
-                <div className={`grid grid-cols-2 gap-2 p-3 border rounded-md max-h-40 overflow-y-auto ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                  {AVAILABLE_ROLES.map(role => (
-                    <div key={role.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`role-${role.id}`}
-                        checked={formData.target_roles.includes(role.id)}
-                        onCheckedChange={() => handleRoleToggle(role.id)}
-                      />
-                      <label 
-                        htmlFor={`role-${role.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
-                        {role.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowDialog(false)}>Cancel</Button>
-              <Button onClick={handleCreateMeeting} disabled={submitting}>
-                {submitting ? "Scheduling..." : "Schedule & Generate Meet"}
+    <div className="space-y-6 animate-in fade-in">
+      <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
+        <CardHeader className="pb-4 border-b bg-muted/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 space-y-0">
+          <div>
+            <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              Role-Based Meetings
+            </CardTitle>
+            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Schedule and manage online meetings across staff roles.
+            </p>
+          </div>
+          
+          <Dialog open={showDialog} onOpenChange={setShowDialog}>
+            <DialogTrigger asChild onClick={() => {
+              const freshVals = getInitialScheduleState();
+              setDate(freshVals.date);
+              setStartHour(freshVals.startHour);
+              setStartMinute(freshVals.startMinute);
+              setStartPeriod(freshVals.startPeriod);
+              setEndHour(freshVals.endHour);
+              setEndMinute(freshVals.endMinute);
+              setEndPeriod(freshVals.endPeriod);
+            }}>
+              <Button className="bg-primary hover:bg-primary/90 text-white">
+                <Plus className="h-4 w-4 mr-2" />
+                Schedule Meeting
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </DialogTrigger>
+            <DialogContent className={`sm:max-w-[500px] ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+              <DialogHeader>
+                <DialogTitle>Schedule New Meeting</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="title">Meeting Title *</Label>
+                  <Input 
+                    id="title" 
+                    value={formData.title} 
+                    onChange={e => setFormData({...formData, title: e.target.value})} 
+                    placeholder="e.g. Urgent Faculty Sync"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea 
+                    id="description" 
+                    value={formData.description} 
+                    onChange={e => setFormData({...formData, description: e.target.value})} 
+                    placeholder="Meeting agenda..."
+                    rows={2}
+                  />
+                </div>
 
-      {loading ? (
-        <div className="grid gap-4">
-          <SkeletonCard className="h-32 w-full" />
-          <SkeletonCard className="h-32 w-full" />
-        </div>
-      ) : meetings.length === 0 ? (
-        <Card className={`p-8 text-center ${theme === 'dark' ? 'bg-card text-muted-foreground' : 'bg-gray-50 text-gray-500'}`}>
-          <Video className="mx-auto h-12 w-12 opacity-20 mb-3" />
-          <h3 className="text-lg font-medium text-foreground">No Upcoming Meetings</h3>
-          <p className="mt-1">There are currently no meetings scheduled for you.</p>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-          {(() => {
-            const now = new Date();
-            const upcoming = meetings.filter(m => new Date(m.end_time) >= now);
-            const past = meetings.filter(m => new Date(m.end_time) < now)
-              .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
-              .slice(0, 5); // recent 5
-            const displayMeetings = [...upcoming, ...past];
-
-            return displayMeetings.map((meeting) => {
-              const start = new Date(meeting.start_time);
-              const end = new Date(meeting.end_time);
-              const dateStr = start.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-              const timeStr = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-              const isPast = end < now;
-            
-            return (
-              <Card key={meeting.id} className={`flex flex-col h-full overflow-hidden transition-all duration-200 hover:shadow-md ${isPast ? 'opacity-70' : ''}`}>
-                <div className={`h-2 ${isPast ? 'bg-gray-300' : 'bg-blue-500'}`} />
-                <CardContent className="p-5 flex flex-col flex-1">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-lg line-clamp-1 text-foreground" title={meeting.title}>
-                      {meeting.title}
-                    </h3>
-                    <div className="flex gap-2 ml-2 shrink-0">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(meeting.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5" /> Date <span className="text-destructive">*</span>
+                    </label>
+                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal h-10 px-3 relative pl-10",
+                            !date && "text-muted-foreground",
+                            theme === 'dark' ?
+                              'bg-background border-border text-foreground hover:bg-muted/50' :
+                              'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                          )}
+                        >
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                          <span className="truncate text-xs">
+                            {date ? format(new Date(date), "dd-MM-yyyy") : "dd-mm-yyyy"}
+                          </span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 rounded-xl shadow-xl" align="start">
+                        <ShadcnCalendar
+                          mode="single"
+                          selected={date ? new Date(date) : undefined}
+                          onSelect={(d) => {
+                            setDate(d ? format(d, "yyyy-MM-dd") : "");
+                            setIsCalendarOpen(false);
+                          }}
+                          disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" /> Start Time <span className="text-destructive">*</span>
+                    </label>
+                    <div className="flex items-center gap-1">
+                      <Select value={startHour} onValueChange={setStartHour}>
+                        <SelectTrigger className="w-full h-10 px-2 text-xs">
+                          <SelectValue placeholder="Hr" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[200px]">
+                          {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
+                            <SelectItem key={h} value={h}>{h}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <span className="font-semibold text-xs">:</span>
+                      <Select value={startMinute} onValueChange={setStartMinute}>
+                        <SelectTrigger className="w-full h-10 px-2 text-xs">
+                          <SelectValue placeholder="Min" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[200px]">
+                          {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")).map((m) => (
+                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={startPeriod} onValueChange={setStartPeriod}>
+                        <SelectTrigger className="w-full h-10 px-2 text-xs">
+                          <SelectValue placeholder="AM/PM" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="AM">AM</SelectItem>
+                          <SelectItem value="PM">PM</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                  
-                  {meeting.description && (
-                    <p className={`text-sm mb-4 line-clamp-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                      {meeting.description}
-                    </p>
-                  )}
 
-                  <div className="space-y-2 mt-auto">
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4 mr-2 shrink-0" />
-                      {dateStr}
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4 mr-2 shrink-0" />
-                      {timeStr}
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Users className="h-4 w-4 mr-2 shrink-0" />
-                      <span className="line-clamp-1" title={meeting.target_roles.join(', ')}>
-                        {meeting.target_roles.map((r: string) => r.replace('_', ' ')).join(', ')}
-                      </span>
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground font-medium pt-1 border-t mt-3">
-                      Organizer: {meeting.organizer_name}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" /> End Time <span className="text-destructive">*</span>
+                    </label>
+                    <div className="flex items-center gap-1">
+                      <Select value={endHour} onValueChange={setEndHour}>
+                        <SelectTrigger className="w-full h-10 px-2 text-xs">
+                          <SelectValue placeholder="Hr" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[200px]">
+                          {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
+                            <SelectItem key={h} value={h}>{h}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <span className="font-semibold text-xs">:</span>
+                      <Select value={endMinute} onValueChange={setEndMinute}>
+                        <SelectTrigger className="w-full h-10 px-2 text-xs">
+                          <SelectValue placeholder="Min" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[200px]">
+                          {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")).map((m) => (
+                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={endPeriod} onValueChange={setEndPeriod}>
+                        <SelectTrigger className="w-full h-10 px-2 text-xs">
+                          <SelectValue placeholder="AM/PM" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="AM">AM</SelectItem>
+                          <SelectItem value="PM">PM</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
+                </div>
 
-                  <div className="mt-5 pt-2 flex justify-end">
-                    {meeting.google_meet_link ? (
-                      <Button 
-                        onClick={() => window.open(meeting.google_meet_link, '_blank')}
-                        className={`w-full font-medium ${isPast ? 'bg-gray-400 hover:bg-gray-500' : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white'}`}
-                      >
-                        <Video className="w-4 h-4 mr-2" />
-                        {isPast ? 'Meeting Ended' : 'Join Google Meet'}
-                        <ExternalLink className="w-3 h-3 ml-2 opacity-70" />
-                      </Button>
-                    ) : (
-                      <div className="w-full text-center text-sm text-red-500 py-2 bg-red-50 rounded-md">
-                        No Meeting Link Found
+                <div className="grid gap-2">
+                  <Label>Target Roles (Select at least one) *</Label>
+                  <div className={`grid grid-cols-2 gap-2 p-3 border rounded-md max-h-40 overflow-y-auto ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                    {AVAILABLE_ROLES.map(role => (
+                      <div key={role.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`role-${role.id}`}
+                          checked={formData.target_roles.includes(role.id)}
+                          onCheckedChange={() => handleRoleToggle(role.id)}
+                        />
+                        <label 
+                          htmlFor={`role-${role.id}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                          {role.label}
+                        </label>
                       </div>
-                    )}
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            );
-            });
-          })()}
-        </div>
-      )}
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowDialog(false)}>Cancel</Button>
+                <Button onClick={handleCreateMeeting} disabled={submitting}>
+                  {submitting ? "Scheduling..." : "Schedule & Generate Meet"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </CardHeader>
+        
+        <CardContent className="p-6">
+          {loading ? (
+            <div className="grid gap-4">
+              <SkeletonCard className="h-32 w-full" />
+              <SkeletonCard className="h-32 w-full" />
+            </div>
+          ) : meetings.length === 0 ? (
+            <div className={`p-8 text-center rounded-xl border-2 border-dashed ${theme === 'dark' ? 'bg-card/30 text-muted-foreground border-border' : 'bg-gray-50/50 text-gray-500 border-gray-300'} flex flex-col items-center justify-center`}>
+              <Video className="mx-auto h-12 w-12 opacity-30 mb-3 text-primary animate-pulse" />
+              <h3 className="text-lg font-semibold text-foreground">No Upcoming Meetings</h3>
+              <p className="mt-1 text-sm text-muted-foreground">There are currently no meetings scheduled for you.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+              {(() => {
+                const now = new Date();
+                const upcoming = meetings.filter(m => new Date(m.end_time) >= now);
+                const past = meetings.filter(m => new Date(m.end_time) < now)
+                  .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
+                  .slice(0, 5); // recent 5
+                const displayMeetings = [...upcoming, ...past];
+
+                return displayMeetings.map((meeting) => {
+                  const start = new Date(meeting.start_time);
+                  const end = new Date(meeting.end_time);
+                  const dateStr = start.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                  const timeStr = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                  const isPast = end < now;
+                
+                  return (
+                    <Card key={meeting.id} className={`flex flex-col h-full overflow-hidden transition-all duration-200 hover:shadow-md ${isPast ? 'opacity-70' : ''}`}>
+                      <div className={`h-2 ${isPast ? 'bg-gray-300' : 'bg-blue-500'}`} />
+                      <CardContent className="p-5 flex flex-col flex-1">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-semibold text-lg line-clamp-1 text-foreground" title={meeting.title}>
+                            {meeting.title}
+                          </h3>
+                          <div className="flex gap-2 ml-2 shrink-0">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(meeting.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {meeting.description && (
+                          <p className={`text-sm mb-4 line-clamp-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                            {meeting.description}
+                          </p>
+                        )}
+
+                        <div className="space-y-2 mt-auto">
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Calendar className="h-4 w-4 mr-2 shrink-0" />
+                            {dateStr}
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Clock className="h-4 w-4 mr-2 shrink-0" />
+                            {timeStr}
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Users className="h-4 w-4 mr-2 shrink-0" />
+                            <span className="line-clamp-1" title={meeting.target_roles.join(', ')}>
+                              {meeting.target_roles.map((r: string) => r.replace('_', ' ')).join(', ')}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground font-medium pt-1 border-t mt-3">
+                            Organizer: {meeting.organizer_name}
+                          </div>
+                        </div>
+
+                        <div className="mt-5 pt-2 flex justify-end">
+                          {meeting.google_meet_link ? (
+                            <Button 
+                              onClick={() => window.open(meeting.google_meet_link, '_blank')}
+                              className={`w-full font-medium ${isPast ? 'bg-gray-400 hover:bg-gray-500' : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white'}`}
+                            >
+                              <Video className="w-4 h-4 mr-2" />
+                              {isPast ? 'Meeting Ended' : 'Join Google Meet'}
+                              <ExternalLink className="w-3 h-3 ml-2 opacity-70" />
+                            </Button>
+                          ) : (
+                            <div className="w-full text-center text-sm text-red-500 py-2 bg-red-50 rounded-md">
+                              No Meeting Link Found
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                });
+              })()}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
