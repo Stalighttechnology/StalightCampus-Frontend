@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Send, Info, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import { requestGatePass } from '../../utils/hms_api';
@@ -58,6 +58,7 @@ const RequestGatePassModal = ({
 }: RequestGatePassModalProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     out_date: '',
     out_time: '',
@@ -67,6 +68,36 @@ const RequestGatePassModal = ({
   });
   const [outCalendarOpen, setOutCalendarOpen] = useState(false);
   const [returnCalendarOpen, setReturnCalendarOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setError(null);
+      const now = new Date();
+      
+      const formatLocalDate = (d: Date) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
+      const formatLocalTime = (d: Date) => {
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
+      };
+
+      const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+
+      setFormData({
+        out_date: formatLocalDate(now),
+        out_time: formatLocalTime(now),
+        expected_return_date: formatLocalDate(oneHourLater),
+        expected_return_time: formatLocalTime(oneHourLater),
+        reason: ''
+      });
+    }
+  }, [isOpen]);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -114,6 +145,16 @@ const RequestGatePassModal = ({
     const outDateTime = new Date(`${formData.out_date}T${formData.out_time}`);
     const returnDateTime = new Date(`${formData.expected_return_date}T${formData.expected_return_time}`);
 
+    const now = new Date();
+    if (outDateTime < new Date(now.getTime() - 5 * 60 * 1000)) {
+      toast({
+        title: 'Validation Error',
+        description: 'Out date and time cannot be in the past.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     if (returnDateTime <= outDateTime) {
       toast({
         title: 'Validation Error',
@@ -124,6 +165,7 @@ const RequestGatePassModal = ({
     }
 
     setLoading(true);
+    setError(null);
     try {
       const response = await requestGatePass(formData);
       if (response.success) {
@@ -138,9 +180,11 @@ const RequestGatePassModal = ({
           expected_return_time: '',
           reason: ''
         });
+        setError(null);
         onClose();
         onSuccess?.();
       } else {
+        setError(response.message || 'Failed to submit request.');
         toast({
           title: 'Error',
           description: response.message || 'Failed to submit request.',
@@ -148,6 +192,7 @@ const RequestGatePassModal = ({
         });
       }
     } catch (error) {
+      setError('Failed to connect to the server.');
       toast({
         title: 'Error',
         description: 'Failed to connect to the server.',

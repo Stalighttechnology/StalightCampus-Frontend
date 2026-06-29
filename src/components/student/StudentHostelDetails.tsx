@@ -264,6 +264,9 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
   const [myGatePasses, setMyGatePasses] = useState<any[]>([]);
   const [loadingGatePasses, setLoadingGatePasses] = useState(false);
   const [hasLoadedGatePasses, setHasLoadedGatePasses] = useState(false);
+  const [gatePassPage, setGatePassPage] = useState(1);
+  const [totalGatePassPages, setTotalGatePassPages] = useState(1);
+  const [totalGatePassCount, setTotalGatePassCount] = useState(0);
   const [hasLoadedIssues, setHasLoadedIssues] = useState(false);
   const [hasLoadedMeals, setHasLoadedMeals] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
@@ -318,19 +321,27 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
     }
   }, [activeTab, hasLoadedMeals, hostel, room]);
 
-  const loadGatePasses = async () => {
+  const loadGatePasses = async (page: number = 1) => {
     setLoadingGatePasses(true);
     try {
-      const res = await getMyGatePasses();
+      const res = await getMyGatePasses(page);
       if (res.success && res.results) {
         setMyGatePasses(res.results);
+        setTotalGatePassCount(res.count || res.results.length);
+        setTotalGatePassPages(res.total_pages || 1);
       } else if (res.success && Array.isArray(res.data)) {
         setMyGatePasses(res.data);
+        setTotalGatePassCount(res.data.length);
+        setTotalGatePassPages(1);
       } else {
         setMyGatePasses([]);
+        setTotalGatePassCount(0);
+        setTotalGatePassPages(1);
       }
     } catch (e) {
       setMyGatePasses([]);
+      setTotalGatePassCount(0);
+      setTotalGatePassPages(1);
     } finally {
       setLoadingGatePasses(false);
       setHasLoadedGatePasses(true);
@@ -338,10 +349,10 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
   };
 
   useEffect(() => {
-    if (activeTab === 'gate-passes' && !hasLoadedGatePasses) {
-      loadGatePasses();
+    if (activeTab === 'gate-passes') {
+      loadGatePasses(gatePassPage);
     }
-  }, [activeTab, hasLoadedGatePasses]);
+  }, [activeTab, gatePassPage]);
 
   useEffect(() => {
     const loadIssues = async () => {
@@ -796,6 +807,7 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
                         Submit a request above if you need to leave the campus.
                       </p>
                     </div> :
+                    <>
                     <div className="space-y-3">
                       {myGatePasses.map((gp) => {
                         const statusColors: Record<string, string> = {
@@ -858,6 +870,29 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
                         );
                       })}
                     </div>
+                      {/* Pagination Controls */}
+                      {totalGatePassPages > 1 && (
+                        <div className="flex justify-between items-center pt-6 mt-4 border-t border-border">
+                          <button
+                            disabled={gatePassPage === 1}
+                            onClick={() => setGatePassPage(prev => Math.max(1, prev - 1))}
+                            className="px-4 py-2 text-xs font-semibold rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-50 transition-colors"
+                          >
+                            Previous
+                          </button>
+                          <span className="text-xs text-muted-foreground font-semibold">
+                            Page {gatePassPage} of {totalGatePassPages}
+                          </span>
+                          <button
+                            disabled={gatePassPage === totalGatePassPages}
+                            onClick={() => setGatePassPage(prev => Math.min(totalGatePassPages, prev + 1))}
+                            className="px-4 py-2 text-xs font-semibold rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-50 transition-colors"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      )}
+                    </>
                   }
                 </div>
               </div>

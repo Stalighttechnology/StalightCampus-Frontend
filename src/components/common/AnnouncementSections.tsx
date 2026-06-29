@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -245,6 +246,7 @@ export const AnnouncementSections = ({
   onResolveEmergency,
 }: AnnouncementSectionsProps) => {
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const [localShowExpired, setLocalShowExpired] = useState(false);
 
   const showExpired = propShowExpired !== undefined ? propShowExpired : localShowExpired;
@@ -1034,41 +1036,21 @@ export const AnnouncementSections = ({
 
               {viewingAnnouncement?.gate_pass && (
                 <div className={`p-4 rounded-xl border space-y-3 ${theme === 'dark' ? 'bg-purple-950/20 border-purple-900/30' : 'bg-purple-50/50 border-purple-100'}`}>
-                  <h4 className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Gate Pass Action Required</h4>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Action Note (Optional)</label>
-                    <textarea
-                      placeholder="Enter approval or rejection comments..."
-                      value={actionNote}
-                      onChange={(e) => setActionNote(e.target.value)}
-                      rows={2}
-                      className="w-full text-xs p-2 rounded-lg border border-border bg-background resize-none focus-visible:ring-primary focus-visible:ring-2 focus-visible:outline-none"
-                    />
-                  </div>
-                  <div className="flex gap-2">
+                  <h4 className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Gate Pass Linked</h4>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    This announcement is linked to a student gate pass request. Please navigate to the dedicated **Gate Pass Requests** page to review, approve, or reject this request.
+                  </p>
+                  {window.location.pathname.includes('/warden') && (
                     <Button
-                      onClick={() => handleAction('approve')}
-                      disabled={actionLoading}
-                      variant="outline"
-                      className={`flex-1 text-xs font-semibold ${theme === 'dark'
-                          ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
-                          : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
-                        }`}
+                      onClick={() => {
+                        setViewingAnnouncement(null);
+                        navigate('/warden/gate-passes');
+                      }}
+                      className="w-full text-xs font-semibold h-9 bg-primary hover:bg-primary/90 text-white rounded-xl"
                     >
-                      {actionLoading ? 'Processing...' : 'Approve'}
+                      Go to Gate Pass Requests
                     </Button>
-                    <Button
-                      onClick={() => handleAction('reject')}
-                      disabled={actionLoading}
-                      variant="outline"
-                      className={`flex-1 text-xs font-semibold ${theme === 'dark'
-                          ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
-                          : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
-                        }`}
-                    >
-                      {actionLoading ? 'Processing...' : 'Reject'}
-                    </Button>
-                  </div>
+                  )}
                 </div>
               )}
 

@@ -115,28 +115,20 @@ data?: any)
         errorMessage = result.message;
       } else if (result && typeof result === 'object') {
         // Handle Django REST Framework validation errors
-        // Format: { "field_name": ["error message"], "non_field_errors": ["error message"] }
+        let errorObj = result;
+        if (result.errors && typeof result.errors === 'object') {
+          errorObj = result.errors;
+        }
 
-        // Check for non_field_errors first (these are validation errors like unique constraint violations)
-        if (result.non_field_errors && Array.isArray(result.non_field_errors)) {
-          errorMessage = result.non_field_errors[0];
+        // Check for non_field_errors first
+        if (errorObj.non_field_errors && Array.isArray(errorObj.non_field_errors)) {
+          errorMessage = errorObj.non_field_errors[0];
+        } else if (errorObj.non_field_errors && typeof errorObj.non_field_errors === 'string') {
+          errorMessage = errorObj.non_field_errors;
         } else {
           // Otherwise, use the first field error
-          const errorEntries = Object.entries(result);
+          const errorEntries = Object.entries(errorObj);
           if (errorEntries.length > 0) {
-            // Collect all error messages for better debugging
-            const errorMessages = errorEntries.
-            map(([field, errors]) => {
-              if (Array.isArray(errors)) {
-                return `${field}: ${(errors as string[]).join(', ')}`;
-              } else if (typeof errors === 'string') {
-                return `${field}: ${errors}`;
-              }
-              return `${field}: ${JSON.stringify(errors)}`;
-            });
-
-
-            // For user display, show just the first error
             const firstError = errorEntries[0];
             if (Array.isArray(firstError[1])) {
               errorMessage = (firstError[1] as string[])[0];
@@ -664,8 +656,8 @@ export const requestGatePass = async (data: {
   return hmsApiCall<any>("student/gate-pass/", "POST", data);
 };
 
-export const getMyGatePasses = async (): Promise<HMSResponse<any>> => {
-  return hmsApiCall<any>("student/gate-pass/", "GET");
+export const getMyGatePasses = async (page: number = 1): Promise<HMSResponse<any>> => {
+  return hmsApiCall<any>(`student/gate-pass/?page=${page}`, "GET");
 };
 
 export const actionGatePass = async (id: number, action: 'approve' | 'reject', note?: string): Promise<any> => {
@@ -709,6 +701,23 @@ export const getOutsideStudentFilterOptions = async (): Promise<HMSResponse<{
   years: string[];
 }>> => {
   return hmsApiCall<any>("outside-students/get_filter_options/", "GET");
+};
+
+export const exportGatePassesPdf = async (status?: string): Promise<Blob> => {
+  let url = `${API_ENDPOINT}/hms/student/gate-pass/export-pdf/`;
+  if (status && status !== 'all') {
+    url += `?status=${status}`;
+  }
+  const response = await fetchWithTokenRefresh(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to export PDF");
+  }
+  return response.blob();
 };
 
 

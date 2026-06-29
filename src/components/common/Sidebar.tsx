@@ -225,6 +225,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "wardens": <Shield size={20} />,
       "student-meals": <Utensils size={20} />,
       "visitor_logs": <FileText size={20} />,
+      "gate-passes": <FileText size={20} />,
 
       "announcement-management": <Bell size={20} />,
       "hod-announcement-management": <Bell size={20} />,
@@ -516,6 +517,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Dashboard", page: "dashboard" },
       { name: "Resident Management", page: "residents" },
       { name: "Issue Tracking", page: "issues" },
+      { name: "Gate Pass Requests", page: "gate-passes" },
       { name: "Visitor Logs", page: "visitor_logs" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Apply Leave", page: "apply-leave" },

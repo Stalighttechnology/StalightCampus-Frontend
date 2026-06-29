@@ -7,6 +7,7 @@ import WardenIssueManagement from "../warden/WardenIssueManagement";
 import WardenHostelOverview from "../warden/WardenHostelOverview";
 import WardenProfile from "../warden/WardenProfile";
 import WardenVisitorLogs from "../warden/WardenVisitorLogs";
+import WardenGatePassManagement from "../warden/WardenGatePassManagement";
 import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
 import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import FacultyAttendance from "../faculty/FacultyAttendance";
@@ -26,8 +27,11 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
   const location = useLocation();
 
   const getActivePageFromPath = (pathname: string) => {
-    const path = pathname.replace('/warden', '').replace('/', '');
-    return path || 'dashboard';
+    const parts = pathname.split('/').filter(Boolean);
+    if (parts[0] === 'warden') {
+      return parts[1] || 'dashboard';
+    }
+    return parts[0] || 'dashboard';
   };
 
   const activePage = getActivePageFromPath(location.pathname);
@@ -60,6 +64,8 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
         return <WardenProfile user={user} />;
       case "visitor_logs":
         return <WardenVisitorLogs />;
+      case "gate-passes":
+        return <WardenGatePassManagement />;
       case "announcement-management":
         return <AnnouncementManagement />;
       case "schedule-meeting":
