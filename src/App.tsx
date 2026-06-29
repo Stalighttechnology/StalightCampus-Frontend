@@ -176,9 +176,11 @@ const AppContent = () => {
   
   // Swipe to close bottom sheet state
   const [dragY, setDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const touchStartY = useRef(0);
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
     touchStartY.current = e.touches[0].clientY;
   };
 
@@ -190,10 +192,17 @@ const AppContent = () => {
   };
 
   const handleTouchEnd = () => {
+    setIsDragging(false);
     if (dragY > 100) {
-      setShowExitDialog(false);
+      // Slide off-screen smoothly before unmounting
+      setDragY(500);
+      setTimeout(() => {
+        setShowExitDialog(false);
+        setDragY(0);
+      }, 250);
+    } else {
+      setDragY(0);
     }
-    setDragY(0);
   };
 
   // Helper to determine if a route is a top-level dashboard landing page
@@ -783,7 +792,7 @@ const AppContent = () => {
             onTouchEnd={handleTouchEnd}
             style={{ 
               transform: `translateY(${dragY}px)`, 
-              transition: dragY === 0 ? 'transform 0.3s ease-out' : 'none' 
+              transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)' 
             }}
             className="w-full max-w-md bg-white dark:bg-slate-900 rounded-t-[32px] border-t border-slate-100 dark:border-slate-800 p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-300 flex flex-col text-slate-800 dark:text-slate-100 touch-none"
           >
