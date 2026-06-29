@@ -21,6 +21,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { SkeletonList, SkeletonTable } from "@/components/ui/skeleton";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
+import { QRCodeSVG } from 'qrcode.react';
 
 interface QuestionRow {
   id: string;
@@ -122,6 +123,8 @@ const UploadQP = () => {
   const [brushSize, setBrushSize] = useState(3);
   const [isEraser, setIsEraser] = useState(false);
   const [drawingSubmitting, setDrawingSubmitting] = useState(false);
+  const [mobileSyncId, setMobileSyncId] = useState<string | null>(null);
+  const mobileSyncInterval = useRef<NodeJS.Timeout | null>(null);
 
   const [tabValue, setTabValue] = useState('questionFormat');
   const [qpId, setQpId] = useState<number | null>(null);
@@ -438,6 +441,75 @@ const UploadQP = () => {
       setDrawingSubmitting(false);
     }
   };
+
+  // Poll for Mobile Drawing Sync
+  useEffect(() => {
+    if (mobileSyncId && drawingQuestionId) {
+      mobileSyncInterval.current = setInterval(async () => {
+        try {
+          const res = await fetch(`${API_ENDPOINT}/exams/mobile-draw/status/${mobileSyncId}/`);
+          const data = await res.json();
+          if (data.success && data.status === 'completed' && data.image_data) {
+            // We got the drawing from mobile!
+            if (mobileSyncInterval.current) clearInterval(mobileSyncInterval.current);
+            const currentQuestionId = drawingQuestionId;
+            setMobileSyncId(null);
+            
+            try {
+              // Convert base64 to file manually (safer for large URIs)
+              const base64Data = data.image_data.split(',')[1];
+              const byteString = atob(base64Data);
+              const ab = new ArrayBuffer(byteString.length);
+              const ia = new Uint8Array(ab);
+              for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+              }
+              const blob = new Blob([ab], { type: 'image/png' });
+              const filename = `mobile_drawing_${currentQuestionId}_${Date.now()}.png`;
+              const file = new File([blob], filename, { type: 'image/png' });
+
+              const fileUrl = await performR2Upload(file, 'question_papers');
+              if (fileUrl) {
+                const imageHtml = `<br/><img src="${fileUrl}" style="max-width: 100%; max-height: 250px; display: block; margin: 10px 0; border-radius: 6px; border: 1px solid #e2e8f0;" />`;
+                setQuestions(prev => prev.map(q => {
+                  if (q.id === currentQuestionId) {
+                    return { ...q, content: q.content + imageHtml };
+                  }
+                  return q;
+                }));
+                
+                toast({
+                  title: "Mobile Drawing Synced!",
+                  description: "Your drawing has been successfully synced from your phone."
+                });
+              } else {
+                toast({
+                  title: "Upload Failed",
+                  description: "Failed to upload the synced drawing. Please try again.",
+                  variant: "destructive"
+                });
+              }
+            } catch (err: any) {
+              console.error("Error processing mobile drawing:", err);
+              toast({
+                title: "Processing Error",
+                description: err.message || "Failed to process the drawing data.",
+                variant: "destructive"
+              });
+            } finally {
+              setDrawingQuestionId(null);
+            }
+          }
+        } catch (err) {
+          console.error("Error polling mobile drawing status:", err);
+        }
+      }, 2000);
+    }
+
+    return () => {
+      if (mobileSyncInterval.current) clearInterval(mobileSyncInterval.current);
+    };
+  }, [mobileSyncId, drawingQuestionId]);
 
   const addQuestion = () => {
     const nextId = `${Date.now()}`;
@@ -948,8 +1020,26 @@ const UploadQP = () => {
                                                        const fileInput = document.getElementById(`diagram-upload-${q.id}`);
                                                        if (fileInput) (fileInput as HTMLInputElement).click();
                                                      } else if (result.isDenied) {
-                                                       setDrawingQuestionId(q.id);
-                                                       setIsDrawingOpen(true);
+                                                       MySwal.fire({
+                                                         title: 'Draw Diagram',
+                                                         text: 'Where would you like to draw?',
+                                                         icon: 'question',
+                                                         showCancelButton: true,
+                                                         showDenyButton: true,
+                                                         confirmButtonColor: '#0ea5e9',
+                                                         denyButtonColor: '#8b5cf6',
+                                                         confirmButtonText: 'Draw on this Computer',
+                                                         denyButtonText: 'Draw on Phone (Touch)',
+                                                         cancelButtonText: 'Cancel'
+                                                       }).then((drawResult) => {
+                                                         if (drawResult.isConfirmed) {
+                                                           setDrawingQuestionId(q.id);
+                                                           setIsDrawingOpen(true);
+                                                         } else if (drawResult.isDenied) {
+                                                           setDrawingQuestionId(q.id);
+                                                           setMobileSyncId(crypto.randomUUID());
+                                                         }
+                                                       });
                                                      }
                                                    });
                                                  }}
@@ -1361,6 +1451,39 @@ const UploadQP = () => {
                 Save & Insert
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mobile Drawing QR Code Dialog */}
+      <Dialog open={!!mobileSyncId} onOpenChange={(open) => {
+        if (!open) {
+          setMobileSyncId(null);
+          setDrawingQuestionId(null);
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Draw on your Phone</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center p-6 text-center gap-6">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Scan this QR code with your mobile phone's camera. A drawing pad will open in your mobile browser.
+            </p>
+            <div className="bg-white p-4 rounded-xl shadow-sm border">
+              {mobileSyncId && (
+                <QRCodeSVG 
+                  value={`${window.location.origin}/mobile-draw?session=${mobileSyncId}`}
+                  size={200}
+                  level="H"
+                  includeMargin={true}
+                />
+              )}
+            </div>
+            <p className="text-xs text-slate-500 flex items-center gap-2">
+              <Loader2 size={12} className="animate-spin" />
+              Waiting for drawing from mobile device...
+            </p>
           </div>
         </DialogContent>
       </Dialog>

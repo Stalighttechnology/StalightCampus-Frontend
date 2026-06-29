@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from
 import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import Index from "./components/common/Index";
 import { PwaInstaller } from "./components/pwa/PwaInstaller";
+import MobileDraw from './components/common/MobileDraw';
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
 import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -337,6 +338,9 @@ const AppContent = () => {
               <Home />
             </>
           } />
+
+          {/* Unauthenticated / Public Mobile Drawing Route */}
+          <Route path="/mobile-draw" element={<MobileDraw />} />
 
           {/* Payment routes */}
           <Route path="/payment/success" element={
