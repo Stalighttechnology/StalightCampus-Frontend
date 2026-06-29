@@ -1264,6 +1264,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                   <th className="px-6 py-4">Employee</th>
                   <th className="px-6 py-4 text-center">Days (Present/LOP)</th>
                   <th className="px-6 py-4 text-right">Gross Salary</th>
+                  <th className="px-6 py-4 text-right">Approved Reimbursements</th>
                   <th className="px-6 py-4 text-right">PF Deduction</th>
                   <th className="px-6 py-4 text-right">ESI Deduction</th>
                   <th className="px-6 py-4 text-right">TDS (Tax)</th>
@@ -1284,6 +1285,9 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                       {det.days_present} present / {det.days_absent} LOP
                     </td>
                     <td className="px-6 py-4 text-right font-semibold text-slate-900 dark:text-white">{formatCurrency(det.gross_salary)}</td>
+                    <td className="px-6 py-4 text-right font-medium text-blue-600 dark:text-blue-400">
+                      {Number(det.reimbursements) > 0 ? `+${formatCurrency(det.reimbursements)}` : '₹0'}
+                    </td>
                     <td className="px-6 py-4 text-right text-red-500">{formatCurrency(det.pf_deduction)}</td>
                     <td className="px-6 py-4 text-right text-red-500">{formatCurrency(det.esi_deduction)}</td>
                     <td className="px-6 py-4 text-right text-red-500">{formatCurrency(det.tds_deduction)}</td>
