@@ -29,6 +29,7 @@ import {
 'react-icons/fa';
 import { SkeletonCard, SkeletonList } from '../ui/skeleton';
 import { Card, CardHeader, CardContent } from '../ui/card';
+import { Button } from '../ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 
 type Warden = {
@@ -267,6 +268,9 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
   const [gatePassPage, setGatePassPage] = useState(1);
   const [totalGatePassPages, setTotalGatePassPages] = useState(1);
   const [totalGatePassCount, setTotalGatePassCount] = useState(0);
+  const [issuePage, setIssuePage] = useState(1);
+  const [totalIssuePages, setTotalIssuePages] = useState(1);
+  const [totalIssueCount, setTotalIssueCount] = useState(0);
   const [hasLoadedIssues, setHasLoadedIssues] = useState(false);
   const [hasLoadedMeals, setHasLoadedMeals] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
@@ -354,30 +358,38 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
     }
   }, [activeTab, gatePassPage]);
 
-  useEffect(() => {
-    const loadIssues = async () => {
-      setLoadingIssues(true);
-      try {
-        const res = await getMyIssues();
-        if (res.success && res.results) {
-          setMyIssues(res.results);
-        } else if (res.success && Array.isArray(res.data)) {
-          setMyIssues(res.data);
-        } else {
-          setMyIssues([]);
-        }
-      } catch (e) {
+  const loadIssues = async (page: number = 1) => {
+    setLoadingIssues(true);
+    try {
+      const res = await getMyIssues(page);
+      if (res.success && res.results) {
+        setMyIssues(res.results);
+        setTotalIssueCount(res.count || res.results.length);
+        setTotalIssuePages(res.total_pages || 1);
+      } else if (res.success && Array.isArray(res.data)) {
+        setMyIssues(res.data);
+        setTotalIssueCount(res.data.length);
+        setTotalIssuePages(1);
+      } else {
         setMyIssues([]);
-      } finally {
-        setLoadingIssues(false);
-        setHasLoadedIssues(true);
+        setTotalIssueCount(0);
+        setTotalIssuePages(1);
       }
-    };
-
-    if (activeTab === 'issues' && !hasLoadedIssues) {
-      loadIssues();
+    } catch (e) {
+      setMyIssues([]);
+      setTotalIssueCount(0);
+      setTotalIssuePages(1);
+    } finally {
+      setLoadingIssues(false);
+      setHasLoadedIssues(true);
     }
-  }, [activeTab, hasLoadedIssues]);
+  };
+
+  useEffect(() => {
+    if (activeTab === 'issues') {
+      loadIssues(issuePage);
+    }
+  }, [activeTab, issuePage]);
 
 
 
@@ -678,7 +690,7 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
                       Use the "Raise an Issue" button above to report your first issue
                     </p>
                   </div> :
-
+                  <>
               <div className="space-y-3">
                     {myIssues.map((issue) => {
                   const statusColors: Record<string, string> = {
@@ -742,6 +754,42 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
                   );
                 })}
                   </div>
+                    {/* Pagination Controls for Issues */}
+                    {totalIssuePages > 1 && (
+                      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground pt-6 mt-4 border-t border-border">
+                        <div>
+                          Showing {Math.min((issuePage - 1) * 10 + 1, totalIssueCount)} to {Math.min(issuePage * 10, totalIssueCount)} of {totalIssueCount} requests
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIssuePage(prev => Math.max(1, prev - 1))}
+                            disabled={issuePage === 1 || loadingIssues}
+                            className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                          >
+                            Previous
+                          </Button>
+
+                          <div className="flex items-center justify-center min-w-[2rem]">
+                            <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                              {issuePage}
+                            </span>
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIssuePage(prev => Math.min(totalIssuePages, prev + 1))}
+                            disabled={issuePage === totalIssuePages || loadingIssues}
+                            className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
               }
               </div>
             </div>
@@ -872,24 +920,37 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
                     </div>
                       {/* Pagination Controls */}
                       {totalGatePassPages > 1 && (
-                        <div className="flex justify-between items-center pt-6 mt-4 border-t border-border">
-                          <button
-                            disabled={gatePassPage === 1}
-                            onClick={() => setGatePassPage(prev => Math.max(1, prev - 1))}
-                            className="px-4 py-2 text-xs font-semibold rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-50 transition-colors"
-                          >
-                            Previous
-                          </button>
-                          <span className="text-xs text-muted-foreground font-semibold">
-                            Page {gatePassPage} of {totalGatePassPages}
-                          </span>
-                          <button
-                            disabled={gatePassPage === totalGatePassPages}
-                            onClick={() => setGatePassPage(prev => Math.min(totalGatePassPages, prev + 1))}
-                            className="px-4 py-2 text-xs font-semibold rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-50 transition-colors"
-                          >
-                            Next
-                          </button>
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground pt-6 mt-4 border-t border-border">
+                          <div>
+                            Showing {Math.min((gatePassPage - 1) * 10 + 1, totalGatePassCount)} to {Math.min(gatePassPage * 10, totalGatePassCount)} of {totalGatePassCount} requests
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setGatePassPage(prev => Math.max(1, prev - 1))}
+                              disabled={gatePassPage === 1 || loadingGatePasses}
+                              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                            >
+                              Previous
+                            </Button>
+
+                            <div className="flex items-center justify-center min-w-[2rem]">
+                              <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {gatePassPage}
+                              </span>
+                            </div>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setGatePassPage(prev => Math.min(totalGatePassPages, prev + 1))}
+                              disabled={gatePassPage === totalGatePassPages || loadingGatePasses}
+                              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                            >
+                              Next
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </>
@@ -997,20 +1058,8 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
         roomId={room?.id || 0}
         roomName={room?.room_number}
         onSuccess={() => {
-          // Refresh issues list and show success message
-          const loadIssues = async () => {
-            try {
-              const res = await getMyIssues();
-              if (res.success && res.results) {
-                setMyIssues(res.results);
-              } else if (res.success && Array.isArray(res.data)) {
-                setMyIssues(res.data);
-              }
-            } catch (e) {
-
-            }
-          };
-          loadIssues();
+          setIssuePage(1);
+          loadIssues(1);
 
           toast({
             title: 'Issue Raised',
@@ -1024,7 +1073,8 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
         isOpen={isGatePassModalOpen}
         onClose={() => setIsGatePassModalOpen(false)}
         onSuccess={() => {
-          loadGatePasses();
+          setGatePassPage(1);
+          loadGatePasses(1);
         }}
       />
     </div>

@@ -455,14 +455,18 @@ const OutsideStudentManagement: React.FC = () => {
             {/* Course Filter */}
             <div className="flex flex-col gap-1.5 w-full md:w-48">
               <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">Course</span>
-              <Select value={courseFilter} onValueChange={setCourseFilter}>
+              <Select value={courseFilter} onValueChange={setCourseFilter} disabled={availableCourses.length === 0}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose Course" />
+                  <SelectValue placeholder={availableCourses.length === 0 ? "No courses available" : "Choose Course"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableCourses.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  ))}
+                  {availableCourses.length === 0 ? (
+                    <div className="p-2 text-xs text-muted-foreground text-center font-medium">No courses available</div>
+                  ) : (
+                    availableCourses.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -470,14 +474,18 @@ const OutsideStudentManagement: React.FC = () => {
             {/* Year Filter */}
             <div className="flex flex-col gap-1.5 w-full md:w-48">
               <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">Year</span>
-              <Select value={yearFilter} onValueChange={setYearFilter}>
+              <Select value={yearFilter} onValueChange={setYearFilter} disabled={availableYears.length === 0}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose Year" />
+                  <SelectValue placeholder={availableYears.length === 0 ? "No years available" : "Choose Year"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableYears.map((y) => (
-                    <SelectItem key={y} value={y}>{y}</SelectItem>
-                  ))}
+                  {availableYears.length === 0 ? (
+                    <div className="p-2 text-xs text-muted-foreground text-center font-medium">No years available</div>
+                  ) : (
+                    availableYears.map((y) => (
+                      <SelectItem key={y} value={y}>{y}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

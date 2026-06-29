@@ -51,6 +51,7 @@ interface HMSResponse<T> {
   data?: T;
   results?: T[];
   count?: number;
+  total_pages?: number;
   next?: string | null;
   previous?: string | null;
 }
@@ -148,10 +149,12 @@ data?: any)
       return { success: true, results: result, count: result.length };
     } else if (method === "GET" && result && result.results !== undefined) {
       // Paginated response with results field
+      const computedTotalPages = result.total_pages || (result.count ? Math.ceil(result.count / 10) : 1);
       return {
         success: true,
         results: result.results,
         count: result.count,
+        total_pages: computedTotalPages,
         next: result.next,
         previous: result.previous
       };
