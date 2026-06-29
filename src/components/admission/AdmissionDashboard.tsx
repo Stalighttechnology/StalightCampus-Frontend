@@ -138,7 +138,6 @@ const AdmissionDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <UpcomingMeetingsWidget />
       {newLeads > 0 && (
         <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg flex items-start gap-4">
           <AlertCircle className="w-6 h-6 text-primary flex-shrink-0 mt-0.5" />

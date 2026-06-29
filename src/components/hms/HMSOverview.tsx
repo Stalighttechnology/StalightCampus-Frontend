@@ -206,7 +206,6 @@ const HMSOverview = () => {
 
   return (
     <div className="space-y-8">
-      <UpcomingMeetingsWidget />
       {/* Statistics Cards */}
       <div id="hms-stats-grid" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <DashboardCard
