@@ -90,6 +90,14 @@ const OutsideStudentManagement: React.FC = () => {
     outside_year: ''
   });
   const [isRegistering, setIsRegistering] = useState(false);
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  const handleInputChange = (field: string, value: string) => {
+    setAddFormData(prev => ({ ...prev, [field]: value }));
+    if (formErrors[field]) {
+      setFormErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
 
   // Filter States
   const [courseFilter, setCourseFilter] = useState('');
@@ -183,34 +191,46 @@ const OutsideStudentManagement: React.FC = () => {
     fetchStudents();
   }, [currentPage, appliedSearch, courseFilter, yearFilter]);
 
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {};
+    if (!addFormData.name.trim()) {
+      errors.name = "Full Name is required.";
+    } else if (addFormData.name.trim().length < 2) {
+      errors.name = "Full Name must be at least 2 characters.";
+    }
+
+    if (!addFormData.usn.trim()) {
+      errors.usn = "USN / Custom ID is required.";
+    }
+
+    if (!addFormData.email.trim()) {
+      errors.email = "Email Address is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addFormData.email.trim())) {
+      errors.email = "Enter a valid email address.";
+    }
+
+    const cleanPhone = addFormData.phone.replace(/[\s\-\(\)]/g, '');
+    if (!addFormData.phone.trim()) {
+      errors.phone = "Phone Number is required.";
+    } else if (!/^\+?[0-9]{10,15}$/.test(cleanPhone)) {
+      errors.phone = "Enter a valid phone number (10-15 digits).";
+    }
+
+    if (!addFormData.outside_course_name.trim()) {
+      errors.outside_course_name = "Course Name is required.";
+    }
+
+    if (!addFormData.outside_year.trim()) {
+      errors.outside_year = "Year is required.";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Client-side validation checks
-    if (!addFormData.name.trim()) {
-      showErrorAlert("Validation Error", "Full Name is required.");
-      return;
-    }
-    if (!addFormData.usn.trim()) {
-      showErrorAlert("Validation Error", "USN / Custom ID is required.");
-      return;
-    }
-    if (!addFormData.email.trim()) {
-      showErrorAlert("Validation Error", "Email Address is required.");
-      return;
-    }
-    if (!addFormData.phone.trim()) {
-      showErrorAlert("Validation Error", "Phone Number is required.");
-      return;
-    }
-    if (!addFormData.outside_course_name.trim()) {
-      showErrorAlert("Validation Error", "Course Name is required.");
-      return;
-    }
-    if (!addFormData.outside_year.trim()) {
-      showErrorAlert("Validation Error", "Year is required.");
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsRegistering(true);
     try {
@@ -237,10 +257,15 @@ const OutsideStudentManagement: React.FC = () => {
           outside_course_name: '',
           outside_year: ''
         });
+        setFormErrors({});
         fetchStudents();
         fetchFilterOptions();
       } else {
-        showErrorAlert("Error", response.message || "Failed to register student");
+        if (typeof response.message === 'string' && (response.message.toLowerCase().includes('email') || response.message.toLowerCase().includes('already exists'))) {
+          setFormErrors(prev => ({ ...prev, email: response.message || 'Email already registered' }));
+        } else {
+          showErrorAlert("Error", response.message || "Failed to register student");
+        }
       }
     } catch (err: any) {
       showErrorAlert("Error", err.message || "An unexpected error occurred");
@@ -399,76 +424,81 @@ const OutsideStudentManagement: React.FC = () => {
                   Register Outside Student
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="sm:max-w-[500px]" onInteractOutside={(e) => e.preventDefault()}>
                 <DialogHeader>
                   <DialogTitle>Register Outside Student</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleAddSubmit} className="space-y-4 pt-2">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
+                      <Label htmlFor="name">Full Name *</Label>
                       <Input
                         id="name"
-                        required
                         value={addFormData.name}
-                        onChange={(e) => setAddFormData({ ...addFormData, name: e.target.value })}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        className={formErrors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
                       />
+                      {formErrors.name && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.name}</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="usn">USN / Custom ID</Label>
+                      <Label htmlFor="usn">USN / Custom ID *</Label>
                       <Input
                         id="usn"
-                        required
                         placeholder="e.g. OUT-1001"
                         value={addFormData.usn}
-                        onChange={(e) => setAddFormData({ ...addFormData, usn: e.target.value })}
+                        onChange={(e) => handleInputChange('usn', e.target.value)}
+                        className={formErrors.usn ? "border-red-500 focus-visible:ring-red-500" : ""}
                       />
+                      {formErrors.usn && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.usn}</p>}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
+                      <Label htmlFor="email">Email Address *</Label>
                       <Input
                         id="email"
                         type="email"
-                        required
                         value={addFormData.email}
-                        onChange={(e) => setAddFormData({ ...addFormData, email: e.target.value })}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        className={formErrors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
                       />
+                      {formErrors.email && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.email}</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <Label htmlFor="phone">Phone Number *</Label>
                       <Input
                         id="phone"
-                        required
                         value={addFormData.phone}
-                        onChange={(e) => setAddFormData({ ...addFormData, phone: e.target.value })}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        className={formErrors.phone ? "border-red-500 focus-visible:ring-red-500" : ""}
                       />
+                      {formErrors.phone && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.phone}</p>}
                     </div>
                   </div>
-
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="outside_course_name">Course Name *</Label>
                       <Input
                         id="outside_course_name"
-                        required
                         placeholder="e.g. MBA, MCA, Diploma"
                         value={addFormData.outside_course_name}
-                        onChange={(e) => setAddFormData({ ...addFormData, outside_course_name: e.target.value })}
+                        onChange={(e) => handleInputChange('outside_course_name', e.target.value)}
+                        className={formErrors.outside_course_name ? "border-red-500 focus-visible:ring-red-500" : ""}
                       />
+                      {formErrors.outside_course_name && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.outside_course_name}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="outside_year">Year *</Label>
                       <Input
                         id="outside_year"
-                        required
                         placeholder="e.g. 1st Year, 2nd Year"
                         value={addFormData.outside_year}
-                        onChange={(e) => setAddFormData({ ...addFormData, outside_year: e.target.value })}
+                        onChange={(e) => handleInputChange('outside_year', e.target.value)}
+                        className={formErrors.outside_year ? "border-red-500 focus-visible:ring-red-500" : ""}
                       />
+                      {formErrors.outside_year && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.outside_year}</p>}
                     </div>
                   </div>
 
