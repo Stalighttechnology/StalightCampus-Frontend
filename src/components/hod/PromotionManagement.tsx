@@ -6,8 +6,9 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle } from
-"../ui/card";
+  CardTitle
+} from
+  "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import {
@@ -15,24 +16,27 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter } from
-"../ui/dialog";
+  DialogFooter
+} from
+  "../ui/dialog";
 import { CheckCircle, XCircle, UserCheck, UserX, Users, ArrowRight } from "lucide-react";
 import {
   Select,
   SelectTrigger,
   SelectContent,
   SelectItem,
-  SelectValue } from
-"../ui/select";
+  SelectValue
+} from
+  "../ui/select";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow } from
-"../ui/table";
+  TableRow
+} from
+  "../ui/table";
 import { Checkbox } from "../ui/checkbox";
 import {
   getSemesters,
@@ -44,8 +48,9 @@ import {
   bulkDemoteStudents,
   manageStudents,
   getPromotionBootstrap,
-  graduateStudents } from
-"../../utils/hod_api";
+  graduateStudents
+} from
+  "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonTable } from "../ui/skeleton";
 
@@ -112,7 +117,7 @@ const PromotionManagement = () => {
 
 };
 
-const PromotionOverview = ({ onTabChange, theme, stats }: {onTabChange: (tab: "overview" | "promote" | "demote") => void;theme: string;stats: { promoted_this_month: number; demoted_this_month: number; active_operations: number; };}) => {
+const PromotionOverview = ({ onTabChange, theme, stats }: { onTabChange: (tab: "overview" | "promote" | "demote") => void; theme: string; stats: { promoted_this_month: number; demoted_this_month: number; active_operations: number; }; }) => {
   return (
     <div className="space-y-6">
       <div id="hod-promotion-cards-wrapper" className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -215,7 +220,7 @@ const PromotionOverview = ({ onTabChange, theme, stats }: {onTabChange: (tab: "o
 
 };
 
-const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabChange: (tab: "overview" | "promote" | "demote") => void;onSuccess?: () => void;}) => {
+const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabChange: (tab: "overview" | "promote" | "demote") => void; onSuccess?: () => void; }) => {
   const [state, setState] = useState({
     semesters: [] as Semester[],
     sections: [] as Section[],
@@ -458,21 +463,21 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCh
     const isGraduation = currentSemesterNumber === 8;
     const nextSemester = state.semesters.find((s) => s.number === currentSemesterNumber + 1);
 
-    if (!currentSemesterId || (!nextSemester && !isGraduation)) {
-      updateState({ errors: ["No next semester available"] });
+    if (!currentSemesterId || currentSemesterNumber > 8) {
+      updateState({ errors: ["Invalid semester promotion path"] });
       return;
     }
 
     // Optimistic update: immediately remove promoted students from the list
     const studentsToPromote = state.selectedStudents.length > 0 && state.selectedStudents.length < state.students.length ?
-    state.students.filter((student) => state.selectedStudents.includes(student.usn)) :
-    state.students;
+      state.students.filter((student) => state.selectedStudents.includes(student.usn)) :
+      state.students;
 
     const confirmRes = await Swal.fire({
       title: 'Are you sure?',
       html: isGraduation ?
         `You are about to graduate ${studentsToPromote.length} student(s).<br><br><b class="text-red-500">Warning:</b> Once graduated, their current semester attendance and marks will be archived, and their login access will be revoked.` :
-        `You are about to promote ${studentsToPromote.length} student(s) to Semester ${nextSemester?.number}.<br><br><b class="text-red-500">Warning:</b> Once promoted, their current semester attendance and marks will be archived, and they will be shifted to the next semester.`,
+        `You are about to promote ${studentsToPromote.length} student(s) to Semester ${currentSemesterNumber + 1}.<br><br><b class="text-red-500">Warning:</b> Once promoted, their current semester attendance and marks will be archived, and they will be shifted to the next semester.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, proceed',
@@ -514,7 +519,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCh
         promoted: studentsToPromote.map((student) => ({
           name: student.name,
           usn: student.usn,
-          to_semester: isGraduation ? 'Alumni' : nextSemester?.number
+          to_semester: isGraduation ? 'Alumni' : (nextSemester?.number || (currentSemesterNumber + 1))
         }))
       }
     });
@@ -532,18 +537,18 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCh
         // Promote selected students
         res = await promoteSelectedStudents({
           student_ids: state.selectedStudents,
-          to_semester_id: nextSemester?.id as string,
+          to_semester_id: nextSemester?.id,
           branch_id: state.branchId
         });
       } else {
         // Bulk promotion
         const sectionId = state.selectedSection ?
-        state.sections.find((s) => s.name === state.selectedSection)?.id :
-        undefined;
+          state.sections.find((s) => s.name === state.selectedSection)?.id :
+          undefined;
 
         res = await promoteStudentsToNextSemester({
           from_semester_id: currentSemesterId, // Pass as string
-          to_semester_id: nextSemester?.id as string, // Pass as string
+          to_semester_id: nextSemester?.id, // Pass as string
           branch_id: state.branchId,
           ...(sectionId && { section_id: sectionId })
         });
@@ -556,7 +561,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCh
 
         updateState({
           students: state.students.filter((student) =>
-          !successfulPromotions.some((p) => p.usn === student.usn)
+            !successfulPromotions.some((p) => p.usn === student.usn)
           ),
           selectedStudents: [],
           promotionResults: null
@@ -673,8 +678,8 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCh
 
     try {
       const sectionId = state.selectedSection ?
-      state.sections.find((s) => s.name === state.selectedSection)?.id :
-      undefined;
+        state.sections.find((s) => s.name === state.selectedSection)?.id :
+        undefined;
 
       const res = await promoteStudentsToNextSemester({
         from_semester_id: currentSemesterId, // Pass as string
@@ -690,7 +695,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCh
 
         updateState({
           students: allStudents.filter((student) =>
-          !successfulPromotions.some((p) => p.usn === student.usn)
+            !successfulPromotions.some((p) => p.usn === student.usn)
           ),
           selectedStudents: [],
           promotionResults: null
@@ -773,7 +778,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCh
               value={state.selectedSemester}
               onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "", isSectionOpen: false })}
               disabled={state.isLoading}>
-              
+
               <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
                 <SelectValue placeholder={translateTerminology("Select Semester")} />
               </SelectTrigger>
@@ -795,7 +800,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCh
               onValueChange={(value) => updateState({ selectedSection: value })}
               {...({ open: state.isSectionOpen, onOpenChange: (open: boolean) => updateState({ isSectionOpen: open }) } as any)}
               disabled={state.isLoading || !state.selectedSemester}>
-              
+
               <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
                 <SelectValue placeholder="Select Section" />
               </SelectTrigger>
@@ -821,14 +826,14 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCh
       </Card>
 
       {state.isLoading && state.students.length === 0 &&
-      <Card className="p-6">
+        <Card className="p-6">
           <SkeletonTable rows={10} cols={6} />
         </Card>
       }
 
       {/* Student List */}
       {state.students.length > 0 ?
-      <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+        <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
             <CardTitle className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               <span className="flex items-center gap-2">
@@ -838,21 +843,21 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCh
               <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
                 <div className="flex items-center gap-2">
                   <Checkbox
-                  id="select-all-students"
-                  checked={state.selectedStudents.length === state.students.length && state.students.length > 0}
-                  onCheckedChange={handleSelectAll}
-                  className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
-                
+                    id="select-all-students"
+                    checked={state.selectedStudents.length === state.students.length && state.students.length > 0}
+                    onCheckedChange={handleSelectAll}
+                    className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
+
                   <label htmlFor="select-all-students" className={`text-sm cursor-pointer whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                     Select All
                   </label>
                 </div>
                 <Button
-                onClick={handlePromoteSelectedStudents}
-                disabled={state.isPromoting || state.selectedStudents.length === 0}
-                className={`flex-1 sm:flex-none ${state.selectedSemester === '8th Semester' ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'} text-white h-9 px-4`}
-                size="sm">
-                
+                  onClick={handlePromoteSelectedStudents}
+                  disabled={state.isPromoting || state.selectedStudents.length === 0}
+                  className={`flex-1 sm:flex-none ${state.selectedSemester === '8th Semester' ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'} text-white h-9 px-4`}
+                  size="sm">
+
                   <UserCheck className="h-4 w-4 mr-2" />
                   <span className="whitespace-nowrap">{state.selectedSemester === '8th Semester' ? 'Graduate' : 'Promote'} ({state.selectedStudents.length})</span>
                 </Button>
@@ -874,13 +879,13 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCh
                 </TableHeader>
                 <TableBody>
                   {state.students.map((student, index) =>
-                <TableRow key={`${student.usn}-${index}`} className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                    <TableRow key={`${student.usn}-${index}`} className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
                       <TableCell>
                         <Checkbox
-                      checked={state.selectedStudents.includes(student.usn)}
-                      onCheckedChange={(checked) => handleStudentSelect(student.usn, checked as boolean)}
-                      className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
-                    
+                          checked={state.selectedStudents.includes(student.usn)}
+                          onCheckedChange={(checked) => handleStudentSelect(student.usn, checked as boolean)}
+                          className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
+
                       </TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</TableCell>
@@ -888,45 +893,45 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCh
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section || 'N/A'}</TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester}</TableCell>
                     </TableRow>
-                )}
+                  )}
                 </TableBody>
               </Table>
 
               {/* Pagination Controls */}
               {state.totalPages > 1 &&
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
                   <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                     Showing {Math.min((state.currentPage - 1) * 50 + 1, state.totalStudents)} to {Math.min(state.currentPage * 50, state.totalStudents)} of {state.totalStudents}
                   </div>
                   <div className="flex gap-2 items-center justify-center sm:justify-end">
                     <Button
-                  onClick={() => handlePageChange(state.currentPage - 1)}
-                  disabled={!state.hasPrevious || state.isLoading}
-                  variant="outline"
-                  className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
-                  
+                      onClick={() => handlePageChange(state.currentPage - 1)}
+                      disabled={!state.hasPrevious || state.isLoading}
+                      variant="outline"
+                      className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
+
                       Prev
                     </Button>
                     <span className="px-3 text-base font-medium text-primary">
                       {state.currentPage}
                     </span>
                     <Button
-                  onClick={() => handlePageChange(state.currentPage + 1)}
-                  disabled={!state.hasNext || state.isLoading}
-                  variant="outline"
-                  className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
-                  
+                      onClick={() => handlePageChange(state.currentPage + 1)}
+                      disabled={!state.hasNext || state.isLoading}
+                      variant="outline"
+                      className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
+
                       Next
                     </Button>
                   </div>
                 </div>
-            }
+              }
             </div>
           </CardContent>
         </Card> :
-      !state.isLoading &&
-      <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`
-      }>
+        !state.isLoading &&
+        <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`
+        }>
           <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
             <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
           </div>
@@ -944,7 +949,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCh
 
 };
 
-const DemotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabChange: (tab: "overview" | "promote" | "demote") => void;onSuccess?: () => void;}) => {
+const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabChange: (tab: "overview" | "promote" | "demote") => void; onSuccess?: () => void; }) => {
   const [state, setState] = useState({
     semesters: [] as Semester[],
     sections: [] as Section[],
@@ -1240,8 +1245,8 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCha
 
     try {
       const sectionId = state.selectedSection ?
-      state.sections.find((s) => s.name === state.selectedSection)?.id :
-      undefined;
+        state.sections.find((s) => s.name === state.selectedSection)?.id :
+        undefined;
 
       const res = await bulkDemoteStudents({
         student_ids: state.selectedStudents.length > 0 ? state.selectedStudents : studentsToDemote.map((s) => s.usn),
@@ -1353,7 +1358,7 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCha
                 value={state.selectedSemester}
                 onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "", isSectionOpen: false })}
                 disabled={state.isLoading}>
-                
+
                 <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
                   <SelectValue placeholder={translateTerminology("Select Semester")} />
                 </SelectTrigger>
@@ -1377,7 +1382,7 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCha
                 onValueChange={(value) => updateState({ selectedSection: value })}
                 {...({ open: state.isSectionOpen, onOpenChange: (open: boolean) => updateState({ isSectionOpen: open }) } as any)}
                 disabled={state.isLoading || !state.selectedSemester}>
-                
+
                 <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
                   <SelectValue placeholder="Select Section" />
                 </SelectTrigger>
@@ -1412,7 +1417,7 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCha
 
       {/* Student List */}
       {state.students.length > 0 ?
-      <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+        <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
             <CardTitle className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               <span className="flex items-center gap-2">
@@ -1422,22 +1427,22 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCha
               <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
                 <div className="flex items-center gap-2">
                   <Checkbox
-                  id="select-all-students-demote"
-                  checked={state.selectedStudents.length === state.students.length && state.students.length > 0}
-                  onCheckedChange={handleSelectAll}
-                  className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
-                
+                    id="select-all-students-demote"
+                    checked={state.selectedStudents.length === state.students.length && state.students.length > 0}
+                    onCheckedChange={handleSelectAll}
+                    className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
+
                   <label htmlFor="select-all-students-demote" className={`text-sm cursor-pointer whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                     Select All
                   </label>
                 </div>
                 <Button
-                onClick={() => updateState({ showBulkDemoteDialog: true })}
-                disabled={state.selectedStudents.length === 0}
-                variant="destructive"
-                size="sm"
-                className="flex-1 sm:flex-none h-9 px-4">
-                
+                  onClick={() => updateState({ showBulkDemoteDialog: true })}
+                  disabled={state.selectedStudents.length === 0}
+                  variant="destructive"
+                  size="sm"
+                  className="flex-1 sm:flex-none h-9 px-4">
+
                   <UserX className="h-4 w-4 mr-2" />
                   <span className="whitespace-nowrap">Demote ({state.selectedStudents.length})</span>
                 </Button>
@@ -1459,13 +1464,13 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCha
                 </TableHeader>
                 <TableBody>
                   {state.students.map((student, index) =>
-                <TableRow key={`${student.usn}-${index}`} className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                    <TableRow key={`${student.usn}-${index}`} className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
                       <TableCell>
                         <Checkbox
-                      checked={state.selectedStudents.includes(student.usn)}
-                      onCheckedChange={(checked) => handleStudentSelect(student.usn, checked as boolean)}
-                      className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
-                    
+                          checked={state.selectedStudents.includes(student.usn)}
+                          onCheckedChange={(checked) => handleStudentSelect(student.usn, checked as boolean)}
+                          className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
+
                       </TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</TableCell>
@@ -1473,45 +1478,45 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCha
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section || 'N/A'}</TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester}</TableCell>
                     </TableRow>
-                )}
+                  )}
                 </TableBody>
               </Table>
 
               {/* Pagination Controls */}
               {state.totalPages > 1 &&
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
                   <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                     Showing {Math.min((state.currentPage - 1) * 50 + 1, state.totalStudents)} to {Math.min(state.currentPage * 50, state.totalStudents)} of {state.totalStudents}
                   </div>
                   <div className="flex gap-2 items-center justify-center sm:justify-end">
                     <Button
-                  onClick={() => handlePageChange(state.currentPage - 1)}
-                  disabled={!state.hasPrevious || state.isLoading}
-                  variant="outline"
-                  className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
-                  
+                      onClick={() => handlePageChange(state.currentPage - 1)}
+                      disabled={!state.hasPrevious || state.isLoading}
+                      variant="outline"
+                      className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
+
                       Prev
                     </Button>
                     <span className="px-3 text-base font-medium text-primary">
                       {state.currentPage}
                     </span>
                     <Button
-                  onClick={() => handlePageChange(state.currentPage + 1)}
-                  disabled={!state.hasNext || state.isLoading}
-                  variant="outline"
-                  className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
-                  
+                      onClick={() => handlePageChange(state.currentPage + 1)}
+                      disabled={!state.hasNext || state.isLoading}
+                      variant="outline"
+                      className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
+
                       Next
                     </Button>
                   </div>
                 </div>
-            }
+              }
             </div>
           </CardContent>
         </Card> :
-      !state.isLoading &&
-      <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`
-      }>
+        !state.isLoading &&
+        <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`
+        }>
           <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
             <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
           </div>
@@ -1565,14 +1570,14 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: {theme: string;onTabCha
               onClick={() => updateState({ showBulkDemoteDialog: false, bulkDemoteReason: "" })}
               variant="outline"
               className={theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}>
-              
+
               Cancel
             </Button>
             <Button
               onClick={bulkDemoteAllStudents}
               disabled={state.isDemoting || !state.bulkDemoteReason.trim()}
               variant="destructive">
-              
+
               {state.isDemoting ? "Demoting..." : state.selectedStudents.length > 0 ? `Demote Selected (${state.selectedStudents.length})` : "Demote All Students"}
             </Button>
           </DialogFooter>

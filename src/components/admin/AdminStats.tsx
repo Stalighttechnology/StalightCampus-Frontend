@@ -273,7 +273,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       <div>
 
         {/* Dashboard Cards */}
-        <div id="admin-stats-grid" className={`grid grid-cols-2 sm:grid-cols-2 ${user?.role === "org_admin" ? "lg:grid-cols-5" : "lg:grid-cols-3"} gap-4 sm:gap-6`}>
+        <div id="admin-stats-grid" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
           <DashboardCard
             title={translateTerminology("Branches")}
             value={stats.total_branches || 0}

@@ -2368,8 +2368,8 @@ page_size?: number)
 
 export const promoteStudentsToNextSemester = async (data: PromoteStudentsRequest): Promise<PromoteStudentsResponse> => {
   try {
-    if (!data.branch_id || !data.from_semester_id || !data.to_semester_id) {
-      throw new Error("Branch ID, From Semester ID, and To Semester ID are required");
+    if (!data.branch_id || !data.from_semester_id) {
+      throw new Error("Branch ID and From Semester ID are required");
     }
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/promote-students/`, {
       method: "POST",
@@ -2401,8 +2401,8 @@ export const graduateStudents = async (data: { student_ids: string[] }): Promise
 
 export const promoteSelectedStudents = async (data: PromoteSelectedStudentsRequest): Promise<PromoteSelectedStudentsResponse> => {
   try {
-    if (!data.branch_id || !data.student_ids?.length || !data.to_semester_id) {
-      throw new Error("Branch ID, non-empty Student IDs, and To Semester ID are required");
+    if (!data.branch_id || !data.student_ids?.length) {
+      throw new Error("Branch ID and non-empty Student IDs are required");
     }
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/promote-selected-students/`, {
       method: "POST",

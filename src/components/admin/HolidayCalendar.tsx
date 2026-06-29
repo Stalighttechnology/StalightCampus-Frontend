@@ -213,8 +213,8 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
     }, [holidays, currentDate]);
 
     return (
-        <div className="space-y-3 flex flex-col md:h-[calc(100vh-130px)] pb-2 w-full max-w-full overflow-hidden">
-            <Card className={`flex-1 flex flex-col border min-h-[480px] w-full max-w-full rounded-lg ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+        <div className="space-y-3 flex flex-col pb-2 w-full max-w-full">
+            <Card className={`flex-1 flex flex-col border min-h-[650px] w-full max-w-full rounded-lg ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
                 {/* Header Section */}
                 <CardHeader className="flex flex-col md:flex-row items-stretch md:items-center justify-between pb-3 gap-3 border-b border-gray-100 dark:border-border/30">
                     {/* Month Title & Navigation */}
