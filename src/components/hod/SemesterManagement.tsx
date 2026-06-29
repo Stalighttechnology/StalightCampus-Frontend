@@ -133,15 +133,15 @@ const SemesterManagement = () => {
 
   // Derive NAME and YEAR from semester number
   const getSemesterName = (number: number) => {
-    const suffixes = ["st", "nd", "rd", "th", "th", "th", "th", "th"];
-    return `${number}${suffixes[number - 1]} Semester`;
+    let suffix = "th";
+    if (number % 10 === 1 && number % 100 !== 11) suffix = "st";
+    else if (number % 10 === 2 && number % 100 !== 12) suffix = "nd";
+    else if (number % 10 === 3 && number % 100 !== 13) suffix = "rd";
+    return `${number}${suffix} Semester`;
   };
 
   const getYear = (number: number) => {
-    if (number <= 2) return "Year 1";
-    if (number <= 4) return "Year 2";
-    if (number <= 6) return "Year 3";
-    return "Year 4";
+    return `Year ${Math.ceil(number / 2)}`;
   };
 
   // Fetch branch_id, semesters, and sections
@@ -274,8 +274,8 @@ const SemesterManagement = () => {
       toast({ variant: "destructive", title: "Error", description: "Branch ID is missing" });
       return;
     }
-    if (!form.number || isNaN(Number(form.number)) || Number(form.number) < 1 || Number(form.number) > 8) {
-      toast({ variant: "destructive", title: "Error", description: "Please enter a valid semester number (1-8)" });
+    if (!form.number || isNaN(Number(form.number)) || Number(form.number) < 1 || Number(form.number) > 20) {
+      toast({ variant: "destructive", title: "Error", description: "Please enter a valid semester number (1-20)" });
       return;
     }
 
@@ -458,7 +458,7 @@ const SemesterManagement = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          
+
 
           {loading ? (
             <div className="py-4">
@@ -496,9 +496,9 @@ const SemesterManagement = () => {
                       </div>
 
                       <div className="mt-3 flex gap-2">
-                          <Button onClick={() => openSectionModal(sem)} disabled={loading} className="flex-1 text-sm bg-primary text-white hover:bg-primary/90 border-transparent shadow-sm">
-                            Add
-                          </Button>
+                        <Button onClick={() => openSectionModal(sem)} disabled={loading} className="flex-1 text-sm bg-primary text-white hover:bg-primary/90 border-transparent shadow-sm">
+                          Add
+                        </Button>
                         <Button onClick={() => openModal(sem)} disabled={loading} className={`flex-1 text-sm ${theme === 'dark' ? 'bg-card border-border hover:bg-accent' : 'bg-white border-gray-300 hover:bg-gray-100 border bottom-2 text-black'}`}>
                           Edit
                         </Button>
@@ -516,103 +516,103 @@ const SemesterManagement = () => {
                 <table className="w-full text-sm table-fixed">
                   <thead className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-gray-100 text-gray-900 border-gray-300'}>
                     <tr className="border-b">
-                      <th className="p-2 text-left" style={{width: '15%'}}>NAME</th>
-                      <th className="p-2 text-left" style={{width: '15%'}}>YEAR</th>
-                      <th className="p-2 text-left" style={{width: '50%'}}>SECTIONS</th>
-                      <th className="p-2 text-center" style={{width: '15%'}}>ACTIONS</th>
+                      <th className="p-2 text-left" style={{ width: '15%' }}>NAME</th>
+                      <th className="p-2 text-left" style={{ width: '15%' }}>YEAR</th>
+                      <th className="p-2 text-left" style={{ width: '50%' }}>SECTIONS</th>
+                      <th className="p-2 text-center" style={{ width: '15%' }}>ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredSemesters.map((sem) => {
-                        const semesterSections = sections
-                          .filter((s) => s.semester_id === sem.id)
-                          .sort((a, b) => a.name.localeCompare(b.name));
+                      const semesterSections = sections
+                        .filter((s) => s.semester_id === sem.id)
+                        .sort((a, b) => a.name.localeCompare(b.name));
 
-                        return (
-                          <tr key={sem.id} className={`border-b text-center align-top ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
-                            {/* Semester Name */}
-                            <td className={`p-2 text-left align-top ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{getSemesterName(sem.number)}</td>
+                      return (
+                        <tr key={sem.id} className={`border-b text-center align-top ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
+                          {/* Semester Name */}
+                          <td className={`p-2 text-left align-top ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{getSemesterName(sem.number)}</td>
 
-                            {/* Year */}
-                            <td className={`p-2 text-left align-top ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{getYear(sem.number)}</td>
+                          {/* Year */}
+                          <td className={`p-2 text-left align-top ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{getYear(sem.number)}</td>
 
-                            {/* Sections */}
-                            <td className="p-2 text-left align-top">
-                              {semesterSections.length > 0 ? (
-                                editingSectionsSemesterId === sem.id ? (
-                                  <div className="grid grid-cols-8 gap-2">
-                                    {semesterSections.map((section) => (
-                                      <div
-                                        key={section.id}
-                                        className={`flex flex-col items-center gap-1 px-2 py-2 border rounded-md text-center ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
+                          {/* Sections */}
+                          <td className="p-2 text-left align-top">
+                            {semesterSections.length > 0 ? (
+                              editingSectionsSemesterId === sem.id ? (
+                                <div className="grid grid-cols-8 gap-2">
+                                  {semesterSections.map((section) => (
+                                    <div
+                                      key={section.id}
+                                      className={`flex flex-col items-center gap-1 px-2 py-2 border rounded-md text-center ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
+                                    >
+                                      <span className="text-sm font-medium">{section.name}</span>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        onClick={() => openDeleteSectionModal(section)}
+                                        disabled={loading}
+                                        title="Delete Section"
+                                        className="mt-1"
                                       >
-                                        <span className="text-sm font-medium">{section.name}</span>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
-                                          onClick={() => openDeleteSectionModal(section)}
-                                          disabled={loading}
-                                          title="Delete Section"
-                                          className="mt-1"
-                                        >
-                                          <Trash2 className="h-4 w-4 text-red-600" />
-                                        </Button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <ul className="flex flex-wrap gap-2">
-                                    {semesterSections.map((section) => (
-                                      <li key={section.id} className={`inline-flex items-center justify-center text-sm font-medium px-3 py-1 rounded-full ${theme === 'dark' ? 'bg-muted-foreground text-foreground' : 'bg-gray-100 text-gray-900'}`}>
-                                        {section.name}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                )
+                                        <Trash2 className="h-4 w-4 text-red-600" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
                               ) : (
-                                <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>None</span>
+                                <ul className="flex flex-wrap gap-2">
+                                  {semesterSections.map((section) => (
+                                    <li key={section.id} className={`inline-flex items-center justify-center text-sm font-medium px-3 py-1 rounded-full ${theme === 'dark' ? 'bg-muted-foreground text-foreground' : 'bg-gray-100 text-gray-900'}`}>
+                                      {section.name}
+                                    </li>
+                                  ))}
+                                </ul>
+                              )
+                            ) : (
+                              <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>None</span>
+                            )}
+                          </td>
+
+                          {/* Semester Actions */}
+                          <td className="p-2 flex justify-center gap-2 items-center">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => setEditingSectionsSemesterId(editingSectionsSemesterId === sem.id ? null : sem.id)}
+                              disabled={loading}
+                              title={editingSectionsSemesterId === sem.id ? "Close Sections Edit" : "Edit Sections"}
+                            >
+                              {editingSectionsSemesterId === sem.id ? (
+                                <X className="h-4 w-4" />
+                              ) : (
+                                <Pencil className="h-4 w-4" />
                               )}
-                            </td>
+                            </Button>
 
-                            {/* Semester Actions */}
-                            <td className="p-2 flex justify-center gap-2 items-center">
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => setEditingSectionsSemesterId(editingSectionsSemesterId === sem.id ? null : sem.id)}
-                                disabled={loading}
-                                title={editingSectionsSemesterId === sem.id ? "Close Sections Edit" : "Edit Sections"}
-                              >
-                                {editingSectionsSemesterId === sem.id ? (
-                                  <X className="h-4 w-4" />
-                                ) : (
-                                  <Pencil className="h-4 w-4" />
-                                )}
-                              </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => openSectionModal(sem)}
+                              disabled={loading}
+                              title="Add Section"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
 
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => openSectionModal(sem)}
-                                disabled={loading}
-                                title="Add Section"
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
-
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => openDeleteModal(sem)}
-                                disabled={loading}
-                                title={translateTerminology("Delete Semester")}
-                              >
-                                <Trash2 className="h-4 w-4 text-red-600" />
-                              </Button>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => openDeleteModal(sem)}
+                              disabled={loading}
+                              title={translateTerminology("Delete Semester")}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -643,26 +643,26 @@ const SemesterManagement = () => {
                     e.preventDefault();
                   }
                 }}
-                placeholder="Enter semester number (1-8)"
+                placeholder="Enter semester number"
                 min="1"
-                max="8"
+                max="20"
                 disabled={loading}
                 className={`text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
               />
             </div>
           </div>
           <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
-          <Button
-            onClick={closeModal}
-            disabled={loading}
-            className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-200'}`}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={loading} className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
-            {editingSemester ? "Save Changes" : "Add Semester"}
-          </Button>
-            </DialogFooter>
+            <Button
+              onClick={closeModal}
+              disabled={loading}
+              className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-200'}`}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={loading} className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
+              {editingSemester ? "Save Changes" : "Add Semester"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -696,12 +696,12 @@ const SemesterManagement = () => {
             </div>
           </div>
           <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
-        <Button onClick={closeSectionModal} disabled={loading} className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-2 border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-200'}`}>
-          Cancel
-        </Button>
-        <Button onClick={handleSaveSection} disabled={loading} className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
-          Add Section
-        </Button>
+            <Button onClick={closeSectionModal} disabled={loading} className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-2 border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-200'}`}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveSection} disabled={loading} className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
+              Add Section
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

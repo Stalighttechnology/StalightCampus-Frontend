@@ -229,6 +229,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
     selectedSemester: "",
     selectedSection: "",
     branchId: "",
+    totalSemesters: 8,
     isLoading: false,
     isPromoting: false,
     promotionResults: null as any,
@@ -259,6 +260,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
           if (profile?.branch_id) {
             updateState({
               branchId: profile.branch_id,
+              totalSemesters: profile.total_semesters || 8,
               semesters: semesters || [],
               sections: sections || []
             });
@@ -454,17 +456,29 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
   // Promote selected students
   const handlePromoteSelectedStudents = async () => {
     if (!state.selectedSemester || !state.branchId) {
-      updateState({ errors: ["Please select a semester"] });
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Information',
+        text: 'Please select a semester first.',
+        background: theme === 'dark' ? '#0f172a' : '#fff',
+        color: theme === 'dark' ? '#fff' : '#000'
+      });
       return;
     }
 
     const currentSemesterId = state.semesters.find((s) => `${s.number}th Semester` === state.selectedSemester)?.id;
     const currentSemesterNumber = state.semesters.find((s) => s.id === currentSemesterId)?.number || 0;
-    const isGraduation = currentSemesterNumber === 8;
+    const isGraduation = currentSemesterNumber === state.totalSemesters;
     const nextSemester = state.semesters.find((s) => s.number === currentSemesterNumber + 1);
 
-    if (!currentSemesterId || currentSemesterNumber > 8) {
-      updateState({ errors: ["Invalid semester promotion path"] });
+    if (!currentSemesterId || currentSemesterNumber > state.totalSemesters) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Promotion Failed',
+        text: `Cannot promote past Semester ${state.totalSemesters}. Please increase the Total Semesters limit in Branch Management first.`,
+        background: theme === 'dark' ? '#0f172a' : '#fff',
+        color: theme === 'dark' ? '#fff' : '#000'
+      });
       return;
     }
 
@@ -613,15 +627,28 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
   // Promote all students in selected semester/section
   const promoteAllStudents = async () => {
     if (!state.selectedSemester || !state.branchId) {
-      updateState({ errors: ["Please select a semester"] });
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Information',
+        text: 'Please select a semester first.',
+        background: theme === 'dark' ? '#0f172a' : '#fff',
+        color: theme === 'dark' ? '#fff' : '#000'
+      });
       return;
     }
 
     const currentSemesterId = state.semesters.find((s) => `${s.number}th Semester` === state.selectedSemester)?.id;
-    const nextSemester = state.semesters.find((s) => s.number === (state.semesters.find((s) => s.id === currentSemesterId)?.number || 0) + 1);
+    const currentSemesterNumber = state.semesters.find((s) => s.id === currentSemesterId)?.number || 0;
+    const nextSemester = state.semesters.find((s) => s.number === currentSemesterNumber + 1);
 
-    if (!currentSemesterId || !nextSemester) {
-      updateState({ errors: ["No next semester available"] });
+    if (!currentSemesterId || currentSemesterNumber > state.totalSemesters) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Promotion Failed',
+        text: `Cannot promote past Semester ${state.totalSemesters}. Please increase the Total Semesters limit in Branch Management first.`,
+        background: theme === 'dark' ? '#0f172a' : '#fff',
+        color: theme === 'dark' ? '#fff' : '#000'
+      });
       return;
     }
 
@@ -854,12 +881,13 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
                 </div>
                 <Button
                   onClick={handlePromoteSelectedStudents}
-                  disabled={state.isPromoting || state.selectedStudents.length === 0}
-                  className={`flex-1 sm:flex-none ${state.selectedSemester === '8th Semester' ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'} text-white h-9 px-4`}
-                  size="sm">
-
-                  <UserCheck className="h-4 w-4 mr-2" />
-                  <span className="whitespace-nowrap">{state.selectedSemester === '8th Semester' ? 'Graduate' : 'Promote'} ({state.selectedStudents.length})</span>
+                  disabled={state.selectedStudents.length === 0 || state.isPromoting}
+                  className={`flex-1 sm:flex-none ${state.selectedSemester === `${state.totalSemesters}th Semester` ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'} text-white h-9 px-4`}
+                >
+                  {state.isPromoting ?
+                    <Loader2 className="h-4 w-4 animate-spin" /> :
+                    <span className="whitespace-nowrap">{state.selectedSemester === `${state.totalSemesters}th Semester` ? 'Graduate' : 'Promote'} ({state.selectedStudents.length})</span>
+                  }
                 </Button>
               </div>
             </CardTitle>
@@ -958,6 +986,7 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
     selectedSemester: "",
     selectedSection: "",
     branchId: "",
+    totalSemesters: 8,
     isLoading: false,
     isDemoting: false,
     showBulkDemoteDialog: false,
@@ -990,6 +1019,7 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
           if (profile?.branch_id) {
             updateState({
               branchId: profile.branch_id,
+              totalSemesters: profile.total_semesters || 8,
               semesters: semesters || [],
               sections: sections || []
             });
@@ -1185,7 +1215,13 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
   // Bulk demote students
   const bulkDemoteAllStudents = async () => {
     if (!state.selectedSemester || !state.branchId || !state.bulkDemoteReason.trim()) {
-      updateState({ errors: ["Please select a semester and provide a reason for demotion"] });
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Information',
+        text: 'Please select a semester and provide a reason for demotion first.',
+        background: theme === 'dark' ? '#0f172a' : '#fff',
+        color: theme === 'dark' ? '#fff' : '#000'
+      });
       return;
     }
 
@@ -1193,7 +1229,13 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
     const prevSemester = state.semesters.find((s) => s.number === (state.semesters.find((s) => s.id === currentSemesterId)?.number || 0) - 1);
 
     if (!currentSemesterId || !prevSemester) {
-      updateState({ errors: ["No previous semester available"] });
+      Swal.fire({
+        icon: 'error',
+        title: 'Demotion Failed',
+        text: 'No previous semester available to demote to.',
+        background: theme === 'dark' ? '#0f172a' : '#fff',
+        color: theme === 'dark' ? '#fff' : '#000'
+      });
       return;
     }
 

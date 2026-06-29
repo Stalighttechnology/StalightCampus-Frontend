@@ -39,7 +39,7 @@ const StudentEnrollment = () => {
   const { theme } = useTheme();
   const [saving, setSaving] = useState(false);
   const [resultModalOpen, setResultModalOpen] = useState(false);
-  const [resultData, setResultData] = useState<{added: number;removed: number;failed: any[];}>({ added: 0, removed: 0, failed: [] });
+  const [resultData, setResultData] = useState<{ added: number; removed: number; failed: any[]; }>({ added: 0, removed: 0, failed: [] });
   const [downloadingPDF, setDownloadingPDF] = useState(false);
 
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
@@ -70,8 +70,8 @@ const StudentEnrollment = () => {
 
   const handleAddSemester = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSemesterNumber || isNaN(Number(newSemesterNumber)) || Number(newSemesterNumber) < 1 || Number(newSemesterNumber) > 8) {
-      showErrorAlert("Error", "Please enter a valid semester number (1-8)");
+    if (!newSemesterNumber || isNaN(Number(newSemesterNumber)) || Number(newSemesterNumber) < 1 || Number(newSemesterNumber) > 20) {
+      showErrorAlert("Error", "Please enter a valid semester number (1-20)");
       return;
     }
     setAddingSemester(true);
@@ -135,7 +135,7 @@ const StudentEnrollment = () => {
         const newSec = { id: String(createdId), name: newSectionName, semester_id: semesterId };
         const currentCached = sectionsBySemester[semesterId] || [];
         const updatedSections = [...currentCached, newSec].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i).sort((a, b) => a.name.localeCompare(b.name));
-        
+
         setSectionsBySemester(prev => ({ ...prev, [semesterId]: updatedSections }));
         setSectionId(String(createdId));
         setIsAddSectionOpen(false);
@@ -631,101 +631,97 @@ const StudentEnrollment = () => {
                     </SelectContent>
                   </Select>
                   {electivePage < electiveTotalPages &&
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setElectivePage((prev) => prev + 1)}
-                  disabled={electiveLoading}
-                  className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white border-purple-600 shadow-sm">
-                  
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setElectivePage((prev) => prev + 1)}
+                      disabled={electiveLoading}
+                      className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white border-purple-600 shadow-sm">
+
                       {electiveLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Load More Subjects"}
                     </Button>
-                }
+                  }
                 </div>
               </div>
             </div>
 
-          <div className={`flex flex-col lg:flex-row items-stretch lg:items-center gap-4 mb-6 p-4 sm:p-5 rounded-lg border ${
-          theme === 'dark' ? 'bg-muted/50 border-border' : 'bg-gray-50 border-gray-100'}`
-          }>
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40 text-gray-500" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                disabled={!selectedSubjectId}
-                placeholder={selectedSubjectId ? "Search by USN or name" : "Select subject to search"}
-                className={`w-full pl-10 pr-12 py-2.5 text-sm rounded-md border shadow-sm transition-all placeholder-gray-400 focus:ring-2 focus:ring-purple-500/20 ${
-                !selectedSubjectId ? 'opacity-50 cursor-not-allowed' : ''} ${
-                theme === 'dark' ?
-                'bg-background border-border text-foreground placeholder:text-muted-foreground' :
-                'bg-white border-gray-300 text-gray-900'}`
-                } />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              <Button
-                onClick={save}
-                disabled={saving || students.length === 0}
-                className="w-full sm:w-auto px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95">
-                
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Enrollment"}
-              </Button>
-              <Button
-                onClick={handleExportPDF}
-                disabled={!selectedSubjectId || isLoading || saving || downloadingPDF}
-                className="hidden sm:flex px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95 items-center justify-center gap-2">
-                {downloadingPDF ? (
-                   <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <FileDown className="h-4.5 w-4.5" />
+            <div className={`flex flex-col lg:flex-row items-stretch lg:items-center gap-4 mb-6 p-4 sm:p-5 rounded-lg border ${theme === 'dark' ? 'bg-muted/50 border-border' : 'bg-gray-50 border-gray-100'}`
+            }>
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40 text-gray-500" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  disabled={!selectedSubjectId}
+                  placeholder={selectedSubjectId ? "Search by USN or name" : "Select subject to search"}
+                  className={`w-full pl-10 pr-12 py-2.5 text-sm rounded-md border shadow-sm transition-all placeholder-gray-400 focus:ring-2 focus:ring-purple-500/20 ${!selectedSubjectId ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ?
+                      'bg-background border-border text-foreground placeholder:text-muted-foreground' :
+                      'bg-white border-gray-300 text-gray-900'}`
+                  } />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Clear
+                  </button>
                 )}
-                <span>Export PDF</span>
-              </Button>
-            </div>
-            <div className="flex flex-row items-center justify-center lg:justify-start gap-4 lg:gap-6 text-sm pt-2 lg:pt-0 border-t lg:border-none border-gray-200 dark:border-gray-800 mt-2 lg:mt-0">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-gray-600 dark:text-gray-400">Enrolled:</span>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                theme === 'dark' ?
-                'bg-green-900/30 text-green-400 border border-green-800/50' :
-                'bg-green-100 text-green-800 border border-green-200'}`
-                }>
-                  {students.filter((s: any) => s.checked).length}
-                </span>
               </div>
-              <label className="flex items-center gap-2 cursor-pointer group shrink-0">
-                <Checkbox
-                  id="show-enrolled-only-checkbox"
-                  checked={showEnrolledOnly}
-                  onCheckedChange={(checked) => setShowEnrolledOnly(!!checked)}
-                />
-                <span className="font-semibold text-gray-700 dark:text-gray-300 group-hover:text-purple-600 transition-colors whitespace-nowrap">Show enrolled only</span>
-              </label>
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <Button
+                  onClick={save}
+                  disabled={saving || students.length === 0}
+                  className="w-full sm:w-auto px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95">
+
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Enrollment"}
+                </Button>
+                <Button
+                  onClick={handleExportPDF}
+                  disabled={!selectedSubjectId || isLoading || saving || downloadingPDF}
+                  className="hidden sm:flex px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95 items-center justify-center gap-2">
+                  {downloadingPDF ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileDown className="h-4.5 w-4.5" />
+                  )}
+                  <span>Export PDF</span>
+                </Button>
+              </div>
+              <div className="flex flex-row items-center justify-center lg:justify-start gap-4 lg:gap-6 text-sm pt-2 lg:pt-0 border-t lg:border-none border-gray-200 dark:border-gray-800 mt-2 lg:mt-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-gray-600 dark:text-gray-400">Enrolled:</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${theme === 'dark' ?
+                      'bg-green-900/30 text-green-400 border border-green-800/50' :
+                      'bg-green-100 text-green-800 border border-green-200'}`
+                  }>
+                    {students.filter((s: any) => s.checked).length}
+                  </span>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer group shrink-0">
+                  <Checkbox
+                    id="show-enrolled-only-checkbox"
+                    checked={showEnrolledOnly}
+                    onCheckedChange={(checked) => setShowEnrolledOnly(!!checked)}
+                  />
+                  <span className="font-semibold text-gray-700 dark:text-gray-300 group-hover:text-purple-600 transition-colors whitespace-nowrap">Show enrolled only</span>
+                </label>
+              </div>
             </div>
-          </div>
           </CardContent>
         </div>
 
         <CardContent className="space-y-4 sm:space-y-5 md:space-y-4 lg:space-y-6 p-4 sm:p-5 md:p-4 lg:p-6 pt-0">
           <div>
             {isLoading ?
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <SkeletonCard />
                 <SkeletonCard />
               </div> :
 
-            <>
+              <>
                 {students.length === 0 ?
-              <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                  <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                     <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                       <Users className="w-12 h-12 opacity-80" />
                     </div>
@@ -735,15 +731,15 @@ const StudentEnrollment = () => {
                     </p>
                   </div> :
 
-              (() => {
-                // Server-side search is used when the user clicks the Search button.
-                // `students` already contains the server-provided (possibly searched) page.
-                const filtered = students;
-                const enrolledListFiltered = filtered.filter((s: any) => s.checked);
-                const notEnrolledListFiltered = filtered.filter((s: any) => !s.checked);
+                  (() => {
+                    // Server-side search is used when the user clicks the Search button.
+                    // `students` already contains the server-provided (possibly searched) page.
+                    const filtered = students;
+                    const enrolledListFiltered = filtered.filter((s: any) => s.checked);
+                    const notEnrolledListFiltered = filtered.filter((s: any) => !s.checked);
 
-                return (
-                  <>
+                    return (
+                      <>
                         <div className={showEnrolledOnly ? "" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-3 md:gap-2 lg:gap-4"}>
                           <div className={`p-4 sm:p-5 border rounded-xl transition-all ${theme === 'dark' ? 'bg-card/20 border-border' : 'bg-white border-gray-100 shadow-sm'}`}>
                             <div className="flex items-center justify-between mb-4">
@@ -762,10 +758,9 @@ const StudentEnrollment = () => {
                                     Deselect All
                                   </Button>
                                 )}
-                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                                  theme === 'dark' ?
-                                  'bg-green-900/40 text-green-400 border border-green-800/50' :
-                                  'bg-green-100 text-green-800 border border-green-200'}`
+                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${theme === 'dark' ?
+                                    'bg-green-900/40 text-green-400 border border-green-800/50' :
+                                    'bg-green-100 text-green-800 border border-green-200'}`
                                 }>
                                   {enrolledListFiltered.length}
                                 </span>
@@ -773,11 +768,10 @@ const StudentEnrollment = () => {
                             </div>
                             <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
                               {enrolledListFiltered.map((s: any) =>
-                                <label key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all cursor-pointer ${
-                                  theme === 'dark'
+                                <label key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all cursor-pointer ${theme === 'dark'
                                     ? 'border-border/50 bg-card/50 hover:bg-accent/50 text-foreground'
                                     : 'border-gray-100 bg-gray-50/50 hover:bg-gray-100/70 text-gray-900'
-                                }`}>
+                                  }`}>
                                   <Checkbox checked={s.checked} onCheckedChange={() => toggleStudent(s.id)} />
                                   <div className="text-sm flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                                     <span className="font-semibold tracking-wider font-mono">{s.usn}</span>
@@ -813,10 +807,9 @@ const StudentEnrollment = () => {
                                       Select All
                                     </Button>
                                   )}
-                                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                                    theme === 'dark' ?
-                                    'bg-red-900/40 text-red-400 border border-red-800/50' :
-                                    'bg-red-100 text-red-800 border border-red-200'}`
+                                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${theme === 'dark' ?
+                                      'bg-red-900/40 text-red-400 border border-red-800/50' :
+                                      'bg-red-100 text-red-800 border border-red-200'}`
                                   }>
                                     {notEnrolledListFiltered.length}
                                   </span>
@@ -824,11 +817,10 @@ const StudentEnrollment = () => {
                               </div>
                               <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
                                 {notEnrolledListFiltered.map((s: any) =>
-                                  <label key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all cursor-pointer ${
-                                    theme === 'dark'
+                                  <label key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all cursor-pointer ${theme === 'dark'
                                       ? 'border-border/50 bg-card/50 hover:bg-accent/50 text-foreground'
                                       : 'border-gray-100 bg-gray-50/50 hover:bg-gray-100/70 text-gray-900'
-                                  }`}>
+                                    }`}>
                                     <Checkbox checked={s.checked} onCheckedChange={() => toggleStudent(s.id)} />
                                     <div className="text-sm flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                                       <span className="font-semibold tracking-wider font-mono">{s.usn}</span>
@@ -849,13 +841,13 @@ const StudentEnrollment = () => {
                         </div>
                       </>);
 
-              })()
-              }
+                  })()
+                }
               </>
             }
           </div>
 
-          <Dialog open={resultModalOpen} onOpenChange={(open) => {setResultModalOpen(open);}}>
+          <Dialog open={resultModalOpen} onOpenChange={(open) => { setResultModalOpen(open); }}>
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Enrollment Results</DialogTitle>
@@ -865,16 +857,16 @@ const StudentEnrollment = () => {
                 <div className="mb-2">Removed: <strong>{resultData.removed}</strong></div>
                 <div className="mb-2">Failed: <strong>{resultData.failed?.length || 0}</strong></div>
                 {resultData.failed && resultData.failed.length > 0 &&
-                <div className="mt-2 max-h-40 overflow-y-auto border rounded p-2">
+                  <div className="mt-2 max-h-40 overflow-y-auto border rounded p-2">
                     {resultData.failed.map((f: any, idx: number) =>
-                  <div key={f?.usn || f?.student_id || String(f) || idx} className="text-sm">{f.usn || f.student_id || f}</div>
-                  )}
+                      <div key={f?.usn || f?.student_id || String(f) || idx} className="text-sm">{f.usn || f.student_id || f}</div>
+                    )}
                   </div>
                 }
               </div>
               <DialogFooter>
                 <div className="w-full flex justify-end">
-                  <Button onClick={() => {setResultModalOpen(false);}} className="bg-purple-600 hover:bg-purple-700 text-white">Close</Button>
+                  <Button onClick={() => { setResultModalOpen(false); }} className="bg-purple-600 hover:bg-purple-700 text-white">Close</Button>
                 </div>
               </DialogFooter>
             </DialogContent>
@@ -894,9 +886,8 @@ const StudentEnrollment = () => {
                     placeholder="e.g., PH1L001, BCS601"
                     value={newSubjectState.subject_code}
                     onChange={(e) => setNewSubjectState(prev => ({ ...prev, subject_code: e.target.value }))}
-                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${
-                      theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
-                    }`}
+                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
+                      }`}
                   />
                 </div>
                 <div className="space-y-2">
@@ -907,9 +898,8 @@ const StudentEnrollment = () => {
                     placeholder="e.g., Mathematics"
                     value={newSubjectState.name}
                     onChange={(e) => setNewSubjectState(prev => ({ ...prev, name: e.target.value }))}
-                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${
-                      theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
-                    }`}
+                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
+                      }`}
                   />
                 </div>
                 <div className="space-y-2">
@@ -952,9 +942,8 @@ const StudentEnrollment = () => {
                     required
                     value={newSubjectState.credits}
                     onChange={(e) => setNewSubjectState(prev => ({ ...prev, credits: parseInt(e.target.value) || 3 }))}
-                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${
-                      theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
-                    }`}
+                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
+                      }`}
                   />
                 </div>
                 <DialogFooter className="pt-4 flex gap-2 justify-end">
@@ -990,9 +979,9 @@ const StudentEnrollment = () => {
                   <input
                     type="number"
                     min="1"
-                    max="8"
+                    max="20"
                     required
-                    placeholder="Enter semester number (1-8)"
+                    placeholder="Enter semester number "
                     value={newSemesterNumber}
                     onChange={(e) => setNewSemesterNumber(e.target.value)}
                     onWheel={(e) => e.currentTarget.blur()}
@@ -1001,9 +990,8 @@ const StudentEnrollment = () => {
                         e.preventDefault();
                       }
                     }}
-                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
-                      theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
-                    }`}
+                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
+                      }`}
                   />
                 </div>
                 <DialogFooter className="pt-4 flex gap-2 justify-end">
