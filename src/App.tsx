@@ -168,8 +168,8 @@ const ProtectedRoute = ({
 };
 
 const AppContent = () => {
-  const { role: userRole, user: userData, logout, isAuthenticated } = useAuth();
-  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const { role: userRole, user: userData } = useAuth();
+  const [showExitDialog, setShowExitDialog] = useState(false);
 
   useEffect(() => {
     initErrorLogger();
@@ -217,17 +217,13 @@ const AppContent = () => {
         }
       });
 
-      // Handle hardware back button for logout confirmation
+      // Handle hardware back button for app exit confirmation
       backListenerPromise = CapApp.addListener('backButton', ({ canGoBack }) => {
         const currentPath = window.location.pathname;
         const isDashboard = currentPath === "/" || currentPath.includes("dashboard") || currentPath.includes("admin");
         
         if (!canGoBack || isDashboard) {
-          if (isAuthenticated) {
-            setShowLogoutDialog(true);
-          } else {
-            CapApp.exitApp();
-          }
+          setShowExitDialog(true);
         } else {
           window.history.back();
         }
@@ -239,7 +235,7 @@ const AppContent = () => {
         backListenerPromise.then((listener) => listener.remove());
       }
     };
-  }, [isAuthenticated]);
+  }, []);
 
   return (
     <>
@@ -705,8 +701,8 @@ const AppContent = () => {
       <Toaster />
       <Sonner />
       <NetworkStatus />
-      {/* Logout Confirmation Bottom Sheet Modal */}
-      {showLogoutDialog && (
+      {/* Exit App Bottom Sheet Modal */}
+      {showExitDialog && (
         <div className="fixed inset-0 z-[99999] flex items-end justify-center bg-slate-950/40 backdrop-blur-[2px] animate-in fade-in duration-200">
           <div className="w-full max-w-md bg-white rounded-t-[32px] p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-300 flex flex-col text-slate-800">
             {/* Grab Handle */}
@@ -714,27 +710,27 @@ const AppContent = () => {
             
             {/* Title */}
             <h3 className="text-2xl font-extrabold text-[#5c3be6] mb-2 px-2">
-              Logout?
+              Exit?
             </h3>
             
             {/* Message */}
             <p className="text-slate-500 font-medium mb-8 px-2">
-              Confirm to Logout
+              Confirm to Exit App
             </p>
             
             {/* Actions */}
             <div className="flex gap-4 px-2">
               <button
                 onClick={() => {
-                  setShowLogoutDialog(false);
-                  logout();
+                  setShowExitDialog(false);
+                  CapApp.exitApp();
                 }}
                 className="flex-1 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-semibold py-3.5 rounded-xl transition-all shadow-sm active:scale-[0.98]"
               >
                 Yes
               </button>
               <button
-                onClick={() => setShowLogoutDialog(false)}
+                onClick={() => setShowExitDialog(false)}
                 className="flex-1 bg-[#bdf08e] hover:bg-[#aee67a] text-slate-900 font-semibold py-3.5 rounded-xl transition-all shadow-sm active:scale-[0.98]"
               >
                 No
