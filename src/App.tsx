@@ -168,10 +168,13 @@ const ProtectedRoute = ({
 };
 
 const AppContent = () => {
-  const { role: userRole, user: userData } = useAuth();
+  const { role: userRole, user: userData, logout, isAuthenticated } = useAuth();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   useEffect(() => {
     initErrorLogger();
+    let backListenerPromise: Promise<any> | null = null;
+
     if (Capacitor.isNativePlatform()) {
       // Notify Capgo update is ready and hide splash screen
       CapacitorUpdater.notifyAppReady()
@@ -213,8 +216,30 @@ const AppContent = () => {
           }
         }
       });
+
+      // Handle hardware back button for logout confirmation
+      backListenerPromise = CapApp.addListener('backButton', ({ canGoBack }) => {
+        const currentPath = window.location.pathname;
+        const isDashboard = currentPath === "/" || currentPath.includes("dashboard") || currentPath.includes("admin");
+        
+        if (!canGoBack || isDashboard) {
+          if (isAuthenticated) {
+            setShowLogoutDialog(true);
+          } else {
+            CapApp.exitApp();
+          }
+        } else {
+          window.history.back();
+        }
+      });
     }
-  }, []);
+
+    return () => {
+      if (backListenerPromise) {
+        backListenerPromise.then((listener) => listener.remove());
+      }
+    };
+  }, [isAuthenticated]);
 
   return (
     <>
@@ -680,8 +705,44 @@ const AppContent = () => {
       <Toaster />
       <Sonner />
       <NetworkStatus />
-      {/* ✅ PWA Installation Prompt */}
-      <PwaInstaller />
+      {/* Logout Confirmation Bottom Sheet Modal */}
+      {showLogoutDialog && (
+        <div className="fixed inset-0 z-[99999] flex items-end justify-center bg-slate-950/40 backdrop-blur-[2px] animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white rounded-t-[32px] p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-300 flex flex-col text-slate-800">
+            {/* Grab Handle */}
+            <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto mb-6" />
+            
+            {/* Title */}
+            <h3 className="text-2xl font-extrabold text-[#5c3be6] mb-2 px-2">
+              Logout?
+            </h3>
+            
+            {/* Message */}
+            <p className="text-slate-500 font-medium mb-8 px-2">
+              Confirm to Logout
+            </p>
+            
+            {/* Actions */}
+            <div className="flex gap-4 px-2">
+              <button
+                onClick={() => {
+                  setShowLogoutDialog(false);
+                  logout();
+                }}
+                className="flex-1 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-semibold py-3.5 rounded-xl transition-all shadow-sm active:scale-[0.98]"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => setShowLogoutDialog(false)}
+                className="flex-1 bg-[#bdf08e] hover:bg-[#aee67a] text-slate-900 font-semibold py-3.5 rounded-xl transition-all shadow-sm active:scale-[0.98]"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
