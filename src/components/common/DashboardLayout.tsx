@@ -50,7 +50,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const { theme } = useTheme();
-  const { clearAuth } = useAuth();
+  const { logout } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 1024);
   const [error, setError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -243,21 +243,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   };
 
   const handleLogout = async () => {
-    try {
-      await logoutUser();
-    } catch (err) {
-
-    } finally {
-      queryClient.clear(); // Clear React Query cache so previous user's data is wiped
-      clearAuth();
-      // Use client-side navigation to avoid reloading from backend server
-      try {
-        navigate("/", { replace: true });
-      } catch (e) {
-        // Fallback to full reload if router not available
-        window.location.href = "/";
-      }
-    }
+    queryClient.clear(); // Clear React Query cache so previous user's data is wiped
+    await logout();
   };
 
   // Format page title

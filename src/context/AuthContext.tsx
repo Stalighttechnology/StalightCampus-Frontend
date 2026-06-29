@@ -7,9 +7,10 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
-import { refreshToken, fetchWithTokenRefresh, setInMemoryAccessToken } from "../utils/authService";
+import { refreshToken, fetchWithTokenRefresh, setInMemoryAccessToken, logoutUser } from "../utils/authService";
 import { API_ENDPOINT } from "../utils/config";
 import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 
 interface AuthContextProps {
   /** JWT access token stored in memory only – never in localStorage */
@@ -19,6 +20,7 @@ interface AuthContextProps {
   /** true while the initial silent-refresh is running (avoids flash of login) */
   isInitializing: boolean;
   isAuthenticated: boolean;
+  isLoggingOut: boolean;
   /**
    * Called by loginUser / verifyOTP flows to hydrate the context after the
    * backend returns a fresh access token + role + profile.
@@ -30,6 +32,8 @@ interface AuthContextProps {
   ) => void;
   /** Clears all auth state and sessionStorage (does NOT hit the backend). */
   clearAuth: () => void;
+  /** Logs out hitting the backend and clearing auth state. */
+  logout: () => Promise<void>;
   /** Attempts a silent refresh via the HttpOnly cookie. Returns new token or null. */
   refreshAccessToken: () => Promise<string | null>;
 }
@@ -44,6 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<Record<string, any> | null>(null);
   // Start as true so ProtectedRoute shows a spinner instead of the login page
   const [isInitializing, setIsInitializing] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const isAuthenticated = !!accessToken && !!role;
 
@@ -186,13 +191,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // ─── clearAuth ──────────────────────────────────────────────────────────────
   /** Wipes all auth state without hitting the backend. */
   const clearAuth = useCallback(() => {
-    setAccessToken(null);
-    setRole(null);
-    setUser(null);
-    sessionStorage.clear();
-    setInMemoryAccessToken(null);
-    localStorage.removeItem("has_session");
-  }, []);
+    setIsLoggingOut(true);
+    setTimeout(() => {
+      setAccessToken(null);
+      setRole(null);
+      setUser(null);
+      sessionStorage.clear();
+      setInMemoryAccessToken(null);
+      localStorage.removeItem("has_session");
+      setIsLoggingOut(false);
+      navigate("/", { replace: true });
+    }, 1500);
+  }, [navigate]);
+
+  // ─── logout ─────────────────────────────────────────────────────────────────
+  /** Logs out hitting the backend and clearing auth state. */
+  const logout = useCallback(async () => {
+    setIsLoggingOut(true);
+    try {
+      await logoutUser();
+    } catch (e) {
+      // ignore network errors
+    } finally {
+      setTimeout(() => {
+        setAccessToken(null);
+        setRole(null);
+        setUser(null);
+        sessionStorage.clear();
+        setInMemoryAccessToken(null);
+        localStorage.removeItem("has_session");
+        setIsLoggingOut(false);
+        navigate("/", { replace: true });
+      }, 1500);
+    }
+  }, [navigate]);
 
   // ─── refreshAccessToken ─────────────────────────────────────────────────────
   const refreshAccessToken = useCallback(async (): Promise<string | null> => {
@@ -218,12 +250,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         isAuthenticated,
         isInitializing,
+        isLoggingOut,
         setTokens,
         clearAuth,
+        logout,
         refreshAccessToken,
       }}
     >
       {children}
+      {isLoggingOut && (
+        <div className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-slate-950/60 backdrop-blur-md transition-all duration-300 animate-in fade-in">
+          <div className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl animate-in fade-in zoom-in-95 duration-200 w-[90%] max-w-sm text-center">
+            <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-red-50 dark:bg-red-500/5 text-red-600 dark:text-red-400 mb-2">
+              <div className="absolute inset-0 rounded-full border-4 border-red-500/20 border-t-red-600 dark:border-t-red-400 animate-spin"></div>
+              <LogOut className="w-6 h-6 animate-pulse" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50">
+              Logging out...
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Clearing secure session and redirecting you safely.
+            </p>
+          </div>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 };
