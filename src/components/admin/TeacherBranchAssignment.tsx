@@ -10,7 +10,7 @@ import {
 "../ui/select";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { cn } from "../../lib/utils";
-import { Building, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Building, Search, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import {
@@ -435,21 +435,12 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
               ) : (
                 <div className="grid grid-cols-1 gap-3 sm:gap-4">
                   {teachers.map((teacher) =>
-                  <Card
-                    key={teacher.id}
-                    className="teacher-card p-3 sm:p-4 cursor-pointer hover:border-primary/50 transition-colors"
-                    onClick={() => {
-                      setSelectedTeacher(teacher);
-                      if (teacher.primary_branch) {
-                        setSelectedBranch(teacher.primary_branch.id.toString());
-                      } else {
-                        setSelectedBranch("");
-                      }
-                      setShowBranchDialog(true);
-                    }}>
-                    
-                      <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-2">
-                        <div className="w-full">
+                    <Card
+                      key={teacher.id}
+                      className="teacher-card p-3 sm:p-4 border border-border transition-colors">
+                      
+                      <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 w-full">
+                        <div className="flex-1">
                           <h3 className="teacher-name text-sm sm:text-lg font-semibold">
                             {teacher.first_name} {teacher.last_name}
                           </h3>
@@ -458,16 +449,38 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                             Branch: {teacher.primary_branch && teacher.primary_branch.name ? teacher.primary_branch.name : "Not Assigned"}
                           </p>
                         </div>
-                        <div className="badge-wrapper">
-                          {teacher.primary_branch && teacher.primary_branch.name ?
-                        <Badge className={theme === 'dark' ? 'bg-purple-700 text-white border-transparent text-[10px] sm:text-xs' : 'bg-purple-100 text-purple-800 border-transparent text-[10px] sm:text-xs'}>
+                        <div className="badge-wrapper flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                          {teacher.primary_branch && teacher.primary_branch.name ? (
+                            <Badge className={theme === 'dark' ? 'bg-purple-700 text-white border-transparent text-[10px] sm:text-xs' : 'bg-purple-100 text-purple-800 border-transparent text-[10px] sm:text-xs'}>
                               {teacher.primary_branch.name}
-                            </Badge> :
-
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-purple-50 text-purple-700'}`}>
+                            </Badge>
+                          ) : (
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-purple-50 text-purple-700'}`}>
                               Not Assigned
                             </span>
-                        }
+                          )}
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => {
+                              setSelectedTeacher(teacher);
+                              if (teacher.primary_branch) {
+                                setSelectedBranch(teacher.primary_branch.id.toString());
+                              } else {
+                                setSelectedBranch("");
+                              }
+                              setShowBranchDialog(true);
+                            }}
+                            className={cn(
+                              "h-8 w-8 rounded-full border border-border/50 transition-all flex items-center justify-center shrink-0",
+                              theme === 'dark' 
+                                ? 'hover:border-primary/30 hover:bg-primary/10' 
+                                : 'hover:border-blue-200 hover:bg-blue-50'
+                            )}
+                            title="Edit branch assignment"
+                          >
+                            <Pencil className={theme === 'dark' ? 'h-3.5 w-3.5 text-primary' : 'h-3.5 w-3.5 text-blue-600'} />
+                          </Button>
                         </div>
                       </div>
                     </Card>

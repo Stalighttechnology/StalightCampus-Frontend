@@ -769,12 +769,11 @@ const TakeAttendance = () => {
                                 </button>
                                 <div className="ml-2 text-xs sm:text-sm hidden sm:inline-block">
                                   {attendance[s.id] === true ?
-                               <span className={`px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-800'}`}>Present</span> :
-                               attendance[s.id] === false ?
-                               <span className={`px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-800'}`}>Absent</span> :
-
-                               <span className={`px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-500'}`}>Not marked</span>
-                               }
+                                    <span className={`inline-block w-24 text-center px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-800'}`}>Present</span> :
+                                    attendance[s.id] === false ?
+                                    <span className={`inline-block w-24 text-center px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-800'}`}>Absent</span> :
+                                    <span className={`inline-block w-24 text-center px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-500'}`}>Not marked</span>
+                                  }
                                 </div>
                               </div>
                             </td>
