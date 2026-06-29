@@ -89,6 +89,7 @@ const OutsideStudentManagement: React.FC = () => {
     outside_course_name: '',
     outside_year: ''
   });
+  const [isRegistering, setIsRegistering] = useState(false);
 
   // Filter States
   const [courseFilter, setCourseFilter] = useState('');
@@ -184,8 +185,45 @@ const OutsideStudentManagement: React.FC = () => {
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Client-side validation checks
+    if (!addFormData.name.trim()) {
+      showErrorAlert("Validation Error", "Full Name is required.");
+      return;
+    }
+    if (!addFormData.usn.trim()) {
+      showErrorAlert("Validation Error", "USN / Custom ID is required.");
+      return;
+    }
+    if (!addFormData.email.trim()) {
+      showErrorAlert("Validation Error", "Email Address is required.");
+      return;
+    }
+    if (!addFormData.phone.trim()) {
+      showErrorAlert("Validation Error", "Phone Number is required.");
+      return;
+    }
+    if (!addFormData.outside_course_name.trim()) {
+      showErrorAlert("Validation Error", "Course Name is required.");
+      return;
+    }
+    if (!addFormData.outside_year.trim()) {
+      showErrorAlert("Validation Error", "Year is required.");
+      return;
+    }
+
+    setIsRegistering(true);
     try {
-      const response = await manageOutsideStudents(undefined, addFormData, 'POST');
+      const payload = {
+        ...addFormData,
+        name: addFormData.name.trim(),
+        usn: addFormData.usn.trim(),
+        email: addFormData.email.trim(),
+        phone: addFormData.phone.trim(),
+        outside_course_name: addFormData.outside_course_name.trim(),
+        outside_year: addFormData.outside_year.trim()
+      };
+      const response = await manageOutsideStudents(undefined, payload, 'POST');
       if (response.success) {
         showSuccessAlert("Registered!", `Outside Student registered successfully. Enrollment No: ${response.data?.enrollment_no || response.results?.[0]?.enrollment_no || ""}. Default password is 'stalight@123'.`);
         setIsAddDialogOpen(false);
@@ -206,6 +244,8 @@ const OutsideStudentManagement: React.FC = () => {
       }
     } catch (err: any) {
       showErrorAlert("Error", err.message || "An unexpected error occurred");
+    } finally {
+      setIsRegistering(false);
     }
   };
 
@@ -411,18 +451,20 @@ const OutsideStudentManagement: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="outside_course_name">Course Name</Label>
+                      <Label htmlFor="outside_course_name">Course Name *</Label>
                       <Input
                         id="outside_course_name"
+                        required
                         placeholder="e.g. MBA, MCA, Diploma"
                         value={addFormData.outside_course_name}
                         onChange={(e) => setAddFormData({ ...addFormData, outside_course_name: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="outside_year">Year</Label>
+                      <Label htmlFor="outside_year">Year *</Label>
                       <Input
                         id="outside_year"
+                        required
                         placeholder="e.g. 1st Year, 2nd Year"
                         value={addFormData.outside_year}
                         onChange={(e) => setAddFormData({ ...addFormData, outside_year: e.target.value })}
@@ -435,10 +477,19 @@ const OutsideStudentManagement: React.FC = () => {
                   </div>
 
                   <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                    <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={isRegistering}>
                       Cancel
                     </Button>
-                    <Button type="submit">Register Student</Button>
+                    <Button type="submit" disabled={isRegistering} className="min-w-[140px]">
+                      {isRegistering ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Registering...
+                        </>
+                      ) : (
+                        "Register Student"
+                      )}
+                    </Button>
                   </DialogFooter>
                 </form>
               </DialogContent>
