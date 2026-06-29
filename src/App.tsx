@@ -221,9 +221,10 @@ const AppContent = () => {
       backListenerPromise = CapApp.addListener('backButton', () => {
         const currentPath = window.location.pathname;
         const isDashboard = currentPath === "/" || 
-                            currentPath === "/dashboard" || 
-                            currentPath === "/admin" || 
-                            /^\/[^\/]+\/dashboard$/.test(currentPath);
+                            currentPath.endsWith("/dashboard") || 
+                            currentPath.endsWith("/dashboard/") || 
+                            currentPath.endsWith("/admin") || 
+                            currentPath.endsWith("/admin/");
         
         if (isDashboard) {
           setShowExitDialog(true);
