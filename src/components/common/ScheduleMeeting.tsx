@@ -9,7 +9,7 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../ui/dialog';
 import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../utils/sweetalert';
-import { Video, Calendar, Clock, Users, Trash2, Plus, ExternalLink, CalendarDays } from 'lucide-react';
+import { Video, Calendar, Clock, Users, Trash2, Plus, ExternalLink, CalendarDays, Copy } from 'lucide-react';
 import { Checkbox } from '../ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { SkeletonCard } from '../ui/skeleton';
@@ -112,6 +112,7 @@ export default function ScheduleMeeting() {
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/meetings/`);
       if (res.ok) {
         const data = await res.json();
+        console.log("Fetched meetings data:", data);
         setMeetings(data);
       } else {
         showErrorAlert("Error", "Failed to load meetings.");
@@ -478,64 +479,93 @@ export default function ScheduleMeeting() {
                   const isPast = end < now;
                 
                   return (
-                    <Card key={meeting.id} className={`flex flex-col h-full overflow-hidden transition-all duration-200 hover:shadow-md ${isPast ? 'opacity-70' : ''}`}>
-                      <div className={`h-2 ${isPast ? 'bg-gray-300' : 'bg-blue-500'}`} />
-                      <CardContent className="p-5 flex flex-col flex-1">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-semibold text-lg line-clamp-1 text-foreground" title={meeting.title}>
-                            {meeting.title}
-                          </h3>
-                          <div className="flex gap-2 ml-2 shrink-0">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(meeting.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                    <div
+                      key={meeting.id}
+                      className={`rounded-lg border p-4 flex flex-col gap-2 transition-all hover:shadow-md ${isPast ? 'opacity-70' : ''} ${theme === "dark"
+                        ? "bg-card border-border text-foreground"
+                        : "bg-white border-gray-200 text-gray-900"
+                        }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950/50">
+                            <Video className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm truncate">{meeting.title}</p>
+                            {meeting.description && (
+                              <p className="text-xs text-muted-foreground truncate">{meeting.description}</p>
+                            )}
                           </div>
                         </div>
-                        
-                        {meeting.description && (
-                          <p className={`text-sm mb-4 line-clamp-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            {meeting.description}
-                          </p>
-                        )}
-
-                        <div className="space-y-2 mt-auto">
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4 mr-2 shrink-0" />
-                            {dateStr}
-                          </div>
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Clock className="h-4 w-4 mr-2 shrink-0" />
-                            {timeStr}
-                          </div>
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Users className="h-4 w-4 mr-2 shrink-0" />
-                            <span className="line-clamp-1" title={meeting.target_roles.join(', ')}>
-                              {meeting.target_roles.map((r: string) => r.replace('_', ' ')).join(', ')}
-                            </span>
-                          </div>
-                          <div className="flex items-center text-sm text-muted-foreground font-medium pt-1 border-t mt-3">
-                            Organizer: {meeting.organizer_name}
-                          </div>
+                        <div className="flex items-center gap-1.5 sm:shrink-0 sm:self-auto self-start pl-10 sm:pl-0">
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isPast ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'}`}>
+                            {isPast ? 'Completed' : 'Upcoming'}
+                          </span>
+                          {(() => {
+                            const isOrganizer = userRole && meeting.organizer_role && String(userRole).toLowerCase() === String(meeting.organizer_role).toLowerCase();
+                            
+                            if (!isOrganizer) return null;
+                            return (
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6 ml-2 rounded-md border-red-200/20 hover:bg-red-50 text-red-500"
+                                title="Delete Meeting"
+                                onClick={() => handleDelete(meeting.id)}
+                              >
+                                <Trash2 className="h-3.5 h-3.5" />
+                              </Button>
+                            );
+                          })()}
                         </div>
+                      </div>
 
-                        <div className="mt-5 pt-2 flex justify-end">
-                          {meeting.google_meet_link ? (
-                            <Button 
-                              onClick={() => window.open(meeting.google_meet_link, '_blank')}
-                              className={`w-full font-medium ${isPast ? 'bg-gray-400 hover:bg-gray-500' : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white'}`}
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground border-b pb-2.5">
+                        <span className="flex items-center gap-1">
+                          <CalendarDays className="w-3.5 h-3.5" /> {dateStr}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" /> {timeStr}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3.5 h-3.5" />
+                          <span className="capitalize">{meeting.target_roles.map((r: string) => r.replace('_', ' ')).join(', ')}</span>
+                        </span>
+                        <span className="flex items-center gap-1 font-medium">
+                          Organizer: {meeting.organizer_name}
+                        </span>
+                      </div>
+
+                      {meeting.google_meet_link && (
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                          <a
+                            href={meeting.google_meet_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-2 hover:text-primary/80 transition-colors font-mono truncate max-w-full sm:max-w-[200px] md:max-w-xs break-all"
+                          >
+                            {meeting.google_meet_link}
+                            <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                          </a>
+                          <div className="flex items-center gap-1.5 shrink-0 sm:self-auto self-end">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="w-8 h-8 rounded-md border-gray-200 dark:border-border text-muted-foreground hover:text-foreground"
+                              title="Copy Link"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(meeting.google_meet_link);
+                                showSuccessAlert("Copied", "Google Meet link copied to clipboard.");
+                              }}
                             >
-                              <Video className="w-4 h-4 mr-2" />
-                              {isPast ? 'Meeting Ended' : 'Join Google Meet'}
-                              <ExternalLink className="w-3 h-3 ml-2 opacity-70" />
+                              <Copy className="w-3.5 h-3.5" />
                             </Button>
-                          ) : (
-                            <div className="w-full text-center text-sm text-red-500 py-2 bg-red-50 rounded-md">
-                              No Meeting Link Found
-                            </div>
-                          )}
+                          </div>
                         </div>
-                      </CardContent>
-                    </Card>
+                      )}
+                    </div>
                   );
                 });
               })()}
