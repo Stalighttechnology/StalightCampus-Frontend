@@ -1,3 +1,4 @@
+import UpcomingMeetingsWidget from "../common/UpcomingMeetingsWidget";
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from "react";
 import {
@@ -260,6 +261,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
 
   return (
     <div ref={ref} className={`space-y-6 w-full max-w-full min-h-0 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+      <UpcomingMeetingsWidget />
       {/* Top Stats Cards (admin style) */}
       <motion.div id="faculty-stats-cards" className={`grid grid-cols-1 ${userTier >= 2 ? 'md:grid-cols-3' : 'md:grid-cols-1'} gap-4 items-stretch`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
         {userTier >= 2 && (

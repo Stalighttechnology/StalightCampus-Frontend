@@ -11,6 +11,7 @@ import Profile from "../common/Profile";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
+import ScheduleMeeting from "../common/ScheduleMeeting";
 
 interface DashboardProps {
   user: any;
@@ -54,6 +55,8 @@ const LibraryAdminDashboard = ({ user }: DashboardProps) => {
         return <HolidayCalendar readOnly showLeaves userRole="library_admin" />;
       case "profile":
         return <Profile role="library_admin" user={user} />;
+      case "schedule-meeting":
+        return <ScheduleMeeting />;
       default:
         return <LibraryOverview />;
     }

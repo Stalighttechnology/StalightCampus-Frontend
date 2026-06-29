@@ -1,3 +1,4 @@
+import UpcomingMeetingsWidget from "../common/UpcomingMeetingsWidget";
 import React, { useEffect, useState } from "react";
 import { FileText, BookOpen, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import {
@@ -127,6 +128,7 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   return (
     <div ref={ref} className={`space-y-6 font-sans min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+      <UpcomingMeetingsWidget />
       {/* Stats Cards */}
       <div id="coe-stats-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[

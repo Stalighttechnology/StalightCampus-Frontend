@@ -27,6 +27,7 @@ import InvoiceManagement from "../FeesManager/InvoiceManagement";
 import PaymentMonitoring from "../FeesManager/PaymentMonitoring";
 import Reports from "../FeesManager/Reports";
 import CampusLocationManager from "../dean/CampusLocationManager";
+import ScheduleMeeting from "../common/ScheduleMeeting";
 
 interface OrgAdminDashboardProps {
   user: any;
@@ -108,6 +109,8 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
       case "alumni-directory":
         return <AlumniDirectory />;
 
+      case "schedule-meeting":
+        return <ScheduleMeeting />;
       default:
         return <AdminStats setError={setError} onNavigate={handlePageChange} />;
     }

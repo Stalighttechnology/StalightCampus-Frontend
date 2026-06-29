@@ -28,6 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Skeleton, SkeletonForm } from "../ui/skeleton";
 import LoginActivity from '../common/LoginActivity';
 import HelpLearningCard from "../common/HelpLearningCard";
+import GoogleIntegrationTab from "../common/GoogleIntegrationTab";
 
 interface AdminProfileProps {
   user: any;
@@ -47,7 +48,7 @@ interface ProfileData {
 const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<ProfileData>({
+  const [profile, setProfile] = useState<ProfileData | 'integrations'>({
     first_name: "",
     last_name: "",
     email: "",
@@ -58,10 +59,10 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
   });
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [localError, setLocalError] = useState<string | null>(null);
-  const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
-  const [fetchedUser, setFetchedUser] = useState<any>(null);
-  const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(null);
+  const [localError, setLocalError] = useState<string | null | 'integrations'>(null);
+  const [localErrors, setLocalErrors] = useState<Record<string, string | 'integrations'>>({});
+  const [fetchedUser, setFetchedUser] = useState<any | 'integrations'>(null);
+  const [originalProfile, setOriginalProfile] = useState<ProfileData | null | 'integrations'>(null);
   const { theme } = useTheme();
 
   // Change password states
@@ -71,23 +72,25 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
 
   // Tabs: details (Personal + Contact), other (Address + Bio), subscription (Plan Details)
-  const [activeTab, setActiveTab] = useState<'details' | 'other' | 'subscription' | 'support' | 'activity' | 'help' | 'settings'>('details');
+    const urlParams = new URLSearchParams(window.location.search);
+  const defaultTab = urlParams.get("google_connected") !== null ? "integrations" : "details";
+  const [activeTab, setActiveTab] = useState<'details' | 'other' | 'subscription' | 'support' | 'activity' | 'help' | 'settings' | 'integrations'>(defaultTab as any);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   useEffect(() => {
     checkNotificationPermission(setNotificationsEnabled);
   }, []);
-  const [subscriptionData, setSubscriptionData] = useState<any>(null);
+  const [subscriptionData, setSubscriptionData] = useState<any | 'integrations'>(null);
   const [subLoading, setSubLoading] = useState(false);
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
 
-  const [tickets, setTickets] = useState<any[]>([]);
+  const [tickets, setTickets] = useState<any[] | 'integrations'>([]);
   const [loadingTickets, setLoadingTickets] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
-  const [viewTicket, setViewTicket] = useState<any>(null);
+  const [viewTicket, setViewTicket] = useState<any | 'integrations'>(null);
   const [ticketForm, setTicketForm] = useState({ subject: '', description: '', priority: 'Medium' });
-  const [downloadingId, setDownloadingId] = useState<number | null>(null);
-  const [deletingTicketId, setDeletingTicketId] = useState<number | null>(null);
+  const [downloadingId, setDownloadingId] = useState<number | null | 'integrations'>(null);
+  const [deletingTicketId, setDeletingTicketId] = useState<number | null | 'integrations'>(null);
   const [submittingTicket, setSubmittingTicket] = useState(false);
   const { toast } = useToast();
 
@@ -840,6 +843,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
     }
 
     
+    if (activeTab === 'integrations') return <GoogleIntegrationTab />;
+
     if (activeTab === 'settings') {
       return (
         <div className="animate-in fade-in duration-300">
@@ -1081,6 +1086,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                 <button onClick={() => setActiveTab('support')} className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'support' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Support Tickets</button>
                 <button onClick={() => setActiveTab('activity')} className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
                 <button onClick={() => setActiveTab('settings')} className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'settings' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Settings</button>
+                <button onClick={() => setActiveTab('integrations')} className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'integrations' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Integrations</button>
                 <button onClick={() => setActiveTab('help')} className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
               </div>
 

@@ -20,6 +20,7 @@ import LoginActivity from '../common/LoginActivity';
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Progress } from "../ui/progress";
+import GoogleIntegrationTab from "../common/GoogleIntegrationTab";
 
 interface User {
   user_id?: string;
@@ -51,7 +52,7 @@ interface HodProfileProps {
 function HodProfile({ user: propUser, setError }: HodProfileProps) {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [profile, setProfile] = useState<Profile>({
+  const [profile, setProfile] = useState<Profile | 'integrations'>({
     first_name: "",
     last_name: "",
     email: "",
@@ -62,9 +63,9 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
   });
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [error, setLocalError] = useState<string | null>(null);
+  const [error, setLocalError] = useState<string | null | 'integrations'>(null);
   const { theme } = useTheme();
-  const [fetchedUser, setFetchedUser] = useState<User | null>(null);
+  const [fetchedUser, setFetchedUser] = useState<User | null | 'integrations'>(null);
   // ref used to skip one fetch immediately after a successful PATCH
   const skipFetch = useRef(false);
   // Change password states
@@ -72,7 +73,9 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
-  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'about' | 'activity' | 'help' | 'settings'>('personal');
+    const urlParams = new URLSearchParams(window.location.search);
+  const defaultTab = urlParams.get("google_connected") !== null ? "integrations" : "details";
+  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'about' | 'activity' | 'help' | 'settings' | 'integrations'>(defaultTab as any);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   useEffect(() => {
@@ -656,6 +659,7 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
                 <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
                 <button onClick={() => setActiveTab('contact')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'contact' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Contact</button>
                 <button onClick={() => setActiveTab('settings')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'settings' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Settings</button>
+                <button onClick={() => setActiveTab('integrations')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'integrations' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Integrations</button>
                 <button onClick={() => setActiveTab('help')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
                 <button onClick={() => setActiveTab('activity')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
               </div>

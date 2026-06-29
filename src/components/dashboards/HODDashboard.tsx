@@ -43,6 +43,7 @@ import { Lock } from "lucide-react";
 import { Button } from "../ui/button";
 import { useAuth } from "../../context/AuthContext";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
+import ScheduleMeeting from "../common/ScheduleMeeting";
 
 interface HODUser {
   username: string;
@@ -305,6 +306,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         return <HODSemesterMonitor />;
             case "holiday-calendar":
         return <HolidayCalendar readOnly showLeaves userRole="hod" />;
+      case "schedule-meeting":
+        return <ScheduleMeeting />;
       default:
         return <HODStats setError={setError} setPage={handlePageChange} />;
     }

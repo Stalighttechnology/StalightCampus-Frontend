@@ -147,8 +147,20 @@ const CampusPageBuilder: React.FC = () => {
     );
   }
 
+  const getThemeStyle = () => {
+    const preset = theme.preset || 'default';
+    switch (preset) {
+      case 'ocean': return { '--primary': '221 83% 53%' } as React.CSSProperties;
+      case 'emerald': return { '--primary': '142 71% 45%' } as React.CSSProperties;
+      case 'rose': return { '--primary': '346 87% 43%' } as React.CSSProperties;
+      case 'amber': return { '--primary': '38 92% 50%' } as React.CSSProperties;
+      case 'slate': return { '--primary': '215 16% 47%' } as React.CSSProperties;
+      default: return {} as React.CSSProperties;
+    }
+  };
+
   return (
-    <div id="campus-builder-container" className="flex flex-col min-h-[calc(100vh-160px)] border rounded-xl bg-background overflow-hidden shadow-sm border-border">
+    <div id="campus-builder-container" className="flex flex-col min-h-[calc(100vh-160px)] border rounded-xl bg-background overflow-hidden shadow-sm border-border" style={getThemeStyle()}>
       {/* Topbar / Navigation */}
       <header id="campus-builder-header" className="flex flex-col lg:flex-row items-center justify-between p-4 lg:px-6 lg:h-16 border-b border-border bg-card gap-4 shrink-0 shadow-sm z-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-8 w-full lg:w-auto">

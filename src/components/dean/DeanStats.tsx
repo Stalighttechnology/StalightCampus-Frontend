@@ -1,3 +1,4 @@
+import UpcomingMeetingsWidget from "../common/UpcomingMeetingsWidget";
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useState } from "react";
 import { API_ENDPOINT } from "@/utils/config";
@@ -244,6 +245,7 @@ const DeanStats = () => {
 
   return (
     <div className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+      <UpcomingMeetingsWidget />
       <Card className={theme === 'dark' ? 'bg-card border border-border shadow-md' : 'bg-white border border-gray-200 shadow-md'}>
         <CardContent className="space-y-8 p-2">
           {loading ? (

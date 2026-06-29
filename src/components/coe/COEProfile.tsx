@@ -19,6 +19,7 @@ import LoginActivity from '../common/LoginActivity';
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Progress } from "../ui/progress";
+import GoogleIntegrationTab from "../common/GoogleIntegrationTab";
 
 interface COEProfile {
   user_id: number;
@@ -40,10 +41,12 @@ interface COEProfile {
 
 const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
   const { theme } = useTheme();
-  const [profile, setProfile] = useState<COEProfile | null>(null);
+  const [profile, setProfile] = useState<COEProfile | null | 'integrations'>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"personal" | "contact" | "activity" | "help" | "settings">("personal");
+    const urlParams = new URLSearchParams(window.location.search);
+  const defaultTab = urlParams.get("google_connected") !== null ? "integrations" : "details";
+  const [activeTab, setActiveTab] = useState<"personal" | "contact" | "activity" | "help" | "settings" | 'integrations'>(defaultTab as any);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   useEffect(() => {
@@ -492,6 +495,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
               <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[15px] sm:text-md rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
               <button onClick={() => setActiveTab('contact')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[15px] sm:text-md rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'contact' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Contact</button>
                 <button onClick={() => setActiveTab('settings')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[15px] sm:text-md rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'settings' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Settings</button>
+                <button onClick={() => setActiveTab('integrations')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[15px] sm:text-md rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'integrations' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Integrations</button>
                 <button onClick={() => setActiveTab('help')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[15px] sm:text-md rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
               <button onClick={() => setActiveTab('activity')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[15px] sm:text-md rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
             </div>

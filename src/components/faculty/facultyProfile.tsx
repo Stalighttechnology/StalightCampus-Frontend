@@ -25,6 +25,7 @@ import LoginActivity from '../common/LoginActivity';
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Progress } from "../ui/progress";
+import GoogleIntegrationTab from "../common/GoogleIntegrationTab";
 
 const GoogleLogo = ({ className = "w-4 h-4 mr-2 shrink-0" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -57,16 +58,16 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     gender: ""
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null | 'integrations'>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
+  const [localErrors, setLocalErrors] = useState<Record<string, string | 'integrations'>>({});
   const urlParams = new URLSearchParams(window.location.search);
   const defaultTab = urlParams.get('google_connected') !== null ? 'integrations' : 'personal';
-  const [activeTab, setActiveTab] = useState<"personal" | "academic" | "contact" | "help" | "activity" | "settings" | "integrations">(defaultTab as any);
+  const [activeTab, setActiveTab] = useState<"personal" | "academic" | "contact" | "help" | "activity" | "settings" | "integrations" | 'integrations'>(defaultTab as any);
 
-  const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
+  const [googleConnected, setGoogleConnected] = useState<boolean | null | 'integrations'>(null);
   const [googleConnectLoading, setGoogleConnectLoading] = useState(false);
-  const [googleUserInfo, setGoogleUserInfo] = useState<{name: string, email: string, picture: string} | null>(null);
+  const [googleUserInfo, setGoogleUserInfo] = useState<{name: string, email: string, picture: string} | null | 'integrations'>(null);
 
   useEffect(() => {
     if (activeTab === 'integrations' && googleConnected === null) {

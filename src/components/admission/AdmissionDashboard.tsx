@@ -1,3 +1,4 @@
+import UpcomingMeetingsWidget from "../common/UpcomingMeetingsWidget";
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, FileText, CheckCircle, UserCheck, AlertCircle, BarChart2 } from 'lucide-react';
@@ -137,6 +138,7 @@ const AdmissionDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <UpcomingMeetingsWidget />
       {newLeads > 0 && (
         <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg flex items-start gap-4">
           <AlertCircle className="w-6 h-6 text-primary flex-shrink-0 mt-0.5" />

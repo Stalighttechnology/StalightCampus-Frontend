@@ -40,6 +40,7 @@ import {
 import { logoutUser } from "../../utils/authService";
 import { useRef, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
+import ScheduleMeeting from "../common/ScheduleMeeting";
 
 
 interface AdminDashboardProps {
@@ -230,6 +231,8 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
             <AlumniDirectory />
           </div>);
 
+      case "schedule-meeting":
+        return <ScheduleMeeting />;
       default:
         return <Navigate to="/not-found" replace />;
     }

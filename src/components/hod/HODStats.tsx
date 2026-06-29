@@ -1,3 +1,4 @@
+import UpcomingMeetingsWidget from "../common/UpcomingMeetingsWidget";
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
 import {
@@ -329,6 +330,7 @@ const handleApprove = async (index: number) => {
 
   return (
     <div className={` space-y-6 font-sans min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+      <UpcomingMeetingsWidget />
       {/* Loading and Errors */}
       {isLoading && (
         <div className="space-y-6">

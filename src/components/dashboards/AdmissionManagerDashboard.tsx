@@ -17,6 +17,7 @@ import Profile from "../common/Profile";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
+import ScheduleMeeting from "../common/ScheduleMeeting";
 
 interface DashboardProps {
   user: any;
@@ -72,6 +73,8 @@ const AdmissionManagerDashboard = ({ user }: DashboardProps) => {
         return <Profile role="admission_manager" user={user} />;
       case "my-attendance":
         return <FacultyAttendance />;
+      case "schedule-meeting":
+        return <ScheduleMeeting />;
       default:
         return <AdmissionDashboard />;
     }

@@ -14,6 +14,7 @@ import { HMSProvider } from "../../context/HMSContext";
 import { AcademicProvider } from "../../context/AcademicContext";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
+import ScheduleMeeting from "../common/ScheduleMeeting";
 
 interface WardenDashboardProps {
   user: any;
@@ -61,6 +62,8 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
         return <WardenVisitorLogs />;
       case "announcement-management":
         return <AnnouncementManagement />;
+      case "schedule-meeting":
+        return <ScheduleMeeting />;
       default:
         return <WardenDashboardOverview />;
     }

@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Building2 } from "lucide-react";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
+import ScheduleMeeting from "../common/ScheduleMeeting";
 
 interface HMSDashboardProps {
   user: any;
@@ -111,6 +112,8 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
         return <HolidayCalendar readOnly showLeaves userRole="hms_admin" />;
       case "profile":
         return <HMSProfile user={user} />;
+      case "schedule-meeting":
+        return <ScheduleMeeting />;
       default:
         return <HMSOverview />;
     }

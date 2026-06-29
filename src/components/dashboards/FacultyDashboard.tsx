@@ -32,6 +32,7 @@ import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import { useAuth } from "../../context/AuthContext";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
+import ScheduleMeeting from "../common/ScheduleMeeting";
 
 interface FacultyDashboardProps {
   user: {
@@ -214,6 +215,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
         return <HolidayCalendar readOnly showLeaves userRole="teacher" />;
       case "reimbursements":
         return <EmployeeReimbursements />;
+      case "schedule-meeting":
+        return <ScheduleMeeting />;
       default:
         return <FacultyStats setActivePage={handlePageChange} />;
     }

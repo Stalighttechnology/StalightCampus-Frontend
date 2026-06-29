@@ -17,6 +17,7 @@ import DriverLeavesManagement from "../transport/admin/LeaveManagement";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
 import { TutorialController } from "../../onboarding/components/TutorialController";
+import ScheduleMeeting from "../common/ScheduleMeeting";
 
 interface DashboardProps {
   user: any;
@@ -70,6 +71,8 @@ const TransportAdminDashboard = ({ user }: DashboardProps) => {
         return <HolidayCalendar readOnly showLeaves userRole="transport_admin" />;
       case "profile":
         return <Profile role="transport_admin" user={user} />;
+      case "schedule-meeting":
+        return <ScheduleMeeting />;
       default:
         return <TransportOverview />;
     }

@@ -23,6 +23,7 @@ import BillingManagement from "../org_admin/BillingManagement";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 import AlumniDirectory from "../common/AlumniDirectory";
+import ScheduleMeeting from "../common/ScheduleMeeting";
 
 interface DeanUser {
   username: string;
@@ -120,6 +121,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <HolidayCalendar readOnly showLeaves userRole="dean" />;
       case "alumni-directory":
         return <AlumniDirectory />;
+      case "schedule-meeting":
+        return <ScheduleMeeting />;
       default:
         return <div>Welcome, Dean.</div>;
     }

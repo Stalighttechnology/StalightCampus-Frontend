@@ -24,6 +24,7 @@ import StudentInfoScanner from "../hod/StudentInfoScanner";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
+import ScheduleMeeting from "../common/ScheduleMeeting";
 
 interface COEDashboardProps {
   user: {
@@ -165,6 +166,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
         return <AnnouncementManagement />;
             case "holiday-calendar":
         return <HolidayCalendar readOnly showLeaves userRole="coe" />;
+      case "schedule-meeting":
+        return <ScheduleMeeting />;
       default:
         return <COEDashboardStats />;
     }
