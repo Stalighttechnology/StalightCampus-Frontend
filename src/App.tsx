@@ -185,6 +185,7 @@ const AppContent = () => {
     // Handle browser/webview popstate (history back) navigation
     const handlePopState = (event: PopStateEvent) => {
       const fromPath = currentPathRef.current;
+      alert('[POPSTATE] Triggered. Current ref path: ' + fromPath + ' | window.location: ' + window.location.pathname);
       const isDashboard = fromPath === "/" || 
                           fromPath.endsWith("/dashboard") || 
                           fromPath.endsWith("/dashboard/") || 
@@ -245,6 +246,7 @@ const AppContent = () => {
       // Handle hardware back button for app exit confirmation
       backListenerPromise = CapApp.addListener('backButton', () => {
         const currentPath = currentPathRef.current;
+        alert('[BACK_BUTTON] Triggered. Current ref path: ' + currentPath + ' | window.location: ' + window.location.pathname);
         const isDashboard = currentPath === "/" || 
                             currentPath.endsWith("/dashboard") || 
                             currentPath.endsWith("/dashboard/") || 
