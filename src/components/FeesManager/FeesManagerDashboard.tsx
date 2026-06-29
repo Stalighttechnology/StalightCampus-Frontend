@@ -159,12 +159,18 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
   const renderDashboard = () => (
     <div className="space-y-8 pb-10">
       {/* Dashboard Cards - Stats Grid */}
-      <div id="feesmanager-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div id="feesmanager-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <DashboardCard
           title="Total Collected"
           value={formatCurrency(dashboardData?.stats?.total_collected || 0)}
           description="Cumulative fee collection"
           icon={<IndianRupee className={theme === 'dark' ? "text-emerald-400" : "text-emerald-500"} />}
+        />
+        <DashboardCard
+          title="Total Discounted"
+          value={formatCurrency(dashboardData?.stats?.total_discounted || 0)}
+          description="Fee waivers & discounts"
+          icon={<IndianRupee className={theme === 'dark' ? "text-purple-400" : "text-purple-500"} />}
         />
         <DashboardCard
           title="Outstanding Amount"

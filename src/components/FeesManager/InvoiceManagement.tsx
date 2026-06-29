@@ -1040,6 +1040,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                     <SelectItem value="cheque">Cheque</SelectItem>
                     <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
                     <SelectItem value="upi">UPI</SelectItem>
+                    <SelectItem value="discount">Discount / Waiver</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
