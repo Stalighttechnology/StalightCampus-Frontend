@@ -270,7 +270,6 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
 
   return (
     <div className={`space-y-8 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <UpcomingMeetingsWidget />
       <div>
 
         {/* Dashboard Cards */}

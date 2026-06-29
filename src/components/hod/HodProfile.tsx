@@ -470,6 +470,13 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
           </div>
         );
 
+      case 'integrations':
+        return (
+          <div className="animate-in fade-in duration-300">
+            <GoogleIntegrationTab />
+          </div>
+        );
+
       default:
         return null;
     }

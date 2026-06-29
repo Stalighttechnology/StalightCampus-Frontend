@@ -13,6 +13,7 @@ import { Video, Calendar, Clock, Users, Trash2, Plus, ExternalLink, CalendarDays
 import { Checkbox } from '../ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { SkeletonCard } from '../ui/skeleton';
+import { useAuth } from '../../context/AuthContext';
 
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar as ShadcnCalendar } from '../ui/calendar';
@@ -79,6 +80,7 @@ const getInitialScheduleState = () => {
 
 export default function ScheduleMeeting() {
   const { theme } = useTheme();
+  const { role: userRole } = useAuth();
   const [meetings, setMeetings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
@@ -402,7 +404,18 @@ export default function ScheduleMeeting() {
                 <div className="grid gap-2">
                   <Label>Target Roles (Select at least one) *</Label>
                   <div className={`grid grid-cols-2 gap-2 p-3 border rounded-md max-h-40 overflow-y-auto ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                    {AVAILABLE_ROLES.map(role => (
+                    {AVAILABLE_ROLES.filter(role => {
+                      if ((userRole === 'admin' || userRole === 'org_admin') && role.id === 'org_admin') {
+                        return false;
+                      }
+                      if (userRole === 'principal' && role.id === 'principal') {
+                        return false;
+                      }
+                      if (userRole === 'hod' && role.id === 'hod') {
+                        return false;
+                      }
+                      return true;
+                    }).map(role => (
                       <div key={role.id} className="flex items-center space-x-2">
                         <Checkbox 
                           id={`role-${role.id}`}
