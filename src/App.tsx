@@ -182,15 +182,35 @@ const AppContent = () => {
     initErrorLogger();
     let backListenerPromise: Promise<any> | null = null;
 
+    // Helper to determine if a route is a top-level dashboard landing page
+    const isDashboardPath = (path: string) => {
+      const p = path.endsWith('/') ? path.slice(0, -1) : path;
+      if (p === "" || p === "/") return true;
+      if (p.endsWith("/dashboard")) return true;
+      
+      const topDashboards = [
+        "/dashboard",
+        "/admin",
+        "/org-admin",
+        "/hod",
+        "/faculty",
+        "/fees-manager",
+        "/dean",
+        "/coe",
+        "/hms",
+        "/warden",
+        "/transport-admin",
+        "/driver",
+        "/library-admin",
+        "/admission-manager"
+      ];
+      return topDashboards.includes(p);
+    };
+
     // Handle browser/webview popstate (history back) navigation
     const handlePopState = (event: PopStateEvent) => {
       const fromPath = currentPathRef.current;
-      alert('[POPSTATE] Triggered. Current ref path: ' + fromPath + ' | window.location: ' + window.location.pathname);
-      const isDashboard = fromPath === "/" || 
-                          fromPath.endsWith("/dashboard") || 
-                          fromPath.endsWith("/dashboard/") || 
-                          fromPath.endsWith("/admin") || 
-                          fromPath.endsWith("/admin/");
+      const isDashboard = isDashboardPath(fromPath);
       
       if (isDashboard) {
         // Prevent going back by pushing the dashboard path back to the history stack
@@ -246,12 +266,7 @@ const AppContent = () => {
       // Handle hardware back button for app exit confirmation
       backListenerPromise = CapApp.addListener('backButton', () => {
         const currentPath = currentPathRef.current;
-        alert('[BACK_BUTTON] Triggered. Current ref path: ' + currentPath + ' | window.location: ' + window.location.pathname);
-        const isDashboard = currentPath === "/" || 
-                            currentPath.endsWith("/dashboard") || 
-                            currentPath.endsWith("/dashboard/") || 
-                            currentPath.endsWith("/admin") || 
-                            currentPath.endsWith("/admin/");
+        const isDashboard = isDashboardPath(currentPath);
         
         console.log('[BACK_BUTTON] Pressed. Pathname:', currentPath, 'isDashboard:', isDashboard);
         
