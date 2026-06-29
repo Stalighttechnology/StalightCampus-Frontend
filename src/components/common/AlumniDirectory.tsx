@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { useToast } from '../../hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import { Button } from '../ui/button';
+import { Skeleton } from '../ui/skeleton';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
@@ -60,6 +61,10 @@ const AlumniDirectory: React.FC = () => {
   const [page, setPage]                 = useState(1);
   const [totalPages, setTotalPages]     = useState(1);
   const [totalCount, setTotalCount]     = useState(0);
+
+  // ── auto-trigger dropdown states ──
+  const [branchOpen, setBranchOpen]     = useState(false);
+  const [modeOpen, setModeOpen]         = useState(false);
 
   // ── detail modal ──
   const [modalOpen, setModalOpen]               = useState(false);
@@ -210,7 +215,10 @@ const AlumniDirectory: React.FC = () => {
             {/* Batch */}
             <div className="space-y-2">
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-gray-400">Batch</label>
-              <Select value={filters.batchId} onValueChange={v => setFilter('batchId', v)}>
+              <Select value={filters.batchId} onValueChange={v => {
+                setFilter('batchId', v);
+                setTimeout(() => setBranchOpen(true), 150);
+              }}>
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Select Batch" />
                 </SelectTrigger>
@@ -225,7 +233,16 @@ const AlumniDirectory: React.FC = () => {
             {/* Branch */}
             <div className="space-y-2">
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-gray-400">Branch</label>
-              <Select value={filters.branchId} onValueChange={v => setFilter('branchId', v)} disabled={!filters.batchId}>
+              <Select
+                value={filters.branchId}
+                open={branchOpen}
+                onOpenChange={setBranchOpen}
+                onValueChange={v => {
+                  setFilter('branchId', v);
+                  setTimeout(() => setModeOpen(true), 150);
+                }}
+                disabled={!filters.batchId}
+              >
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Select Branch" />
                 </SelectTrigger>
@@ -242,6 +259,8 @@ const AlumniDirectory: React.FC = () => {
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-gray-400">Admission Mode</label>
               <Select
                 value={filters.admissionMode}
+                open={modeOpen}
+                onOpenChange={setModeOpen}
                 onValueChange={v => setFilter('admissionMode', v)}
                 disabled={!filters.branchId}
               >
@@ -331,57 +350,89 @@ const AlumniDirectory: React.FC = () => {
                   )}
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-gray-50 dark:bg-gray-800/50 text-left">
-                        {['USN', 'Name', 'Branch', 'Batch', 'Mode', 'Actions'].map(h => (
-                          <th key={h} className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{h}</th>
+                {!loadingStudents && alumni.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center px-4 border-t border-border">
+                    <GraduationCap className="w-12 h-12 text-muted-foreground/30 mb-4" />
+                    <p className="font-semibold text-muted-foreground">No alumni found</p>
+                    <p className="text-sm text-muted-foreground">Try adjusting the filters.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-gray-50 dark:bg-gray-800/50 text-left">
+                          {['USN', 'Name', 'Branch', 'Batch', 'Mode', 'Actions'].map(h => (
+                            <th key={h} className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                        {loadingStudents ? (
+                          Array.from({ length: 5 }).map((_, i) => (
+                            <tr key={`skeleton-${i}`}>
+                              <td className="px-4 py-4"><Skeleton className="h-4 w-24" /></td>
+                              <td className="px-4 py-4"><Skeleton className="h-4 w-36" /></td>
+                              <td className="px-4 py-4"><Skeleton className="h-4 w-32" /></td>
+                              <td className="px-4 py-4"><Skeleton className="h-4 w-16" /></td>
+                              <td className="px-4 py-4"><Skeleton className="h-5 w-16 rounded-full" /></td>
+                              <td className="px-4 py-4"><Skeleton className="h-8 w-16 rounded-md" /></td>
+                            </tr>
+                          ))
+                        ) : alumni.map(a => (
+                          <tr key={a.usn} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                            <td className="px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-300">{a.usn}</td>
+                            <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{a.name}</td>
+                            <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.branch}</td>
+                            <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.batch}</td>
+                            <td className="px-4 py-3">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                                {a.mode_of_admission}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <Button size="sm" variant="outline" onClick={() => viewDetail(a.usn)} className="gap-1">
+                                <Eye className="h-3.5 w-3.5" /> View
+                              </Button>
+                            </td>
+                          </tr>
                         ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                      {loadingStudents ? (
-                        <tr>
-                          <td colSpan={6} className="py-16 text-center">
-                            <Loader2 className="h-8 w-8 animate-spin mx-auto text-purple-500" />
-                          </td>
-                        </tr>
-                      ) : alumni.length === 0 ? (
-                        <tr>
-                          <td colSpan={6} className="py-16 text-center text-gray-400 dark:text-gray-500">
-                            No alumni found. Try adjusting the filters.
-                          </td>
-                        </tr>
-                      ) : alumni.map(a => (
-                        <tr key={a.usn} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
-                          <td className="px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-300">{a.usn}</td>
-                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{a.name}</td>
-                          <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.branch}</td>
-                          <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.batch}</td>
-                          <td className="px-4 py-3">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                              {a.mode_of_admission}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Button size="sm" variant="outline" onClick={() => viewDetail(a.usn)} className="gap-1">
-                              <Eye className="h-3.5 w-3.5" /> View
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </tbody>
+                    </table>
+                  </div>
+                )}
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex justify-center gap-2 py-4 border-t">
-                    <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => fetchAlumni(page - 1)}>Prev</Button>
-                    <span className="flex items-center px-3 text-sm text-gray-600 dark:text-gray-300">{page} / {totalPages}</span>
-                    <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => fetchAlumni(page + 1)}>Next</Button>
-                  </div>
+                  <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                    <div>
+                      Showing {Math.min((page - 1) * 10 + 1, totalCount)} to {Math.min(page * 10, totalCount)} of {totalCount} alumni
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchAlumni(page - 1)}
+                        disabled={page === 1 || loadingStudents}
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                        Previous
+                      </Button>
+
+                      <div className="flex items-center justify-center min-w-[2rem]">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-foreground">
+                          {page}
+                        </span>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchAlumni(page + 1)}
+                        disabled={page === totalPages || loadingStudents}
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                        Next
+                      </Button>
+                    </div>
+                  </CardFooter>
                 )}
               </>
             )}
@@ -391,10 +442,10 @@ const AlumniDirectory: React.FC = () => {
 
       {/* Detail modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-[560px]">
+        <DialogContent className="w-[90%] rounded-2xl sm:max-w-[560px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 text-purple-500" /> Alumni Details
+             Alumni Details
             </DialogTitle>
           </DialogHeader>
           <div className="py-2">
