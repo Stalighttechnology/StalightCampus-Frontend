@@ -707,17 +707,17 @@ const AppContent = () => {
       {/* Exit App Bottom Sheet Modal */}
       {showExitDialog && (
         <div className="fixed inset-0 z-[99999] flex items-end justify-center bg-slate-950/40 backdrop-blur-[2px] animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white rounded-t-[32px] p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-300 flex flex-col text-slate-800">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-t-[32px] p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-300 flex flex-col text-slate-800 dark:text-slate-100">
             {/* Grab Handle */}
-            <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto mb-6" />
+            <div className="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-6" />
             
             {/* Title */}
-            <h3 className="text-2xl font-extrabold text-[#5c3be6] mb-2 px-2">
+            <h3 className="text-2xl font-extrabold text-primary mb-2 px-2">
               Exit?
             </h3>
             
             {/* Message */}
-            <p className="text-slate-500 font-medium mb-8 px-2">
+            <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 px-2">
               Confirm to Exit App
             </p>
             
@@ -728,13 +728,13 @@ const AppContent = () => {
                   setShowExitDialog(false);
                   CapApp.exitApp();
                 }}
-                className="flex-1 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-semibold py-3.5 rounded-xl transition-all shadow-sm active:scale-[0.98]"
+                className="flex-1 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-semibold py-3.5 rounded-xl transition-all shadow-sm active:scale-[0.98]"
               >
                 Yes
               </button>
               <button
                 onClick={() => setShowExitDialog(false)}
-                className="flex-1 bg-[#bdf08e] hover:bg-[#aee67a] text-slate-900 font-semibold py-3.5 rounded-xl transition-all shadow-sm active:scale-[0.98]"
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all shadow-sm active:scale-[0.98]"
               >
                 No
               </button>
