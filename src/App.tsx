@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import NetworkStatus from "./components/common/NetworkStatus";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
-import { lazy, Suspense, useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import Index from "./components/common/Index";
 import { PwaInstaller } from "./components/pwa/PwaInstaller";
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
@@ -171,6 +171,12 @@ const AppContent = () => {
   const { role: userRole, user: userData } = useAuth();
   const [showExitDialog, setShowExitDialog] = useState(false);
   const location = useLocation();
+  const currentPathRef = useRef(location.pathname);
+
+  // Sync ref with pathname updates
+  useEffect(() => {
+    currentPathRef.current = location.pathname;
+  }, [location.pathname]);
 
   useEffect(() => {
     initErrorLogger();
@@ -220,7 +226,7 @@ const AppContent = () => {
 
       // Handle hardware back button for app exit confirmation
       backListenerPromise = CapApp.addListener('backButton', () => {
-        const currentPath = location.pathname;
+        const currentPath = currentPathRef.current;
         const isDashboard = currentPath === "/" || 
                             currentPath.endsWith("/dashboard") || 
                             currentPath.endsWith("/dashboard/") || 
@@ -240,7 +246,7 @@ const AppContent = () => {
         backListenerPromise.then((listener) => listener.remove());
       }
     };
-  }, [location.pathname]);
+  }, []);
 
   return (
     <>
