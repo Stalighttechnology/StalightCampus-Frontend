@@ -439,7 +439,7 @@ export default function ScheduleMeeting() {
                   </div>
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="gap-2 sm:gap-0">
                 <Button variant="outline" onClick={() => setShowDialog(false)}>Cancel</Button>
                 <Button onClick={handleCreateMeeting} disabled={submitting}>
                   {submitting ? "Scheduling..." : "Schedule & Generate Meet"}
