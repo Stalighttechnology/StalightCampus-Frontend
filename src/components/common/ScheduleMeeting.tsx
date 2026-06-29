@@ -87,6 +87,7 @@ export default function ScheduleMeeting() {
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
 
   
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -449,128 +450,164 @@ export default function ScheduleMeeting() {
           </Dialog>
         </CardHeader>
         
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           {loading ? (
             <div className="grid gap-4">
               <SkeletonCard className="h-32 w-full" />
               <SkeletonCard className="h-32 w-full" />
             </div>
-          ) : meetings.length === 0 ? (
-            <div className={`p-8 text-center rounded-xl border-2 border-dashed ${theme === 'dark' ? 'bg-card/30 text-muted-foreground border-border' : 'bg-gray-50/50 text-gray-500 border-gray-300'} flex flex-col items-center justify-center`}>
-              <Video className="mx-auto h-12 w-12 opacity-30 mb-3 text-primary animate-pulse" />
-              <h3 className="text-lg font-semibold text-foreground">No Upcoming Meetings</h3>
-              <p className="mt-1 text-sm text-muted-foreground">There are currently no meetings scheduled for you.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {(() => {
-                const now = new Date();
-                const upcoming = meetings.filter(m => new Date(m.end_time) >= now);
-                const past = meetings.filter(m => new Date(m.end_time) < now)
-                  .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
-                  .slice(0, 5); // recent 5
-                const displayMeetings = [...upcoming, ...past];
+          ) : (() => {
+            const now = new Date();
+            const upcoming = meetings.filter(m => new Date(m.end_time) >= now);
+            const past = meetings.filter(m => new Date(m.end_time) < now)
+              .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
 
-                return displayMeetings.map((meeting) => {
-                  const start = new Date(meeting.start_time);
-                  const end = new Date(meeting.end_time);
-                  const dateStr = start.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-                  const timeStr = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-                  const isPast = end < now;
-                
-                  return (
-                    <div
-                      key={meeting.id}
-                      className={`rounded-lg border p-4 flex flex-col gap-2 transition-all hover:shadow-md ${isPast ? 'opacity-70' : ''} ${theme === "dark"
-                        ? "bg-card border-border text-foreground"
-                        : "bg-white border-gray-200 text-gray-900"
-                        }`}
+            const displayMeetings = activeTab === 'upcoming' ? upcoming : past;
+
+            return (
+              <>
+                {/* Segmented Tab Switcher */}
+                <div className="flex justify-center mb-6">
+                  <div className={`p-1 rounded-xl flex gap-1 ${theme === 'dark' ? 'bg-slate-900 border border-slate-800' : 'bg-slate-100 border border-slate-200'}`}>
+                    <button
+                      onClick={() => setActiveTab('upcoming')}
+                      className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                        activeTab === 'upcoming'
+                          ? (theme === 'dark' ? 'bg-primary text-white shadow-lg' : 'bg-white text-slate-900 shadow-sm')
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950/50">
-                            <Video className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                          </span>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-sm truncate">{meeting.title}</p>
-                            {meeting.description && (
-                              <p className="text-xs text-muted-foreground truncate">{meeting.description}</p>
-                            )}
+                      Upcoming ({upcoming.length})
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('past')}
+                      className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                        activeTab === 'past'
+                          ? (theme === 'dark' ? 'bg-primary text-white shadow-lg' : 'bg-white text-slate-900 shadow-sm')
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      History ({past.length})
+                    </button>
+                  </div>
+                </div>
+
+                {displayMeetings.length === 0 ? (
+                  <div className={`p-8 text-center rounded-xl border-2 border-dashed ${theme === 'dark' ? 'bg-card/30 text-muted-foreground border-border' : 'bg-gray-50/50 text-gray-500 border-gray-300'} flex flex-col items-center justify-center`}>
+                    <Video className="mx-auto h-12 w-12 opacity-30 mb-3 text-primary animate-pulse" />
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {activeTab === 'upcoming' ? 'No Upcoming Meetings' : 'No Past Meetings'}
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {activeTab === 'upcoming' 
+                        ? 'There are currently no meetings scheduled for you.' 
+                        : 'No meeting history found.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                    {displayMeetings.map((meeting) => {
+                      const start = new Date(meeting.start_time);
+                      const end = new Date(meeting.end_time);
+                      const dateStr = start.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                      const timeStr = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                      const isPast = end < now;
+                    
+                      return (
+                        <div
+                          key={meeting.id}
+                          className={`rounded-lg border p-4 flex flex-col gap-2 transition-all hover:shadow-md ${isPast ? 'opacity-70' : ''} ${theme === "dark"
+                            ? "bg-card border-border text-foreground"
+                            : "bg-white border-gray-200 text-gray-900"
+                            }`}
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950/50">
+                                <Video className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                              </span>
+                              <div className="min-w-0">
+                                <p className="font-semibold text-sm truncate">{meeting.title}</p>
+                                {meeting.description && (
+                                  <p className="text-xs text-muted-foreground truncate">{meeting.description}</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 sm:shrink-0 sm:self-auto self-start pl-10 sm:pl-0">
+                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isPast ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'}`}>
+                                {isPast ? 'Completed' : 'Upcoming'}
+                              </span>
+                              {(() => {
+                                const isOrganizer = userRole && meeting.organizer_role && String(userRole).toLowerCase() === String(meeting.organizer_role).toLowerCase();
+                                
+                                if (!isOrganizer || isPast) return null;
+                                return (
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6 ml-2 rounded-md border-red-200/20 hover:bg-red-50 text-red-500"
+                                    title="Delete Meeting"
+                                    onClick={() => handleDelete(meeting.id)}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                );
+                              })()}
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 sm:shrink-0 sm:self-auto self-start pl-10 sm:pl-0">
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isPast ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'}`}>
-                            {isPast ? 'Completed' : 'Upcoming'}
-                          </span>
-                          {(() => {
-                            const isOrganizer = userRole && meeting.organizer_role && String(userRole).toLowerCase() === String(meeting.organizer_role).toLowerCase();
-                            
-                            if (!isOrganizer) return null;
-                            return (
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-6 w-6 ml-2 rounded-md border-red-200/20 hover:bg-red-50 text-red-500"
-                                title="Delete Meeting"
-                                onClick={() => handleDelete(meeting.id)}
+
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground border-b pb-2.5">
+                            <span className="flex items-center gap-1">
+                              <CalendarDays className="w-3.5 h-3.5" /> {dateStr}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" /> {timeStr}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Users className="w-3.5 h-3.5" />
+                              <span className="capitalize">{meeting.target_roles.map((r: string) => r.replace('_', ' ')).join(', ')}</span>
+                            </span>
+                            <span className="flex items-center gap-1 font-medium">
+                              Organizer: {meeting.organizer_name}
+                            </span>
+                          </div>
+
+                          {meeting.google_meet_link && !isPast && (
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                              <a
+                                href={meeting.google_meet_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-2 hover:text-primary/80 transition-colors font-mono truncate max-w-full sm:max-w-[200px] md:max-w-xs break-all"
                               >
-                                <Trash2 className="h-3.5 h-3.5" />
-                              </Button>
-                            );
-                          })()}
+                                {meeting.google_meet_link}
+                                <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                              </a>
+                              <div className="flex items-center gap-1.5 shrink-0 sm:self-auto self-end">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="w-8 h-8 rounded-md border-gray-200 dark:border-border text-muted-foreground hover:text-foreground"
+                                  title="Copy Link"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigator.clipboard.writeText(meeting.google_meet_link);
+                                    showSuccessAlert("Copied", "Google Meet link copied to clipboard.");
+                                  }}
+                                >
+                                  <Copy className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground border-b pb-2.5">
-                        <span className="flex items-center gap-1">
-                          <CalendarDays className="w-3.5 h-3.5" /> {dateStr}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" /> {timeStr}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users className="w-3.5 h-3.5" />
-                          <span className="capitalize">{meeting.target_roles.map((r: string) => r.replace('_', ' ')).join(', ')}</span>
-                        </span>
-                        <span className="flex items-center gap-1 font-medium">
-                          Organizer: {meeting.organizer_name}
-                        </span>
-                      </div>
-
-                      {meeting.google_meet_link && (
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-                          <a
-                            href={meeting.google_meet_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-2 hover:text-primary/80 transition-colors font-mono truncate max-w-full sm:max-w-[200px] md:max-w-xs break-all"
-                          >
-                            {meeting.google_meet_link}
-                            <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                          </a>
-                          <div className="flex items-center gap-1.5 shrink-0 sm:self-auto self-end">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="w-8 h-8 rounded-md border-gray-200 dark:border-border text-muted-foreground hover:text-foreground"
-                              title="Copy Link"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigator.clipboard.writeText(meeting.google_meet_link);
-                                showSuccessAlert("Copied", "Google Meet link copied to clipboard.");
-                              }}
-                            >
-                              <Copy className="w-3.5 h-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-          )}
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </CardContent>
       </Card>
     </div>

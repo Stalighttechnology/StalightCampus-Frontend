@@ -20,6 +20,7 @@ import {
   Download } from
 'lucide-react';
 import { getWardenIssues, updateWardenIssue, exportWardenIssuesPdf, exportWardenSingleIssuePdf } from '../../utils/warden_api';
+import { getIssueStats } from '../../utils/hms_api';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { API_ENDPOINT } from '../../utils/config';
 import { useToast } from '../../hooks/use-toast';
@@ -85,6 +86,14 @@ const WardenIssueManagement = () => {
   const { toast } = useToast();
   const { theme } = useTheme();
   const [issues, setIssues] = useState<Issue[]>([]);
+  const [stats, setStats] = useState<{
+    total: number;
+    pending: number;
+    in_progress: number;
+    waiting_for_workers: number;
+    completed: number;
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [selectedIssue, setSelectedIssue] = useState<DetailedIssue | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -97,9 +106,27 @@ const WardenIssueManagement = () => {
   const detailsRef = useRef<HTMLDivElement>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
+  const fetchStats = async () => {
+    setStatsLoading(true);
+    try {
+      const response = await getIssueStats();
+      if (response.success && response.data?.stats) {
+        setStats(response.data.stats);
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchIssues();
   }, [statusFilter, currentPage]);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
   const fetchIssues = async () => {
     setLoading(true);
@@ -215,6 +242,8 @@ const WardenIssueManagement = () => {
       if (selectedIssue?.id === issueId) {
         setSelectedIssue(data);
       }
+
+      fetchStats();
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to update issue', variant: 'destructive' });
     } finally {
@@ -238,25 +267,25 @@ const WardenIssueManagement = () => {
       <div id="warden-issues-container" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardCard
           title="Total Issues"
-          value={totalCount}
+          value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats?.total ?? 0}
           description="Managed by you"
           icon={<MessageSquare className="w-5 h-5 text-purple-500" />} />
         
         <DashboardCard
           title="Pending"
-          value={issues.filter((i) => i.status === 'pending').length}
+          value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats?.pending ?? 0}
           description="New requests"
           icon={<AlertTriangle className="w-5 h-5 text-amber-500" />} />
         
         <DashboardCard
           title="In Progress"
-          value={issues.filter((i) => i.status === 'in_progress').length}
+          value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : (stats?.in_progress ?? 0) + (stats?.waiting_for_workers ?? 0)}
           description="Being resolved"
           icon={<Clock className="w-5 h-5 text-blue-500" />} />
         
         <DashboardCard
           title="Completed"
-          value={issues.filter((i) => i.status === 'completed').length}
+          value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats?.completed ?? 0}
           description="Resolved cases"
           icon={<CheckCircle className="w-5 h-5 text-green-500" />} />
         
