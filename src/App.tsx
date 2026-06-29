@@ -182,6 +182,24 @@ const AppContent = () => {
     initErrorLogger();
     let backListenerPromise: Promise<any> | null = null;
 
+    // Handle browser/webview popstate (history back) navigation
+    const handlePopState = (event: PopStateEvent) => {
+      const fromPath = currentPathRef.current;
+      const isDashboard = fromPath === "/" || 
+                          fromPath.endsWith("/dashboard") || 
+                          fromPath.endsWith("/dashboard/") || 
+                          fromPath.endsWith("/admin") || 
+                          fromPath.endsWith("/admin/");
+      
+      if (isDashboard) {
+        // Prevent going back by pushing the dashboard path back to the history stack
+        window.history.pushState(null, "", window.location.href);
+        setShowExitDialog(true);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
     if (Capacitor.isNativePlatform()) {
       // Notify Capgo update is ready and hide splash screen
       CapacitorUpdater.notifyAppReady()
@@ -246,6 +264,7 @@ const AppContent = () => {
     }
 
     return () => {
+      window.removeEventListener("popstate", handlePopState);
       if (backListenerPromise) {
         backListenerPromise.then((listener) => listener.remove());
       }
