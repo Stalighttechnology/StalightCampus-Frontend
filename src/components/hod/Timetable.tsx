@@ -1437,7 +1437,7 @@ const Timetable = () => {
                                     </div>
                                     <div className="flex items-center gap-1.5 font-semibold text-primary">
                                       <MapPin size={13} />
-                                      <span>Room {entry.room}</span>
+                                      <span>{entry.room && (entry.room.toLowerCase().startsWith('room') ? entry.room : `Room ${entry.room}`)}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -1535,7 +1535,7 @@ const Timetable = () => {
 
                                         <div className="flex justify-between items-center text-[9px] font-semibold text-slate-400 dark:text-slate-400 mt-2 pt-1.5 border-t border-slate-200/40 dark:border-slate-850/40">
                                           <span className="truncate max-w-[70px]">{entry.faculty_assignment.faculty}</span>
-                                          <span className="text-primary whitespace-nowrap">Room {entry.room}</span>
+                                          <span className="text-primary whitespace-nowrap">{entry.room && (entry.room.toLowerCase().startsWith('room') ? entry.room : `Room ${entry.room}`)}</span>
                                         </div>
                                       </div>
                                     );

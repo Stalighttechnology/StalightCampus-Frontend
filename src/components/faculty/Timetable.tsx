@@ -188,21 +188,34 @@ const Timetable = ({ role }: TimetableProps) => {
   };
 
   return (
-    <Card id="timetable-card" className={`w-full overflow-hidden border-0 sm:border shadow-none ${theme === 'dark' ? 'bg-transparent sm:bg-[#0f172a] text-slate-100 border-slate-800' : 'bg-transparent sm:bg-white text-slate-900 border-slate-200'}`}>
-      <CardHeader className="px-0 py-4 sm:p-6 border-b border-slate-100 dark:border-slate-800/80">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
-          <div>
-            <CardTitle className="text-2xl font-semibold tracking-tight">Faculty Timetable</CardTitle>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">View your assigned teaching schedules and class slots.</p>
+    <Card id="timetable-card" className={`w-full border ${theme === 'dark' ? 'bg-card border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'} shadow-sm rounded-xl`}>
+      <CardHeader className="border-b pb-4 mb-4 px-4 sm:px-6 py-4 sm:py-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
+          <div className="flex flex-row justify-between items-center w-full md:w-auto gap-4">
+            <CardTitle className="text-xl sm:text-2xl font-semibold text-foreground">Faculty Timetable</CardTitle>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-3.5 rounded-lg flex md:hidden items-center justify-center gap-1.5 shadow-sm text-xs font-semibold shrink-0"
+              disabled={downloadingPDF || loading || timetableData.length === 0}
+              onClick={exportPDF}
+            >
+              {downloadingPDF ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <FileDown className="w-3.5 h-3.5" />
+              )}
+            </Button>
           </div>
 
-          <div className="flex items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-start">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
             {/* View Mode Toggle */}
-            <div className="flex items-center rounded-lg p-1 bg-slate-100 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 flex-1 sm:flex-none justify-center">
+            <div className="flex items-center rounded-lg p-1 bg-slate-100 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 w-full md:w-auto justify-center">
               <button
                 onClick={() => setViewMode('weekly')}
-                className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex-1 sm:flex-none ${viewMode === 'weekly'
-                  ? 'bg-white dark:bg-slate-950 shadow-sm text-primary'
+                className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex-1 md:flex-none ${viewMode === 'weekly'
+                  ? 'bg-white dark:bg-slate-955 shadow-sm text-primary'
                   : 'text-slate-500 hover:text-slate-705 dark:hover:text-slate-300'
                   }`}
               >
@@ -211,8 +224,8 @@ const Timetable = ({ role }: TimetableProps) => {
               </button>
               <button
                 onClick={() => setViewMode('daily')}
-                className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex-1 sm:flex-none ${viewMode === 'daily'
-                  ? 'bg-white dark:bg-slate-950 shadow-sm text-primary'
+                className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex-1 md:flex-none ${viewMode === 'daily'
+                  ? 'bg-white dark:bg-slate-955 shadow-sm text-primary'
                   : 'text-slate-500 hover:text-slate-705 dark:hover:text-slate-300'
                   }`}
               >
@@ -221,20 +234,19 @@ const Timetable = ({ role }: TimetableProps) => {
               </button>
             </div>
 
-            {/* Export Button */}
+            {/* Desktop Export Button */}
             <Button
               variant="outline"
-              size="sm"
-              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 rounded-lg flex items-center gap-2 shadow-sm font-medium"
+              className="hidden md:flex bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 rounded-lg items-center justify-center gap-1.5 shadow-sm text-xs font-semibold shrink-0"
               disabled={downloadingPDF || loading || timetableData.length === 0}
               onClick={exportPDF}
             >
               {downloadingPDF ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <FileDown className="w-4 h-4" />
+                <FileDown className="w-3.5 h-3.5" />
               )}
-              <span className="hidden sm:inline">{downloadingPDF ? "Exporting..." : "Export PDF"}</span>
+              <span>{downloadingPDF ? "Exporting..." : "Export PDF"}</span>
             </Button>
           </div>
         </div>
@@ -335,7 +347,7 @@ const Timetable = ({ role }: TimetableProps) => {
                             </div>
                             <div className="flex items-center gap-1.5 font-semibold text-primary">
                               <MapPin size={13} />
-                              <span>Room {entry.room}</span>
+                              <span>{entry.room && (entry.room.toLowerCase().startsWith('room') ? entry.room : `Room ${entry.room}`)}</span>
                             </div>
                           </div>
                         </div>
@@ -410,7 +422,7 @@ const Timetable = ({ role }: TimetableProps) => {
 
                                       <div className="flex justify-between items-center text-[9px] font-semibold text-slate-400 dark:text-slate-400 mt-2 pt-1.5 border-t border-slate-200/40 dark:border-slate-850/40">
                                         <span className="truncate max-w-[70px]">Sem {entry.semester}, Sec {entry.section}</span>
-                                        <span className="text-primary whitespace-nowrap">Room {entry.room}</span>
+                                        <span className="text-primary whitespace-nowrap">{entry.room && (entry.room.toLowerCase().startsWith('room') ? entry.room : `Room ${entry.room}`)}</span>
                                       </div>
                                     </div>
                                   );
