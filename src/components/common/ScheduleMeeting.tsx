@@ -368,7 +368,7 @@ export default function ScheduleMeeting() {
                 Schedule Meeting
               </Button>
             </DialogTrigger>
-            <DialogContent className={`w-[90%] rounded-2xl max-h-[85vh] overflow-y-auto sm:max-w-[650px] custom-scrollbar ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+            <DialogContent className={`w-[90%] rounded-2xl max-h-[80vh] overflow-y-auto sm:max-w-[650px] custom-scrollbar ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
               <DialogHeader>
                 <DialogTitle>Schedule New Meeting</DialogTitle>
               </DialogHeader>
