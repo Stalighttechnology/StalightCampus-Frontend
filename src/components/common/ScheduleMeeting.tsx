@@ -251,7 +251,7 @@ export default function ScheduleMeeting() {
       });
 
       if (res.ok) {
-        showSuccessAlert("Success", "Meeting scheduled successfully. Google Meet link generated.");
+        showSuccessAlert("Success", "Meeting created successfully. Google Meet link generated.");
         setShowDialog(false);
         
         setFormData({ title: '', description: '', target_roles: [] });
@@ -267,8 +267,16 @@ export default function ScheduleMeeting() {
 
         fetchMeetings();
       } else {
-        const data = await res.json();
-        const errorMsg = data.error || (data.google_meet_link && data.google_meet_link[0]) || "Failed to schedule meeting.";
+        const statusCode = res.status;
+        let errorMsg = "Failed to create meeting.";
+        try {
+          const data = await res.json();
+          errorMsg = data.error || (data.google_meet_link && data.google_meet_link[0]) || errorMsg;
+        } catch (jsonErr) {
+          console.error("Failed to parse error response JSON:", jsonErr);
+        }
+        
+        console.error(`Meeting creation failed with status ${statusCode}: ${errorMsg}`);
         
         if (errorMsg.toLowerCase().includes("google") || errorMsg.toLowerCase().includes("connect") || errorMsg.toLowerCase().includes("linked")) {
           const getProfileLabel = (role: string) => {
@@ -315,11 +323,12 @@ export default function ScheduleMeeting() {
              navigate(`${getProfilePath(userRole || '')}?google_connected=false`);
           }, 1500);
         } else {
-          showErrorAlert("Error", errorMsg);
+          showErrorAlert("Error", `${errorMsg} (Status: ${statusCode})`);
         }
       }
-    } catch (e) {
-      showErrorAlert("Error", "Network error while creating meeting.");
+    } catch (e: any) {
+      console.error("Network error inside handleCreateMeeting:", e);
+      showErrorAlert("Error", `Network error while creating meeting: ${e.message || e}`);
     } finally {
       setSubmitting(false);
     }
@@ -369,12 +378,12 @@ export default function ScheduleMeeting() {
               }}>
                 <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white">
                   <Plus className="h-4 w-4 mr-2" />
-                  Schedule Meeting
+                  Create Meeting
                 </Button>
               </DialogTrigger>
               <DialogContent className={`w-[90%] rounded-2xl max-h-[80vh] overflow-y-auto sm:max-w-[650px] custom-scrollbar ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
                 <DialogHeader>
-                  <DialogTitle>Schedule New Meeting</DialogTitle>
+                  <DialogTitle>Create New Meeting</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
@@ -586,7 +595,7 @@ export default function ScheduleMeeting() {
                 <DialogFooter className="gap-2 sm:gap-0">
                   <Button variant="outline" onClick={() => setShowDialog(false)}>Cancel</Button>
                   <Button onClick={handleCreateMeeting} disabled={submitting}>
-                    {submitting ? "Scheduling..." : "Schedule & Generate Meet"}
+                    {submitting ? "Creating..." : "Create & Generate Meet"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
