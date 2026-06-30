@@ -6,6 +6,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../../components/ui/select";
+import { Checkbox } from "../../components/ui/checkbox";
 import { Plus, Edit2, Trash2, CheckCircle2, XCircle, RotateCcw } from "lucide-react";
 import { showSuccessAlert, showConfirmAlert } from "../../utils/sweetalert";
 import { useTheme } from "../../context/ThemeContext";
@@ -22,7 +23,7 @@ interface Popup {
   enabled: boolean;
   version: number;
   priority: number;
-  target_role: string | null;
+  target_roles: string[];
 }
 
 const Popups = () => {
@@ -42,7 +43,7 @@ const Popups = () => {
     version: 1,
     priority: 0,
     organization: null,
-    target_role: "",
+    target_roles: [],
   });
 
   const fetchPopups = async () => {
@@ -74,7 +75,7 @@ const Popups = () => {
       const payload = {
         ...formData,
         organization: formData.organization || null,
-        target_role: formData.target_role || null
+        target_roles: formData.target_roles || []
       };
 
       const res = await fetchWithSuperadminTokenRefresh(url, {
@@ -92,7 +93,7 @@ const Popups = () => {
         setIsEditing(false);
         setFormData({
           title: "", message: "", popup_type: "feature", button_text: "", action: "",
-          enabled: true, version: 1, priority: 0, organization: null, target_role: ""
+          enabled: true, version: 1, priority: 0, organization: null, target_roles: []
         });
         fetchPopups();
       } else {
@@ -207,24 +208,53 @@ const Popups = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Target Role</Label>
-                <Select value={formData.target_role || "all"} onValueChange={(val) => setFormData({ ...formData, target_role: val === "all" ? "" : val })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select target role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Roles (Global)</SelectItem>
-                    <SelectItem value="student">Student</SelectItem>
-                    <SelectItem value="outside_student">Outside Student</SelectItem>
-                    <SelectItem value="teacher">Teacher</SelectItem>
-                    <SelectItem value="hod">HOD</SelectItem>
-                    <SelectItem value="dean">Dean</SelectItem>
-                    <SelectItem value="coe">COE</SelectItem>
-                    <SelectItem value="principal">Principal</SelectItem>
-                    <SelectItem value="fees_manager">Fees Manager</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="space-y-2 md:col-span-2">
+                <div className="flex items-center justify-between">
+                  <Label>Target Roles</Label>
+                  <span className="text-xs text-muted-foreground italic">Leave empty to target All Roles (Global)</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-4 border rounded-md bg-slate-50/50 dark:bg-slate-900/50">
+                  {[
+                    { id: "student", label: "Student" },
+                    { id: "outside_student", label: "Outside Student" },
+                    { id: "teacher", label: "Teacher" },
+                    { id: "hod", label: "HOD" },
+                    { id: "dean", label: "Dean" },
+                    { id: "coe", label: "COE" },
+                    { id: "principal", label: "Principal" },
+                    { id: "fees_manager", label: "Fees Manager" },
+                    { id: "warden", label: "Warden" },
+                    { id: "caretaker", label: "Caretaker" },
+                    { id: "placement_officer", label: "Placement Officer" },
+                    { id: "transport_admin", label: "Transport Admin" },
+                    { id: "driver", label: "Driver" },
+                    { id: "library_admin", label: "Library Admin" },
+                    { id: "org_admin", label: "Org Admin" },
+                    { id: "admission_manager", label: "Admission Manager" },
+                    { id: "parent", label: "Parent" }
+                  ].map(role => (
+                    <div key={role.id} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`role-${role.id}`}
+                        checked={(formData.target_roles || []).includes(role.id)}
+                        onCheckedChange={(checked) => {
+                          const current = formData.target_roles || [];
+                          if (checked) {
+                            setFormData({ ...formData, target_roles: [...current, role.id] });
+                          } else {
+                            setFormData({ ...formData, target_roles: current.filter(r => r !== role.id) });
+                          }
+                        }}
+                      />
+                      <label 
+                        htmlFor={`role-${role.id}`} 
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {role.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label>Message</Label>
@@ -293,9 +323,9 @@ const Popups = () => {
                         Org: {popup.organization}
                       </span>
                     )}
-                    {popup.target_role && (
+                    {popup.target_roles && popup.target_roles.length > 0 && (
                       <span className="text-[10px] uppercase tracking-wider bg-rose-500/10 text-rose-600 px-2 py-0.5 rounded-full font-bold">
-                        Role: {popup.target_role.replace('_', ' ')}
+                        Roles: {popup.target_roles.map((r: string) => r.replace('_', ' ')).join(', ')}
                       </span>
                     )}
                   </div>

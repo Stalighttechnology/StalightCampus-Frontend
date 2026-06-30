@@ -50,9 +50,9 @@ export const FeaturePopup: React.FC = () => {
   const getThemeVars = () => {
     switch (activePopup.popup_type) {
       case 'feature': return { isLogo: true, icon: null, gradient: "from-indigo-600 to-purple-600", bg: "bg-indigo-500", glow: "shadow-indigo-500/30" };
-      case 'offer': return { isLogo: false, icon: <Zap className="w-7 h-7 text-white" />, gradient: "from-amber-500 to-orange-600", bg: "bg-amber-500", glow: "shadow-amber-500/30" };
-      case 'maintenance': return { isLogo: false, icon: <Wrench className="w-7 h-7 text-white" />, gradient: "from-red-600 to-rose-600", bg: "bg-red-500", glow: "shadow-red-500/30" };
-      case 'update': return { isLogo: false, icon: <ArrowRight className="w-7 h-7 text-white" />, gradient: "from-blue-600 to-cyan-600", bg: "bg-blue-500", glow: "shadow-blue-500/30" };
+      case 'offer': return { isLogo: true, icon: null, gradient: "from-amber-500 to-orange-600", bg: "bg-amber-500", glow: "shadow-amber-500/30" };
+      case 'maintenance': return { isLogo: true, icon: null, gradient: "from-red-600 to-rose-600", bg: "bg-red-500", glow: "shadow-red-500/30" };
+      case 'update': return { isLogo: true, icon: null, gradient: "from-blue-600 to-cyan-600", bg: "bg-blue-500", glow: "shadow-blue-500/30" };
       default: return { isLogo: true, icon: null, gradient: "from-primary to-primary", bg: "bg-primary", glow: "shadow-primary/30" };
     }
   };
