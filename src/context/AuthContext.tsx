@@ -259,11 +259,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     >
       {children}
       {isLoggingOut && (
-        <div className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-slate-950/60 backdrop-blur-md transition-all duration-300 animate-in fade-in">
+        <div className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-slate-950/80 transition-opacity duration-300 animate-in fade-in">
           <div className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl animate-in fade-in zoom-in-95 duration-200 w-[90%] max-w-sm text-center">
             <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-red-50 dark:bg-red-500/5 text-red-600 dark:text-red-400 mb-2">
-              <div className="absolute inset-0 rounded-full border-4 border-red-500/20 border-t-red-600 dark:border-t-red-400 animate-spin"></div>
-              <LogOut className="w-6 h-6 animate-pulse" />
+              <div className="absolute inset-0 rounded-full border-4 border-red-500/20 border-t-red-600 dark:border-t-red-400 animate-spin" style={{ willChange: "transform" }}></div>
+              <LogOut className="w-6 h-6 animate-pulse" style={{ willChange: "opacity" }} />
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50">
               Logging out...

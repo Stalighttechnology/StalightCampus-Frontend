@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import NetworkStatus from "./components/common/NetworkStatus";
+import { FeaturePopup } from "./components/common/FeaturePopup";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import Index from "./components/common/Index";
@@ -783,6 +784,7 @@ const AppContent = () => {
       <Toaster />
       <Sonner />
       <NetworkStatus />
+      <FeaturePopup />
       {/* Exit App Premium Bottom Sheet Modal */}
       {showExitDialog && (
         <div 
