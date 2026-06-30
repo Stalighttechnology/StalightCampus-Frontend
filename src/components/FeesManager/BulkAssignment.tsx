@@ -21,9 +21,15 @@ import {
   LayoutGrid,
   Filter,
   Users,
-  Play
+  Play,
+  CalendarIcon,
+  Calendar as CalendarLucideIcon
 } from
   'lucide-react';
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/context/ThemeContext";
 import {
@@ -79,6 +85,7 @@ const BulkAssignment: React.FC = () => {
 
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [academicYear, setAcademicYear] = useState('2024-25');
+  const [dueDate, setDueDate] = useState<string>('');
 
   // Data States
   const [filterData, setFilterData] = useState<FilterData>({ batches: [], branches: [], admission_modes: [] });
@@ -233,7 +240,8 @@ const BulkAssignment: React.FC = () => {
           admission_mode: selectedFilters.admissionMode
         },
         template_id: parseInt(selectedTemplate),
-        academic_year: academicYear
+        academic_year: academicYear,
+        due_date: dueDate
       });
 
       if (!result.success) {
@@ -530,7 +538,7 @@ const BulkAssignment: React.FC = () => {
                 </div>
 
                 {/* Assignment Form */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 border rounded-2xl bg-muted/10 shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 border rounded-2xl bg-muted/10 shadow-sm">
                   <div className="space-y-3">
                     <Label className="text-md sm:text-sm font-semibold flex items-center gap-2">
                       <LayoutGrid className="h-4 w-4 text-primary" />
@@ -567,13 +575,44 @@ const BulkAssignment: React.FC = () => {
 
                     <p className="text-[13px] text-muted-foreground px-1">Specify the billing period for these assignments.</p>
                   </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-md sm:text-sm font-semibold flex items-center gap-2">
+                      <CalendarLucideIcon className="h-4 w-4 text-primary" />
+                      Due Date
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-semibold h-12 text-md border-border/50",
+                            !dueDate && "text-muted-foreground",
+                            theme === 'dark' ? 'bg-background hover:bg-muted' : 'bg-white hover:bg-gray-50'
+                          )}>
+                          
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dueDate ? format(new Date(dueDate), "PPP") : <span>Pick a due date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={dueDate ? new Date(dueDate) : undefined}
+                          onSelect={(date) => setDueDate(date ? format(date, "yyyy-MM-dd") : '')}
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                          initialFocus />
+                      </PopoverContent>
+                    </Popover>
+                    <p className="text-[13px] text-muted-foreground px-1">When should these invoices be paid?</p>
+                  </div>
                 </div>
 
                 {/* Action Section */}
                 <div className="space-y-4">
                   <Button
                     className="w-full h-14 text-md font-semibold shadow-lg hover:shadow-primary/20 transition-all group relative overflow-hidden"
-                    disabled={!selectedTemplate || loading || studentCount === 0}
+                    disabled={!selectedTemplate || !dueDate || loading || studentCount === 0}
                     onClick={handleBulkAssign}>
 
                     {loading ?

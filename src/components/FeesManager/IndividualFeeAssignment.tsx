@@ -59,6 +59,7 @@ interface Assignment {
   };
   academic_year: string;
   assigned_at: string;
+  due_date?: string;
   is_active: boolean;
 }
 
@@ -564,6 +565,7 @@ const IndividualFeeAssignment: React.FC = () => {
                       <TableHead className="font-semibold text-foreground h-12 text-center">Template Assigned</TableHead>
                       <TableHead className="font-semibold text-foreground h-12 text-center">Total Amount</TableHead>
                       <TableHead className="font-semibold text-foreground h-12 text-center">Assigned On</TableHead>
+                      <TableHead className="font-semibold text-foreground h-12 text-center">Due Date</TableHead>
                       <TableHead className="text-right font-semibold pr-6 text-foreground h-12">Action</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -599,6 +601,12 @@ const IndividualFeeAssignment: React.FC = () => {
                           <div className="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-tight">
                             <Calendar className="h-3.5 w-3.5 text-muted-foreground/50" />
                             {formatDate(assignment.assigned_at)}
+                          </div>
+                        </TableCell>
+                        <TableCell className="align-middle text-center">
+                          <div className="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-tight">
+                            <Calendar className="h-3.5 w-3.5 text-muted-foreground/50" />
+                            {assignment.due_date ? formatDate(assignment.due_date) : '-'}
                           </div>
                         </TableCell>
                         <TableCell className="text-right pr-6 align-middle">

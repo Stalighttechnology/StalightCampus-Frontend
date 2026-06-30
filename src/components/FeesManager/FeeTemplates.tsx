@@ -571,33 +571,7 @@ const FeeTemplates: React.FC = () => {
                   </div>
                 }
 
-                <div>
-                  <Label htmlFor="dueDate">Default Due Date (Optional)</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full justify-start text-left font-normal mt-1",
-                          !dueDate && "text-muted-foreground",
-                          theme === 'dark' ? 'bg-background border-border hover:bg-muted' : 'bg-white border-gray-300 hover:bg-gray-50'
-                        )}>
-                        
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dueDate ? format(new Date(dueDate), "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={dueDate ? new Date(dueDate) : undefined}
-                        onSelect={(date) => setDueDate(date ? format(date, "yyyy-MM-dd") : '')}
-                        initialFocus />
-                      
-                    </PopoverContent>
-                  </Popover>
-                  <p className="text-[10px] text-muted-foreground mt-1 italic">When assigned, invoices will inherit this as their due date.</p>
-                </div>
+
 
                 <div>
                   <Label className="mb-2 block font-medium">Fee Components</Label>
@@ -699,8 +673,6 @@ const FeeTemplates: React.FC = () => {
               <TableRow className={theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}>
                 <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Name</TableHead>
                 <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Type</TableHead>
-                <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>{translateTerminology("Semester")}</TableHead>
-                <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Due Date</TableHead>
                 <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Total Amount</TableHead>
                 <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Status</TableHead>
                 <TableHead className={`text-right ${theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}`}>Actions</TableHead>
@@ -718,8 +690,6 @@ const FeeTemplates: React.FC = () => {
                       {template.fee_type.charAt(0).toUpperCase() + template.fee_type.slice(1)}
                     </Badge>
                   </TableCell>
-                  <TableCell>{template.semester || '-'}</TableCell>
-                  <TableCell>{template.due_date ? new Date(template.due_date).toLocaleDateString('en-IN') : '-'}</TableCell>
                   <TableCell>{formatCurrency(template.total_amount != null ? Number(template.total_amount) : template.total_amount_cents != null ? Number(template.total_amount_cents) / 100 : 0)}</TableCell>
                   <TableCell>
                     <Badge variant={template.is_active ? "default" : "secondary"}>
@@ -748,7 +718,7 @@ const FeeTemplates: React.FC = () => {
               )}
               {templates.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-12 px-4">
+                  <TableCell colSpan={5} className="py-12 px-4">
                     <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                       <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                         <FileText className="w-10 h-10 text-primary opacity-50" />
