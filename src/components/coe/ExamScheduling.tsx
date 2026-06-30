@@ -429,7 +429,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
       const batchName = ex.batch?.name || 'All Batches';
       const branchName = ex.subject?.branch || 'All Branches';
       const semNumber = ex.semester?.number ? `Sem ${ex.semester.number}` : '';
-      const key = `${batchName}-${branchName}-${semNumber}-${ex.exam_type}-${ex.exam_period}`;
+      const key = `${batchName}-${branchName}-${semNumber}-${ex.exam_type}-${ex.exam_period}-${ex.title}`;
       if (!groups[key]) {
         groups[key] = {
           id: key,
