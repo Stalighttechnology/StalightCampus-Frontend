@@ -211,7 +211,7 @@ export default function MobileDraw() {
         alert("Failed to send drawing: " + data.message);
       }
     } catch (err: any) {
-      alert("Network error. Please try again.");
+      alert("Error: " + (err.message || err.toString()));
     } finally {
       setIsSubmitting(false);
     }
