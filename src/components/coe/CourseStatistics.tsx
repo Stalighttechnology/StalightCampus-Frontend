@@ -26,7 +26,6 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [exporting, setExporting] = useState<boolean>(false);
   const [filters, setFilters] = useState({
     batch: "",
-    exam_period: "",
     branch: "",
     semester: ""
   });
@@ -35,7 +34,6 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
     branches: []
   });
   const [semesters, setSemesters] = useState<any[]>([]);
-  const [isExamPeriodOpen, setIsExamPeriodOpen] = useState(false);
   const [isBranchOpen, setIsBranchOpen] = useState(false);
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
 
@@ -44,12 +42,12 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
   }, []);
 
   useEffect(() => {
-    if (filters.batch && filters.exam_period && filters.branch && filters.semester) {
+    if (filters.batch && filters.branch && filters.semester) {
       fetchCourseStatistics();
     }
   }, [filters]);
   useEffect(() => {
-    if (filters.batch && filters.exam_period && filters.branch && filters.semester) {
+    if (filters.batch && filters.branch && filters.semester) {
       fetchCourseStatistics();
     }
   }, [page, pageSize]);
@@ -80,7 +78,14 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
   const fetchCourseStatistics = async () => {
     setLoading(true);
     try {
-      const result = await getCourseApplicationStats({ ...filters, page: String(page), page_size: String(pageSize) } as any);
+      const result = await getCourseApplicationStats({
+        batch: filters.batch,
+        branch: filters.branch,
+        semester: filters.semester,
+        exam_period: "",
+        page: String(page),
+        page_size: String(pageSize)
+      } as any);
       if (result.success) {
         setData(result.data);
         // Pagination info is now at the response root level
@@ -98,7 +103,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   const handleExport = async () => {
-    if (!filters.batch || !filters.branch || !filters.semester || !filters.exam_period) {
+    if (!filters.batch || !filters.branch || !filters.semester) {
       toast.error('Please select all filters before exporting.');
       return;
     }
@@ -106,9 +111,9 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
     try {
       const params = new URLSearchParams({
         batch: filters.batch,
-        exam_period: filters.exam_period,
         branch: filters.branch,
         semester: filters.semester,
+        exam_period: "",
         format: 'pdf',
       });
       const url = `${API_ENDPOINT}/coe/export-course-statistics/?${params.toString()}`;
@@ -170,12 +175,12 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
           <CardTitle>Course Statistics</CardTitle>
         </CardHeader>
         <CardContent className="p-6 pt-2 course-statistics-filters-content">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 course-statistics-filter-grid">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 course-statistics-filter-grid">
             <div>
               <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Batch</label>
               <Select value={filters.batch} onValueChange={(value) => {
                 setFilters({ ...filters, batch: value });
-                setTimeout(() => setIsExamPeriodOpen(true), 150);
+                setTimeout(() => setIsBranchOpen(true), 150);
               }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select batch" />
@@ -194,33 +199,12 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
               </Select>
             </div>
             <div>
-              <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Exam Period</label>
-              <Select value={filters.exam_period} onValueChange={(value) => {
-                setFilters({ ...filters, exam_period: value });
-                setTimeout(() => setIsBranchOpen(true), 150);
-              }} open={isExamPeriodOpen} onOpenChange={setIsExamPeriodOpen} disabled={!filters.batch}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select exam period" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="june_july">June/July</SelectItem>
-                  <SelectItem value="nov_dec">November/December</SelectItem>
-                  <SelectItem value="jan_feb">January/February</SelectItem>
-                  <SelectItem value="apr_may">April/May</SelectItem>
-                <SelectItem value="sept_oct">September/October</SelectItem>
-                <SelectItem value="feb_mar">February/March</SelectItem>
-                  <SelectItem value="supplementary">Supplementary</SelectItem>
-                  <SelectItem value="revaluation">Revaluation</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
               <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">{translateTerminology("Branch")}</label>
               <Select value={filters.branch} onValueChange={(value) => {
                 setFilters({ ...filters, branch: value, semester: "" });
                 fetchSemesters(value);
                 setTimeout(() => setIsSemesterOpen(true), 150);
-              }} open={isBranchOpen} onOpenChange={setIsBranchOpen} disabled={!filters.exam_period}>
+              }} open={isBranchOpen} onOpenChange={setIsBranchOpen} disabled={!filters.batch}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select branch" />
                 </SelectTrigger>

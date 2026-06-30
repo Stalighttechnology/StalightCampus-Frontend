@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { showConfirmAlert, showSweetAlert } from "@/utils/sweetalert";
 import Swal from 'sweetalert2';
@@ -24,7 +26,8 @@ import {
   XCircle,
   ChevronRight,
   Eye,
-  Download
+  Download,
+  Filter
 } from 'lucide-react';
 import {
   getPayrollSettings,
@@ -54,6 +57,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   // Loading & error states
   const [loading, setLoading] = useState(false);
   const [modalNotification, setModalNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [configModalOpen, setConfigModalOpen] = useState(false);
   
   const setError = (msg: string | null) => {
     if (msg) setModalNotification({ type: 'error', message: msg });
@@ -79,6 +83,56 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   const [runDetailsPage, setRunDetailsPage] = useState(1);
   const [runDetailsTotalPages, setRunDetailsTotalPages] = useState(1);
   const [runDetailsSearch, setRunDetailsSearch] = useState('');
+
+  // Filter Dropdowns
+  const roleFilterRef = useRef<HTMLDivElement>(null);
+  const [showRoleFilter, setShowRoleFilter] = useState(false);
+  const runDetailsRoleFilterRef = useRef<HTMLDivElement>(null);
+  const [showRunDetailsRoleFilter, setShowRunDetailsRoleFilter] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (roleFilterRef.current && !roleFilterRef.current.contains(event.target as Node)) {
+        setShowRoleFilter(false);
+      }
+    };
+    if (showRoleFilter) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showRoleFilter]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (runDetailsRoleFilterRef.current && !runDetailsRoleFilterRef.current.contains(event.target as Node)) {
+        setShowRunDetailsRoleFilter(false);
+      }
+    };
+    if (showRunDetailsRoleFilter) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showRunDetailsRoleFilter]);
+
+  const rolesList = [
+    { value: "", label: "All Roles" },
+    { value: "teacher", label: "Teacher" },
+    { value: "hod", label: "HOD" },
+    { value: "principal", label: "Principal" },
+    { value: "coe", label: "COE" },
+    { value: "fees_manager", label: "Fees Manager" },
+    { value: "warden", label: "Warden" },
+    { value: "caretaker", label: "Caretaker" },
+    { value: "placement_officer", label: "Placement Officer" },
+    { value: "transport_admin", label: "Transport Admin" },
+    { value: "driver", label: "Driver" },
+    { value: "library_admin", label: "Library Admin" },
+    { value: "org_admin", label: "Org Admin" }
+  ];
 
   // Data states
   const [payrollSettings, setPayrollSettings] = useState<any>({
@@ -514,39 +568,48 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   };
 
   // Reusable form input layout to replace the hardcoded "black boxes" in light mode
-  const formInputClass = "w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500";
+  const formInputClass = "w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary";
 
   return (
     <div className="space-y-6 pb-10">
-      {/* Title section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-            Payroll Management
-          </h1>
-          <p className={`text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-            Manage employee salaries, statutory PF/ESI compliance, TDS taxes, loans, and Razorpay payouts.
-          </p>
-        </div>
-        {activeTab !== 'settings' && !selectedRun && (
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2" onClick={() => setActiveTab('settings')}>
-              <Settings size={16} /> Configurations
-            </Button>
+      <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+        <CardHeader id="fees-manager-payroll-header" className="border-b mb-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-xl sm:text-2xl font-semibold mb-2">Payroll Management</CardTitle>
+              <CardDescription>Manage employee salaries, statutory PF/ESI compliance, TDS taxes, loans, and Razorpay payouts.</CardDescription>
+            </div>
+            {!selectedRun && (
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  className="gap-2 w-full sm:w-auto bg-primary text-white hover:bg-primary/80 hover:text-white"
+                  onClick={async () => {
+                    setLoading(true);
+                    const res = await getPayrollSettings();
+                    if (res.success) setPayrollSettings(res.data);
+                    setLoading(false);
+                    setConfigModalOpen(true);
+                  }}
+                >
+                  <Settings size={16} /> Configurations
+                </Button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </CardHeader>
 
-      {/* Tabs */}
-      <div className={`flex border-b overflow-x-auto gap-4 dark:border-slate-800`}>
+        <CardContent className="space-y-6">
+          {/* Tabs */}
+          <div className={`flex border-b overflow-x-auto gap-4 dark:border-slate-800`}>
         {(['overview', 'structures', 'reimbursements', 'runs'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => { setActiveTab(tab); setSelectedRun(null); }}
             className={`pb-3 text-sm font-semibold capitalize whitespace-nowrap transition-all border-b-2 ${
               activeTab === tab && !selectedRun
-                ? 'border-blue-500 text-blue-500'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             {tab === 'structures' ? 'Salary Structures' : tab === 'reimbursements' ? 'Reimbursements & Claims' : tab === 'runs' ? 'Payroll Batches' : tab}
@@ -640,29 +703,42 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                 className="w-full pl-9 pr-4 py-2 text-sm bg-transparent border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-md focus:border-blue-500 focus:outline-none"
               />
             </div>
-            <select
-              value={selectedRoleFilter}
-              onChange={(e) => handleRoleFilterChange(e.target.value)}
-              className="px-3 py-2 text-sm bg-transparent dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-md focus:outline-none focus:border-blue-500 cursor-pointer"
-            >
-              <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">All Roles</option>
-              <option value="teacher" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Teacher</option>
-              <option value="hod" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">HOD</option>
-              <option value="principal" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Principal</option>
-              <option value="coe" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">COE</option>
-              <option value="fees_manager" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Fees Manager</option>
-              <option value="warden" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Warden</option>
-              <option value="caretaker" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Caretaker</option>
-              <option value="placement_officer" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Placement Officer</option>
-              <option value="transport_admin" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Transport Admin</option>
-              <option value="driver" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Driver</option>
-              <option value="library_admin" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Library Admin</option>
-              <option value="org_admin" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Org Admin</option>
-            </select>
+            <div className="relative flex-shrink-0" ref={roleFilterRef}>
+              <Button
+                onClick={() => setShowRoleFilter((prev) => !prev)}
+                className="w-full sm:w-auto h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90 hover:text-white px-4 py-2 border-none rounded-md"
+              >
+                <Filter className="w-4 h-4 text-white" />
+                <span>
+                  {selectedRoleFilter === "" ? "All Roles" : rolesList.find(r => r.value === selectedRoleFilter)?.label || selectedRoleFilter}
+                </span>
+              </Button>
+              {showRoleFilter && (
+                <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-20 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+                  <div className="py-1 max-h-60 overflow-y-auto custom-scrollbar">
+                    {rolesList.map((role) => (
+                      <button
+                        key={role.value}
+                        type="button"
+                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-accent cursor-pointer ${
+                          theme === 'dark' ? 'hover:bg-accent text-foreground' : 'hover:bg-gray-100 text-gray-700'
+                        } ${selectedRoleFilter === role.value ? 'font-semibold bg-accent/50 text-primary' : ''}`}
+                        onClick={() => {
+                          handleRoleFilterChange(role.value);
+                          setShowRoleFilter(false);
+                        }}
+                      >
+                        {role.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="overflow-x-auto rounded-lg border border-slate-300 dark:border-slate-850">
-            <table className="w-full text-sm text-left">
+            <table className="w-full text-sm text-left whitespace-nowrap">
               <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
                 <tr>
                   <th className="px-6 py-4">Employee</th>
@@ -719,216 +795,108 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         </div>
       )}
 
-      {/* SUB-VIEW: Configure / Edit Salary Structure Form */}
-      {activeTab === 'structures' && selectedEmployee && (
-        <div className={`p-6 rounded-lg border ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{selectedEmployee.salary_structure ? 'Edit Salary Structure' : 'Configure Salary Structure'}</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{selectedEmployee.name} - {selectedEmployee.designation}</p>
-            </div>
-            <Button variant="ghost" onClick={() => setSelectedEmployee(null)}>Back to list</Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* General Settings */}
-            <div className="space-y-4">
-              <h3 className="text-md font-semibold text-blue-500 border-b border-slate-200 dark:border-slate-800 pb-2">Employment Info</h3>
-              <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Employment Type</label>
-                <Select
-                  value={editStructureData.employment_type}
-                  onValueChange={(val) => setEditStructureData({ ...editStructureData, employment_type: val })}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Employment Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="permanent">Permanent</SelectItem>
-                    <SelectItem value="contract">Contract</SelectItem>
-                    <SelectItem value="intern">Intern</SelectItem>
-                    <SelectItem value="freelancer">Freelancer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Salary Payment Cycle</label>
-                <Select
-                  value={editStructureData.salary_type}
-                  onValueChange={(val) => setEditStructureData({ ...editStructureData, salary_type: val })}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Salary Cycle" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="monthly">Monthly Salary</SelectItem>
-                    <SelectItem value="daily">Daily Wage</SelectItem>
-                    <SelectItem value="hourly">Hourly Rate</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">PAN Card Number <span className="text-slate-400 font-normal">(10 chars)</span></label>
-                <input
-                  type="text"
-                  maxLength={10}
-                  value={editStructureData.pan}
-                  onChange={(e) => { setEditStructureData({ ...editStructureData, pan: e.target.value.toUpperCase() }); setFieldErrors(p => ({...p, pan: ''})); }}
-                  className={`${formInputClass} ${fieldErrors['pan'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
-                  placeholder="e.g. ABCDE1234F"
-                />
-                <p className={`text-[10px] mt-0.5 ${fieldErrors['pan'] ? 'text-red-500' : 'text-slate-400'}`}>
-                  {fieldErrors['pan'] || `${String(editStructureData.pan||'').length}/10`}
-                </p>
-              </div>
-            </div>
-
-            {/* Income and Allowances */}
-            <div className="space-y-4">
-              <h3 className="text-md font-semibold text-blue-500 border-b border-slate-200 dark:border-slate-800 pb-2">Salary Allowances</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Basic Salary <span className="text-red-500">*</span></label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={editStructureData.basic_salary}
-                    onChange={(e) => { setEditStructureData({ ...editStructureData, basic_salary: Number(e.target.value) }); setFieldErrors(p => ({...p, basic_salary: false})); }}
-                    className={`${formInputClass} ${fieldErrors['basic_salary'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
-                  />
-                  {fieldErrors['basic_salary'] && <p className="text-[10px] text-red-500 mt-0.5">Required &amp; must be greater than 0</p>}
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">HRA Allowance</label>
-                  <input
-                    type="number"
-                    value={editStructureData.hra}
-                    onChange={(e) => setEditStructureData({ ...editStructureData, hra: Number(e.target.value) })}
-                    className={formInputClass}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Travel Allowance</label>
-                  <input
-                    type="number"
-                    value={editStructureData.travel_allowance}
-                    onChange={(e) => setEditStructureData({ ...editStructureData, travel_allowance: Number(e.target.value) })}
-                    className={formInputClass}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Medical Allowance</label>
-                  <input
-                    type="number"
-                    value={editStructureData.medical_allowance}
-                    onChange={(e) => setEditStructureData({ ...editStructureData, medical_allowance: Number(e.target.value) })}
-                    className={formInputClass}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Special Allowance</label>
-                  <input
-                    type="number"
-                    value={editStructureData.special_allowance}
-                    onChange={(e) => setEditStructureData({ ...editStructureData, special_allowance: Number(e.target.value) })}
-                    className={formInputClass}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Other Allowance</label>
-                  <input
-                    type="number"
-                    value={editStructureData.other_allowance}
-                    onChange={(e) => setEditStructureData({ ...editStructureData, other_allowance: Number(e.target.value) })}
-                    className={formInputClass}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Bank Details & Statutory Accounts */}
-            <div className="space-y-4">
-              <h3 className="text-md font-semibold text-blue-500 border-b border-slate-200 dark:border-slate-800 pb-2">Bank & Compliance</h3>
-              <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Bank Name <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  value={editStructureData.bank_name}
-                  onChange={(e) => { setEditStructureData({ ...editStructureData, bank_name: e.target.value }); setFieldErrors(p => ({...p, bank_name: false})); }}
-                  className={`${formInputClass} ${fieldErrors['bank_name'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
-                  placeholder="e.g. HDFC Bank"
-                />
-                {fieldErrors['bank_name'] && <p className="text-[10px] text-red-500 mt-0.5">Required</p>}
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Bank Account Number <span className="text-red-500">*</span> <span className="text-slate-400 font-normal">(9–18 digits)</span></label>
-                <input
-                  type="text"
-                  maxLength={18}
-                  value={editStructureData.bank_account_number}
-                  onChange={(e) => { setEditStructureData({ ...editStructureData, bank_account_number: e.target.value.replace(/\D/g, '') }); setFieldErrors(p => ({...p, bank_account_number: ''})); }}
-                  className={`${formInputClass} ${fieldErrors['bank_account_number'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
-                  placeholder="9 to 18 digit account number"
-                />
-                <p className={`text-[10px] mt-0.5 ${fieldErrors['bank_account_number'] ? 'text-red-500' : 'text-slate-400'}`}>
-                  {fieldErrors['bank_account_number'] || `${String(editStructureData.bank_account_number||'').length}/18`}
-                </p>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Bank IFSC Code <span className="text-red-500">*</span> <span className="text-slate-400 font-normal">(11 chars)</span></label>
-                <input
-                  type="text"
-                  maxLength={11}
-                  value={editStructureData.bank_ifsc}
-                  onChange={(e) => { setEditStructureData({ ...editStructureData, bank_ifsc: e.target.value.toUpperCase() }); setFieldErrors(p => ({...p, bank_ifsc: ''})); }}
-                  className={`${formInputClass} ${fieldErrors['bank_ifsc'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
-                  placeholder="e.g. HDFC0001234"
-                />
-                <p className={`text-[10px] mt-0.5 ${fieldErrors['bank_ifsc'] ? 'text-red-500' : 'text-slate-400'}`}>
-                  {fieldErrors['bank_ifsc'] || `${String(editStructureData.bank_ifsc||'').length}/11`}
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">UAN Number <span className="text-slate-400 font-normal">(12 digits)</span></label>
-                  <input
-                    type="text"
-                    maxLength={12}
-                    value={editStructureData.uan}
-                    onChange={(e) => { setEditStructureData({ ...editStructureData, uan: e.target.value.replace(/\D/g, '') }); setFieldErrors(p => ({...p, uan: ''})); }}
-                    className={`${formInputClass} ${fieldErrors['uan'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
-                    placeholder="12 digit UAN"
-                  />
-                  <p className={`text-[10px] mt-0.5 ${fieldErrors['uan'] ? 'text-red-500' : 'text-slate-400'}`}>
-                    {fieldErrors['uan'] || `${String(editStructureData.uan||'').length}/12`}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">PF Code</label>
-                  <input
-                    type="text"
-                    maxLength={30}
-                    value={editStructureData.pf_number}
-                    onChange={(e) => setEditStructureData({ ...editStructureData, pf_number: e.target.value })}
-                    className={formInputClass}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-8">
-            <Button variant="outline" onClick={() => setSelectedEmployee(null)}>Cancel</Button>
-            <Button onClick={() => handleSaveStructure()} disabled={loading}>Save Structure</Button>
-          </div>
-        </div>
-      )}
 
       {/* TAB CONTENT: Reimbursements & Claims */}
       {activeTab === 'reimbursements' && (
         <div className="space-y-4">
-          <div className="overflow-x-auto rounded-lg border border-slate-350 dark:border-slate-800">
-            <table className="w-full text-sm text-left">
+          {/* Mobile View: Stacked Cards */}
+          <div className="md:hidden space-y-4">
+            {reimbursements.map((claim, i) => (
+              <div key={i} className={`p-4 rounded-lg border space-y-3 ${theme === 'dark' ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-200'}`}>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-semibold text-slate-900 dark:text-white text-base">{claim.employee_name}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 capitalize">{claim.type} Claim</div>
+                  </div>
+                  <Badge variant="outline" className={`capitalize border-none ${
+                    claim.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
+                    claim.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'
+                  }`}>
+                    {claim.status}
+                  </Badge>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-850 text-xs">
+                  <div>
+                    <span className="text-slate-400 block mb-0.5">Amount</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">{formatCurrency(claim.amount)}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block mb-0.5">Receipt</span>
+                    {claim.receipt_file ? (
+                      <a href={claim.receipt_file} target="_blank" rel="noreferrer" className="text-blue-500 flex items-center gap-1 hover:underline font-semibold text-xs">
+                        <Eye size={12} /> View File
+                      </a>
+                    ) : (
+                      <span className="text-slate-500 italic">No attachment</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center my-3">
+                  {claim.description ? (
+                    <button
+                      onClick={() => setDescriptionModal({ open: true, text: claim.description, employee: claim.employee_name, type: claim.type })}
+                      className={`w-full sm:w-32 h-8 text-sm font-semibold flex items-center justify-center gap-1.5 rounded-lg shadow-sm transition-all duration-200 cursor-pointer
+                      ${theme === 'dark' ?
+                          'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' :
+                          'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10'}`}
+                    >
+                      <Eye size={14} /> View Reason
+                    </button>
+                  ) : (
+                    <span className="text-slate-500 italic text-xs">No description provided</span>
+                  )}
+                </div>
+
+                {claim.status === 'pending' && (
+                  <div className="flex flex-row gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      className={`flex-1 h-9 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200
+                      ${theme === 'dark' ?
+                          'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20 hover:text-green-400' :
+                          'text-green-700 border-green-200 bg-green-50 hover:bg-green-100 hover:text-green-700'}`
+                      }
+                      onClick={() => handleReimbursementAction(claim.id, 'approve')}
+                    >
+                      <CheckCircle size={14} /> Approve
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className={`flex-1 h-9 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200
+                      ${theme === 'dark' ?
+                          'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20 hover:text-red-400' :
+                          'text-red-700 border-red-200 bg-red-50 hover:bg-red-100 hover:text-red-700'}`
+                      }
+                      onClick={() => handleReimbursementAction(claim.id, 'reject')}
+                    >
+                      <XCircle size={14} /> Reject
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+            {!reimbursements.length && (
+              <div className={`border-2 border-dashed flex flex-col items-center justify-center p-8 text-center space-y-4 rounded-lg ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
+                  <Filter className={`w-8 h-8 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+                </div>
+                <div className="max-w-xs mx-auto">
+                  <h3 className={`text-md font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    No Reimbursement Claims Found
+                  </h3>
+                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    There are no reimbursement claims matching the selected filters.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop View: Table */}
+          <div className="hidden md:block overflow-x-auto rounded-lg border border-slate-350 dark:border-slate-800">
+            <table className="w-full text-sm text-left whitespace-nowrap">
               <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
                 <tr>
                   <th className="px-6 py-4">Employee</th>
@@ -949,7 +917,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                       {claim.description ? (
                         <button
                           onClick={() => setDescriptionModal({ open: true, text: claim.description, employee: claim.employee_name, type: claim.type })}
-                          className="flex items-center gap-1.5 text-xs text-blue-500 hover:text-blue-600 hover:underline transition-colors"
+                          className="flex items-center gap-1.5 text-xs text-blue-500 hover:text-blue-600 hover:underline transition-colors bg-transparent border-none cursor-pointer"
                         >
                           <Eye size={13} /> View
                         </button>
@@ -978,10 +946,26 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                     <td className="px-6 py-4 text-right flex justify-end gap-2">
                       {claim.status === 'pending' && (
                         <>
-                          <Button size="sm" variant="outline" className="border-emerald-500 text-emerald-500 hover:bg-emerald-500/10" onClick={() => handleReimbursementAction(claim.id, 'approve')}>
+                          <Button
+                            size="sm"
+                            className={`transition border ${
+                              theme === 'dark'
+                                ? 'border-green-500/20 text-green-400 bg-green-950/20 hover:bg-green-950/40 hover:text-green-400'
+                                : 'border-green-100 text-green-700 bg-green-50 hover:bg-green-100 hover:text-green-700'
+                            }`}
+                            onClick={() => handleReimbursementAction(claim.id, 'approve')}
+                          >
                             Approve
                           </Button>
-                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-500/10" onClick={() => handleReimbursementAction(claim.id, 'reject')}>
+                          <Button
+                            size="sm"
+                            className={`transition border ${
+                              theme === 'dark'
+                                ? 'border-red-500/20 text-red-400 bg-red-950/20 hover:bg-red-950/40 hover:text-red-400'
+                                : 'border-red-200 text-red-700 bg-red-50 hover:bg-red-100 hover:text-red-700'
+                            }`}
+                            onClick={() => handleReimbursementAction(claim.id, 'reject')}
+                          >
                             Reject
                           </Button>
                         </>
@@ -1006,138 +990,12 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         </div>
       )}
 
-      {/* TAB CONTENT: Configurations / Settings */}
-      {activeTab === 'settings' && (
-        <div className={`p-6 rounded-lg border ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-          <h2 className="text-xl font-bold mb-6 text-blue-500">Payroll Statutory Configurations</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* PF details */}
-            <div className="space-y-4 border-r border-slate-200 dark:border-slate-800 pr-6">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <Percent size={18} /> Provident Fund (PF) Settings
-              </h3>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="pf_enabled"
-                  checked={payrollSettings.pf_enabled}
-                  onChange={(e) => setPayrollSettings({ ...payrollSettings, pf_enabled: e.target.checked })}
-                  className="rounded bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700"
-                />
-                <label htmlFor="pf_enabled" className="text-sm font-semibold">Enable Employer & Employee PF Contributions</label>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Employee PF Contribution (%)</label>
-                  <input
-                    type="number"
-                    value={payrollSettings.pf_employee_percent}
-                    onChange={(e) => setPayrollSettings({ ...payrollSettings, pf_employee_percent: Number(e.target.value) })}
-                    className={formInputClass}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Employer PF Contribution (%)</label>
-                  <input
-                    type="number"
-                    value={payrollSettings.pf_employer_percent}
-                    onChange={(e) => setPayrollSettings({ ...payrollSettings, pf_employer_percent: Number(e.target.value) })}
-                    className={formInputClass}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">PF Wage Ceiling limit (INR)</label>
-                <input
-                  type="number"
-                  value={payrollSettings.pf_wage_ceiling}
-                  onChange={(e) => setPayrollSettings({ ...payrollSettings, pf_wage_ceiling: Number(e.target.value) })}
-                  className={formInputClass}
-                />
-              </div>
-            </div>
-
-            {/* ESI details */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <Percent size={18} /> Employee State Insurance (ESI) Settings
-              </h3>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="esi_enabled"
-                  checked={payrollSettings.esi_enabled}
-                  onChange={(e) => setPayrollSettings({ ...payrollSettings, esi_enabled: e.target.checked })}
-                  className="rounded bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700"
-                />
-                <label htmlFor="esi_enabled" className="text-sm font-semibold">Enable Employee ESI Contributions</label>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Employee ESI Contribution (%)</label>
-                  <input
-                    type="number"
-                    value={payrollSettings.esi_employee_percent}
-                    onChange={(e) => setPayrollSettings({ ...payrollSettings, esi_employee_percent: Number(e.target.value) })}
-                    className={formInputClass}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Employer ESI Contribution (%)</label>
-                  <input
-                    type="number"
-                    value={payrollSettings.esi_employer_percent}
-                    onChange={(e) => setPayrollSettings({ ...payrollSettings, esi_employer_percent: Number(e.target.value) })}
-                    className={formInputClass}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">ESI Income Threshold Ceiling Limit (INR)</label>
-                <input
-                  type="number"
-                  value={payrollSettings.esi_wage_limit}
-                  onChange={(e) => setPayrollSettings({ ...payrollSettings, esi_wage_limit: Number(e.target.value) })}
-                  className={formInputClass}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 border-t border-slate-200 dark:border-slate-800 pt-6">
-            <h3 className="font-semibold text-lg mb-4">Calculation Configurations</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-2">Loss of Pay (LOP) Daily Wage Basis</label>
-                <Select
-                  value={payrollSettings.lop_calculation_basis}
-                  onValueChange={(val) => setPayrollSettings({ ...payrollSettings, lop_calculation_basis: val })}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select LOP Basis" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="calendar_days">Calendar Days in Month (e.g. 30/31)</SelectItem>
-                    <SelectItem value="working_days">Working Days (excluding Weekends/Holidays)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-8">
-            <Button variant="outline" onClick={() => setActiveTab('overview')}>Cancel</Button>
-            <Button onClick={() => handleSaveSettings()} disabled={loading}>Save Configurations</Button>
-          </div>
-        </div>
-      )}
 
       {/* TAB CONTENT: Payroll Batches (Runs) */}
       {activeTab === 'runs' && !selectedRun && (
         <div className="space-y-4">
           <div className="overflow-x-auto rounded-lg border border-slate-350 dark:border-slate-800">
-            <table className="w-full text-sm text-left">
+            <table className="w-full text-sm text-left whitespace-nowrap">
               <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
                 <tr>
                   <th className="px-6 py-4">Period</th>
@@ -1197,7 +1055,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+              <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                 Payroll Details: {new Date(0, selectedRun.month - 1).toLocaleString('en-US', { month: 'long' })} {selectedRun.year}
               </h2>
               <div className="flex items-center gap-2 mt-1">
@@ -1236,29 +1094,42 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                 className="w-full pl-9 pr-4 py-2 text-sm bg-transparent border border-slate-355 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-md focus:border-blue-500 focus:outline-none"
               />
             </div>
-            <select
-              value={selectedRunDetailsRoleFilter}
-              onChange={(e) => handleRunDetailsRoleFilterChange(e.target.value)}
-              className="px-3 py-2 text-sm bg-transparent dark:bg-slate-900 border border-slate-305 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-md focus:outline-none focus:border-blue-500 cursor-pointer"
-            >
-              <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">All Roles</option>
-              <option value="teacher" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Teacher</option>
-              <option value="hod" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">HOD</option>
-              <option value="principal" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Principal</option>
-              <option value="coe" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">COE</option>
-              <option value="fees_manager" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Fees Manager</option>
-              <option value="warden" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Warden</option>
-              <option value="caretaker" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Caretaker</option>
-              <option value="placement_officer" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Placement Officer</option>
-              <option value="transport_admin" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Transport Admin</option>
-              <option value="driver" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Driver</option>
-              <option value="library_admin" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Library Admin</option>
-              <option value="org_admin" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Org Admin</option>
-            </select>
+            <div className="relative flex-shrink-0" ref={runDetailsRoleFilterRef}>
+              <Button
+                onClick={() => setShowRunDetailsRoleFilter((prev) => !prev)}
+                className="w-full sm:w-auto h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90 hover:text-white px-4 py-2 border-none rounded-md"
+              >
+                <Filter className="w-4 h-4 text-white" />
+                <span>
+                  {selectedRunDetailsRoleFilter === "" ? "All Roles" : rolesList.find(r => r.value === selectedRunDetailsRoleFilter)?.label || selectedRunDetailsRoleFilter}
+                </span>
+              </Button>
+              {showRunDetailsRoleFilter && (
+                <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-20 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+                  <div className="py-1 max-h-60 overflow-y-auto custom-scrollbar">
+                    {rolesList.map((role) => (
+                      <button
+                        key={role.value}
+                        type="button"
+                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-accent cursor-pointer ${
+                          theme === 'dark' ? 'hover:bg-accent text-foreground' : 'hover:bg-gray-100 text-gray-700'
+                        } ${selectedRunDetailsRoleFilter === role.value ? 'font-semibold bg-accent/50 text-primary' : ''}`}
+                        onClick={() => {
+                          handleRunDetailsRoleFilterChange(role.value);
+                          setShowRunDetailsRoleFilter(false);
+                        }}
+                      >
+                        {role.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="overflow-x-auto rounded-lg border border-slate-350 dark:border-slate-800">
-            <table className="w-full text-sm text-left">
+            <table className="w-full text-sm text-left whitespace-nowrap">
               <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
                 <tr>
                   <th className="px-6 py-4">Employee</th>
@@ -1292,7 +1163,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                     <td className="px-6 py-4 text-right text-red-500">{formatCurrency(det.esi_deduction)}</td>
                     <td className="px-6 py-4 text-right text-red-500">{formatCurrency(det.tds_deduction)}</td>
                     <td className="px-6 py-4 text-right text-red-500">{formatCurrency(Number(det.loan_emi) + Number(det.advance_recovery))}</td>
-                    <td className="px-6 py-4 text-right font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(det.net_salary)}</td>
+                    <td className="px-6 py-4 text-right font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(det.net_salary)}</td>
                     <td className="px-6 py-4 text-center">
                       {det.payout_id ? (
                         <Badge variant="outline" className={`capitalize border-none ${
@@ -1335,8 +1206,357 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
           />
         </div>
       )}
+        </CardContent>
+      </Card>
+      <Dialog open={configModalOpen} onOpenChange={setConfigModalOpen}>
+        <DialogContent className={`max-w-4xl w-[90%] md:w-[95%] max-h-[85vh] overflow-y-auto custom-scrollbar rounded-xl p-6 ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'}`}>
+          <DialogHeader className="pb-2">
+            <DialogTitle className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Payroll Statutory Configurations</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6 my-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* PF details card */}
+              <Card className={`p-5 ${theme === 'dark' ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-200'}`}>
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-base flex items-center gap-2">
+                    <Percent size={18} className="text-primary" /> Provident Fund (PF) Settings
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="pf_enabled"
+                      checked={payrollSettings.pf_enabled}
+                      onCheckedChange={(checked) => setPayrollSettings({ ...payrollSettings, pf_enabled: !!checked })}
+                    />
+                    <label htmlFor="pf_enabled" className="text-sm font-semibold cursor-pointer">Enable Employer & Employee PF Contributions</label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 block mb-1">Employee PF Contribution (%)</label>
+                      <input
+                        type="number"
+                        value={payrollSettings.pf_employee_percent}
+                        onChange={(e) => setPayrollSettings({ ...payrollSettings, pf_employee_percent: Number(e.target.value) })}
+                        className={formInputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 block mb-1">Employer PF Contribution (%)</label>
+                      <input
+                        type="number"
+                        value={payrollSettings.pf_employer_percent}
+                        onChange={(e) => setPayrollSettings({ ...payrollSettings, pf_employer_percent: Number(e.target.value) })}
+                        className={formInputClass}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">PF Wage Ceiling limit (INR)</label>
+                    <input
+                      type="number"
+                      value={payrollSettings.pf_wage_ceiling}
+                      onChange={(e) => setPayrollSettings({ ...payrollSettings, pf_wage_ceiling: Number(e.target.value) })}
+                      className={formInputClass}
+                    />
+                  </div>
+                </div>
+              </Card>
+
+              {/* ESI details card */}
+              <Card className={`p-5 ${theme === 'dark' ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-200'}`}>
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-base flex items-center gap-2">
+                    <Percent size={18} className="text-primary" /> Employee State Insurance (ESI) Settings
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="esi_enabled"
+                      checked={payrollSettings.esi_enabled}
+                      onCheckedChange={(checked) => setPayrollSettings({ ...payrollSettings, esi_enabled: !!checked })}
+                    />
+                    <label htmlFor="esi_enabled" className="text-sm font-semibold cursor-pointer">Enable Employee ESI Contributions</label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 block mb-1">Employee ESI Contribution (%)</label>
+                      <input
+                        type="number"
+                        value={payrollSettings.esi_employee_percent}
+                        onChange={(e) => setPayrollSettings({ ...payrollSettings, esi_employee_percent: Number(e.target.value) })}
+                        className={formInputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 block mb-1">Employer ESI Contribution (%)</label>
+                      <input
+                        type="number"
+                        value={payrollSettings.esi_employer_percent}
+                        onChange={(e) => setPayrollSettings({ ...payrollSettings, esi_employer_percent: Number(e.target.value) })}
+                        className={formInputClass}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">ESI Income Threshold Ceiling Limit (INR)</label>
+                    <input
+                      type="number"
+                      value={payrollSettings.esi_wage_limit}
+                      onChange={(e) => setPayrollSettings({ ...payrollSettings, esi_wage_limit: Number(e.target.value) })}
+                      className={formInputClass}
+                    />
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* LOP/Calculation settings card */}
+            <Card className={`p-5 ${theme === 'dark' ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-200'}`}>
+              <div className="space-y-4">
+                <h3 className="font-semibold text-base mb-2">Calculation Configurations</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 block mb-2">Loss of Pay (LOP) Daily Wage Basis</label>
+                    <Select
+                      value={payrollSettings.lop_calculation_basis}
+                      onValueChange={(val) => setPayrollSettings({ ...payrollSettings, lop_calculation_basis: val })}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select LOP Basis" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="calendar_days">Calendar Days in Month (e.g. 30/31)</SelectItem>
+                        <SelectItem value="working_days">Working Days (excluding Weekends/Holidays)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <DialogFooter className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <Button variant="outline" onClick={() => setConfigModalOpen(false)}>Cancel</Button>
+            <Button onClick={async () => {
+              await handleSaveSettings();
+              setConfigModalOpen(false);
+            }} disabled={loading}>Save Configurations</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!selectedEmployee} onOpenChange={(open) => { if (!open) setSelectedEmployee(null); }}>
+        <DialogContent className={`max-w-5xl w-[90%] md:w-[95%] max-h-[85vh] overflow-y-auto custom-scrollbar rounded-xl p-6 ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'}`}>
+          <DialogHeader className="pb-2">
+            <DialogTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+              {selectedEmployee?.salary_structure ? 'Edit Salary Structure' : 'Configure Salary Structure'}
+            </DialogTitle>
+            <DialogDescription className="text-sm">
+              {selectedEmployee?.name} - {selectedEmployee?.designation}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 my-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Employment Info Card */}
+              <Card className={`p-5 ${theme === 'dark' ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-200'}`}>
+                <div className="space-y-4">
+                  <h3 className="text-md font-semibold text-primary border-b border-slate-200 dark:border-slate-800 pb-2">Employment Info</h3>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">Employment Type</label>
+                    <Select
+                      value={editStructureData.employment_type}
+                      onValueChange={(val) => setEditStructureData({ ...editStructureData, employment_type: val })}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Employment Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="permanent">Permanent</SelectItem>
+                        <SelectItem value="contract">Contract</SelectItem>
+                        <SelectItem value="intern">Intern</SelectItem>
+                        <SelectItem value="freelancer">Freelancer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">Salary Payment Cycle</label>
+                    <Select
+                      value={editStructureData.salary_type}
+                      onValueChange={(val) => setEditStructureData({ ...editStructureData, salary_type: val })}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Salary Cycle" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="monthly">Monthly Salary</SelectItem>
+                        <SelectItem value="daily">Daily Wage</SelectItem>
+                        <SelectItem value="hourly">Hourly Rate</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">PAN Card Number <span className="text-slate-400 font-normal">(10 chars)</span></label>
+                    <input
+                      type="text"
+                      maxLength={10}
+                      value={editStructureData.pan}
+                      onChange={(e) => { setEditStructureData({ ...editStructureData, pan: e.target.value.toUpperCase() }); setFieldErrors(p => ({...p, pan: ''})); }}
+                      className={`${formInputClass} ${fieldErrors['pan'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                      placeholder="e.g. ABCDE1234F"
+                    />
+                    <p className={`text-[10px] mt-0.5 ${fieldErrors['pan'] ? 'text-red-500' : 'text-slate-400'}`}>
+                      {fieldErrors['pan'] || `${String(editStructureData.pan||'').length}/10`}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Salary Allowances Card */}
+              <Card className={`p-5 ${theme === 'dark' ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-200'}`}>
+                <div className="space-y-4">
+                  <h3 className="text-md font-semibold text-primary border-b border-slate-200 dark:border-slate-800 pb-2">Salary Allowances</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="text-xs font-semibold text-slate-400 block mb-1">Basic Salary <span className="text-red-500">*</span></label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={editStructureData.basic_salary}
+                        onChange={(e) => { setEditStructureData({ ...editStructureData, basic_salary: Number(e.target.value) }); setFieldErrors(p => ({...p, basic_salary: false})); }}
+                        className={`${formInputClass} ${fieldErrors['basic_salary'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                      />
+                      {fieldErrors['basic_salary'] && <p className="text-[10px] text-red-500 mt-0.5">Required &amp; must be greater than 0</p>}
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 block mb-1">HRA Allowance</label>
+                      <input
+                        type="number"
+                        value={editStructureData.hra}
+                        onChange={(e) => setEditStructureData({ ...editStructureData, hra: Number(e.target.value) })}
+                        className={formInputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 block mb-1">Travel Allowance</label>
+                      <input
+                        type="number"
+                        value={editStructureData.travel_allowance}
+                        onChange={(e) => setEditStructureData({ ...editStructureData, travel_allowance: Number(e.target.value) })}
+                        className={formInputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 block mb-1">Medical Allowance</label>
+                      <input
+                        type="number"
+                        value={editStructureData.medical_allowance}
+                        onChange={(e) => setEditStructureData({ ...editStructureData, medical_allowance: Number(e.target.value) })}
+                        className={formInputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 block mb-1">Special Allowance</label>
+                      <input
+                        type="number"
+                        value={editStructureData.special_allowance}
+                        onChange={(e) => setEditStructureData({ ...editStructureData, special_allowance: Number(e.target.value) })}
+                        className={formInputClass}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="text-xs font-semibold text-slate-400 block mb-1">Other Allowance</label>
+                      <input
+                        type="number"
+                        value={editStructureData.other_allowance}
+                        onChange={(e) => setEditStructureData({ ...editStructureData, other_allowance: Number(e.target.value) })}
+                        className={formInputClass}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Bank & Compliance Card */}
+              <Card className={`p-5 ${theme === 'dark' ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-200'}`}>
+                <div className="space-y-4">
+                  <h3 className="text-md font-semibold text-primary border-b border-slate-200 dark:border-slate-800 pb-2">Bank & Compliance</h3>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">Bank Name <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      value={editStructureData.bank_name}
+                      onChange={(e) => { setEditStructureData({ ...editStructureData, bank_name: e.target.value }); setFieldErrors(p => ({...p, bank_name: false})); }}
+                      className={`${formInputClass} ${fieldErrors['bank_name'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                      placeholder="e.g. HDFC Bank"
+                    />
+                    {fieldErrors['bank_name'] && <p className="text-[10px] text-red-500 mt-0.5">Required</p>}
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">Bank Account Number <span className="text-red-500">*</span> <span className="text-slate-400 font-normal">(9–18 digits)</span></label>
+                    <input
+                      type="text"
+                      maxLength={18}
+                      value={editStructureData.bank_account_number}
+                      onChange={(e) => { setEditStructureData({ ...editStructureData, bank_account_number: e.target.value.replace(/\D/g, '') }); setFieldErrors(p => ({...p, bank_account_number: ''})); }}
+                      className={`${formInputClass} ${fieldErrors['bank_account_number'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                      placeholder="9 to 18 digit account number"
+                    />
+                    <p className={`text-[10px] mt-0.5 ${fieldErrors['bank_account_number'] ? 'text-red-500' : 'text-slate-400'}`}>
+                      {fieldErrors['bank_account_number'] || `${String(editStructureData.bank_account_number||'').length}/18`}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">Bank IFSC Code <span className="text-red-500">*</span> <span className="text-slate-400 font-normal">(11 chars)</span></label>
+                    <input
+                      type="text"
+                      maxLength={11}
+                      value={editStructureData.bank_ifsc}
+                      onChange={(e) => { setEditStructureData({ ...editStructureData, bank_ifsc: e.target.value.toUpperCase() }); setFieldErrors(p => ({...p, bank_ifsc: ''})); }}
+                      className={`${formInputClass} ${fieldErrors['bank_ifsc'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                      placeholder="e.g. HDFC0001234"
+                    />
+                    <p className={`text-[10px] mt-0.5 ${fieldErrors['bank_ifsc'] ? 'text-red-500' : 'text-slate-400'}`}>
+                      {fieldErrors['bank_ifsc'] || `${String(editStructureData.bank_ifsc||'').length}/11`}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">UAN Number <span className="text-slate-400 font-normal">(12 digits)</span></label>
+                    <input
+                      type="text"
+                      maxLength={12}
+                      value={editStructureData.uan}
+                      onChange={(e) => { setEditStructureData({ ...editStructureData, uan: e.target.value.replace(/\D/g, '') }); setFieldErrors(p => ({...p, uan: ''})); }}
+                      className={`${formInputClass} ${fieldErrors['uan'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                      placeholder="12 digit UAN"
+                    />
+                    <p className={`text-[10px] mt-0.5 ${fieldErrors['uan'] ? 'text-red-500' : 'text-slate-400'}`}>
+                      {fieldErrors['uan'] || `${String(editStructureData.uan||'').length}/12`}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">PF Code</label>
+                    <input
+                      type="text"
+                      maxLength={30}
+                      value={editStructureData.pf_number}
+                      onChange={(e) => setEditStructureData({ ...editStructureData, pf_number: e.target.value })}
+                      className={formInputClass}
+                    />
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <Button variant="outline" onClick={() => setSelectedEmployee(null)}>Cancel</Button>
+            <Button onClick={() => handleSaveStructure()} disabled={loading}>Save Structure</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!modalNotification} onOpenChange={(open) => { if (!open) setModalNotification(null); }}>
-        <DialogContent className={`w-[90vw] sm:max-w-sm rounded-xl p-6 shadow-2xl border ${
+        <DialogContent className={`w-[90%] sm:max-w-sm rounded-xl p-6 shadow-2xl border ${
           theme === 'dark' ? 'bg-[#0f172a] text-slate-100 border-slate-800' : 'bg-white text-slate-900 border-slate-200'
         }`}>
           <div className="flex flex-col items-center text-center space-y-4 pt-4">
@@ -1350,7 +1570,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
               </div>
             )}
             <div>
-              <h3 className="text-lg font-bold capitalize text-slate-900 dark:text-white">
+              <h3 className="text-lg font-semibold capitalize text-slate-900 dark:text-white">
                 {modalNotification?.type}
               </h3>
               <p className="text-sm mt-2 text-slate-500 dark:text-slate-400">

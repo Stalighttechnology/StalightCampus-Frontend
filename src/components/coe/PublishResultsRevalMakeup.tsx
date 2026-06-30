@@ -315,7 +315,11 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
               <SelectValue placeholder="Select batch" />
             </SelectTrigger>
             <SelectContent>
-              {filters.batches.map((b: any) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)}
+              {filters.batches && filters.batches.length > 0 ? (
+                filters.batches.map((b: any) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)
+              ) : (
+                <SelectItem value="none" disabled>No batches found</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -330,7 +334,11 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
               <SelectValue placeholder="Select branch" />
             </SelectTrigger>
             <SelectContent>
-              {filters.branches.map((b: any) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)}
+              {filters.branches && filters.branches.length > 0 ? (
+                filters.branches.map((b: any) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)
+              ) : (
+                <SelectItem value="none" disabled>No branches found</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -344,9 +352,11 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
               <SelectValue placeholder="Select semester" />
             </SelectTrigger>
             <SelectContent>
-              {semesters.map((s: any) =>
-                  <SelectItem key={s.id} value={String(s.id)}>{s.number}</SelectItem>
-                  )}
+              {semesters && semesters.length > 0 ? (
+                semesters.map((s: any) => <SelectItem key={s.id} value={String(s.id)}>{s.number}</SelectItem>)
+              ) : (
+                <SelectItem value="none" disabled>No semesters found</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
