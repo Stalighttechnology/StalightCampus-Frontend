@@ -899,6 +899,25 @@ export const scheduleExam = async (payload: any): Promise<{success: boolean;mess
 };
 
 /**
+ * Update a scheduled exam
+ */
+export const updateExamSchedule = async (payload: { exam_id: number; date?: string; start_time?: string; end_time?: string; room?: string }): Promise<{success: boolean;message?: string;}> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/exam-schedule/`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+/**
  * Delete a scheduled exam
  */
 export const deleteExam = async (examId: number): Promise<{success: boolean;message?: string;}> => {

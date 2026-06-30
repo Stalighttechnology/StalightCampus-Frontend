@@ -26,7 +26,7 @@ import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from "../ui/alert";
-import { RefreshCcw, BookOpen, Clock, Calendar, CheckCircle2, History, Plus, Trash2, MapPin } from "lucide-react";
+import { RefreshCcw, BookOpen, Clock, Calendar, CheckCircle2, History, Plus, Trash2, MapPin, Edit2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
@@ -34,6 +34,7 @@ import {
   getExamSchedule,
   scheduleExam,
   deleteExam,
+  updateExamSchedule,
   getFilterOptions,
   getSemesters,
   getSubjects,
@@ -404,6 +405,32 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
         toast.success("Exam schedule deleted successfully");
       } else {
         toast.error(res.message || "Failed to delete");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [editingExamId, setEditingExamId] = useState<number | null>(null);
+  const [editFormData, setEditFormData] = useState({ date: '', start_time: '', end_time: '', room: '' });
+
+  const handleUpdateExam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingExamId) return;
+    setLoading(true);
+    try {
+      const res = await updateExamSchedule({
+        exam_id: editingExamId,
+        ...editFormData
+      });
+      if (res.success) {
+        toast.success("Exam schedule updated successfully");
+        setEditingExamId(null);
+        loadData(pagination.currentPage, listFilters); // Reload current page
+      } else {
+        toast.error(res.message || "Failed to update exam");
       }
     } catch (e: any) {
       toast.error(e.message || "Error occurred");
@@ -1514,9 +1541,17 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleDelete(ex.id)}>
-                          <Trash2 className="w-4 h-4" />
+                          className="text-primary hover:text-primary hover:bg-primary/10"
+                          onClick={() => {
+                            setEditingExamId(ex.id);
+                            setEditFormData({
+                              date: ex.date,
+                              start_time: ex.start_time,
+                              end_time: ex.end_time,
+                              room: ex.room || ''
+                            });
+                          }}>
+                          <Edit2 className="w-4 h-4" />
                         </Button>
                       </td>
                     </tr>
@@ -1528,6 +1563,64 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="mt-4 flex justify-end gap-3">
             <Button variant="outline" className="bg-primary hover:bg-primary/90 text-white hover:text-white" onClick={() => setViewGroupId(null)}>Close</Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editingExamId} onOpenChange={(open) => !open && setEditingExamId(null)}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'} max-w-md w-[90vw] sm:w-full rounded-xl`}>
+          <DialogHeader>
+            <DialogTitle>Edit Exam Schedule</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateExam} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Date</label>
+              <Input
+                type="date"
+                value={editFormData.date}
+                onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
+                required
+                className="bg-background"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Start Time</label>
+                <Input
+                  type="time"
+                  value={editFormData.start_time}
+                  onChange={(e) => setEditFormData({ ...editFormData, start_time: e.target.value })}
+                  required
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">End Time</label>
+                <Input
+                  type="time"
+                  value={editFormData.end_time}
+                  onChange={(e) => setEditFormData({ ...editFormData, end_time: e.target.value })}
+                  required
+                  className="bg-background"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Room</label>
+              <Input
+                placeholder="e.g. 123"
+                value={editFormData.room}
+                onChange={(e) => setEditFormData({ ...editFormData, room: e.target.value })}
+                required
+                className="bg-background"
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button type="button" variant="outline" onClick={() => setEditingExamId(null)}>Cancel</Button>
+              <Button type="submit" disabled={loading} className="bg-primary text-white">
+                {loading ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>);
