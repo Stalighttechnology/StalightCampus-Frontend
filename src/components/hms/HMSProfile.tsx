@@ -2,6 +2,7 @@ import { Switch } from "@/components/ui/switch";
 import { handleNotificationToggle, checkNotificationPermission } from "../../utils/notificationHelper";
 import HelpLearningCard from "../common/HelpLearningCard";
 import LoginActivity from "../common/LoginActivity";
+import GoogleIntegrationTab from "../common/GoogleIntegrationTab";
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -66,12 +67,29 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
-  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'help' | 'settings' | 'activity'>('personal');
+  const urlParams = new URLSearchParams(window.location.search);
+  const defaultTab = urlParams.get("google_connected") !== null ? "integrations" : "personal";
+  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'help' | 'settings' | 'activity' | 'integrations'>(defaultTab as any);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
+  const [googleConnectLoading, setGoogleConnectLoading] = useState(false);
 
   useEffect(() => {
     checkNotificationPermission(setNotificationsEnabled);
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'integrations' && googleConnected === null) {
+      setGoogleConnectLoading(true);
+      fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/status/`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.connected !== undefined) setGoogleConnected(data.connected);
+        })
+        .catch(err => console.error("Failed to fetch google status", err))
+        .finally(() => setGoogleConnectLoading(false));
+    }
+  }, [activeTab]);
 
   // Profile picture upload states
   const [isUploadingPicture, setIsUploadingPicture] = useState(false);
@@ -312,6 +330,18 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
 
 
 
+      case 'integrations':
+        return (
+          <div className="animate-in fade-in duration-300">
+            <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Integrations</h3>
+            <GoogleIntegrationTab 
+              googleConnected={googleConnected}
+              setGoogleConnected={setGoogleConnected}
+              googleConnectLoading={googleConnectLoading}
+            />
+          </div>
+        );
+
       case 'settings':
         return (
           <div className="animate-in fade-in duration-300">
@@ -520,6 +550,7 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
                 <button onClick={() => setActiveTab('personal')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-sm sm:text-sm whitespace-nowrap ${activeTab === 'personal' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Personal Info</button>
                 <button onClick={() => setActiveTab('contact')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-sm sm:text-sm whitespace-nowrap ${activeTab === 'contact' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Contact & Bio</button>
                 <button onClick={() => setActiveTab('settings')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-sm sm:text-sm whitespace-nowrap ${activeTab === 'settings' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Settings</button>
+                <button onClick={() => setActiveTab('integrations')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-sm sm:text-sm whitespace-nowrap ${activeTab === 'integrations' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Integrations</button>
                 <button onClick={() => setActiveTab('help')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-sm sm:text-sm whitespace-nowrap ${activeTab === 'help' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Help & Learning</button>
                 <button onClick={() => setActiveTab('activity')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-sm sm:text-sm whitespace-nowrap ${activeTab === 'activity' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Login Activity</button>
               </div>

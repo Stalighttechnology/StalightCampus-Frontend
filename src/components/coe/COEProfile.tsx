@@ -48,10 +48,25 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
   const defaultTab = urlParams.get("google_connected") !== null ? "integrations" : "details";
   const [activeTab, setActiveTab] = useState<"personal" | "contact" | "activity" | "help" | "settings" | 'integrations'>(defaultTab as any);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
+  const [googleConnectLoading, setGoogleConnectLoading] = useState(false);
 
   useEffect(() => {
     checkNotificationPermission(setNotificationsEnabled);
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'integrations' && googleConnected === null) {
+      setGoogleConnectLoading(true);
+      fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/status/`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.connected !== undefined) setGoogleConnected(data.connected);
+        })
+        .catch(err => console.error("Failed to fetch google status", err))
+        .finally(() => setGoogleConnectLoading(false));
+    }
+  }, [activeTab]);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [formData, setFormData] = useState({
     first_name: "",
@@ -593,6 +608,16 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </div>
                     <Switch checked={notificationsEnabled} onCheckedChange={(checked) => handleNotificationToggle(checked, setNotificationsEnabled)} />
                   </div>
+                </div>
+              )}
+              {activeTab === 'integrations' && (
+                <div className="animate-in fade-in duration-300">
+                  <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Integrations</h3>
+                  <GoogleIntegrationTab 
+                    googleConnected={googleConnected}
+                    setGoogleConnected={setGoogleConnected}
+                    googleConnectLoading={googleConnectLoading}
+                  />
                 </div>
               )}
 
