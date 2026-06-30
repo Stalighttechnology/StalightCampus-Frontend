@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { API_ENDPOINT } from '../../utils/config';
 import { useTheme } from '../../context/ThemeContext';
@@ -28,10 +29,11 @@ const AVAILABLE_ROLES = [
   { id: 'hod', label: 'HOD' },
   { id: 'coe', label: 'COE' },
   { id: 'admission_manager', label: 'Admission Manager' },
-  { id: 'placement_officer', label: 'Placement Officer' },
   { id: 'teacher', label: 'Faculty / Teacher' },
   { id: 'library_admin', label: 'Library Admin' },
   { id: 'transport_admin', label: 'Transport Admin' },
+  { id: 'fees_manager', label: 'Fee Manager' },
+  { id: 'hms_admin', label: 'HMS Admin' },
 ];
 
 
@@ -82,14 +84,14 @@ const getInitialScheduleState = () => {
 
 export default function ScheduleMeeting() {
   const { theme } = useTheme();
-  const { role: userRole } = useAuth();
+  const navigate = useNavigate();
+  const { user, role: userRole } = useAuth();
   const [meetings, setMeetings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
 
-  
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const initVals = getInitialScheduleState();
   const [date, setDate] = useState(initVals.date);
@@ -100,12 +102,14 @@ export default function ScheduleMeeting() {
   const [endMinute, setEndMinute] = useState(initVals.endMinute);
   const [endPeriod, setEndPeriod] = useState(initVals.endPeriod);
 
+  const [branches, setBranches] = useState<any[]>([]);
+  const [selectedBranch, setSelectedBranch] = useState<string>('');
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     target_roles: [] as string[]
   });
-
 
   const fetchMeetings = async () => {
     setLoading(true);
@@ -125,9 +129,64 @@ export default function ScheduleMeeting() {
     }
   };
 
+  const fetchBranches = async () => {
+    try {
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/meetings/branches/`);
+      if (res.ok) {
+        const data = await res.json();
+        setBranches(data);
+      }
+    } catch (e) {
+      console.error("Failed to load branches:", e);
+    }
+  };
+
   useEffect(() => {
     fetchMeetings();
+    fetchBranches();
   }, []);
+
+  useEffect(() => {
+    if (branches.length > 0 && userRole === 'hod') {
+      const hodBranchName = (user as any)?.branch;
+      if (hodBranchName) {
+        const matched = branches.find(b => b.name.toLowerCase() === hodBranchName.toLowerCase());
+        if (matched) {
+          setSelectedBranch(matched.id);
+        }
+      }
+    }
+  }, [branches, userRole, user]);
+
+  const getTargetRolesForUser = (role: string) => {
+    switch (role) {
+      case "principal":
+      case "org_admin":
+      case "admin":
+      case "dean":
+        return AVAILABLE_ROLES.map(r => r.id);
+      case "coe":
+        return ["teacher", "hod", "principal"];
+      case "fees_manager":
+      case "hms":
+      case "hms_admin":
+      case "transport_admin":
+      case "warden":
+        return []; // Staff meetings cannot target students (their only allowed announcement target)
+      case "teacher":
+        return ["hod", "teacher"]; // Faculty/teacher cannot target principal
+      default:
+        // HOD, etc.
+        return ["hod", "teacher", "principal"];
+    }
+  };
+
+  const allowedTargetRoles = getTargetRolesForUser(userRole || '');
+  const filteredRoles = AVAILABLE_ROLES.filter(role => 
+    allowedTargetRoles.includes(role.id) && role.id !== userRole
+  );
+
+  const isAllSelected = filteredRoles.length > 0 && filteredRoles.every(role => formData.target_roles.includes(role.id));
 
   const handleRoleToggle = (roleId: string) => {
     setFormData(prev => {
@@ -138,6 +197,13 @@ export default function ScheduleMeeting() {
         return { ...prev, target_roles: [...current, roleId] };
       }
     });
+  };
+
+  const handleSelectAllToggle = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      target_roles: checked ? filteredRoles.map(r => r.id) : []
+    }));
   };
 
   const handleCreateMeeting = async () => {
@@ -171,7 +237,8 @@ export default function ScheduleMeeting() {
         description: formData.description,
         start_time: startDateTime.toISOString(),
         end_time: endDateTime.toISOString(),
-        target_roles: formData.target_roles
+        target_roles: formData.target_roles,
+        branch: selectedBranch && selectedBranch !== 'all-branches' ? selectedBranch : null
       };
 
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/meetings/`, {
@@ -185,6 +252,7 @@ export default function ScheduleMeeting() {
         setShowDialog(false);
         
         setFormData({ title: '', description: '', target_roles: [] });
+        setSelectedBranch('');
         const freshVals = getInitialScheduleState();
         setDate(freshVals.date);
         setStartHour(freshVals.startHour);
@@ -200,10 +268,48 @@ export default function ScheduleMeeting() {
         const errorMsg = data.error || (data.google_meet_link && data.google_meet_link[0]) || "Failed to schedule meeting.";
         
         if (errorMsg.toLowerCase().includes("google") || errorMsg.toLowerCase().includes("connect") || errorMsg.toLowerCase().includes("linked")) {
-          showErrorAlert("Action Required", "Please connect your Google account in your Profile -> Integrations tab first. Redirecting...");
+          const getProfileLabel = (role: string) => {
+            switch (role) {
+              case 'dean':
+                return 'Dean Profile';
+              case 'coe':
+                return 'COE Profile';
+              case 'hod':
+                return 'HOD Profile';
+              case 'teacher':
+                return 'Faculty Profile';
+              case 'principal':
+                return 'Principal Profile';
+              case 'org_admin':
+                return 'Org Admin Profile';
+              default:
+                return 'Profile';
+            }
+          };
+
+          showErrorAlert("Action Required", `Please connect your Google account in your ${getProfileLabel(userRole || '')} -> Integrations tab first. Redirecting...`);
+          
+          const getProfilePath = (role: string) => {
+            switch (role) {
+              case 'dean':
+                return '/dean/profile';
+              case 'coe':
+                return '/coe/profile';
+              case 'hod':
+                return '/hod/hod-profile';
+              case 'teacher':
+                return '/faculty/faculty-profile';
+              case 'principal':
+                return '/principal/profile';
+              case 'org_admin':
+                return '/org_admin/profile';
+              default:
+                return '/profile';
+            }
+          };
+
           setTimeout(() => {
-             // Redirect by replacing the current page slug with profile
-             window.location.href = window.location.pathname.replace('schedule-meeting', 'profile') + "?google_connected=false";
+             navigate(`${getProfilePath(userRole || '')}?google_connected=false`);
           }, 1500);
         } else {
           showErrorAlert("Error", errorMsg);
@@ -262,7 +368,7 @@ export default function ScheduleMeeting() {
                 Schedule Meeting
               </Button>
             </DialogTrigger>
-            <DialogContent className={`w-[90%] rounded-2xl max-h-[80vh] overflow-y-auto sm:max-w-[500px] custom-scrollbar ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+            <DialogContent className={`w-[90%] rounded-2xl max-h-[85vh] overflow-y-auto sm:max-w-[650px] custom-scrollbar ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
               <DialogHeader>
                 <DialogTitle>Schedule New Meeting</DialogTitle>
               </DialogHeader>
@@ -313,19 +419,36 @@ export default function ScheduleMeeting() {
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 rounded-xl shadow-xl" align="start">
                         <ShadcnCalendar
-                          mode="single"
-                          selected={date ? new Date(date) : undefined}
-                          onSelect={(d) => {
-                            setDate(d ? format(d, "yyyy-MM-dd") : "");
-                            setIsCalendarOpen(false);
-                          }}
-                          disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
-                          initialFocus
+                           mode="single"
+                           selected={date ? new Date(date) : undefined}
+                           onSelect={(d) => {
+                             setDate(d ? format(d, "yyyy-MM-dd") : "");
+                             setIsCalendarOpen(false);
+                           }}
+                           disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                           initialFocus
                         />
                       </PopoverContent>
                     </Popover>
                   </div>
                 </div>
+
+                {['dean', 'coe', 'principal', 'org_admin'].includes(userRole || '') && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="branch">Branch (Optional)</Label>
+                    <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                      <SelectTrigger id="branch" className="w-full h-10 px-3 text-xs">
+                        <SelectValue placeholder="All Branches" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[200px]">
+                        <SelectItem value="all-branches">All Branches</SelectItem>
+                        {branches.map(b => (
+                          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
@@ -406,32 +529,48 @@ export default function ScheduleMeeting() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label>Target Roles (Select at least one) *</Label>
-                  <div className={`grid grid-cols-2 gap-2 p-3 border rounded-md max-h-40 overflow-y-auto ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                    {AVAILABLE_ROLES.filter(role => {
-                      if ((userRole === 'admin' || userRole === 'org_admin') && role.id === 'org_admin') {
-                        return false;
-                      }
-                      if (userRole === 'principal' && role.id === 'principal') {
-                        return false;
-                      }
-                      if (userRole === 'dean' && role.id === 'dean') {
-                        return false;
-                      }
-                      if (userRole === 'hod' && role.id === 'hod') {
-                        return false;
-                      }
-                      return true;
-                    }).map(role => (
-                      <div key={role.id} className="flex items-center space-x-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Target Roles (Select at least one) *</Label>
+                    <div 
+                      className="flex items-center space-x-2 cursor-pointer select-none"
+                      onClick={() => handleSelectAllToggle(!isAllSelected)}
+                    >
+                      <Checkbox 
+                        id="select-all-roles"
+                        checked={isAllSelected}
+                        onCheckedChange={handleSelectAllToggle}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <label 
+                        htmlFor="select-all-roles"
+                        className="text-xs font-semibold leading-none cursor-pointer text-primary"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Select All
+                      </label>
+                    </div>
+                  </div>
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-52 overflow-y-auto p-1 custom-scrollbar">
+                    {filteredRoles.map(role => (
+                      <div 
+                        key={role.id} 
+                        className={`flex items-center space-x-3 cursor-pointer select-none p-3 border rounded-xl transition-all hover:bg-muted/30 ${
+                          formData.target_roles.includes(role.id)
+                            ? 'border-primary bg-primary/5 shadow-sm' 
+                            : theme === 'dark' ? 'border-border bg-card/40' : 'border-gray-200 bg-white'
+                        }`}
+                        onClick={() => handleRoleToggle(role.id)}
+                      >
                         <Checkbox 
                           id={`role-${role.id}`}
                           checked={formData.target_roles.includes(role.id)}
                           onCheckedChange={() => handleRoleToggle(role.id)}
+                          onClick={(e) => e.stopPropagation()}
                         />
                         <label 
                           htmlFor={`role-${role.id}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer w-full"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           {role.label}
                         </label>
