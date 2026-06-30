@@ -164,7 +164,6 @@ export default function ScheduleMeeting() {
       case "principal":
       case "org_admin":
       case "admin":
-        return AVAILABLE_ROLES.map(r => r.id);
       case "dean":
         return AVAILABLE_ROLES.filter(r => r.id !== 'warden').map(r => r.id);
       case "coe":
