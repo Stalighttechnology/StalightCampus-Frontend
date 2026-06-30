@@ -55,6 +55,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'enroll-user': 'enroll-user',
     'billing': 'billing',
     'announcement-management': 'announcement-management',
+    'schedule-meeting': 'schedule-meeting',
   };
   return pathMap[lastPart] || 'dashboard';
 };

@@ -66,7 +66,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'scan-student-info': 'scan-student-info',
       'my-attendance': 'my-attendance',
       'announcement-management': 'announcement-management',
-      'profile': 'profile'
+      'profile': 'profile',
+      'schedule-meeting': 'schedule-meeting'
     };
 
     return pathMap[lastPart] || 'dashboard';
@@ -107,7 +108,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'my-attendance': '/coe/my-attendance',
       'announcement-management': '/coe/announcement-management',
       'profile': '/coe/profile',
-      'fee-settings': '/coe/fee-settings'
+      'fee-settings': '/coe/fee-settings',
+      'schedule-meeting': '/coe/schedule-meeting'
     };
 
     navigate(pathMap[page] || '/coe/dashboard');

@@ -82,7 +82,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'assignments': 'faculty-assignments',
       'schedule-class': 'schedule-class',
       'syllabus-status': 'syllabus-status',
-      'reimbursements': 'reimbursements'
+      'reimbursements': 'reimbursements',
+      'schedule-meeting': 'schedule-meeting'
     };
 
     // Add direct mappings for additional top-level routes
@@ -134,7 +135,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'schedule-class': '/faculty/schedule-class',
       'syllabus-status': '/faculty/syllabus-status',
       'reimbursements': '/faculty/reimbursements',
-      'return-to-hod': '/hod/dashboard'
+      'return-to-hod': '/hod/dashboard',
+      'schedule-meeting': '/faculty/schedule-meeting'
     };
 
     const path = pathMap[page] || '/faculty/dashboard';

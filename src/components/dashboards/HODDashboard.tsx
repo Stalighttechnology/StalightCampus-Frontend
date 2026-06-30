@@ -151,7 +151,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'co-attainment': 'co-attainment',
       'exam-applications': 'exam-applications',
       'syllabus-status': 'syllabus-status',
-      'syllabus-monitor': 'syllabus-monitor'
+      'syllabus-monitor': 'syllabus-monitor',
+      'schedule-meeting': 'schedule-meeting'
     };
 
     return pathMap[lastPart] || 'dashboard';
@@ -210,7 +211,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'exam-applications': '/hod/exam-applications',
       'syllabus-status': '/hod/syllabus-status',
       'syllabus-monitor': '/hod/syllabus-monitor',
-      'act-as-teacher': '/faculty/dashboard'
+      'act-as-teacher': '/faculty/dashboard',
+      'schedule-meeting': '/hod/schedule-meeting'
     };
 
     const path = pathMap[page] || '/hod/dashboard';
