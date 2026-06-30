@@ -179,10 +179,24 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
         setMakeupApplicationsOpen(result.makeup_applications_open ?? !makeupApplicationsOpen);
         toast.success(result.message || (result.makeup_applications_open ? 'Makeup applications opened' : 'Makeup applications closed'));
       } else {
-        toast.error(result.message || 'Failed to toggle makeup window');
+        Swal.fire({
+          title: 'Cannot Open Makeup Exams',
+          text: result.message || 'Failed to toggle makeup window',
+          icon: 'error',
+          confirmButtonText: 'Understood'
+        });
       }
-    } catch (error) {
-      toast.error('Failed to toggle makeup window');
+    } catch (error: any) {
+      if (error.response && error.response.data && error.response.data.message) {
+        Swal.fire({
+          title: 'Cannot Open Makeup Exams',
+          text: error.response.data.message,
+          icon: 'error',
+          confirmButtonText: 'Understood'
+        });
+      } else {
+        toast.error('Failed to toggle makeup window');
+      }
     } finally {
       setTogglingMakeup(false);
     }

@@ -932,8 +932,6 @@ export const toggleRevalApplications = async (uploadId: number): Promise<{
       headers: { 'Content-Type': 'application/json' }
     });
 
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
     return await response.json();
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
@@ -953,8 +951,6 @@ export const toggleMakeupApplications = async (uploadId: number): Promise<{
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
-
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
     return await response.json();
   } catch (error) {
