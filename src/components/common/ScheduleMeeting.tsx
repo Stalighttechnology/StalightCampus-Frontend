@@ -167,7 +167,7 @@ export default function ScheduleMeeting() {
       case "dean":
         return AVAILABLE_ROLES.map(r => r.id);
       case "coe":
-        return ["teacher", "hod", "principal"];
+        return ["teacher", "hod", "principal", "dean"];
       case "fees_manager":
         return ["hod", "principal", "dean", "coe", "org_admin", "admin", "admission_manager"];
       case "hms":
@@ -209,11 +209,14 @@ export default function ScheduleMeeting() {
     }));
   };
 
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const handleCreateMeeting = async () => {
     if (!formData.title || !date || formData.target_roles.length === 0) {
-      showErrorAlert("Missing Fields", "Please fill out all required fields and select at least one role.");
+      setValidationError("Please fill out all required fields and select at least one role.");
       return;
     }
+    if (validationError) setValidationError(null);
 
     const convertTo24Hour = (hour: string, min: string, period: string) => {
       let h = parseInt(hour, 10);
@@ -293,6 +296,11 @@ export default function ScheduleMeeting() {
                 return 'Principal Profile';
               case 'org_admin':
                 return 'Org Admin Profile';
+              case 'hms':
+              case 'hms_admin':
+                return 'HMS Admin Profile';
+              case 'fees_manager':
+                return 'Fee Manager Profile';
               default:
                 return 'Profile';
             }
@@ -314,6 +322,11 @@ export default function ScheduleMeeting() {
                 return '/principal/profile';
               case 'org_admin':
                 return '/org-admin/profile';
+              case 'hms':
+              case 'hms_admin':
+                return '/hms/profile';
+              case 'fees_manager':
+                return '/fees-manager/profile';
               default:
                 return '/profile';
             }
