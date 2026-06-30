@@ -32,10 +32,13 @@ import {
   BookOpen,
   Layers,
   MapPin,
-  Filter
+  Filter,
+  FileDown
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { fetchAnnouncements, markAnnouncementRead, Announcement } from "@/utils/announcements_api";
+import { fetchWithTokenRefresh } from "../../utils/authService";
+import { API_ENDPOINT } from "../../utils/config";
 import { motion, AnimatePresence } from "framer-motion";
 import { SkeletonList } from "../ui/skeleton";
 import { format, parseISO } from "date-fns";
@@ -292,6 +295,34 @@ const ExamAnnouncementCard = ({ exam, theme, handleMarkRead }: { exam: ExamAnnou
   const dateGroups = groupByDate(exam.subjects);
   const publishedDate = new Date(exam.publishedAt);
   const isValidPublishedDate = !isNaN(publishedDate.getTime());
+  const [exportingPDF, setExportingPDF] = useState(false);
+
+  const handleExportExamPDF = async () => {
+    const annId = exam.subjects[0]?.original.id;
+    if (!annId) return;
+
+    setExportingPDF(true);
+    try {
+      const url = `${API_ENDPOINT}/announcements/${annId}/export-pdf/`;
+      const response = await fetchWithTokenRefresh(url);
+      if (!response.ok) {
+        throw new Error("Failed to download PDF");
+      }
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", `${exam.examName.replace(/\s+/g, '_')}_Schedule.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+    } finally {
+      setExportingPDF(false);
+    }
+  };
 
   const handleMarkAllRead = () => {
     const uniqueIds = Array.from(new Set(exam.markReadIds));
@@ -381,8 +412,41 @@ const ExamAnnouncementCard = ({ exam, theme, handleMarkRead }: { exam: ExamAnnou
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[90%] sm:max-w-2xl rounded-lg max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-xl">{exam.examName} Schedule</DialogTitle>
+                <DialogHeader className="flex flex-row items-center justify-between gap-4 border-b pb-3">
+                  <div className="flex-1 min-w-0 pr-2">
+                    <DialogTitle className="text-xl font-semibold truncate">{exam.examName} Schedule</DialogTitle>
+                  </div>
+                  
+                  {/* Mobile Export Button */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="flex md:hidden dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200 h-9 w-9 items-center justify-center shrink-0 p-0"
+                    onClick={handleExportExamPDF}
+                    disabled={exportingPDF}
+                  >
+                    {exportingPDF ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <FileDown className="w-3.5 h-3.5" />
+                    )}
+                  </Button>
+
+                  {/* Desktop Export Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="hidden md:flex bg-primary hover:bg-primary/90 text-white border-primary h-9 px-3.5 rounded-lg items-center justify-center gap-1.5 shadow-sm text-xs font-semibold shrink-0"
+                    onClick={handleExportExamPDF}
+                    disabled={exportingPDF}
+                  >
+                    {exportingPDF ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <FileDown className="w-3.5 h-3.5" />
+                    )}
+                    <span>{exportingPDF ? "Exporting..." : "Export PDF"}</span>
+                  </Button>
                 </DialogHeader>
                 <div className={`mt-4 border rounded-md overflow-hidden ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                   {Object.entries(dateGroups).map(([dateStr, subjects]) => (
