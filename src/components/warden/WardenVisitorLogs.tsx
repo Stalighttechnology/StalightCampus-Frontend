@@ -93,9 +93,10 @@ interface DateTimePickerProps {
   value: string;
   onChange: (val: string) => void;
   className?: string;
+  disabled?: (date: Date) => boolean;
 }
 
-const DateTimePicker = ({ value, onChange, className }: DateTimePickerProps) => {
+const DateTimePicker = ({ value, onChange, className, disabled }: DateTimePickerProps) => {
   const { date: selectedDate, time: selectedTime } = parseDateTime(value);
 
   // Split selectedTime into hours (12h format), minutes, and AM/PM
@@ -149,7 +150,7 @@ const DateTimePicker = ({ value, onChange, className }: DateTimePickerProps) => 
             const newTime = selectedTime || "00:00";
             onChange(combineDateAndTime(newDate, newTime));
           }}
-          disabled={(date) => date > new Date()}
+          disabled={disabled}
           initialFocus
         />
         <div className="p-3 border-t border-border flex items-center justify-between gap-2 bg-muted/20">
@@ -476,14 +477,6 @@ const WardenVisitorLogs = () => {
         });
         return;
       }
-      if (checkOut > now) {
-        toast({
-          title: 'Validation Error',
-          description: 'Check-Out time cannot be in the future',
-          variant: 'destructive'
-        });
-        return;
-      }
     }
 
     setIsSubmitting(true);
@@ -581,6 +574,7 @@ const WardenVisitorLogs = () => {
                               <DateTimePicker
                                 value={formData.check_in_time}
                                 onChange={(val) => setFormData({ ...formData, check_in_time: val })}
+                                disabled={(date) => date > new Date()}
                               />
                             </div>
                             <div className="space-y-2 flex flex-col">
@@ -588,6 +582,12 @@ const WardenVisitorLogs = () => {
                               <DateTimePicker
                                 value={formData.check_out_time}
                                 onChange={(val) => setFormData({ ...formData, check_out_time: val })}
+                                disabled={(date) => {
+                                  if (!formData.check_in_time) return false;
+                                  const checkInDate = new Date(formData.check_in_time);
+                                  const checkInStartOfDay = new Date(checkInDate.getFullYear(), checkInDate.getMonth(), checkInDate.getDate());
+                                  return date < checkInStartOfDay;
+                                }}
                               />
                             </div>
                           </div>
