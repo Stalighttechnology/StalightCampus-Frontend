@@ -168,6 +168,7 @@ export default function ScheduleMeeting() {
       case "coe":
         return ["teacher", "hod", "principal"];
       case "fees_manager":
+        return ["hod", "principal", "dean", "coe", "org_admin", "admin", "admission_manager"];
       case "hms":
       case "hms_admin":
       case "transport_admin":

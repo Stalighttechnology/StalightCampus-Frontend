@@ -297,6 +297,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Leave", page: "leave" },
       { name: "My Attendance", page: "my-attendance" },
+      { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
