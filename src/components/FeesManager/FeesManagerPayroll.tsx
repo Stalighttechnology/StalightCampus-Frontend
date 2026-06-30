@@ -167,6 +167,11 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   const [selectedRun, setSelectedRun] = useState<any | null>(null);
   const [runDetails, setRunDetails] = useState<any[]>([]);
   
+  const [structuresCount, setStructuresCount] = useState(0);
+  const [claimsCount, setClaimsCount] = useState(0);
+  const [runsCount, setRunsCount] = useState(0);
+  const [runDetailsCount, setRunDetailsCount] = useState(0);
+  
   // Modal / Slide-over state for Editing Structure
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
   const [editStructureData, setEditStructureData] = useState<any>({
@@ -255,12 +260,14 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         if (res.success) {
           setReimbursements(res.data || []);
           setClaimsTotalPages(res.total_pages || 1);
+          setClaimsCount(res.count || 0);
         }
       } else if (activeTab === 'runs') {
         const res = await getPayrollRuns(runsPage);
         if (res.success) {
           setRuns(res.data || []);
           setRunsTotalPages(res.total_pages || 1);
+          setRunsCount(res.count || 0);
         }
       }
     } catch (err) {
@@ -275,6 +282,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
     if (res.success) {
       setStructures(res.data || []);
       setStructuresTotalPages(res.total_pages || 1);
+      setStructuresCount(res.count || 0);
       setConfiguredStructuresCount(res.configured_count ?? 0);
     }
   };
@@ -287,6 +295,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         setSelectedRun(res.run);
         setRunDetails(res.details || []);
         setRunDetailsTotalPages(res.total_pages || 1);
+        setRunDetailsCount(res.count || 0);
       }
     } catch (err) {
       setError("Failed to load run details");
@@ -548,18 +557,37 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   };
 
   // Reusable Pagination Controls UI Component
-  const PaginationControls = ({ currentPage, totalPages, onPageChange }: { currentPage: number, totalPages: number, onPageChange: (p: number) => void }) => {
+  const PaginationControls = ({ currentPage, totalPages, totalCount, onPageChange }: { currentPage: number, totalPages: number, totalCount: number, onPageChange: (p: number) => void }) => {
     if (totalPages <= 1) return null;
     return (
-      <div className="flex justify-between items-center mt-4">
-        <span className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-          Page {currentPage} of {totalPages}
-        </span>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" disabled={currentPage <= 1} onClick={() => onPageChange(currentPage - 1)}>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-4">
+        <div>
+          Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} records
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1 || loading}
+            className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+          >
             Previous
           </Button>
-          <Button size="sm" variant="outline" disabled={currentPage >= totalPages} onClick={() => onPageChange(currentPage + 1)}>
+
+          <div className="flex items-center justify-center min-w-[2rem]">
+            <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              {currentPage}
+            </span>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages || loading}
+            className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+          >
             Next
           </Button>
         </div>
@@ -790,6 +818,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
           <PaginationControls
             currentPage={structuresPage}
             totalPages={structuresTotalPages}
+            totalCount={structuresCount}
             onPageChange={setStructuresPage}
           />
         </div>
@@ -917,9 +946,13 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                       {claim.description ? (
                         <button
                           onClick={() => setDescriptionModal({ open: true, text: claim.description, employee: claim.employee_name, type: claim.type })}
-                          className="flex items-center gap-1.5 text-xs text-blue-500 hover:text-blue-600 hover:underline transition-colors bg-transparent border-none cursor-pointer"
+                          className={`text-sm font-medium px-2.5 py-1 rounded-md transition border cursor-pointer ${
+                            theme === 'dark'
+                              ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                              : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                          }`}
                         >
-                          <Eye size={13} /> View
+                          View
                         </button>
                       ) : (
                         <span className="text-slate-400 italic text-xs">—</span>
@@ -947,26 +980,24 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                       {claim.status === 'pending' && (
                         <>
                           <Button
-                            size="sm"
-                            className={`transition border ${
-                              theme === 'dark'
-                                ? 'border-green-500/20 text-green-400 bg-green-950/20 hover:bg-green-950/40 hover:text-green-400'
-                                : 'border-green-100 text-green-700 bg-green-50 hover:bg-green-100 hover:text-green-700'
-                            }`}
+                            variant="outline"
+                            className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark' ?
+                                'text-green-400 border-green-400 hover:bg-green-900/20 hover:text-green-400 bg-transparent' :
+                                'text-green-700 border-green-600 hover:bg-green-100 hover:text-green-700 bg-transparent'}`
+                            }
                             onClick={() => handleReimbursementAction(claim.id, 'approve')}
                           >
-                            Approve
+                            <CheckCircle size={16} /> Approve
                           </Button>
                           <Button
-                            size="sm"
-                            className={`transition border ${
-                              theme === 'dark'
-                                ? 'border-red-500/20 text-red-400 bg-red-950/20 hover:bg-red-950/40 hover:text-red-400'
-                                : 'border-red-200 text-red-700 bg-red-50 hover:bg-red-100 hover:text-red-700'
-                            }`}
+                            variant="outline"
+                            className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark' ?
+                                'text-red-400 border-red-400 hover:bg-red-900/20 hover:text-red-400 bg-transparent' :
+                                'text-red-700 border-red-600 hover:bg-red-100 hover:text-red-700 bg-transparent'}`
+                            }
                             onClick={() => handleReimbursementAction(claim.id, 'reject')}
                           >
-                            Reject
+                            <XCircle size={16} /> Reject
                           </Button>
                         </>
                       )}
@@ -985,6 +1016,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
           <PaginationControls
             currentPage={claimsPage}
             totalPages={claimsTotalPages}
+            totalCount={claimsCount}
             onPageChange={setClaimsPage}
           />
         </div>
@@ -994,59 +1026,73 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
       {/* TAB CONTENT: Payroll Batches (Runs) */}
       {activeTab === 'runs' && !selectedRun && (
         <div className="space-y-4">
-          <div className="overflow-x-auto rounded-lg border border-slate-350 dark:border-slate-800">
-            <table className="w-full text-sm text-left whitespace-nowrap">
-              <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
-                <tr>
-                  <th className="px-6 py-4">Period</th>
-                  <th className="px-6 py-4">Calculation Date</th>
-                  <th className="px-6 py-4 text-right">Headcount</th>
-                  <th className="px-6 py-4 text-right">Total Net Payout</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                {runs.map((run, i) => (
-                  <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-900/30">
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                      {new Date(0, run.month - 1).toLocaleString('en-US', { month: 'long' })} {run.year}
-                    </td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{run.created_at}</td>
-                    <td className="px-6 py-4 text-right font-medium text-slate-750 dark:text-slate-250">{run.employee_count} staff</td>
-                    <td className="px-6 py-4 text-right font-semibold text-blue-600 dark:text-blue-400">
-                      {formatCurrency(run.total_net_payout)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant="outline" className={`capitalize border-none ${
-                        run.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' :
-                        run.status === 'approved' ? 'bg-blue-500/10 text-blue-500' :
-                        run.status === 'calculated' ? 'bg-amber-500/10 text-amber-500' : 'bg-slate-500/10 text-slate-500'
-                      }`}>
-                        {run.status}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Button size="sm" variant="outline" className="gap-1" onClick={() => handleViewRun(run.id)}>
-                        View Details <ChevronRight size={14} />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-                {!runs.length && (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500 italic">No payroll calculation runs processed yet.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          
-          <PaginationControls
-            currentPage={runsPage}
-            totalPages={runsTotalPages}
-            onPageChange={setRunsPage}
-          />
+          {runs.length > 0 ? (
+            <>
+              <div className="overflow-x-auto rounded-lg border border-slate-350 dark:border-slate-800">
+                <table className="w-full text-sm text-left whitespace-nowrap">
+                  <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
+                    <tr>
+                      <th className="px-6 py-4">Period</th>
+                      <th className="px-6 py-4">Calculation Date</th>
+                      <th className="px-6 py-4 text-right">Headcount</th>
+                      <th className="px-6 py-4 text-right">Total Net Payout</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                    {runs.map((run, i) => (
+                      <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-900/30">
+                        <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                          {new Date(0, run.month - 1).toLocaleString('en-US', { month: 'long' })} {run.year}
+                        </td>
+                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{run.created_at}</td>
+                        <td className="px-6 py-4 text-right font-medium text-slate-750 dark:text-slate-250">{run.employee_count} staff</td>
+                        <td className="px-6 py-4 text-right font-semibold text-blue-600 dark:text-blue-400">
+                          {formatCurrency(run.total_net_payout)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge variant="outline" className={`capitalize border-none ${
+                            run.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' :
+                            run.status === 'approved' ? 'bg-blue-500/10 text-blue-500' :
+                            run.status === 'calculated' ? 'bg-amber-500/10 text-amber-500' : 'bg-slate-500/10 text-slate-500'
+                          }`}>
+                            {run.status}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <Button size="sm" variant="outline" className="gap-1" onClick={() => handleViewRun(run.id)}>
+                            View Details <ChevronRight size={14} />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              <PaginationControls
+                currentPage={runsPage}
+                totalPages={runsTotalPages}
+                totalCount={runsCount}
+                onPageChange={setRunsPage}
+              />
+            </>
+          ) : (
+            <div className={`border-2 border-dashed flex flex-col items-center justify-center p-8 text-center space-y-4 rounded-lg ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+              <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
+                <Calendar className={`w-8 h-8 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+              </div>
+              <div className="max-w-xs mx-auto">
+                <h3 className={`text-md font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  No Payroll Calculation Runs Found
+                </h3>
+                <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  No payroll calculation runs processed yet.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1199,6 +1245,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
           <PaginationControls
             currentPage={runDetailsPage}
             totalPages={runDetailsTotalPages}
+            totalCount={runDetailsCount}
             onPageChange={(p) => {
               setRunDetailsPage(p);
               if (selectedRun) fetchRunDetails(selectedRun.id, p, runDetailsSearch);

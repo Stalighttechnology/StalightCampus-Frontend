@@ -590,7 +590,7 @@ const WardenGatePassManagement = () => {
 
       {/* Review Request Dialog */}
       <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && setSelectedRequest(null)}>
-        <DialogContent className="w-[90%] sm:max-w-md rounded-xl sm:rounded-2xl p-0 overflow-hidden bg-background">
+        <DialogContent className="w-[90%] h-[80vh] sm:h-auto sm:max-w-md rounded-xl sm:rounded-2xl p-0 max-h-[85vh] overflow-y-auto custom-scrollbar bg-background">
           <DialogHeader className="p-6 border-b shrink-0 bg-muted/10">
             <DialogTitle className="text-lg font-semibold flex items-center gap-2">
               {selectedRequest?.status === 'pending' ? 'Review Gate Pass Request' : 'Gate Pass Request Audit'}
@@ -678,16 +678,31 @@ const WardenGatePassManagement = () => {
                   onClick={() => handleAction('reject')}
                   disabled={actionLoading}
                   variant="outline"
-                  className={`flex-1 text-xs font-semibold h-10 border-red-200 bg-red-50 hover:bg-red-100 text-red-700`}
+                  className={`flex-1 text-xs font-semibold h-10 ${theme === 'dark' ?
+                      'text-red-400 border-red-400 hover:bg-red-900/20 bg-transparent' :
+                      'text-red-700 border-red-600 hover:bg-red-100 bg-transparent'}`
+                  }
                 >
-                  {actionLoading ? 'Processing...' : 'Reject'}
+                  {actionLoading ? 'Processing...' : (
+                    <span className="flex items-center justify-center gap-1.5">
+                      <XCircle size={16} /> Reject
+                    </span>
+                  )}
                 </Button>
                 <Button
                   onClick={() => handleAction('approve')}
                   disabled={actionLoading}
-                  className="flex-1 text-xs font-semibold h-10 bg-green-600 hover:bg-green-700 text-white"
+                  variant="outline"
+                  className={`flex-1 text-xs font-semibold h-10 ${theme === 'dark' ?
+                      'text-green-400 border-green-400 hover:bg-green-900/20 bg-transparent' :
+                      'text-green-700 border-green-600 hover:bg-green-100 bg-transparent'}`
+                  }
                 >
-                  {actionLoading ? 'Processing...' : 'Approve'}
+                  {actionLoading ? 'Processing...' : (
+                    <span className="flex items-center justify-center gap-1.5">
+                      <CheckCircle2 size={16} /> Approve
+                    </span>
+                  )}
                 </Button>
               </>
             ) : (
