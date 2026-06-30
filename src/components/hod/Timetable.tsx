@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
 import { Skeleton, SkeletonTable } from "../ui/skeleton";
 import { DownloadIcon, EditIcon, User, Calendar, Loader2, CalendarDays, LayoutGrid, Clock, MapPin } from "lucide-react";
@@ -1162,7 +1162,7 @@ const Timetable = () => {
 
 
 
-  if (state.loading && state.timetable.length === 0) {
+  if (state.loading && state.semesters.length === 0) {
     return (
       <div className="bg-background text-foreground p-6">
         <SkeletonTable rows={10} cols={7} />
@@ -1176,84 +1176,72 @@ const Timetable = () => {
 
   return (
     <div>
-      <Card id="timetable-card" className={`w-full overflow-hidden border-0 sm:border shadow-none bg-transparent sm:bg-card text-card-foreground border-border`}>
+      <Card id="timetable-card" className={`w-full border ${theme === 'dark' ? 'bg-card border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'} shadow-sm rounded-xl`}>
         <div id="timetable-header-filters-section">
-          <CardHeader id="timetable-card-header" className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-transparent sm:bg-card px-0 py-4 sm:px-6 sm:py-4 border-b border-slate-100 dark:border-slate-800/80 gap-4">
-            <div className="flex items-start justify-between w-full sm:w-auto">
-              <div>
-                <CardTitle className="text-2xl font-semibold tracking-tight text-foreground">Academic Timetable</CardTitle>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Manage and track weekly sections schedules.</p>
+          <CardHeader id="timetable-card-header" className="border-b pb-4 mb-4 px-4 sm:px-6 py-4 sm:py-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-xl sm:text-2xl font-semibold text-foreground">Academic Timetable</CardTitle>
               </div>
-            </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-              {/* View Mode Toggle */}
-              {state.semesterId && state.sectionId && (
-                <div className="flex items-center rounded-lg p-1 bg-slate-100 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 mr-0 sm:mr-2 flex-1 sm:flex-none justify-center">
-                  <button
-                    onClick={() => setViewMode('weekly')}
-                    className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex-1 sm:flex-none ${viewMode === 'weekly'
-                      ? 'bg-white dark:bg-slate-950 shadow-sm text-primary'
-                      : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                      }`}
-                  >
-                    <LayoutGrid size={14} />
-                    <span>Weekly Grid</span>
-                  </button>
-                  <button
-                    onClick={() => setViewMode('daily')}
-                    className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex-1 sm:flex-none ${viewMode === 'daily'
-                      ? 'bg-white dark:bg-slate-950 shadow-sm text-primary'
-                      : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                      }`}
-                  >
-                    <CalendarDays size={14} />
-                    <span>Daily List</span>
-                  </button>
+              
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                <div className="flex flex-row items-center gap-2 w-full sm:w-auto justify-between">
+                  <Button
+                    variant="outline"
+                    className="flex-1 sm:flex-none bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-250 ease-in-out transform hover:scale-[1.02] shadow-sm h-9 px-3.5 rounded-lg flex items-center justify-center gap-1.5 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleEdit}
+                    disabled={!state.semesterId || !state.sectionId}>
+                    <EditIcon className="w-3.5 h-3.5" />
+                    <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-250 ease-in-out transform hover:scale-[1.02] shadow-sm h-9 px-3.5 rounded-lg flex items-center justify-center gap-1.5 text-xs font-semibold shrink-0 disabled:opacity-50"
+                    onClick={handleExportPDF}
+                    disabled={downloadingPDF || !state.semesterId || !state.sectionId}>
+                    {downloadingPDF ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <DownloadIcon className="w-3.5 h-3.5" />
+                    )}
+                    <span className="hidden sm:inline">
+                      {downloadingPDF ? "Exporting..." : "Export PDF"}
+                    </span>
+                  </Button>
                 </div>
-              )}
 
-              <div className="flex items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-start">
-                <Button
-                  variant="outline"
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={handleEdit}
-                  disabled={!state.semesterId || !state.sectionId}>
-
-                  <EditIcon className="w-4 h-4" />
-                  <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
-                </Button>
-
-                {/* Mobile Download PDF Icon Button */}
-                <Button
-                  onClick={handleExportPDF}
-                  disabled={downloadingPDF || !state.semesterId || !state.sectionId}
-                  size="icon"
-                  variant="outline"
-                  className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
-                >
-                  {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <DownloadIcon className="w-4 h-4" />}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="hidden sm:flex flex-1 sm:flex-none items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
-                  onClick={handleExportPDF}
-                  disabled={downloadingPDF || !state.semesterId || !state.sectionId}>
-                  {downloadingPDF ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <DownloadIcon className="w-4 h-4" />
-                  )}
-                  <span className="whitespace-nowrap">
-                    {downloadingPDF ? "Exporting..." : "Export PDF"}
-                  </span>
-                </Button>
+                {/* View Mode Toggle */}
+                {state.semesterId && state.sectionId && (
+                  <div className="flex items-center rounded-lg p-1 bg-slate-100 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 w-full sm:w-auto justify-center">
+                    <button
+                      onClick={() => setViewMode('weekly')}
+                      className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex-1 sm:flex-none ${viewMode === 'weekly'
+                        ? 'bg-white dark:bg-slate-955 shadow-sm text-primary'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        }`}
+                    >
+                      <LayoutGrid size={14} />
+                      <span>Weekly Grid</span>
+                    </button>
+                    <button
+                      onClick={() => setViewMode('daily')}
+                      className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex-1 sm:flex-none ${viewMode === 'daily'
+                        ? 'bg-white dark:bg-slate-955 shadow-sm text-primary'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        }`}
+                    >
+                      <CalendarDays size={14} />
+                      <span>Daily List</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </CardHeader>
 
-          <CardContent className="bg-transparent sm:bg-card px-0 py-3 sm:px-6 sm:pb-3">
-            <div className="border border-border rounded-lg p-4">
+          <CardContent className="bg-transparent sm:bg-card px-4 sm:px-6 pt-3 pb-1 sm:pb-3">
+            <div className="border-0 sm:border border-border rounded-lg p-0 sm:p-4">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
                 <div className="flex flex-col sm:flex-row md:flex-row gap-2 sm:gap-4 w-full md:flex-1 md:items-center md:flex-nowrap">
                   <div className="w-full sm:w-auto md:flex-none">
@@ -1331,9 +1319,16 @@ const Timetable = () => {
               </div>
             </div>
           </CardContent>
-        </div>        <CardContent className="bg-transparent sm:bg-card px-0 pt-0 sm:px-6 sm:pt-0">
-          <div className="border border-border rounded-lg p-4">
-            {!state.semesterId || !state.sectionId ? (
+        </div>        <CardContent className="bg-transparent sm:bg-card px-4 sm:px-6 pt-0">
+          <div className="border-0 sm:border border-border rounded-lg p-0 sm:p-4">
+            {state.loading ? (
+              <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+                <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-primary/5 text-primary'} animate-pulse`}>
+                  <Calendar className="w-12 h-12 opacity-80" />
+                </div>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Fetching schedules from directory...</p>
+              </div>
+            ) : !state.semesterId || !state.sectionId ? (
               <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                 <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
                   <Calendar className="w-12 h-12 opacity-80" />
