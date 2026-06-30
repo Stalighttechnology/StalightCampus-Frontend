@@ -149,6 +149,7 @@ const DateTimePicker = ({ value, onChange, className }: DateTimePickerProps) => 
             const newTime = selectedTime || "00:00";
             onChange(combineDateAndTime(newDate, newTime));
           }}
+          disabled={(date) => date > new Date()}
           initialFocus
         />
         <div className="p-3 border-t border-border flex items-center justify-between gap-2 bg-muted/20">
@@ -452,6 +453,39 @@ const WardenVisitorLogs = () => {
       toast({ title: 'Error', description: 'Please fill all required fields', variant: 'destructive' });
       return;
     }
+
+    const now = new Date();
+    const checkIn = new Date(formData.check_in_time);
+
+    if (checkIn > now) {
+      toast({
+        title: 'Validation Error',
+        description: 'Check-In time cannot be in the future',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (formData.check_out_time) {
+      const checkOut = new Date(formData.check_out_time);
+      if (checkOut < checkIn) {
+        toast({
+          title: 'Validation Error',
+          description: 'Check-Out time cannot be before Check-In time',
+          variant: 'destructive'
+        });
+        return;
+      }
+      if (checkOut > now) {
+        toast({
+          title: 'Validation Error',
+          description: 'Check-Out time cannot be in the future',
+          variant: 'destructive'
+        });
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       await createWardenVisitorLog({
