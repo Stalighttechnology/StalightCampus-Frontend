@@ -112,6 +112,17 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
     return () => clearInterval(interval);
   }, []);
 
+  const format12Hour = useCallback((timeStr: string) => {
+    if (!timeStr) return '';
+    const parts = timeStr.split(':');
+    if (parts.length < 2) return timeStr;
+    const hours = parseInt(parts[0], 10);
+    const minutes = parts[1];
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${minutes} ${ampm}`;
+  }, []);
+
   const parseTimeToMinutes = useCallback((timeStr: string) => {
     const [hours, minutes] = timeStr.split(':').map(Number);
     return hours * 60 + minutes;
@@ -152,10 +163,10 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
 
     return {
       status: 'later',
-      message: `Starts at ${session.start_time}`,
+      message: `Starts at ${format12Hour(session.start_time)}`,
       color: theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
     };
-  }, [currentTime, parseTimeToMinutes, theme]);
+  }, [currentTime, parseTimeToMinutes, theme, format12Hour]);
 
   useEffect(() => {
     if (dashboardData && dashboardData.current_next_session) {
@@ -474,7 +485,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
               }>
                 <FaClock className="w-4 h-4 animate-pulse" />
                 <span className="text-sm">
-                  {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
+                  {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
                 </span>
               </div>
             </div>
@@ -511,7 +522,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
                     </div>
                     <div>
                       <p className="text-[10px] font-semibold uppercase opacity-50">Duration</p>
-                      <p className="font-semibold text-sm">{currentSession.start_time} - {currentSession.end_time}</p>
+                      <p className="font-semibold text-sm">{format12Hour(currentSession.start_time)} - {format12Hour(currentSession.end_time)}</p>
                     </div>
                   </div>
                 </div> :
