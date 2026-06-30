@@ -175,10 +175,24 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
         setRevalApplicationsOpen(!!res.reval_applications_open);
         toast.success(res.message || 'Updated revaluation status successfully');
       } else {
-        toast.error(res.message || 'Failed to update revaluation status');
+        Swal.fire({
+          title: 'Cannot Open Revaluation',
+          text: res.message || 'Failed to update revaluation status',
+          icon: 'error',
+          confirmButtonText: 'Understood'
+        });
       }
-    } catch (err) {
-      toast.error('An error occurred');
+    } catch (err: any) {
+      if (err.response && err.response.data && err.response.data.message) {
+        Swal.fire({
+          title: 'Cannot Open Revaluation',
+          text: err.response.data.message,
+          icon: 'error',
+          confirmButtonText: 'Understood'
+        });
+      } else {
+        toast.error('An error occurred');
+      }
     } finally {
       setTogglingReval(false);
     }

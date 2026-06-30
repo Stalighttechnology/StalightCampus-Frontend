@@ -13,6 +13,7 @@ const COEFeeSettings = () => {
   const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [activeApplications, setActiveApplications] = useState<any[]>([]);
 
   // Store confirmed amounts
   const [reval, setReval] = useState<number | null>(null);
@@ -31,16 +32,21 @@ const COEFeeSettings = () => {
     setLoading(true);
     try {
       const res = await getCOEFeeSettings();
-      if (res.success && res.data) {
-        const r = Number(res.data.revaluation_fee ?? 0);
-        const p = Number(res.data.photocopy_fee ?? 0);
-        const m = Number(res.data.makeup_fee ?? 0);
-        setReval(r);
-        setPhotocopy(p);
-        setMakeup(m);
-        setTempReval(r.toString());
-        setTempPhotocopy(p.toString());
-        setTempMakeup(m.toString());
+      if (res.success) {
+        if (res.data) {
+          const r = Number(res.data.revaluation_fee ?? 0);
+          const p = Number(res.data.photocopy_fee ?? 0);
+          const m = Number(res.data.makeup_fee ?? 0);
+          setReval(r);
+          setPhotocopy(p);
+          setMakeup(m);
+          setTempReval(r.toString());
+          setTempPhotocopy(p.toString());
+          setTempMakeup(m.toString());
+        }
+        if (res.active_applications) {
+          setActiveApplications(res.active_applications);
+        }
       }
     } catch (e) {
       toast.error('Failed to load fee settings');
@@ -54,6 +60,27 @@ const COEFeeSettings = () => {
   }, []);
 
   const handleEditClick = () => {
+    if (activeApplications.length > 0) {
+      const activeListHtml = activeApplications.map(app => {
+        const types = [];
+        if (app.reval_open) types.push('Revaluation');
+        if (app.makeup_open) types.push('Makeup');
+        return `<li><b>${app.batch} (${app.exam_period})</b> - ${types.join(' & ')}</li>`;
+      }).join('');
+      
+      Swal.fire({
+        title: 'Action Not Allowed',
+        html: `<p style="margin-bottom: 15px;">You cannot edit fee settings while there are active applications open. Please close the following applications to continue:</p>
+               <ul style="text-align: left; background: ${theme === 'dark' ? '#2c2c2e' : '#f3f4f6'}; padding: 15px 15px 15px 30px; border-radius: 8px;">${activeListHtml}</ul>`,
+        icon: 'error',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'Understood',
+        background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: theme === 'dark' ? '#ffffff' : '#000000'
+      });
+      return;
+    }
+
     setTempReval(reval !== null ? reval.toString() : '0');
     setTempPhotocopy(photocopy !== null ? photocopy.toString() : '0');
     setTempMakeup(makeup !== null ? makeup.toString() : '0');
