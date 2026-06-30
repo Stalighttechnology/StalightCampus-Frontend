@@ -10,13 +10,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import {
   UserCheck,
   Users,
   Search,
   Plus,
   AlertTriangle,
-  Calendar,
+  Calendar as CalendarIcon,
   IndianRupee,
   Filter,
   ArrowRight,
@@ -103,6 +107,7 @@ const FeeAssignments: React.FC = () => {
   const [selectedStudentIds, setSelectedStudentIds] = useState<Set<number>>(new Set());
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [academicYear, setAcademicYear] = useState('2024-25');
+  const [dueDate, setDueDate] = useState<string>('');
 
   // UI States
   const [openSelect, setOpenSelect] = useState<'batch' | 'branch' | 'semester' | 'section' | 'admission' | null>(null);
@@ -296,13 +301,18 @@ const FeeAssignments: React.FC = () => {
 
   const handleAssign = async () => {
     if (selectedStudentIds.size === 0 || !selectedTemplateId) return;
+    if (!dueDate) {
+      showErrorAlert('Missing Due Date', 'Please select a due date for the invoice.');
+      return;
+    }
 
     setIsConfirming(true);
     try {
       const result = await bulkAssignFees({
         student_ids: Array.from(selectedStudentIds),
         template_id: parseInt(selectedTemplateId),
-        academic_year: academicYear
+        academic_year: academicYear,
+        due_date: dueDate
       });
 
       if (!result.success) {
@@ -754,6 +764,33 @@ const FeeAssignments: React.FC = () => {
               </Select>
             </div>
 
+            <div className="space-y-2">
+              <Label>Due Date <span className="text-red-500">*</span></Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal mt-1",
+                      !dueDate && "text-muted-foreground",
+                      theme === 'dark' ? 'bg-background border-border hover:bg-muted' : 'bg-white border-gray-300 hover:bg-gray-50'
+                    )}>
+                    
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dueDate ? format(new Date(dueDate), "PPP") : <span>Pick a due date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dueDate ? new Date(dueDate) : undefined}
+                    onSelect={(date) => setDueDate(date ? format(date, "yyyy-MM-dd") : '')}
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    initialFocus />
+                </PopoverContent>
+              </Popover>
+            </div>
+
             {selectedTemplateId &&
             <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 mt-2">
                 <div className="flex items-center gap-3">
@@ -775,7 +812,7 @@ const FeeAssignments: React.FC = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>Cancel</Button>
             <Button
-              disabled={!selectedTemplateId || isConfirming}
+              disabled={!selectedTemplateId || !dueDate || isConfirming}
               onClick={handleAssign}
               className="bg-primary text-white">
               

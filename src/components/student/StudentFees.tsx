@@ -638,7 +638,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
                       {feeData?.fee_summary?.due_date && (
                         <p className={`text-sm flex items-center gap-2 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                           <Calendar className="h-4 w-4 text-primary" />
-                          Due Date: <span className="text-foreground">{new Date(feeData.fee_summary.due_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                          Due Date: <span className="text-foreground">{new Date(feeData.fee_summary.due_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                         </p>
                       )}
                       {(feeData?.fee_summary?.remaining_fees || 0) > 0 && (
@@ -924,7 +924,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
 
                             <div className="flex justify-between items-center">
                               <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                                {new Date(payment.timestamp).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })} • {payment.mode}
+                                {new Date(payment.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })} • {payment.mode}
                               </p>
                               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                                 <Button
@@ -951,7 +951,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
                                 {formatCurrency(payment.amount)}
                               </h3>
                               <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                                {new Date(payment.timestamp).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })} • {payment.mode}
+                                {new Date(payment.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })} • {payment.mode}
                               </p>
                             </motion.div>
                             <motion.div variants={itemVariants} className="flex items-center gap-2 flex-shrink-0">

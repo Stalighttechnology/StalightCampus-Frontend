@@ -750,7 +750,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                           <Badge variant="outline" className="text-[14px] uppercase font-semibold tracking-widest h-4 px-1.5 border-border/50">
                             {inv.fee_assignment?.template?.fee_type || 'Custom'}
                           </Badge>
-                          <span className="text-[13px] font-semibold text-muted-foreground uppercase">{inv.academic_year}</span>
+                          <span className="text-[13px] font-semibold text-muted-foreground uppercase">{inv.academic_year || inv.fee_assignment?.academic_year || 'N/A'}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right align-middle">
@@ -864,7 +864,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 {selectedInvoice && getStatusBadge(selectedInvoice.status)}
               </div>
               <span className="text-muted-foreground text-sm font-medium">
-                {selectedInvoice && new Date(selectedInvoice.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'numeric', year: 'numeric' })}
+                {selectedInvoice && new Date(selectedInvoice.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
               </span>
             </div>
           </div>
@@ -901,13 +901,13 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
               <div>
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Fee Type / Year</p>
                 <p className={`text-sm font-medium mt-1 capitalize ${theme === 'dark' ? 'text-muted-foreground' : 'text-slate-700'}`}>
-                  {selectedInvoice?.fee_assignment?.template?.fee_type || 'Annual'} ({selectedInvoice?.academic_year})
+                  {selectedInvoice?.fee_assignment?.template?.fee_type || 'Annual'} ({selectedInvoice?.academic_year || selectedInvoice?.fee_assignment?.academic_year || ''})
                 </p>
               </div>
               <div>
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Due Date</p>
                 <p className="text-sm font-semibold mt-1 text-red-500">
-                  {selectedInvoice?.due_date ? new Date(selectedInvoice.due_date).toLocaleDateString('en-US', { day: 'numeric', month: 'numeric', year: 'numeric' }) : 'N/A'}
+                  {selectedInvoice?.due_date ? new Date(selectedInvoice.due_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'}
                 </p>
               </div>
             </div>

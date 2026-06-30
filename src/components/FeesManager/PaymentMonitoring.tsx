@@ -714,7 +714,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 {selectedPayment && getStatusBadge(selectedPayment.status)}
               </div>
               <span className={`text-sm font-medium ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                {selectedPayment && new Date(selectedPayment.payment_date).toLocaleDateString('en-US', { day: 'numeric', month: 'numeric', year: 'numeric' })}
+                {selectedPayment && new Date(selectedPayment.payment_date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
               </span>
             </div>
           </div>
