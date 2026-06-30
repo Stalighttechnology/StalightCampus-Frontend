@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Skeleton, SkeletonTable } from "../ui/skeleton";
-import { DownloadIcon, EditIcon, User, Calendar, Loader2 } from "lucide-react";
+import { DownloadIcon, EditIcon, User, Calendar, Loader2, CalendarDays, LayoutGrid, Clock, MapPin } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
 import { useToast } from "../ui/use-toast";
@@ -485,7 +485,7 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
               variant="outline"
               className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100'}
               onClick={onCancel}>
-              
+
               Cancel
             </Button>
             <Button
@@ -529,6 +529,10 @@ const Timetable = () => {
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isSectionOpen, setIsSectionOpen] = useState(false);
+
+  const [viewMode, setViewMode] = useState<'weekly' | 'daily'>('weekly');
+  const [selectedDay, setSelectedDay] = useState<'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT'>('MON');
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [state, setState] = useState({
     branchId: "" as string,
     branchName: "" as string,
@@ -577,9 +581,76 @@ const Timetable = () => {
   // Predefined time slots for the grid (9:00 AM to 5:00 PM)
   // Reference hours for the vertical axis
   const timeSlots = [
-  "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
+    "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
 
   const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+  // Update current time & set smart defaults on load
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 30000); // 30s is enough for timeline check
+
+    // Set selectedDay to current weekday
+    const dayIndex = new Date().getDay();
+    const dayMap: Record<number, 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT'> = {
+      1: 'MON', 2: 'TUE', 3: 'WED', 4: 'THU', 5: 'FRI', 6: 'SAT'
+    };
+    if (dayMap[dayIndex]) {
+      setSelectedDay(dayMap[dayIndex]);
+    }
+
+    // Default view mode based on screen width
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setViewMode('daily');
+      } else {
+        setViewMode('weekly');
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  const parseTimeToMinutes = (timeStr: string) => {
+    if (!timeStr) return 0;
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  const isSessionOngoing = (start: string, end: string, day: string) => {
+    const now = currentTime;
+    const currentDayIndex = now.getDay();
+    const dayMap: Record<number, string> = {
+      1: 'MON', 2: 'TUE', 3: 'WED', 4: 'THU', 5: 'FRI', 6: 'SAT'
+    };
+    if (dayMap[currentDayIndex] !== day) return false;
+
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const startMinutes = parseTimeToMinutes(start);
+    const endMinutes = parseTimeToMinutes(end);
+    return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+  };
+
+  const getSubjectColor = (subjectName: string) => {
+    const colors = [
+      { border: 'border-l-2 border-blue-500', text: 'text-blue-700 dark:text-blue-400', bg: 'bg-blue-500/10' },
+      { border: 'border-l-2 border-emerald-500', text: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-500/10' },
+      { border: 'border-l-2 border-purple-500', text: 'text-purple-700 dark:text-purple-400', bg: 'bg-purple-500/10' },
+      { border: 'border-l-2 border-amber-500', text: 'text-amber-700 dark:text-amber-400', bg: 'bg-amber-500/10' },
+      { border: 'border-l-2 border-indigo-500', text: 'text-indigo-700 dark:text-indigo-400', bg: 'bg-indigo-500/10' },
+      { border: 'border-l-2 border-rose-500', text: 'text-rose-700 dark:text-rose-400', bg: 'bg-rose-500/10' }
+    ];
+    let sum = 0;
+    for (let i = 0; i < subjectName.length; i++) {
+      sum += subjectName.charCodeAt(i);
+    }
+    return colors[sum % colors.length];
+  };
 
 
 
@@ -625,6 +696,9 @@ const Timetable = () => {
     const fetchSections = async () => {
       if (!state.semesterId) {
         updateState({ sections: [], sectionId: "" });
+        return;
+      }
+      if (!state.branchId) {
         return;
       }
 
@@ -677,9 +751,9 @@ const Timetable = () => {
         // Normalize assignments: some endpoints return { data: { assignments: [...] } }
         let assignments: any = [];
         if (assignmentsRes && assignmentsRes.success && assignmentsRes.data) {
-          if (Array.isArray(assignmentsRes.data)) assignments = assignmentsRes.data;else
-          if ((assignmentsRes.data as any).assignments) assignments = (assignmentsRes.data as any).assignments;else
-          assignments = assignmentsRes.data;
+          if (Array.isArray(assignmentsRes.data)) assignments = assignmentsRes.data; else
+            if ((assignmentsRes.data as any).assignments) assignments = (assignmentsRes.data as any).assignments; else
+              assignments = assignmentsRes.data;
         } else {
           assignments = [];
         }
@@ -718,22 +792,22 @@ const Timetable = () => {
         });
         if (timetableResponse.success && timetableResponse.data) {
           const normalizedTimetable = Array.isArray(timetableResponse.data) ?
-          timetableResponse.data.map((entry: TimetableData) => ({
-            id: entry.id,
-            faculty_assignment: {
-              id: entry.faculty_assignment.id,
-              faculty: entry.faculty_assignment.faculty,
-              subject: entry.faculty_assignment.subject,
-              subject_type: (entry.faculty_assignment as any).subject_type,
-              semester: entry.faculty_assignment.semester,
-              section: entry.faculty_assignment.section
-            },
-            day: entry.day.toUpperCase(),
-            start_time: entry.start_time,
-            end_time: entry.end_time,
-            room: entry.room
-          })) :
-          [];
+            timetableResponse.data.map((entry: TimetableData) => ({
+              id: entry.id,
+              faculty_assignment: {
+                id: entry.faculty_assignment.id,
+                faculty: entry.faculty_assignment.faculty,
+                subject: entry.faculty_assignment.subject,
+                subject_type: (entry.faculty_assignment as any).subject_type,
+                semester: entry.faculty_assignment.semester,
+                section: entry.faculty_assignment.section
+              },
+              day: entry.day.toUpperCase(),
+              start_time: entry.start_time,
+              end_time: entry.end_time,
+              room: entry.room
+            })) :
+            [];
           updateState({ timetable: normalizedTimetable });
 
         } else {
@@ -857,16 +931,16 @@ const Timetable = () => {
 
       let assignmentId = "";
       if (newClassDetails.isGroup) {
-         const hasAssignments = state.facultyAssignments.some((a: any) => a.subject_type === newClassDetails.subject_type && a.semester_id === state.semesterId && a.section_id === state.sectionId);
-         if (!hasAssignments) {
-            throw new Error(`No faculty assigned to any ${newClassDetails.subject_type === 'elective' ? translateTerminology("Elective") : 'Open Elective'} subject for this section. Please assign a faculty first.`);
-         }
+        const hasAssignments = state.facultyAssignments.some((a: any) => a.subject_type === newClassDetails.subject_type && a.semester_id === state.semesterId && a.section_id === state.sectionId);
+        if (!hasAssignments) {
+          throw new Error(`No faculty assigned to any ${newClassDetails.subject_type === 'elective' ? translateTerminology("Elective") : 'Open Elective'} subject for this section. Please assign a faculty first.`);
+        }
       } else {
         const subject = state.subjects.find((s) => s.name === newClassDetails.subject);
         if (!subject) {
           throw new Error("Invalid subject selected");
         }
-        
+
         const assignment = state.facultyAssignments.find(
           (a) => a.subject_id === subject.id && a.semester_id === state.semesterId && a.section_id === state.sectionId && (a.faculty_name === newClassDetails.professor || a.faculty === newClassDetails.professor)
         );
@@ -903,28 +977,28 @@ const Timetable = () => {
         // Build faculty_assignment details from local cache
         const assignment = state.facultyAssignments.find((a) => a.id === timetableRequest.assignment_id);
         const facultyAssignment = assignment ?
-        {
-          id: assignment.id,
-          faculty: assignment.faculty,
-          subject: assignment.subject,
-          semester: assignment.semester,
-          section: assignment.section
-        } :
-        { id: timetableRequest.assignment_id || "", faculty: "", subject: "", semester: 0, section: "" };
+          {
+            id: assignment.id,
+            faculty: assignment.faculty,
+            subject: assignment.subject,
+            semester: assignment.semester,
+            section: assignment.section
+          } :
+          { id: timetableRequest.assignment_id || "", faculty: "", subject: "", semester: 0, section: "" };
 
         if (timetableRequest.action === 'create_group') {
           // Instead of fully mocking it, just fetch timetable again to let backend data group it properly
           updateState({ selectedClass: null, loading: true });
           const fetchRes = await manageTimetable({ action: "GET", branch_id: state.branchId, semester_id: state.semesterId, section_id: state.sectionId });
           if (fetchRes.success && fetchRes.data) {
-             const normalized = Array.isArray(fetchRes.data) ? fetchRes.data.map((e: any) => ({
-                 id: e.id,
-                 faculty_assignment: { ...e.faculty_assignment, subject_type: e.faculty_assignment.subject_type || (e.faculty_assignment as any).subject_type },
-                 day: e.day.toUpperCase(), start_time: e.start_time, end_time: e.end_time, room: e.room
-             })) : [];
-             updateState({ timetable: normalized, loading: false });
+            const normalized = Array.isArray(fetchRes.data) ? fetchRes.data.map((e: any) => ({
+              id: e.id,
+              faculty_assignment: { ...e.faculty_assignment, subject_type: e.faculty_assignment.subject_type || (e.faculty_assignment as any).subject_type },
+              day: e.day.toUpperCase(), start_time: e.start_time, end_time: e.end_time, room: e.room
+            })) : [];
+            updateState({ timetable: normalized, loading: false });
           } else {
-             updateState({ loading: false });
+            updateState({ loading: false });
           }
           toast({ title: "Success", description: "Elective group created" });
         } else if (timetableRequest.action === 'create') {
@@ -942,8 +1016,8 @@ const Timetable = () => {
           // update
           if (timetableId) {
             const updated = state.timetable.map((e) => e.id === timetableId || e.id === state.selectedClass?.timetable_id ?
-            { ...e, faculty_assignment: facultyAssignment, day: day.toUpperCase(), start_time, end_time, room } :
-            e
+              { ...e, faculty_assignment: facultyAssignment, day: day.toUpperCase(), start_time, end_time, room } :
+              e
             );
             updateState({ timetable: updated, selectedClass: null });
             toast({ title: "Success", description: "Timetable updated successfully" });
@@ -978,51 +1052,51 @@ const Timetable = () => {
       let day = '';
       let start_time = '';
       let end_time = '';
-      
+
       const targetEntry = state.timetable.find(e => e.id === timetableId);
       if (timetableId.startsWith('group-')) {
-         isGroup = true;
-         subjectType = targetEntry?.faculty_assignment?.subject_type || state.selectedClass?.subject_type || '';
-         day = targetEntry?.day || state.selectedClass?.day || '';
-         start_time = targetEntry?.start_time || state.selectedClass?.start_time || '';
-         end_time = targetEntry?.end_time || state.selectedClass?.end_time || '';
+        isGroup = true;
+        subjectType = targetEntry?.faculty_assignment?.subject_type || state.selectedClass?.subject_type || '';
+        day = targetEntry?.day || state.selectedClass?.day || '';
+        start_time = targetEntry?.start_time || state.selectedClass?.start_time || '';
+        end_time = targetEntry?.end_time || state.selectedClass?.end_time || '';
       }
-      
+
       if (isGroup && state.semesterId && state.sectionId && subjectType) {
-         const response = await manageTimetable({ 
-            action: 'delete_group', 
-            subject_type: subjectType,
-            day,
-            start_time,
-            end_time,
-            semester_id: state.semesterId,
-            section_id: state.sectionId,
-            branch_id: state.branchId 
-         });
-         if (response.success) {
-            // refetch timetable
-            const fetchRes = await manageTimetable({ action: "GET", branch_id: state.branchId, semester_id: state.semesterId, section_id: state.sectionId });
-            if (fetchRes.success && fetchRes.data) {
-               const normalized = Array.isArray(fetchRes.data) ? fetchRes.data.map((e: any) => ({
-                   id: e.id,
-                   faculty_assignment: { ...e.faculty_assignment, subject_type: e.faculty_assignment.subject_type || (e.faculty_assignment as any).subject_type },
-                   day: e.day.toUpperCase(), start_time: e.start_time, end_time: e.end_time, room: e.room
-               })) : [];
-               updateState({ timetable: normalized, selectedClass: null });
-            }
-            toast({ title: 'Deleted', description: 'Group deleted successfully' });
-         } else {
-            throw new Error(response.message || 'Failed to delete group');
-         }
+        const response = await manageTimetable({
+          action: 'delete_group',
+          subject_type: subjectType,
+          day,
+          start_time,
+          end_time,
+          semester_id: state.semesterId,
+          section_id: state.sectionId,
+          branch_id: state.branchId
+        });
+        if (response.success) {
+          // refetch timetable
+          const fetchRes = await manageTimetable({ action: "GET", branch_id: state.branchId, semester_id: state.semesterId, section_id: state.sectionId });
+          if (fetchRes.success && fetchRes.data) {
+            const normalized = Array.isArray(fetchRes.data) ? fetchRes.data.map((e: any) => ({
+              id: e.id,
+              faculty_assignment: { ...e.faculty_assignment, subject_type: e.faculty_assignment.subject_type || (e.faculty_assignment as any).subject_type },
+              day: e.day.toUpperCase(), start_time: e.start_time, end_time: e.end_time, room: e.room
+            })) : [];
+            updateState({ timetable: normalized, selectedClass: null });
+          }
+          toast({ title: 'Deleted', description: 'Group deleted successfully' });
+        } else {
+          throw new Error(response.message || 'Failed to delete group');
+        }
       } else {
-         const response = await manageTimetable({ action: 'delete', timetable_id: timetableId, branch_id: state.branchId });
-         if (response.success) {
-           const filtered = state.timetable.filter((e) => e.id !== timetableId);
-           updateState({ timetable: filtered, selectedClass: null });
-           toast({ title: 'Deleted', description: 'Class deleted successfully' });
-         } else {
-           throw new Error(response.message || 'Failed to delete class');
-         }
+        const response = await manageTimetable({ action: 'delete', timetable_id: timetableId, branch_id: state.branchId });
+        if (response.success) {
+          const filtered = state.timetable.filter((e) => e.id !== timetableId);
+          updateState({ timetable: filtered, selectedClass: null });
+          toast({ title: 'Deleted', description: 'Class deleted successfully' });
+        } else {
+          throw new Error(response.message || 'Failed to delete class');
+        }
       }
     } catch (err) {
 
@@ -1101,53 +1175,84 @@ const Timetable = () => {
   }
 
   return (
-    <div >
-      <Card id="timetable-card">
+    <div>
+      <Card id="timetable-card" className={`w-full overflow-hidden border-0 sm:border shadow-none bg-transparent sm:bg-card text-card-foreground border-border`}>
         <div id="timetable-header-filters-section">
-          <CardHeader id="timetable-card-header" className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card px-4 py-3 rounded-t-md gap-2 sm:gap-4">
+          <CardHeader id="timetable-card-header" className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-transparent sm:bg-card px-0 py-4 sm:px-6 sm:py-4 border-b border-slate-100 dark:border-slate-800/80 gap-4">
             <div className="flex items-start justify-between w-full sm:w-auto">
-              <CardTitle className="text-2xl font-semibold text-foreground">Timetable</CardTitle>
+              <div>
+                <CardTitle className="text-2xl font-semibold tracking-tight text-foreground">Academic Timetable</CardTitle>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Manage and track weekly sections schedules.</p>
+              </div>
             </div>
-            <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
-              <Button
-                variant="outline"
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={handleEdit}
-                disabled={!state.semesterId || !state.sectionId}>
-                
-                <EditIcon className="w-4 h-4" />
-                <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
-              </Button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+              {/* View Mode Toggle */}
+              {state.semesterId && state.sectionId && (
+                <div className="flex items-center rounded-lg p-1 bg-slate-100 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 mr-0 sm:mr-2 flex-1 sm:flex-none justify-center">
+                  <button
+                    onClick={() => setViewMode('weekly')}
+                    className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex-1 sm:flex-none ${viewMode === 'weekly'
+                      ? 'bg-white dark:bg-slate-950 shadow-sm text-primary'
+                      : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                      }`}
+                  >
+                    <LayoutGrid size={14} />
+                    <span>Weekly Grid</span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('daily')}
+                    className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex-1 sm:flex-none ${viewMode === 'daily'
+                      ? 'bg-white dark:bg-slate-950 shadow-sm text-primary'
+                      : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                      }`}
+                  >
+                    <CalendarDays size={14} />
+                    <span>Daily List</span>
+                  </button>
+                </div>
+              )}
 
-              {/* Mobile Download PDF Icon Button */}
-              <Button
-                onClick={handleExportPDF}
-                disabled={downloadingPDF || !state.semesterId || !state.sectionId}
-                size="icon"
-                variant="outline"
-                className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
-              >
-                {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <DownloadIcon className="w-4 h-4" />}
-              </Button>
+              <div className="flex items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-start">
+                <Button
+                  variant="outline"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleEdit}
+                  disabled={!state.semesterId || !state.sectionId}>
 
-              <Button
-                variant="outline"
-                className="hidden sm:flex flex-1 sm:flex-none items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
-                onClick={handleExportPDF}
-                disabled={downloadingPDF || !state.semesterId || !state.sectionId}>
-                {downloadingPDF ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <DownloadIcon className="w-4 h-4" />
-                )}
-                <span className="whitespace-nowrap">
-                  {downloadingPDF ? "Exporting..." : "Export PDF"}
-                </span>
-              </Button>
+                  <EditIcon className="w-4 h-4" />
+                  <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
+                </Button>
+
+                {/* Mobile Download PDF Icon Button */}
+                <Button
+                  onClick={handleExportPDF}
+                  disabled={downloadingPDF || !state.semesterId || !state.sectionId}
+                  size="icon"
+                  variant="outline"
+                  className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                >
+                  {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <DownloadIcon className="w-4 h-4" />}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="hidden sm:flex flex-1 sm:flex-none items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
+                  onClick={handleExportPDF}
+                  disabled={downloadingPDF || !state.semesterId || !state.sectionId}>
+                  {downloadingPDF ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <DownloadIcon className="w-4 h-4" />
+                  )}
+                  <span className="whitespace-nowrap">
+                    {downloadingPDF ? "Exporting..." : "Export PDF"}
+                  </span>
+                </Button>
+              </div>
             </div>
           </CardHeader>
 
-          <CardContent className="bg-card pb-3">
+          <CardContent className="bg-transparent sm:bg-card px-0 py-3 sm:px-6 sm:pb-3">
             <div className="border border-border rounded-lg p-4">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
                 <div className="flex flex-col sm:flex-row md:flex-row gap-2 sm:gap-4 w-full md:flex-1 md:items-center md:flex-nowrap">
@@ -1161,7 +1266,7 @@ const Timetable = () => {
                         setTimeout(() => setIsSectionOpen(true), 150);
                       }}
                       disabled={state.loading || state.semesters.length === 0}>
-                      
+
                       <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border" disabled={state.loading || state.semesters.length === 0}>
                         <SelectValue placeholder={state.semesters.length === 0 ? "No semester available" : "Select Semester"} />
                       </SelectTrigger>
@@ -1187,14 +1292,14 @@ const Timetable = () => {
                       value={state.sectionId}
                       onValueChange={(value) => updateState({ sectionId: value, timetable: [] })}
                       disabled={state.loading || !state.semesterId}>
-                      
+
                       <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border" disabled={state.loading || !state.semesterId}>
                         <SelectValue placeholder={
                           !state.semesterId ?
                             "Select Semester" :
                             state.sections.length === 0 ?
-                            "No section available" :
-                            "Select Section"
+                              "No section available" :
+                              "Select Section"
                         } />
                       </SelectTrigger>
                       <SelectContent className="bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar">
@@ -1219,19 +1324,17 @@ const Timetable = () => {
                 </div>
                 <div className="text-sm text-muted-foreground mt-2 md:mt-0 md:ml-4 md:whitespace-nowrap md:flex-none">
                   {state.semesterId && state.sectionId ?
-                  `${state.semesters.find((s) => s.id === state.semesterId)?.number} Semester - Section ${state.sections.find((s) => s.id === state.sectionId)?.name}` :
+                    `${state.semesters.find((s) => s.id === state.semesterId)?.number} Semester - Section ${state.sections.find((s) => s.id === state.sectionId)?.name}` :
 
-                  "Select Semester and Section"}
+                    "Select Semester and Section"}
                 </div>
               </div>
             </div>
           </CardContent>
-        </div>
-
-        <CardContent className="bg-card pt-0">
+        </div>        <CardContent className="bg-transparent sm:bg-card px-0 pt-0 sm:px-6 sm:pt-0">
           <div className="border border-border rounded-lg p-4">
-            {!state.semesterId || !state.sectionId ?
-            <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+            {!state.semesterId || !state.sectionId ? (
+              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                 <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
                   <Calendar className="w-12 h-12 opacity-80" />
                 </div>
@@ -1239,73 +1342,245 @@ const Timetable = () => {
                 <p className="max-w-xs text-base leading-relaxed">
                   Select a <span className="font-semibold text-primary">semester</span> and <span className="font-semibold text-primary">section</span> above to display the weekly schedule.
                 </p>
-              </div> :
+              </div>
+            ) : viewMode === 'daily' ? (
+              /* HOD DAILY PLANNER VIEW */
+              <div className="space-y-6 animate-in fade-in duration-300">
+                {/* Day Tab Selectors */}
+                <div className="grid grid-cols-6 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200/50 dark:border-slate-700/50 w-full">
+                  {days.map((day) => (
+                    <button
+                      key={day}
+                      onClick={() => setSelectedDay(day as any)}
+                      className={`py-2 text-xs font-semibold rounded-md transition-all ${selectedDay === day
+                        ? 'bg-primary text-white font-semibold shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        }`}
+                    >
+                      {day}
+                    </button>
+                  ))}
+                </div>
 
-            <div className="overflow-x-auto">
-                <table className="min-w-full text-sm text-left">
-                  <thead className="text-foreground">
-                    <tr>
-                      <th className="py-2 px-4 font-semibold">Time/Day</th>
-                      <th className="py-2 px-4 font-semibold">Monday</th>
-                      <th className="py-2 px-4 font-semibold">Tuesday</th>
-                      <th className="py-2 px-4 font-semibold">Wednesday</th>
-                      <th className="py-2 px-4 font-semibold">Thursday</th>
-                      <th className="py-2 px-4 font-semibold">Friday</th>
-                      <th className="py-2 px-4 font-semibold">Saturday</th>
+                {/* Day's Timeline List */}
+                <div className="space-y-4">
+                  {(() => {
+                    const dayEntries = state.timetable.filter(e => e.day === selectedDay)
+                      .sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+                    if (dayEntries.length === 0) {
+                      return (
+                        <div className={`flex flex-col items-center justify-center py-14 px-4 text-center rounded-2xl border-2 border-dashed transition-all duration-300 ${
+                          theme === 'dark' 
+                            ? 'bg-[#0f172a]/20 border-slate-800 text-slate-400' 
+                            : 'bg-slate-50/50 border-slate-200 text-slate-500'
+                        }`}>
+                          <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-slate-900 text-primary' : 'bg-primary/5 text-primary'}`}>
+                            <CalendarDays className="w-8 h-8 opacity-90" />
+                          </div>
+                          <h4 className={`text-base font-semibold mb-1.5 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>No lectures scheduled</h4>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[240px] leading-relaxed mb-4">
+                            There are no classes scheduled for {selectedDay} yet.
+                          </p>
+                          {state.isEditing && (
+                            <Button size="sm" variant="outline" className="flex items-center gap-1.5" onClick={() => handleClassClick("09:00", selectedDay)}>
+                              + Add First Class
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <>
+                        <div className="space-y-4">
+                          {dayEntries.map((entry, idx) => {
+                            const subjectStr = entry.faculty_assignment.subject;
+                            const colors = getSubjectColor(subjectStr);
+                            const ongoing = isSessionOngoing(entry.start_time, entry.end_time, entry.day);
+
+                            return (
+                              <div
+                                key={idx}
+                                onClick={() => handleClassClick(entry.start_time.substring(0, 5), entry.day, entry)}
+                                className={`relative p-5 rounded-xl border transition-all duration-300 cursor-pointer ${ongoing
+                                  ? `${colors.border} bg-primary/5 dark:bg-primary/10 border-primary ring-1 ring-primary/30 scale-[1.01]`
+                                  : theme === 'dark'
+                                    ? 'border-slate-800/80 bg-slate-900/40 text-slate-400 hover:border-slate-700'
+                                    : 'border-slate-100 bg-slate-50/50 text-slate-650 hover:bg-slate-100/50'
+                                  } ${state.isEditing ? 'border-dashed border-primary/50 hover:border-primary hover:bg-primary/5' : ''}`}
+                              >
+                                {state.isEditing && (
+                                  <div className="absolute right-4 top-4 p-1 rounded-full bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-850 text-primary">
+                                    <EditIcon size={12} />
+                                  </div>
+                                )}
+                                {ongoing && !state.isEditing && (
+                                  <span className="absolute right-4 top-4 flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                  </span>
+                                )}
+
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                  <div>
+                                    <div className="flex items-center gap-2 mb-1.5">
+                                      <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded ${colors.bg} ${colors.text}`}>
+                                        {entry.faculty_assignment.subject_type === 'elective' ? 'ELECTIVE' : (entry.faculty_assignment.subject_type === 'open_elective' ? 'OPEN ELECT' : 'CORE')}
+                                      </span>
+                                      <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                                        <Clock size={11} /> {formatTo12h(entry.start_time)} - {formatTo12h(entry.end_time)}
+                                      </span>
+                                    </div>
+                                    <h4 className={`text-base font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{subjectStr}</h4>
+                                  </div>
+
+                                  <div className="flex flex-row sm:flex-col gap-4 sm:gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 w-full sm:w-auto">
+                                    <div className="flex items-center gap-1.5 font-medium">
+                                      <User size={13} className="text-slate-400" />
+                                      <span>{entry.faculty_assignment.faculty}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 font-semibold text-primary">
+                                      <MapPin size={13} />
+                                      <span>Room {entry.room}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {state.isEditing && (
+                          <div className="flex justify-center pt-2">
+                            <Button size="sm" variant="outline" className="flex items-center gap-1.5" onClick={() => handleClassClick("09:00", selectedDay)}>
+                              + Add Class to {selectedDay}
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            ) : (
+              /* HOD WEEKLY GRID VIEW */
+              <div className="overflow-x-auto border border-slate-150 dark:border-slate-800/60 rounded-xl custom-scrollbar animate-in fade-in duration-300">
+                <table className="w-full border-collapse text-left whitespace-nowrap min-w-[900px]">
+                  <thead>
+                    <tr className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 border-b border-slate-150 dark:border-slate-800">
+                      <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wider w-24 text-center md:sticky md:left-0 md:z-10 bg-slate-100 dark:bg-[#151c2c] border-r border-slate-200 dark:border-slate-800">
+                        Time Slot
+                      </th>
+                      {days.map((day) => (
+                        <th
+                          key={day}
+                          className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-center"
+                        >
+                          {day}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
-                  <tbody>
-                    {getTableData().map((row, idx) =>
-                      <tr key={idx} className="border-t hover:bg-accent border-border">
-                        <td className="py-3 px-4 font-medium text-foreground">{formatTo12h(row.time)}</td>
-                        {["mon", "tue", "wed", "thu", "fri", "sat"].map((day, i) =>
-                    <td
-                      key={i}
-                      className="py-3 px-4 whitespace-pre-line text-foreground cursor-pointer"
-                      onClick={() => handleClassClick(row.time, day.toUpperCase())}>
-                      
-                            {row[day] && row[day].length > 0 ?
-                      row[day].map((entry: any) =>
-                      <div
-                        key={entry.id}
-                        className="mb-2 p-2 rounded bg-primary/10 border-l-4 border-primary hover:bg-primary/20"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleClassClick(row.time, day.toUpperCase(), entry);
-                        }}>
-                        
-                                  <div className="font-semibold">{entry.faculty_assignment.subject}</div>
-                                  <div className="text-xs text-muted-foreground">{formatTo12h(entry.start_time)} - {formatTo12h(entry.end_time)}</div>
-                                  <div className="text-xs">{entry.faculty_assignment.faculty}</div>
-                                  <div className="text-xs italic">Room {entry.room}</div>
-                                </div>
-                      ) :
+                  <tbody className="divide-y divide-slate-150 dark:divide-slate-800">
+                    {getTableData().map((row, idx) => {
+                      const isEvenRow = idx % 2 === 0;
+                      const rowBgClass = theme === 'dark'
+                        ? isEvenRow ? 'bg-[#0f172a]' : 'bg-[#0f172a]/40'
+                        : isEvenRow ? 'bg-white' : 'bg-slate-50/30';
 
-                      state.isEditing && <span className="text-muted-foreground italic text-xs">Click to add</span>
-                      }
+                      return (
+                        <tr key={idx} className={`${rowBgClass} hover:bg-slate-100/50 dark:hover:bg-slate-800/20 transition-colors`}>
+                          <td className="px-4 py-4 font-semibold text-xs text-center border-r border-slate-200 dark:border-slate-800 md:sticky md:left-0 md:z-10 md:bg-[#f8fafc] md:dark:bg-[#151c2c] text-slate-600 dark:text-slate-400">
+                            {formatTo12h(row.time)}
                           </td>
-                    )}
-                      </tr>
-                  )}
+                          {["mon", "tue", "wed", "thu", "fri", "sat"].map((day) => {
+                            const entries = row[day] as any[];
+                            return (
+                              <td
+                                key={day}
+                                className="px-3 py-3 vertical-top min-w-[140px] max-w-[180px] cursor-pointer"
+                                onClick={() => handleClassClick(row.time, day.toUpperCase())}
+                              >
+                                {entries && entries.length > 0 ? (
+                                  entries.map((entry, eIdx) => {
+                                    const colors = getSubjectColor(entry.faculty_assignment.subject);
+                                    const ongoing = isSessionOngoing(entry.start_time, entry.end_time, entry.day);
+
+                                    return (
+                                      <div
+                                        key={eIdx}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleClassClick(row.time, day.toUpperCase(), entry);
+                                        }}
+                                        className={`p-2.5 rounded-lg border flex flex-col justify-between h-full transition-all duration-300 relative ${colors.border} ${colors.bg} ${ongoing
+                                          ? 'border-primary ring-2 ring-primary/40 dark:ring-primary/60 scale-[1.03] bg-primary/15 dark:bg-primary/25'
+                                          : 'opacity-80 hover:opacity-100 hover:scale-[1.01]'
+                                          } ${state.isEditing ? 'border-dashed border-primary/50 hover:border-primary hover:bg-primary/5' : ''}`}
+                                      >
+                                        {state.isEditing && (
+                                          <div className="absolute right-1.5 top-1.5 p-0.5 rounded bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-855 text-primary">
+                                            <EditIcon size={9} />
+                                          </div>
+                                        )}
+                                        <div className="relative">
+                                          {ongoing && !state.isEditing && (
+                                            <span className="absolute right-0 top-0.5 flex h-1.5 w-1.5">
+                                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                                            </span>
+                                          )}
+                                          <div className={`font-semibold text-[11px] leading-tight ${colors.text} truncate pr-3.5`}>
+                                            {entry.faculty_assignment.subject}
+                                          </div>
+                                          <div className="text-[9px] font-semibold text-slate-400 dark:text-slate-500 mt-1">
+                                            {formatTo12h(entry.start_time)} - {formatTo12h(entry.end_time)}
+                                          </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center text-[9px] font-semibold text-slate-400 dark:text-slate-400 mt-2 pt-1.5 border-t border-slate-200/40 dark:border-slate-850/40">
+                                          <span className="truncate max-w-[70px]">{entry.faculty_assignment.faculty}</span>
+                                          <span className="text-primary whitespace-nowrap">Room {entry.room}</span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })
+                                ) : (
+                                  <div className="h-full min-h-[48px] flex flex-col items-center justify-center text-slate-200 dark:text-slate-850/80 font-semibold select-none">
+                                    {state.isEditing ? (
+                                      <div className="w-full py-2 flex items-center justify-center border border-dashed border-slate-300 dark:border-slate-700/60 rounded-md hover:border-primary hover:bg-primary/5 transition-all text-[10px] text-slate-400 hover:text-primary font-semibold">
+                                        + Add Class
+                                      </div>
+                                    ) : (
+                                      "•"
+                                    )}
+                                  </div>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
-            }
+            )}
           </div>
         </CardContent>
       </Card>
 
       {state.isEditing && state.selectedClass &&
-      <EditModal
-        classDetails={state.selectedClass}
-        onSave={handleSaveClass}
-        onCancel={handleCancelEdit}
-        onDelete={handleDeleteClass}
-        subjects={state.subjects}
-        facultyAssignments={state.facultyAssignments}
-        semesterId={state.semesterId}
-        sectionId={state.sectionId}
-        branchId={state.branchId} />
+        <EditModal
+          classDetails={state.selectedClass}
+          onSave={handleSaveClass}
+          onCancel={handleCancelEdit}
+          onDelete={handleDeleteClass}
+          subjects={state.subjects}
+          facultyAssignments={state.facultyAssignments}
+          semesterId={state.semesterId}
+          sectionId={state.sectionId}
+          branchId={state.branchId} />
 
       }
     </div>);
