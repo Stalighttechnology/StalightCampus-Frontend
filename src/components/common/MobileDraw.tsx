@@ -191,7 +191,7 @@ export default function MobileDraw() {
     setIsSubmitting(true);
     
     try {
-      const dataUrl = canvasRef.current.toDataURL('image/png');
+      const dataUrl = canvasRef.current.toDataURL('image/jpeg', 0.6);
       
       const response = await fetch(`${API_ENDPOINT}/exams/mobile-draw/upload/`, {
         method: 'POST',
@@ -335,7 +335,12 @@ export default function MobileDraw() {
           disabled={isSubmitting}
           className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 text-lg shadow-lg disabled:opacity-70 transition-colors"
         >
-          {isSubmitting ? 'Syncing to computer...' : (
+          {isSubmitting ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Sending...
+            </>
+          ) : (
             <>
               <Save size={24} />
               Save & Send to Desktop
