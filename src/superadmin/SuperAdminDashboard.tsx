@@ -15,6 +15,7 @@ import EnrollDeveloper from "./pages/EnrollDeveloper";
 import Coupons from "./pages/Coupons";
 import NDASubmissions from "./pages/NDASubmissions";
 import Popups from "./pages/Popups";
+import BulkEmailer from "./pages/BulkEmailer";
 import { useTheme } from "../context/ThemeContext";
 import { Sun, Moon, Menu } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -152,6 +153,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
               <Route path="popups" element={<Popups />} />
               <Route path="reports" element={<Reports />} />
               <Route path="nda" element={<NDASubmissions />} />
+              <Route path="marketing" element={<BulkEmailer />} />
               <Route path="profile" element={<Profile />} />
               <Route path="*" element={
                 <div className="flex flex-col items-center justify-center h-[60vh]">
