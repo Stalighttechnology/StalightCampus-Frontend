@@ -146,10 +146,11 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
     options.headers = safeHeaders as Record<string, string>;
     options.credentials = 'include'; // Include cookies
 
-    // Add a default timeout of 10 seconds for standard requests, or 60 seconds for file exports
+    // Add a default timeout of 10 seconds for standard requests, or 60 seconds for file exports and Google Meet API calls
     const isExportRequest = url.includes('export-pdf') || url.includes('export-csv') || url.includes('/receipt/') || url.includes('/download/') || url.includes('export-payments-pdf');
+    const isMeetingCreate = url.includes('/meetings/') && options.method === 'POST';
     if (!options.signal && typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal) {
-      options.signal = isExportRequest ? AbortSignal.timeout(60000) : AbortSignal.timeout(10000);
+      options.signal = (isExportRequest || isMeetingCreate) ? AbortSignal.timeout(60000) : AbortSignal.timeout(10000);
     }
 
     let response: Response;
