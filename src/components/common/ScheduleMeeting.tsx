@@ -357,7 +357,7 @@ export default function ScheduleMeeting() {
         <CardHeader className="pb-4 border-b bg-muted/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 space-y-0">
           <div>
             <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              Role-Based Meetings
+              Meetings & Schedules
             </CardTitle>
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
               Schedule and manage online meetings across staff roles.
