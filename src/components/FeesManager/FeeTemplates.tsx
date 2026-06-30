@@ -190,6 +190,7 @@ const FeeTemplates: React.FC = () => {
     setComponentAmount('');
     setComponentDescription('');
     setEditingTemplate(null);
+    setError(null);
   };
 
   const addComponent = () => {
@@ -213,7 +214,6 @@ const FeeTemplates: React.FC = () => {
     if (!templateName.trim() || selectedComponents.length === 0) return;
 
     if (feeType === 'other' && !templateDescription.trim()) {
-      setError('Description is required when Fee Type is set to "Other".');
       const currentTheme = theme === 'dark' ? 'dark' : 'light';
       await MySwal.fire({
         title: 'Validation Error',
@@ -313,7 +313,6 @@ const FeeTemplates: React.FC = () => {
     if (!editingTemplate || !templateName.trim() || selectedComponents.length === 0) return;
 
     if (feeType === 'other' && !templateDescription.trim()) {
-      setError('Description is required when Fee Type is set to "Other".');
       const currentTheme = theme === 'dark' ? 'dark' : 'light';
       await MySwal.fire({
         title: 'Validation Error',
@@ -504,13 +503,17 @@ const FeeTemplates: React.FC = () => {
                 Create Template
               </Button>
             </DialogTrigger>
-             <DialogContent className={`w-[95vw] sm:w-[92vw] md:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-hidden rounded-xl sm:rounded-2xl ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'} p-0 shadow-2xl`}>
+             <DialogContent
+               onPointerDownOutside={(e) => e.preventDefault()}
+               onEscapeKeyDown={(e) => e.preventDefault()}
+               className={`w-[90vw] sm:w-[92vw] md:max-w-xl lg:max-w-2xl h-[80vh] sm:h-auto max-h-[80vh] sm:max-h-[90vh] overflow-hidden rounded-xl sm:rounded-2xl ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'} p-0 shadow-2xl`}
+             >
               <DialogHeader className="px-6 pt-6 pb-3 border-b">
                 <DialogTitle>
                   {editingTemplate ? 'Edit Fee Template' : 'Create New Fee Template'}
                 </DialogTitle>
               </DialogHeader>
-               <div className="space-y-6 overflow-y-auto custom-scrollbar px-6 pb-4 pt-4" style={{ maxHeight: 'calc(90vh - 160px)' }}>
+               <div className="space-y-6 overflow-y-auto custom-scrollbar px-6 pb-4 pt-4 h-[calc(80vh-140px)] sm:h-auto sm:max-h-[calc(90vh-160px)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                   <div>
                     <Label htmlFor="templateName">Template Name</Label>
