@@ -1027,9 +1027,9 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                           <Select value={sub.subject_id} onValueChange={(v) => { const newSubs = [...formData.subjects]; newSubs[index].subject_id = v; setFormData({ ...formData, subjects: newSubs }); }}>
                             <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select Subject" /></SelectTrigger>
                             <SelectContent>
-                              {subjects.filter(s => s.subject_type !== 'elective' && s.subject_type !== 'open_elective' && !formData.subjects.some((subItem, i) => i !== index && subItem.subject_id === s.id.toString())).length > 0 ? (
+                              {subjects.filter(s => (s.subject_type !== 'elective' && s.subject_type !== 'open_elective' || s.id.toString() === sub.subject_id) && !formData.subjects.some((subItem, i) => i !== index && subItem.subject_id === s.id.toString())).length > 0 ? (
                                 subjects
-                                  .filter(s => s.subject_type !== 'elective' && s.subject_type !== 'open_elective' && !formData.subjects.some((subItem, i) => i !== index && subItem.subject_id === s.id.toString()))
+                                  .filter(s => (s.subject_type !== 'elective' && s.subject_type !== 'open_elective' || s.id.toString() === sub.subject_id) && !formData.subjects.some((subItem, i) => i !== index && subItem.subject_id === s.id.toString()))
                                   .map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name} ({s.subject_code})</SelectItem>)
                               ) : (
                                 <SelectItem value="none" disabled>No standard subjects found</SelectItem>
