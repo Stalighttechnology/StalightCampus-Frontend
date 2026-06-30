@@ -1195,9 +1195,25 @@ const Timetable = () => {
                     <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
                   </Button>
 
+                  {/* Mobile Export PDF Button */}
                   <Button
                     variant="outline"
-                    className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-250 ease-in-out transform hover:scale-[1.02] shadow-sm h-9 px-3.5 rounded-lg flex items-center justify-center gap-1.5 text-xs font-semibold shrink-0 disabled:opacity-50"
+                    size="icon"
+                    className="flex md:hidden dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200 h-9 w-9 items-center justify-center shrink-0 p-0"
+                    onClick={handleExportPDF}
+                    disabled={downloadingPDF || !state.semesterId || !state.sectionId}
+                  >
+                    {downloadingPDF ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <DownloadIcon className="w-3.5 h-3.5" />
+                    )}
+                  </Button>
+
+                  {/* Desktop Export PDF Button */}
+                  <Button
+                    variant="outline"
+                    className="hidden md:flex bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-250 ease-in-out transform hover:scale-[1.02] shadow-sm h-9 px-3.5 rounded-lg items-center justify-center gap-1.5 text-xs font-semibold shrink-0 disabled:opacity-50"
                     onClick={handleExportPDF}
                     disabled={downloadingPDF || !state.semesterId || !state.sectionId}>
                     {downloadingPDF ? (
@@ -1205,9 +1221,7 @@ const Timetable = () => {
                     ) : (
                       <DownloadIcon className="w-3.5 h-3.5" />
                     )}
-                    <span className="hidden sm:inline">
-                      {downloadingPDF ? "Exporting..." : "Export PDF"}
-                    </span>
+                    <span>{downloadingPDF ? "Exporting..." : "Export PDF"}</span>
                   </Button>
                 </div>
 

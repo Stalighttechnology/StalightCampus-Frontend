@@ -196,8 +196,8 @@ const Timetable = ({ role }: TimetableProps) => {
             
             <Button
               variant="outline"
-              size="sm"
-              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-3.5 rounded-lg flex md:hidden items-center justify-center gap-1.5 shadow-sm text-xs font-semibold shrink-0"
+              size="icon"
+              className="flex md:hidden dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200 h-9 w-9 items-center justify-center shrink-0 p-0"
               disabled={downloadingPDF || loading || timetableData.length === 0}
               onClick={exportPDF}
             >
