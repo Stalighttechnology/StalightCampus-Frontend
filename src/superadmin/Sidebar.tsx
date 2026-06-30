@@ -15,7 +15,8 @@ import {
   ShieldCheck,
   UserCircle2,
   Tag,
-  FileText
+  FileText,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useTheme } from "../context/ThemeContext";
@@ -48,6 +49,7 @@ const menuItems = [
   { id: "support", label: "Support Panel", icon: <LifeBuoy size={20} /> },
   { id: "enroll-developer", label: "Enroll Developer", icon: <Users size={20} /> },
   { id: "monitoring", label: "System Monitor", icon: <Activity size={20} /> },
+  { id: "popups", label: "Popups", icon: <MessageSquare size={20} /> },
   { id: "reports", label: "Reports", icon: <BarChart3 size={20} /> },
   { id: "nda", label: "NDA & Consents", icon: <FileText size={20} /> },
   { id: "profile", label: "My Profile", icon: <UserCircle2 size={20} /> },
