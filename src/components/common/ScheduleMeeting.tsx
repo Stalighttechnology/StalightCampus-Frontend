@@ -164,8 +164,9 @@ export default function ScheduleMeeting() {
       case "principal":
       case "org_admin":
       case "admin":
-      case "dean":
         return AVAILABLE_ROLES.map(r => r.id);
+      case "dean":
+        return AVAILABLE_ROLES.filter(r => r.id !== 'warden').map(r => r.id);
       case "coe":
         return ["teacher", "hod", "principal", "dean"];
       case "fees_manager":
@@ -232,7 +233,21 @@ export default function ScheduleMeeting() {
     const endDateTime = new Date(`${date}T${endTime24}`);
 
     if (startDateTime >= endDateTime) {
-      showErrorAlert("Invalid Time", "End time must be after start time.");
+      setValidationError("End time must be after start time.");
+      return;
+    }
+
+    // Frontend overlap check against already-loaded meetings for instant feedback
+    const myMeetings = meetings.filter((m: any) => {
+      const mStart = new Date(m.start_time);
+      const mEnd = new Date(m.end_time);
+      return mStart < endDateTime && mEnd > startDateTime;
+    });
+    if (myMeetings.length > 0) {
+      const conflict = myMeetings[0];
+      const cStart = new Date(conflict.start_time).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      const cEnd = new Date(conflict.end_time).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit' });
+      setValidationError(`You already have "${conflict.title}" scheduled from ${cStart} to ${cEnd}. Please choose a different time.`);
       return;
     }
 
@@ -605,6 +620,12 @@ export default function ScheduleMeeting() {
                     </div>
                   </div>
                 </div>
+                {validationError && (
+                  <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400">
+                    <svg className="mt-0.5 h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>
+                    <span>{validationError}</span>
+                  </div>
+                )}
                 <DialogFooter className="gap-2 sm:gap-0">
                   <Button variant="outline" onClick={() => setShowDialog(false)}>Cancel</Button>
                   <Button onClick={handleCreateMeeting} disabled={submitting}>
