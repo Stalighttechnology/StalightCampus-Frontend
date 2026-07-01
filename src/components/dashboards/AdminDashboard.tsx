@@ -28,6 +28,7 @@ import { HolidayCalendar } from "../admin/HolidayCalendar";
 import BillingManagement from "../org_admin/BillingManagement";
 import CampusLocationManager from "../dean/CampusLocationManager";
 import AlumniDirectory from "../common/AlumniDirectory";
+import PrincipalTimetableSettings from "../admin/PrincipalTimetableSettings";
 
 import {
   Users,
@@ -229,6 +230,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <AlumniDirectory />
+          </div>);
+          
+      case "timetable-config":
+        return (
+          <div>
+            <PrincipalTimetableSettings />
           </div>);
 
       case "schedule-meeting":

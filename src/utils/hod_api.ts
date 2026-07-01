@@ -369,6 +369,7 @@ interface ManageTimetableRequest {
   day?: string;
   start_time?: string;
   end_time?: string;
+  slot_id?: string;
   room?: string;
   semester_id: string;
   section_id: string;
@@ -2017,8 +2018,8 @@ export const manageTimetable = async (data: ManageTimetableRequest): Promise<Man
       body = formData;
     } else {
       if (data.action === "create" || data.action === "update") {
-        if (!data.assignment_id || !data.day || !data.start_time || !data.end_time) {
-          throw new Error("Assignment ID, Day, Start Time, and End Time are required for create/update action");
+        if (!data.assignment_id || !data.day || !data.slot_id) {
+          throw new Error("Assignment ID, Day, and Slot are required for create/update action");
         }
       }
       if (data.action === "delete" && !data.timetable_id) {

@@ -415,7 +415,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                       {ongoingClass.subject}
                     </h4>
                     <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                      Teacher: {ongoingClass.section ?? ''}
+                      Section: {ongoingClass.section ?? ''}
                     </p>
                     <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                       Room: {ongoingClass.room}
@@ -436,7 +436,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                         {nextClass.subject}
                       </h4>
                       <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        Teacher: {nextClass.section ?? ''}
+                        Section: {nextClass.section ?? ''}
                       </p>
                       <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         Room: {nextClass.room}
@@ -473,7 +473,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                         Next: {nextClass.subject}
                       </h4>
                       <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        Teacher: {nextClass.section ?? ''}
+                        Section: {nextClass.section ?? ''}
                       </p>
                       <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         Room: {nextClass.room}

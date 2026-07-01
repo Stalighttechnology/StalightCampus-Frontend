@@ -1,5 +1,5 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
 import { Skeleton, SkeletonTable } from "../ui/skeleton";
@@ -59,8 +59,10 @@ interface ClassDetails {
   subject: string;
   professor: string;
   room: string;
-  start_time: string;
-  end_time: string;
+  start_time?: string;
+  end_time?: string;
+  slot_id?: string;
+  time?: string;
   day: string;
   timetable_id?: string;
   assignment_id?: string;
@@ -171,6 +173,7 @@ interface EditModalProps {
   semesterId: string;
   sectionId: string;
   branchId: string;
+  slots: any[];
 }
 
 // Define error type for catch blocks
@@ -190,6 +193,10 @@ function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
 
 const formatTo12h = (timeStr: string | null | undefined): string => {
   if (!timeStr) return "—";
+  if (timeStr.includes('-')) {
+    const [start, end] = timeStr.split('-').map(t => t.trim());
+    return `${formatTo12h(start)} - ${formatTo12h(end)}`;
+  }
   const parts = timeStr.split(":");
   if (parts.length < 2) return timeStr;
   let hh = parseInt(parts[0], 10);
@@ -274,15 +281,9 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, labelCl
 };
 
 // Edit Modal Component
-const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, facultyAssignments, semesterId, sectionId, branchId }: EditModalProps) => {
+const EditModal: React.FC<EditModalProps> = ({ classDetails, onSave, onCancel, onDelete, subjects, facultyAssignments, semesterId, sectionId, branchId, slots }) => {
   const { theme } = useTheme();
-  const [newClassDetails, setNewClassDetails] = useState({
-    subject: classDetails.subject || "",
-    professor: classDetails.professor || "",
-    room: classDetails.room || "",
-    start_time: classDetails.start_time || "",
-    end_time: classDetails.end_time || ""
-  });
+  const [newClassDetails, setNewClassDetails] = useState<ClassDetails>(classDetails);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false);
   const [matchingAssignments, setMatchingAssignments] = useState<FacultyAssignmentData[]>([]);
 
@@ -449,19 +450,11 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
         )}
 
         <div className="mb-4">
-          <TimePicker
-            label="Start Time:"
-            value={newClassDetails.start_time || "09:00"}
-            onChange={(val) => setNewClassDetails((prev) => ({ ...prev, start_time: val }))}
-          />
-        </div>
-
-        <div className="mb-4">
-          <TimePicker
-            label="End Time:"
-            value={newClassDetails.end_time || "10:00"}
-            onChange={(val) => setNewClassDetails((prev) => ({ ...prev, end_time: val }))}
-          />
+          <label className={`block mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Time Slot:</label>
+          <div className={`w-full p-2 border rounded ${theme === 'dark' ? 'bg-[#151c2c] border-slate-700 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-700'}`}>
+            {slots.find(s => String(s.id) === String(classDetails.slot_id))?.name || "Selected Slot"} 
+            {classDetails.time ? ` (${classDetails.time})` : ''}
+          </div>
         </div>
 
         <div className="flex justify-between items-center">
@@ -491,12 +484,8 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
             <Button
               variant="outline"
               onClick={async () => {
-                if (!newClassDetails.start_time || !newClassDetails.end_time) {
-                  await showWarningAlert("Missing Fields", "Please enter both start and end times.");
-                  return;
-                }
-                if (newClassDetails.start_time >= newClassDetails.end_time) {
-                  await showWarningAlert("Invalid Time", "Start time must be before end time.");
+                if (!newClassDetails.slot_id && !classDetails.slot_id) {
+                  await showWarningAlert("Missing Fields", "No time slot selected. Please click a slot in the timetable grid.");
                   return;
                 }
                 const isGroup = newClassDetails.subject === 'Elective Subjects' || newClassDetails.subject === 'Open Elective Subjects';
@@ -506,6 +495,7 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
                 }
                 onSave({
                   ...newClassDetails,
+                  slot_id: newClassDetails.slot_id || classDetails.slot_id,
                   isGroup,
                   subject_type: newClassDetails.subject === 'Elective Subjects' ? 'elective' : (newClassDetails.subject === 'Open Elective Subjects' ? 'open_elective' : undefined),
                   day: classDetails.day || "",
@@ -533,6 +523,9 @@ const Timetable = () => {
   const [viewMode, setViewMode] = useState<'weekly' | 'daily'>('weekly');
   const [selectedDay, setSelectedDay] = useState<'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT'>('MON');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [slots, setSlots] = useState<any[]>([]);
+  const skipNextFetch = useRef(false);
+  const prevFetchKey = useRef("");
   const [state, setState] = useState({
     branchId: "" as string,
     branchName: "" as string,
@@ -577,6 +570,21 @@ const Timetable = () => {
   const updateState = (newState: Partial<typeof state>) => {
     setState((prev) => ({ ...prev, ...newState }));
   };
+
+  // Fetch dynamic slots
+  useEffect(() => {
+    const fetchSlots = async () => {
+      try {
+        const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/timetable-slots/`);
+        if (res.ok) {
+          const data = await res.json();
+          setSlots(data);
+        }
+      } catch (e) {}
+    };
+    fetchSlots();
+  }, []);
+
 
   // Predefined time slots for the grid (9:00 AM to 5:00 PM)
   // Reference hours for the vertical axis
@@ -689,7 +697,7 @@ const Timetable = () => {
       }
     };
     fetchProfileAndSemesters();
-  }, [toast]);
+  }, []);
 
   // Fetch sections only when semester changes. Subjects and assignments are loaded lazily when editing.
   useEffect(() => {
@@ -776,6 +784,13 @@ const Timetable = () => {
 
   // Fetch timetable when section changes
   useEffect(() => {
+    const fetchKey = `${state.branchId}|${state.semesterId}|${state.sectionId}`;
+    if (skipNextFetch.current) {
+      skipNextFetch.current = false;
+      return;
+    }
+    if (prevFetchKey.current === fetchKey && fetchKey !== "||" ) return;
+    prevFetchKey.current = fetchKey;
     const fetchTimetable = async () => {
       if (!state.branchId || !state.semesterId || !state.sectionId) {
         updateState({ timetable: [] });
@@ -805,6 +820,7 @@ const Timetable = () => {
               day: entry.day.toUpperCase(),
               start_time: entry.start_time,
               end_time: entry.end_time,
+              slot_id: entry.slot?.id || entry.slot_id || (entry as any).slot,
               room: entry.room
             })) :
             [];
@@ -828,18 +844,18 @@ const Timetable = () => {
     };
 
     fetchTimetable();
-  }, [state.branchId, state.semesterId, state.sectionId, toast]);
+  }, [state.branchId, state.semesterId, state.sectionId]);
 
   // Generate table data for the grid
   // Generate table data for the grid
   const getTableData = () => {
     const timetable = Array.isArray(state.timetable) ? state.timetable : [];
-    const tableData = timeSlots.map((hour) => {
-      const row: Record<string, any> = { time: hour };
+    const tableData = slots.map((slot) => {
+      const timeStr = `${slot.start_time.substring(0, 5)} - ${slot.end_time.substring(0, 5)}`;
+      const row: Record<string, any> = { time: timeStr, slot_id: slot.id, slot_name: slot.name, is_break: slot.is_break };
       days.forEach((day) => {
-        // Find entries that start within this hour (e.g., 10:00 to 10:59)
         const entries = timetable.filter(
-          (e) => e.start_time.startsWith(hour.split(":")[0]) && e.day === day
+          (e) => String((e as any).slot_id) === String(slot.id) && e.day === day
         );
         const groupedEntries: any[] = [];
         const electiveGroups: Record<string, any> = {};
@@ -887,7 +903,7 @@ const Timetable = () => {
     updateState({ isEditing: !state.isEditing });
   };
 
-  const handleClassClick = (time: string, day: string, existingEntry?: any) => {
+  const handleClassClick = (time: string, slot_id: string, day: string, existingEntry?: any) => {
     if (!state.isEditing) return;
 
     if (existingEntry) {
@@ -905,18 +921,13 @@ const Timetable = () => {
         }
       });
     } else {
-      // For new class, default to 1 hour duration starting at the clicked hour
-      const [hour, min] = time.split(":");
-      const start_time = `${hour}:${min}`;
-      const end_time = `${String(Number(hour) + 1).padStart(2, '0')}:${min}`;
-
       updateState({
         selectedClass: {
           subject: "",
           professor: "",
           room: "",
-          start_time,
-          end_time,
+          slot_id: slot_id,
+          time: time,
           day: day.toUpperCase()
         }
       });
@@ -957,8 +968,7 @@ const Timetable = () => {
         assignment_id: assignmentId,
         subject_type: newClassDetails.subject_type,
         day: state.selectedClass!.day,
-        start_time: newClassDetails.start_time,
-        end_time: newClassDetails.end_time,
+        slot_id: String(state.selectedClass!.slot_id || newClassDetails.slot_id || ""),
         room: newClassDetails.room,
         branch_id: state.branchId,
         semester_id: state.semesterId,
@@ -976,15 +986,16 @@ const Timetable = () => {
 
         // Build faculty_assignment details from local cache
         const assignment = state.facultyAssignments.find((a) => a.id === timetableRequest.assignment_id);
-        const facultyAssignment = assignment ?
-          {
-            id: assignment.id,
-            faculty: assignment.faculty,
-            subject: assignment.subject,
-            semester: assignment.semester,
-            section: assignment.section
-          } :
-          { id: timetableRequest.assignment_id || "", faculty: "", subject: "", semester: 0, section: "" };
+        const subjectObj = assignment ? state.subjects.find(s => s.id === assignment.subject_id) : undefined;
+        const facultyAssignment = assignment
+          ? {
+              id: assignment.id,
+              faculty: assignment.faculty_name || assignment.faculty || "",
+              subject: subjectObj?.name || assignment.subject || newClassDetails.subject || "",
+              semester: assignment.semester,
+              section: assignment.section
+            }
+          : { id: timetableRequest.assignment_id || "", faculty: newClassDetails.professor || "", subject: newClassDetails.subject || "", semester: 0, section: "" };
 
         if (timetableRequest.action === 'create_group') {
           // Instead of fully mocking it, just fetch timetable again to let backend data group it properly
@@ -994,7 +1005,7 @@ const Timetable = () => {
             const normalized = Array.isArray(fetchRes.data) ? fetchRes.data.map((e: any) => ({
               id: e.id,
               faculty_assignment: { ...e.faculty_assignment, subject_type: e.faculty_assignment.subject_type || (e.faculty_assignment as any).subject_type },
-              day: e.day.toUpperCase(), start_time: e.start_time, end_time: e.end_time, room: e.room
+              day: e.day.toUpperCase(), start_time: e.start_time, end_time: e.end_time, slot_id: e.slot_id, room: e.room
             })) : [];
             updateState({ timetable: normalized, loading: false });
           } else {
@@ -1002,23 +1013,34 @@ const Timetable = () => {
           }
           toast({ title: "Success", description: "Elective group created" });
         } else if (timetableRequest.action === 'create') {
+          const slotId = timetableRequest.slot_id || state.selectedClass?.slot_id;
+          const slot = slots.find(s => String(s.id) === String(slotId));
           const newEntry = {
             id: timetableId || `temp-${Date.now()}`,
             faculty_assignment: facultyAssignment,
             day: day.toUpperCase(),
-            start_time,
-            end_time,
+            slot_id: slotId,
+            start_time: slot?.start_time?.substring(0, 5) || "",
+            end_time: slot?.end_time?.substring(0, 5) || "",
             room
           };
+          skipNextFetch.current = true;
           updateState({ timetable: [...state.timetable, newEntry], selectedClass: null });
           toast({ title: "Success", description: "Timetable created" });
         } else {
           // update
-          if (timetableId) {
+          const slotId = timetableRequest.slot_id || state.selectedClass?.slot_id;
+          const slot = slots.find(s => String(s.id) === String(slotId));
+          if (timetableId || state.selectedClass?.timetable_id) {
             const updated = state.timetable.map((e) => e.id === timetableId || e.id === state.selectedClass?.timetable_id ?
-              { ...e, faculty_assignment: facultyAssignment, day: day.toUpperCase(), start_time, end_time, room } :
+              { ...e, faculty_assignment: facultyAssignment, day: day.toUpperCase(),
+                slot_id: slotId,
+                start_time: slot?.start_time?.substring(0, 5) || e.start_time,
+                end_time: slot?.end_time?.substring(0, 5) || e.end_time,
+                room } :
               e
             );
+            skipNextFetch.current = true;
             updateState({ timetable: updated, selectedClass: null });
             toast({ title: "Success", description: "Timetable updated successfully" });
           }
@@ -1392,7 +1414,7 @@ const Timetable = () => {
                             There are no classes scheduled for {selectedDay} yet.
                           </p>
                           {state.isEditing && (
-                            <Button size="sm" variant="outline" className="flex items-center gap-1.5" onClick={() => handleClassClick("09:00", selectedDay)}>
+                            <Button size="sm" variant="outline" className="flex items-center gap-1.5" onClick={() => handleClassClick("", "", selectedDay)}>
                               + Add First Class
                             </Button>
                           )}
@@ -1461,7 +1483,7 @@ const Timetable = () => {
                         </div>
                         {state.isEditing && (
                           <div className="flex justify-center pt-2">
-                            <Button size="sm" variant="outline" className="flex items-center gap-1.5" onClick={() => handleClassClick("09:00", selectedDay)}>
+                            <Button size="sm" variant="outline" className="flex items-center gap-1.5" onClick={() => handleClassClick("", "", selectedDay)}>
                               + Add Class to {selectedDay}
                             </Button>
                           </div>
@@ -1502,14 +1524,21 @@ const Timetable = () => {
                           <td className="px-4 py-4 font-semibold text-xs text-center border-r border-slate-200 dark:border-slate-800 md:sticky md:left-0 md:z-10 md:bg-[#f8fafc] md:dark:bg-[#151c2c] text-slate-600 dark:text-slate-400">
                             {formatTo12h(row.time)}
                           </td>
-                          {["mon", "tue", "wed", "thu", "fri", "sat"].map((day) => {
-                            const entries = row[day] as any[];
-                            return (
-                              <td
-                                key={day}
-                                className="px-3 py-3 vertical-top min-w-[140px] max-w-[180px] cursor-pointer"
-                                onClick={() => handleClassClick(row.time, day.toUpperCase())}
-                              >
+                          {row.is_break ? (
+                            <td colSpan={6} className="px-3 py-3 vertical-top text-center bg-slate-50 dark:bg-slate-800/20">
+                              <div className="flex items-center justify-center h-full min-h-[60px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-widest text-sm">
+                                {row.slot_name || "Break"}
+                              </div>
+                            </td>
+                          ) : (
+                            ["mon", "tue", "wed", "thu", "fri", "sat"].map((day) => {
+                              const entries = row[day] as any[];
+                              return (
+                                <td
+                                  key={day}
+                                  className="px-3 py-3 vertical-top min-w-[140px] max-w-[180px] cursor-pointer"
+                                  onClick={() => handleClassClick(row.time, row.slot_id, day.toUpperCase())}
+                                >
                                 {entries && entries.length > 0 ? (
                                   entries.map((entry, eIdx) => {
                                     const colors = getSubjectColor(entry.faculty_assignment.subject);
@@ -1520,7 +1549,7 @@ const Timetable = () => {
                                         key={eIdx}
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleClassClick(row.time, day.toUpperCase(), entry);
+                                          handleClassClick(row.time, row.slot_id, day.toUpperCase(), entry);
                                         }}
                                         className={`p-2.5 rounded-lg border flex flex-col justify-between h-full transition-all duration-300 relative ${colors.border} ${colors.bg} ${ongoing
                                           ? 'border-primary ring-2 ring-primary/40 dark:ring-primary/60 scale-[1.03] bg-primary/15 dark:bg-primary/25'
@@ -1567,7 +1596,8 @@ const Timetable = () => {
                                 )}
                               </td>
                             );
-                          })}
+                          })
+                          )}
                         </tr>
                       );
                     })}
@@ -1589,7 +1619,8 @@ const Timetable = () => {
           facultyAssignments={state.facultyAssignments}
           semesterId={state.semesterId}
           sectionId={state.sectionId}
-          branchId={state.branchId} />
+          branchId={state.branchId} 
+          slots={slots} />
 
       }
     </div>);

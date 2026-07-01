@@ -31,17 +31,22 @@ const StudentTimetable = () => {
   const [selectedDay, setSelectedDay] = useState<'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT'>('MON');
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  const timeSlots = [
-    "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"
-  ];
+  const [slots, setSlots] = useState<any[]>([]);
 
   const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
   // Fetch timetable on mount
   useEffect(() => {
-    const fetchTimetable = async () => {
+        const fetchTimetable = async () => {
       try {
         setIsLoading(true);
+        // Fetch slots
+        const slotsRes = await fetchWithTokenRefresh(`${API_ENDPOINT}/timetable-slots/`);
+        if (slotsRes.ok) {
+          const slotsData = await slotsRes.json();
+          setSlots(slotsData);
+        }
+        
         const data = await getTimetable();
         if (data.success && Array.isArray(data.data)) {
           setTimetableData(data.data);
@@ -96,6 +101,10 @@ const StudentTimetable = () => {
   // Format 24h clock strings into AM/PM
   const format12Hour = useCallback((timeStr: string) => {
     if (!timeStr) return '';
+    if (timeStr.includes('-')) {
+      const [start, end] = timeStr.split('-').map(t => t.trim());
+      return `${format12Hour(start)} - ${format12Hour(end)}`;
+    }
     const parts = timeStr.split(':');
     if (parts.length < 2) return timeStr;
     const hours = parseInt(parts[0], 10);
@@ -137,13 +146,14 @@ const StudentTimetable = () => {
     return colors[sum % colors.length];
   }, []);
 
-  const getTableData = () => {
+    const getTableData = () => {
     const timetable = Array.isArray(timetableData) ? timetableData : [];
-    return timeSlots.map((hour) => {
-      const row: Record<string, any> = { time: hour };
+    return slots.map((slot) => {
+      const timeStr = `${slot.start_time.substring(0, 5)} - ${slot.end_time.substring(0, 5)}`;
+      const row: Record<string, any> = { time: timeStr, slot_name: slot.name, is_break: slot.is_break, slot_id: slot.id };
       days.forEach((day) => {
         const entries = timetable.filter(
-          (e) => e.start_time.startsWith(hour.split(":")[0]) && e.day === day
+          (e) => String(e.slot_id) === String(slot.id) && e.day === day
         );
         row[day.toLowerCase()] = entries.map((e) => ({
           subject: typeof e.subject === 'string' ? e.subject : e.subject?.name || 'Unknown',
@@ -386,7 +396,14 @@ const StudentTimetable = () => {
                         <td className="px-4 py-4 font-semibold text-xs text-center border-r border-slate-200 dark:border-slate-800 md:sticky md:left-0 md:z-10 md:bg-[#f8fafc] md:dark:bg-[#151c2c] text-slate-600 dark:text-slate-400">
                           {format12Hour(row.time)}
                         </td>
-                        {["mon", "tue", "wed", "thu", "fri", "sat"].map((day) => {
+                        {row.is_break ? (
+                          <td colSpan={6} className="px-3 py-3 vertical-top text-center bg-slate-50 dark:bg-slate-800/20">
+                            <div className="flex items-center justify-center h-full min-h-[60px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-widest text-sm">
+                              {row.slot_name || "Break"}
+                            </div>
+                          </td>
+                        ) : (
+                        ["mon", "tue", "wed", "thu", "fri", "sat"].map((day) => {
                           const entries = row[day] as any[];
                           return (
                             <td key={day} className="px-3 py-3 vertical-top min-w-[140px] max-w-[180px]">
@@ -432,7 +449,8 @@ const StudentTimetable = () => {
                               )}
                             </td>
                           );
-                        })}
+                        })
+                        )}
                       </tr>
                     );
                   })}

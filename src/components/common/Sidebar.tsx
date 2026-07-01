@@ -178,6 +178,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       subjects: <BookOpen size={20} />,
       "faculty-assignments": <ClipboardList size={20} />,
       timetable: <Calendar size={20} />,
+      "timetable-config": <Calendar size={20} />,
       leaves: <FileText size={20} />,
       "apply-leaves": <FileText size={20} />,
       attendance: <BarChart2 size={20} />,
@@ -303,6 +304,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
     principal: [
       { name: "Dashboard", page: "dashboard" },
+      { name: "Timetable Configuration", page: "timetable-config" },
       { name: getTerm("branches"), page: "branches" },
       { name: "Batches", page: "batches" },
       { name: "Faculty Assignments", page: "teacher-assignments" },
@@ -327,6 +329,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
     org_admin: [
       { name: "Dashboard", page: "dashboard" },
+      { name: "Timetable Configuration", page: "timetable-config" },
       { name: "Billing & Plans", page: "billing" },
       { name: getTerm("branches"), page: "branches" },
       { name: "Batches", page: "batches" },
@@ -349,6 +352,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
     admin: [
       { name: "Dashboard", page: "dashboard" },
+      { name: "Timetable Configuration", page: "timetable-config" },
       { name: getTerm("branches"), page: "branches" },
       { name: "Batches", page: "batches" },
       { name: "Faculty Assignments", page: "teacher-assignments" },
