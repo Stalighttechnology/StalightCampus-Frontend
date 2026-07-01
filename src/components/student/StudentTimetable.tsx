@@ -128,7 +128,7 @@ const StudentTimetable = () => {
       { border: 'border-l-2 border-purple-500', text: 'text-purple-700 dark:text-purple-400', bg: 'bg-purple-500/10' },
       { border: 'border-l-2 border-amber-500', text: 'text-amber-700 dark:text-amber-400', bg: 'bg-amber-500/10' },
       { border: 'border-l-2 border-indigo-500', text: 'text-indigo-700 dark:text-indigo-400', bg: 'bg-indigo-500/10' },
-      { border: 'border-l-2 border-rose-500', text: 'text-rose-700 dark:text-rose-400', bg: 'bg-rose-500/10' }
+      { border: 'border-l-2 border-teal-500', text: 'text-teal-700 dark:text-teal-400', bg: 'bg-teal-500/10' }
     ];
     let sum = 0;
     for (let i = 0; i < subjectName.length; i++) {
@@ -210,7 +210,7 @@ const StudentTimetable = () => {
               <button
                 onClick={() => setViewMode('weekly')}
                 className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex-1 md:flex-none ${viewMode === 'weekly'
-                  ? 'bg-white dark:bg-slate-955 shadow-sm text-primary'
+                  ? 'bg-white dark:bg-slate-900 shadow-sm text-primary dark:text-white'
                   : 'text-slate-500 hover:text-slate-705 dark:hover:text-slate-300'
                   }`}
               >
@@ -220,7 +220,7 @@ const StudentTimetable = () => {
               <button
                 onClick={() => setViewMode('daily')}
                 className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex-1 md:flex-none ${viewMode === 'daily'
-                  ? 'bg-white dark:bg-slate-955 shadow-sm text-primary'
+                  ? 'bg-white dark:bg-slate-900 shadow-sm text-primary dark:text-white'
                   : 'text-slate-500 hover:text-slate-705 dark:hover:text-slate-300'
                   }`}
               >
@@ -327,8 +327,8 @@ const StudentTimetable = () => {
                               <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded ${colors.bg} ${colors.text}`}>
                                 {entry.subject_code || 'LEC'}
                               </span>
-                              <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                                <Clock size={11} /> {format12Hour(entry.start_time)} - {format12Hour(entry.end_time)}
+                              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                <Clock size={11} className="text-slate-400 dark:text-slate-500" /> {format12Hour(entry.start_time)} - {format12Hour(entry.end_time)}
                               </span>
                             </div>
                             <h4 className={`text-base font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{subjectStr}</h4>
@@ -336,7 +336,7 @@ const StudentTimetable = () => {
 
                           <div className="flex flex-row sm:flex-col gap-4 sm:gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 w-full sm:w-auto">
                             <div className="flex items-center gap-1.5 font-medium">
-                              <UserIcon size={13} className="text-slate-400" />
+                              <UserIcon size={13} className="text-slate-400 dark:text-slate-550" />
                               <span>
                                 {entry.faculty
                                   ? `${entry.faculty.first_name} ${entry.faculty.last_name}`
@@ -413,12 +413,12 @@ const StudentTimetable = () => {
                                         <div className={`font-semibold text-[11px] leading-tight ${colors.text} truncate pr-3.5`}>
                                           {entry.subject}
                                         </div>
-                                        <div className="text-[9px] font-semibold text-slate-400 dark:text-slate-500 mt-1">
+                                        <div className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-1">
                                           {format12Hour(entry.start_time)} - {format12Hour(entry.end_time)}
                                         </div>
                                       </div>
 
-                                      <div className="flex justify-between items-center text-[9px] font-semibold text-slate-400 dark:text-slate-400 mt-2 pt-1.5 border-t border-slate-200/40 dark:border-slate-850/40">
+                                      <div className="flex justify-between items-center text-[9px] font-semibold text-slate-600 dark:text-slate-300 mt-2 pt-1.5 border-t border-slate-200/40 dark:border-slate-850/40">
                                         <span className="truncate max-w-[70px]">{entry.teacher}</span>
                                         <span className="text-primary whitespace-nowrap">{entry.room && (entry.room.toLowerCase().startsWith('room') ? entry.room : `Room ${entry.room}`)}</span>
                                       </div>

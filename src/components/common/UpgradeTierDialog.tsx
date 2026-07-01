@@ -210,7 +210,7 @@ export function UpgradeTierDialog({ onClose, currentPlan, orgName, currentMaxStu
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${theme === 'dark' ? 'bg-slate-955 bg-slate-950/80 backdrop-blur-sm' : 'bg-slate-900/60'}`}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${theme === 'dark' ? 'bg-slate-950/80 backdrop-blur-sm' : 'bg-slate-900/60'}`}
       style={{ animation: 'fadeInDialog 0.15s ease' }}
     >
       <div className={`rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col border ${theme === 'dark' ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'} my-4`}>
