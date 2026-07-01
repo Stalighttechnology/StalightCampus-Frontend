@@ -38,6 +38,7 @@ import {
 import { useTheme } from "@/context/ThemeContext";
 import { fetchAnnouncements, markAnnouncementRead, Announcement } from "@/utils/announcements_api";
 import { fetchWithTokenRefresh } from "../../utils/authService";
+import { downloadFile } from "@/utils/downloadHelper";
 import { API_ENDPOINT } from "../../utils/config";
 import { motion, AnimatePresence } from "framer-motion";
 import { SkeletonList } from "../ui/skeleton";
@@ -308,15 +309,8 @@ const ExamAnnouncementCard = ({ exam, theme, handleMarkRead }: { exam: ExamAnnou
       if (!response.ok) {
         throw new Error("Failed to download PDF");
       }
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.setAttribute("download", `${exam.examName.replace(/\s+/g, '_')}_Schedule.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(downloadUrl);
+      const fileName = `${exam.examName.replace(/\s+/g, '_')}_Schedule.pdf`;
+      await downloadFile(response, fileName);
     } catch (error) {
       console.error("Error exporting PDF:", error);
     } finally {
@@ -412,7 +406,7 @@ const ExamAnnouncementCard = ({ exam, theme, handleMarkRead }: { exam: ExamAnnou
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[90%] sm:max-w-2xl rounded-lg max-h-[80vh] overflow-y-auto">
-                <DialogHeader className="flex flex-row items-center justify-between gap-4 border-b pb-3">
+                <DialogHeader className="flex flex-row items-center justify-between gap-4 border-b pb-3 pr-6 md:pr-0">
                   <div className="flex-1 min-w-0 pr-2">
                     <DialogTitle className="text-xl font-semibold truncate">{exam.examName} Schedule</DialogTitle>
                   </div>
