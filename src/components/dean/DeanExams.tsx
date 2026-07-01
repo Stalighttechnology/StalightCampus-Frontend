@@ -42,6 +42,7 @@ type ExamEntry = {
   end_time?: string; // HH:MM
   room?: string;
   is_published?: boolean;
+  notes?: string;
 };
 
 type ExamGroup = {
@@ -283,14 +284,18 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
     const unpublished = group.subjects.filter(ex => !ex.is_published);
     if (unpublished.length === 0) return;
 
+    const isUpdate = group.subjects.some(ex => ex.notes?.startsWith('[UPDATED]'));
+
     const result = await MySwal.fire({
       title: 'Are you sure?',
-      text: `Publish all ${unpublished.length} scheduled subjects?`,
+      text: isUpdate
+        ? `Publish updates for all ${unpublished.length} scheduled subjects?`
+        : `Publish all ${unpublished.length} scheduled subjects?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#9147e0',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, publish all!',
+      confirmButtonText: isUpdate ? 'Yes, publish updates!' : 'Yes, publish all!',
       target: document.body
     });
 
@@ -718,7 +723,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
           <div className="mt-4 flex justify-end gap-3">
             {currentGroup?.status !== 'past' && currentGroup?.subjects.some(ex => !ex.is_published) && (
               <Button onClick={() => currentGroup && publishAllExams(currentGroup)} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Publish All Schedule
+                {currentGroup.subjects.some(ex => ex.notes?.startsWith('[UPDATED]')) ? "Update Publish Schedule" : "Publish All Schedule"}
               </Button>
             )}
             <Button variant="outline" className="bg-primary hover:bg-primary/90 text-white hover:text-white" onClick={() => setViewGroupId(null)}>Close</Button>

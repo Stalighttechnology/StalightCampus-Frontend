@@ -154,10 +154,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   // Dedicated lightweight query for the unread notification count
   const unreadCountQuery = useQuery({
-    queryKey: ["unreadCount"],
+    queryKey: ["unreadCount", role, accessToken],
     queryFn: getUnreadNotificationCount,
     refetchInterval: 30 * 1000,
     refetchOnWindowFocus: true, // It's okay to poll this fast endpoint on focus
+    enabled: !!accessToken,
   });
 
   useEffect(() => {
@@ -175,7 +176,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       }
       // Immediately increment optimistically, then sync with server
       setUnreadCount((prev) => prev + 1);
-      queryClient.invalidateQueries(["unreadCount"]);
+      queryClient.invalidateQueries(["unreadCount", role, accessToken]);
     };
     window.addEventListener('refresh-unread-count', handleRefresh);
 
@@ -183,7 +184,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     const handleSWMessage = (event: MessageEvent) => {
       if (event.data?.type === 'FCM_PUSH_RECEIVED') {
         setUnreadCount((prev) => prev + 1);
-        queryClient.invalidateQueries(["unreadCount"]);
+        queryClient.invalidateQueries(["unreadCount", role, accessToken]);
         // Play the chime sound in the background tab
         window.dispatchEvent(new CustomEvent('play-notification-sound'));
       }
@@ -194,7 +195,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       window.removeEventListener('refresh-unread-count', handleRefresh);
       navigator.serviceWorker?.removeEventListener('message', handleSWMessage);
     };
-  }, [queryClient]);
+  }, [queryClient, role, accessToken]);
 
   // Close sidebar when page changes on mobile/tablet only
   useEffect(() => {

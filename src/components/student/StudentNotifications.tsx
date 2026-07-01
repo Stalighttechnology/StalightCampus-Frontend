@@ -53,52 +53,122 @@ const parseNotifications = (notifications: Notification[]) => {
   const regular: Notification[] = [];
   const examGroupsMap: Record<string, ExamGroup> = {};
 
+  const rescheduledExamNames = new Set<string>();
   notifications.forEach(n => {
-    const titleMatch = n.title.match(/^New Exam Scheduled:\s*(.*)$/i);
-    const msgMatch = n.message.match(/A new (.*?) has been scheduled for (.*?) at (.*?)\.\s*(?:Venue:\s*(.*?)\.?)?$/i);
+    const examReschMatch = n.title.match(/^(?:Exam|Exams) Rescheduled:\s*(.*)$/i);
+    if (examReschMatch) {
+      const rawExamName = examReschMatch[1].trim();
+      let examName = rawExamName;
+      if (rawExamName.includes(" - ")) {
+        examName = rawExamName.split(" - ")[0].trim();
+      }
+      rescheduledExamNames.add(examName);
+    }
+  });
 
-    if (titleMatch && msgMatch) {
-      const titleContent = titleMatch[1];
-      let examName = titleContent;
-      let subjectName = "General Subject";
+  notifications.forEach(n => {
+    const newExamMatch = n.title.match(/^New Exam Scheduled:\s*(.*)$/i);
+    const examPublishMatch = n.title.match(/^Exam Schedule Published:\s*(.*)$/i);
+    const examReschMatch = n.title.match(/^(?:Exam|Exams) Rescheduled:\s*(.*)$/i);
+
+    if (newExamMatch || examPublishMatch || examReschMatch) {
+      const matchObj = newExamMatch || examPublishMatch || examReschMatch;
+      const rawExamName = matchObj ? matchObj[1].trim() : "Exam";
       
-      if (titleContent.includes(" - ")) {
-        const parts = titleContent.split(" - ");
+      let examName = rawExamName;
+      let subjectNameFallback = "General Subject";
+      if (rawExamName.includes(" - ")) {
+        const parts = rawExamName.split(" - ");
         examName = parts[0].trim();
-        subjectName = parts.slice(1).join(" - ").trim();
+        subjectNameFallback = parts.slice(1).join(" - ").trim();
       }
 
-      const examType = msgMatch[1].trim();
-      const dateStr = msgMatch[2].trim();
-      const timeStr = msgMatch[3].trim();
-      const venueStr = msgMatch[4]?.trim() || "TBD";
-      
-      let dateObj = new Date(dateStr);
-      if (isNaN(dateObj.getTime())) {
-        dateObj = new Date(); // fallback
+      if ((newExamMatch || examPublishMatch) && rescheduledExamNames.has(examName)) {
+        return;
       }
 
-      if (!examGroupsMap[examName]) {
-        examGroupsMap[examName] = {
-          examName,
-          examType,
-          publishedAt: n.created_at,
-          publishedBy: "Administrator", // Default if not parsed
-          subjects: []
-        };
+      let parsedSubjects: any[] = [];
+      const examData = (n as any).exam_data;
+      if (examData && Array.isArray(examData)) {
+        parsedSubjects = examData;
+      } else if (n.message.includes("Detailed Schedule:")) {
+        const lines = n.message.split("\n");
+        lines.forEach(line => {
+          if (line.includes("|") && !line.includes("Subject | Date") && !line.includes("---|---")) {
+            const parts = line.split("|").map(p => p.trim());
+            if (parts.length >= 4 && parts[0] && parts[1]) {
+              parsedSubjects.push({
+                subjectName: parts[0],
+                dateStr: parts[1],
+                timeStr: parts[2],
+                venue: parts[3]
+              });
+            }
+          }
+        });
       }
 
-      examGroupsMap[examName].subjects.push({
-        id: n.id,
-        original: n,
-        examName,
-        subjectName,
-        examType,
-        dateStr,
-        timeStr,
-        venue: venueStr,
-        dateObj
-      });
+      if (parsedSubjects.length === 0) {
+        const newMsgMatch = n.message.match(/A new (.*?) has been scheduled for (.*?) at (.*?)\.\s*(?:Venue:\s*(.*?)\.?)?(?:\s|Detailed Schedule|$)/i);
+        const reschMsgMatch = n.message.match(/The exam for '.*?'(?: - .*)? has been rescheduled\.\s*Updated schedule:\s*Date:\s*(.*?)\s*at\s*([^.]+?)\.\s*(?:Venue\/Room:\s*(.*?)\.?)?(?:\s|Detailed Schedule|$)/i);
+
+        if (newMsgMatch) {
+          parsedSubjects.push({
+            subjectName: subjectNameFallback,
+            dateStr: newMsgMatch[2].trim(),
+            timeStr: newMsgMatch[3].trim(),
+            venue: newMsgMatch[4]?.trim() || "TBD"
+          });
+        } else if (reschMsgMatch) {
+          parsedSubjects.push({
+            subjectName: subjectNameFallback,
+            dateStr: reschMsgMatch[1].trim(),
+            timeStr: reschMsgMatch[2].trim(),
+            venue: reschMsgMatch[3]?.trim() || "TBD"
+          });
+        }
+      }
+
+      if (parsedSubjects.length > 0) {
+        const displayType = examReschMatch ? "Rescheduled" : "exam";
+        if (!examGroupsMap[examName]) {
+          examGroupsMap[examName] = {
+            examName,
+            examType: displayType,
+            publishedAt: n.created_at,
+            publishedBy: "Administrator",
+            subjects: []
+          };
+        }
+
+        parsedSubjects.forEach(sub => {
+          let dateObj = new Date(sub.dateStr);
+          if (sub.dateStr.includes("/")) {
+            const parts = sub.dateStr.split("/");
+            if (parts.length === 3) {
+              const parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+              if (!isNaN(parsedDate.getTime())) {
+                dateObj = parsedDate;
+              }
+            }
+          }
+          if (isNaN(dateObj.getTime())) dateObj = new Date();
+
+          examGroupsMap[examName].subjects.push({
+            id: n.id + Math.random(),
+            original: n,
+            examName,
+            subjectName: sub.subjectName,
+            examType: displayType,
+            dateStr: sub.dateStr,
+            timeStr: sub.timeStr,
+            venue: sub.venue,
+            dateObj
+          });
+        });
+      } else {
+        regular.push(n);
+      }
     } else {
       regular.push(n);
     }

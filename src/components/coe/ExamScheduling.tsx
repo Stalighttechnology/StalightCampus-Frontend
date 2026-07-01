@@ -1,6 +1,7 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -415,6 +416,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   const [editingExamId, setEditingExamId] = useState<number | null>(null);
   const [editFormData, setEditFormData] = useState({ date: '', start_time: '', end_time: '', room: '' });
+  const [isEditDateOpen, setIsEditDateOpen] = useState(false);
 
   const handleUpdateExam = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1541,7 +1543,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="text-primary hover:text-primary hover:bg-primary/10"
+                          disabled={computeStatus(ex) === 'past'}
+                          className="text-primary hover:text-primary hover:bg-primary/10 disabled:opacity-30 disabled:pointer-events-none"
                           onClick={() => {
                             setEditingExamId(ex.id);
                             setEditFormData({
@@ -1572,36 +1575,158 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
             <DialogTitle>Edit Exam Schedule</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUpdateExam} className="space-y-4 py-4">
-            <div className="space-y-2">
+            <div className="space-y-2 flex flex-col">
               <label className="text-sm font-medium">Date</label>
-              <Input
-                type="date"
-                value={editFormData.date}
-                onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
-                required
-                className="bg-background"
-              />
+              <Popover open={isEditDateOpen} onOpenChange={setIsEditDateOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal bg-background h-10 border-input",
+                      !editFormData.date && "text-muted-foreground"
+                    )}
+                  >
+                    <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                    {editFormData.date ? displayDate(editFormData.date) : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={editFormData.date ? new Date(editFormData.date + 'T00:00:00') : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        const localDateStr = date.toLocaleDateString('sv-SE');
+                        setEditFormData({ ...editFormData, date: localDateStr });
+                        setIsEditDateOpen(false);
+                      }
+                    }}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      return date < today;
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Start Time</label>
-                <Input
-                  type="time"
-                  value={editFormData.start_time}
-                  onChange={(e) => setEditFormData({ ...editFormData, start_time: e.target.value })}
-                  required
-                  className="bg-background"
-                />
+                <div className="flex gap-1.5 items-center w-full">
+                  <Select
+                    value={from24h(editFormData.start_time).h}
+                    onValueChange={(val) => {
+                      const { m, p } = from24h(editFormData.start_time);
+                      setEditFormData({ ...editFormData, start_time: to24h(val, m, p) });
+                    }}
+                  >
+                    <SelectTrigger className="flex-1 h-10 px-2 text-xs bg-background border-input">
+                      <SelectValue placeholder="Hour" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-slate-950 border-white/10 text-foreground' : 'bg-white border-gray-200 text-gray-900'}>
+                      {Array.from({ length: 12 }, (_, i) => {
+                        const h = (i + 1).toString().padStart(2, '0');
+                        return <SelectItem key={h} value={h}>{h}</SelectItem>;
+                      })}
+                    </SelectContent>
+                  </Select>
+
+                  <span className="text-xs font-bold text-muted-foreground">:</span>
+
+                  <Select
+                    value={from24h(editFormData.start_time).m}
+                    onValueChange={(val) => {
+                      const { h, p } = from24h(editFormData.start_time);
+                      setEditFormData({ ...editFormData, start_time: to24h(h, val, p) });
+                    }}
+                  >
+                    <SelectTrigger className="flex-1 h-10 px-2 text-xs bg-background border-input">
+                      <SelectValue placeholder="Min" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-slate-950 border-white/10 text-foreground' : 'bg-white border-gray-200 text-gray-900'}>
+                      {Array.from({ length: 12 }, (_, i) => {
+                        const m = (i * 5).toString().padStart(2, '0');
+                        return <SelectItem key={m} value={m}>{m}</SelectItem>;
+                      })}
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={from24h(editFormData.start_time).p}
+                    onValueChange={(val) => {
+                      const { h, m } = from24h(editFormData.start_time);
+                      setEditFormData({ ...editFormData, start_time: to24h(h, m, val) });
+                    }}
+                  >
+                    <SelectTrigger className="flex-1 h-10 px-2 text-xs bg-background border-input">
+                      <SelectValue placeholder="AM/PM" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-slate-950 border-white/10 text-foreground' : 'bg-white border-gray-200 text-gray-900'}>
+                      <SelectItem value="AM">AM</SelectItem>
+                      <SelectItem value="PM">PM</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">End Time</label>
-                <Input
-                  type="time"
-                  value={editFormData.end_time}
-                  onChange={(e) => setEditFormData({ ...editFormData, end_time: e.target.value })}
-                  required
-                  className="bg-background"
-                />
+                <div className="flex gap-1.5 items-center w-full">
+                  <Select
+                    value={from24h(editFormData.end_time).h}
+                    onValueChange={(val) => {
+                      const { m, p } = from24h(editFormData.end_time);
+                      setEditFormData({ ...editFormData, end_time: to24h(val, m, p) });
+                    }}
+                  >
+                    <SelectTrigger className="flex-1 h-10 px-2 text-xs bg-background border-input">
+                      <SelectValue placeholder="Hour" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-slate-950 border-white/10 text-foreground' : 'bg-white border-gray-200 text-gray-900'}>
+                      {Array.from({ length: 12 }, (_, i) => {
+                        const h = (i + 1).toString().padStart(2, '0');
+                        return <SelectItem key={h} value={h}>{h}</SelectItem>;
+                      })}
+                    </SelectContent>
+                  </Select>
+
+                  <span className="text-xs font-bold text-muted-foreground">:</span>
+
+                  <Select
+                    value={from24h(editFormData.end_time).m}
+                    onValueChange={(val) => {
+                      const { h, p } = from24h(editFormData.end_time);
+                      setEditFormData({ ...editFormData, end_time: to24h(h, val, p) });
+                    }}
+                  >
+                    <SelectTrigger className="flex-1 h-10 px-2 text-xs bg-background border-input">
+                      <SelectValue placeholder="Min" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-slate-950 border-white/10 text-foreground' : 'bg-white border-gray-200 text-gray-900'}>
+                      {Array.from({ length: 12 }, (_, i) => {
+                        const m = (i * 5).toString().padStart(2, '0');
+                        return <SelectItem key={m} value={m}>{m}</SelectItem>;
+                      })}
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={from24h(editFormData.end_time).p}
+                    onValueChange={(val) => {
+                      const { h, m } = from24h(editFormData.end_time);
+                      setEditFormData({ ...editFormData, end_time: to24h(h, m, val) });
+                    }}
+                  >
+                    <SelectTrigger className="flex-1 h-10 px-2 text-xs bg-background border-input">
+                      <SelectValue placeholder="AM/PM" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-slate-950 border-white/10 text-foreground' : 'bg-white border-gray-200 text-gray-900'}>
+                      <SelectItem value="AM">AM</SelectItem>
+                      <SelectItem value="PM">PM</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
             <div className="space-y-2">
