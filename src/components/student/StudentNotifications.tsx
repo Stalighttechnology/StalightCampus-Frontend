@@ -131,6 +131,7 @@ const parseNotifications = (notifications: Notification[]) => {
 
       if (parsedSubjects.length > 0) {
         const displayType = examReschMatch ? "Rescheduled" : "exam";
+        const notificationDate = new Date(n.created_at);
         if (!examGroupsMap[examName]) {
           examGroupsMap[examName] = {
             examName,
@@ -140,6 +141,12 @@ const parseNotifications = (notifications: Notification[]) => {
             subjects: []
           };
         }
+
+        // Track by subject name to deduplicate — keep only the most recent entry
+        const existingSubjectMap = new Map<string, Date>();
+        examGroupsMap[examName].subjects.forEach(s => {
+          existingSubjectMap.set(s.subjectName, new Date((s.original as any).created_at || 0));
+        });
 
         parsedSubjects.forEach(sub => {
           let dateObj = new Date(sub.dateStr);
@@ -154,6 +161,16 @@ const parseNotifications = (notifications: Notification[]) => {
           }
           if (isNaN(dateObj.getTime())) dateObj = new Date();
 
+          const existingDate = existingSubjectMap.get(sub.subjectName);
+          if (existingDate && existingDate >= notificationDate) {
+            return; // Already have a newer entry for this subject
+          }
+
+          // Remove older duplicate for same subject
+          examGroupsMap[examName].subjects = examGroupsMap[examName].subjects.filter(
+            s => s.subjectName !== sub.subjectName
+          );
+
           examGroupsMap[examName].subjects.push({
             id: n.id + Math.random(),
             original: n,
@@ -165,6 +182,8 @@ const parseNotifications = (notifications: Notification[]) => {
             venue: sub.venue,
             dateObj
           });
+
+          existingSubjectMap.set(sub.subjectName, notificationDate);
         });
       } else {
         regular.push(n);

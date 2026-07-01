@@ -228,6 +228,7 @@ const parseAnnouncements = (announcements: Announcement[]) => {
 
       if (parsedSubjects.length > 0) {
         const displayType = examReschMatch ? "Rescheduled" : "exam";
+        const announcementDate = new Date(a.created_at);
         if (!examGroupsMap[examName]) {
           examGroupsMap[examName] = {
             examName,
@@ -246,6 +247,12 @@ const parseAnnouncements = (announcements: Announcement[]) => {
         }
         examGroupsMap[examName].markReadIds.push(a.id);
 
+        // Use a map keyed by subject name to keep only the most recent entry
+        const existingSubjectMap = new Map<string, { dateObj: Date; announcementDate: Date }>();
+        examGroupsMap[examName].subjects.forEach(s => {
+          existingSubjectMap.set(s.subjectName, { dateObj: s.dateObj, announcementDate: new Date((s.original as any).created_at || 0) });
+        });
+
         parsedSubjects.forEach(sub => {
           let dateObj = new Date(sub.dateStr);
           if (sub.dateStr.includes("/")) {
@@ -259,6 +266,17 @@ const parseAnnouncements = (announcements: Announcement[]) => {
           }
           if (isNaN(dateObj.getTime())) dateObj = new Date();
 
+          const existing = existingSubjectMap.get(sub.subjectName);
+          if (existing && existing.announcementDate >= announcementDate) {
+            // Already have a newer entry for this subject, skip
+            return;
+          }
+
+          // Remove any older duplicate for same subject
+          examGroupsMap[examName].subjects = examGroupsMap[examName].subjects.filter(
+            s => s.subjectName !== sub.subjectName
+          );
+
           examGroupsMap[examName].subjects.push({
             id: a.id + Math.random(),
             original: a,
@@ -270,6 +288,8 @@ const parseAnnouncements = (announcements: Announcement[]) => {
             venue: sub.venue,
             dateObj
           });
+
+          existingSubjectMap.set(sub.subjectName, { dateObj, announcementDate });
         });
       } else {
         regular.push(a);
