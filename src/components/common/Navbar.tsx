@@ -6,6 +6,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { Button } from "../ui/button";
 import { API_BASE_URL } from "../../utils/config";
 import { Capacitor } from "@capacitor/core";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 interface User {
   username: string;
@@ -26,6 +27,7 @@ interface NavbarProps {
   showHamburger?: boolean;
   onHamburgerClick?: () => void;
   unreadCount?: number;
+  recentNotifications?: any[];
 }
 
 interface NotificationBellProps {
@@ -33,7 +35,7 @@ interface NotificationBellProps {
   onClick?: () => void;
 }
 
-const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = false, onHamburgerClick, unreadCount = 0 }: NavbarProps) => {
+const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = false, onHamburgerClick, unreadCount = 0, recentNotifications = [] }: NavbarProps) => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -42,6 +44,22 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
   const [selectedChildId, setSelectedChildId] = useState<string | null>(localStorage.getItem('selectedStudentId'));
   const [showParentDropdown, setShowParentDropdown] = useState(false);
   const [showDesktopSwitcher, setShowDesktopSwitcher] = useState(false);
+
+  const markNotificationsRead = async () => {
+    if (unreadCount === 0) return;
+    try {
+      const { fetchWithTokenRefresh } = await import("../../utils/authService");
+      const response = await fetchWithTokenRefresh(`${API_BASE_URL}/api/notifications/mark-read/`, {
+        method: "POST",
+      });
+      if (response.ok) {
+        // Dispatch event so DashboardLayout updates unread count
+        window.dispatchEvent(new CustomEvent('refresh-unread-count', { detail: { decrement: unreadCount } }));
+      }
+    } catch (error) {
+      console.error("Failed to mark notifications read", error);
+    }
+  };
 
   useEffect(() => {
     if (role === 'parent') {
@@ -266,36 +284,77 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           </Button>
 
           {['student', 'faculty', 'hod', 'admin', 'principal', 'coe', 'dean', 'hms', 'hms_admin', 'fees_manager', 'transport_admin', 'org_admin', 'warden'].includes(role || '') && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                const paths: Record<string, string> = {
-                  'student': '/announcements',
-                  'faculty': '/faculty/announcements',
-                  'hod': '/hod/hod-announcement-management',
-                  'admin': '/admin/announcement-management',
-                  'principal': '/admin/announcement-management',
-                  'coe': '/coe/announcement-management',
-                  'dean': '/dean/announcement-management',
-                  'hms': '/hms/announcement-management',
-                  'hms_admin': '/hms/announcement-management',
-                  'fees_manager': '/fees-manager/announcement-management',
-                  'transport_admin': '/transport-admin/announcement-management',
-                  'org_admin': '/org-admin/announcement-management',
-                  'warden': '/warden/announcement-management'
-                };
-                navigate(paths[role || ''] || '/announcements');
-              }}
-              className="rounded-full w-9 h-9 relative"
-            >
-              <FiBell size={18} />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-semibold rounded-full flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-            </Button>
+            <Popover onOpenChange={(open) => { if (open) markNotificationsRead(); }}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full w-9 h-9 relative"
+                >
+                  <FiBell size={18} />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-semibold rounded-full flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0 mr-4" align="end">
+                <div className="flex flex-col">
+                  <div className="px-4 py-3 font-semibold border-b">
+                    Notifications
+                  </div>
+                  <div className="max-h-[300px] overflow-y-auto">
+                    {recentNotifications.length > 0 ? (
+                      recentNotifications.map((notif: any) => (
+                        <div key={notif.id} className="px-4 py-3 border-b text-sm flex flex-col hover:bg-muted/50 transition-colors">
+                          <span className="font-medium">{notif.title}</span>
+                          <span className="text-muted-foreground mt-1 line-clamp-2">{notif.message}</span>
+                          <span className="text-xs text-muted-foreground/70 mt-2">
+                            {new Date(notif.created_at).toLocaleString(undefined, {
+                              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                        No recent notifications
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-2 border-t bg-muted/20">
+                    <Button
+                      variant="ghost"
+                      className="w-full text-primary hover:text-primary/90 justify-center h-8 text-xs font-medium"
+                      onClick={() => {
+                        const paths: Record<string, string> = {
+                          'student': '/announcements',
+                          'faculty': '/faculty/announcements',
+                          'hod': '/hod/hod-announcement-management',
+                          'admin': '/admin/announcement-management',
+                          'principal': '/admin/announcement-management',
+                          'coe': '/coe/announcement-management',
+                          'dean': '/dean/announcement-management',
+                          'hms': '/hms/announcement-management',
+                          'hms_admin': '/hms/announcement-management',
+                          'fees_manager': '/fees-manager/announcement-management',
+                          'transport_admin': '/transport-admin/announcement-management',
+                          'org_admin': '/org-admin/announcement-management',
+                          'warden': '/warden/announcement-management'
+                        };
+                        navigate(paths[role || ''] || '/announcements');
+                        
+                        // Close Popover indirectly if possible, but navigating usually unmounts or changes page
+                        // In Shadcn, clicking outside or navigating handles it.
+                      }}
+                    >
+                      View All Announcements
+                    </Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
 
           {/* Profile Button */}
