@@ -33,7 +33,8 @@ import {
   AlertCircle,
   Eye,
   FileDown,
-  Loader2
+  Loader2,
+  Lock
 } from "lucide-react";
 import { showSuccessAlert, showErrorAlert } from "@/utils/sweetalert";
 import {
@@ -166,7 +167,12 @@ const HODSyllabusTracker = () => {
         setSyllabusData(res.data);
         // Only update local weeksPlan if the user is not actively editing inside the modal
         if (!editingPlan) {
-          setWeeksPlan(res.data.weeks.map((w: any) => ({ week: w.week, expected_topics: w.expected_topics })));
+          setWeeksPlan(res.data.weeks.map((w: any) => ({
+            week: w.week,
+            expected_topics: w.expected_topics,
+            has_progress: !!w.has_progress,
+            progress_details: w.progress_details || []
+          })));
         }
       } else {
         if (showLoader) {
@@ -378,16 +384,30 @@ const HODSyllabusTracker = () => {
                     {weeksPlan.map((w, index) => (
                       <div key={w.week} className="flex gap-3 items-center p-2 rounded-lg border border-border/80 bg-muted/20 hover:border-primary/40 transition-colors duration-200">
                         <span className="font-semibold text-xs min-w-16 text-center text-muted-foreground">Week {w.week}:</span>
-                        <Input
-                          placeholder="Enter expected topics for this week"
-                          value={w.expected_topics}
-                          onChange={(e) => {
-                            const updated = [...weeksPlan];
-                            updated[index].expected_topics = e.target.value;
-                            setWeeksPlan(updated);
-                          }}
-                          className="bg-background"
-                        />
+                        <div className="flex-1 flex flex-col">
+                          <div className="relative w-full">
+                            <Input
+                              placeholder="Enter expected topics for this week"
+                              value={w.expected_topics}
+                              onChange={(e) => {
+                                const updated = [...weeksPlan];
+                                updated[index].expected_topics = e.target.value;
+                                setWeeksPlan(updated);
+                              }}
+                              className={`bg-background ${w.has_progress ? "pr-8 opacity-75 cursor-not-allowed" : ""}`}
+                              disabled={w.has_progress}
+                            />
+                            {w.has_progress && (
+                              <Lock className="w-4 h-4 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2" />
+                            )}
+                          </div>
+                          {w.progress_details && w.progress_details.length > 0 && (
+                            <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 font-medium flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3 shrink-0" />
+                              Locked: {w.progress_details.join(", ")}
+                            </p>
+                          )}
+                        </div>
                         <Button
                           type="button"
                           variant="ghost"
@@ -401,7 +421,8 @@ const HODSyllabusTracker = () => {
                               setWeeksPlan(updated);
                             }
                           }}
-                          disabled={weeksPlan.length <= 1}
+                          disabled={weeksPlan.length <= 1 || w.has_progress || weeksPlan.slice(index).some(item => item.has_progress)}
+                          title={w.has_progress ? "Cannot delete: Week is in use by faculty" : weeksPlan.slice(index).some(item => item.has_progress) ? "Cannot delete: Shifting would affect later locked weeks" : ""}
                         >
                           Remove
                         </Button>
@@ -416,7 +437,7 @@ const HODSyllabusTracker = () => {
                         className="w-full border-dashed border-primary/40 hover:border-primary hover:bg-primary/5 text-primary gap-2 transition-all duration-300 py-6"
                         onClick={() => {
                           const nextWeek = weeksPlan.length + 1;
-                          setWeeksPlan([...weeksPlan, { week: nextWeek, expected_topics: "" }]);
+                          setWeeksPlan([...weeksPlan, { week: nextWeek, expected_topics: "", has_progress: false }]);
                           // Auto scroll to bottom after state update
                           setTimeout(() => {
                             const scrollContainer = document.querySelector(".thin-scrollbar");
