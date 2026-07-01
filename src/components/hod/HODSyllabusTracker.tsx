@@ -67,7 +67,12 @@ const HODSyllabusTracker = () => {
   const [editingPlan, setEditingPlan] = useState(false);
 
   // Local state for template plans
-  const [weeksPlan, setWeeksPlan] = useState<Array<{ week: number; expected_topics: string }>>([]);
+  const [weeksPlan, setWeeksPlan] = useState<Array<{
+    week: number;
+    expected_topics: string;
+    has_progress?: boolean;
+    progress_details?: string[];
+  }>>([]);
 
   const [isSubjectOpen, setIsSubjectOpen] = useState(false);
   const [exportingPDF, setExportingPDF] = useState(false);
