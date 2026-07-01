@@ -615,39 +615,42 @@ const AdminFacultyAttendanceView: React.FC = () => {
         }
       `}</style>
       <div id="faculty-attendance-dashboard-container" className={`space-y-6 animate-fade-in ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-        <div id="admin-faculty-attendance-header-select" className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 id="faculty-attendance-dashboard-title" className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty Attendance Dashboard</h2>
-          <p id="faculty-attendance-dashboard-subtitle" className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
-            Track and manage faculty attendance across the institution
-          </p>
-        </div>
-        <div id="admin-faculty-attendance-branch-select" className="flex items-center gap-2 w-full md:w-auto">
-          <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-            <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder={translateTerminology("Select Branch")} />
-            </SelectTrigger>
-            <SelectContent>
-              {branches.map(b => (
-                <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      
-      {!selectedBranch ? (
-        <div className={`p-12 border-2 border-dashed rounded-[2rem] flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'} mt-6`}>
-          <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
-            <Building2 className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-          </div>
-          <div className="text-center max-w-sm">
-            <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Branch Selected</p>
-            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>Please select a branch from the dropdown to view the faculty attendance dashboard data</p>
-          </div>
-        </div>
-      ) : (
-        <>
+        <Card id="faculty-attendance-card" className={theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}>
+          <CardHeader className="border-b border-border/50 pb-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty Attendance Dashboard</CardTitle>
+                <p id="faculty-attendance-dashboard-subtitle" className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>
+                  Track and manage faculty attendance across the institution
+                </p>
+              </div>
+              <div id="admin-faculty-attendance-branch-select" className="flex items-center gap-2 w-full md:w-auto">
+                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                  <SelectTrigger className="w-full md:w-[200px]">
+                    <SelectValue placeholder={translateTerminology("Select Branch")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches.map(b => (
+                      <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {!selectedBranch ? (
+              <div className={`p-12 border-2 border-dashed rounded-[2rem] flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                  <Building2 className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                </div>
+                <div className="text-center max-w-sm">
+                  <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Branch Selected</p>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>Please select a branch from the dropdown to view the faculty attendance dashboard data</p>
+                </div>
+              </div>
+            ) : (
+              <>
           <div id="hod-faculty-attendance-header-section" className="space-y-4 sm:space-y-6">
               {/* Tab Navigation */}
               <div id="hod-faculty-attendance-tabs" className={`flex space-x-1 p-1 rounded-lg mt-3 ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'} overflow-x-auto`}>
@@ -1131,6 +1134,8 @@ const AdminFacultyAttendanceView: React.FC = () => {
         }
         </>
       )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Attendance Details Modal */}
