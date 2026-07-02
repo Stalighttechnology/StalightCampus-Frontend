@@ -10,7 +10,9 @@ import {
   ChevronDown,
   Star,
   Sparkles,
-  Info
+  Info,
+  X,
+  MessageCircle
 } from "lucide-react";
 
 // --- Premium Animation Variants ---
@@ -27,6 +29,7 @@ const fadeUp: Variants = {
 const Pricing = () => {
   const navigate = useNavigate();
   const [activeFAQ, setActiveFAQ] = useState<number | null>(null);
+  const [isTrialPopupOpen, setIsTrialPopupOpen] = useState(false);
 
   const basicPrice = "₹150";
   const proPrice = "₹200";
@@ -36,9 +39,7 @@ const Pricing = () => {
     navigate(link);
   };
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  // Removed window.scrollTo to prevent jumping
 
   const plans = [
     {
@@ -196,7 +197,7 @@ const Pricing = () => {
                 {/* Popular Badge */}
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-600 text-white px-6 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest shadow-lg">
-                    Most Popular
+                    Recommended
                   </div>
                 )}
 
@@ -236,7 +237,8 @@ const Pricing = () => {
 
                 {/* Action Button */}
                 <button
-                  onClick={() => handleGetStarted(plan.link)}
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); handleGetStarted(plan.link); }}
                   className={`w-full py-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 group ${plan.popular
                     ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-blue-600 text-white shadow-lg hover:shadow-xl hover:opacity-95'
                     : 'bg-slate-900 hover:bg-slate-800 text-white shadow-md'
@@ -371,7 +373,7 @@ const Pricing = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
-              <button onClick={() => window.location.href = "https://campus.stalight.in/stalightcampus"} className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-600 text-white rounded-xl font-bold uppercase text-sm tracking-widest shadow-lg hover:shadow-purple-500/25 hover:-translate-y-1 transition-all duration-300 w-full sm:w-auto">
+              <button type="button" onClick={(e) => { e.preventDefault(); setIsTrialPopupOpen(true); }} className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-600 text-white rounded-xl font-bold uppercase text-sm tracking-widest shadow-lg hover:shadow-purple-500/25 hover:-translate-y-1 transition-all duration-300 w-full sm:w-auto">
                 Start Free Trial <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button onClick={() => window.location.href = "mailto:sales@stalight.in"} className="inline-flex items-center justify-center px-8 py-4 bg-white/10 border border-white/20 text-white rounded-xl font-bold uppercase text-sm tracking-widest hover:bg-white/20 transition-all duration-300 w-full sm:w-auto backdrop-blur-sm">
@@ -393,6 +395,71 @@ const Pricing = () => {
           </div>
         </div>
       </footer>
+
+      {/* Trial Popup */}
+      <AnimatePresence>
+        {isTrialPopupOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsTrialPopupOpen(false)}
+              className="absolute inset-0 bg-slate-900/80"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden z-10 p-8 text-center border border-slate-100"
+            >
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); setIsTrialPopupOpen(false); }}
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+              >
+                <X size={16} />
+              </button>
+
+              <div className="mx-auto mb-6 flex justify-center">
+                <img src="/logo.jpeg" alt="Stalight Campus Logo" className="w-20 h-20 rounded-2xl shadow-lg shadow-blue-500/10 object-cover border border-slate-100" />
+              </div>
+
+              <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">Claim Your Free Trial</h3>
+
+              <p className="text-slate-600 mb-6 leading-relaxed">
+                Get access with the coupon and use our software for 14 days completely free. Contact us on WhatsApp to get your coupon code instantly!
+              </p>
+
+              <div className="flex items-center justify-center gap-4 mb-8">
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
+                  alt="Download on the App Store"
+                  className="h-10 cursor-pointer hover:opacity-80 transition-opacity"
+                />
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                  alt="Get it on Google Play"
+                  className="h-10 cursor-pointer hover:opacity-80 transition-opacity"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.open('https://wa.me/917349551102?text=Hello%20Stalight%20Team%2C%20I%20want%20to%20get%20access%20to%20the%2014%20days%20free%20trial%20coupon', '_blank');
+                }}
+                className="group flex items-center justify-center gap-3 w-full bg-[#25D366] hover:bg-[#20bd5a] text-white py-4 px-6 rounded-xl font-bold transition-all duration-300 shadow-lg shadow-green-500/25 hover:-translate-y-1"
+              >
+                <MessageCircle size={20} />
+                <span>Get Coupon on WhatsApp</span>
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

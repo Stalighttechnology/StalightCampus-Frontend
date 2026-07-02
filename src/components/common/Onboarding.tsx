@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import {
   Building2, User, Mail, Phone, CheckCircle2,
   ArrowRight, Loader2, Shield, Globe, ChevronLeft,
-  Camera, CreditCard, Tool, Info, Lock
+  Camera, CreditCard, Tool, Info, Lock, Zap, Sparkles
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { API_ENDPOINT } from "@/utils/config";
@@ -700,37 +700,54 @@ const Onboarding = () => {
 
       {/* Right Section - Simplified Illustration */}
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary to-[#5b21b6] items-center justify-center p-12 relative">
-        <div className="relative z-10 text-center text-white max-w-md">
-          <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mx-auto mb-8 border border-white/20">
-            <Globe size={24} className="text-white" />
+        <div className="relative z-10 text-center text-white max-w-md w-full">
+          <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl p-1">
+             <img src="/logo.jpeg" alt="Stalight Campus Logo" className="w-full h-full rounded-[1.75rem] object-cover" />
           </div>
 
-          <h2 className="text-3xl font-extrabold mb-4 leading-tight">
-            Digital Transformation <br />
-            <span className="text-blue-100">CAMPUS ECOSYSTEM</span>
+          <h2 className="text-4xl font-extrabold mb-4 leading-tight tracking-tight">
+            Welcome to the <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-pink-200">Future of Education</span>
           </h2>
 
-          <p className="text-sm text-white/70 mb-12">
-            Join 500+ institutions using our AI-driven platform.
+          <p className="text-base text-white/80 mb-10 leading-relaxed">
+            Set up your institution's digital campus in minutes. Experience seamless administration and intelligent tools.
           </p>
 
-          <img
-            src="/undraw_educator_6dgp.svg"
-            alt="Educator"
-            className="w-full h-auto max-h-[300px] object-contain"
-            loading="eager"
-          />
-
-          <div className="mt-12 grid grid-cols-2 gap-3">
-            {[
-              { label: "Bank Security", icon: <Shield size={14} /> },
-              { label: "Real-time Sync", icon: <Globe size={14} /> },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center justify-center gap-2 bg-white/5 p-2 rounded-lg border border-white/5 text-white/80 text-[10px] font-bold uppercase tracking-wider">
-                {item.icon}
-                <span>{item.label}</span>
-              </div>
-            ))}
+          <div className="bg-white/10 backdrop-blur-md rounded-[2rem] p-8 border border-white/20 shadow-2xl relative overflow-hidden text-left">
+             <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/30 rounded-full blur-2xl"></div>
+             
+             <div className="space-y-6 relative z-10">
+                <div className="flex items-center gap-5 text-white">
+                   <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
+                      <Building2 size={20} className="text-blue-300" />
+                   </div>
+                   <div>
+                      <p className="font-bold text-sm tracking-wide">Unified Campus Management</p>
+                      <p className="text-xs text-white/60 mt-0.5">Manage admissions, fees, and exams seamlessly</p>
+                   </div>
+                </div>
+                
+                <div className="flex items-center gap-5 text-white">
+                   <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
+                      <CheckCircle2 size={20} className="text-green-300" />
+                   </div>
+                   <div>
+                      <p className="font-bold text-sm tracking-wide">Streamlined Operations</p>
+                      <p className="text-xs text-white/60 mt-0.5">Automate daily tasks, library, and hostel workflows</p>
+                   </div>
+                </div>
+                
+                <div className="flex items-center gap-5 text-white">
+                   <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
+                      <Globe size={20} className="text-purple-300" />
+                   </div>
+                   <div>
+                      <p className="font-bold text-sm tracking-wide">Connected Ecosystem</p>
+                      <p className="text-xs text-white/60 mt-0.5">Real-time access for students, faculty, and admins</p>
+                   </div>
+                </div>
+             </div>
           </div>
         </div>
       </div>
