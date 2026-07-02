@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { fetchWithTokenRefresh } from '../utils/authService';
 import { API_ENDPOINT } from '../utils/config';
 import { CURRENT_TOUR_VERSION } from '../onboarding/constants/tutorialConfig';
@@ -18,6 +18,7 @@ export interface InAppPopupData {
 
 export function useInAppPopups() {
   const [activePopup, setActivePopup] = useState<InAppPopupData | null>(null);
+  const fetchedUserRef = useRef<string | null>(null);
 
   const getUserKey = () => {
     try {
@@ -37,8 +38,12 @@ export function useInAppPopups() {
     let timer: NodeJS.Timeout;
 
     const fetchPopups = async () => {
-      // Don't fetch if not authenticated
-      if (!isAuthenticated) return;
+      // Don't fetch if not authenticated or user data isn't fully loaded yet
+      if (!isAuthenticated || !authUser) return;
+
+      const currentUserId = String(authUser.id || authUser.user_id);
+      if (fetchedUserRef.current === currentUserId) return;
+      fetchedUserRef.current = currentUserId;
 
       try {
         const userStr = sessionStorage.getItem("user");

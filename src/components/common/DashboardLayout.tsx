@@ -54,6 +54,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 1024);
   const [error, setError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [recentNotifications, setRecentNotifications] = useState<any[]>([]);
   const navigate = useNavigate();
   const mainContentRef = useRef<HTMLElement>(null);
 
@@ -156,7 +157,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const unreadCountQuery = useQuery({
     queryKey: ["unreadCount", role, accessToken],
     queryFn: getUnreadNotificationCount,
-    refetchInterval: 30 * 1000,
+    refetchInterval: 5 * 60 * 1000, // Reduced from 30s to 5m to avoid hammering the backend
     refetchOnWindowFocus: true, // It's okay to poll this fast endpoint on focus
     enabled: !!accessToken,
   });
@@ -164,6 +165,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   useEffect(() => {
     if (unreadCountQuery.data?.success) {
       setUnreadCount(unreadCountQuery.data.count || unreadCountQuery.data.unread_count || 0);
+      if (unreadCountQuery.data.recent_notifications) {
+        setRecentNotifications(unreadCountQuery.data.recent_notifications);
+      }
     }
   }, [unreadCountQuery.data]);
 
@@ -295,7 +299,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             setPage={handlePageChange}
             showHamburger={sidebarCollapsed && window.innerWidth < 1024}
             onHamburgerClick={toggleSidebar}
-            unreadCount={unreadCount} />
+            unreadCount={unreadCount}
+            recentNotifications={recentNotifications} />
 
         </div>
 
