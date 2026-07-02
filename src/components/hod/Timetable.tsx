@@ -917,7 +917,9 @@ const Timetable = () => {
           day: existingEntry.day,
           timetable_id: existingEntry.id,
           assignment_id: existingEntry.faculty_assignment.id,
-          subject_type: existingEntry.subject_type || existingEntry.faculty_assignment?.subject_type
+          subject_type: existingEntry.subject_type || existingEntry.faculty_assignment?.subject_type,
+          slot_id: slot_id,
+          time: time
         }
       });
     } else {
@@ -1473,7 +1475,7 @@ const Timetable = () => {
                                     </div>
                                     <div className="flex items-center gap-1.5 font-semibold text-primary">
                                       <MapPin size={13} />
-                                      <span>{entry.room && (entry.room.toLowerCase().startsWith('room') ? entry.room : `Room ${entry.room}`)}</span>
+                                      <span>{entry.room ? (entry.room.toLowerCase().startsWith('room') ? entry.room : `Room ${entry.room}`) : 'No Room'}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -1570,9 +1572,6 @@ const Timetable = () => {
                                           )}
                                           <div className={`font-semibold text-[11px] leading-tight ${colors.text} truncate pr-3.5`}>
                                             {entry.faculty_assignment.subject}
-                                          </div>
-                                          <div className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-1">
-                                            {formatTo12h(entry.start_time)} - {formatTo12h(entry.end_time)}
                                           </div>
                                         </div>
 

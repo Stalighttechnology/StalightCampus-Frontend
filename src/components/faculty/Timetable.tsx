@@ -358,7 +358,7 @@ const Timetable = ({ role }: TimetableProps) => {
                             </div>
                             <div className="flex items-center gap-1.5 font-semibold text-primary">
                               <MapPin size={13} />
-                              <span>{entry.room && (entry.room.toLowerCase().startsWith('room') ? entry.room : `Room ${entry.room}`)}</span>
+                              <span>{entry.room ? (entry.room.toLowerCase().startsWith('room') ? entry.room : `Room ${entry.room}`) : 'No Room'}</span>
                             </div>
                           </div>
                         </div>
