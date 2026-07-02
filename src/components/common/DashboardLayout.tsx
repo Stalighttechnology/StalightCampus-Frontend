@@ -157,7 +157,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const unreadCountQuery = useQuery({
     queryKey: ["unreadCount", role, accessToken],
     queryFn: getUnreadNotificationCount,
-    refetchInterval: 30 * 1000,
+    refetchInterval: 5 * 60 * 1000, // Reduced from 30s to 5m to avoid hammering the backend
     refetchOnWindowFocus: true, // It's okay to poll this fast endpoint on focus
     enabled: !!accessToken,
   });
