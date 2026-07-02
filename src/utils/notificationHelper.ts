@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
+import { FCM } from '@capacitor-community/fcm';
 import { requestForToken } from '../lib/firebase';
 import { API_ENDPOINT } from './config';
 import { showSuccessAlert, showErrorAlert, showInfoAlert } from './sweetalert';
@@ -28,6 +29,11 @@ export const handleNotificationToggle = async (
           // Setup registration listener to send token to backend
           const regListener = await PushNotifications.addListener('registration', async (token) => {
             try {
+              let finalToken = token.value;
+              if (Capacitor.getPlatform() === 'ios') {
+                const fcmTokenResult = await FCM.getToken();
+                finalToken = fcmTokenResult.token;
+              }
               const res = await fetch(`${API_ENDPOINT}/profile/register-device/`, {
                 method: 'POST',
                 headers: {
@@ -35,7 +41,7 @@ export const handleNotificationToggle = async (
                   'Authorization': `Bearer ${userToken}`
                 },
                 body: JSON.stringify({
-                  fcm_token: token.value,
+                  fcm_token: finalToken,
                   device_type: Capacitor.getPlatform() === 'ios' ? 'ios' : 'android'
                 })
               });

@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { API_ENDPOINT } from '../utils/config';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
+import { FCM } from '@capacitor-community/fcm';
 
 // Module-level state to track user interaction for Autoplay compliance
 let hasInteracted = false;
@@ -65,7 +66,16 @@ export const useFCM = (userToken: string | null) => {
 
                 // Setup native listeners only once
                 PushNotifications.addListener('registration', async (token) => {
-                    setFcmToken(token.value);
+                    let finalToken = token.value;
+                    if (Capacitor.getPlatform() === 'ios') {
+                        try {
+                            const fcmTokenResult = await FCM.getToken();
+                            finalToken = fcmTokenResult.token;
+                        } catch (e) {
+                            console.error("Failed to get FCM token", e);
+                        }
+                    }
+                    setFcmToken(finalToken);
                     // Send this native token to the Django backend
                     await fetch(`${API_ENDPOINT}/profile/register-device/`, {
                         method: 'POST',
@@ -74,7 +84,7 @@ export const useFCM = (userToken: string | null) => {
                             'Authorization': `Bearer ${userToken}`
                         },
                         body: JSON.stringify({
-                            fcm_token: token.value,
+                            fcm_token: finalToken,
                             device_type: Capacitor.getPlatform() === 'ios' ? 'ios' : 'android'
                         })
                     });
