@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, GripVertical, Clock } from "lucide-react";
+import { Plus, Trash2, Edit2, GripVertical, Clock, AlertTriangle } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -103,6 +103,27 @@ export default function PrincipalTimetableSettings() {
     fetchSlots();
   }, []);
 
+  useEffect(() => {
+    if (slots.length < 2) return;
+    const sortedSlots = [...slots].sort((a, b) => a.start_time.localeCompare(b.start_time));
+    for (let i = 0; i < sortedSlots.length - 1; i++) {
+      const currentEnd = sortedSlots[i].end_time.substring(0, 5);
+      const nextStart = sortedSlots[i+1].start_time.substring(0, 5);
+      if (currentEnd < nextStart) {
+        const gapFrom = formatTimeTo12hString(currentEnd);
+        const gapTo = formatTimeTo12hString(nextStart);
+        MySwal.fire({
+          title: "Continuous Timetable Warning",
+          text: `There is a missing time slot between ${gapFrom} and ${gapTo}. Consider adding it for a continuous timetable.`,
+          icon: "warning",
+          confirmButtonText: "Got it",
+          confirmButtonColor: "#f59e0b",
+        });
+        break;
+      }
+    }
+  }, [slots]);
+
   const handleOpen = (slot?: TimetableSlot) => {
     if (slot) {
       setEditingSlot(slot);
@@ -155,6 +176,15 @@ export default function PrincipalTimetableSettings() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (formData.start_time >= formData.end_time) {
+      toast({
+        title: "Error",
+        description: "Start time must be before end time.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Check client-side for duplicate timings first
     const duplicate = slots.find(
       s => s.start_time.substring(0, 5) === formData.start_time &&
@@ -165,6 +195,34 @@ export default function PrincipalTimetableSettings() {
       toast({
         title: "Error",
         description: "You already have a slot for these timings.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const overlapping = slots.find(s => {
+      if (editingSlot && s.id === editingSlot.id) return false;
+      const sStart = s.start_time.substring(0, 5);
+      const sEnd = s.end_time.substring(0, 5);
+      return formData.start_time < sEnd && formData.end_time > sStart;
+    });
+    if (overlapping) {
+      toast({
+        title: "Error",
+        description: "Time slot overlaps with an existing period.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const duplicateOrder = slots.find(
+      s => s.order === Number(formData.order) &&
+           (!editingSlot || s.id !== editingSlot.id)
+    );
+    if (duplicateOrder) {
+      toast({
+        title: "Error",
+        description: "Order number already exists. Please choose a different order.",
         variant: "destructive"
       });
       return;
@@ -187,19 +245,28 @@ export default function PrincipalTimetableSettings() {
       }
       
       if (res.ok) {
+        const responseData = await res.json();
         toast({ title: "Success", description: editingSlot ? "Slot updated" : "Slot created" });
         setIsOpen(false);
-        fetchSlots();
+        if (editingSlot) {
+          setSlots(prev => prev.map(s => s.id === editingSlot.id ? responseData : s));
+        } else {
+          setSlots(prev => [...prev, responseData]);
+        }
       } else {
         let errorMsg = "Failed to save slot";
+        let isOrderError = false;
         try {
           const errData = await res.json();
-          if (errData && (errData.non_field_errors || errData.detail || errData.error || errData.message)) {
+          if (errData && errData.order) {
+            errorMsg = Array.isArray(errData.order) ? errData.order[0] : errData.order;
+            isOrderError = true;
+          } else if (errData && (errData.non_field_errors || errData.detail || errData.error || errData.message)) {
             errorMsg = errData.non_field_errors?.[0] || errData.detail || errData.error || errData.message;
           }
         } catch (_) {}
 
-        if (res.status === 500 || errorMsg.toLowerCase().includes("unique") || errorMsg.toLowerCase().includes("already exists")) {
+        if (!isOrderError && (res.status === 500 || errorMsg.toLowerCase().includes("unique") || errorMsg.toLowerCase().includes("already exists"))) {
           errorMsg = "You already have a slot for these timings.";
         }
 
@@ -234,7 +301,7 @@ export default function PrincipalTimetableSettings() {
       });
       if (res.ok) {
         toast({ title: "Success", description: "Slot deleted" });
-        fetchSlots();
+        setSlots(prev => prev.filter(s => s.id !== id));
       } else {
         throw new Error("Failed to delete slot");
       }
@@ -255,12 +322,10 @@ export default function PrincipalTimetableSettings() {
               Configure the daily class periods and breaks for your institution.
             </CardDescription>
           </div>
+          <Button onClick={() => handleOpen()} className="w-full sm:w-auto shadow-sm">
+            <Plus className="w-4 h-4 mr-2" /> Add Slot
+          </Button>
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => handleOpen()} className="w-full sm:w-auto shadow-sm">
-                <Plus className="w-4 h-4 mr-2" /> Add Slot
-              </Button>
-            </DialogTrigger>
             <DialogContent className={`w-[90%] max-w-[90%] md:max-w-xl rounded-2xl ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}`}>
               <DialogHeader>
                 <DialogTitle className="text-lg font-semibold">

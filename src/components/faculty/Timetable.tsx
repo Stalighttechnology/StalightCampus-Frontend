@@ -433,9 +433,7 @@ const Timetable = ({ role }: TimetableProps) => {
                                         <div className={`font-semibold text-[11px] leading-tight ${colors.text} truncate pr-3.5`}>
                                           {entry.subject}
                                         </div>
-                                        <div className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-1">
-                                          {format12Hour(entry.start_time)} - {format12Hour(entry.end_time)}
-                                        </div>
+
                                       </div>
 
                                       <div className="flex justify-between items-center text-[9px] font-semibold text-slate-600 dark:text-slate-300 mt-2 pt-1.5 border-t border-slate-200/40 dark:border-slate-850/40">

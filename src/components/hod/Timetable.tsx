@@ -398,7 +398,6 @@ const EditModal: React.FC<EditModalProps> = ({ classDetails, onSave, onCancel, o
         </div>
 
         {!(newClassDetails.subject === 'Elective Subjects' || newClassDetails.subject === 'Open Elective Subjects') && (
-          <>
             <div className="mb-4">
               <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground/70' : 'text-gray-600'}`}>Professor:</label>
               {matchingAssignments.length > 1 ? (
@@ -435,7 +434,9 @@ const EditModal: React.FC<EditModalProps> = ({ classDetails, onSave, onCancel, o
                 <p className="text-xs text-destructive mt-1">Please assign a faculty to this subject in Faculty Assignments.</p>
               }
             </div>
+        )}
 
+        {!(newClassDetails.subject === 'Elective Subjects' || newClassDetails.subject === 'Open Elective Subjects') ? (
             <div className="mb-4">
               <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Room:</label>
               <input
@@ -446,7 +447,17 @@ const EditModal: React.FC<EditModalProps> = ({ classDetails, onSave, onCancel, o
                 className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border placeholder-muted-foreground' : 'text-gray-900 bg-white border-gray-300 placeholder-gray-500'}`}
                 placeholder="e.g., R103" />
             </div>
-          </>
+        ) : (
+            <div className="mb-4">
+              <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Room:</label>
+              <input
+                type="text"
+                name="room"
+                value="Multiple Rooms"
+                readOnly
+                className={`w-full p-2 border rounded bg-muted/50 cursor-not-allowed ${theme === 'dark' ? 'text-foreground/70 border-border text-muted-foreground' : 'text-gray-500 border-gray-200 bg-gray-100'}`}
+              />
+            </div>
         )}
 
         <div className="mb-4">
@@ -1210,14 +1221,16 @@ const Timetable = () => {
               
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
                 <div className="flex flex-row items-center gap-2 w-full sm:w-auto justify-between">
-                  <Button
-                    variant="outline"
-                    className="flex-1 sm:flex-none bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-250 ease-in-out transform hover:scale-[1.02] shadow-sm h-9 px-3.5 rounded-lg flex items-center justify-center gap-1.5 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={handleEdit}
-                    disabled={!state.semesterId || !state.sectionId}>
-                    <EditIcon className="w-3.5 h-3.5" />
-                    <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
-                  </Button>
+                  {viewMode !== 'daily' && (
+                    <Button
+                      variant="outline"
+                      className="flex-1 sm:flex-none bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-250 ease-in-out transform hover:scale-[1.02] shadow-sm h-9 px-3.5 rounded-lg flex items-center justify-center gap-1.5 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={handleEdit}
+                      disabled={!state.semesterId || !state.sectionId}>
+                      <EditIcon className="w-3.5 h-3.5" />
+                      <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
+                    </Button>
+                  )}
 
                   {/* Mobile Export PDF Button */}
                   <Button
@@ -1443,11 +1456,7 @@ const Timetable = () => {
                                     : 'border-slate-100 bg-slate-50/50 text-slate-650 hover:bg-slate-100/50'
                                   } ${state.isEditing ? 'border-dashed border-primary/50 hover:border-primary hover:bg-primary/5' : ''}`}
                               >
-                                {state.isEditing && (
-                                  <div className="absolute right-4 top-4 p-1 rounded-full bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-850 text-primary">
-                                    <EditIcon size={12} />
-                                  </div>
-                                )}
+
                                 {ongoing && !state.isEditing && (
                                   <span className="absolute right-4 top-4 flex h-2 w-2">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -1468,14 +1477,14 @@ const Timetable = () => {
                                     <h4 className={`text-base font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{subjectStr}</h4>
                                   </div>
 
-                                  <div className="flex flex-row sm:flex-col gap-4 sm:gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 w-full sm:w-auto">
-                                    <div className="flex items-center gap-1.5 font-medium">
-                                      <User size={13} className="text-slate-400 dark:text-slate-550" />
-                                      <span>{entry.faculty_assignment.faculty}</span>
+                                  <div className="flex flex-row sm:flex-col gap-4 sm:gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 w-full sm:w-[160px] shrink-0 sm:items-start overflow-hidden">
+                                    <div className="flex items-center gap-1.5 font-medium w-full">
+                                      <User size={13} className="text-slate-400 dark:text-slate-550 shrink-0" />
+                                      <span className="truncate">{entry.faculty_assignment.faculty}</span>
                                     </div>
-                                    <div className="flex items-center gap-1.5 font-semibold text-primary">
-                                      <MapPin size={13} />
-                                      <span>{entry.room ? (entry.room.toLowerCase().startsWith('room') ? entry.room : `Room ${entry.room}`) : 'No Room'}</span>
+                                    <div className="flex items-center gap-1.5 font-semibold text-primary w-full">
+                                      <MapPin size={13} className="shrink-0" />
+                                      <span className="truncate">{entry.room ? (entry.room.toLowerCase().startsWith('room') ? entry.room : `Room ${entry.room}`) : 'No Room'}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -1483,13 +1492,6 @@ const Timetable = () => {
                             );
                           })}
                         </div>
-                        {state.isEditing && (
-                          <div className="flex justify-center pt-2">
-                            <Button size="sm" variant="outline" className="flex items-center gap-1.5" onClick={() => handleClassClick("", "", selectedDay)}>
-                              + Add Class to {selectedDay}
-                            </Button>
-                          </div>
-                        )}
                       </>
                     );
                   })()}

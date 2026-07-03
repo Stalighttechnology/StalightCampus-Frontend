@@ -1,102 +1,8 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { Button } from "../ui/button";
 import { useTheme } from "@/context/ThemeContext";
-import { API_ENDPOINT } from "@/utils/config";
-import { CheckCircle, ShieldAlert } from "lucide-react";
+import FaceRecognitionUploader from "../common/FaceRecognitionUploader";
 
 const FaceRecognition = () => {
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(true);
-  const [hasFace, setHasFace] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const { theme } = useTheme();
-
-  useEffect(() => {
-    checkFaceStatus();
-  }, []);
-
-  const checkFaceStatus = async () => {
-    try {
-      const response = await fetch(`${API_ENDPOINT}/student/check-face-status/`, {
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-        },
-      });
-      const data = await response.json();
-      if (data.success) {
-        setHasFace(data.has_face);
-      }
-    } catch (err) {
-      console.error("Failed to check face status", err);
-    } finally {
-      setChecking(false);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const files = e.target.files;
-      setSelectedFiles(files);
-      
-      // Create and display previews
-      const urls: string[] = [];
-      for (let i = 0; i < files.length; i++) {
-        const objectUrl = URL.createObjectURL(files[i]);
-        urls.push(objectUrl);
-      }
-      setPreviewUrls(urls);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFiles || selectedFiles.length === 0) {
-      setError("Please select at least one image");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const formData = new FormData();
-      for (let i = 0; i < selectedFiles.length; i++) {
-        formData.append("images", selectedFiles[i]);
-      }
-
-      const response = await fetch(`${API_ENDPOINT}/student/train-face/`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-        },
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setSuccess("Face trained successfully");
-        setHasFace(true);
-        setSelectedFiles(null);
-        setPreviewUrls([]);
-        // Reset file input
-        const fileInput = document.getElementById("face-images") as HTMLInputElement;
-        if (fileInput) {
-          fileInput.value = "";
-        }
-      } else {
-        setError(data.message || "Failed to train face");
-      }
-    } catch (err) {
-      setError("Network error while training face");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
@@ -119,8 +25,8 @@ const FaceRecognition = () => {
             <p className={`text-sm max-w-md ${theme === 'dark' ? 'text-green-400/80' : 'text-green-600'}`}>
               Your face has been enrolled in the system. You are ready to use the AI attendance feature in your classes.
             </p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className={`mt-6 ${theme === 'dark' ? 'border-green-500/30 text-green-400 hover:bg-green-500/10' : 'border-green-300 text-green-700 hover:bg-green-100'}`}
               onClick={() => setHasFace(false)}
             >
@@ -135,6 +41,19 @@ const FaceRecognition = () => {
                 <p className="font-semibold mb-1">Face Not Registered</p>
                 <p className="opacity-90">Please upload a clear picture of your face to enable automatic attendance. Make sure only one face is visible.</p>
               </div>
+            </div>
+            <div className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-50 border-blue-200'}`}>
+              <h3 className={`font-semibold text-sm mb-2 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-800'}`}>Face Training Guidelines</h3>
+              <ul className={`list-disc pl-5 text-sm space-y-1 ${theme === 'dark' ? 'text-blue-400/90' : 'text-blue-700'}`}>
+                <li>Upload 5 clear solo photos of yourself only.</li>
+                <li>Ensure only one face is visible in each image.</li>
+                <li>Do not upload group photos.</li>
+                <li>Do not use another student's photos.</li>
+                <li>Use photos with different angles (front, left, right, slight up/down).</li>
+                <li>Ensure good lighting and avoid blurry images.</li>
+                <li>Remove sunglasses, masks, or objects covering your face.</li>
+                <li>Retrain your profile if your appearance changes significantly.</li>
+              </ul>
             </div>
 
             <div className="space-y-2">

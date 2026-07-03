@@ -9,14 +9,17 @@ import { SkeletonTable } from "@/components/ui/skeleton";
 import { useProctorStudentsQuery } from "@/hooks/useApiQueries";
 import { useDebouncedSearch } from "@/hooks/useOptimizations";
 
-import { Search, Users, FileDown } from "lucide-react";
+import { Search, Users, FileDown, ScanFace } from "lucide-react";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import FaceRecognitionUploader from "@/components/common/FaceRecognitionUploader";
 
 const ProctorStudents = () => {
   const { theme } = useTheme();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const { value: search, debouncedValue: debouncedSearch, setValue: setSearch } = useDebouncedSearch('', 500);
+  const [selectedStudentFace, setSelectedStudentFace] = useState<any>(null);
 
   const handleExportPDF = async () => {
     setDownloadingPDF(true);
@@ -138,6 +141,7 @@ const ProctorStudents = () => {
                   <th className={`px-4 py-2 text-center text-md font-semibold whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Semester")}</th>
                   <th className={`px-4 py-2 text-center text-md font-semibold whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section</th>
                   <th className={`px-4 py-2 text-center text-md font-semibold whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Contact No</th>
+                  <th className={`px-4 py-2 text-center text-md font-semibold whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>
                 </tr>
               </thead>
               <tbody className={theme === 'dark' ? 'divide-border' : 'divide-gray-200'}>
@@ -148,6 +152,18 @@ const ProctorStudents = () => {
                     <td className={`px-4 py-2 text-center text-sm whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester}</td>
                     <td className={`px-4 py-2 text-center text-sm whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section}</td>
                     <td className={`px-4 py-2 text-center text-sm whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.contact || '-'}</td>
+                    <td className={`px-4 py-2 text-center text-sm whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Train Face"
+                        onClick={() => setSelectedStudentFace(student)}
+                        className="flex items-center gap-2 mx-auto"
+                      >
+                        <ScanFace className="w-4 h-4 text-primary" />
+                        <span className="text-xs text-primary">Train</span>
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -203,6 +219,21 @@ const ProctorStudents = () => {
           </div>
         </CardFooter>
       )}
+      <Dialog open={!!selectedStudentFace} onOpenChange={(open) => !open && setSelectedStudentFace(null)}>
+        <DialogContent className={`sm:max-w-[600px] ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white'}`}>
+          <DialogHeader>
+            <DialogTitle>Train Face: {selectedStudentFace?.name} ({selectedStudentFace?.usn})</DialogTitle>
+          </DialogHeader>
+          {selectedStudentFace && (
+            <FaceRecognitionUploader
+              title=""
+              description={`Upload 3 to 5 images for ${selectedStudentFace.name}`}
+              statusEndpoint={`/faculty/proctor-students/${selectedStudentFace.id}/check-face-status/`}
+              trainEndpoint={`/faculty/proctor-students/${selectedStudentFace.id}/train-face/`}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
