@@ -577,6 +577,58 @@ const StudentProfile: React.FC = () => {
   };
 
   const handleSave = async () => {
+    // Helper validators
+    const validateEmail = (emailStr: string): boolean => {
+      if (!emailStr) return true;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(emailStr);
+    };
+
+    const validatePhone = (phoneStr: string): boolean => {
+      if (!phoneStr) return true;
+      const phoneRegex = /^\+?\d{9,15}$/;
+      return phoneRegex.test(phoneStr.replace(/\s+/g, ''));
+    };
+
+    // Client-side validations
+    if (form.phone && !validatePhone(form.phone)) {
+      showErrorAlert('Invalid Input', 'Please enter a valid mobile number.');
+      return;
+    }
+    if (form.alternate_mobile && !validatePhone(form.alternate_mobile)) {
+      showErrorAlert('Invalid Input', 'Please enter a valid alternate mobile number.');
+      return;
+    }
+    if (form.father_contact && !validatePhone(form.father_contact)) {
+      showErrorAlert('Invalid Input', "Please enter a valid mobile number for Father's Contact.");
+      return;
+    }
+    if (form.mother_contact && !validatePhone(form.mother_contact)) {
+      showErrorAlert('Invalid Input', "Please enter a valid mobile number for Mother's Contact.");
+      return;
+    }
+    if (form.guardian_phone && !validatePhone(form.guardian_phone)) {
+      showErrorAlert('Invalid Input', "Please enter a valid mobile number for Guardian's Phone.");
+      return;
+    }
+
+    if (form.email && !validateEmail(form.email)) {
+      showErrorAlert('Invalid Input', 'Please enter a proper email address.');
+      return;
+    }
+    if (form.personal_email && !validateEmail(form.personal_email)) {
+      showErrorAlert('Invalid Input', 'Please enter a proper personal email address.');
+      return;
+    }
+    if (form.institutional_email && !validateEmail(form.institutional_email)) {
+      showErrorAlert('Invalid Input', 'Please enter a proper institutional email address.');
+      return;
+    }
+    if (form.guardian_email && !validateEmail(form.guardian_email)) {
+      showErrorAlert('Invalid Input', 'Please enter a proper guardian email address.');
+      return;
+    }
+
     try {
       // Send all editable fields from the form to backend. Backend will ignore unknown keys.
       // assemble guardian object and attempt to parse JSON fields
@@ -671,9 +723,8 @@ const StudentProfile: React.FC = () => {
 
       showSuccessAlert('Profile Updated', 'Your profile has been successfully updated.');
       setEditing(false);
-    } catch (err) {
-
-      showErrorAlert('Error', 'Failed to update profile');
+    } catch (err: any) {
+      showErrorAlert('Error', err.message || 'Failed to update profile');
     }
   };
 

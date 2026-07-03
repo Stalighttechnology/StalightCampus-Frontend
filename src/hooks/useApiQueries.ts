@@ -371,7 +371,19 @@ export const useStudentProfileUpdateMutation = () => {
     async (data: UpdateProfileRequest) => {
       const response = await updateProfile(data);
       if (!response.success) {
-        throw new Error(response.message || 'Failed to update profile');
+        let msg = response.message || 'Failed to update profile';
+        if (typeof msg === 'object') {
+          msg = Object.entries(msg)
+            .map(([field, errors]) => {
+              const fieldName = field
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, (c) => c.toUpperCase());
+              const fieldErrors = Array.isArray(errors) ? errors.join(', ') : String(errors);
+              return `${fieldName}: ${fieldErrors}`;
+            })
+            .join('\n');
+        }
+        throw new Error(msg);
       }
       return response;
     },
