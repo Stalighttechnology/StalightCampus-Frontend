@@ -655,138 +655,6 @@ const StudentInfoScanner = () => {
         </CardContent>
       </Card>
 
-          {/* Personal Information (from UserProfile) */}
-          {studentData && studentData.personal_info &&
-          <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Calendar className="h-5 w-5 text-primary" />
-                Personal Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Date of Birth:</span>
-                    <span className="text-sm">{studentData.personal_info.date_of_birth || '—'}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Primary Lang:</span>
-                    <span className="text-sm">{studentData.personal_info.primary_language || '—'}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Alternate Mobile:</span>
-                    {studentData.personal_info.alternate_mobile ?
-                    <a href={`tel:${studentData.personal_info.alternate_mobile}`} className="text-primary hover:underline text-sm">{studentData.personal_info.alternate_mobile}</a> :
-                    <span className="text-sm text-muted-foreground italic">Not provided</span>
-                    }
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Personal Email:</span>
-                    {studentData.personal_info.personal_email ?
-                      <a href={`mailto:${studentData.personal_info.personal_email}`} className="text-primary hover:underline text-sm">{studentData.personal_info.personal_email}</a> :
-                      <span className="text-sm text-muted-foreground italic">Not provided</span>
-                    }
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Institutional Email:</span>
-                    {studentData.personal_info.institutional_email ?
-                      <a href={`mailto:${studentData.personal_info.institutional_email}`} className="text-primary hover:underline text-sm">{studentData.personal_info.institutional_email}</a> :
-                      <span className="text-sm text-muted-foreground italic">Not provided</span>
-                    }
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Nationality:</span>
-                    <span className="text-sm">{studentData.personal_info.nationality || '—'}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Religion / Caste:</span>
-                    <span className="text-sm">{(studentData.personal_info.religion || '') + (studentData.personal_info.caste ? ` / ${studentData.personal_info.caste}` : '') || '—'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <Separator className="opacity-50 my-4" />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="text-sm font-semibold">Official IDs</h4>
-                  <div className="mt-2 text-sm">
-                    <div>Aadhaar: {studentData.official_ids?.aadhaar_number || '—'}</div>
-                    <div>PAN: {studentData.official_ids?.pan_number || '—'}</div>
-                    <div>Passport: {studentData.official_ids?.passport_number || '—'}</div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold">Address</h4>
-                  <div className="mt-2 text-sm">
-                    <div>Permanent: {studentData.address_info?.permanent || '—'}</div>
-                    <div>Current: {studentData.address_info?.current || '—'}</div>
-                    <div>{studentData.address_info?.city || ''} {studentData.address_info?.state ? ` / ${studentData.address_info.state}` : ''} {studentData.address_info?.pin_code ? ` - ${studentData.address_info.pin_code}` : ''}</div>
-                  </div>
-                </div>
-              </div>
-
-              <Separator className="opacity-50 my-4" />
-
-              <div className="flex items-center gap-4">
-                {studentData.social_links?.linkedin && <a href={studentData.social_links.linkedin} target="_blank" rel="noreferrer" className="text-primary hover:underline">LinkedIn</a>}
-                {studentData.social_links?.github && <a href={studentData.social_links.github} target="_blank" rel="noreferrer" className="text-primary hover:underline">GitHub</a>}
-                {studentData.social_links?.portfolio && <a href={studentData.social_links.portfolio} target="_blank" rel="noreferrer" className="text-primary hover:underline">Portfolio</a>}
-              </div>
-            </CardContent>
-          </Card>
-
-            }
-
-            {/* Medical Information */}
-          {studentData && studentData.medical_info &&
-          <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Heart className="h-5 w-5 text-destructive" />
-                Medical Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold w-32">Blood Group:</span>
-                    <span className="text-sm">{studentData.medical_info.blood_group || studentData.student_info.blood_group || '—'}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold w-32">Emergency Contact:</span>
-                    <span className="text-sm">{(studentData.medical_info.emergency_contact && (studentData.medical_info.emergency_contact.phone || studentData.medical_info.emergency_contact)) || (studentData.student_info.emergency_contact || '—')}</span>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold w-32">Allergies:</span>
-                    <span className="text-sm">{studentData.medical_info.allergies || 'None'}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold w-32">Disabilities:</span>
-                    <span className="text-sm">{studentData.medical_info.disabilities || 'None'}</span>
-                  </div>
-                </div>
-              </div>
-              {studentData.medical_info.medical_history && <div className="mt-4 text-sm"><h4 className="font-semibold">Medical Notes</h4><div className="mt-2 text-sm">{studentData.medical_info.medical_history}</div></div>}
-            </CardContent>
-          </Card>
-          }
-
       {/* Initial Empty State */}
       {!loading && !studentData && !error && detectedStudents.length === 0 &&
       <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
@@ -982,6 +850,21 @@ const StudentInfoScanner = () => {
         </div>
       }
 
+      {studentData && detectedStudents.length > 0 && (
+        <div className="mb-4">
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setStudentData(null);
+              setUsn("");
+            }}
+            className={theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}
+          >
+            ← Back to Detected Students
+          </Button>
+        </div>
+      )}
+
       {/* Student Data Display */}
       {studentData && studentData.success &&
       <div className="space-y-6">
@@ -1119,6 +1002,138 @@ const StudentInfoScanner = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Personal Information (from UserProfile) */}
+          {studentData && studentData.personal_info &&
+          <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Calendar className="h-5 w-5 text-primary" />
+                Personal Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-32">Date of Birth:</span>
+                    <span className="text-sm">{studentData.personal_info.date_of_birth || '—'}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-32">Primary Lang:</span>
+                    <span className="text-sm">{studentData.personal_info.primary_language || '—'}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-32">Alternate Mobile:</span>
+                    {studentData.personal_info.alternate_mobile ?
+                    <a href={`tel:${studentData.personal_info.alternate_mobile}`} className="text-primary hover:underline text-sm">{studentData.personal_info.alternate_mobile}</a> :
+                    <span className="text-sm text-muted-foreground italic">Not provided</span>
+                    }
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-32">Personal Email:</span>
+                    {studentData.personal_info.personal_email ?
+                      <a href={`mailto:${studentData.personal_info.personal_email}`} className="text-primary hover:underline text-sm">{studentData.personal_info.personal_email}</a> :
+                      <span className="text-sm text-muted-foreground italic">Not provided</span>
+                    }
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-32">Institutional Email:</span>
+                    {studentData.personal_info.institutional_email ?
+                      <a href={`mailto:${studentData.personal_info.institutional_email}`} className="text-primary hover:underline text-sm">{studentData.personal_info.institutional_email}</a> :
+                      <span className="text-sm text-muted-foreground italic">Not provided</span>
+                    }
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-32">Nationality:</span>
+                    <span className="text-sm">{studentData.personal_info.nationality || '—'}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-32">Religion / Caste:</span>
+                    <span className="text-sm">{(studentData.personal_info.religion || '') + (studentData.personal_info.caste ? ` / ${studentData.personal_info.caste}` : '') || '—'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="opacity-50 my-4" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="text-sm font-semibold">Official IDs</h4>
+                  <div className="mt-2 text-sm">
+                    <div>Aadhaar: {studentData.official_ids?.aadhaar_number || '—'}</div>
+                    <div>PAN: {studentData.official_ids?.pan_number || '—'}</div>
+                    <div>Passport: {studentData.official_ids?.passport_number || '—'}</div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold">Address</h4>
+                  <div className="mt-2 text-sm">
+                    <div>Permanent: {studentData.address_info?.permanent || '—'}</div>
+                    <div>Current: {studentData.address_info?.current || '—'}</div>
+                    <div>{studentData.address_info?.city || ''} {studentData.address_info?.state ? ` / ${studentData.address_info.state}` : ''} {studentData.address_info?.pin_code ? ` - ${studentData.address_info.pin_code}` : ''}</div>
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="opacity-50 my-4" />
+
+              <div className="flex items-center gap-4">
+                {studentData.social_links?.linkedin && <a href={studentData.social_links.linkedin} target="_blank" rel="noreferrer" className="text-primary hover:underline">LinkedIn</a>}
+                {studentData.social_links?.github && <a href={studentData.social_links.github} target="_blank" rel="noreferrer" className="text-primary hover:underline">GitHub</a>}
+                {studentData.social_links?.portfolio && <a href={studentData.social_links.portfolio} target="_blank" rel="noreferrer" className="text-primary hover:underline">Portfolio</a>}
+              </div>
+            </CardContent>
+          </Card>
+
+            }
+
+            {/* Medical Information */}
+          {studentData && studentData.medical_info &&
+          <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Heart className="h-5 w-5 text-destructive" />
+                Medical Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold w-32">Blood Group:</span>
+                    <span className="text-sm">{studentData.medical_info.blood_group || studentData.student_info.blood_group || '—'}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold w-32">Emergency Contact:</span>
+                    <span className="text-sm">{(studentData.medical_info.emergency_contact && (studentData.medical_info.emergency_contact.phone || studentData.medical_info.emergency_contact)) || (studentData.student_info.emergency_contact || '—')}</span>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold w-32">Allergies:</span>
+                    <span className="text-sm">{studentData.medical_info.allergies || 'None'}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold w-32">Disabilities:</span>
+                    <span className="text-sm">{studentData.medical_info.disabilities || 'None'}</span>
+                  </div>
+                </div>
+              </div>
+              {studentData.medical_info.medical_history && <div className="mt-4 text-sm"><h4 className="font-semibold">Medical Notes</h4><div className="mt-2 text-sm">{studentData.medical_info.medical_history}</div></div>}
+            </CardContent>
+          </Card>
+          }
 
           {/* Contact Information */}
           <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
