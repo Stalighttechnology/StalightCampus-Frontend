@@ -136,6 +136,19 @@ const FaceRecognition = () => {
                 <p className="opacity-90">Please upload a clear picture of your face to enable automatic attendance. Make sure only one face is visible.</p>
               </div>
             </div>
+            <div className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-50 border-blue-200'}`}>
+              <h3 className={`font-semibold text-sm mb-2 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-800'}`}>Face Training Guidelines</h3>
+              <ul className={`list-disc pl-5 text-sm space-y-1 ${theme === 'dark' ? 'text-blue-400/90' : 'text-blue-700'}`}>
+                <li>Upload 5 clear solo photos of yourself only.</li>
+                <li>Ensure only one face is visible in each image.</li>
+                <li>Do not upload group photos.</li>
+                <li>Do not use another student's photos.</li>
+                <li>Use photos with different angles (front, left, right, slight up/down).</li>
+                <li>Ensure good lighting and avoid blurry images.</li>
+                <li>Remove sunglasses, masks, or objects covering your face.</li>
+                <li>Retrain your profile if your appearance changes significantly.</li>
+              </ul>
+            </div>
 
             <div className="space-y-2">
               <label htmlFor="face-images" className={`block text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>

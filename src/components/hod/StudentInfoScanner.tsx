@@ -117,6 +117,8 @@ interface StudentData {
 const StudentInfoScanner = () => {
   const [usn, setUsn] = useState("");
   const [studentData, setStudentData] = useState<StudentData | null>(null);
+  const [detectedStudents, setDetectedStudents] = useState<any[]>([]);
+  const [multipleFacesResult, setMultipleFacesResult] = useState<{total: number, unknown: number} | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showScanner, setShowScanner] = useState(false);
@@ -406,7 +408,7 @@ const StudentInfoScanner = () => {
       formData.append('image', blob, 'face.jpg');
 
       try {
-        const url = `${API_ENDPOINT}/recognize-face/`;
+        const url = `${API_ENDPOINT}/staff/recognize-multiple-faces/`;
 
         const response = await fetchWithTokenRefresh(url, {
           method: 'POST',
@@ -419,13 +421,25 @@ const StudentInfoScanner = () => {
           setShowFaceIDAnimation(true);
           setTimeout(async () => {
             setShowFaceIDAnimation(false);
-            setUsn(data.usn);
             setShowFaceScanner(false);
             stopFaceScanning();
             setIsRecognizingFace(false);
-            showSuccessAlert("Face Recognized", `USN: ${data.usn}`);
-            // Automatically fetch data after recognition
-            await fetchStudentData(data.usn);
+
+            if (data.students && data.students.length > 0) {
+              setDetectedStudents(data.students);
+              setMultipleFacesResult({total: data.total_faces_detected, unknown: data.unknown_faces_count});
+              setStudentData(null); // Clear single student view
+              showSuccessAlert("Faces Recognized", `Found ${data.students.length} student(s)`);
+              
+              // If only one student is found, automatically load their profile
+              if (data.students.length === 1) {
+                setUsn(data.students[0].usn);
+                await fetchStudentData(data.students[0].usn);
+              }
+            } else {
+              setFaceScanError('No registered students found in image');
+              setTimeout(() => setFaceScanError(null), 3000);
+            }
           }, 2500);
         } else {
           setFaceScanError(data.message || 'Face not recognized');
@@ -451,7 +465,7 @@ const StudentInfoScanner = () => {
     formData.append('image', file);
 
     try {
-      const url = `${API_ENDPOINT}/recognize-face/`;
+      const url = `${API_ENDPOINT}/staff/recognize-multiple-faces/`;
       const response = await fetchWithTokenRefresh(url, {
         method: 'POST',
         body: formData
@@ -463,12 +477,24 @@ const StudentInfoScanner = () => {
         setShowFaceIDAnimation(true);
         setTimeout(async () => {
           setShowFaceIDAnimation(false);
-          setUsn(data.usn);
           setShowFaceScanner(false);
           stopFaceScanning();
           setIsRecognizingFace(false);
-          showSuccessAlert("Face Recognized", `USN: ${data.usn}`);
-          await fetchStudentData(data.usn);
+
+          if (data.students && data.students.length > 0) {
+            setDetectedStudents(data.students);
+            setMultipleFacesResult({total: data.total_faces_detected, unknown: data.unknown_faces_count});
+            setStudentData(null); // Clear single student view
+            showSuccessAlert("Faces Recognized", `Found ${data.students.length} student(s)`);
+            
+            // If only one student is found, automatically load their profile
+            if (data.students.length === 1) {
+              setUsn(data.students[0].usn);
+              await fetchStudentData(data.students[0].usn);
+            }
+          } else {
+            showErrorAlert("Face Not Recognized", "No registered students found in image");
+          }
         }, 2500);
       } else {
         if (showFaceScanner) {
@@ -762,7 +788,7 @@ const StudentInfoScanner = () => {
           }
 
       {/* Initial Empty State */}
-      {!loading && !studentData && !error &&
+      {!loading && !studentData && !error && detectedStudents.length === 0 &&
       <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
           <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/10'}`}>
             <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
@@ -772,11 +798,54 @@ const StudentInfoScanner = () => {
               Search Student
             </h3>
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Enter USN or use scanner to find student information
+              Enter USN, use barcode scanner, or upload a group photo to find student information
             </p>
           </div>
         </Card>
       }
+
+      {/* Multiple Faces Detected Dashboard */}
+      {!loading && !studentData && detectedStudents.length > 0 && (
+        <div className="space-y-6">
+          <Card className={`${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                Detected Students
+              </CardTitle>
+              {multipleFacesResult && (
+                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Total faces detected: {multipleFacesResult.total}. Matches found: {detectedStudents.length}. Unknown faces: {multipleFacesResult.unknown}.
+                </p>
+              )}
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {detectedStudents.map((student, index) => (
+                  <div 
+                    key={index}
+                    onClick={() => {
+                      setUsn(student.usn);
+                      fetchStudentData(student.usn);
+                    }}
+                    className={`p-4 rounded-lg border cursor-pointer transition-colors ${
+                      theme === 'dark' 
+                        ? 'bg-background border-border hover:border-primary/50 hover:bg-accent/50' 
+                        : 'bg-gray-50 border-gray-200 hover:border-primary/50 hover:bg-gray-100'
+                    }`}
+                  >
+                    <h3 className="font-semibold text-lg">{student.name}</h3>
+                    <p className={`text-sm mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{student.usn}</p>
+                    <Badge variant="outline" className={theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-50 text-blue-700'}>
+                      {student.confidence.toFixed(1)}% Match
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Error Message */}
       {error &&
