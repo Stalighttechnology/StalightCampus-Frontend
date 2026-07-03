@@ -1,3 +1,4 @@
+import FacultyPayroll from "../faculty/FacultyPayroll";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
@@ -75,6 +76,8 @@ const AdmissionManagerDashboard = ({ user }: DashboardProps) => {
         return <FacultyAttendance />;
       case "schedule-meeting":
         return <ScheduleMeeting />;
+      case "my-payroll":
+        return <FacultyPayroll />;
       default:
         return <AdmissionDashboard />;
     }

@@ -14,20 +14,26 @@ import {
   Settings, 
   Users, 
   FileCheck, 
-  TrendingUp, 
   Plus, 
   Trash2, 
   Search, 
   CreditCard,
   Percent,
   Calendar,
-  AlertCircle,
   CheckCircle,
   XCircle,
   ChevronRight,
   Eye,
   Download,
-  Filter
+  Filter,
+  Lock,
+  Unlock,
+  FileBarChart2,
+  SlidersHorizontal,
+  UserCheck,
+  AlertTriangle,
+  AlertCircle,
+  ClipboardCheck
 } from 'lucide-react';
 import {
   getPayrollSettings,
@@ -45,14 +51,20 @@ import {
   getPayrollRunDetails,
   updatePayrollRunStatus,
   disbursePayrollRun,
-  downloadPayslipPDF
+  downloadPayslipPDF,
+  getPayrollAdjustments,
+  createPayrollAdjustment,
+  deletePayrollAdjustment,
+  getAttendanceLockStatus,
+  toggleAttendanceLock,
+  downloadPayrollReport
 } from "../../utils/fees_manager_api";
 
 const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   const { theme } = useTheme();
   
   // Tab states: 'overview', 'structures', 'settings', 'reimbursements', 'loans', 'runs'
-  const [activeTab, setActiveTab] = useState<'overview' | 'structures' | 'settings' | 'reimbursements' | 'loans' | 'runs'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'structures' | 'settings' | 'reimbursements' | 'loans' | 'runs' | 'adjustments' | 'attendance-lock' | 'reports'>('overview');
   
   // Loading & error states
   const [loading, setLoading] = useState(false);
@@ -171,6 +183,27 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   const [claimsCount, setClaimsCount] = useState(0);
   const [runsCount, setRunsCount] = useState(0);
   const [runDetailsCount, setRunDetailsCount] = useState(0);
+
+  // Adjustments state
+  const [adjustments, setAdjustments] = useState<any[]>([]);
+  const [adjustmentsPage, setAdjustmentsPage] = useState(1);
+  const [adjustmentsTotalPages, setAdjustmentsTotalPages] = useState(1);
+  const [adjustmentsCount, setAdjustmentsCount] = useState(0);
+  const [adjustmentsSearch, setAdjustmentsSearch] = useState('');
+  const [newAdjustment, setNewAdjustment] = useState({ employee_id: '', type: 'bonus', amount: '', reason: '', apply_month: new Date().getMonth() + 1, apply_year: new Date().getFullYear() });
+  const [adjustmentEmployees, setAdjustmentEmployees] = useState<any[]>([]);
+  const [showAddAdjustment, setShowAddAdjustment] = useState(false);
+
+  // Attendance Lock state
+  const [lockMonth, setLockMonth] = useState(new Date().getMonth() + 1);
+  const [lockYear, setLockYear] = useState(new Date().getFullYear());
+  const [lockStatus, setLockStatus] = useState<any>(null);
+  const [lockLoading, setLockLoading] = useState(false);
+
+  // Reports state
+  const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
+  const [reportYear, setReportYear] = useState(new Date().getFullYear());
+  const [reportDownloading, setReportDownloading] = useState<string | null>(null);
   
   // Modal / Slide-over state for Editing Structure
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
@@ -255,6 +288,9 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         if (res.success) setPayrollSettings(res.data);
       } else if (activeTab === 'structures') {
         await fetchStructures(structuresPage, structuresSearch);
+        // Pre-load employees for adjustment dropdown
+        const empRes = await getSalaryStructures(1, '', '', 999);
+        if (empRes.success) setAdjustmentEmployees(empRes.data || []);
       } else if (activeTab === 'reimbursements') {
         const res = await getReimbursementClaims(claimsPage);
         if (res.success) {
@@ -269,12 +305,100 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
           setRunsTotalPages(res.total_pages || 1);
           setRunsCount(res.count || 0);
         }
+      } else if (activeTab === 'adjustments') {
+        await fetchAdjustments(adjustmentsPage, adjustmentsSearch);
+        const empRes = await getSalaryStructures(1, '');
+        if (empRes.success) setAdjustmentEmployees(empRes.data || []);
+      } else if (activeTab === 'attendance-lock') {
+        await fetchLockStatus();
       }
     } catch (err) {
       setError("Failed to fetch data. Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchAdjustments = async (page: number, search: string) => {
+    const res = await getPayrollAdjustments(page, search);
+    if (res.success) {
+      setAdjustments(res.data || []);
+      setAdjustmentsTotalPages(res.total_pages || 1);
+      setAdjustmentsCount(res.count || 0);
+    }
+  };
+
+  const fetchLockStatus = async () => {
+    setLockLoading(true);
+    const res = await getAttendanceLockStatus(lockMonth, lockYear);
+    if (res.success) setLockStatus(res.data);
+    setLockLoading(false);
+  };
+
+  const handleCreateAdjustment = async () => {
+    if (!newAdjustment.employee_id || !newAdjustment.amount || !newAdjustment.reason) {
+      showSweetAlert('Validation Error', 'Please fill all required fields.', 'error');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await createPayrollAdjustment({
+        employee_id: newAdjustment.employee_id,
+        adjustment_type: newAdjustment.type,
+        amount: Number(newAdjustment.amount),
+        reason: newAdjustment.reason,
+        apply_month: newAdjustment.apply_month,
+        apply_year: newAdjustment.apply_year,
+      });
+      if (res.success) {
+        showSweetAlert('Success', 'Adjustment created successfully.', 'success');
+        setShowAddAdjustment(false);
+        setNewAdjustment({ employee_id: '', type: 'bonus', amount: '', reason: '', apply_month: new Date().getMonth() + 1, apply_year: new Date().getFullYear() });
+        fetchAdjustments(adjustmentsPage, adjustmentsSearch);
+      } else {
+        showSweetAlert('Error', res.message || 'Failed to create adjustment.', 'error');
+      }
+    } catch { showSweetAlert('Error', 'An error occurred.', 'error'); }
+    finally { setLoading(false); }
+  };
+
+  const handleDeleteAdjustment = async (id: number) => {
+    const result = await showConfirmAlert('Delete Adjustment?', 'This will permanently remove this adjustment.', 'Yes, Delete', 'warning');
+    if (!result.isConfirmed) return;
+    setLoading(true);
+    try {
+      const res = await deletePayrollAdjustment(id);
+      if (res.success) { showSweetAlert('Deleted', 'Adjustment removed.', 'success'); fetchAdjustments(adjustmentsPage, adjustmentsSearch); }
+      else showSweetAlert('Error', res.message || 'Failed to delete.', 'error');
+    } catch { showSweetAlert('Error', 'An error occurred.', 'error'); }
+    finally { setLoading(false); }
+  };
+
+  const handleToggleLock = async (shouldLock: boolean) => {
+    const label = shouldLock ? 'Lock' : 'Unlock';
+    const result = await showConfirmAlert(
+      `${label} Attendance for ${new Date(0, lockMonth - 1).toLocaleString('en-US', { month: 'long' })} ${lockYear}?`,
+      shouldLock ? 'Once locked, faculty will not be able to edit attendance for this period.' : 'Unlocking will allow attendance edits again.',
+      `Yes, ${label}`,
+      'warning'
+    );
+    if (!result.isConfirmed) return;
+    setLockLoading(true);
+    try {
+      const res = await toggleAttendanceLock(lockMonth, lockYear, shouldLock);
+      if (res.success) { showSweetAlert('Success', `Attendance ${shouldLock ? 'locked' : 'unlocked'} successfully.`, 'success'); await fetchLockStatus(); }
+      else showSweetAlert('Error', res.message || 'Operation failed.', 'error');
+    } catch { showSweetAlert('Error', 'An error occurred.', 'error'); }
+    finally { setLockLoading(false); }
+  };
+
+  const handleDownloadReport = async (reportType: string, format: string) => {
+    setReportDownloading(`${reportType}_${format}`);
+    try {
+      const res = await downloadPayrollReport(reportType, format, reportMonth, reportYear);
+      if (!res.success) showSweetAlert('Error', res.message || 'Failed to download report.', 'error');
+    } catch { showSweetAlert('Error', 'An error occurred while downloading.', 'error'); }
+    finally { setReportDownloading(null); }
   };
 
   const fetchStructures = async (page: number, search: string, roleFilter: string = selectedRoleFilter) => {
@@ -630,17 +754,25 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         <CardContent className="space-y-6">
           {/* Tabs */}
           <div className={`flex border-b overflow-x-auto gap-4 dark:border-slate-800`}>
-        {(['overview', 'structures', 'reimbursements', 'runs'] as const).map(tab => (
+        {([
+          { id: 'overview', label: 'Overview' },
+          { id: 'structures', label: 'Salary Structures' },
+          { id: 'reimbursements', label: 'Reimbursements' },
+          { id: 'adjustments', label: 'Adjustments' },
+          { id: 'attendance-lock', label: 'Attendance Lock' },
+          { id: 'runs', label: 'Payroll Batches' },
+          { id: 'reports', label: 'Reports' },
+        ] as const).map(tab => (
           <button
-            key={tab}
-            onClick={() => { setActiveTab(tab); setSelectedRun(null); }}
-            className={`pb-3 text-sm font-semibold capitalize whitespace-nowrap transition-all border-b-2 ${
-              activeTab === tab && !selectedRun
+            key={tab.id}
+            onClick={() => { setActiveTab(tab.id as any); setSelectedRun(null); }}
+            className={`pb-3 text-sm font-semibold whitespace-nowrap transition-all border-b-2 ${
+              activeTab === tab.id && !selectedRun
                 ? 'border-primary text-primary'
                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
-            {tab === 'structures' ? 'Salary Structures' : tab === 'reimbursements' ? 'Reimbursements & Claims' : tab === 'runs' ? 'Payroll Batches' : tab}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -1096,6 +1228,283 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         </div>
       )}
 
+      {/* TAB CONTENT: Adjustments */}
+      {activeTab === 'adjustments' && !selectedRun && (
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search adjustments by employee or reason..."
+                value={adjustmentsSearch}
+                onChange={(e) => {
+                  setAdjustmentsSearch(e.target.value);
+                  setAdjustmentsPage(1);
+                  fetchAdjustments(1, e.target.value);
+                }}
+                className="w-full pl-9 pr-4 py-2 text-sm bg-transparent border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-md focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+            <Button
+              className="bg-primary text-white hover:bg-primary/90 gap-2"
+              onClick={() => setShowAddAdjustment(true)}
+            >
+              <Plus size={16} /> Add Adjustment
+            </Button>
+          </div>
+
+          <div className="overflow-x-auto rounded-lg border border-slate-300 dark:border-slate-800">
+            <table className="w-full text-sm text-left whitespace-nowrap">
+              <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
+                <tr>
+                  <th className="px-6 py-4">Employee</th>
+                  <th className="px-6 py-4">Type</th>
+                  <th className="px-6 py-4">Reason</th>
+                  <th className="px-6 py-4 text-right">Amount</th>
+                  <th className="px-6 py-4">Apply Period</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                {adjustments.map((adj, i) => (
+                  <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-900/30">
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-slate-900 dark:text-white">{adj.employee_name}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 capitalize">{adj.role}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge variant="outline" className={`capitalize border-none ${
+                        adj.adjustment_type === 'bonus' ? 'bg-emerald-500/10 text-emerald-500' :
+                        adj.adjustment_type === 'deduction' ? 'bg-red-500/10 text-red-500' :
+                        adj.adjustment_type === 'arrears' ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'
+                      }`}>
+                        {adj.adjustment_type}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400 max-w-[200px] truncate">{adj.reason}</td>
+                    <td className={`px-6 py-4 text-right font-semibold ${
+                      adj.adjustment_type === 'bonus' || adj.adjustment_type === 'arrears' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'
+                    }`}>
+                      {adj.adjustment_type === 'deduction' ? '-' : '+'}{formatCurrency(adj.amount)}
+                    </td>
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
+                      {new Date(0, adj.apply_month - 1).toLocaleString('en-US', { month: 'short' })} {adj.apply_year}
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge variant="outline" className={`capitalize border-none ${
+                        adj.is_applied ? 'bg-slate-500/10 text-slate-500' : 'bg-amber-500/10 text-amber-500'
+                      }`}>
+                        {adj.is_applied ? 'Applied' : 'Pending'}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      {!adj.is_applied && (
+                        <Button
+                          size="sm" variant="outline"
+                          className="text-red-500 border-red-400/50 hover:bg-red-50 dark:hover:bg-red-900/20 gap-1"
+                          onClick={() => handleDeleteAdjustment(adj.id)}
+                        >
+                          <Trash2 size={14} /> Delete
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {!adjustments.length && (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500 italic">No payroll adjustments found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <PaginationControls
+            currentPage={adjustmentsPage}
+            totalPages={adjustmentsTotalPages}
+            totalCount={adjustmentsCount}
+            onPageChange={(p) => { setAdjustmentsPage(p); fetchAdjustments(p, adjustmentsSearch); }}
+          />
+        </div>
+      )}
+
+      {/* TAB CONTENT: Attendance Lock */}
+      {activeTab === 'attendance-lock' && !selectedRun && (
+        <div className="space-y-6">
+          <div className={`p-6 rounded-lg border ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+            <h3 className="text-lg font-semibold mb-1 flex items-center gap-2"><Lock size={18} className="text-primary" /> Attendance Lock Control</h3>
+            <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+              Lock attendance for a specific month to prevent faculty from editing records after payroll generation.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+              <div>
+                <label className="text-xs font-semibold text-slate-400 block mb-2">Month</label>
+                <Select value={String(lockMonth)} onValueChange={(v) => setLockMonth(Number(v))}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <SelectItem key={i + 1} value={String(i + 1)}>
+                        {new Date(0, i).toLocaleString('en-US', { month: 'long' })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 block mb-2">Year</label>
+                <Select value={String(lockYear)} onValueChange={(v) => setLockYear(Number(v))}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2025">2025</SelectItem>
+                    <SelectItem value="2026">2026</SelectItem>
+                    <SelectItem value="2027">2027</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={fetchLockStatus} variant="outline" className="w-full" disabled={lockLoading}>
+                Check Status
+              </Button>
+            </div>
+          </div>
+
+          {lockStatus && (
+            <div className={`rounded-lg border p-6 ${
+              lockStatus.is_locked
+                ? theme === 'dark' ? 'border-red-500/30 bg-red-950/10' : 'border-red-200 bg-red-50'
+                : theme === 'dark' ? 'border-emerald-500/30 bg-emerald-950/10' : 'border-emerald-200 bg-emerald-50'
+            }`}>
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  {lockStatus.is_locked
+                    ? <Lock className="text-red-500" size={28} />
+                    : <Unlock className="text-emerald-500" size={28} />}
+                  <div>
+                    <h4 className={`font-semibold text-lg ${
+                      lockStatus.is_locked ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
+                    }`}>
+                      {lockStatus.is_locked ? 'Attendance Locked' : 'Attendance Open'}
+                    </h4>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+                      {new Date(0, lockMonth - 1).toLocaleString('en-US', { month: 'long' })} {lockYear} —
+                      {lockStatus.is_locked
+                        ? ` Locked by ${lockStatus.locked_by || 'Admin'} on ${lockStatus.locked_at ? new Date(lockStatus.locked_at).toLocaleDateString() : 'N/A'}`
+                        : ' Faculty can still edit attendance for this period.'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {lockStatus.is_locked ? (
+                    <div className="flex flex-col items-end gap-1">
+                      <Button
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 w-full md:w-auto"
+                        onClick={() => handleToggleLock(false)}
+                        disabled={lockLoading || lockStatus.locked_runs_count > 0}
+                      >
+                        <Unlock size={16} /> Unlock Attendance
+                      </Button>
+                      {lockStatus.locked_runs_count > 0 && (
+                        <span className="text-[10px] text-red-500 font-medium max-w-[200px] text-right leading-tight">
+                          Cannot unlock: Payroll is already finalized. Use Adjustments instead.
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <Button
+                      className="bg-red-600 hover:bg-red-700 text-white gap-2"
+                      onClick={() => handleToggleLock(true)}
+                      disabled={lockLoading}
+                    >
+                      <Lock size={16} /> Lock Attendance
+                    </Button>
+                  )}
+                </div>
+              </div>
+              {lockStatus.locked_runs_count !== undefined && (
+                <div className={`mt-4 pt-4 border-t text-sm ${
+                  lockStatus.is_locked ? 'border-red-200 dark:border-red-800/30' : 'border-emerald-200 dark:border-emerald-800/30'
+                } ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+                  <span className="font-semibold">{lockStatus.frozen_records_count || 0}</span> attendance records frozen for this period.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB CONTENT: Reports */}
+      {activeTab === 'reports' && !selectedRun && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div>
+              <label className="text-xs font-semibold text-slate-400 block mb-2">Report Month</label>
+              <Select value={String(reportMonth)} onValueChange={(v) => setReportMonth(Number(v))}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <SelectItem key={i + 1} value={String(i + 1)}>
+                      {new Date(0, i).toLocaleString('en-US', { month: 'long' })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-400 block mb-2">Report Year</label>
+              <Select value={String(reportYear)} onValueChange={(v) => setReportYear(Number(v))}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2024">2024</SelectItem>
+                  <SelectItem value="2025">2025</SelectItem>
+                  <SelectItem value="2026">2026</SelectItem>
+                  <SelectItem value="2027">2027</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { type: 'monthly', label: 'Monthly Payroll Summary', desc: 'Full breakdown of all employee salaries for the selected month', icon: <FileBarChart2 size={20} className="text-blue-500" /> },
+              { type: 'pf', label: 'PF Report', desc: 'Provident Fund contributions (Employee + Employer) for the period', icon: <ClipboardCheck size={20} className="text-purple-500" /> },
+              { type: 'esi', label: 'ESI Report', desc: 'Employee State Insurance deductions and contributions', icon: <UserCheck size={20} className="text-indigo-500" /> },
+              { type: 'tds', label: 'TDS / Tax Report', desc: 'Income tax deductions at source for the pay period', icon: <SlidersHorizontal size={20} className="text-amber-500" /> },
+              { type: 'bank_transfer', label: 'Bank Transfer Sheet', desc: 'Bulk bank transfer NEFT/RTGS sheet for salary disbursement', icon: <IndianRupee size={20} className="text-emerald-500" /> },
+              { type: 'annual', label: 'Annual Salary Register', desc: 'Full annual salary register for the current financial year', icon: <FileBarChart2 size={20} className="text-rose-500" /> },
+            ].map((report) => (
+              <div
+                key={report.type}
+                className={`rounded-lg border p-5 flex flex-col gap-3 ${
+                  theme === 'dark' ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-slate-800' : 'bg-white border border-slate-200'}`}>
+                    {report.icon}
+                  </div>
+                  <div>
+                    <h4 className={`font-semibold text-sm ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{report.label}</h4>
+                  </div>
+                </div>
+                <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>{report.desc}</p>
+                <div className="flex gap-2 mt-auto">
+                  <Button
+                    size="sm" className="w-full gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                    onClick={() => handleDownloadReport(report.type, 'excel')}
+                    disabled={reportDownloading === `${report.type}_excel`}
+                  >
+                    <Download size={13} />
+                    {reportDownloading === `${report.type}_excel` ? 'Downloading...' : 'Download Excel'}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* SUB-VIEW: Payroll Run Detailed Lines / Disbursal Panel */}
       {selectedRun && (
         <div className="space-y-6">
@@ -1104,7 +1513,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
               <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                 Payroll Details: {new Date(0, selectedRun.month - 1).toLocaleString('en-US', { month: 'long' })} {selectedRun.year}
               </h2>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex flex-wrap items-center gap-2 mt-1">
                 <Badge variant="outline" className={`capitalize border-none ${
                   selectedRun.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' :
                   selectedRun.status === 'approved' ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'
@@ -1112,6 +1521,18 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                   {selectedRun.status}
                 </Badge>
                 <span className="text-xs text-slate-500 dark:text-slate-400">Total Payout: {formatCurrency(runDetails.reduce((a, b) => a + Number(b.net_salary), 0))}</span>
+              </div>
+              {/* Audit Trail */}
+              <div className={`mt-3 flex flex-wrap gap-3 text-xs ${ theme === 'dark' ? 'text-slate-400' : 'text-slate-500' }`}>
+                {selectedRun.calculated_by && (
+                  <span className="flex items-center gap-1"><ClipboardCheck size={12} className="text-blue-400" /> Calculated by <strong className="text-slate-700 dark:text-slate-200">{selectedRun.calculated_by}</strong></span>
+                )}
+                {selectedRun.approved_by && (
+                  <span className="flex items-center gap-1"><CheckCircle size={12} className="text-emerald-400" /> Approved by <strong className="text-slate-700 dark:text-slate-200">{selectedRun.approved_by}</strong></span>
+                )}
+                {selectedRun.paid_by && (
+                  <span className="flex items-center gap-1"><IndianRupee size={12} className="text-purple-400" /> Paid by <strong className="text-slate-700 dark:text-slate-200">{selectedRun.paid_by}</strong></span>
+                )}
               </div>
             </div>
             <div className="flex gap-2">
@@ -1212,12 +1633,25 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                     <td className="px-6 py-4 text-right font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(det.net_salary)}</td>
                     <td className="px-6 py-4 text-center">
                       {det.payout_id ? (
-                        <Badge variant="outline" className={`capitalize border-none ${
-                          det.payout_status === 'processed' ? 'bg-emerald-500/10 text-emerald-500' :
-                          det.payout_status === 'failed' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'
-                        }`}>
-                          {det.payout_status}
-                        </Badge>
+                        <div className="space-y-1">
+                          <Badge variant="outline" className={`capitalize border-none ${
+                            det.payout_status === 'processed' || det.payout_status === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
+                            det.payout_status === 'failed' || det.payout_status === 'reversed' ? 'bg-red-500/10 text-red-500' :
+                            det.payout_status === 'queued' ? 'bg-slate-500/10 text-slate-400' :
+                            'bg-blue-500/10 text-blue-500'
+                          }`}>
+                            {det.payout_status}
+                          </Badge>
+                          {det.transaction_id && (
+                            <div className="text-xs text-slate-400 font-mono truncate max-w-[120px]" title={det.transaction_id}>TXN: {det.transaction_id.slice(0, 10)}...</div>
+                          )}
+                          {det.utr && (
+                            <div className="text-xs text-slate-400 font-mono">UTR: {det.utr}</div>
+                          )}
+                          {det.failure_reason && (
+                            <div className="text-xs text-red-400 flex items-center gap-1"><AlertTriangle size={10} />{det.failure_reason}</div>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-slate-500 text-xs">Unpaid</span>
                       )}
@@ -1255,7 +1689,98 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
       )}
         </CardContent>
       </Card>
+      <Dialog open={showAddAdjustment} onOpenChange={setShowAddAdjustment}>
+        <DialogContent className={`max-w-lg w-[95%] rounded-xl p-6 ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'}`}>
+          <DialogHeader>
+            <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Add Payroll Adjustment</DialogTitle>
+            <DialogDescription>Apply a one-time bonus, deduction, or arrears to an employee's payroll.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 my-2">
+            <div>
+              <label className="text-xs font-semibold text-slate-400 block mb-1">Employee *</label>
+              <select
+                value={newAdjustment.employee_id}
+                onChange={(e) => setNewAdjustment({ ...newAdjustment, employee_id: e.target.value })}
+                className={`w-full rounded-md p-2 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}
+              >
+                <option value="">Select Employee</option>
+                {adjustmentEmployees.map((emp) => (
+                  <option key={emp.employee_id} value={emp.employee_id}>{emp.name} ({emp.role})</option>
+                ))}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Type *</label>
+                <select
+                  value={newAdjustment.type}
+                  onChange={(e) => setNewAdjustment({ ...newAdjustment, type: e.target.value })}
+                  className={`w-full rounded-md p-2 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}
+                >
+                  <option value="bonus">Bonus</option>
+                  <option value="deduction">Deduction</option>
+                  <option value="arrears">Arrears</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Amount (₹) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="0.00"
+                  value={newAdjustment.amount}
+                  onChange={(e) => setNewAdjustment({ ...newAdjustment, amount: e.target.value })}
+                  className={`w-full rounded-md p-2 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Apply Month</label>
+                <select
+                  value={newAdjustment.apply_month}
+                  onChange={(e) => setNewAdjustment({ ...newAdjustment, apply_month: Number(e.target.value) })}
+                  className={`w-full rounded-md p-2 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}
+                >
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en-US', { month: 'long' })}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Apply Year</label>
+                <select
+                  value={newAdjustment.apply_year}
+                  onChange={(e) => setNewAdjustment({ ...newAdjustment, apply_year: Number(e.target.value) })}
+                  className={`w-full rounded-md p-2 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}
+                >
+                  <option value="2025">2025</option>
+                  <option value="2026">2026</option>
+                  <option value="2027">2027</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-400 block mb-1">Reason *</label>
+              <textarea
+                rows={3}
+                placeholder="Describe the reason for this adjustment..."
+                value={newAdjustment.reason}
+                onChange={(e) => setNewAdjustment({ ...newAdjustment, reason: e.target.value })}
+                className={`w-full rounded-md p-2 text-sm border resize-none ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <Button variant="outline" onClick={() => setShowAddAdjustment(false)}>Cancel</Button>
+            <Button onClick={handleCreateAdjustment} disabled={loading}>Create Adjustment</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={configModalOpen} onOpenChange={setConfigModalOpen}>
+
         <DialogContent className={`max-w-4xl w-[90%] md:w-[95%] max-h-[85vh] overflow-y-auto custom-scrollbar rounded-xl p-6 ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'}`}>
           <DialogHeader className="pb-2">
             <DialogTitle className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Payroll Statutory Configurations</DialogTitle>

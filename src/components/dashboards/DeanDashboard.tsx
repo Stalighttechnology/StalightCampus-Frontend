@@ -1,3 +1,4 @@
+import FacultyPayroll from "../faculty/FacultyPayroll";
 import { useState, useEffect, Component, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
@@ -38,6 +39,7 @@ const getActivePageFromPath = (pathname: string): string => {
   const pathParts = pathname.split('/').filter(Boolean);
   const lastPart = pathParts[pathParts.length - 1] || '';
   const pathMap: { [key: string]: string } = {
+      'my-payroll': 'my-payroll',
     'dashboard': 'dashboard',
       'holiday-calendar': '/dean/holiday-calendar',
       'holiday-calendar': 'holiday-calendar',
@@ -124,6 +126,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <AlumniDirectory />;
       case "schedule-meeting":
         return <ScheduleMeeting />;
+      case "my-payroll":
+        return <FacultyPayroll />;
       default:
         return <div>Welcome, Dean.</div>;
     }

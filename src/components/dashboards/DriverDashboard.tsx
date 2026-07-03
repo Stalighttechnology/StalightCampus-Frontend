@@ -1,3 +1,4 @@
+import FacultyPayroll from "../faculty/FacultyPayroll";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
@@ -51,6 +52,8 @@ const DriverDashboard = ({ user }: DashboardProps) => {
         return <HolidayCalendar readOnly showLeaves userRole="driver" />;
       case "profile":
         return <Profile role="driver" user={user} />;
+      case "my-payroll":
+        return <FacultyPayroll />;
       default:
         return <DriverDashboardContent />;
     }

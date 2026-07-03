@@ -951,3 +951,95 @@ export const downloadPayslipPDF = async (payslipId: number, filename: string) =>
     return { success: false, message: 'Network error downloading PDF' };
   }
 };
+
+// Payroll Adjustments
+export const getPayrollAdjustments = async (page: number = 1, search: string = '') => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/adjustments/?page=${page}&search=${encodeURIComponent(search)}`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error fetching adjustments' };
+  }
+};
+
+export const createPayrollAdjustment = async (data: any) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/adjustments/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error creating adjustment' };
+  }
+};
+
+export const deletePayrollAdjustment = async (id: number) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/adjustments/`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adjustment_id: id })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error deleting adjustment' };
+  }
+};
+
+// Attendance Lock
+export const getAttendanceLockStatus = async (month: number, year: number) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/attendance-lock/?month=${month}&year=${year}`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error fetching attendance lock status' };
+  }
+};
+
+export const toggleAttendanceLock = async (month: number, year: number, lock: boolean) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/attendance-lock/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ month, year, lock })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error toggling attendance lock' };
+  }
+};
+
+// Payroll Reports
+export const downloadPayrollReport = async (reportType: string, format: string, month: number, year: number) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/reports/?report_type=${reportType}&export_format=${format}&month=${month}&year=${year}`, {
+      method: 'GET'
+    });
+    if (response.ok) {
+      const result = await response.json();
+      if (!result.success || !result.data) throw new Error("Invalid report data from server");
+      
+      const data = result.data;
+      const filename = `${reportType}_report_${month}_${year}`;
+      
+      const XLSX = await import('xlsx');
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+      XLSX.writeFile(workbook, `${filename}.xlsx`);
+      
+      return { success: true };
+    } else {
+      const errData = await response.json().catch(() => ({}));
+      return { success: false, message: errData.message || 'Failed to download report' };
+    }
+  } catch (error) {
+    return { success: false, message: 'Network error downloading report' };
+  }
+};

@@ -100,6 +100,7 @@ export const PAGE_REQUIRED_TIERS: Record<string, number> = {
   'admission-communication': 3,
   'admission-reports': 3,
   'payroll': 3,
+  'my-payroll': 3,
   'alumni-directory': 3,
   'admission-settings': 3,
   'statistics': 3,

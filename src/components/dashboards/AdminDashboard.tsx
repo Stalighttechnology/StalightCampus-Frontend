@@ -1,3 +1,4 @@
+import FacultyPayroll from "../faculty/FacultyPayroll";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation, Navigate } from "react-router-dom";
@@ -240,6 +241,8 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
 
       case "schedule-meeting":
         return <ScheduleMeeting />;
+      case "my-payroll":
+        return <FacultyPayroll />;
       default:
         return <Navigate to="/not-found" replace />;
     }

@@ -2292,4 +2292,50 @@ export const submitReimbursementClaim = async (payload: {
     return { success: false, message: 'Network error submitting reimbursement claim' };
   }
 };
+
+// --- Faculty Payroll Endpoints ---
+
+export const getEmployeePayslips = async (page: number = 1) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/payroll/payslips/?page=${page}`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error fetching payslips' };
+  }
+};
+
+export const downloadEmployeePayslip = async (payslipId: number, filename: string) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/payroll/payslips/?download_id=${payslipId}`);
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      return { success: true };
+    } else {
+      return { success: false, message: 'Failed to download PDF payslip' };
+    }
+  } catch (error) {
+    return { success: false, message: 'Network error downloading PDF' };
+  }
+};
+
+export const getEmployeePfEsiSummary = async () => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/payroll/pf-esi-summary/`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error fetching PF/ESI summary' };
+  }
+};
 

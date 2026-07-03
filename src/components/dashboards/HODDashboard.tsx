@@ -1,3 +1,4 @@
+import FacultyPayroll from "../faculty/FacultyPayroll";
 //HODDashboard.tsx
 
 import { useState, useEffect, Component, ReactNode } from "react";
@@ -122,6 +123,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
 
     // Map URL paths to page names
     const pathMap: {[key: string]: string;} = {
+      'my-payroll': 'my-payroll',
       'dashboard': 'dashboard',
       'holiday-calendar': '/hod/holiday-calendar',
       'holiday-calendar': 'holiday-calendar',
@@ -182,6 +184,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
 
     // Navigate to the corresponding URL path
     const pathMap: {[key: string]: string;} = {
+      'my-payroll': '/hod/my-payroll',
       'dashboard': '/hod/dashboard',
       'holiday-calendar': '/hod/holiday-calendar',
       'promotion-management': '/hod/promotion-management',
@@ -310,6 +313,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         return <HolidayCalendar readOnly showLeaves userRole="hod" />;
       case "schedule-meeting":
         return <ScheduleMeeting />;
+      case "my-payroll":
+        return <FacultyPayroll />;
       default:
         return <HODStats setError={setError} setPage={handlePageChange} />;
     }

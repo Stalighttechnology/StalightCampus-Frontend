@@ -1,3 +1,4 @@
+import FacultyPayroll from "../faculty/FacultyPayroll";
 import React from "react";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import FeesManagerDashboard from "../FeesManager/FeesManagerDashboard";

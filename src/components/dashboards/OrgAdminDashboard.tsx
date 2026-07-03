@@ -1,3 +1,4 @@
+import FacultyPayroll from "../faculty/FacultyPayroll";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
@@ -111,6 +112,8 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
 
       case "schedule-meeting":
         return <ScheduleMeeting />;
+      case "my-payroll":
+        return <FacultyPayroll />;
       default:
         return <AdminStats setError={setError} onNavigate={handlePageChange} />;
     }

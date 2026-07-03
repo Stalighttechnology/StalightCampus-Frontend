@@ -1,3 +1,4 @@
+import FacultyPayroll from "../faculty/FacultyPayroll";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -114,6 +115,8 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
         return <HMSProfile user={user} />;
       case "schedule-meeting":
         return <ScheduleMeeting />;
+      case "my-payroll":
+        return <FacultyPayroll />;
       default:
         return <HMSOverview />;
     }

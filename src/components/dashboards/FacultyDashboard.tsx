@@ -33,6 +33,7 @@ import UpgradeRequired from "../common/UpgradeRequired";
 import { useAuth } from "../../context/AuthContext";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 import ScheduleMeeting from "../common/ScheduleMeeting";
+import FacultyPayroll from "../faculty/FacultyPayroll";
 
 interface FacultyDashboardProps {
   user: {
@@ -83,7 +84,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'schedule-class': 'schedule-class',
       'syllabus-status': 'syllabus-status',
       'reimbursements': 'reimbursements',
-      'schedule-meeting': 'schedule-meeting'
+      'schedule-meeting': 'schedule-meeting',
+      'my-payroll': 'my-payroll'
     };
 
     // Add direct mappings for additional top-level routes
@@ -135,8 +137,9 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'schedule-class': '/faculty/schedule-class',
       'syllabus-status': '/faculty/syllabus-status',
       'reimbursements': '/faculty/reimbursements',
-      'return-to-hod': '/hod/dashboard',
-      'schedule-meeting': '/faculty/schedule-meeting'
+      'schedule-meeting': '/faculty/schedule-meeting',
+      'my-payroll': '/faculty/my-payroll',
+      'return-to-hod': '/hod/dashboard'
     };
 
     const path = pathMap[page] || '/faculty/dashboard';
@@ -219,6 +222,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
         return <EmployeeReimbursements />;
       case "schedule-meeting":
         return <ScheduleMeeting />;
+      case "my-payroll":
+        return <FacultyPayroll user={user} />;
       default:
         return <FacultyStats setActivePage={handlePageChange} />;
     }

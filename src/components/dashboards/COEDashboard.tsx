@@ -1,3 +1,4 @@
+import FacultyPayroll from "../faculty/FacultyPayroll";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
@@ -49,6 +50,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
 
     // Map URL paths to page names
     const pathMap: {[key: string]: string;} = {
+      'my-payroll': '/coe/my-payroll',
       'fee-settings': 'fee-settings',
       'dashboard': 'dashboard',
       'holiday-calendar': '/coe/holiday-calendar',
@@ -92,6 +94,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
 
     // Navigate to the corresponding URL path
     const pathMap: {[key: string]: string;} = {
+      'my-payroll': 'my-payroll',
       'dashboard': '/coe/dashboard',
       'holiday-calendar': '/coe/holiday-calendar',
       'student-status': '/coe/student-status',
@@ -170,6 +173,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
         return <HolidayCalendar readOnly showLeaves userRole="coe" />;
       case "schedule-meeting":
         return <ScheduleMeeting />;
+      case "my-payroll":
+        return <FacultyPayroll />;
       default:
         return <COEDashboardStats />;
     }
