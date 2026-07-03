@@ -74,7 +74,7 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
     const urlParams = new URLSearchParams(window.location.search);
-  const defaultTab = urlParams.get("google_connected") !== null ? "integrations" : "details";
+  const defaultTab = urlParams.get("google_connected") !== null ? "integrations" : "personal";
   const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'about' | 'activity' | 'help' | 'settings' | 'integrations'>(defaultTab as any);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 

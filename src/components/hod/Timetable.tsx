@@ -398,7 +398,6 @@ const EditModal: React.FC<EditModalProps> = ({ classDetails, onSave, onCancel, o
         </div>
 
         {!(newClassDetails.subject === 'Elective Subjects' || newClassDetails.subject === 'Open Elective Subjects') && (
-          <>
             <div className="mb-4">
               <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground/70' : 'text-gray-600'}`}>Professor:</label>
               {matchingAssignments.length > 1 ? (
@@ -435,7 +434,9 @@ const EditModal: React.FC<EditModalProps> = ({ classDetails, onSave, onCancel, o
                 <p className="text-xs text-destructive mt-1">Please assign a faculty to this subject in Faculty Assignments.</p>
               }
             </div>
+        )}
 
+        {!(newClassDetails.subject === 'Elective Subjects' || newClassDetails.subject === 'Open Elective Subjects') ? (
             <div className="mb-4">
               <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Room:</label>
               <input
@@ -446,7 +447,17 @@ const EditModal: React.FC<EditModalProps> = ({ classDetails, onSave, onCancel, o
                 className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border placeholder-muted-foreground' : 'text-gray-900 bg-white border-gray-300 placeholder-gray-500'}`}
                 placeholder="e.g., R103" />
             </div>
-          </>
+        ) : (
+            <div className="mb-4">
+              <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Room:</label>
+              <input
+                type="text"
+                name="room"
+                value="Multiple Rooms"
+                readOnly
+                className={`w-full p-2 border rounded bg-muted/50 cursor-not-allowed ${theme === 'dark' ? 'text-foreground/70 border-border text-muted-foreground' : 'text-gray-500 border-gray-200 bg-gray-100'}`}
+              />
+            </div>
         )}
 
         <div className="mb-4">
