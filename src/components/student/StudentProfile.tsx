@@ -635,7 +635,7 @@ const StudentProfile: React.FC = () => {
       const guardianObj = (form.guardian_name || form.guardian_phone || form.guardian_relationship || form.guardian_email) ? {
         name: form.guardian_name || '',
         relationship: form.guardian_relationship || '',
-        phone: form.guardian_phone || '',
+        phone: (form.guardian_phone || '').replace(/\s+/g, ''),
         email: form.guardian_email || ''
       } : undefined;
 
@@ -650,7 +650,7 @@ const StudentProfile: React.FC = () => {
         first_name: form.first_name || '',
         last_name: form.last_name || '',
         email: form.email || '',
-        mobile_number: form.phone || '',
+        mobile_number: (form.phone || '').replace(/\s+/g, ''),
         address: form.address || '',
         bio: form.about || '',
         date_of_birth: form.date_of_birth || '',
@@ -664,7 +664,7 @@ const StudentProfile: React.FC = () => {
         caste: form.caste || '',
         marital_status: form.marital_status || '',
         primary_language: form.primary_language || '',
-        alternate_mobile: form.alternate_mobile || '',
+        alternate_mobile: (form.alternate_mobile || '').replace(/\s+/g, ''),
         personal_email: form.personal_email || '',
         institutional_email: form.institutional_email || '',
         
@@ -688,9 +688,9 @@ const StudentProfile: React.FC = () => {
         
         // Parent Details (all optional - can be empty)
         father_name: form.father_name || '',
-        father_contact: form.father_contact || '',
+        father_contact: (form.father_contact || '').replace(/\s+/g, ''),
         mother_name: form.mother_name || '',
-        mother_contact: form.mother_contact || '',
+        mother_contact: (form.mother_contact || '').replace(/\s+/g, ''),
         
         // Guardian Details (all optional)
         guardian: guardianObj,
