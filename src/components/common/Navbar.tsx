@@ -6,7 +6,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { Button } from "../ui/button";
 import { API_BASE_URL } from "../../utils/config";
 import { Capacitor } from "@capacitor/core";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Popover, PopoverContent, PopoverTrigger, PopoverArrow } from "../ui/popover";
 
 interface User {
   username: string;
@@ -91,6 +91,37 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
     setSelectedChildId(childId);
     window.location.reload();
   };
+
+  const [align, setAlign] = useState<'center' | 'end'>('end');
+  const [localNotifications, setLocalNotifications] = useState<any[]>(recentNotifications);
+
+  useEffect(() => {
+    setLocalNotifications(recentNotifications);
+  }, [recentNotifications]);
+
+  const clearAllNotifications = async () => {
+    try {
+      const { fetchWithTokenRefresh } = await import("../../utils/authService");
+      const response = await fetchWithTokenRefresh(`${API_BASE_URL}/api/notifications/clear-all/`, {
+        method: "POST",
+      });
+      if (response.ok) {
+        setLocalNotifications([]);
+        window.dispatchEvent(new CustomEvent('refresh-unread-count', { detail: { clearAll: true } }));
+      }
+    } catch (error) {
+      console.error("Failed to clear notifications", error);
+    }
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setAlign(window.innerWidth < 640 ? 'center' : 'end');
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Update time every minute
   useEffect(() => {
@@ -218,18 +249,17 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           <div className="hidden sm:block relative mr-2">
             <button
               onClick={() => setShowDesktopSwitcher(!showDesktopSwitcher)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium transition-colors ${
-                theme === 'dark' 
-                  ? 'bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700' 
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium transition-colors ${theme === 'dark'
+                  ? 'bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700'
                   : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-              }`}
+                }`}
             >
               <div className="text-xs truncate max-w-[140px]">
                 {childrenList.find((c: any) => c.id.toString() === selectedChildId)?.name || 'Switch Child'}
               </div>
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}><polyline points="6 9 12 15 18 9"></polyline></svg>
             </button>
-            
+
             {showDesktopSwitcher && (
               <div className={`absolute top-full right-0 mt-2 w-56 rounded-lg shadow-lg py-1 z-50 border ${theme === 'dark' ? 'bg-gray-800 border-gray-700 shadow-black/50' : 'bg-white border-gray-200 shadow-gray-200/50'}`}>
                 <div className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider border-b ${theme === 'dark' ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-100'}`}>
@@ -245,11 +275,10 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                         setShowDesktopSwitcher(false);
                         window.location.reload();
                       }}
-                      className={`block w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                        selectedChildId == child.id.toString() 
+                      className={`block w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedChildId == child.id.toString()
                           ? (theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary font-semibold')
                           : (theme === 'dark' ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50')
-                      }`}
+                        }`}
                     >
                       <div className="truncate">{child.name}</div>
                       <div className={`text-[10px] mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -301,14 +330,14 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-0 mr-4" align="end">
+              <PopoverContent className="w-[90vw] sm:w-80 p-0 sm:mr-4" align={align} sideOffset={6}>
+                <PopoverArrow className="fill-popover stroke-border stroke-[1px]" width={12} height={6} />
                 <div className="flex flex-col">
                   <div className="px-4 py-3 font-semibold border-b">
                     Notifications
-                  </div>
-                  <div className="max-h-[300px] overflow-y-auto">
-                    {recentNotifications.length > 0 ? (
-                      recentNotifications.map((notif: any) => (
+                  </div>                  <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                    {localNotifications.length > 0 ? (
+                      localNotifications.map((notif: any) => (
                         <div key={notif.id} className="px-4 py-3 border-b text-sm flex flex-col hover:bg-muted/50 transition-colors">
                           <span className="font-medium">{notif.title}</span>
                           <span className="text-muted-foreground mt-1 line-clamp-2">{notif.message}</span>
@@ -325,10 +354,10 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                       </div>
                     )}
                   </div>
-                  <div className="p-2 border-t bg-muted/20">
+                  <div className="p-2 border-t bg-muted/20 flex gap-2">
                     <Button
                       variant="ghost"
-                      className="w-full text-primary hover:text-primary/90 justify-center h-8 text-xs font-medium"
+                      className="flex-1 text-primary hover:text-primary/90 justify-center h-8 text-xs font-medium"
                       onClick={() => {
                         const paths: Record<string, string> = {
                           'student': '/announcements',
@@ -347,13 +376,19 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                         };
                         navigate(paths[role || ''] || '/announcements');
                         setIsNotificationsOpen(false);
-                        
-                        // Close Popover indirectly if possible, but navigating usually unmounts or changes page
-                        // In Shadcn, clicking outside or navigating handles it.
                       }}
                     >
-                      View All Announcements
+                      View All
                     </Button>
+                    {localNotifications.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        className="flex-1 text-red-500 hover:text-red-600 hover:bg-red-50/50 dark:hover:bg-red-950/20 justify-center h-8 text-xs font-medium"
+                        onClick={clearAllNotifications}
+                      >
+                        Clear All
+                      </Button>
+                    )}
                   </div>
                 </div>
               </PopoverContent>
@@ -383,7 +418,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                 )}
               </div>
             </div>
-            
+
             {/* Custom Dropdown for Parents (Mobile Only) */}
             {showParentDropdown && role === "parent" && childrenList.length > 0 && window.innerWidth < 640 && (
               <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 z-50 border ${theme === 'dark' ? 'bg-gray-800 border-gray-700 shadow-black/50' : 'bg-white border-gray-200 shadow-gray-200/50'}`}>
@@ -400,11 +435,10 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                         setShowParentDropdown(false);
                         window.location.reload();
                       }}
-                      className={`block w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                        selectedChildId == child.id.toString() 
+                      className={`block w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedChildId == child.id.toString()
                           ? (theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary font-semibold')
                           : (theme === 'dark' ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50')
-                      }`}
+                        }`}
                     >
                       <div className="truncate">{child.name}</div>
                       <div className={`text-[10px] mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>

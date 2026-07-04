@@ -178,6 +178,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   // Listen for manual refresh events AND service worker push messages — both update the bell count
   useEffect(() => {
     const handleRefresh = (e: any) => {
+      if (e.detail?.clearAll) {
+        setNotificationCount(0);
+        setUnreadCount(0);
+        setRecentNotifications([]);
+        queryClient.invalidateQueries({ queryKey: ["unreadCount", role, accessToken] });
+        return;
+      }
       if (e.detail?.decrement) {
         // Only decrement the personal notification count; announcements are unaffected
         setNotificationCount((prev) => Math.max(0, prev - (e.detail.decrement || 1)));
