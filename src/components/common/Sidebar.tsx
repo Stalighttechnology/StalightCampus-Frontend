@@ -261,6 +261,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "admission-communication": <Bell size={20} />,
       "admission-reports": <BarChart2 size={20} />,
       "admission-settings": <Settings size={20} />,
+      "counsellor-management": <UserCheck size={20} />,
       "google-setup": <Settings size={20} />,
       "schedule-class": <Calendar size={20} />,
       "schedule-meeting": <Calendar size={20} />,
@@ -278,7 +279,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   const orgPlan = user?.org_plan || "basic";
 
   const userTier = PLAN_TIERS[(orgPlan || 'basic').toLowerCase()] || 1;
-  const advanceRoles = ['transport_admin', 'driver', 'library_admin', 'admission_manager', 'hms', 'warden'];
+  const advanceRoles = ['transport_admin', 'driver', 'library_admin', 'admission_manager', 'hms', 'warden', 'counsellor'];
 
   const isRoleAllowed = !(advanceRoles.includes(role) && userTier < 3);
 
@@ -595,9 +596,18 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Documents", page: "admission-documents" },
       { name: "Communication", page: "admission-communication" },
       { name: "Reports", page: "admission-reports" },
+      { name: "Counsellors", page: "counsellor-management" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "My Salary & Payroll", page: "my-payroll" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
+      { name: "Calendar", page: "holiday-calendar" },
+      { name: "Profile", page: "profile" },
+    ],
+    counsellor: [
+      { name: "Dashboard", page: "admission-dashboard" },
+      { name: "Enquiries", page: "admission-enquiries" },
+      { name: "My Attendance", page: "my-attendance" },
+      { name: "My Salary & Payroll", page: "my-payroll" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],

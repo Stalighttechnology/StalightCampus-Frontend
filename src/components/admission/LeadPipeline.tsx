@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import LeadDetailsView from './LeadDetailsView';
+import { User as UserIcon, AlertCircle, Clock } from 'lucide-react';
+import { useAuth } from "../../context/AuthContext";
 
 const STAGES = [
   { id: 'new', label: 'New Enquiry' },
@@ -63,6 +66,9 @@ const isValidTransition = (currentStatus: string, newStatus: string): { valid: b
 const LeadPipeline: React.FC = () => {
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const { role } = useAuth();
 
   useEffect(() => {
     fetchLeads();
@@ -169,21 +175,75 @@ const LeadPipeline: React.FC = () => {
                   <Badge variant="secondary" className="bg-primary/10 text-primary text-[10px] px-1.5 py-0.5">{stageLeads.length}</Badge>
                 </div>
                 <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-1 pb-2">
-                  {stageLeads.map(lead => (
-                    <Card
-                      key={lead.id}
-                      draggable
-                      onDragStart={(e) => e.dataTransfer.setData('leadId', lead.id.toString())}
-                      className="cursor-move hover:border-primary/50 transition-colors bg-card shadow-sm border"
-                    >
-                      <CardContent className="p-3 flex flex-col gap-1">
-                        <p className="font-medium text-sm truncate">{lead.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{lead.email}</p>
-                        <p className="text-xs text-muted-foreground truncate">{lead.phone}</p>
-                        <p className="text-[11px] font-medium text-primary mt-1 truncate">{lead.course_name || 'General Enquiry'}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {stageLeads.map(lead => {
+                    let borderColor = lead.priority === 'hot' ? '#ef4444' : lead.priority === 'warm' ? '#f59e0b' : '#3b82f6';
+                    let deadlineBadge = null;
+                    let statusBadge = null;
+
+                    const now = new Date();
+                    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+                    if (!lead.assigned_to_name) {
+                      statusBadge = <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4 uppercase tracking-wider">Unassigned</Badge>;
+                    } else if (lead.status === 'new' && (!lead.activities || lead.activities.length === 0)) {
+                      statusBadge = <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 text-[9px] px-1 py-0 h-4 dark:bg-yellow-900 dark:text-yellow-100 uppercase tracking-wider">Untouched</Badge>;
+                    } else if (lead.activities && lead.activities.length > 0) {
+                      statusBadge = <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-green-200 text-green-700 bg-green-50 dark:border-green-900 dark:text-green-400 dark:bg-green-950/30 uppercase tracking-wider">Contacted</Badge>;
+                    }
+
+                    if (lead.tasks && lead.tasks.length > 0) {
+                      const incompleteTasks = lead.tasks.filter((t: any) => !t.is_completed);
+                      const overdueTasks = incompleteTasks.filter((t: any) => new Date(t.due_date) < now);
+                      const todayTasks = incompleteTasks.filter((t: any) => {
+                        const due = new Date(t.due_date);
+                        return due >= todayStart && due < todayEnd;
+                      });
+
+                      if (overdueTasks.length > 0) {
+                        borderColor = '#dc2626'; // Red
+                        deadlineBadge = <div className="text-[10px] text-red-600 dark:text-red-400 flex items-center font-medium mt-1"><AlertCircle className="w-3 h-3 mr-1" /> Overdue Task</div>;
+                      } else if (todayTasks.length > 0) {
+                        borderColor = '#ea580c'; // Orange
+                        deadlineBadge = <div className="text-[10px] text-orange-600 dark:text-orange-400 flex items-center font-medium mt-1"><Clock className="w-3 h-3 mr-1" /> Due Today</div>;
+                      }
+                    }
+
+                    return (
+                      <Card
+                        key={lead.id}
+                        draggable
+                        onDragStart={(e) => e.dataTransfer.setData('leadId', lead.id.toString())}
+                        onClick={() => {
+                          setSelectedLeadId(lead.id);
+                          setIsDetailsOpen(true);
+                        }}
+                        className="cursor-move hover:border-primary/50 transition-colors bg-card shadow-sm border border-l-4"
+                        style={{ borderLeftColor: borderColor }}
+                      >
+                        <CardContent className="p-3 flex flex-col gap-1">
+                          <div className="flex justify-between items-start gap-2">
+                            <p className="font-medium text-sm truncate">{lead.name}</p>
+                            <div className="flex flex-col items-end gap-1 shrink-0">
+                              {statusBadge}
+                              {lead.assigned_to_name && (
+                                <div className="flex items-center text-xs text-muted-foreground shrink-0 bg-muted px-1.5 py-0.5 rounded" title={`Assigned to ${lead.assigned_to_name}`}>
+                                  <UserIcon className="w-3 h-3 mr-1" />
+                                  <span className="truncate max-w-[60px]">{lead.assigned_to_name.split(' ')[0]}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">{lead.email}</p>
+                          <p className="text-xs text-muted-foreground truncate">{lead.phone}</p>
+                          <div className="flex justify-between items-end mt-1">
+                            <p className="text-[11px] font-medium text-primary truncate bg-primary/5 w-fit px-1.5 py-0.5 rounded">{lead.course_name || 'General Enquiry'}</p>
+                          </div>
+                          {deadlineBadge}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                   {stageLeads.length === 0 && (
                     <div className="text-xs text-muted-foreground text-center p-6 border border-dashed border-border rounded bg-muted/5">
                       Drop leads here
@@ -195,6 +255,17 @@ const LeadPipeline: React.FC = () => {
           })}
         </div>
       </CardContent>
+
+      <LeadDetailsView 
+        leadId={selectedLeadId}
+        isOpen={isDetailsOpen}
+        onClose={() => {
+          setIsDetailsOpen(false);
+          setSelectedLeadId(null);
+        }}
+        onLeadUpdated={fetchLeads}
+        userRole={role}
+      />
     </Card>
   );
 };
