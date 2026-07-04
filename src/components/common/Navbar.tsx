@@ -27,6 +27,7 @@ interface NavbarProps {
   showHamburger?: boolean;
   onHamburgerClick?: () => void;
   unreadCount?: number;
+  personalNotificationCount?: number;
   recentNotifications?: any[];
 }
 
@@ -35,7 +36,7 @@ interface NotificationBellProps {
   onClick?: () => void;
 }
 
-const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = false, onHamburgerClick, unreadCount = 0, recentNotifications = [] }: NavbarProps) => {
+const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = false, onHamburgerClick, unreadCount = 0, personalNotificationCount = 0, recentNotifications = [] }: NavbarProps) => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -47,15 +48,15 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const markNotificationsRead = async () => {
-    if (unreadCount === 0) return;
+    if (personalNotificationCount === 0) return;
     try {
       const { fetchWithTokenRefresh } = await import("../../utils/authService");
       const response = await fetchWithTokenRefresh(`${API_BASE_URL}/api/notifications/mark-read/`, {
         method: "POST",
       });
       if (response.ok) {
-        // Dispatch event so DashboardLayout updates unread count
-        window.dispatchEvent(new CustomEvent('refresh-unread-count', { detail: { decrement: unreadCount } }));
+        // Only decrement by personal notification count — announcements stay in the badge
+        window.dispatchEvent(new CustomEvent('refresh-unread-count', { detail: { decrement: personalNotificationCount } }));
       }
     } catch (error) {
       console.error("Failed to mark notifications read", error);

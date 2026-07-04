@@ -54,6 +54,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 1024);
   const [error, setError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [notificationCount, setNotificationCount] = useState<number>(0);
   const [recentNotifications, setRecentNotifications] = useState<any[]>([]);
   const navigate = useNavigate();
   const mainContentRef = useRef<HTMLElement>(null);
@@ -164,7 +165,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   useEffect(() => {
     if (unreadCountQuery.data?.success) {
-      setUnreadCount(unreadCountQuery.data.count || unreadCountQuery.data.unread_count || 0);
+      const total = unreadCountQuery.data.count || unreadCountQuery.data.unread_count || 0;
+      const notifOnly = unreadCountQuery.data.notification_count ?? total;
+      setUnreadCount(total);
+      setNotificationCount(notifOnly);
       if (unreadCountQuery.data.recent_notifications) {
         setRecentNotifications(unreadCountQuery.data.recent_notifications);
       }
@@ -175,12 +179,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   useEffect(() => {
     const handleRefresh = (e: any) => {
       if (e.detail?.decrement) {
+        // Only decrement the personal notification count; announcements are unaffected
+        setNotificationCount((prev) => Math.max(0, prev - (e.detail.decrement || 1)));
         setUnreadCount((prev) => Math.max(0, prev - (e.detail.decrement || 1)));
         return;
       }
       // Immediately increment optimistically, then sync with server
       setUnreadCount((prev) => prev + 1);
-      queryClient.invalidateQueries(["unreadCount", role, accessToken]);
+      setNotificationCount((prev) => prev + 1);
+      queryClient.invalidateQueries({ queryKey: ["unreadCount", role, accessToken] });
     };
     window.addEventListener('refresh-unread-count', handleRefresh);
 
@@ -188,7 +195,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     const handleSWMessage = (event: MessageEvent) => {
       if (event.data?.type === 'FCM_PUSH_RECEIVED') {
         setUnreadCount((prev) => prev + 1);
-        queryClient.invalidateQueries(["unreadCount", role, accessToken]);
+        queryClient.invalidateQueries({ queryKey: ["unreadCount", role, accessToken] });
         // Play the chime sound in the background tab
         window.dispatchEvent(new CustomEvent('play-notification-sound'));
       }
@@ -300,6 +307,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             showHamburger={sidebarCollapsed && window.innerWidth < 1024}
             onHamburgerClick={toggleSidebar}
             unreadCount={unreadCount}
+            personalNotificationCount={notificationCount}
             recentNotifications={recentNotifications} />
 
         </div>
