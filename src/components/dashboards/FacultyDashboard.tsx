@@ -34,6 +34,7 @@ import { useAuth } from "../../context/AuthContext";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 import ScheduleMeeting from "../common/ScheduleMeeting";
 import FacultyPayroll from "../faculty/FacultyPayroll";
+import StaffTaskTracker from "../common/StaffTaskTracker";
 
 interface FacultyDashboardProps {
   user: {
@@ -85,7 +86,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'syllabus-status': 'syllabus-status',
       'reimbursements': 'reimbursements',
       'schedule-meeting': 'schedule-meeting',
-      'my-payroll': 'my-payroll'
+      'my-payroll': 'my-payroll',
+      'staff-tasks': 'staff-tasks'
     };
 
     // Add direct mappings for additional top-level routes
@@ -224,6 +226,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
         return <ScheduleMeeting />;
       case "my-payroll":
         return <FacultyPayroll user={user} />;
+      case "staff-tasks":
+        return <StaffTaskTracker />;
       default:
         return <FacultyStats setActivePage={handlePageChange} />;
     }

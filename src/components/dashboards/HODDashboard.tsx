@@ -45,6 +45,7 @@ import { Button } from "../ui/button";
 import { useAuth } from "../../context/AuthContext";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 import ScheduleMeeting from "../common/ScheduleMeeting";
+import StaffTaskTracker from "../common/StaffTaskTracker";
 
 interface HODUser {
   username: string;
@@ -124,6 +125,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
     // Map URL paths to page names
     const pathMap: {[key: string]: string;} = {
       'my-payroll': 'my-payroll',
+      'staff-tasks': 'staff-tasks',
       'dashboard': 'dashboard',
       'holiday-calendar': '/hod/holiday-calendar',
       'holiday-calendar': 'holiday-calendar',
@@ -212,10 +214,10 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'hod-announcement-management': '/hod/hod-announcement-management',
       'co-attainment': '/hod/co-attainment',
       'exam-applications': '/hod/exam-applications',
-      'syllabus-status': '/hod/syllabus-status',
       'syllabus-monitor': '/hod/syllabus-monitor',
       'act-as-teacher': '/faculty/dashboard',
-      'schedule-meeting': '/hod/schedule-meeting'
+      'schedule-meeting': '/hod/schedule-meeting',
+      'staff-tasks': '/hod/staff-tasks'
     };
 
     const path = pathMap[page] || '/hod/dashboard';
@@ -315,6 +317,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         return <ScheduleMeeting />;
       case "my-payroll":
         return <FacultyPayroll />;
+      case "staff-tasks":
+        return <StaffTaskTracker />;
       default:
         return <HODStats setError={setError} setPage={handlePageChange} />;
     }

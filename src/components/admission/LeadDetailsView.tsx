@@ -7,11 +7,40 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Phone, Mail, Clock, Calendar as CalendarIcon, CheckCircle2, User as UserIcon } from 'lucide-react';
+import { Loader2, Phone, Mail, Clock, Calendar as CalendarIcon, CheckCircle2, User as UserIcon, AlertCircle, PhoneCall, MessageCircle, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { crmApi, Lead, LeadActivity, LeadTask } from '../../api/crm_api';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
+
+// --- Color helpers ---
+const getTaskUrgency = (task: LeadTask) => {
+  if (task.is_completed) return 'completed';
+  const now = new Date();
+  const due = new Date(task.due_date);
+  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  if (due < now) return 'overdue';
+  if (due < todayEnd) return 'today';
+  const in3days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+  if (due < in3days) return 'soon';
+  return 'upcoming';
+};
+
+const taskUrgencyStyles = {
+  overdue:   { border: 'border-l-red-500',    bg: 'bg-red-50 dark:bg-red-950/20',     badge: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',     icon: AlertCircle, iconClass: 'text-red-500',    label: 'Overdue' },
+  today:     { border: 'border-l-orange-500', bg: 'bg-orange-50 dark:bg-orange-950/20', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', icon: Clock, iconClass: 'text-orange-500', label: 'Due Today' },
+  soon:      { border: 'border-l-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-950/20', badge: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300', icon: Clock, iconClass: 'text-yellow-600', label: 'Due Soon' },
+  upcoming:  { border: 'border-l-blue-500',   bg: 'bg-blue-50 dark:bg-blue-950/20',   badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',     icon: CalendarIcon, iconClass: 'text-blue-500', label: 'Upcoming' },
+  completed: { border: 'border-l-green-500',  bg: 'bg-green-50 dark:bg-green-950/20', badge: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',   icon: CheckCircle2, iconClass: 'text-green-500', label: 'Done' },
+};
+
+const activityTypeStyles: Record<string, { dot: string; badge: string; icon: React.ElementType }> = {
+  call:      { dot: 'bg-green-500',   badge: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',   icon: PhoneCall },
+  email:     { dot: 'bg-blue-500',    badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',       icon: Mail },
+  whatsapp:  { dot: 'bg-emerald-500', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300', icon: MessageCircle },
+  note:      { dot: 'bg-purple-500',  badge: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300', icon: FileText },
+  meeting:   { dot: 'bg-indigo-500',  badge: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300', icon: UserIcon },
+};
 
 interface LeadDetailsViewProps {
   leadId: number | null;
@@ -319,8 +348,12 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
                           No pending tasks
                         </div>
                       ) : (
-                        tasks.filter(t => !t.is_completed).map(task => (
-                          <div key={task.id} className="flex items-start gap-3 p-3 border rounded-md bg-card shadow-sm">
+                        tasks.filter(t => !t.is_completed).map(task => {
+                          const urgency = getTaskUrgency(task);
+                          const style = taskUrgencyStyles[urgency];
+                          const UrgencyIcon = style.icon;
+                          return (
+                          <div key={task.id} className={`flex items-start gap-3 p-3 border-l-4 rounded-md shadow-sm ${style.border} ${style.bg}`}>
                             <Button 
                               variant="outline" 
                               size="icon" 
@@ -331,13 +364,17 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
                             </Button>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium">{task.description}</p>
-                              <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-2 mt-1 text-xs">
                                 <Badge variant="secondary" className="text-[10px] px-1 py-0">{task.task_type}</Badge>
-                                <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {new Date(task.due_date).toLocaleString()}</span>
+                                <span className={`flex items-center gap-1 font-medium text-[10px] px-1.5 py-0.5 rounded-full ${style.badge}`}>
+                                  <UrgencyIcon className={`w-3 h-3 ${style.iconClass}`}/> {style.label}
+                                </span>
+                                <span className="flex items-center gap-1 text-muted-foreground"><Clock className="w-3 h-3"/> {new Date(task.due_date).toLocaleString()}</span>
                               </div>
                             </div>
                           </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
                   </TabsContent>
@@ -381,21 +418,28 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
                       {activities.length === 0 ? (
                         <div className="text-sm text-muted-foreground py-2">No activity logged yet.</div>
                       ) : (
-                        activities.map((activity, index) => (
+                        activities.map((activity) => {
+                          const style = activityTypeStyles[activity.activity_type] || activityTypeStyles['note'];
+                          const ActivityIcon = style.icon;
+                          return (
                           <div key={activity.id} className="relative mb-6 last:mb-0">
                             <div className="absolute -left-[23px] bg-background p-1 rounded-full border border-muted">
-                              <div className="w-2 h-2 rounded-full bg-primary" />
+                              <div className={`w-2 h-2 rounded-full ${style.dot}`} />
                             </div>
-                            <div>
+                            <div className="pl-1">
                               <p className="text-sm font-medium">{activity.description}</p>
-                              <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                                <Badge variant="outline" className="text-[10px] px-1 py-0">{activity.activity_type.replace('_', ' ')}</Badge>
+                              <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
+                                <span className={`flex items-center gap-1 font-medium text-[10px] px-1.5 py-0.5 rounded-full ${style.badge}`}>
+                                  <ActivityIcon className="w-3 h-3" />
+                                  {activity.activity_type.replace('_', ' ')}
+                                </span>
                                 <span>{new Date(activity.created_at).toLocaleString()}</span>
-                                <span>by {activity.created_by_name}</span>
+                                <span className="text-muted-foreground/70">by {activity.created_by_name}</span>
                               </div>
                             </div>
                           </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
                   </TabsContent>

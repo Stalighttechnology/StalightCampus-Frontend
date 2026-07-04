@@ -43,7 +43,7 @@ import { logoutUser } from "../../utils/authService";
 import { useRef, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import ScheduleMeeting from "../common/ScheduleMeeting";
-
+import StaffTaskTracker from "../common/StaffTaskTracker";
 
 interface AdminDashboardProps {
   user: any;
@@ -243,6 +243,8 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return <ScheduleMeeting />;
       case "my-payroll":
         return <FacultyPayroll />;
+      case "staff-tasks":
+        return <StaffTaskTracker />;
       default:
         return <Navigate to="/not-found" replace />;
     }
