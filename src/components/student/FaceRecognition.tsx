@@ -1,5 +1,6 @@
 import { useTheme } from "@/context/ThemeContext";
 import FaceRecognitionUploader from "../common/FaceRecognitionUploader";
+import { showInfoAlert } from "@/utils/sweetalert";
 
 const FaceRecognition = () => {
   const { theme } = useTheme();
@@ -28,7 +29,7 @@ const FaceRecognition = () => {
             <Button
               variant="outline"
               className={`mt-6 ${theme === 'dark' ? 'border-green-500/30 text-green-400 hover:bg-green-500/10' : 'border-green-300 text-green-700 hover:bg-green-100'}`}
-              onClick={() => setHasFace(false)}
+              onClick={() => showInfoAlert('Action Restricted', 'Face registration and updates can only be performed by your assigned Proctor. Please contact them to complete this setup.')}
             >
               Re-train Face
             </Button>
@@ -57,22 +58,17 @@ const FaceRecognition = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="face-images" className={`block text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Upload Face Image
               </label>
-              <input
-                id="face-images"
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className={`block w-full text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-full file:border-0
-                  file:text-sm file:font-semibold
-                  ${theme === 'dark' ? 'file:bg-primary/10 file:text-primary hover:file:bg-primary/20' : 'file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'}
-                  ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}
-              />
-              <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              <div
+                onClick={() => showInfoAlert('Action Restricted', 'Face registration and updates can only be performed by your assigned Proctor. Please contact them to complete this setup.')}
+                className={`block w-full text-sm p-4 cursor-pointer text-center border-2 border-dashed rounded-lg
+                  ${theme === 'dark' ? 'text-muted-foreground border-border hover:border-gray-500' : 'text-gray-500 border-gray-300 hover:border-gray-400'}`}
+              >
+                Click to upload face images
+              </div>
+              <p className={`text-xs mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 Upload a clear image of your face. JPG or PNG format recommended.
               </p>
             </div>

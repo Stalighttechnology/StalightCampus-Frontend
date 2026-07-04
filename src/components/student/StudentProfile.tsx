@@ -1391,20 +1391,19 @@ const StudentProfile: React.FC = () => {
                           <CheckCircle className="h-5 w-5 text-green-500" />
                           <span className="text-[16px] sm:text-sm font-medium text-green-700 dark:text-green-300">Face recognition is active for your account</span>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => setHasFaceTrained(false)} className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300 dark:bg-card dark:text-foreground dark:border-border">Re-train Face</Button>
+                        <Button variant="outline" size="sm" onClick={() => showInfoAlert('Action Restricted', 'Face registration and updates can only be performed by your assigned Proctor. Please contact them to complete this setup.')} className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300 dark:bg-card dark:text-foreground dark:border-border">Re-train Face</Button>
                       </div>
                     ) : (
                       <div>
                         <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Upload Face Images</Label>
                         <div className="mt-2">
-                          <input type="file" multiple accept="image/*" onChange={handleFaceImageSelect} className="hidden" id="face-images" />
-                          <label htmlFor="face-images" className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                          <div onClick={() => showInfoAlert('Action Restricted', 'Face registration and updates can only be performed by your assigned Proctor. Please contact them to complete this setup.')} className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
                             <div className="text-center">
                               <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                               <p className="text-[16px] sm:text-sm text-gray-600 dark:text-gray-400">Click to upload face images</p>
                               <p className="text-[12px] sm:text-xs text-gray-500">PNG, JPG up to 5MB each</p>
                             </div>
-                          </label>
+                          </div>
                         </div>
 
                         {faceImages.length > 0 &&
