@@ -44,6 +44,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
   const [selectedChildId, setSelectedChildId] = useState<string | null>(localStorage.getItem('selectedStudentId'));
   const [showParentDropdown, setShowParentDropdown] = useState(false);
   const [showDesktopSwitcher, setShowDesktopSwitcher] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const markNotificationsRead = async () => {
     if (unreadCount === 0) return;
@@ -284,7 +285,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           </Button>
 
           {['student', 'faculty', 'hod', 'admin', 'principal', 'coe', 'dean', 'hms', 'hms_admin', 'fees_manager', 'transport_admin', 'org_admin', 'warden'].includes(role || '') && (
-            <Popover onOpenChange={(open) => { if (open) markNotificationsRead(); }}>
+            <Popover open={isNotificationsOpen} onOpenChange={(open) => { setIsNotificationsOpen(open); if (open) markNotificationsRead(); }}>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
@@ -344,6 +345,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                           'warden': '/warden/announcement-management'
                         };
                         navigate(paths[role || ''] || '/announcements');
+                        setIsNotificationsOpen(false);
                         
                         // Close Popover indirectly if possible, but navigating usually unmounts or changes page
                         // In Shadcn, clicking outside or navigating handles it.
