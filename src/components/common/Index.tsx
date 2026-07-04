@@ -53,6 +53,7 @@ const Index = () => {
         currentPath.startsWith("/student-assignment") ||
         currentPath.startsWith("/dean") ||
         currentPath.startsWith("/coe") ||
+        currentPath.startsWith("/counsellor") ||
         currentPath.startsWith("/admission-manager");
 
       if (!isOnDashboard) {
@@ -103,6 +104,9 @@ const Index = () => {
             break;
           case "admission_manager":
             navigate("/admission-manager", { replace: true });
+            break;
+          case "counsellor":
+            navigate("/counsellor", { replace: true });
             break;
           default:
             setPage("login");

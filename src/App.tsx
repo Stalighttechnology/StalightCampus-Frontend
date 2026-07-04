@@ -37,6 +37,7 @@ const TransportAdminDashboard = lazy(() => import("./components/dashboards/Trans
 const DriverDashboard = lazy(() => import("./components/dashboards/DriverDashboard"));
 const LibraryAdminDashboard = lazy(() => import("./components/dashboards/LibraryAdminDashboard"));
 const AdmissionManagerDashboard = lazy(() => import("./components/dashboards/AdmissionManagerDashboard"));
+const CounsellorDashboard = lazy(() => import("./components/dashboards/CounsellorDashboard"));
 const AdmissionLanding = lazy(() => import("./components/public/AdmissionLanding"));
 const ApplicationWizard = lazy(() => import("./components/public/ApplicationWizard"));
 const Onboarding = lazy(() => import("./components/common/Onboarding"));
@@ -746,6 +747,16 @@ const AppContent = () => {
             <ProtectedRoute allowedRoles={["admission_manager"]}>
               <>
                 <AdmissionManagerDashboard user={userData} setPage={() => { }} />
+                {shouldShowFloatingAssistant() && <FloatingAssistant />}
+              </>
+            </ProtectedRoute>
+          } />
+
+          {/* Counsellor routes */}
+          <Route path="/counsellor/*" element={
+            <ProtectedRoute allowedRoles={["counsellor"]}>
+              <>
+                <CounsellorDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
               </>
             </ProtectedRoute>

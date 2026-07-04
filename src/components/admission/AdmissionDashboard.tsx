@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, FileText, CheckCircle, UserCheck, AlertCircle, BarChart2 } from 'lucide-react';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
+import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { Bar, Pie } from "react-chartjs-2";
 import {
@@ -26,6 +27,9 @@ interface AnalyticsData {
   enrolled: number;
   status_counts: Array<{ status: string; count: number }>;
   course_counts?: Array<{ course_interested__name: string; count: number }>;
+  tasks_overdue?: number;
+  tasks_today?: number;
+  tasks_completed?: number;
 }
 
 const COLORS = [
@@ -50,6 +54,7 @@ const AdmissionDashboard: React.FC = () => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
+  const { role } = useAuth();
 
   useEffect(() => {
     fetchAnalytics();
@@ -193,6 +198,49 @@ const AdmissionDashboard: React.FC = () => {
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{item.title}</p>
                 <p className="text-3xl font-bold text-foreground my-0.5">{item.value}</p>
                 <p className="text-xs text-muted-foreground">{item.subtitle}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Task Metrics Grid */}
+      <div id="task-stats-grid" className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          {
+            title: "Overdue Tasks",
+            value: data?.tasks_overdue || 0,
+            subtitle: "Follow-ups missed",
+            icon: <AlertCircle className="text-red-600 w-5 h-5" />,
+            bgColor: "bg-red-100 dark:bg-red-950/50",
+            textColor: "text-red-600 dark:text-red-400"
+          },
+          {
+            title: "Tasks Due Today",
+            value: data?.tasks_today || 0,
+            subtitle: "Action required today",
+            icon: <FileText className="text-orange-600 w-5 h-5" />,
+            bgColor: "bg-orange-100 dark:bg-orange-950/50",
+            textColor: "text-orange-600 dark:text-orange-400"
+          },
+          {
+            title: "Tasks Completed",
+            value: data?.tasks_completed || 0,
+            subtitle: "Total follow-ups done",
+            icon: <CheckCircle className="text-green-600 w-5 h-5" />,
+            bgColor: "bg-green-100 dark:bg-green-950/50",
+            textColor: "text-green-600 dark:text-green-400"
+          }
+        ].map((item, i) => (
+          <Card key={`task-${i}`} className="hover:shadow-md transition-shadow border-border">
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className={`flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0 ${item.bgColor} ${item.textColor}`}>
+                {item.icon}
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{item.title}</p>
+                <p className="text-2xl font-bold text-foreground my-0.5">{item.value}</p>
+                <p className="text-[11px] text-muted-foreground">{item.subtitle}</p>
               </div>
             </CardContent>
           </Card>
