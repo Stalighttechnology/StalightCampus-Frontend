@@ -18,7 +18,7 @@ import { useStudentProfileUpdateMutation } from "@/hooks/useApiQueries";
 import { useFileUpload } from "../../hooks/useOptimizations";
 import { Progress } from "../ui/progress";
 import { SkeletonForm } from "../ui/skeleton";
-import { showConfirmAlert, showSuccessAlert, showErrorAlert, showInfoAlert } from "../../utils/sweetalert";
+import { showConfirmAlert, showSuccessAlert, showErrorAlert, showInfoAlert, MySwal } from "../../utils/sweetalert";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
@@ -727,6 +727,60 @@ const StudentProfile: React.FC = () => {
       showErrorAlert('Error', err.message || 'Failed to update profile');
     }
   };
+  const handleViewProctor = () => {
+    if (!form.proctor) return;
+    
+    const name = form.proctor.first_name || form.proctor.username ? `${form.proctor.first_name || ''} ${form.proctor.last_name || ''}`.trim() : form.proctor.username || 'Unknown';
+    const email = form.proctor.email || null;
+    const phone = form.proctor.phone_number || null;
+    
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const emailHtml = email 
+      ? `<a href="mailto:${email}" class="swal2-confirm swal2-styled" style="background-color: #ea4335; margin: 0 5px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Email</a>` 
+      : `<button class="swal2-cancel swal2-styled" disabled style="margin: 0 5px; opacity: 0.5; cursor: not-allowed; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> None</button>`;
+      
+    const phoneHtml = phone 
+      ? `<a href="tel:${phone}" class="swal2-confirm swal2-styled" style="background-color: #3b82f6; margin: 0 5px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> Call</a>`
+      : `<button class="swal2-cancel swal2-styled" disabled style="margin: 0 5px; opacity: 0.5; cursor: not-allowed; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> None</button>`;
+      
+    let waNumber = phone ? phone.replace(/\D/g, '') : '';
+    if (waNumber && waNumber.length === 10) {
+      waNumber = '91' + waNumber; // Default to India country code if 10 digits
+    }
+
+    const waSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`;
+
+    const waHtml = phone 
+      ? `<a href="https://wa.me/${waNumber}" target="_blank" class="swal2-confirm swal2-styled" style="background-color: #25D366; margin: 0 5px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;">${waSvg} WhatsApp</a>`
+      : `<button class="swal2-cancel swal2-styled" disabled style="margin: 0 5px; opacity: 0.5; cursor: not-allowed; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;">${waSvg} None</button>`;
+
+    MySwal.fire({
+      title: `<strong style="font-size: 1.5rem;">${name}</strong>`,
+      html: `
+        <div style="text-align: left; margin-bottom: 15px; font-size: 1rem; color: ${isDarkMode ? '#ccc' : '#555'};">
+          <p style="margin: 5px 0;"><strong>Role:</strong> Proctor</p>
+          <p style="margin: 5px 0;"><strong>Email:</strong> ${email || 'Not provided'}</p>
+          <p style="margin: 5px 0;"><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+        </div>
+        <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 20px;">
+          ${phoneHtml}
+          ${waHtml}
+          ${emailHtml}
+        </div>
+      `,
+      showConfirmButton: false,
+      showCloseButton: true,
+      focusConfirm: false,
+      background: isDarkMode ? '#1f1f1f' : '#ffffff',
+      color: isDarkMode ? '#ffffff' : '#000000',
+      customClass: {
+        popup: 'sweetalert-popup rounded-xl shadow-lg border border-gray-200 dark:border-gray-800',
+        title: 'sweetalert-title',
+        htmlContainer: 'sweetalert-content',
+        closeButton: 'focus:outline-none hover:text-red-500'
+      },
+    });
+  };
 
   const handleFaceImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -1353,7 +1407,21 @@ const StudentProfile: React.FC = () => {
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>{translateTerminology("Proctor")}</Label>
-                      <Input value={form.proctor ? form.proctor.first_name || form.proctor.username ? `${form.proctor.first_name || ''} ${form.proctor.last_name || ''}`.trim() : form.proctor.username || '' : ''} readOnly className={getInputClassName(false)} />
+                      <div className="flex items-center gap-2">
+                        <Input value={form.proctor ? form.proctor.first_name || form.proctor.username ? `${form.proctor.first_name || ''} ${form.proctor.last_name || ''}`.trim() : form.proctor.username || '' : ''} readOnly className={getInputClassName(false)} />
+                        {form.proctor && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            type="button"
+                            onClick={handleViewProctor}
+                            className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300 dark:bg-card dark:text-foreground dark:border-border h-10 px-4"
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            View
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
                     <div>

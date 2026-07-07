@@ -6,6 +6,8 @@ import LeadPipeline from "../admission/LeadPipeline";
 import Profile from "../common/Profile";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import FacultyPayroll from "../faculty/FacultyPayroll";
+import AdmissionApplications from "../admission/AdmissionApplications";
+import AdmissionDocuments from "../admission/AdmissionDocuments";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 
 interface DashboardProps {
@@ -36,6 +38,10 @@ const CounsellorDashboard = ({ user }: DashboardProps) => {
         return <AdmissionDashboard />;
       case "admission-enquiries":
         return <LeadPipeline />;
+      case "admission-applications":
+        return <AdmissionApplications />;
+      case "admission-documents":
+        return <AdmissionDocuments />;
       case "holiday-calendar":
         return <HolidayCalendar readOnly showLeaves userRole="counsellor" />;
       case "profile":
