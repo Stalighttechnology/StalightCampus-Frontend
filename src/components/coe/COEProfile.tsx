@@ -45,7 +45,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
     const urlParams = new URLSearchParams(window.location.search);
-  const defaultTab = urlParams.get("google_connected") !== null ? "integrations" : "details";
+  const defaultTab = urlParams.get("google_connected") !== null ? "integrations" : "personal";
   const [activeTab, setActiveTab] = useState<"personal" | "contact" | "activity" | "help" | "settings" | 'integrations'>(defaultTab as any);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
@@ -489,7 +489,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
             <div className={`text-md sm:text-md mb-4 sm:mb-6 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Controller of Examinations</div>
 
             <div className="w-full mt-4 sm:mt-6 flex flex-col">
-              <h4 className={`text-[16px] sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
+              <h4 className={`text-[16px] sm:text-sm font-semibold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
               <div className={`border rounded-lg p-2.5 sm:p-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
                   <div className="flex flex-col justify-start">

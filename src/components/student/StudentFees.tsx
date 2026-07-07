@@ -450,7 +450,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
         <CardHeader className="border-b">
           <div className="flex flex-row justify-between items-center sm:items-start md:items-center gap-4">
             <div>
-              <CardTitle className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+              <CardTitle className={`text-2xl sm:text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                 Fee Information
               </CardTitle>
               <p className={`text-sm mt-1 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
@@ -556,7 +556,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
                       <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-1 sm:mb-2 ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
                         Total Fees
                       </p>
-                      <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                      <p className={`text-2xl sm:text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                         {formatCurrency(feeData?.fee_summary?.total_fees || 0)}
                       </p>
                     </div>
@@ -581,7 +581,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
                       <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-1 sm:mb-2 ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
                         Amount Paid
                       </p>
-                      <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-green-500' : 'text-green-600'}`}>
+                      <p className={`text-2xl sm:text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-green-500' : 'text-green-600'}`}>
                         {formatCurrency(feeData?.fee_summary?.amount_paid || 0)}
                       </p>
                     </div>
@@ -606,7 +606,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
                       <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-1 sm:mb-2 ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
                         Remaining Fees
                       </p>
-                      <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-destructive' : 'text-red-600'}`}>
+                      <p className={`text-2xl sm:text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-destructive' : 'text-red-600'}`}>
                         {formatCurrency(feeData?.fee_summary?.remaining_fees || 0)}
                       </p>
                     </div>
@@ -1088,7 +1088,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
                     <p className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                       Total Amount to Pay
                     </p>
-                    <p className={`text-3xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    <p className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                       {formatCurrency(currentInvoice?.balance_amount || 0)}
                     </p>
                   </div>

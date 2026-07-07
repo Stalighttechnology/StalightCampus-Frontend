@@ -383,7 +383,7 @@ export default function ScheduleMeeting() {
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
         <CardHeader className="pb-4 border-b bg-muted/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 space-y-0">
           <div>
-            <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Meetings & Schedules
             </CardTitle>
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
