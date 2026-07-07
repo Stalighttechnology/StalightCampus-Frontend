@@ -649,7 +649,7 @@ const StaffTaskTracker = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="flex flex-col gap-6">
           {/* Received Tasks */}
           {role !== 'principal' && (
             <Card className="shadow-sm border-border">
@@ -714,7 +714,7 @@ const StaffTaskTracker = () => {
                   Tasks Assigned by Me
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4 bg-muted/10 h-[400px] overflow-y-auto custom-scrollbar flex flex-col">
+              <CardContent className="p-4 bg-muted/10 min-h-[400px] flex flex-col">
                 {assignedTasksLoading ? (
                   <div className="text-center p-8 text-muted-foreground border border-dashed rounded-md bg-background flex-1">Loading tasks...</div>
                 ) : assignedTasks.length === 0 ? (
