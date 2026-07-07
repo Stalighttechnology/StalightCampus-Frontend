@@ -4,9 +4,11 @@ import {
   FaExclamationTriangle,
   FaClock,
   FaGraduationCap,
-  FaCalendarAlt
-} from
-  "react-icons/fa";
+  FaCalendarAlt,
+  FaPhone,
+  FaWhatsapp,
+  FaEnvelope
+} from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Bar } from "react-chartjs-2";
@@ -45,6 +47,11 @@ interface DashboardData {
     profile_picture?: string;
     email: string;
     mobile_number: string;
+    proctor?: {
+      name: string | null;
+      email: string | null;
+      phone_number: string | null;
+    } | null;
   };
   today_lectures: {
     count: number;
@@ -468,6 +475,63 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
           </CardContent>
         </Card>
       </section>
+
+      {/* Parent Only: Proctor Card */}
+      {user.role === 'parent' && dashboardData.student_profile?.proctor && (
+        <section className="w-full">
+          <Card className={`overflow-hidden border border-border shadow-sm mb-6 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
+            <CardHeader className="p-5 border-b border-border/50">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-6 bg-primary rounded-full"></div>
+                <CardTitle className="text-lg font-semibold">Proctor Details</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-bold">{dashboardData.student_profile.proctor.name || 'Not Assigned'}</h3>
+                  <p className="text-sm text-muted-foreground">Academic Proctor</p>
+                </div>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  {dashboardData.student_profile.proctor.phone_number ? (
+                    <>
+                      <a href={`tel:${dashboardData.student_profile.proctor.phone_number}`} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+                        <FaPhone className="w-4 h-4" /> Call
+                      </a>
+                      <a 
+                        href={`https://wa.me/${dashboardData.student_profile.proctor.phone_number.length === 10 ? '91' + dashboardData.student_profile.proctor.phone_number : dashboardData.student_profile.proctor.phone_number.replace(/\D/g, '')}`} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b858] text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                      >
+                        <FaWhatsapp className="w-4 h-4" /> WhatsApp
+                      </a>
+                    </>
+                  ) : (
+                    <div className="flex gap-3 w-full sm:w-auto opacity-50 cursor-not-allowed">
+                      <button disabled className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                        <FaPhone className="w-4 h-4" /> None
+                      </button>
+                      <button disabled className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#25D366] text-white px-4 py-2 rounded-lg text-sm font-medium">
+                        <FaWhatsapp className="w-4 h-4" /> None
+                      </button>
+                    </div>
+                  )}
+                  {dashboardData.student_profile.proctor.email ? (
+                    <a href={`mailto:${dashboardData.student_profile.proctor.email}`} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+                      <FaEnvelope className="w-4 h-4" /> Email
+                    </a>
+                  ) : (
+                    <button disabled className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium opacity-50 cursor-not-allowed">
+                      <FaEnvelope className="w-4 h-4" /> None
+                    </button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
 
       {/* Current & Next Session */}
       <section className="w-full">

@@ -611,6 +611,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     counsellor: [
       { name: "Dashboard", page: "admission-dashboard" },
       { name: "Enquiries", page: "admission-enquiries" },
+      { name: "Applications", page: "admission-applications" },
+      { name: "Documents", page: "admission-documents" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "My Salary & Payroll", page: "my-payroll" },
       { name: "Calendar", page: "holiday-calendar" },
