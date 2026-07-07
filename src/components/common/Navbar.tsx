@@ -7,6 +7,7 @@ import { Button } from "../ui/button";
 import { API_BASE_URL } from "../../utils/config";
 import { Capacitor } from "@capacitor/core";
 import { Popover, PopoverContent, PopoverTrigger, PopoverArrow } from "../ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 interface User {
   username: string;
@@ -262,7 +263,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
 
             {showDesktopSwitcher && (
               <div className={`absolute top-full right-0 mt-2 w-56 rounded-lg shadow-lg py-1 z-50 border ${theme === 'dark' ? 'bg-gray-800 border-gray-700 shadow-black/50' : 'bg-white border-gray-200 shadow-gray-200/50'}`}>
-                <div className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider border-b ${theme === 'dark' ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-100'}`}>
+                <div className={`px-4 py-2 text-[10px] font-semibold uppercase tracking-wider border-b ${theme === 'dark' ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-100'}`}>
                   Select Student
                 </div>
                 <div className="max-h-[300px] overflow-y-auto">
@@ -341,6 +342,23 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                         <div key={notif.id} className="px-4 py-3 border-b text-sm flex flex-col hover:bg-muted/50 transition-colors">
                           <span className="font-medium">{notif.title}</span>
                           <span className="text-muted-foreground mt-1 line-clamp-2">{notif.message}</span>
+                          {notif.message && notif.message.length > 80 && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="link" className="p-0 h-auto text-xs text-primary justify-start font-semibold mt-1">
+                                  Show More
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className={`w-[90vw] sm:w-full sm:max-w-md rounded-xl p-6 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+                                <DialogHeader>
+                                  <DialogTitle className="text-lg font-semibold">{notif.title}</DialogTitle>
+                                </DialogHeader>
+                                <div className="mt-4 text-sm leading-relaxed whitespace-pre-wrap break-words max-h-60 overflow-y-auto custom-scrollbar">
+                                  {notif.message}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          )}
                           <span className="text-xs text-muted-foreground/70 mt-2">
                             {new Date(notif.created_at).toLocaleString(undefined, {
                               month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -422,7 +440,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
             {/* Custom Dropdown for Parents (Mobile Only) */}
             {showParentDropdown && role === "parent" && childrenList.length > 0 && window.innerWidth < 640 && (
               <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 z-50 border ${theme === 'dark' ? 'bg-gray-800 border-gray-700 shadow-black/50' : 'bg-white border-gray-200 shadow-gray-200/50'}`}>
-                <div className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider border-b ${theme === 'dark' ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-100'}`}>
+                <div className={`px-4 py-2 text-[10px] font-semibold uppercase tracking-wider border-b ${theme === 'dark' ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-100'}`}>
                   Switch Child
                 </div>
                 <div className="max-h-[300px] overflow-y-auto">
