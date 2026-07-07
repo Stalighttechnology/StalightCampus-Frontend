@@ -10,6 +10,12 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CalendarIcon } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { cn } from "@/lib/utils";
 import { getFacultyProfile, manageProfile } from "../../utils/faculty_api";
 import { useTheme } from "@/context/ThemeContext";
 import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "../../utils/sweetalert";
@@ -392,12 +398,105 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
             <div className="w-full">
               <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date of Birth</label>
-              <Input value={formData.date_of_birth} onChange={(e) => handleChange("date_of_birth", e.target.value)} disabled={!isEditing} placeholder="YYYY-MM-DD" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+              {isEditing ? (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full pl-3 text-left font-normal h-8 sm:h-9 md:h-10 text-[16px] sm:text-sm flex items-center justify-between",
+                        !formData.date_of_birth && "text-muted-foreground",
+                        theme === 'dark' ? 'bg-background text-foreground border-input' : 'bg-white text-gray-900 border-gray-300'
+                      )}
+                    >
+                      {formData.date_of_birth && !isNaN(new Date(formData.date_of_birth).getTime()) ? (
+                        format(parseISO(formData.date_of_birth), "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="h-4 w-4 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      captionLayout="dropdown"
+                      fromYear={1930}
+                      toYear={new Date().getFullYear()}
+                      selected={formData.date_of_birth && !isNaN(new Date(formData.date_of_birth).getTime()) ? parseISO(formData.date_of_birth) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          const formatted = format(date, "yyyy-MM-dd");
+                          handleChange("date_of_birth", formatted);
+                        } else {
+                          handleChange("date_of_birth", "");
+                        }
+                      }}
+                      disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                      initialFocus
+                      classNames={{
+                        caption_dropdowns: "flex justify-center gap-1.5 items-center mx-8",
+                        caption_label: "hidden",
+                      }}
+                      components={{
+                        Dropdown: ({ value, onChange, children }: any) => {
+                          const options = React.Children.toArray(children) as React.ReactElement[];
+                          const selectedOption = options.find((opt) => opt.props.value === value);
+                          const selectedLabel = selectedOption ? selectedOption.props.children : "";
+
+                          return (
+                            <Select
+                              value={value?.toString()}
+                              onValueChange={(val) => {
+                                if (onChange) {
+                                  const dummyEvent = {
+                                    target: { value: val },
+                                  } as unknown as React.ChangeEvent<HTMLSelectElement>;
+                                  onChange(dummyEvent);
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="h-8 py-0.5 px-2 text-xs font-semibold bg-background border border-input rounded-md min-w-[75px] max-w-[95px] flex items-center justify-between">
+                                <SelectValue>{selectedLabel}</SelectValue>
+                              </SelectTrigger>
+                              <SelectContent className="max-h-[220px] overflow-y-auto">
+                                {options.map((opt) => (
+                                  <SelectItem key={opt.props.value} value={opt.props.value.toString()} className="text-xs">
+                                    {opt.props.children}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          );
+                        }
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <Input value={formData.date_of_birth && !isNaN(new Date(formData.date_of_birth).getTime()) ? format(parseISO(formData.date_of_birth), "dd/MM/yyyy") : "—"} disabled={true} className="text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-75 disabled:cursor-not-allowed" />
+              )}
             </div>
 
             <div className="w-full">
               <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Gender</label>
-              <Input value={formData.gender} onChange={(e) => handleChange("gender", e.target.value)} disabled={!isEditing} placeholder="Gender" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+              {isEditing ? (
+                <Select
+                  value={formData.gender || ''}
+                  onValueChange={(val) => handleChange("gender", val)}
+                >
+                  <SelectTrigger className="w-full h-8 sm:h-9 md:h-10 text-[16px] sm:text-sm bg-background">
+                    <SelectValue placeholder="Select Gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input value={formData.gender || "—"} disabled={true} className="text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-75 disabled:cursor-not-allowed" />
+              )}
             </div>
           </div>);
 
@@ -430,11 +529,11 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div className="w-full">
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Experience (years)</label>
-                <Input value={formData.experience_years} onChange={(e) => handleChange("experience_years", e.target.value)} disabled={true} placeholder="Experience" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                <Input value={formData.experience_years} onChange={(e) => handleChange("experience_years", e.target.value)} disabled={!isEditing} placeholder="Experience" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
               </div>
               <div className="w-full">
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Office Location</label>
-                <Input value={formData.office_location} onChange={(e) => handleChange("office_location", e.target.value)} disabled={true} placeholder="Office" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                <Input value={formData.office_location} onChange={(e) => handleChange("office_location", e.target.value)} disabled={!isEditing} placeholder="Office" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
               </div>
             </div>
           </div>);
