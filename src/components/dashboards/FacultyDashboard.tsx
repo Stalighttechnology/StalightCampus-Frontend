@@ -141,6 +141,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'reimbursements': '/faculty/reimbursements',
       'schedule-meeting': '/faculty/schedule-meeting',
       'my-payroll': '/faculty/my-payroll',
+      'staff-tasks': '/faculty/staff-tasks',
       'return-to-hod': '/hod/dashboard'
     };
 

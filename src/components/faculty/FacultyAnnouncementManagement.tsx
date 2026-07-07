@@ -407,10 +407,10 @@ const FacultyAnnouncementManagement = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
                     <div className="flex-1 min-w-0">
                       <CardTitle className={`tracking-tight text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        Announcements for Proctor Students
+                        Announcements for Students
                       </CardTitle>
                       <p className={`text-[14px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                        Create and manage announcements for your proctor group
+                        Create and manage announcements for your Students
                       </p>
                     </div>
                     <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
