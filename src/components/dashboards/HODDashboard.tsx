@@ -214,6 +214,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'hod-announcement-management': '/hod/hod-announcement-management',
       'co-attainment': '/hod/co-attainment',
       'exam-applications': '/hod/exam-applications',
+      'syllabus-status': '/hod/syllabus-status',
       'syllabus-monitor': '/hod/syllabus-monitor',
       'act-as-teacher': '/faculty/dashboard',
       'schedule-meeting': '/hod/schedule-meeting',

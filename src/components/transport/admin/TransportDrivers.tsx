@@ -120,6 +120,18 @@ const TransportDrivers: React.FC = () => {
     }
   };
 
+  const getErrorMessage = (res: any, fallback: string) => {
+    if (res && typeof res === 'object') {
+      const firstKey = Object.keys(res)[0];
+      if (firstKey && Array.isArray(res[firstKey])) {
+        return `${firstKey.charAt(0).toUpperCase() + firstKey.slice(1).replace('_', ' ')}: ${res[firstKey][0]}`;
+      } else if (res.message) {
+        return res.message;
+      }
+    }
+    return fallback;
+  };
+
   const handleAssignDriver = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!assignForm.driver_id || !assignForm.bus_id || !assignForm.route_id) {
@@ -139,7 +151,7 @@ const TransportDrivers: React.FC = () => {
         setAssignForm({ driver_id: '', bus_id: '', route_id: '' });
         setShowAssignForm(false);
       } else {
-        Swal.fire("Error", res.message || 'Failed to assign driver', "error");
+        Swal.fire("Error", getErrorMessage(res, 'Failed to assign driver'), "error");
       }
     } catch (err) {
       Swal.fire("Error", "Server error processing driver assignment", "error");
@@ -153,7 +165,7 @@ const TransportDrivers: React.FC = () => {
       bus_id: String(a.bus_details?.id || a.bus || ''),
       route_id: String(a.route_details?.id || a.route || '')
     });
-    if (assignOptions.drivers.length === 0) {
+    if (assignOptions.buses.length === 0) {
       const res = await fetchAssignmentOptions();
       if (res.success) {
         setAssignOptions({ drivers: res.drivers, routes: res.routes, buses: res.buses });
@@ -191,7 +203,7 @@ const TransportDrivers: React.FC = () => {
         loadAssignments();
         setEditingAssignment(null);
       } else {
-        Swal.fire("Error", res.message || 'Failed to update assignment', "error");
+        Swal.fire("Error", getErrorMessage(res, 'Failed to update assignment'), "error");
       }
     } catch (err) {
       Swal.fire("Error", "Server error updating driver assignment", "error");
@@ -255,6 +267,14 @@ const TransportDrivers: React.FC = () => {
   const bg = theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900';
   const cardBg = theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900';
   const input = theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white focus:ring-primary' : 'bg-gray-50 border-gray-200 focus:ring-primary';
+
+  const assignedBusIds = assignments.map(a => a.bus_details?.id || a.bus);
+  const availableBusesForCreate = assignOptions.buses.filter(
+    b => !assignedBusIds.includes(b.id)
+  );
+  const availableBusesForEdit = assignOptions.buses.filter(
+    b => !assignedBusIds.includes(b.id) || (editingAssignment && (editingAssignment.bus_details?.id || editingAssignment.bus) === b.id)
+  );
 
   return (
     <div id="transport-drivers-header" className="space-y-6">
@@ -573,64 +593,68 @@ const TransportDrivers: React.FC = () => {
               </div>
               <form onSubmit={handleAssignDriver} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Driver</label>
-                  <Select
-                    value={assignForm.driver_id || undefined}
-                    onValueChange={(val) => setAssignForm(f => ({ ...f, driver_id: val }))}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose Driver" />
-                    </SelectTrigger>
-                    <SelectContent className="z-[1000001]">
-                      {assignOptions.drivers.map(d => (
-                        <SelectItem key={d.id} value={d.id.toString()}>{d.first_name} {d.last_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Route</label>
-                  <Select
-                    value={assignForm.route_id || undefined}
-                    onValueChange={(val) => setAssignForm(f => ({ ...f, route_id: val }))}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose Route" />
-                    </SelectTrigger>
-                    <SelectContent className="z-[1000001]">
-                      {assignOptions.routes.map(r => (
-                        <SelectItem key={r.id} value={r.id.toString()}>{r.route_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Bus</label>
-                  <Select
-                    value={assignForm.bus_id || undefined}
-                    onValueChange={(val) => setAssignForm(f => ({ ...f, bus_id: val }))}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose Bus" />
-                    </SelectTrigger>
-                    <SelectContent className="z-[1000001]">
-                      {assignOptions.buses.map(b => (
-                        <SelectItem key={b.id} value={b.id.toString()}>{b.bus_number} — {b.registration_number}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="pt-2">
-                  <Button type="submit" className="w-full bg-gradient-to-r from-primary to-purple-600 text-white font-semibold rounded-lg flex items-center justify-center gap-1.5 h-10">
-                    <CheckCircle size={16} /> Save Assignment
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          </div>
-        </div>,
-        document.body
-      )}
+                   <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Driver</label>
+                   <Select
+                     value={assignForm.driver_id || undefined}
+                     onValueChange={(val) => setAssignForm(f => ({ ...f, driver_id: val }))}
+                   >
+                     <SelectTrigger className="w-full">
+                       <SelectValue placeholder="Choose Driver" />
+                     </SelectTrigger>
+                     <SelectContent className="z-[1000001]">
+                       {assignOptions.drivers.map(d => (
+                         <SelectItem key={d.id} value={d.id.toString()}>{d.first_name} {d.last_name}</SelectItem>
+                       ))}
+                     </SelectContent>
+                   </Select>
+                 </div>
+                 <div>
+                   <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Route</label>
+                   <Select
+                     value={assignForm.route_id || undefined}
+                     onValueChange={(val) => setAssignForm(f => ({ ...f, route_id: val }))}
+                   >
+                     <SelectTrigger className="w-full">
+                       <SelectValue placeholder="Choose Route" />
+                     </SelectTrigger>
+                     <SelectContent className="z-[1000001]">
+                       {assignOptions.routes.map(r => (
+                         <SelectItem key={r.id} value={r.id.toString()}>{r.route_name}</SelectItem>
+                       ))}
+                     </SelectContent>
+                   </Select>
+                 </div>
+                 <div>
+                   <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Bus</label>
+                   <Select
+                     value={assignForm.bus_id || undefined}
+                     onValueChange={(val) => setAssignForm(f => ({ ...f, bus_id: val }))}
+                   >
+                     <SelectTrigger className="w-full">
+                       <SelectValue placeholder="Choose Bus" />
+                     </SelectTrigger>
+                     <SelectContent className="z-[1000001]">
+                       {availableBusesForCreate.length === 0 ? (
+                         <SelectItem value="none" disabled>No buses available</SelectItem>
+                       ) : (
+                         availableBusesForCreate.map(b => (
+                           <SelectItem key={b.id} value={b.id.toString()}>{b.bus_number} — {b.registration_number}</SelectItem>
+                         ))
+                       )}
+                     </SelectContent>
+                   </Select>
+                 </div>
+                 <div className="pt-2">
+                   <Button type="submit" className="w-full bg-gradient-to-r from-primary to-purple-600 text-white font-semibold rounded-lg flex items-center justify-center gap-1.5 h-10">
+                     <CheckCircle size={16} /> Save Assignment
+                   </Button>
+                 </div>
+               </form>
+             </Card>
+           </div>
+         </div>,
+         document.body
+       )}
 
       {editingAssignment && createPortal(
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
@@ -689,9 +713,13 @@ const TransportDrivers: React.FC = () => {
                       <SelectValue placeholder="Choose Bus" />
                     </SelectTrigger>
                     <SelectContent className="z-[1000001]">
-                      {assignOptions.buses.map(b => (
-                        <SelectItem key={b.id} value={b.id.toString()}>{b.bus_number} — {b.registration_number}</SelectItem>
-                      ))}
+                      {availableBusesForEdit.length === 0 ? (
+                        <SelectItem value="none" disabled>No buses available</SelectItem>
+                      ) : (
+                        availableBusesForEdit.map(b => (
+                          <SelectItem key={b.id} value={b.id.toString()}>{b.bus_number} — {b.registration_number}</SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>

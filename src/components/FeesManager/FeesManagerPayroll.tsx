@@ -68,14 +68,27 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   
   // Loading & error states
   const [loading, setLoading] = useState(false);
-  const [modalNotification, setModalNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [configModalOpen, setConfigModalOpen] = useState(false);
   
   const setError = (msg: string | null) => {
-    if (msg) setModalNotification({ type: 'error', message: msg });
+    if (msg) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: msg,
+        confirmButtonColor: '#ef4444',
+      });
+    }
   };
   const setSuccessMsg = (msg: string | null) => {
-    if (msg) setModalNotification({ type: 'success', message: msg });
+    if (msg) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: msg,
+        confirmButtonColor: '#6366f1',
+      });
+    }
   };
   
   // Pagination & Search States per Tab
@@ -243,32 +256,40 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   const searchTimeout = useRef<any>(null);
   const handleStructuresSearchChange = (val: string) => {
     setStructuresSearch(val);
+    if (val.trim()) {
+      setSelectedRoleFilter("");
+    }
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
     searchTimeout.current = setTimeout(() => {
       setStructuresPage(1);
-      fetchStructures(1, val);
+      fetchStructures(1, val, val.trim() ? "" : selectedRoleFilter);
     }, 400);
   };
 
   const handleRoleFilterChange = (role: string) => {
     setSelectedRoleFilter(role);
+    setStructuresSearch("");
     setStructuresPage(1);
-    fetchStructures(1, structuresSearch, role);
+    fetchStructures(1, "", role);
   };
 
   const handleRunDetailsSearchChange = (val: string) => {
     setRunDetailsSearch(val);
+    if (val.trim()) {
+      setSelectedRunDetailsRoleFilter("");
+    }
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
     searchTimeout.current = setTimeout(() => {
       setRunDetailsPage(1);
-      if (selectedRun) fetchRunDetails(selectedRun.id, 1, val);
+      if (selectedRun) fetchRunDetails(selectedRun.id, 1, val, val.trim() ? "" : selectedRunDetailsRoleFilter);
     }, 400);
   };
 
   const handleRunDetailsRoleFilterChange = (role: string) => {
     setSelectedRunDetailsRoleFilter(role);
+    setRunDetailsSearch("");
     setRunDetailsPage(1);
-    if (selectedRun) fetchRunDetails(selectedRun.id, 1, runDetailsSearch, role);
+    if (selectedRun) fetchRunDetails(selectedRun.id, 1, "", role);
   };
 
   const fetchTabInitialData = async () => {
@@ -402,7 +423,8 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   };
 
   const fetchStructures = async (page: number, search: string, roleFilter: string = selectedRoleFilter) => {
-    const res = await getSalaryStructures(page, search, roleFilter);
+    const effectiveRole = search.trim() ? "" : roleFilter;
+    const res = await getSalaryStructures(page, search, effectiveRole);
     if (res.success) {
       setStructures(res.data || []);
       setStructuresTotalPages(res.total_pages || 1);
@@ -414,7 +436,8 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   const fetchRunDetails = async (runId: number, page: number, search: string, roleFilter: string = selectedRunDetailsRoleFilter) => {
     setLoading(true);
     try {
-      const res = await getPayrollRunDetails(runId, page, search, roleFilter);
+      const effectiveRole = search.trim() ? "" : roleFilter;
+      const res = await getPayrollRunDetails(runId, page, search, effectiveRole);
       if (res.success) {
         setSelectedRun(res.run);
         setRunDetails(res.details || []);
@@ -553,7 +576,12 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
       };
       const res = await saveSalaryStructure(payload);
       if (res.success) {
-        setSuccessMsg("Salary structure updated successfully.");
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Salary structure updated successfully.',
+          confirmButtonColor: '#6366f1',
+        });
         setSelectedEmployee(null);
         fetchStructures(structuresPage, structuresSearch);
       } else {
@@ -860,8 +888,16 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                 placeholder="Search staff, designation, or roles..."
                 value={structuresSearch}
                 onChange={(e) => handleStructuresSearchChange(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-sm bg-transparent border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-md focus:border-blue-500 focus:outline-none"
+                className="w-full pl-9 pr-12 py-2 text-sm bg-transparent border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-md focus:border-blue-500 focus:outline-none"
               />
+              {structuresSearch && (
+                <button
+                  onClick={() => handleStructuresSearchChange("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
             <div className="relative flex-shrink-0" ref={roleFilterRef}>
               <Button
@@ -897,62 +933,78 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-slate-300 dark:border-slate-850">
-            <table className="w-full text-sm text-left whitespace-nowrap">
-              <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
-                <tr>
-                  <th className="px-6 py-4">Employee</th>
-                  <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4">Structure</th>
-                  <th className="px-6 py-4 text-right">Basic Salary</th>
-                  <th className="px-6 py-4 text-right">Monthly Gross</th>
-                  <th className="px-6 py-4 text-right">Annual CTC</th>
-                  <th className="px-6 py-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                {structures.map((emp, i) => (
-                  <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-900/30">
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-900 dark:text-white">{emp.name}</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">{emp.designation}</div>
-                    </td>
-                    <td className="px-6 py-4 capitalize text-slate-700 dark:text-slate-300">{emp.role}</td>
-                    <td className="px-6 py-4 capitalize">
-                      {emp.salary_structure ? (
-                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-none">
-                          {emp.salary_structure.employment_type} ({emp.salary_structure.salary_type})
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-red-500/10 text-red-500 border-none">Not Configured</Badge>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right font-semibold text-slate-800 dark:text-slate-200">
-                      {emp.salary_structure ? formatCurrency(emp.salary_structure.basic_salary) : '—'}
-                    </td>
-                    <td className="px-6 py-4 text-right font-semibold text-slate-800 dark:text-slate-200">
-                      {emp.salary_structure ? formatCurrency(emp.salary_structure.gross) : '—'}
-                    </td>
-                    <td className="px-6 py-4 text-right font-semibold text-blue-600 dark:text-blue-400">
-                      {emp.salary_structure ? formatCurrency(emp.salary_structure.ctc) : '—'}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Button size="sm" variant="outline" onClick={() => handleEditStructure(emp)}>
-                        {emp.salary_structure ? 'Edit Structure' : 'Configure Structure'}
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          <PaginationControls
-            currentPage={structuresPage}
-            totalPages={structuresTotalPages}
-            totalCount={structuresCount}
-            onPageChange={setStructuresPage}
-          />
+          {structures.length === 0 ? (
+            <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-slate-800 bg-slate-900/30' : 'border-gray-200 bg-gray-50/50'}`}>
+              <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                <Search className="w-10 h-10 text-primary opacity-50" />
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                No Staff Structures Found
+              </h3>
+              <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                We couldn't find any staff matching the selected criteria. Try adjusting your filters or search query.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto rounded-lg border border-slate-300 dark:border-slate-850">
+                <table className="w-full text-sm text-left whitespace-nowrap">
+                  <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
+                    <tr>
+                      <th className="px-6 py-4">Employee</th>
+                      <th className="px-6 py-4">Role</th>
+                      <th className="px-6 py-4">Structure</th>
+                      <th className="px-6 py-4 text-right">Basic Salary</th>
+                      <th className="px-6 py-4 text-right">Monthly Gross</th>
+                      <th className="px-6 py-4 text-right">Annual CTC</th>
+                      <th className="px-6 py-4 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                    {structures.map((emp, i) => (
+                      <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-900/30">
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-slate-900 dark:text-white">{emp.name}</div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">{emp.designation}</div>
+                        </td>
+                        <td className="px-6 py-4 capitalize text-slate-700 dark:text-slate-300">{emp.role}</td>
+                        <td className="px-6 py-4 capitalize">
+                          {emp.salary_structure ? (
+                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-none">
+                              {emp.salary_structure.employment_type} ({emp.salary_structure.salary_type})
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-red-500/10 text-red-500 border-none">Not Configured</Badge>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right font-semibold text-slate-800 dark:text-slate-200">
+                          {emp.salary_structure ? formatCurrency(emp.salary_structure.basic_salary) : '—'}
+                        </td>
+                        <td className="px-6 py-4 text-right font-semibold text-slate-800 dark:text-slate-200">
+                          {emp.salary_structure ? formatCurrency(emp.salary_structure.gross) : '—'}
+                        </td>
+                        <td className="px-6 py-4 text-right font-semibold text-blue-600 dark:text-blue-400">
+                          {emp.salary_structure ? formatCurrency(emp.salary_structure.ctc) : '—'}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <Button size="sm" className="bg-primary text-white hover:bg-primary/90" onClick={() => handleEditStructure(emp)}>
+                            {emp.salary_structure ? 'Edit Structure' : 'Configure Structure'}
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              <PaginationControls
+                currentPage={structuresPage}
+                totalPages={structuresTotalPages}
+                totalCount={structuresCount}
+                onPageChange={setStructuresPage}
+              />
+            </>
+          )}
         </div>
       )}
 
@@ -1243,8 +1295,20 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                   setAdjustmentsPage(1);
                   fetchAdjustments(1, e.target.value);
                 }}
-                className="w-full pl-9 pr-4 py-2 text-sm bg-transparent border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-md focus:border-blue-500 focus:outline-none"
+                className="w-full pl-9 pr-12 py-2 text-sm bg-transparent border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-md focus:border-blue-500 focus:outline-none"
               />
+              {adjustmentsSearch && (
+                <button
+                  onClick={() => {
+                    setAdjustmentsSearch("");
+                    setAdjustmentsPage(1);
+                    fetchAdjustments(1, "");
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
             <Button
               className="bg-primary text-white hover:bg-primary/90 gap-2"
@@ -1254,79 +1318,90 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
             </Button>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-slate-300 dark:border-slate-800">
-            <table className="w-full text-sm text-left whitespace-nowrap">
-              <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
-                <tr>
-                  <th className="px-6 py-4">Employee</th>
-                  <th className="px-6 py-4">Type</th>
-                  <th className="px-6 py-4">Reason</th>
-                  <th className="px-6 py-4 text-right">Amount</th>
-                  <th className="px-6 py-4">Apply Period</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                {adjustments.map((adj, i) => (
-                  <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-900/30">
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-900 dark:text-white">{adj.employee_name}</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 capitalize">{adj.role}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant="outline" className={`capitalize border-none ${
-                        adj.adjustment_type === 'bonus' ? 'bg-emerald-500/10 text-emerald-500' :
-                        adj.adjustment_type === 'deduction' ? 'bg-red-500/10 text-red-500' :
-                        adj.adjustment_type === 'arrears' ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'
-                      }`}>
-                        {adj.adjustment_type}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400 max-w-[200px] truncate">{adj.reason}</td>
-                    <td className={`px-6 py-4 text-right font-semibold ${
-                      adj.adjustment_type === 'bonus' || adj.adjustment_type === 'arrears' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'
-                    }`}>
-                      {adj.adjustment_type === 'deduction' ? '-' : '+'}{formatCurrency(adj.amount)}
-                    </td>
-                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
-                      {new Date(0, adj.apply_month - 1).toLocaleString('en-US', { month: 'short' })} {adj.apply_year}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant="outline" className={`capitalize border-none ${
-                        adj.is_applied ? 'bg-slate-500/10 text-slate-500' : 'bg-amber-500/10 text-amber-500'
-                      }`}>
-                        {adj.is_applied ? 'Applied' : 'Pending'}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {!adj.is_applied && (
-                        <Button
-                          size="sm" variant="outline"
-                          className="text-red-500 border-red-400/50 hover:bg-red-50 dark:hover:bg-red-900/20 gap-1"
-                          onClick={() => handleDeleteAdjustment(adj.id)}
-                        >
-                          <Trash2 size={14} /> Delete
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {!adjustments.length && (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500 italic">No payroll adjustments found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          {adjustments.length === 0 ? (
+            <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-slate-800 bg-slate-900/30' : 'border-gray-200 bg-gray-50/50'}`}>
+              <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                <Search className="w-10 h-10 text-primary opacity-50" />
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                No Payroll Adjustments Found
+              </h3>
+              <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                We couldn't find any payroll adjustments matching the selected criteria. Try adjusting your filters or search query.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto rounded-lg border border-slate-300 dark:border-slate-800">
+                <table className="w-full text-sm text-left whitespace-nowrap">
+                  <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
+                    <tr>
+                      <th className="px-6 py-4">Employee</th>
+                      <th className="px-6 py-4">Type</th>
+                      <th className="px-6 py-4">Reason</th>
+                      <th className="px-6 py-4 text-right">Amount</th>
+                      <th className="px-6 py-4">Apply Period</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                    {adjustments.map((adj, i) => (
+                      <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-900/30">
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-slate-900 dark:text-white">{adj.employee_name}</div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400 capitalize">{adj.role}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge variant="outline" className={`capitalize border-none ${
+                            adj.adjustment_type === 'bonus' ? 'bg-emerald-500/10 text-emerald-500' :
+                            adj.adjustment_type === 'deduction' ? 'bg-red-500/10 text-red-500' :
+                            adj.adjustment_type === 'arrears' ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'
+                          }`}>
+                            {adj.adjustment_type}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400 max-w-[200px] truncate">{adj.reason}</td>
+                        <td className={`px-6 py-4 text-right font-semibold ${
+                          adj.adjustment_type === 'bonus' || adj.adjustment_type === 'arrears' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'
+                        }`}>
+                          {adj.adjustment_type === 'deduction' ? '-' : '+'}{formatCurrency(adj.amount)}
+                        </td>
+                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
+                          {new Date(0, adj.apply_month - 1).toLocaleString('en-US', { month: 'short' })} {adj.apply_year}
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge variant="outline" className={`capitalize border-none ${
+                            adj.is_applied ? 'bg-slate-500/10 text-slate-500' : 'bg-amber-500/10 text-amber-500'
+                          }`}>
+                            {adj.is_applied ? 'Applied' : 'Pending'}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          {!adj.is_applied && (
+                            <Button
+                              size="sm" variant="outline"
+                              className="text-red-500 border-red-400/50 hover:bg-red-50 dark:hover:bg-red-900/20 gap-1"
+                              onClick={() => handleDeleteAdjustment(adj.id)}
+                            >
+                              <Trash2 size={14} /> Delete
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-          <PaginationControls
-            currentPage={adjustmentsPage}
-            totalPages={adjustmentsTotalPages}
-            totalCount={adjustmentsCount}
-            onPageChange={(p) => { setAdjustmentsPage(p); fetchAdjustments(p, adjustmentsSearch); }}
-          />
+              <PaginationControls
+                currentPage={adjustmentsPage}
+                totalPages={adjustmentsTotalPages}
+                totalCount={adjustmentsCount}
+                onPageChange={(p) => { setAdjustmentsPage(p); fetchAdjustments(p, adjustmentsSearch); }}
+              />
+            </>
+          )}
         </div>
       )}
 
@@ -1364,7 +1439,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={fetchLockStatus} variant="outline" className="w-full" disabled={lockLoading}>
+              <Button onClick={fetchLockStatus} variant="outline" className="w-full bg-primary text-white hover:bg-primary/90 hover:text-white" disabled={lockLoading}>
                 Check Status
               </Button>
             </div>
@@ -1558,8 +1633,16 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                 placeholder="Search detail list by employee name or role..."
                 value={runDetailsSearch}
                 onChange={(e) => handleRunDetailsSearchChange(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-sm bg-transparent border border-slate-355 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-md focus:border-blue-500 focus:outline-none"
+                className="w-full pl-9 pr-12 py-2 text-sm bg-transparent border border-slate-355 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-md focus:border-blue-500 focus:outline-none"
               />
+              {runDetailsSearch && (
+                <button
+                  onClick={() => handleRunDetailsSearchChange("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
             <div className="relative flex-shrink-0" ref={runDetailsRoleFilterRef}>
               <Button
@@ -1690,7 +1773,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         </CardContent>
       </Card>
       <Dialog open={showAddAdjustment} onOpenChange={setShowAddAdjustment}>
-        <DialogContent className={`max-w-lg w-[95%] rounded-xl p-6 ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'}`}>
+        <DialogContent className={`max-w-lg w-[95%] max-h-[85vh] overflow-y-auto custom-scrollbar rounded-xl p-6 ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'}`}>
           <DialogHeader>
             <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Add Payroll Adjustment</DialogTitle>
             <DialogDescription>Apply a one-time bonus, deduction, or arrears to an employee's payroll.</DialogDescription>
@@ -1917,7 +2000,10 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
       </Dialog>
 
       <Dialog open={!!selectedEmployee} onOpenChange={(open) => { if (!open) setSelectedEmployee(null); }}>
-        <DialogContent className={`max-w-5xl w-[90%] md:w-[95%] max-h-[85vh] overflow-y-auto custom-scrollbar rounded-xl p-6 ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'}`}>
+        <DialogContent
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+          className={`max-w-5xl w-[90%] md:w-[95%] max-h-[85vh] overflow-y-auto custom-scrollbar rounded-xl p-6 ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'}`}>
           <DialogHeader className="pb-2">
             <DialogTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
               {selectedEmployee?.salary_structure ? 'Edit Salary Structure' : 'Configure Salary Structure'}
@@ -2127,37 +2213,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!modalNotification} onOpenChange={(open) => { if (!open) setModalNotification(null); }}>
-        <DialogContent className={`w-[90%] sm:max-w-sm rounded-xl p-6 shadow-2xl border ${
-          theme === 'dark' ? 'bg-[#0f172a] text-slate-100 border-slate-800' : 'bg-white text-slate-900 border-slate-200'
-        }`}>
-          <div className="flex flex-col items-center text-center space-y-4 pt-4">
-            {modalNotification?.type === 'success' ? (
-              <div className="h-12 w-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center animate-in zoom-in-50 duration-300">
-                <CheckCircle size={28} />
-              </div>
-            ) : (
-              <div className="h-12 w-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center animate-in zoom-in-50 duration-300">
-                <AlertCircle size={28} />
-              </div>
-            )}
-            <div>
-              <h3 className="text-lg font-semibold capitalize text-slate-900 dark:text-white">
-                {modalNotification?.type}
-              </h3>
-              <p className="text-sm mt-2 text-slate-500 dark:text-slate-400">
-                {modalNotification?.message}
-              </p>
-            </div>
-            <Button 
-              onClick={() => setModalNotification(null)}
-              className="w-full mt-2"
-            >
-              Dismiss
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+
       {/* Description View Modal */}
       <Dialog open={!!descriptionModal?.open} onOpenChange={(open) => { if (!open) setDescriptionModal(null); }}>
         <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6`}>

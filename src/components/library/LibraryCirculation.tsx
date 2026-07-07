@@ -242,13 +242,13 @@ const LibraryCirculation = () => {
                           );
                         }
 
-                        const isEligible = daysSinceIssue >= Math.min(14, originalDuration);
+                        const isEligible = daysSinceIssue >= originalDuration;
                         return (
                           <Button
                             size="sm"
                             disabled={loading || !isEligible}
                             onClick={() => !loading && isEligible && handleRenewClick(borrow.id)}
-                            className="bg-primary/20 hover:bg-primary/30 text-primary-foreground font-semibold px-3.5 py-1 text-xs rounded disabled:opacity-100 disabled:pointer-events-none"
+                            className="bg-primary/20 hover:bg-primary/30 text-primary-foreground font-semibold px-3.5 py-1 text-xs rounded disabled:opacity-50 disabled:pointer-events-none"
                           >
                             Renew ({originalDuration}d)
                           </Button>
@@ -282,7 +282,7 @@ const LibraryCirculation = () => {
               const daysSinceIssue = Math.floor(
                 (new Date().getTime() - new Date(borrow.issue_date).getTime()) / (1000 * 60 * 60 * 24)
               );
-              const isEligible = daysSinceIssue >= Math.min(14, originalDuration);
+              const isEligible = daysSinceIssue >= originalDuration;
 
               return (
                 <div key={borrow.id} className={`p-4 rounded-xl border shadow-sm space-y-3 transition-all ${theme === 'dark' ? 'bg-[#1c1c1e]/60 border-border text-foreground' : 'bg-gray-50/70 border-gray-200/80 text-gray-900'}`}>
