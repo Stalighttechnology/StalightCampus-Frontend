@@ -1167,6 +1167,31 @@ const StudentProfile: React.FC = () => {
                       )}
                     </div>
                     <div>
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Gender</Label>
+                      {editing ? (
+                        <Select
+                          value={form.gender || ''}
+                          onValueChange={(val) => setForm(prev => ({ ...prev, gender: val }))}
+                        >
+                          <SelectTrigger className="w-full h-10 text-[16px] sm:text-sm">
+                            <SelectValue placeholder="Select Gender" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Male">Male</SelectItem>
+                            <SelectItem value="Female">Female</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          name="gender"
+                          value={form.gender || "—"}
+                          readOnly
+                          className={getInputClassName(false)}
+                        />
+                      )}
+                    </div>
+                    <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Blood Group</Label>
                       <Input name="blood_group" value={form.blood_group || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
