@@ -58,6 +58,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'billing': 'billing',
     'announcement-management': 'announcement-management',
     'schedule-meeting': 'schedule-meeting',
+    'alumni-directory': 'alumni-directory',
   };
   return pathMap[lastPart] || 'dashboard';
 };

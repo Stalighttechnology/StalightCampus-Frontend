@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit2, Trash2, Eye, Clock, User, AlertCircle, MoreVertical, CheckCircle2, XCircle, Megaphone, BellOff, MapPin, ExternalLink } from "lucide-react";
+import { Edit2, Trash2, Eye, Clock, User, AlertCircle, MoreVertical, CheckCircle2, XCircle, Megaphone, BellOff, MapPin, ExternalLink, FileDown, Loader2 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { Announcement } from "@/utils/announcements_api";
 import { actionGatePass } from "@/utils/hms_api";
@@ -34,6 +34,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { SkeletonList } from "@/components/ui/skeleton";
+import { fetchWithTokenRefresh } from "../../utils/authService";
+import { downloadFile } from "@/utils/downloadHelper";
+import { API_ENDPOINT } from "../../utils/config";
 
 interface PaginationData {
   count: number;
@@ -253,6 +256,26 @@ export const AnnouncementSections = ({
   const setShowExpired = propSetShowExpired || setLocalShowExpired;
 
   const [viewingAnnouncement, setViewingAnnouncement] = useState<Announcement | null>(null);
+  const [exportingPDF, setExportingPDF] = useState(false);
+
+  const handleExportExamPDF = async () => {
+    if (!viewingAnnouncement?.id) return;
+    setExportingPDF(true);
+    try {
+      const url = `${API_ENDPOINT}/announcements/${viewingAnnouncement.id}/export-pdf/`;
+      const response = await fetchWithTokenRefresh(url);
+      if (!response.ok) {
+        throw new Error("Failed to download PDF");
+      }
+      const examName = viewingAnnouncement.title || "Exam";
+      const fileName = `${examName.replace(/\s+/g, '_')}_Schedule.pdf`;
+      await downloadFile(response, fileName);
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+    } finally {
+      setExportingPDF(false);
+    }
+  };
   const [actionNote, setActionNote] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -931,9 +954,46 @@ export const AnnouncementSections = ({
                     </div>
                   )}
                 </div>
-                <DialogTitle className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
-                  {viewingAnnouncement?.title}
-                </DialogTitle>
+                <div className="flex items-center justify-between gap-4 pr-6 sm:pr-0">
+                  <DialogTitle className="text-lg sm:text-xl font-semibold tracking-tight text-foreground flex-1 min-w-0">
+                    {viewingAnnouncement?.title}
+                  </DialogTitle>
+                  
+                  {viewingAnnouncement?.exam_data && viewingAnnouncement.exam_data.length > 0 && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Mobile Export Button */}
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="flex sm:hidden dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200 h-9 w-9 items-center justify-center shrink-0 p-0"
+                        onClick={handleExportExamPDF}
+                        disabled={exportingPDF}
+                      >
+                        {exportingPDF ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <FileDown className="w-3.5 h-3.5" />
+                        )}
+                      </Button>
+
+                      {/* Desktop Export Button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="hidden sm:flex bg-primary hover:bg-primary/90 text-white border-primary h-9 px-3.5 rounded-lg items-center justify-center gap-1.5 shadow-sm text-xs font-semibold shrink-0"
+                        onClick={handleExportExamPDF}
+                        disabled={exportingPDF}
+                      >
+                        {exportingPDF ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <FileDown className="w-3.5 h-3.5" />
+                        )}
+                        <span>{exportingPDF ? "Exporting..." : "Export PDF"}</span>
+                      </Button>
+                    </div>
+                  )}
+                </div>
                 <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground pb-4 border-b border-border/50">
                   <div className="flex items-center gap-2 bg-muted/50 px-2 py-1 rounded-full">
                     <div className="w-6 h-6 rounded-full bg-primary text-[12px] text-white flex items-center justify-center font-semibold shadow-sm">
