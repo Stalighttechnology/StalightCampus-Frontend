@@ -336,6 +336,46 @@ const VirtualizedNotificationsList = React.memo(({
     overscan: 3,
   });
 
+  const parseNotificationMessage = (message: string) => {
+    if (!message) return { cleanMessage: '', examData: null };
+    
+    const lowerMsg = message.toLowerCase();
+    if (!lowerMsg.includes("detailed schedule:")) {
+      return { cleanMessage: message, examData: null };
+    }
+    
+    const matchIndex = lowerMsg.indexOf("detailed schedule:");
+    const cleanMessage = message.substring(0, matchIndex).trim();
+    const tablePart = message.substring(matchIndex + "detailed schedule:".length);
+    
+    const examData: any[] = [];
+    const lines = tablePart.split("\n");
+    lines.forEach(line => {
+      if (line.includes("|") && !line.includes("---")) {
+        const rowParts = line.split("|").map(p => p.trim());
+        const filteredParts = rowParts.filter((_, idx) => {
+          if (idx === 0 && rowParts[0] === "") return false;
+          if (idx === rowParts.length - 1 && rowParts[rowParts.length - 1] === "") return false;
+          return true;
+        });
+        
+        if (filteredParts.length >= 3) {
+          const subject = filteredParts[0];
+          if (subject.toLowerCase() === "subject" || subject.toLowerCase() === "") return;
+          
+          examData.push({
+            subject: subject,
+            date: filteredParts[1] || "",
+            time: filteredParts[2] || "",
+            room: filteredParts[3] || "TBD"
+          });
+        }
+      }
+    });
+    
+    return { cleanMessage, examData: examData.length > 0 ? examData : null };
+  };
+
   if (notifications.length === 0) {
     return (
       <div className={`text-center py-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
@@ -355,10 +395,15 @@ const VirtualizedNotificationsList = React.memo(({
         style={{ 
           height: `${virtualizer.getTotalSize()}px`,
           position: 'relative',
+          width: '100%',
         }}
       >
         {virtualizer.getVirtualItems().map((virtualItem) => {
           const item = notifications[virtualItem.index];
+          const { cleanMessage, examData } = parseNotificationMessage(item.message);
+          const isLong = cleanMessage.length > 100 || examData !== null;
+          const previewMessage = cleanMessage.length > 100 ? `${cleanMessage.slice(0, 100)}...` : cleanMessage;
+
           return (
             <div
               key={virtualItem.key}
@@ -372,16 +417,71 @@ const VirtualizedNotificationsList = React.memo(({
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1 flex-1">
-                  <h3 className={`font-medium ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>{item.title}</h3>
-                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    {item.message}
-                  </p>
+              <div className="flex items-start justify-between gap-4 h-full">
+                <div className="space-y-1 flex-1 min-w-0 flex flex-col justify-between h-full">
+                  <div>
+                    <h3 className={`font-medium truncate ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>{item.title}</h3>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} break-words line-clamp-2 mt-1`}>
+                      {previewMessage}
+                    </p>
+                  </div>
+                  {isLong && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="link" className="p-0 h-auto text-xs text-primary justify-start font-semibold mt-1">
+                          Show More
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className={`w-[90vw] sm:w-full sm:max-w-md rounded-xl p-6 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+                        <DialogHeader>
+                          <DialogTitle className="text-lg font-bold">{item.title}</DialogTitle>
+                        </DialogHeader>
+                        <div className="mt-4 space-y-4 max-h-80 overflow-y-auto custom-scrollbar pr-1">
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                            {cleanMessage}
+                          </p>
+                          {examData && examData.length > 0 && (
+                            <div className="space-y-2">
+                              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">Detailed Schedule</h4>
+                              <div className={`overflow-hidden rounded-lg border text-[11px] ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                                <table className="w-full text-left border-collapse">
+                                  <thead>
+                                    <tr className={`border-b ${theme === 'dark' ? 'bg-muted/40 border-border text-muted-foreground' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
+                                      <th className="p-2 font-semibold">Subject</th>
+                                      <th className="p-2 font-semibold">Date</th>
+                                      <th className="p-2 font-semibold">Time</th>
+                                      <th className="p-2 font-semibold">Room</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {examData.map((row, idx) => (
+                                      <tr key={idx} className={`border-b last:border-b-0 ${theme === 'dark' ? 'border-border' : 'border-gray-150'}`}>
+                                        <td className="p-2 font-medium">{row.subject}</td>
+                                        <td className="p-2">{row.date}</td>
+                                        <td className="p-2 text-muted-foreground">{row.time}</td>
+                                        <td className="p-2">{row.room}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </div>
-                <Badge variant="secondary" className={`text-xs shrink-0 ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-800'}`}>
-                  New
-                </Badge>
+                <div className="flex flex-col items-end justify-between h-full shrink-0">
+                  <Badge variant="secondary" className={`text-xs ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-800'}`}>
+                    New
+                  </Badge>
+                  {item.created_at && (
+                    <span className="text-[10px] text-muted-foreground">
+                      {format(parseISO(item.created_at), "dd MMM, p")}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           );

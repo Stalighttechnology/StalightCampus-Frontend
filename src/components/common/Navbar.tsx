@@ -42,6 +42,46 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
   const { theme, toggleTheme } = useTheme();
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  const parseNotificationMessage = (message: string) => {
+    if (!message) return { cleanMessage: '', examData: null };
+    
+    const lowerMsg = message.toLowerCase();
+    if (!lowerMsg.includes("detailed schedule:")) {
+      return { cleanMessage: message, examData: null };
+    }
+    
+    const matchIndex = lowerMsg.indexOf("detailed schedule:");
+    const cleanMessage = message.substring(0, matchIndex).trim();
+    const tablePart = message.substring(matchIndex + "detailed schedule:".length);
+    
+    const examData: any[] = [];
+    const lines = tablePart.split("\n");
+    lines.forEach(line => {
+      if (line.includes("|") && !line.includes("---")) {
+        const rowParts = line.split("|").map(p => p.trim());
+        const filteredParts = rowParts.filter((_, idx) => {
+          if (idx === 0 && rowParts[0] === "") return false;
+          if (idx === rowParts.length - 1 && rowParts[rowParts.length - 1] === "") return false;
+          return true;
+        });
+        
+        if (filteredParts.length >= 3) {
+          const subject = filteredParts[0];
+          if (subject.toLowerCase() === "subject" || subject.toLowerCase() === "") return;
+          
+          examData.push({
+            subject: subject,
+            date: filteredParts[1] || "",
+            time: filteredParts[2] || "",
+            room: filteredParts[3] || "TBD"
+          });
+        }
+      }
+    });
+    
+    return { cleanMessage, examData: examData.length > 0 ? examData : null };
+  };
+
   const [childrenList, setChildrenList] = useState<any[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(localStorage.getItem('selectedStudentId'));
   const [showParentDropdown, setShowParentDropdown] = useState(false);
@@ -338,34 +378,69 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                     Notifications
                   </div>                  <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
                     {localNotifications.length > 0 ? (
-                      localNotifications.map((notif: any) => (
-                        <div key={notif.id} className="px-4 py-3 border-b text-sm flex flex-col hover:bg-muted/50 transition-colors">
-                          <span className="font-medium">{notif.title}</span>
-                          <span className="text-muted-foreground mt-1 line-clamp-2">{notif.message}</span>
-                          {notif.message && notif.message.length > 80 && (
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="link" className="p-0 h-auto text-xs text-primary justify-start font-semibold mt-1">
-                                  Show More
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className={`w-[90vw] sm:w-full sm:max-w-md rounded-xl p-6 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
-                                <DialogHeader>
-                                  <DialogTitle className="text-lg font-semibold">{notif.title}</DialogTitle>
-                                </DialogHeader>
-                                <div className="mt-4 text-sm leading-relaxed whitespace-pre-wrap break-words max-h-60 overflow-y-auto custom-scrollbar">
-                                  {notif.message}
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                          )}
+                      localNotifications.map((notif: any) => {
+                        const { cleanMessage, examData } = parseNotificationMessage(notif.message);
+                        const isLong = (cleanMessage && cleanMessage.length > 80) || examData !== null;
+                        const previewMessage = (cleanMessage && cleanMessage.length > 80) ? `${cleanMessage.slice(0, 80)}...` : cleanMessage;
+
+                        return (
+                          <div key={notif.id} className="px-4 py-3 border-b text-sm flex flex-col hover:bg-muted/50 transition-colors">
+                            <span className="font-medium">{notif.title}</span>
+                            <span className="text-muted-foreground mt-1 line-clamp-2">{previewMessage}</span>
+                            {isLong && (
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="link" className="p-0 h-auto text-xs text-primary justify-start font-semibold mt-1">
+                                    Show More
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className={`w-[90vw] sm:w-full sm:max-w-md rounded-xl p-6 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+                                  <DialogHeader>
+                                    <DialogTitle className="text-lg font-semibold">{notif.title}</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="mt-4 space-y-4 max-h-80 overflow-y-auto custom-scrollbar pr-1">
+                                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                                      {cleanMessage}
+                                    </p>
+                                    {examData && examData.length > 0 && (
+                                      <div className="space-y-2">
+                                        <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">Detailed Schedule</h4>
+                                        <div className={`overflow-hidden rounded-lg border text-[11px] ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                                          <table className="w-full text-left border-collapse">
+                                            <thead>
+                                              <tr className={`border-b ${theme === 'dark' ? 'bg-muted/40 border-border text-muted-foreground' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
+                                                <th className="p-2 font-semibold">Subject</th>
+                                                <th className="p-2 font-semibold">Date</th>
+                                                <th className="p-2 font-semibold">Time</th>
+                                                <th className="p-2 font-semibold">Room</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                              {examData.map((row, idx) => (
+                                                <tr key={idx} className={`border-b last:border-b-0 ${theme === 'dark' ? 'border-border' : 'border-gray-150'}`}>
+                                                  <td className="p-2 font-medium">{row.subject}</td>
+                                                  <td className="p-2">{row.date}</td>
+                                                  <td className="p-2 text-muted-foreground">{row.time}</td>
+                                                  <td className="p-2">{row.room}</td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            )}
                           <span className="text-xs text-muted-foreground/70 mt-2">
                             {new Date(notif.created_at).toLocaleString(undefined, {
                               month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                             })}
                           </span>
                         </div>
-                      ))
+                      );
+                    })
                     ) : (
                       <div className="px-4 py-8 text-center text-sm text-muted-foreground">
                         No recent notifications

@@ -265,7 +265,7 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
       <Card id="student-assignments-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <div id="student-assignments-header-stats">
           <CardHeader className="p-3 sm:p-4 lg:p-6 border-b">
-            <h1 className={`text-2xl sm:text-3xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Assignments</h1>
+            <h1 className={`text-2xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Assignments</h1>
             <p className={`text-sm sm:text-base mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
               Track, view, and submit your academic assignments and projects.
             </p>

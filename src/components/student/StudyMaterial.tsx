@@ -275,7 +275,7 @@ const StudyMaterialsStudent = () => {
     <div className={`w-full max-w-full overflow-hidden ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       <Card id="study-materials-card" className={`w-full max-w-full overflow-hidden ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <CardHeader id="study-materials-header" className="p-3 sm:p-4 lg:p-6 border-b">
-          <h1 className={`text-2xl sm:text-3xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Study Materials</h1>
+          <h1 className={`text-2xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Study Materials</h1>
           <p className={`text-sm sm:text-base mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
             Access and download study materials shared by your professors.
           </p>
