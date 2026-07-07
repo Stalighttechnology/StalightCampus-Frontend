@@ -3,7 +3,7 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { FCM } from '@capacitor-community/fcm';
 import { requestForToken } from '../lib/firebase';
 import { API_ENDPOINT } from './config';
-import { showSuccessAlert, showErrorAlert, showInfoAlert } from './sweetalert';
+import { showSuccessAlert, showErrorAlert, showInfoAlert, showConfirmAlert } from './sweetalert';
 
 export const handleNotificationToggle = async (
   checked: boolean,
@@ -103,7 +103,10 @@ export const handleNotificationToggle = async (
           }
         } else {
           setNotificationsEnabled(false);
-          showErrorAlert('Error', 'Failed to retrieve web notification token.');
+          showErrorAlert(
+            'Action Required', 
+            'Failed to retrieve web notification token. To enable or disable push notifications, please open this app in Google Chrome.'
+          );
         }
       } else {
         const token = await requestForToken();
