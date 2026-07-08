@@ -412,7 +412,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Reimbursements & Claims", page: "reimbursements" },
       { name: "My Salary & Payroll", page: "my-payroll" },
       { name: "Profile", page: "hod-profile" },
-      { name: "Act as Teacher", page: "act-as-teacher" },
+      { name: "Act as Faculty", page: "act-as-teacher" },
     ],
     faculty: [
       { name: "Dashboard", page: "dashboard" },
@@ -627,9 +627,6 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   };
 
   if (user?.role === 'hod') {
-    if (role === 'hod') {
-      menuItems['hod'].push({ name: "Act as Teacher", page: "act-as-teacher" });
-    }
     if (role === 'faculty') {
       menuItems['faculty'] = menuItems['faculty'].filter(item => item.page !== 'apply-leave' && item.page !== 'faculty-attendance');
       menuItems['faculty'].push({ name: "Return to HOD", page: "return-to-hod" });

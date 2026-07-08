@@ -288,6 +288,30 @@ const StaffTaskTracker = () => {
   };
 
   const handleUpdateStatus = async (taskId: number, newStatus: string) => {
+    if (newStatus === 'in_progress') {
+      const result = await Swal.fire({
+        title: 'Start Task?',
+        text: 'Are you ready to start working on this task?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, start it!',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#3b82f6',
+      });
+      if (!result.isConfirmed) return;
+    } else if (newStatus === 'completed') {
+      const result = await Swal.fire({
+        title: 'Mark as Completed?',
+        text: 'Are you sure you want to mark this task as completed?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, complete it!',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#10b981',
+      });
+      if (!result.isConfirmed) return;
+    }
+
     // Optimistic UI update
     const previousMyTasks = [...myTasks];
     const previousAssignedTasks = [...assignedTasks];
@@ -380,13 +404,18 @@ const StaffTaskTracker = () => {
           </div>
 
           {isReceived && task.status !== 'completed' && (
-            <div className="flex gap-2 mt-4 pt-4 border-t border-border">
+            <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-border">
               {task.status === 'pending' && (
-                <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(task.id, 'in_progress')}>
+                <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(task.id, 'in_progress')} className="w-full sm:w-auto">
                   Start Task
                 </Button>
               )}
-              <Button size="sm" onClick={() => handleUpdateStatus(task.id, 'completed')} className="bg-green-600 hover:bg-green-700 text-white">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleUpdateStatus(task.id, 'completed')}
+                className="w-full sm:w-auto border-green-500 text-green-700 bg-green-50 hover:bg-green-100 hover:text-green-800 dark:border-green-500 dark:text-green-400 dark:bg-green-500/10 dark:hover:bg-green-500/20 dark:hover:text-green-300"
+              >
                 <CheckCircle2 className="w-4 h-4 mr-2" /> Mark Completed
               </Button>
             </div>
