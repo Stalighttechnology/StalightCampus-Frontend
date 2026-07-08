@@ -159,6 +159,19 @@ export default function ScheduleMeeting() {
     }
   }, [branches, userRole, user]);
 
+  useEffect(() => {
+    if (showDialog) {
+      const freshVals = getInitialScheduleState();
+      setDate(freshVals.date);
+      setStartHour(freshVals.startHour);
+      setStartMinute(freshVals.startMinute);
+      setStartPeriod(freshVals.startPeriod);
+      setEndHour(freshVals.endHour);
+      setEndMinute(freshVals.endMinute);
+      setEndPeriod(freshVals.endPeriod);
+    }
+  }, [showDialog]);
+
   const getTargetRolesForUser = (role: string) => {
     switch (role) {
       case "principal":
@@ -393,245 +406,238 @@ export default function ScheduleMeeting() {
           
           {!['warden', 'library_admin', 'transport_admin'].includes(userRole || '') && (
             <Dialog open={showDialog} onOpenChange={setShowDialog}>
-              <DialogTrigger asChild onClick={() => {
-                const freshVals = getInitialScheduleState();
-                setDate(freshVals.date);
-                setStartHour(freshVals.startHour);
-                setStartMinute(freshVals.startMinute);
-                setStartPeriod(freshVals.startPeriod);
-                setEndHour(freshVals.endHour);
-                setEndMinute(freshVals.endMinute);
-                setEndPeriod(freshVals.endPeriod);
-              }}>
+              <DialogTrigger asChild>
                 <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Meeting
                 </Button>
               </DialogTrigger>
-              <DialogContent className={`w-[90%] rounded-2xl max-h-[80vh] overflow-y-auto sm:max-w-[650px] custom-scrollbar ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-                <DialogHeader>
-                  <DialogTitle>Create New Meeting</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="title">Meeting Title *</Label>
-                    <Input 
-                      id="title" 
-                      value={formData.title} 
-                      onChange={e => setFormData({...formData, title: e.target.value})} 
-                      placeholder="e.g. Urgent Faculty Sync"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea 
-                      id="description" 
-                      value={formData.description} 
-                      onChange={e => setFormData({...formData, description: e.target.value})} 
-                      placeholder="Meeting agenda..."
-                      rows={2}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-3">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5" /> Date <span className="text-destructive">*</span>
-                      </label>
-                      <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal h-10 px-3 relative pl-10",
-                              !date && "text-muted-foreground",
-                              theme === 'dark' ?
-                                'bg-background border-border text-foreground hover:bg-muted/50' :
-                                'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                            )}
-                          >
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-                            <span className="truncate text-xs">
-                              {date ? format(new Date(date), "dd-MM-yyyy") : "dd-mm-yyyy"}
-                            </span>
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 rounded-xl shadow-xl" align="start">
-                          <ShadcnCalendar
-                             mode="single"
-                             selected={date ? new Date(date) : undefined}
-                             onSelect={(d) => {
-                               setDate(d ? format(d, "yyyy-MM-dd") : "");
-                               setIsCalendarOpen(false);
-                             }}
-                             disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
-                             initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-
-                  {['dean', 'coe', 'principal', 'org_admin', 'admission_manager'].includes(userRole || '') && (
+              {showDialog && (
+                <DialogContent className={`w-[90%] rounded-2xl max-h-[80vh] overflow-y-auto sm:max-w-[650px] custom-scrollbar duration-0 animate-none ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+                  <DialogHeader>
+                    <DialogTitle>Create New Meeting</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="branch">Branch (Optional)</Label>
-                      <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                        <SelectTrigger id="branch" className="w-full h-10 px-3 text-xs">
-                          <SelectValue placeholder="All Branches" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[200px]">
-                          <SelectItem value="all-branches">All Branches</SelectItem>
-                          {branches.map(b => (
-                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Label htmlFor="title">Meeting Title *</Label>
+                      <Input 
+                        id="title" 
+                        value={formData.title} 
+                        onChange={e => setFormData({...formData, title: e.target.value})} 
+                        placeholder="e.g. Urgent Faculty Sync"
+                      />
                     </div>
-                  )}
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" /> Start Time <span className="text-destructive">*</span>
-                      </label>
-                      <div className="flex items-center gap-1">
-                        <Select value={startHour} onValueChange={setStartHour}>
-                          <SelectTrigger className="w-full h-10 px-2 text-xs">
-                            <SelectValue placeholder="Hr" />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[200px]">
-                            {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
-                              <SelectItem key={h} value={h}>{h}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <span className="font-semibold text-xs">:</span>
-                        <Select value={startMinute} onValueChange={setStartMinute}>
-                          <SelectTrigger className="w-full h-10 px-2 text-xs">
-                            <SelectValue placeholder="Min" />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[200px]">
-                            {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")).map((m) => (
-                              <SelectItem key={m} value={m}>{m}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Select value={startPeriod} onValueChange={setStartPeriod}>
-                          <SelectTrigger className="w-full h-10 px-2 text-xs">
-                            <SelectValue placeholder="AM/PM" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="AM">AM</SelectItem>
-                            <SelectItem value="PM">PM</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea 
+                        id="description" 
+                        value={formData.description} 
+                        onChange={e => setFormData({...formData, description: e.target.value})} 
+                        placeholder="Meeting agenda..."
+                        rows={2}
+                      />
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" /> End Time <span className="text-destructive">*</span>
-                      </label>
-                      <div className="flex items-center gap-1">
-                        <Select value={endHour} onValueChange={setEndHour}>
-                          <SelectTrigger className="w-full h-10 px-2 text-xs">
-                            <SelectValue placeholder="Hr" />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[200px]">
-                            {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
-                              <SelectItem key={h} value={h}>{h}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <span className="font-semibold text-xs">:</span>
-                        <Select value={endMinute} onValueChange={setEndMinute}>
-                          <SelectTrigger className="w-full h-10 px-2 text-xs">
-                            <SelectValue placeholder="Min" />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[200px]">
-                            {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")).map((m) => (
-                              <SelectItem key={m} value={m}>{m}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Select value={endPeriod} onValueChange={setEndPeriod}>
-                          <SelectTrigger className="w-full h-10 px-2 text-xs">
-                            <SelectValue placeholder="AM/PM" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="AM">AM</SelectItem>
-                            <SelectItem value="PM">PM</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Target Roles (Select at least one) *</Label>
-                      <div 
-                        className="flex items-center space-x-2 cursor-pointer select-none"
-                        onClick={() => handleSelectAllToggle(!isAllSelected)}
-                      >
-                        <Checkbox 
-                          id="select-all-roles"
-                          checked={isAllSelected}
-                          onCheckedChange={handleSelectAllToggle}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <label 
-                          htmlFor="select-all-roles"
-                          className="text-xs font-semibold leading-none cursor-pointer text-primary"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Select All
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5" /> Date <span className="text-destructive">*</span>
                         </label>
+                        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal h-10 px-3 relative pl-10",
+                                !date && "text-muted-foreground",
+                                theme === 'dark' ?
+                                  'bg-background border-border text-foreground hover:bg-muted/50' :
+                                  'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                              )}
+                            >
+                              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                              <span className="truncate text-xs">
+                                {date ? format(new Date(date), "dd-MM-yyyy") : "dd-mm-yyyy"}
+                              </span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 rounded-xl shadow-xl" align="start">
+                            <ShadcnCalendar
+                               mode="single"
+                               selected={date ? new Date(date) : undefined}
+                               onSelect={(d) => {
+                                 setDate(d ? format(d, "yyyy-MM-dd") : "");
+                                 setIsCalendarOpen(false);
+                               }}
+                               disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                               initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-52 overflow-y-auto p-1 custom-scrollbar">
-                      {filteredRoles.map(role => (
+
+                    {['dean', 'coe', 'principal', 'org_admin', 'admission_manager'].includes(userRole || '') && (
+                      <div className="grid gap-2">
+                        <Label htmlFor="branch">Branch (Optional)</Label>
+                        <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                          <SelectTrigger id="branch" className="w-full h-10 px-3 text-xs">
+                            <SelectValue placeholder="All Branches" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[200px]">
+                            <SelectItem value="all-branches">All Branches</SelectItem>
+                            {branches.map(b => (
+                              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" /> Start Time <span className="text-destructive">*</span>
+                        </label>
+                        <div className="flex items-center gap-1">
+                          <Select value={startHour} onValueChange={setStartHour}>
+                            <SelectTrigger className="w-full h-10 px-2 text-xs">
+                              <SelectValue placeholder="Hr" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[200px]">
+                              {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
+                                <SelectItem key={h} value={h}>{h}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <span className="font-semibold text-xs">:</span>
+                          <Select value={startMinute} onValueChange={setStartMinute}>
+                            <SelectTrigger className="w-full h-10 px-2 text-xs">
+                              <SelectValue placeholder="Min" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[200px]">
+                              {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")).map((m) => (
+                                <SelectItem key={m} value={m}>{m}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Select value={startPeriod} onValueChange={setStartPeriod}>
+                            <SelectTrigger className="w-full h-10 px-2 text-xs">
+                              <SelectValue placeholder="AM/PM" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="AM">AM</SelectItem>
+                              <SelectItem value="PM">PM</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" /> End Time <span className="text-destructive">*</span>
+                        </label>
+                        <div className="flex items-center gap-1">
+                          <Select value={endHour} onValueChange={setEndHour}>
+                            <SelectTrigger className="w-full h-10 px-2 text-xs">
+                              <SelectValue placeholder="Hr" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[200px]">
+                              {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
+                                <SelectItem key={h} value={h}>{h}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <span className="font-semibold text-xs">:</span>
+                          <Select value={endMinute} onValueChange={setEndMinute}>
+                            <SelectTrigger className="w-full h-10 px-2 text-xs">
+                              <SelectValue placeholder="Min" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[200px]">
+                              {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")).map((m) => (
+                                <SelectItem key={m} value={m}>{m}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Select value={endPeriod} onValueChange={setEndPeriod}>
+                            <SelectTrigger className="w-full h-10 px-2 text-xs">
+                              <SelectValue placeholder="AM/PM" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="AM">AM</SelectItem>
+                              <SelectItem value="PM">PM</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <div className="flex items-center justify-between">
+                        <Label>Target Roles (Select at least one) *</Label>
                         <div 
-                          key={role.id} 
-                          className={`flex items-center space-x-3 cursor-pointer select-none p-3 border rounded-xl transition-all hover:bg-muted/30 ${
-                            formData.target_roles.includes(role.id)
-                              ? 'border-primary bg-primary/5 shadow-sm' 
-                              : theme === 'dark' ? 'border-border bg-card/40' : 'border-gray-200 bg-white'
-                          }`}
-                          onClick={() => handleRoleToggle(role.id)}
+                          className="flex items-center space-x-2 cursor-pointer select-none"
+                          onClick={() => handleSelectAllToggle(!isAllSelected)}
                         >
                           <Checkbox 
-                            id={`role-${role.id}`}
-                            checked={formData.target_roles.includes(role.id)}
-                            onCheckedChange={() => handleRoleToggle(role.id)}
+                            id="select-all-roles"
+                            checked={isAllSelected}
+                            onCheckedChange={handleSelectAllToggle}
                             onClick={(e) => e.stopPropagation()}
                           />
                           <label 
-                            htmlFor={`role-${role.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer w-full"
+                            htmlFor="select-all-roles"
+                            className="text-xs font-semibold leading-none cursor-pointer text-primary"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            {role.label}
+                            Select All
                           </label>
                         </div>
-                      ))}
+                      </div>
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-52 overflow-y-auto p-1 custom-scrollbar">
+                        {filteredRoles.map(role => (
+                          <div 
+                            key={role.id} 
+                            className={`flex items-center space-x-3 cursor-pointer select-none p-3 border rounded-xl transition-all hover:bg-muted/30 ${
+                              formData.target_roles.includes(role.id)
+                                ? 'border-primary bg-primary/5 shadow-sm' 
+                                : theme === 'dark' ? 'border-border bg-card/40' : 'border-gray-200 bg-white'
+                            }`}
+                            onClick={() => handleRoleToggle(role.id)}
+                          >
+                            <Checkbox 
+                              id={`role-${role.id}`}
+                              checked={formData.target_roles.includes(role.id)}
+                              onCheckedChange={() => handleRoleToggle(role.id)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <label 
+                              htmlFor={`role-${role.id}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer w-full"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {role.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-                {validationError && (
-                  <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400">
-                    <svg className="mt-0.5 h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>
-                    <span>{validationError}</span>
-                  </div>
-                )}
-                <DialogFooter className="gap-2 sm:gap-0">
-                  <Button variant="outline" onClick={() => setShowDialog(false)}>Cancel</Button>
-                  <Button onClick={handleCreateMeeting} disabled={submitting}>
-                    {submitting ? "Creating..." : "Create & Generate Meet"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
+                  {validationError && (
+                    <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400">
+                      <svg className="mt-0.5 h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>
+                      <span>{validationError}</span>
+                    </div>
+                  )}
+                  <DialogFooter className="gap-2 sm:gap-0">
+                    <Button variant="outline" onClick={() => setShowDialog(false)}>Cancel</Button>
+                    <Button onClick={handleCreateMeeting} disabled={submitting}>
+                      {submitting ? "Creating..." : "Create & Generate Meet"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              )}
             </Dialog>
           )}
         </CardHeader>
