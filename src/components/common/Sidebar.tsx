@@ -513,6 +513,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Admin Leaves", page: "admin-leaves" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "My Salary & Payroll", page: "my-payroll" },
+      { name: "My Attendance", page: "my-attendance" },
       { name: "Profile", page: "profile" },
     ],
     hms: [

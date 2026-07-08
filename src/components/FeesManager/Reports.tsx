@@ -72,7 +72,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
 
   const filteredRoles = (userTier <= 2 
     ? STAFF_ROLES.filter(r => ['principal', 'hod', 'teacher', 'coe', 'fees_manager'].includes(r.value))
-    : STAFF_ROLES).filter(r => r.value !== 'dean');
+    : STAFF_ROLES);
 
   // Calendar Detailed View
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);

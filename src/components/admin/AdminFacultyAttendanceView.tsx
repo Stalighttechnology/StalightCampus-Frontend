@@ -814,9 +814,9 @@ const AdminFacultyAttendanceView: React.FC = () => {
                               {record.location ?
                                 <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} location-text`}>
                                   {record.location.inside ?
-                                    <>On campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</> :
-
-                                    <>Outside campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</>
+                                    <>On campus • {record.location.distance_meters !== null && record.location.distance_meters !== undefined ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</> :
+                                    
+                                    <>Outside campus • {record.location.distance_meters !== null && record.location.distance_meters !== undefined ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</>
                                   }
                                   {record.location.campus_name ? ` • ${record.location.campus_name}` : ''}
                                 </div> :
