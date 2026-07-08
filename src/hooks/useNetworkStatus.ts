@@ -98,46 +98,45 @@ export function useNetworkStatus() {
   const pollRef = useRef<number | null>(null);
   const failureCountRef = useRef(0);
   const successCountRef = useRef(0);
+  const isReachableRef = useRef(true);
 
-  useEffect(() => {
-    let mounted = true;
+    useEffect(() => {
+      let mounted = true;
 
-    async function runProbe() {
-      let ok = await probeInternet();
-      
-      // If it fails, do a quick retry (useful when app just wakes up/reopens)
-      if (!ok && mounted) {
-        await new Promise(r => setTimeout(r, 1500));
-        if (!mounted) return;
-        ok = await probeInternet();
-      }
-
-      if (!mounted) return;
-      if (import.meta.env?.DEV) console.debug("useNetworkStatus probe ->", ok);
-
-      if (ok) {
-        // reset failure counter and mark reachable
-        failureCountRef.current = 0;
-        successCountRef.current += 1;
-        if (!isReachable) {
-          // only update if previously unreachable
-          setIsReachable(true);
-          setLastChangedAt(Date.now());
+      async function runProbe() {
+        let ok = await probeInternet();
+        
+        if (!ok && mounted) {
+          await new Promise(r => setTimeout(r, 1500));
+          if (!mounted) return;
+          ok = await probeInternet();
         }
-      } else {
-        failureCountRef.current += 1;
-        // only mark unreachable after threshold
-        if (failureCountRef.current >= FAILURE_THRESHOLD) {
-          if (isReachable) {
-            setIsReachable(false);
+
+        if (!mounted) return;
+        if (import.meta.env?.DEV) console.debug("useNetworkStatus probe ->", ok);
+
+        if (ok) {
+          failureCountRef.current = 0;
+          successCountRef.current += 1;
+          if (!isReachableRef.current) {
+            isReachableRef.current = true;
+            setIsReachable(true);
             setLastChangedAt(Date.now());
+          }
+        } else {
+          failureCountRef.current += 1;
+          if (failureCountRef.current >= FAILURE_THRESHOLD) {
+            if (isReachableRef.current) {
+              isReachableRef.current = false;
+              setIsReachable(false);
+              setLastChangedAt(Date.now());
+            }
           }
         }
       }
-    }
 
-    // Initial check
-    runProbe();
+      // Initial check
+      runProbe();
 
     function handleOnline() {
       setIsNavigatorOnline(true);
@@ -150,6 +149,7 @@ export function useNetworkStatus() {
       setTimeout(() => {
         if (!navigator.onLine) {
           setIsNavigatorOnline(false);
+          isReachableRef.current = false;
           setIsReachable(false);
           setLastChangedAt(Date.now());
         }
