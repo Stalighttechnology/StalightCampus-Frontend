@@ -156,10 +156,27 @@ export function useNetworkStatus() {
       }, 2000);
     }
 
+    function startPolling() {
+      if (!pollRef.current) {
+        pollRef.current = window.setInterval(runProbe, POLL_INTERVAL);
+      }
+    }
+
+    function stopPolling() {
+      if (pollRef.current) {
+        window.clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    }
+
     function handleFocusOrVisibility() {
       if (document.visibilityState === "visible" || !document.hidden) {
-        // Only trigger probe when returning to foreground, not when going to background
+        // Only trigger probe when returning to foreground
+        startPolling();
         runProbe();
+      } else {
+        // Pause polling when app goes to background to prevent false offline alerts
+        stopPolling();
       }
     }
 
@@ -168,8 +185,10 @@ export function useNetworkStatus() {
     window.addEventListener("focus", handleFocusOrVisibility);
     document.addEventListener("visibilitychange", handleFocusOrVisibility);
 
-    // Start polling
-    pollRef.current = window.setInterval(runProbe, POLL_INTERVAL);
+    // Start polling initially if visible
+    if (document.visibilityState === "visible" || !document.hidden) {
+      startPolling();
+    }
 
     return () => {
       mounted = false;
@@ -177,7 +196,7 @@ export function useNetworkStatus() {
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("focus", handleFocusOrVisibility);
       document.removeEventListener("visibilitychange", handleFocusOrVisibility);
-      if (pollRef.current) window.clearInterval(pollRef.current);
+      stopPolling();
     };
   }, []);
 
