@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Loader2, Mail, Send, Plus } from 'lucide-react';
+import { SkeletonList } from '../ui/skeleton';
 import { showSuccessAlert, showErrorAlert } from '../../utils/sweetalert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -62,28 +63,8 @@ export default function AdmissionCommunication() {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <Card className="border-border">
-          <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">
-            <div className="space-y-2">
-              <div className="h-6 w-48 bg-muted rounded" />
-              <div className="h-3.5 w-80 bg-muted rounded" />
-            </div>
-            <div className="h-9 w-32 bg-muted rounded" />
-          </CardHeader>
-          <CardContent className="pt-6 space-y-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex justify-between items-start p-4 border border-border rounded-xl">
-                <div className="space-y-2 flex-1">
-                  <div className="h-5 w-44 bg-muted rounded" />
-                  <div className="h-3 w-5/6 bg-muted rounded" />
-                  <div className="h-3 w-2/3 bg-muted rounded" />
-                </div>
-                <div className="h-6 w-16 bg-muted rounded-full ml-4" />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+      <div className="space-y-6">
+        <SkeletonList items={4} />
       </div>
     );
   }

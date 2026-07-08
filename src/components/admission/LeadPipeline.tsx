@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Skeleton } from '../ui/skeleton';
 import LeadDetailsView from './LeadDetailsView';
 import { User as UserIcon, AlertCircle, Clock } from 'lucide-react';
 import { useAuth } from "../../context/AuthContext";
@@ -105,27 +106,27 @@ const LeadPipeline: React.FC = () => {
 
   if (loading) {
     return (
-      <Card className="flex flex-col h-[calc(100vh-140px)] overflow-hidden animate-pulse border-border">
+      <Card className="flex flex-col h-[calc(100vh-140px)] overflow-hidden border-border">
         <CardHeader className="border-b pb-4 flex flex-row justify-between items-center">
           <div className="space-y-2">
-            <div className="h-6 w-32 bg-muted rounded" />
-            <div className="h-4 w-80 bg-muted rounded" />
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-4 w-80" />
           </div>
         </CardHeader>
         <CardContent className="flex-1 min-h-0 p-6 flex gap-0 overflow-x-auto overflow-y-hidden items-stretch">
           {[1, 2, 3, 4].map((stageId) => (
             <div key={stageId} className="min-w-[280px] w-[280px] flex flex-col h-full border-r border-border last:border-r-0 px-4">
               <div className="flex justify-between items-center mb-4 border-b border-border/50 pb-3">
-                <div className="h-4 w-24 bg-muted rounded" />
-                <div className="h-4 w-6 bg-muted rounded" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-6" />
               </div>
               <div className="space-y-3 flex-1 overflow-y-auto">
                 {[1, 2].map((cardId) => (
                   <Card key={cardId} className="border border-border">
                     <CardContent className="p-3 flex flex-col gap-2">
-                      <div className="h-4 w-3/4 bg-muted rounded" />
-                      <div className="h-3 w-1/2 bg-muted rounded" />
-                      <div className="h-3 w-2/3 bg-muted rounded" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-3 w-2/3" />
                     </CardContent>
                   </Card>
                 ))}

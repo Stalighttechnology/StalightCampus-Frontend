@@ -5,6 +5,7 @@ import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Loader2, DollarSign, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { SkeletonTable } from '../ui/skeleton';
 
 export default function AdmissionFees() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -55,38 +56,8 @@ export default function AdmissionFees() {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <Card className="border-border">
-          <CardHeader>
-            <div className="h-6 w-56 bg-muted rounded" />
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-muted/50 border-b border-border">
-                  <tr>
-                    {[1, 2, 3, 4].map((i) => (
-                      <th key={i} className="px-6 py-4">
-                        <div className="h-4 w-20 bg-muted rounded" />
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {[1, 2, 3, 4, 5].map((row) => (
-                    <tr key={row}>
-                      {[1, 2, 3, 4].map((col) => (
-                        <td key={col} className="px-6 py-4">
-                          <div className="h-4 bg-muted rounded w-24" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="space-y-6">
+        <SkeletonTable rows={5} cols={4} />
       </div>
     );
   }

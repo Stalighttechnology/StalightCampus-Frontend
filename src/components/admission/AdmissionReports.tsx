@@ -8,6 +8,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from '../../context/ThemeContext';
+import { SkeletonStatsGrid, SkeletonForm } from '../ui/skeleton';
 
 export default function AdmissionReports() {
   const [analytics, setAnalytics] = useState<any>(null);
@@ -37,42 +38,9 @@ export default function AdmissionReports() {
 
   if (loading || !analytics) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="border-border">
-              <CardContent className="p-6 space-y-4">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <div className="h-3 w-24 bg-muted rounded" />
-                    <div className="h-8 w-16 bg-muted rounded" />
-                  </div>
-                  <div className="w-10 h-10 bg-muted rounded-xl" />
-                </div>
-                <div className="h-3 w-40 bg-muted rounded" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        <Card className="border-border">
-          <CardHeader className="border-b pb-4">
-            <div className="h-6 w-56 bg-muted rounded" />
-            <div className="h-3.5 w-80 bg-muted rounded mt-2" />
-          </CardHeader>
-          <CardContent className="pt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="space-y-2">
-                  <div className="h-3.5 w-20 bg-muted rounded" />
-                  <div className="h-10 w-full bg-muted rounded" />
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-start gap-4">
-              <div className="h-10 w-32 bg-muted rounded" />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="space-y-6">
+        <SkeletonStatsGrid items={3} columns={3} />
+        <SkeletonForm fields={4} />
       </div>
     );
   }

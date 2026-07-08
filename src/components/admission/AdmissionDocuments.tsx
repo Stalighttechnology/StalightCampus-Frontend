@@ -5,6 +5,7 @@ import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Loader2, FileText, CheckCircle, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { SkeletonCard } from '../ui/skeleton';
 import Swal from 'sweetalert2';
 
 export default function AdmissionDocuments() {
@@ -64,31 +65,9 @@ export default function AdmissionDocuments() {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <Card className="border-border">
-          <CardHeader>
-            <div className="h-6 w-48 bg-muted rounded" />
-            <div className="h-3.5 w-80 bg-muted rounded mt-2" />
-          </CardHeader>
-          <CardContent className="pt-6 space-y-6">
-            {[1, 2].map((i) => (
-              <Card key={i} className="border-border shadow-sm p-4 space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-border">
-                  <div className="space-y-2">
-                    <div className="h-5 w-44 bg-muted rounded" />
-                    <div className="h-3 w-56 bg-muted rounded" />
-                  </div>
-                  <div className="h-9 w-28 bg-muted rounded" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {[1, 2, 3].map((j) => (
-                    <div key={j} className="h-9 bg-muted rounded w-full" />
-                  ))}
-                </div>
-              </Card>
-            ))}
-          </CardContent>
-        </Card>
+      <div className="space-y-6">
+        <SkeletonCard />
+        <SkeletonCard />
       </div>
     );
   }

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Loader2, UserCheck, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { SkeletonTable } from '../ui/skeleton';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Swal from 'sweetalert2';
@@ -116,38 +117,8 @@ export default function AdmissionApplications() {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <Card className="border-border">
-          <CardHeader>
-            <div className="h-6 w-48 bg-muted rounded" />
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] text-sm text-left">
-                <thead className="bg-muted/50 border-b border-border">
-                  <tr>
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <th key={i} className="px-6 py-4 whitespace-nowrap">
-                        <div className="h-4 w-24 bg-muted rounded" />
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {[1, 2, 3, 4, 5].map((row) => (
-                    <tr key={row}>
-                      {[1, 2, 3, 4, 5].map((col) => (
-                        <td key={col} className="px-6 py-4 whitespace-nowrap">
-                          <div className="h-4 bg-muted rounded w-28" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="space-y-6">
+        <SkeletonTable rows={5} cols={5} />
       </div>
     );
   }

@@ -5,6 +5,7 @@ import { Users, FileText, CheckCircle, UserCheck, AlertCircle, BarChart2 } from 
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { useAuth } from "../../context/AuthContext";
+import { SkeletonStatsGrid, SkeletonChart } from "../ui/skeleton";
 import { useTheme } from "../../context/ThemeContext";
 import { Bar, Pie } from "react-chartjs-2";
 import {
@@ -77,35 +78,10 @@ const AdmissionDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="space-y-6">
-        {/* Stats Grid Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="animate-pulse border-border">
-              <CardContent className="p-6 flex items-center gap-5">
-                <div className="w-14 h-14 rounded-full bg-muted flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 w-20 bg-muted rounded" />
-                  <div className="h-7 w-12 bg-muted rounded" />
-                  <div className="h-3 w-28 bg-muted rounded" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Charts Grid Skeleton */}
+        <SkeletonStatsGrid items={4} columns={4} />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {[1, 2].map((i) => (
-            <Card key={i} className="animate-pulse border-border">
-              <CardHeader className="space-y-2">
-                <div className="h-5 w-40 bg-muted rounded" />
-                <div className="h-3 w-60 bg-muted rounded" />
-              </CardHeader>
-              <CardContent className="h-[300px] flex items-center justify-center">
-                <div className="w-48 h-48 rounded-full border-[12px] border-muted" />
-              </CardContent>
-            </Card>
-          ))}
+          <SkeletonChart />
+          <SkeletonChart />
         </div>
       </div>
     );

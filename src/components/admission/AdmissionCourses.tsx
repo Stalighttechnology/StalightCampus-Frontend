@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2, Edit, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { SkeletonTable } from '../ui/skeleton';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { toast } from 'sonner';
@@ -92,42 +93,8 @@ const AdmissionCourses: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <Card className="border-border">
-          <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">
-            <div className="space-y-2">
-              <div className="h-6 w-36 bg-muted rounded" />
-              <div className="h-3.5 w-72 bg-muted rounded" />
-            </div>
-            <div className="h-9 w-28 bg-muted rounded" />
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-muted/50 border-b border-border">
-                  <tr>
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <th key={i} className="px-6 py-4">
-                        <div className="h-4 w-20 bg-muted rounded" />
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {[1, 2, 3, 4, 5].map((row) => (
-                    <tr key={row}>
-                      {[1, 2, 3, 4, 5].map((col) => (
-                        <td key={col} className="px-6 py-4">
-                          <div className="h-4 bg-muted rounded w-24" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="space-y-6">
+        <SkeletonTable rows={5} cols={5} />
       </div>
     );
   }

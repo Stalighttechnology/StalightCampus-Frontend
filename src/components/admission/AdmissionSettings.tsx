@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from 'sonner';
+import { SkeletonForm } from '../ui/skeleton';
 
 export default function AdmissionSettings() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -79,37 +80,9 @@ export default function AdmissionSettings() {
 
   if (loading) {
     return (
-      <Card className="w-full animate-pulse border-border">
-        <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">
-          <div className="space-y-2">
-            <div className="h-6 w-40 bg-muted rounded" />
-            <div className="h-3.5 w-96 bg-muted rounded" />
-          </div>
-          <div className="h-9 w-32 bg-muted rounded" />
-        </CardHeader>
-        <CardContent className="pt-6 space-y-6">
-          <div className="space-y-4">
-            <div className="h-5 w-48 bg-muted rounded" />
-            <div className="border border-border rounded-xl p-4 space-y-4">
-              <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                <div className="space-y-1">
-                  <div className="h-5 w-40 bg-muted rounded" />
-                  <div className="h-3.5 w-64 bg-muted rounded" />
-                </div>
-                <div className="h-6 w-12 bg-muted rounded-full" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1, 2].map((j) => (
-                  <div key={j} className="space-y-2">
-                    <div className="h-3.5 w-24 bg-muted rounded" />
-                    <div className="h-10 w-full bg-muted rounded" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <SkeletonForm fields={4} />
+      </div>
     );
   }
 

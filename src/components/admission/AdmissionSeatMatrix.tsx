@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Loader2, Plus, Edit, Trash2 } from 'lucide-react';
+import { SkeletonCard } from '../ui/skeleton';
 
 export default function AdmissionSeatMatrix() {
   const [seatMatrix, setSeatMatrix] = useState<any[]>([]);
@@ -29,40 +30,10 @@ export default function AdmissionSeatMatrix() {
 
   if (loading) {
     return (
-      <Card className="w-full animate-pulse border-border">
-        <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">
-          <div className="space-y-2">
-            <div className="h-6 w-32 bg-muted rounded" />
-            <div className="h-3.5 w-80 bg-muted rounded" />
-          </div>
-          <div className="h-9 w-28 bg-muted rounded" />
-        </CardHeader>
-        <CardContent className="pt-6 space-y-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="border border-border rounded-xl p-4 bg-muted/5 space-y-4">
-              <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                <div className="h-5 w-40 bg-muted rounded" />
-                <div className="h-8 w-8 bg-muted rounded-full" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[1, 2, 3].map((j) => (
-                  <div key={j} className="space-y-2">
-                    <div className="h-3 w-16 bg-muted rounded" />
-                    <div className="h-5 w-24 bg-muted rounded" />
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <div className="h-3 w-12 bg-muted rounded" />
-                  <div className="h-3 w-8 bg-muted rounded" />
-                </div>
-                <div className="w-full bg-muted h-3 rounded-full" />
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
     );
   }
 

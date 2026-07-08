@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { crmApi, Lead, LeadActivity, LeadTask } from '../../api/crm_api';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
+import { SkeletonForm } from '../ui/skeleton';
 
 // --- Color helpers ---
 const getTaskUrgency = (task: LeadTask) => {
@@ -205,10 +206,10 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         {loading || !lead ? (
-          <div className="h-[400px] flex flex-col items-center justify-center">
+          <div className="p-6">
             <DialogTitle className="sr-only">Loading Lead</DialogTitle>
             <DialogDescription className="sr-only">Loading lead data...</DialogDescription>
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <SkeletonForm fields={4} />
           </div>
         ) : (
           <div className="flex flex-col h-full gap-6">

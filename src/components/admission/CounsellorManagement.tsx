@@ -9,6 +9,7 @@ import { Loader2, Plus, UserPlus, Edit, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { SkeletonTable } from '../ui/skeleton';
 
 export default function CounsellorManagement() {
   const [counsellors, setCounsellors] = useState<any[]>([]);
@@ -204,9 +205,7 @@ export default function CounsellorManagement() {
         
         <CardContent className={loading || counsellors.length === 0 ? "p-6" : "p-0"}>
           {loading ? (
-            <div className="py-12 flex justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
+            <SkeletonTable rows={5} cols={4} />
           ) : counsellors.length === 0 ? (
             <div className="p-8 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-3 min-h-[350px] border-gray-200 bg-gray-50/50 dark:border-border dark:bg-accent/5">
               <div className="p-3 rounded-full bg-gray-100 dark:bg-accent/10">

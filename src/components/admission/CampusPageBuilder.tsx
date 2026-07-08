@@ -5,6 +5,7 @@ import { Plus, GripVertical, Trash2, Save, MoveUp, MoveDown, Copy, Check, Layout
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { toast } from 'sonner';
+import { Skeleton } from '../ui/skeleton';
 import CampusPageRenderer from '../public/CampusPageRenderer';
 
 interface Block {
@@ -114,33 +115,33 @@ const CampusPageBuilder: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-[calc(100vh-160px)] border rounded-xl bg-background overflow-hidden animate-pulse border-border">
+      <div className="flex flex-col min-h-[calc(100vh-160px)] border rounded-xl bg-background overflow-hidden border-border">
         <div className="flex flex-col lg:flex-row items-center justify-between p-4 lg:px-6 lg:h-16 border-b border-border bg-card gap-4">
           <div className="flex items-center gap-4">
-            <div className="h-6 w-32 bg-muted rounded" />
-            <div className="h-4 w-40 bg-muted rounded" />
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-4 w-40" />
           </div>
           <div className="flex gap-2">
-            <div className="h-9 w-24 bg-muted rounded" />
-            <div className="h-9 w-32 bg-muted rounded" />
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-32" />
           </div>
         </div>
         <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-muted/5">
           {/* Settings panel skeleton */}
           <div className="w-full lg:w-96 border-r border-border bg-card p-6 space-y-6 flex-shrink-0">
             <div className="space-y-2">
-              <div className="h-4 w-24 bg-muted rounded" />
-              <div className="h-10 w-full bg-muted rounded" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full" />
             </div>
             <div className="space-y-2">
-              <div className="h-4 w-28 bg-muted rounded" />
-              <div className="h-32 w-full bg-muted rounded" />
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-32 w-full" />
             </div>
           </div>
           {/* Canvas workspace skeleton */}
           <div className="flex-1 p-6 space-y-6 overflow-y-auto">
-            <div className="h-40 w-full bg-muted rounded-xl" />
-            <div className="h-40 w-full bg-muted rounded-xl" />
+            <Skeleton className="h-40 w-full rounded-xl" />
+            <Skeleton className="h-40 w-full rounded-xl" />
           </div>
         </div>
       </div>
