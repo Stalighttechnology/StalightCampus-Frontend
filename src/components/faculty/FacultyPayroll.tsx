@@ -165,7 +165,7 @@ const FacultyPayroll: React.FC<FacultyPayrollProps> = ({ user }) => {
                 <div className="py-12 text-center text-slate-400">Loading payslips...</div>
               )}
               {!payslipsLoading && payslips.length === 0 && (
-                <div className={`border-2 border-dashed flex flex-col items-center justify-center p-10 text-center space-y-4 rounded-lg ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50'}`}>
+                <div className={`border-2 border-dashed flex flex-col items-center justify-center p-10 min-h-[350px] text-center space-y-4 rounded-lg ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50'}`}>
                   <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                     <FileText className="w-8 h-8 text-primary/70" />
                   </div>
