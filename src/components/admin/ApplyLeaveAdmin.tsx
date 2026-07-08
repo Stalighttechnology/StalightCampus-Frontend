@@ -372,26 +372,28 @@ const ApplyLeaveAdmin = () => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="flex-1 max-h-[500px] overflow-y-auto custom-scrollbar">
-              <div className="overflow-x-auto thin-scrollbar">
-                {/* Mobile: stacked cards */}
-                <div className="md:hidden space-y-3">
-                  {loading ? (
-                    <SkeletonList items={3} />
-                  ) : filteredLeaves.length === 0 ? (
-                    <div className={`flex flex-col items-center justify-center p-8 text-center space-y-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                      <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
-                        <FilterIcon className={`w-8 h-8 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
-                      </div>
-                      <div className="max-w-xs mx-auto text-center">
-                        <h3 className={`text-md font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Leave Requests Found</h3>
-                        <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          There are no leave requests matching the selected status or filters.
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    filteredLeaves.map((leave) => (
+            <CardContent className="flex-1 max-h-[500px] overflow-y-auto custom-scrollbar flex flex-col p-6">
+              {loading ? (
+                <div className="space-y-3 flex-1">
+                  <SkeletonList items={3} />
+                </div>
+              ) : filteredLeaves.length === 0 ? (
+                <div className={`flex flex-col items-center justify-center p-8 md:p-12 text-center space-y-4 rounded-xl border-2 border-dashed flex-1 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                  <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
+                    <FilterIcon className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+                  </div>
+                  <div className="max-w-sm mx-auto text-center">
+                    <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Leave Requests Found</h3>
+                    <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      There are no leave requests matching the selected status or filters.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto thin-scrollbar">
+                  {/* Mobile: stacked cards */}
+                  <div className="md:hidden space-y-3">
+                    {filteredLeaves.map((leave) => (
                       <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
@@ -427,43 +429,21 @@ const ApplyLeaveAdmin = () => {
                           </Button>
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
+                    ))}
+                  </div>
 
-                {/* Desktop / Tablet: table */}
-                <table className="hidden md:table w-full text-sm text-left border-collapse">
-                  <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
-                    <tr>
-                      <th className={`py-2 px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</th>
-                      <th className={`py-2 px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
-                      <th className={`py-2 px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
-                      <th className={`py-2 px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
+                  {/* Desktop / Tablet: table */}
+                  <table className="hidden md:table w-full text-sm text-left border-collapse">
+                    <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
                       <tr>
-                        <td colSpan={4} className="p-4">
-                          <SkeletonList items={3} />
-                        </td>
+                        <th className={`py-2 px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</th>
+                        <th className={`py-2 px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
+                        <th className={`py-2 px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
+                        <th className={`py-2 px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
                       </tr>
-                    ) : filteredLeaves.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="p-0">
-                          <div className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                            <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
-                              <FilterIcon className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
-                            </div>
-                            <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Leave Requests Found</h3>
-                            <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                              There are no leave requests matching the selected status or filters.
-                            </p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredLeaves.map((leave) => (
+                    </thead>
+                    <tbody>
+                      {filteredLeaves.map((leave) => (
                         <tr
                           key={leave.id}
                           className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
@@ -487,11 +467,11 @@ const ApplyLeaveAdmin = () => {
                             </span>
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
             {totalPages > 1 && (
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">

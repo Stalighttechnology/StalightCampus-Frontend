@@ -109,11 +109,11 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       filter(
         (branch: any) =>
           (branch?.name &&
-          typeof branch.name === "string" &&
-          normalize(branch.name).includes(normalize(search))) ||
+            typeof branch.name === "string" &&
+            normalize(branch.name).includes(normalize(search))) ||
           (branch?.code &&
-          typeof branch.code === "string" &&
-          normalize(branch.code).includes(normalize(search)))
+            typeof branch.code === "string" &&
+            normalize(branch.code).includes(normalize(search)))
       ).
       sort((a: any, b: any) => {
         const aName = normalize(a.name);
@@ -316,7 +316,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
         {/* Admission Overview */}
         {userTier >= 3 && (
           <>
-            <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            <h3 className={`text-xl font-semibold mt-8 mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Admission Overview
             </h3>
             <div id="admission-overview-grid" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -363,7 +363,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
               </button>
             )}
           </div>
-          
+
           {/* Desktop Export PDF Button */}
           <button
             onClick={handleExportPDF}
