@@ -502,13 +502,13 @@ const AdminHODAttendance: React.FC = () => {
 
                 todayRows.map((r, idx) =>
                 <div key={idx} className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'}`}>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="text-sm text-gray-500 whitespace-normal break-words">{r.branch}</div>
                           <div className="font-medium text-gray-900 whitespace-normal break-words">{r.hod_name}</div>
                         </div>
                         <div className="text-sm text-right shrink-0">
-                          <div className="mt-1 flex items-center justify-end gap-1">
+                          <div className="flex items-center justify-end gap-1">
                             {getStatusIcon(r.status)}
                             <span className={getStatusBadge(r.status)}>{r.status}</span>
                           </div>
