@@ -17,13 +17,13 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
       }}
     >
       {/* Animated background overlay */}
-      <motion.div 
+      <motion.div
         className="absolute inset-0 bg-gradient-to-br from-blue-900/70 via-indigo-900/60 to-purple-900/50"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1.5 }}
       />
-      
+
       {/* Floating particles effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
@@ -50,13 +50,13 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
 
       <div className="container relative z-10 px-4 mx-auto flex flex-col items-center">
         {/* Animated brand header */}
-        <motion.div 
+        <motion.div
           className="text-center mb-8"
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <motion.h1 
+          <motion.h1
             className="text-4xl md:text-5xl font-bold mb-2 text-white drop-shadow-lg bg-gradient-to-r from-white via-blue-100 to-indigo-200 bg-clip-text text-transparent"
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
@@ -64,15 +64,15 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
           >
             STALIGHT CAMPUS
           </motion.h1>
-          <motion.p 
+          <motion.p
             className="text-xl text-blue-100 font-light tracking-wide"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            AI-powered campus management system
+            campus management system
           </motion.p>
-          <motion.p 
+          <motion.p
             className="text-sm text-blue-200 mt-1"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -81,14 +81,14 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
             Developed under Stalight Technology
           </motion.p>
         </motion.div>
-        
+
         {/* Animated main card */}
         <motion.div
           className="w-full max-w-md"
           initial={{ opacity: 0, y: 50, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ 
-            duration: 0.6, 
+          transition={{
+            duration: 0.6,
             delay: 0.3,
             ease: "easeOut"
           }}
@@ -98,9 +98,9 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
             </div>
-            
+
             <div className="relative z-10">
-              <motion.div 
+              <motion.div
                 className="text-center mb-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -109,7 +109,7 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
                 <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
                 <p className="text-blue-100 text-sm">{subtitle}</p>
               </motion.div>
-              
+
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -122,7 +122,7 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
         </motion.div>
 
         {/* Animated footer */}
-        <motion.div 
+        <motion.div
           className="mt-6 text-xs text-center text-blue-200/80"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

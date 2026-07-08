@@ -483,9 +483,9 @@ const FacultyAttendance = () => {
                     {todayRecord.location ?
                       <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         {todayRecord.location.inside ?
-                          <>On campus • {todayRecord.location.distance_meters ? `${Math.round(todayRecord.location.distance_meters)} m` : 'distance unknown'}</> :
+                          <>On campus • {todayRecord.location.distance_meters !== null && todayRecord.location.distance_meters !== undefined ? `${Math.round(todayRecord.location.distance_meters)} m` : 'distance unknown'}</> :
 
-                          <>Outside campus • {todayRecord.location.distance_meters ? `${Math.round(todayRecord.location.distance_meters)} m` : 'distance unknown'}</>
+                          <>Outside campus • {todayRecord.location.distance_meters !== null && todayRecord.location.distance_meters !== undefined ? `${Math.round(todayRecord.location.distance_meters)} m` : 'distance unknown'}</>
                         }
                         {todayRecord.location.campus_name ? ` • ${todayRecord.location.campus_name}` : ''}
                       </p> :

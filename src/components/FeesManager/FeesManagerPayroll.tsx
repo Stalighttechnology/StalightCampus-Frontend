@@ -156,6 +156,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
     { value: "transport_admin", label: "Transport Admin" },
     { value: "driver", label: "Driver" },
     { value: "library_admin", label: "Library Admin" },
+    { value: "dean", label: "Dean" },
     { value: "org_admin", label: "Org Admin" }
   ];
 

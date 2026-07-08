@@ -739,152 +739,152 @@ const AdminFacultyAttendanceView: React.FC = () => {
                   ) : todaySummary.total_faculty > 0 ? (
                     <div className="mt-4 sm:mt-6">
                       <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
-                      <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b border-border flex flex-row justify-between items-center gap-4">
-                        <CardTitle className={`text-sm sm:text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                          Today's Faculty Attendance <span className="inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
-                        </CardTitle>
-                        {/* Desktop Export PDF Button */}
-                        <Button
-                          onClick={handleExportTodayPDF}
-                          disabled={exportingToday}
-                          className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 hover:text-white transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
-                        >
-                          {exportingToday ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                              <span>Downloading...</span>
-                            </>
-                          ) : (
-                            <>
+                        <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b border-border flex flex-row justify-between items-center gap-4">
+                          <CardTitle className={`text-sm sm:text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            Today's Faculty Attendance <span className="inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
+                          </CardTitle>
+                          {/* Desktop Export PDF Button */}
+                          <Button
+                            onClick={handleExportTodayPDF}
+                            disabled={exportingToday}
+                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 hover:text-white transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
+                          >
+                            {exportingToday ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                                <span>Downloading...</span>
+                              </>
+                            ) : (
+                              <>
+                                <FileDown className="w-4 h-4" />
+                                <span>Export PDF</span>
+                              </>
+                            )}
+                          </Button>
+
+                          {/* Mobile Export PDF Icon Button */}
+                          <Button
+                            onClick={handleExportTodayPDF}
+                            disabled={exportingToday}
+                            size="icon"
+                            variant="outline"
+                            className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+                          >
+                            {exportingToday ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                            ) : (
                               <FileDown className="w-4 h-4" />
-                              <span>Export PDF</span>
-                            </>
-                          )}
-                        </Button>
-
-                        {/* Mobile Export PDF Icon Button */}
-                        <Button
-                          onClick={handleExportTodayPDF}
-                          disabled={exportingToday}
-                          size="icon"
-                          variant="outline"
-                          className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
-                        >
-                          {exportingToday ? (
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
-                          ) : (
-                            <FileDown className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </CardHeader>
-                      <CardContent className="p-0">
-                        <div className="overflow-x-auto">
-                          <table className="w-full">
-                            <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
-                              <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                                <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
-                                <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Status</th>
-                                <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Marked At</th>
-                                <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Notes</th>
-                              </tr>
-                            </thead>
-                            <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                              {todayAttendance.length === 0 ?
-                                <tr>
-                                  <td colSpan={4} className="py-12">
-                                    <div className={`flex flex-col items-center justify-center space-y-3 p-8 border-2 border-dashed rounded-xl mx-auto max-w-sm ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                                      <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
-                                        <CalendarX className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                            )}
+                          </Button>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
+                                <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
+                                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Status</th>
+                                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Marked At</th>
+                                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Notes</th>
+                                </tr>
+                              </thead>
+                              <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
+                                {todayAttendance.length === 0 ?
+                                  <tr>
+                                    <td colSpan={4} className="py-12">
+                                      <div className={`flex flex-col items-center justify-center space-y-3 p-8 border-2 border-dashed rounded-xl mx-auto max-w-sm ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                                        <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                                          <CalendarX className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                                        </div>
+                                        <div className="text-center">
+                                          <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records for today</p>
+                                          <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty attendance hasn't been marked yet</p>
+                                        </div>
                                       </div>
-                                      <div className="text-center">
-                                        <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records for today</p>
-                                        <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty attendance hasn't been marked yet</p>
-                                      </div>
-                                    </div>
-                                  </td>
-                                </tr> :
+                                    </td>
+                                  </tr> :
 
-                                todayAttendance.map((record) =>
-                                  <tr key={record.faculty_id} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
-                                    <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                                      <div className="font-medium faculty-name">{record.faculty_name}</div>
-                                    </td>
-                                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                                      <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status}</span>
-                                    </td>
-                                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} meta-text`}>
-                                      {record.marked_at ? new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not marked'}
-                                      {record.location ?
-                                        <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} location-text`}>
-                                          {record.location.inside ?
-                                            <>On campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</> :
+                                  todayAttendance.map((record) =>
+                                    <tr key={record.faculty_id} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
+                                      <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                        <div className="font-medium faculty-name">{record.faculty_name}</div>
+                                      </td>
+                                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                                        <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status}</span>
+                                      </td>
+                                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} meta-text`}>
+                                        {record.marked_at ? new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not marked'}
+                                        {record.location ?
+                                          <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} location-text`}>
+                                            {record.location.inside ?
+                                              <>On campus • {record.location.distance_meters !== null && record.location.distance_meters !== undefined ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</> :
 
-                                            <>Outside campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</>
-                                          }
-                                          {record.location.campus_name ? ` • ${record.location.campus_name}` : ''}
-                                        </div> :
+                                              <>Outside campus • {record.location.distance_meters !== null && record.location.distance_meters !== undefined ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</>
+                                            }
+                                            {record.location.campus_name ? ` • ${record.location.campus_name}` : ''}
+                                          </div> :
 
-                                        <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} location-text`}>Location not recorded</div>
-                                      }
-                                    </td>
-                                    <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                                      {record.notes || '-'}
-                                    </td>
-                                  </tr>
-                                )
-                              }
-                            </tbody>
-                          </table>
-                        </div>
-                      </CardContent>
-                      {todayAttendance.length > 50 && (
-                        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-                          <div className="pagination-text">
-                            Showing {todayAttendance.length > 0 ? (todayPagination.page - 1) * todayPagination.page_size + 1 : 0} to {Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)} of {todayPagination.total_items} faculty
+                                          <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} location-text`}>Location not recorded</div>
+                                        }
+                                      </td>
+                                      <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                                        {record.notes || '-'}
+                                      </td>
+                                    </tr>
+                                  )
+                                }
+                              </tbody>
+                            </table>
                           </div>
-                          <div className="flex items-center gap-2">
-                            {todayPagination.total_items > todayPagination.page_size &&
+                        </CardContent>
+                        {todayAttendance.length > 50 && (
+                          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                            <div className="pagination-text">
+                              Showing {todayAttendance.length > 0 ? (todayPagination.page - 1) * todayPagination.page_size + 1 : 0} to {Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)} of {todayPagination.total_items} faculty
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {todayPagination.total_items > todayPagination.page_size &&
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={loadAllData}
+                                  disabled={isTodayLoading}
+                                  className="border-green-500 text-green-600 hover:bg-green-50 h-9 px-4 transition-all pagination-btn"
+                                >
+                                  {isTodayLoading ? 'Loading...' : 'Load All'}
+                                </Button>
+                              }
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={loadAllData}
-                                disabled={isTodayLoading}
-                                className="border-green-500 text-green-600 hover:bg-green-50 h-9 px-4 transition-all pagination-btn"
+                                onClick={() => handlePageChange(todayPagination.page - 1)}
+                                disabled={!todayPagination.has_prev || isTodayLoading}
+                                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
                               >
-                                {isTodayLoading ? 'Loading...' : 'Load All'}
+                                Previous
                               </Button>
-                            }
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handlePageChange(todayPagination.page - 1)}
-                              disabled={!todayPagination.has_prev || isTodayLoading}
-                              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
-                            >
-                              Previous
-                            </Button>
 
-                            <div className="flex items-center justify-center min-w-[2rem]">
-                              <span className={`text-sm font-semibold pagination-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                                {todayPagination.page}
-                              </span>
+                              <div className="flex items-center justify-center min-w-[2rem]">
+                                <span className={`text-sm font-semibold pagination-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                  {todayPagination.page}
+                                </span>
+                              </div>
+
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handlePageChange(todayPagination.page + 1)}
+                                disabled={!todayPagination.has_next || isTodayLoading}
+                                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
+                              >
+                                Next
+                              </Button>
                             </div>
-
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handlePageChange(todayPagination.page + 1)}
-                              disabled={!todayPagination.has_next || isTodayLoading}
-                              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
-                            >
-                              Next
-                            </Button>
-                          </div>
-                        </CardFooter>
-                      )}
-                    </Card>
-                  </div>
-                ) : null
+                          </CardFooter>
+                        )}
+                      </Card>
+                    </div>
+                  ) : null
                 )}
 
                 {activeTab === 'records' &&
