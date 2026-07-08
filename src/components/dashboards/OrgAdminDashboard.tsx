@@ -29,6 +29,7 @@ import PaymentMonitoring from "../FeesManager/PaymentMonitoring";
 import Reports from "../FeesManager/Reports";
 import CampusLocationManager from "../dean/CampusLocationManager";
 import ScheduleMeeting from "../common/ScheduleMeeting";
+import StaffTaskTracker from "../common/StaffTaskTracker";
 
 interface OrgAdminDashboardProps {
   user: any;
@@ -114,6 +115,8 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
         return <ScheduleMeeting />;
       case "my-payroll":
         return <FacultyPayroll />;
+      case "staff-tasks":
+        return <StaffTaskTracker />;
       default:
         return <AdminStats setError={setError} onNavigate={handlePageChange} />;
     }

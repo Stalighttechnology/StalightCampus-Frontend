@@ -205,12 +205,14 @@ const StaffTaskTracker = () => {
 
   useEffect(() => {
     if (isDialogOpen) {
+      // Only principal needs branch selection UI
       if (role === 'principal' && branches.length === 0) {
         fetchBranches();
       }
 
-      if (role === 'hod' || role === 'principal') {
-        // Principal needs to select a branch before we fetch, unless they are searching globally
+      const canAssign = ['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '');
+      if (canAssign) {
+        // Principal must select branch first (unless global search), others can fetch directly
         if (role === 'principal' && !selectedBranch && !appliedSearch) {
           setSubordinates([]);
           setSubTotalPages(1);
@@ -289,8 +291,9 @@ const StaffTaskTracker = () => {
     const previousMyTasks = [...myTasks];
     const previousAssignedTasks = [...assignedTasks];
 
-    setMyTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t).sort(sortTasks));
-    setAssignedTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t).sort(sortTasks));
+    const newCompletedAt = newStatus === 'completed' ? new Date().toISOString() : undefined;
+    setMyTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus, completed_at: newCompletedAt } : t).sort(sortTasks));
+    setAssignedTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus, completed_at: newCompletedAt } : t).sort(sortTasks));
 
     try {
       await staffTaskApi.updateTaskStatus(taskId, newStatus);
@@ -371,7 +374,7 @@ const StaffTaskTracker = () => {
             </div>
             <div className={cn("flex items-center gap-1.5 min-w-0", dueStatus.color)}>
               <dueStatus.icon className="w-3.5 h-3.5 shrink-0" />
-              <span>{dueStatus.text}: {new Date(task.due_date).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
+              <span>{dueStatus.text}: {new Date(task.status === 'completed' && task.completed_at ? task.completed_at : task.due_date).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
             </div>
           </div>
 
@@ -401,7 +404,7 @@ const StaffTaskTracker = () => {
             <p className="text-muted-foreground text-sm">Manage and track internal faculty and academic tasks.</p>
           </div>
 
-          {(role === 'principal' || role === 'hod') && (
+          {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && (
             <Dialog open={isDialogOpen} onOpenChange={(open) => {
               setIsDialogOpen(open);
               if (!open) {
@@ -446,6 +449,7 @@ const StaffTaskTracker = () => {
                     </Select>
                   </div>
 
+                  {/* Branch selector only for principal */}
                   {role === 'principal' && (
                     <div className="grid gap-2">
                       <Label>Select Branch First</Label>
@@ -649,10 +653,10 @@ const StaffTaskTracker = () => {
           )}
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col xl:flex-row gap-6">
           {/* Received Tasks */}
-          {role !== 'principal' && (
-            <Card className="shadow-sm border-border">
+          {true && (
+            <Card className="shadow-sm border-border flex-1">
               <CardHeader className="pb-3 border-b border-border/50 bg-muted/20">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <ArrowRight className="w-5 h-5 text-primary rotate-90" />
@@ -706,8 +710,8 @@ const StaffTaskTracker = () => {
           )}
 
           {/* Assigned Tasks */}
-          {(role === 'principal' || role === 'hod') && (
-            <Card className="shadow-sm border-border">
+          {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && (
+            <Card className="shadow-sm border-border flex-1">
               <CardHeader className="pb-3 border-b border-border/50 bg-primary/5">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <ArrowRight className="w-5 h-5 text-primary" />

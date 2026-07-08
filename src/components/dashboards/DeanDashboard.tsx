@@ -25,6 +25,7 @@ import AnnouncementManagement from "../admin/AnnouncementManagement";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 import AlumniDirectory from "../common/AlumniDirectory";
 import ScheduleMeeting from "../common/ScheduleMeeting";
+import StaffTaskTracker from "../common/StaffTaskTracker";
 
 interface DeanUser {
   username: string;
@@ -40,6 +41,7 @@ const getActivePageFromPath = (pathname: string): string => {
   const lastPart = pathParts[pathParts.length - 1] || '';
   const pathMap: { [key: string]: string } = {
       'my-payroll': 'my-payroll',
+      'staff-tasks': 'staff-tasks',
     'dashboard': 'dashboard',
       'holiday-calendar': '/dean/holiday-calendar',
       'holiday-calendar': 'holiday-calendar',
@@ -129,6 +131,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <ScheduleMeeting />;
       case "my-payroll":
         return <FacultyPayroll />;
+      case "staff-tasks":
+        return <StaffTaskTracker />;
       default:
         return <div>Welcome, Dean.</div>;
     }

@@ -664,7 +664,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
   const handleDelete = (deleteId: string) => {
     Swal.fire({
       title: "Delete Assignment?",
-      text: "Are you sure you want to delete this assignment? This action cannot be undone.",
+      html: `Are you sure you want to delete this assignment? This action cannot be undone.<br><br><span style="color: #ef4444; font-weight: bold;">Warning:</span> The added classes for this subject in the timetable list will also get deleted.`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
