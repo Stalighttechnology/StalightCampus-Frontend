@@ -478,56 +478,131 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
                   </p>
                 </div>
               ) : (
-                <div className="flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4 overflow-x-auto">
-                  <table className="batch-table w-full text-base md:text-sm text-left border-collapse table-auto align-middle whitespace-nowrap">
-                    <thead className={`sticky top-0 z-10 border-b text-sm md:text-xs uppercase ${theme === 'dark' ? 'bg-slate-900' : 'bg-gray-50'} text-muted-foreground border-border shadow-sm`}>
-                      <tr>
-                        <th className="batch-header-cell py-3 px-3 text-left font-semibold">Batch Name</th>
-                        <th className="batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold text-center">Start Year</th>
-                        <th className="batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold text-center">End Year</th>
-                        <th className="batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold text-center">Duration</th>
-                        <th className="batch-header-cell py-3 px-3 w-20 font-semibold text-center">Students</th>
-                        <th className="batch-header-cell py-3 px-3 w-28 font-semibold text-center">Created At</th>
-                        {!isReadOnly && <th className="batch-header-cell py-3 px-3 w-28 text-right font-semibold">Actions</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {batches.map((batch) => (
-                        <tr
-                          key={batch.id}
-                          className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}
-                        >
-                          <td className="batch-body-cell py-3 px-3 align-middle font-medium">
-                            <div className="truncate">{batch.name}</div>
-                          </td>
-                          <td className="batch-body-cell py-3 px-3 hidden sm:table-cell text-center align-middle">{batch.start_year}</td>
-                          <td className="batch-body-cell py-3 px-3 hidden sm:table-cell text-center align-middle">{batch.end_year}</td>
-                          <td className="batch-body-cell py-3 px-3 hidden sm:table-cell text-center align-middle">
-                            {batch.end_year - batch.start_year} {batch.end_year - batch.start_year === 1 ? 'Year' : 'Years'}
-                          </td>
-                          <td className="batch-body-cell py-3 px-3 w-20 text-center align-middle">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${theme === 'dark' ? 'bg-zinc-800 text-zinc-300' : 'bg-gray-100 text-gray-600'}`}>
-                              {batch.student_count}
-                            </span>
-                          </td>
-                          <td className="batch-body-cell py-3 px-3 w-28 text-center align-middle text-[13px] sm:text-xs opacity-70">
-                            {new Date(batch.created_at).toLocaleDateString()}
-                          </td>
+                <>
+                  {/* Desktop View: Table */}
+                  <div className="flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4 overflow-x-auto hidden md:block">
+                    <table className="batch-table w-full text-base md:text-sm text-left border-collapse table-auto align-middle whitespace-nowrap">
+                      <thead className={`sticky top-0 z-10 border-b text-sm md:text-xs uppercase ${theme === 'dark' ? 'bg-slate-900' : 'bg-gray-50'} text-muted-foreground border-border shadow-sm`}>
+                        <tr>
+                          <th className="batch-header-cell py-3 px-3 text-left font-semibold">Batch Name</th>
+                          <th className="batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold text-center">Start Year</th>
+                          <th className="batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold text-center">End Year</th>
+                          <th className="batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold text-center">Duration</th>
+                          <th className="batch-header-cell py-3 px-3 w-20 font-semibold text-center">Students</th>
+                          <th className="batch-header-cell py-3 px-3 w-28 font-semibold text-center">Created At</th>
+                          {!isReadOnly && <th className="batch-header-cell py-3 px-3 w-28 text-right font-semibold">Actions</th>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {batches.map((batch) => (
+                          <tr
+                            key={batch.id}
+                            className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}
+                          >
+                            <td className="batch-body-cell py-3 px-3 align-middle font-medium">
+                              <div className="truncate">{batch.name}</div>
+                            </td>
+                            <td className="batch-body-cell py-3 px-3 hidden sm:table-cell text-center align-middle">{batch.start_year}</td>
+                            <td className="batch-body-cell py-3 px-3 hidden sm:table-cell text-center align-middle">{batch.end_year}</td>
+                            <td className="batch-body-cell py-3 px-3 hidden sm:table-cell text-center align-middle">
+                              {batch.end_year - batch.start_year} {batch.end_year - batch.start_year === 1 ? 'Year' : 'Years'}
+                            </td>
+                            <td className="batch-body-cell py-3 px-3 w-20 text-center align-middle">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${theme === 'dark' ? 'bg-zinc-800 text-zinc-300' : 'bg-gray-100 text-gray-600'}`}>
+                                {batch.student_count}
+                              </span>
+                            </td>
+                            <td className="batch-body-cell py-3 px-3 w-28 text-center align-middle text-[13px] sm:text-xs opacity-70">
+                              {new Date(batch.created_at).toLocaleDateString()}
+                            </td>
+                            {!isReadOnly && (
+                              <td className="batch-body-cell py-3 px-3 w-28 text-right space-x-1 whitespace-nowrap align-middle">
+                                <Button size="icon" variant="ghost" onClick={() => handleEditBatch(batch)} disabled={loading} className="h-8 w-8">
+                                  <Edit className={theme === 'dark' ? 'w-4 h-4 text-primary' : 'w-4 h-4 text-blue-600'} />
+                                </Button>
+                                <Button size="icon" variant="ghost" onClick={() => handleDeleteBatch(batch)} disabled={loading} className="h-8 w-8">
+                                  <Trash2 className={theme === 'dark' ? 'w-4 h-4 text-destructive' : 'w-4 h-4 text-red-600'} />
+                                </Button>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile View: Stacked Cards */}
+                  <div className="grid grid-cols-1 gap-3 md:hidden overflow-y-auto custom-scrollbar flex-1 mb-4">
+                    {batches.map((batch) => (
+                      <div
+                        key={batch.id}
+                        className={`p-4 rounded-xl border flex flex-col gap-3 shadow-sm ${
+                          theme === 'dark'
+                            ? 'bg-zinc-950/40 border-border text-foreground'
+                            : 'bg-white border-gray-200 text-gray-900'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="space-y-1">
+                            <h4 className="font-semibold text-sm sm:text-base break-words">
+                              {batch.name}
+                            </h4>
+                            <div className="flex flex-row items-center gap-1.5 mt-1 whitespace-nowrap">
+                              <span className={`inline-block text-[10px] px-2 py-0.5 rounded font-medium ${
+                                theme === 'dark' ? 'bg-zinc-800 text-zinc-300' : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                Duration: {batch.end_year - batch.start_year} {batch.end_year - batch.start_year === 1 ? 'Year' : 'Years'}
+                              </span>
+                              <span className={`inline-block text-[10px] px-2 py-0.5 rounded font-medium ${
+                                theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-50 text-blue-800'
+                              }`}>
+                                {batch.student_count} Students
+                              </span>
+                            </div>
+                          </div>
+
                           {!isReadOnly && (
-                            <td className="batch-body-cell py-3 px-3 w-28 text-right space-x-1 whitespace-nowrap align-middle">
-                              <Button size="icon" variant="ghost" onClick={() => handleEditBatch(batch)} disabled={loading} className="h-8 w-8">
+                            <div className="flex items-center gap-1 shrink-0">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => handleEditBatch(batch)}
+                                disabled={loading}
+                                className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary"
+                              >
                                 <Edit className={theme === 'dark' ? 'w-4 h-4 text-primary' : 'w-4 h-4 text-blue-600'} />
                               </Button>
-                              <Button size="icon" variant="ghost" onClick={() => handleDeleteBatch(batch)} disabled={loading} className="h-8 w-8">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => handleDeleteBatch(batch)}
+                                disabled={loading}
+                                className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive"
+                              >
                                 <Trash2 className={theme === 'dark' ? 'w-4 h-4 text-destructive' : 'w-4 h-4 text-red-600'} />
                               </Button>
-                            </td>
+                            </div>
                           )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                        </div>
+
+                        <div className={`grid grid-cols-3 gap-2 pt-2 border-t text-[11px] sm:text-xs ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'}`}>
+                          <div>
+                            <span className="block opacity-60 uppercase font-bold tracking-wider text-[9px] mb-0.5">Start Year</span>
+                            <span className="font-medium">{batch.start_year}</span>
+                          </div>
+                          <div>
+                            <span className="block opacity-60 uppercase font-bold tracking-wider text-[9px] mb-0.5">End Year</span>
+                            <span className="font-medium">{batch.end_year}</span>
+                          </div>
+                          <div>
+                            <span className="block opacity-60 uppercase font-bold tracking-wider text-[9px] mb-0.5">Created At</span>
+                            <span className="font-medium">{new Date(batch.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </>
           )}

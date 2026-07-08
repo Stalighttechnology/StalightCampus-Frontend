@@ -114,7 +114,8 @@ const AdminFacultyAttendanceView: React.FC = () => {
 
     return list.sort((a, b) => a.name.localeCompare(b.name));
   }, [todayAttendance, facultySummary]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isTodayLoading, setIsTodayLoading] = useState(false);
+  const [isRecordsLoading, setIsRecordsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'today' | 'records'>('today');
   const [dateRange, setDateRange] = useState({
     start_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE'), // 30 days ago
@@ -154,7 +155,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
 
   const fetchTodayAttendance = async (page: number = 1, pageSize: number = 50) => {
     if (!selectedBranch) return;
-    setIsLoading(true);
+    setIsTodayLoading(true);
     try {
       const response = await getAdminFacultyAttendanceToday(selectedBranch, { page, page_size: pageSize });
       if (response.success && response.data) {
@@ -243,13 +244,13 @@ const AdminFacultyAttendanceView: React.FC = () => {
         not_marked: 0
       });
     } finally {
-      setIsLoading(false);
+      setIsTodayLoading(false);
     }
   };
 
   const fetchAttendanceRecords = async (page: number = 1, pageSize: number = 50) => {
     if (!selectedBranch) return;
-    setIsLoading(true);
+    setIsRecordsLoading(true);
     try {
       const params: any = {
         page,
@@ -332,7 +333,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
         prev_page: null
       });
     } finally {
-      setIsLoading(false);
+      setIsRecordsLoading(false);
     }
   };
 
@@ -528,7 +529,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
 
   const loadAllData = async () => {
     // Load all data by setting a large page size
-  await fetchTodayAttendance(1, 1000); // Load up to 1000 records
+    await fetchTodayAttendance(1, 1000); // Load up to 1000 records
   };
 
   return (
@@ -651,489 +652,494 @@ const AdminFacultyAttendanceView: React.FC = () => {
               </div>
             ) : (
               <>
-          <div id="hod-faculty-attendance-header-section" className="space-y-4 sm:space-y-6">
-              {/* Tab Navigation */}
-              <div id="hod-faculty-attendance-tabs" className={`flex space-x-1 p-1 rounded-lg mt-3 ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'} overflow-x-auto`}>
-                <button
-                  onClick={() => setActiveTab('today')}
-                  className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'today' ?
-                    'bg-primary text-white' :
-                    theme === 'dark' ?
-                      'text-muted-foreground hover:text-foreground' :
-                      'text-gray-600 hover:text-gray-900'}`
-                  }>
+                <div id="hod-faculty-attendance-header-section" className="space-y-4 sm:space-y-6">
+                  {/* Tab Navigation */}
+                  <div id="hod-faculty-attendance-tabs" className={`flex space-x-1 p-1 rounded-lg  ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'} overflow-x-auto`}>
+                    <button
+                      onClick={() => setActiveTab('today')}
+                      className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'today' ?
+                        'bg-primary text-white' :
+                        theme === 'dark' ?
+                          'text-muted-foreground hover:text-foreground' :
+                          'text-gray-600 hover:text-gray-900'}`
+                      }>
 
-              Today's Attendance
-            </button>
-            <button
-              onClick={() => setActiveTab('records')}
-              className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'records' ?
-                'bg-primary text-white' :
-                theme === 'dark' ?
-                  'text-muted-foreground hover:text-foreground' :
-                  'text-gray-600 hover:text-gray-900'}`
-              }>
+                      Today's Attendance
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('records')}
+                      className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'records' ?
+                        'bg-primary text-white' :
+                        theme === 'dark' ?
+                          'text-muted-foreground hover:text-foreground' :
+                          'text-gray-600 hover:text-gray-900'}`
+                      }>
 
-              Attendance Records
-            </button>
-          </div>
-
-          {activeTab === 'today' && !isLoading && todaySummary.total_faculty > 0 && (
-            /* Today's Stats Cards */
-            <div id="hod-faculty-attendance-summary" className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
-              <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-                <div className="flex flex-row items-center justify-between gap-2">
-                  <div>
-                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Faculty</p>
-                    <p className={`text-lg sm:text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_faculty}</p>
+                      Attendance Records
+                    </button>
                   </div>
-                  <Users className="w-6 sm:w-8 h-6 sm:h-8 text-blue-600 flex-shrink-0" />
-                </div>
-              </div>
-              <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-                <div className="flex flex-row items-center justify-between gap-2">
-                  <div>
-                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
-                    <p className={`text-lg sm:text-2xl font-bold text-green-600`}>{todaySummary.present}</p>
-                  </div>
-                  <CheckCircle className="w-6 sm:w-8 h-6 sm:h-8 text-green-600 flex-shrink-0" />
-                </div>
-              </div>
-              <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-                <div className="flex flex-row items-center justify-between gap-2">
-                  <div>
-                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
-                    <p className={`text-lg sm:text-2xl font-bold text-red-600`}>{todaySummary.absent}</p>
-                  </div>
-                  <XCircle className="w-6 sm:w-8 h-6 sm:h-8 text-red-600 flex-shrink-0" />
-                </div>
-              </div>
-              <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-                <div className="flex flex-row items-center justify-between gap-2">
-                  <div>
-                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
-                    <p className={`text-lg sm:text-2xl font-bold text-gray-600`}>{todaySummary.not_marked}</p>
-                  </div>
-                  <Clock className="w-6 sm:w-8 h-6 sm:h-8 text-gray-600 flex-shrink-0" />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
 
-        {isLoading &&
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-            </div>
-            <SkeletonTable rows={10} cols={4} />
-          </div>
-        }
-
-        {activeTab === 'today' && !isLoading && todaySummary.total_faculty > 0 &&
-          <>
-            <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
-              <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b border-border flex flex-row justify-between items-center gap-4">
-                <CardTitle className={`text-sm sm:text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  Today's Faculty Attendance <span className="inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
-                </CardTitle>
-                {/* Desktop Export PDF Button */}
-                <Button
-                  onClick={handleExportTodayPDF}
-                  disabled={exportingToday}
-                  className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 hover:text-white transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
-                >
-                  {exportingToday ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                      <span>Downloading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FileDown className="w-4 h-4" />
-                      <span>Export PDF</span>
-                    </>
-                  )}
-                </Button>
-
-                {/* Mobile Export PDF Icon Button */}
-                <Button
-                  onClick={handleExportTodayPDF}
-                  disabled={exportingToday}
-                  size="icon"
-                  variant="outline"
-                  className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
-                >
-                  {exportingToday ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
-                  ) : (
-                    <FileDown className="w-4 h-4" />
-                  )}
-                </Button>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
-                      <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
-                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Status</th>
-                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Marked At</th>
-                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Notes</th>
-                      </tr>
-                    </thead>
-                    <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                      {todayAttendance.length === 0 ?
-                        <tr>
-                          <td colSpan={4} className="py-12">
-                            <div className={`flex flex-col items-center justify-center space-y-3 p-8 border-2 border-dashed rounded-xl mx-auto max-w-sm ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                              <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
-                                <CalendarX className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-                              </div>
-                              <div className="text-center">
-                                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records for today</p>
-                                <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty attendance hasn't been marked yet</p>
-                              </div>
-                            </div>
-                          </td>
-                        </tr> :
-
-                        todayAttendance.map((record) =>
-                          <tr key={record.faculty_id} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
-                            <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                              <div className="font-medium faculty-name">{record.faculty_name}</div>
-                            </td>
-                            <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                              <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status}</span>
-                            </td>
-                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} meta-text`}>
-                              {record.marked_at ? new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not marked'}
-                              {record.location ?
-                                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} location-text`}>
-                                  {record.location.inside ?
-                                    <>On campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</> :
-
-                                    <>Outside campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</>
-                                  }
-                                  {record.location.campus_name ? ` • ${record.location.campus_name}` : ''}
-                                </div> :
-
-                                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} location-text`}>Location not recorded</div>
-                              }
-                            </td>
-                            <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                              {record.notes || '-'}
-                            </td>
-                          </tr>
-                        )
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-              {todayAttendance.length > 50 && (
-                <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-                  <div className="pagination-text">
-                    Showing {todayAttendance.length > 0 ? (todayPagination.page - 1) * todayPagination.page_size + 1 : 0} to {Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)} of {todayPagination.total_items} faculty
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {todayPagination.total_items > todayPagination.page_size &&
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={loadAllData}
-                        disabled={isLoading}
-                        className="border-green-500 text-green-600 hover:bg-green-50 h-9 px-4 transition-all pagination-btn"
-                      >
-                        {isLoading ? 'Loading...' : 'Load All'}
-                      </Button>
-                    }
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(todayPagination.page - 1)}
-                      disabled={!todayPagination.has_prev || isLoading}
-                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
-                    >
-                      Previous
-                    </Button>
-
-                    <div className="flex items-center justify-center min-w-[2rem]">
-                      <span className={`text-sm font-semibold pagination-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {todayPagination.page}
-                      </span>
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(todayPagination.page + 1)}
-                      disabled={!todayPagination.has_next || isLoading}
-                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </CardFooter>
-              )}
-            </Card>
-          </>
-        }
-
-        {activeTab === 'records' && !isLoading &&
-          <>
-            {/* Date Range Filter */}
-            <div id="hod-faculty-attendance-filters" className={`p-3 sm:p-4 rounded-lg ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-end">
-                <div className="w-full sm:w-[220px]">
-                  <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
-                    Faculty
-                  </label>
-                  <Select
-                    value={selectedFacultyId}
-                    onValueChange={setSelectedFacultyId}>
-                    <SelectTrigger className={cn(
-                      "w-full h-9 text-xs sm:text-sm",
-                      theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                    )}>
-                      <SelectValue placeholder="Choose Faculty" />
-                    </SelectTrigger>
-                    <SelectContent className={theme === 'dark' ? 'bg-slate-950 border-white/10 text-foreground' : 'bg-white border-gray-200 text-gray-900'}>
-                      <SelectItem value="all">All Faculty</SelectItem>
-                      {uniqueFaculties.map((f) => (
-                        <SelectItem key={f.id} value={f.id}>
-                          {f.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="w-full sm:w-auto">
-                  <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
-                    Start Date
-                  </label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
-                          !dateRange.start_date && "text-muted-foreground",
-                          theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                        )}>
-
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateRange.start_date ? format(new Date(dateRange.start_date), "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <ShadcnCalendar
-                        mode="single"
-                        selected={new Date(dateRange.start_date)}
-                        onSelect={(date) => date && setDateRange((prev) => ({ ...prev, start_date: date.toLocaleDateString('sv-SE') }))}
-                        initialFocus />
-
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="w-full sm:w-auto">
-                  <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
-                    End Date
-                  </label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
-                          !dateRange.end_date && "text-muted-foreground",
-                          theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                        )}>
-
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateRange.end_date ? format(new Date(dateRange.end_date), "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <ShadcnCalendar
-                        mode="single"
-                        selected={new Date(dateRange.end_date)}
-                        onSelect={(date) => date && setDateRange((prev) => ({ ...prev, end_date: date.toLocaleDateString('sv-SE') }))}
-                        disabled={(date) => {
-                          const start = new Date(dateRange.start_date);
-                          const today = new Date();
-                          today.setHours(23, 59, 59, 999);
-                          return isBefore(date, start) || isSameDay(date, start) || date > today;
-                        }}
-                        initialFocus />
-
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            </div>
-
-            {/* Faculty Summary */}
-            {!selectedFacultyId ? (
-              <div className={`p-12 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'} mt-4`}>
-                <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
-                  <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-                </div>
-                <div className="text-center">
-                  <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Faculty Selected</p>
-                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Please select a faculty member from the dropdown to view attendance summary</p>
-                </div>
-              </div>
-            ) : facultySummary.length > 0 ? (
-              <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
-                <CardHeader className="px-6 py-4 border-b border-border flex flex-row justify-between items-center gap-4">
-                  <CardTitle className={`text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    Faculty Attendance Summary
-                  </CardTitle>
-                  
-                  {/* Desktop Export Report Button */}
-                  <Button
-                    onClick={handleExportRecordsPDF}
-                    disabled={exportingRecords || facultySummary.length === 0 || !selectedFacultyId}
-                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 hover:text-white transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
-                  >
-                    {exportingRecords ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                        <span>Downloading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <FileDown className="w-4 h-4" />
-                        <span>Export Report</span>
-                      </>
-                    )}
-                  </Button>
-
-                  {/* Mobile Export Report Icon Button */}
-                  <Button
-                    onClick={handleExportRecordsPDF}
-                    disabled={exportingRecords || facultySummary.length === 0 || !selectedFacultyId}
-                    size="icon"
-                    variant="outline"
-                    className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
-                  >
-                    {exportingRecords ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
-                    ) : (
-                      <FileDown className="w-4 h-4" />
-                    )}
-                  </Button>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className={`sticky top-0 whitespace-nowrap ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
-                        <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                          <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
-                          <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
-                          <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</th>
-                          <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</th>
-                          <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance %</th>
-                          <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                        {facultySummary
-                          .filter(summary => selectedFacultyId === "all" || summary.id === selectedFacultyId)
-                          .map((summary) =>
-                          <React.Fragment key={summary.id}>
-                            <tr className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedFaculty?.id === summary.id ? theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50' : ''}`}>
-                              <td className={`px-6 py-4 whitespace-nowrap font-medium faculty-name ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                                {summary.name}
-                              </td>
-                              <td className={`px-6 py-4 whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                                {summary.total_days}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-green-600 font-medium">
-                                {summary.present_days}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-red-600 font-medium">
-                                {summary.absent_days}
-                              </td>
-                              <td className={`px-6 py-4 whitespace-nowrap font-medium ${summary.attendance_percentage >= 75 ? 'text-green-600' :
-                                summary.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`
-                              }>
-                                {summary.attendance_percentage.toFixed(1)}%
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-right">
-                                <button
-                                  onClick={() => fetchFacultyDetails(summary)}
-                                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors export-btn ${theme === 'dark' ?
-                                    'bg-primary/20 text-primary hover:bg-primary/30' :
-                                    'bg-primary text-white hover:bg-primary/90'}`
-                                  }>
-
-                                  {selectedFaculty?.id === summary.id && isDetailLoading ? 'Loading...' : 'View'}
-                                </button>
-                              </td>
-                            </tr>
-                          </React.Fragment>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-
-                {facultySummary.length > 50 && (
-                  <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-                    <div className="pagination-text">
-                      Showing {recordsPagination.total_items > 0 ? Math.min((recordsPagination.page - 1) * recordsPagination.page_size + 1, recordsPagination.total_items) : 0} to {Math.min(recordsPagination.page * recordsPagination.page_size, recordsPagination.total_items)} of {recordsPagination.total_items} records
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRecordsPageChange(recordsPagination.page - 1)}
-                        disabled={!recordsPagination.has_prev || isLoading}
-                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
-                      >
-                        Previous
-                      </Button>
-
-                      <div className="flex items-center justify-center min-w-[2rem]">
-                        <span className={`text-sm font-semibold pagination-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                          {recordsPagination.page}
-                        </span>
+                  {activeTab === 'today' && (
+                    isTodayLoading && todaySummary.total_faculty === 0 ? (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 pb-6">
+                        <SkeletonCard />
+                        <SkeletonCard />
+                        <SkeletonCard />
+                        <SkeletonCard />
                       </div>
+                    ) : todaySummary.total_faculty > 0 ? (
+                      /* Today's Stats Cards */
+                      <div id="hod-faculty-attendance-summary" className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 pb-6 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+                        <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                          <div className="flex flex-row items-center justify-between gap-2">
+                            <div>
+                              <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Faculty</p>
+                              <p className={`text-lg sm:text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_faculty}</p>
+                            </div>
+                            <Users className="w-6 sm:w-8 h-6 sm:h-8 text-blue-600 flex-shrink-0" />
+                          </div>
+                        </div>
+                        <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                          <div className="flex flex-row items-center justify-between gap-2">
+                            <div>
+                              <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
+                              <p className={`text-lg sm:text-2xl font-bold text-green-600`}>{todaySummary.present}</p>
+                            </div>
+                            <CheckCircle className="w-6 sm:w-8 h-6 sm:h-8 text-green-600 flex-shrink-0" />
+                          </div>
+                        </div>
+                        <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                          <div className="flex flex-row items-center justify-between gap-2">
+                            <div>
+                              <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
+                              <p className={`text-lg sm:text-2xl font-bold text-red-600`}>{todaySummary.absent}</p>
+                            </div>
+                            <XCircle className="w-6 sm:w-8 h-6 sm:h-8 text-red-600 flex-shrink-0" />
+                          </div>
+                        </div>
+                        <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                          <div className="flex flex-row items-center justify-between gap-2">
+                            <div>
+                              <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
+                              <p className={`text-lg sm:text-2xl font-bold text-gray-600`}>{todaySummary.not_marked}</p>
+                            </div>
+                            <Clock className="w-6 sm:w-8 h-6 sm:h-8 text-gray-600 flex-shrink-0" />
+                          </div>
+                        </div>
+                      </div>
+                    ) : null
+                  )}
+                </div>
 
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRecordsPageChange(recordsPagination.page + 1)}
-                        disabled={!recordsPagination.has_next || isLoading}
-                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
-                      >
-                        Next
-                      </Button>
+                {activeTab === 'today' && (
+                  isTodayLoading && todayAttendance.length === 0 ? (
+                    <div className="space-y-6 mt-4 sm:mt-6">
+                      <SkeletonTable rows={10} cols={4} />
                     </div>
-                  </CardFooter>
-                )}
-              </Card>
-            ) : (
-              <div className={`p-12 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
-                  <ClipboardX className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-                </div>
-                <div className="text-center">
-                  <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records found</p>
-                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Try adjusting your date range or faculty filters</p>
-                </div>
-              </div>
-            )}
+                  ) : todaySummary.total_faculty > 0 ? (
+                    <div className="mt-4 sm:mt-6">
+                      <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
+                      <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b border-border flex flex-row justify-between items-center gap-4">
+                        <CardTitle className={`text-sm sm:text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          Today's Faculty Attendance <span className="inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
+                        </CardTitle>
+                        {/* Desktop Export PDF Button */}
+                        <Button
+                          onClick={handleExportTodayPDF}
+                          disabled={exportingToday}
+                          className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 hover:text-white transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
+                        >
+                          {exportingToday ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                              <span>Downloading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <FileDown className="w-4 h-4" />
+                              <span>Export PDF</span>
+                            </>
+                          )}
+                        </Button>
 
-          </>
-        }
-        </>
-      )}
+                        {/* Mobile Export PDF Icon Button */}
+                        <Button
+                          onClick={handleExportTodayPDF}
+                          disabled={exportingToday}
+                          size="icon"
+                          variant="outline"
+                          className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+                        >
+                          {exportingToday ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                          ) : (
+                            <FileDown className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
+                              <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                                <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
+                                <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Status</th>
+                                <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Marked At</th>
+                                <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Notes</th>
+                              </tr>
+                            </thead>
+                            <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
+                              {todayAttendance.length === 0 ?
+                                <tr>
+                                  <td colSpan={4} className="py-12">
+                                    <div className={`flex flex-col items-center justify-center space-y-3 p-8 border-2 border-dashed rounded-xl mx-auto max-w-sm ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                                      <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                                        <CalendarX className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                                      </div>
+                                      <div className="text-center">
+                                        <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records for today</p>
+                                        <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty attendance hasn't been marked yet</p>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr> :
+
+                                todayAttendance.map((record) =>
+                                  <tr key={record.faculty_id} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
+                                    <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                      <div className="font-medium faculty-name">{record.faculty_name}</div>
+                                    </td>
+                                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                                      <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status}</span>
+                                    </td>
+                                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} meta-text`}>
+                                      {record.marked_at ? new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not marked'}
+                                      {record.location ?
+                                        <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} location-text`}>
+                                          {record.location.inside ?
+                                            <>On campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</> :
+
+                                            <>Outside campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</>
+                                          }
+                                          {record.location.campus_name ? ` • ${record.location.campus_name}` : ''}
+                                        </div> :
+
+                                        <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} location-text`}>Location not recorded</div>
+                                      }
+                                    </td>
+                                    <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                                      {record.notes || '-'}
+                                    </td>
+                                  </tr>
+                                )
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                      {todayAttendance.length > 50 && (
+                        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                          <div className="pagination-text">
+                            Showing {todayAttendance.length > 0 ? (todayPagination.page - 1) * todayPagination.page_size + 1 : 0} to {Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)} of {todayPagination.total_items} faculty
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {todayPagination.total_items > todayPagination.page_size &&
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={loadAllData}
+                                disabled={isTodayLoading}
+                                className="border-green-500 text-green-600 hover:bg-green-50 h-9 px-4 transition-all pagination-btn"
+                              >
+                                {isTodayLoading ? 'Loading...' : 'Load All'}
+                              </Button>
+                            }
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handlePageChange(todayPagination.page - 1)}
+                              disabled={!todayPagination.has_prev || isTodayLoading}
+                              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
+                            >
+                              Previous
+                            </Button>
+
+                            <div className="flex items-center justify-center min-w-[2rem]">
+                              <span className={`text-sm font-semibold pagination-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {todayPagination.page}
+                              </span>
+                            </div>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handlePageChange(todayPagination.page + 1)}
+                              disabled={!todayPagination.has_next || isTodayLoading}
+                              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
+                            >
+                              Next
+                            </Button>
+                          </div>
+                        </CardFooter>
+                      )}
+                    </Card>
+                  </div>
+                ) : null
+                )}
+
+                {activeTab === 'records' &&
+                  <div className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+                    {/* Date Range Filter */}
+                    <div id="hod-faculty-attendance-filters" className={`p-3 sm:p-4 rounded-lg  ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-end">
+                        <div className="w-full sm:w-[220px]">
+                          <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
+                            Faculty
+                          </label>
+                          <Select
+                            value={selectedFacultyId}
+                            onValueChange={setSelectedFacultyId}>
+                            <SelectTrigger className={cn(
+                              "w-full h-9 text-xs sm:text-sm",
+                              theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                            )}>
+                              <SelectValue placeholder="Choose Faculty" />
+                            </SelectTrigger>
+                            <SelectContent className={theme === 'dark' ? 'bg-slate-950 border-white/10 text-foreground' : 'bg-white border-gray-200 text-gray-900'}>
+                              <SelectItem value="all">All Faculty</SelectItem>
+                              {uniqueFaculties.map((f) => (
+                                <SelectItem key={f.id} value={f.id}>
+                                  {f.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="w-full sm:w-auto">
+                          <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
+                            Start Date
+                          </label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
+                                  !dateRange.start_date && "text-muted-foreground",
+                                  theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                                )}>
+
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {dateRange.start_date ? format(new Date(dateRange.start_date), "PPP") : <span>Pick a date</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <ShadcnCalendar
+                                mode="single"
+                                selected={new Date(dateRange.start_date)}
+                                onSelect={(date) => date && setDateRange((prev) => ({ ...prev, start_date: date.toLocaleDateString('sv-SE') }))}
+                                initialFocus />
+
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div className="w-full sm:w-auto">
+                          <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
+                            End Date
+                          </label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
+                                  !dateRange.end_date && "text-muted-foreground",
+                                  theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                                )}>
+
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {dateRange.end_date ? format(new Date(dateRange.end_date), "PPP") : <span>Pick a date</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <ShadcnCalendar
+                                mode="single"
+                                selected={new Date(dateRange.end_date)}
+                                onSelect={(date) => date && setDateRange((prev) => ({ ...prev, end_date: date.toLocaleDateString('sv-SE') }))}
+                                disabled={(date) => {
+                                  const start = new Date(dateRange.start_date);
+                                  const today = new Date();
+                                  today.setHours(23, 59, 59, 999);
+                                  return isBefore(date, start) || isSameDay(date, start) || date > today;
+                                }}
+                                initialFocus />
+
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Faculty Summary */}
+                    {isRecordsLoading && facultySummary.length === 0 ? (
+                      <SkeletonTable rows={10} cols={6} />
+                    ) : !selectedFacultyId ? (
+                      <div className={`p-12 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                        <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                          <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                        </div>
+                        <div className="text-center">
+                          <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Faculty Selected</p>
+                          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Please select a faculty member from the dropdown to view attendance summary</p>
+                        </div>
+                      </div>
+                    ) : facultySummary.length > 0 ? (
+                      <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
+                        <CardHeader className="px-6 py-4 border-b border-border flex flex-row justify-between items-center gap-4">
+                          <CardTitle className={`text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            Faculty Attendance Summary
+                          </CardTitle>
+
+                          {/* Desktop Export Report Button */}
+                          <Button
+                            onClick={handleExportRecordsPDF}
+                            disabled={exportingRecords || facultySummary.length === 0 || !selectedFacultyId}
+                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 hover:text-white transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
+                          >
+                            {exportingRecords ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                                <span>Downloading...</span>
+                              </>
+                            ) : (
+                              <>
+                                <FileDown className="w-4 h-4" />
+                                <span>Export Report</span>
+                              </>
+                            )}
+                          </Button>
+
+                          {/* Mobile Export Report Icon Button */}
+                          <Button
+                            onClick={handleExportRecordsPDF}
+                            disabled={exportingRecords || facultySummary.length === 0 || !selectedFacultyId}
+                            size="icon"
+                            variant="outline"
+                            className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+                          >
+                            {exportingRecords ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                            ) : (
+                              <FileDown className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead className={`sticky top-0 whitespace-nowrap ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
+                                <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
+                                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
+                                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</th>
+                                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</th>
+                                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance %</th>
+                                  <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
+                                {facultySummary
+                                  .filter(summary => selectedFacultyId === "all" || summary.id === selectedFacultyId)
+                                  .map((summary) =>
+                                    <React.Fragment key={summary.id}>
+                                      <tr className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedFaculty?.id === summary.id ? theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50' : ''}`}>
+                                        <td className={`px-6 py-4 whitespace-nowrap font-medium faculty-name ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                          {summary.name}
+                                        </td>
+                                        <td className={`px-6 py-4 whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                          {summary.total_days}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-green-600 font-medium">
+                                          {summary.present_days}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-red-600 font-medium">
+                                          {summary.absent_days}
+                                        </td>
+                                        <td className={`px-6 py-4 whitespace-nowrap font-medium ${summary.attendance_percentage >= 75 ? 'text-green-600' :
+                                          summary.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`
+                                        }>
+                                          {summary.attendance_percentage.toFixed(1)}%
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                                          <button
+                                            onClick={() => fetchFacultyDetails(summary)}
+                                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors export-btn ${theme === 'dark' ?
+                                              'bg-primary/20 text-primary hover:bg-primary/30' :
+                                              'bg-primary text-white hover:bg-primary/90'}`
+                                            }>
+
+                                            {selectedFaculty?.id === summary.id && isDetailLoading ? 'Loading...' : 'View'}
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    </React.Fragment>
+                                  )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </CardContent>
+
+                        {facultySummary.length > 50 && (
+                          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                            <div className="pagination-text">
+                              Showing {recordsPagination.total_items > 0 ? Math.min((recordsPagination.page - 1) * recordsPagination.page_size + 1, recordsPagination.total_items) : 0} to {Math.min(recordsPagination.page * recordsPagination.page_size, recordsPagination.total_items)} of {recordsPagination.total_items} records
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleRecordsPageChange(recordsPagination.page - 1)}
+                                disabled={!recordsPagination.has_prev || isRecordsLoading}
+                                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
+                              >
+                                Previous
+                              </Button>
+
+                              <div className="flex items-center justify-center min-w-[2rem]">
+                                <span className={`text-sm font-semibold pagination-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                  {recordsPagination.page}
+                                </span>
+                              </div>
+
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleRecordsPageChange(recordsPagination.page + 1)}
+                                disabled={!recordsPagination.has_next || isRecordsLoading}
+                                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
+                              >
+                                Next
+                              </Button>
+                            </div>
+                          </CardFooter>
+                        )}
+                      </Card>
+                    ) : (
+                      <div className={`p-12 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                        <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                          <ClipboardX className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                        </div>
+                        <div className="text-center">
+                          <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records found</p>
+                          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Try adjusting your date range or faculty filters</p>
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+                }
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -1231,9 +1237,9 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           </div> :
 
                           !isFuture && !isNonWorkingDay ?
-                          <div className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)] detail-status-badge">
-                            A
-                          </div> : <div className={`w-1.5 h-1.5 rounded-full mt-2.5 ${isNonWorkingDay ? 'bg-slate-300 dark:bg-slate-600' : 'bg-transparent'}`} />
+                            <div className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)] detail-status-badge">
+                              A
+                            </div> : <div className={`w-1.5 h-1.5 rounded-full mt-2.5 ${isNonWorkingDay ? 'bg-slate-300 dark:bg-slate-600' : 'bg-transparent'}`} />
 
                         }
 

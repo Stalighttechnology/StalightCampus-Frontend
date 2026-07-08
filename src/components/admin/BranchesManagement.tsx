@@ -572,67 +572,135 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
               <SkeletonTable rows={pageSize} cols={4} /> :
 
               <>
-                 <div className="branches-table-container flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4">
-                  <table className="branches-table w-full text-base md:text-sm text-left table-auto border-collapse">
-                    <thead className={`sticky top-0 z-10 border-b text-sm md:text-xs uppercase ${theme === 'dark' ? 'bg-slate-900' : 'bg-gray-50'} text-muted-foreground border-border shadow-sm`}>
-                      <tr>
-                        <th className="branch-name-col py-3 px-3 text-left font-bold">{translateTerminology("Branch Name")}</th>
-                        <th className="py-3 px-3 hidden sm:table-cell font-bold">{translateTerminology("Branch Code")}</th>
-                        <th className="hod-col py-3 px-3 font-bold">Assigned HOD</th>
-                        <th className="py-3 px-3 hidden sm:table-cell font-bold">HOD Contact</th>
-                        {!isReadOnly && <th className="actions-col py-3 px-3 text-right w-24 font-bold">Actions</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredBranches.length === 0 ?
+                  {/* Desktop View: Table */}
+                  <div className="branches-table-container hidden md:block flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4">
+                    <table className="branches-table w-full text-base md:text-sm text-left table-auto border-collapse">
+                      <thead className={`sticky top-0 z-10 border-b text-sm md:text-xs uppercase ${theme === 'dark' ? 'bg-slate-900' : 'bg-gray-50'} text-muted-foreground border-border shadow-sm`}>
                         <tr>
-                          <td colSpan={5} className="py-10 text-center text-muted-foreground">
-                            No branches found.
-                          </td>
-                        </tr> :
-
-                        filteredBranches.map((branch) =>
-                          <tr
-                            key={branch.id}
-                            className={`border-b transition-colors duration-200 ${theme === 'dark' ?
-                              'border-border hover:bg-accent text-foreground' :
-                              'border-gray-200 hover:bg-gray-50 text-gray-900'}`
-                            }>
-
-                            <td className="py-3 px-3 align-middle font-medium branch-name-cell">
-                              <div className="break-words">{branch.name}</div>
+                          <th className="branch-name-col py-3 px-3 text-left font-bold">{translateTerminology("Branch Name")}</th>
+                          <th className="py-3 px-3 hidden sm:table-cell font-bold">{translateTerminology("Branch Code")}</th>
+                          <th className="hod-col py-3 px-3 font-bold">Assigned HOD</th>
+                          <th className="py-3 px-3 hidden sm:table-cell font-bold">HOD Contact</th>
+                          {!isReadOnly && <th className="actions-col py-3 px-3 text-right w-24 font-bold">Actions</th>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredBranches.length === 0 ?
+                          <tr>
+                            <td colSpan={5} className="py-10 text-center text-muted-foreground">
+                              No branches found.
                             </td>
+                          </tr> :
 
-                            <td className="py-3 px-3 hidden sm:table-cell align-middle">
-                              <span className="opacity-70">{branch.branch_code || "--"}</span>
-                            </td>
+                          filteredBranches.map((branch) =>
+                            <tr
+                              key={branch.id}
+                              className={`border-b transition-colors duration-200 ${theme === 'dark' ?
+                                'border-border hover:bg-accent text-foreground' :
+                                'border-gray-200 hover:bg-gray-50 text-gray-900'}`
+                              }>
 
-                            <td className="py-3 px-3 align-middle hod-cell">
-                              <div className="break-words">{branch.hod || "--"}</div>
-                            </td>
-
-                            <td className="py-3 px-3 hidden sm:table-cell align-middle text-sm md:text-xs opacity-70">
-                              {branch.hod_contact || "--"}
-                            </td>
-
-                            {!isReadOnly && (
-                              <td className="py-3 px-3 text-right space-x-1 whitespace-nowrap align-middle actions-cell">
-                                  <div className="flex items-center justify-end gap-1">
-                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(branch)} className="h-8 w-8">
-                                      <PencilIcon className={theme === 'dark' ? 'w-4 h-4 text-primary' : 'w-4 h-4 text-blue-600'} />
-                                    </Button>
-                                    <Button variant="ghost" size="icon" onClick={() => confirmDelete(branch.id)} className="h-8 w-8">
-                                      <TrashIcon className={theme === 'dark' ? 'w-4 h-4 text-destructive' : 'w-4 h-4 text-red-600'} />
-                                    </Button>
-                                  </div>
+                              <td className="py-3 px-3 align-middle font-medium branch-name-cell">
+                                <div className="break-words">{branch.name}</div>
                               </td>
+
+                              <td className="py-3 px-3 hidden sm:table-cell align-middle">
+                                <span className="opacity-70">{branch.branch_code || "--"}</span>
+                              </td>
+
+                              <td className="py-3 px-3 align-middle hod-cell">
+                                <div className="break-words">{branch.hod || "--"}</div>
+                              </td>
+
+                              <td className="py-3 px-3 hidden sm:table-cell align-middle text-sm md:text-xs opacity-70">
+                                {branch.hod_contact || "--"}
+                              </td>
+
+                              {!isReadOnly && (
+                                <td className="py-3 px-3 text-right space-x-1 whitespace-nowrap align-middle actions-cell">
+                                    <div className="flex items-center justify-end gap-1">
+                                      <Button variant="ghost" size="icon" onClick={() => handleEdit(branch)} className="h-8 w-8">
+                                        <PencilIcon className={theme === 'dark' ? 'w-4 h-4 text-primary' : 'w-4 h-4 text-blue-600'} />
+                                      </Button>
+                                      <Button variant="ghost" size="icon" onClick={() => confirmDelete(branch.id)} className="h-8 w-8">
+                                        <TrashIcon className={theme === 'dark' ? 'w-4 h-4 text-destructive' : 'w-4 h-4 text-red-600'} />
+                                      </Button>
+                                    </div>
+                                </td>
+                              )}
+                            </tr>
+                          )
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile View: Stacked Cards */}
+                  <div className="grid grid-cols-1 gap-3 md:hidden overflow-y-auto custom-scrollbar flex-1 mb-4">
+                    {filteredBranches.length === 0 ? (
+                      <div className="py-10 text-center text-muted-foreground bg-card/30 rounded-lg border border-dashed border-border">
+                        No branches found.
+                      </div>
+                    ) : (
+                      filteredBranches.map((branch) => (
+                        <div
+                          key={branch.id}
+                          className={`p-4 rounded-xl border flex flex-col gap-3 shadow-sm ${
+                            theme === 'dark'
+                              ? 'bg-zinc-950/40 border-border text-foreground'
+                              : 'bg-white border-gray-200 text-gray-900'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="space-y-1">
+                              <h4 className="font-semibold text-sm sm:text-base break-words">
+                                {branch.name}
+                              </h4>
+                              {branch.branch_code && (
+                                <span className={`inline-block text-[11px] px-2 py-0.5 rounded font-mono ${
+                                  theme === 'dark' ? 'bg-zinc-800 text-zinc-300' : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                  Code: {branch.branch_code}
+                                </span>
+                              )}
+                            </div>
+                            
+                            {!isReadOnly && (
+                              <div className="flex items-center gap-1 shrink-0">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleEdit(branch)}
+                                  className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary"
+                                >
+                                  <PencilIcon className={theme === 'dark' ? 'w-4 h-4 text-primary' : 'w-4 h-4 text-blue-600'} />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => confirmDelete(branch.id)}
+                                  className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive"
+                                >
+                                  <TrashIcon className={theme === 'dark' ? 'w-4 h-4 text-destructive' : 'w-4 h-4 text-red-600'} />
+                                </Button>
+                              </div>
                             )}
-                          </tr>
-                        )
-                      }
-                    </tbody>
-                  </table>
-                </div>
+                          </div>
+
+                          <div className={`grid grid-cols-2 gap-2 pt-2 border-t text-[11px] sm:text-xs ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'}`}>
+                            <div>
+                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[9px] mb-0.5">Assigned HOD</span>
+                              <span className="font-medium break-words">{branch.hod || "--"}</span>
+                            </div>
+                            <div>
+                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[9px] mb-0.5">HOD Contact</span>
+                              <span className="font-medium break-words text-wrap">{branch.hod_contact || "--"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
               </>
             }
         </CardContent>

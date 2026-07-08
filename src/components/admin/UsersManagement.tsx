@@ -619,10 +619,10 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
               {/* Desktop Download CSV Button */}
               <Button
                 onClick={handleDownloadCSV}
-                className="hidden md:flex gap-2 items-center dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200 hover:bg-zinc-100"
+                className="hidden md:flex gap-2 items-center bg-primary text-white hover:bg-primary/90 border border-primary transition-all hover:text-white"
                 variant="outline"
                 size="sm"
-                disabled={downloadingCSV}
+                disabled={downloadingCSV || (!roleFilter && !departmentFilter)}
               >
                 {downloadingCSV ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -689,7 +689,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                         variant="outline"
                         size="icon"
                         className="flex md:hidden dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200"
-                        disabled={downloadingCSV}
+                        disabled={downloadingCSV || (!roleFilter && !departmentFilter)}
                       >
                         {downloadingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                       </Button>
