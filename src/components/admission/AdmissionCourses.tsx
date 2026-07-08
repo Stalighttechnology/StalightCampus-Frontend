@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2, Edit, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { toast } from 'sonner';
@@ -133,18 +134,18 @@ const AdmissionCourses: React.FC = () => {
 
   return (
     <div id="admission-courses-container" className="space-y-6 w-full max-w-full overflow-hidden">
-      {isEditing && (
-        <Card className="border-primary/20 w-full overflow-hidden">
-          <CardHeader>
-            <CardTitle className="text-lg">{currentCourse.id ? 'Edit Course' : 'Add New Course'}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSave} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Course Name</label>
-                  <input type="text" required value={currentCourse.name} onChange={e => setCurrentCourse({...currentCourse, name: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" placeholder="e.g. Bachelor of Technology" />
-                </div>
+      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+        {isEditing && (
+          <DialogContent className="w-[90%] rounded-2xl max-h-[90vh] overflow-y-auto sm:max-w-[550px] p-6">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold">{currentCourse.id ? 'Edit Course' : 'Add New Course'}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSave} className="space-y-4 pt-2">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Course Name</label>
+                <input type="text" required value={currentCourse.name} onChange={e => setCurrentCourse({...currentCourse, name: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" placeholder="e.g. Bachelor of Technology" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Course Code</label>
                   <input type="text" required value={currentCourse.code} onChange={e => setCurrentCourse({...currentCourse, code: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm font-mono" placeholder="e.g. BTECH-CS" />
@@ -158,14 +159,14 @@ const AdmissionCourses: React.FC = () => {
                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Description</label>
                 <textarea required value={currentCourse.description} onChange={e => setCurrentCourse({...currentCourse, description: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" rows={3} placeholder="Briefly describe the course..."></textarea>
               </div>
-              <div className="flex justify-end gap-2 pt-2">
+              <DialogFooter className="flex justify-end gap-2 pt-2 sm:space-x-0">
                 <Button type="button" variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
                 <Button type="submit">Save Course</Button>
-              </div>
+              </DialogFooter>
             </form>
-          </CardContent>
-        </Card>
-      )}
+          </DialogContent>
+        )}
+      </Dialog>
 
       <Card className="overflow-hidden w-full border-border">
         <CardHeader id="admission-courses-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">

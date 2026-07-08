@@ -141,100 +141,122 @@ export default function CounsellorManagement() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto w-full">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Counsellors</h1>
-          <p className="text-sm md:text-base text-muted-foreground mt-1">Manage admission counsellors and their accounts.</p>
-        </div>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="hidden sm:flex gap-2">
-              <UserPlus className="w-4 h-4" /> Add Counsellor
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Create Counsellor Account</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreateCounsellor} className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input id="username" value={newUser.username} onChange={e => setNewUser({ ...newUser, username: e.target.value })} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input type="email" id="email" value={newUser.email} onChange={e => setNewUser({ ...newUser, email: e.target.value })} required />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number (Optional)</Label>
-                  <Input type="tel" id="phone" value={newUser.phone} onChange={e => setNewUser({ ...newUser, phone: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="designation">Designation (Optional)</Label>
-                  <Input id="designation" value={newUser.designation} onChange={e => setNewUser({ ...newUser, designation: e.target.value })} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" value={newUser.first_name} onChange={e => setNewUser({ ...newUser, first_name: e.target.value })} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" value={newUser.last_name} onChange={e => setNewUser({ ...newUser, last_name: e.target.value })} required />
-                </div>
-              </div>
-              <div className="pt-2">
-                <p className="text-xs text-muted-foreground text-center mb-3">
-                  Note: The password will default to <strong>stalight@123</strong>. They will be required to change it on their first login.
-                </p>
-                <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create Account"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Active Counsellors</CardTitle>
-          <CardDescription>View all counsellors registered in the system.</CardDescription>
+    <div id="counsellor-management-container" className="space-y-6 w-full max-w-full overflow-hidden">
+      <Card className="overflow-hidden w-full border-border">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+          <div>
+            <CardTitle className="text-lg font-semibold">Counsellors</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Manage admission counsellors and their accounts.</p>
+          </div>
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="shadow-sm">
+                <Plus size={16} className="mr-2" /> Add Counsellor
+              </Button>
+            </DialogTrigger>
+            {showAddDialog && (
+              <DialogContent className="w-[90vw] rounded-2xl max-h-[85vh] overflow-y-auto sm:max-w-[450px] custom-scrollbar">
+                <DialogHeader>
+                  <DialogTitle>Create Counsellor Account</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCreateCounsellor} className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input id="username" value={newUser.username} onChange={e => setNewUser({ ...newUser, username: e.target.value })} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input type="email" id="email" value={newUser.email} onChange={e => setNewUser({ ...newUser, email: e.target.value })} required />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone Number (Optional)</Label>
+                      <Input type="tel" id="phone" value={newUser.phone} onChange={e => setNewUser({ ...newUser, phone: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="designation">Designation (Optional)</Label>
+                      <Input id="designation" value={newUser.designation} onChange={e => setNewUser({ ...newUser, designation: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input id="firstName" value={newUser.first_name} onChange={e => setNewUser({ ...newUser, first_name: e.target.value })} required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input id="lastName" value={newUser.last_name} onChange={e => setNewUser({ ...newUser, last_name: e.target.value })} required />
+                    </div>
+                  </div>
+                  <div className="pt-2">
+                    <p className="text-xs text-muted-foreground text-center mb-3">
+                      Note: The password will default to <strong>stalight@123</strong>. They will be required to change it on their first login.
+                    </p>
+                    <Button type="submit" className="w-full" disabled={submitting}>
+                      {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create Account"}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            )}
+          </Dialog>
         </CardHeader>
-        <CardContent>
+        
+        <CardContent className={loading || counsellors.length === 0 ? "p-6" : "p-0"}>
           {loading ? (
-            <div className="py-8 flex justify-center">
+            <div className="py-12 flex justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : counsellors.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg bg-muted/20">
-              <p>No counsellors found.</p>
-              <Button variant="link" onClick={() => setShowAddDialog(true)}>Add your first counsellor</Button>
+            <div className="p-8 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-3 min-h-[350px] border-gray-200 bg-gray-50/50 dark:border-border dark:bg-accent/5">
+              <div className="p-3 rounded-full bg-gray-100 dark:bg-accent/10">
+                <UserPlus className="w-8 h-8 text-gray-400 dark:text-muted-foreground" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-medium text-gray-900 dark:text-foreground">No counsellors found</p>
+                <p className="text-xs mt-1 text-gray-500 dark:text-muted-foreground">Add your first counsellor to get started.</p>
+              </div>
+              <Button size="sm" variant="outline" className="mt-2" onClick={() => setShowAddDialog(true)}>
+                Add Counsellor
+              </Button>
             </div>
           ) : (
-            <div className="divide-y border rounded-md">
-              {counsellors.map(counsellor => (
-                <div key={counsellor.id} className="flex justify-between items-center p-4 bg-card">
-                  <div>
-                    <p className="font-medium text-sm">{counsellor.first_name} {counsellor.last_name}</p>
-                    <p className="text-xs text-muted-foreground">{counsellor.email}</p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-xs px-2 py-1 bg-secondary rounded text-secondary-foreground font-medium hidden sm:block">
-                      {counsellor.username}
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={() => setEditingCounsellor({ ...counsellor })}>
-                      <Edit className="w-4 h-4 text-muted-foreground hover:text-primary" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeletingCounsellor(counsellor)}>
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px] text-sm text-left">
+                <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
+                  <tr>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Name</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Email</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Username</th>
+                    <th className="px-6 py-4 text-right font-semibold whitespace-nowrap">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {counsellors.map(counsellor => (
+                    <tr key={counsellor.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
+                        {counsellor.first_name} {counsellor.last_name}
+                      </td>
+                      <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
+                        {counsellor.email}
+                      </td>
+                      <td className="px-6 py-4 text-muted-foreground font-mono whitespace-nowrap">
+                        {counsellor.username}
+                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => setEditingCounsellor({ ...counsellor })} className="h-8 w-8 text-primary hover:bg-primary/10">
+                            <Edit size={16} />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => setDeletingCounsellor(counsellor)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </CardContent>
@@ -242,7 +264,7 @@ export default function CounsellorManagement() {
 
       {/* Edit Dialog */}
       <Dialog open={!!editingCounsellor} onOpenChange={(open) => !open && setEditingCounsellor(null)}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-[90vw] rounded-2xl max-h-[85vh] overflow-y-auto sm:max-w-[450px] custom-scrollbar">
           <DialogHeader>
             <DialogTitle>Edit Counsellor</DialogTitle>
           </DialogHeader>

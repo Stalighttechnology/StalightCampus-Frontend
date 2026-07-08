@@ -6,6 +6,7 @@ import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Loader2, UserCheck, FileText, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import Swal from 'sweetalert2';
 
 export default function AdmissionApplications() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -31,6 +32,30 @@ export default function AdmissionApplications() {
   };
 
   const handleUpdateStatus = async (id: number, status: string) => {
+    if (status === 'documents_verified') {
+      const result = await Swal.fire({
+        title: 'Verify Documents?',
+        text: 'Are you sure you want to mark these documents as verified?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, verify!',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#3b82f6',
+      });
+      if (!result.isConfirmed) return;
+    } else if (status === 'admission_confirmed') {
+      const result = await Swal.fire({
+        title: 'Confirm Admission?',
+        text: 'Are you sure you want to confirm this student admission?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, confirm!',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#10b981',
+      });
+      if (!result.isConfirmed) return;
+    }
+
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/${id}/update_status/`, {
         method: 'POST',
@@ -55,6 +80,17 @@ export default function AdmissionApplications() {
   };
 
   const handleEnroll = async (id: number) => {
+    const result = await Swal.fire({
+      title: 'Enroll Student?',
+      text: 'Are you sure you want to enroll this student into the institution?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, enroll!',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#10b981',
+    });
+    if (!result.isConfirmed) return;
+
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/${id}/enroll/`, {
         method: 'POST',
@@ -154,7 +190,7 @@ export default function AdmissionApplications() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <Button variant="outline" size="sm" onClick={() => setSelectedApp(app)}>
+                        <Button variant="outline" className='bg-primary hover:bg-primary/90 text-white hover:text-white' size="sm" onClick={() => setSelectedApp(app)}>
                           Review
                         </Button>
                       </td>

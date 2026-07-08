@@ -141,7 +141,7 @@ const LeadPipeline: React.FC = () => {
     <Card id="lead-pipeline-container" className="flex flex-col h-[calc(100vh-140px)] overflow-hidden">
       <CardHeader id="lead-pipeline-header" className="border-b pb-4 flex flex-row justify-between items-center">
         <div>
-          <CardTitle className="text-lg md:text-xl font-bold">Lead Pipeline</CardTitle>
+          <CardTitle className="text-lg md:text-xl font-semibold">Lead Pipeline</CardTitle>
           <p className="text-xs md:text-sm text-muted-foreground mt-1">Manage and track your applicant pipelines by dragging stages.</p>
         </div>
       </CardHeader>

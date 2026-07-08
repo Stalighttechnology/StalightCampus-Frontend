@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Loader2, User, Download } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function AdmissionStudents() {
+  const { theme } = useTheme();
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -108,12 +110,16 @@ export default function AdmissionStudents() {
             <Download className="w-4 h-4 mr-2" /> Export for HOD
           </Button>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className={students.length === 0 ? "p-6" : "p-0"}>
           {students.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <User className="w-12 h-12 mx-auto mb-4 opacity-20" />
-              <p>No students have been enrolled yet.</p>
-              <p className="text-sm mt-2">Enroll students from the Applications tab.</p>
+            <div className={`p-8 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-3 min-h-[350px] ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+              <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                <User className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+              </div>
+              <div className="text-center">
+                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No students have been enrolled yet.</p>
+                <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Enroll students from the Applications tab.</p>
+              </div>
             </div>
           ) : (
             <div className="overflow-x-auto">
