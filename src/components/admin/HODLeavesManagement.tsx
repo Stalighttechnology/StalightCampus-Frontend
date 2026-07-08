@@ -462,11 +462,10 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={`leave-view-btn w-full h-9 font-semibold transition border ${
-                            theme === 'dark'
+                          className={`leave-view-btn w-full h-9 font-semibold transition border ${theme === 'dark'
                               ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
                               : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
-                          }`}
+                            }`}
                           onClick={() => setViewReason(leave.reason)}>
                           View Reason
                         </Button>
@@ -476,8 +475,8 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                             <Button
                               variant="outline"
                               className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${theme === 'dark' ?
-                                  'text-green-400 border-green-400 hover:bg-green-900/20' :
-                                  'text-green-700 border-green-600 hover:bg-green-100'}`
+                                'text-green-400 border-green-400 hover:bg-green-900/20' :
+                                'text-green-700 border-green-600 hover:bg-green-100'}`
                               }
                               onClick={() => handleApprove(leave.id)}
                               disabled={loading}>
@@ -487,8 +486,8 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                             <Button
                               variant="outline"
                               className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${theme === 'dark' ?
-                                  'text-red-400 border-red-400 hover:bg-red-900/20' :
-                                  'text-red-700 border-red-600 hover:bg-red-100'}`
+                                'text-red-400 border-red-400 hover:bg-red-900/20' :
+                                'text-red-700 border-red-600 hover:bg-red-100'}`
                               }
                               onClick={() => handleReject(leave.id)}
                               disabled={loading}>
@@ -541,11 +540,10 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                         <td className="py-4 px-2 md:px-4 text-sm">
                           <button
                             onClick={() => setViewReason(leave.reason)}
-                            className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${
-                              theme === 'dark'
+                            className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${theme === 'dark'
                                 ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
                                 : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
-                            }`}
+                              }`}
                           >
                             View
                           </button>
@@ -557,8 +555,8 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                               <Button
                                 variant="outline"
                                 className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
-                                    'text-green-400 border-green-400 hover:bg-green-900/20' :
-                                    'text-green-700 border-green-600 hover:bg-green-100'}`
+                                  'text-green-400 border-green-400 hover:bg-green-900/20' :
+                                  'text-green-700 border-green-600 hover:bg-green-100'}`
                                 }
                                 onClick={() => handleApprove(leave.id)}
                                 disabled={loading}>
@@ -568,8 +566,8 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                               <Button
                                 variant="outline"
                                 className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
-                                    'text-red-400 border-red-400 hover:bg-red-900/20' :
-                                    'text-red-700 border-red-600 hover:bg-red-100'}`
+                                  'text-red-400 border-red-400 hover:bg-red-900/20' :
+                                  'text-red-700 border-red-600 hover:bg-red-100'}`
                                 }
                                 onClick={() => handleReject(leave.id)}
                                 disabled={loading}>

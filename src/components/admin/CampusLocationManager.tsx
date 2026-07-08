@@ -412,7 +412,7 @@ const CampusLocationManager: React.FC = () => {
                           <div className="flex-1 min-w-0 w-full">
                             <div className="flex flex-wrap items-center gap-2">
                               <h3 className={`font-semibold truncate max-w-[180px] sm:max-w-none ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{location.name}</h3>
-                              {location.is_active && <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'}`}>Active</span>}
+                              {location.is_active && <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap ${theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'}`}>Active</span>}
                             </div>
                             {location.description && <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{location.description}</p>}
                             <div className={`mt-2 text-xs space-y-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>

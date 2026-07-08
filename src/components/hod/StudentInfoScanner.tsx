@@ -630,7 +630,7 @@ const StudentInfoScanner = () => {
                 "Search"
                 }
               </Button>
-              {studentData && (
+              {studentData && detectedStudents.length === 0 && (
                 /* Mobile Export Icon Button */
                 <Button
                   variant="outline"
@@ -689,24 +689,39 @@ const StudentInfoScanner = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {detectedStudents.map((student, index) => (
+                 {detectedStudents.map((student, index) => (
                   <div 
                     key={index}
                     onClick={() => {
                       setUsn(student.usn);
                       fetchStudentData(student.usn);
                     }}
-                    className={`p-4 rounded-lg border cursor-pointer transition-colors ${
+                    className={`p-4 rounded-lg border cursor-pointer transition-colors flex items-center gap-3 ${
                       theme === 'dark' 
                         ? 'bg-background border-border hover:border-primary/50 hover:bg-accent/50' 
                         : 'bg-gray-50 border-gray-200 hover:border-primary/50 hover:bg-gray-100'
                     }`}
                   >
-                    <h3 className="font-semibold text-lg">{student.name}</h3>
-                    <p className={`text-sm mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{student.usn}</p>
-                    <Badge variant="outline" className={theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-50 text-blue-700'}>
-                      {student.confidence.toFixed(1)}% Match
-                    </Badge>
+                    <div className="flex-shrink-0">
+                      {student.photo_url ? (
+                        <img 
+                          src={student.photo_url} 
+                          alt={student.name} 
+                          className="h-12 w-12 rounded-full object-cover border border-primary/20 shadow-sm"
+                        />
+                      ) : (
+                        <div className="h-12 w-12 rounded-full border border-primary/20 shadow-sm flex items-center justify-center bg-primary/10">
+                          <User className="h-6 w-6 text-primary/50" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-base truncate">{student.name}</h3>
+                      <p className={`text-xs mb-1 truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{student.usn}</p>
+                      <Badge variant="outline" className={theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-50 text-blue-700'}>
+                        {student.confidence.toFixed(1)}% Match
+                      </Badge>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -748,7 +763,7 @@ const StudentInfoScanner = () => {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className={`relative ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-3xl shadow-xl p-4 sm:p-6`}
+            className={`relative ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-2xl shadow-xl p-4 sm:p-6`}
             onClick={(e) => e.stopPropagation()}>
             
               <div className="flex items-center justify-between mb-4">
@@ -851,151 +866,168 @@ const StudentInfoScanner = () => {
       }
 
       {studentData && detectedStudents.length > 0 && (
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between md:justify-start gap-2">
           <Button 
             variant="outline" 
             onClick={() => {
               setStudentData(null);
               setUsn("");
             }}
-            className={theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}
+            className={`flex-1 md:flex-none ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
           >
             ← Back to Detected Students
+          </Button>
+          
+          {/* Mobile Export Icon Button next to back button */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleExportPDF}
+            disabled={downloadingPDF}
+            className="flex md:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+            title="Export PDF"
+          >
+            {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
           </Button>
         </div>
       )}
 
       {/* Student Data Display */}
       {studentData && studentData.success &&
-      <div className="space-y-6">
-          {/* Basic Information */}
+      <div className="space-y-6">          {/* Basic Information */}
           <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
             <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <User className="h-5 w-5 text-primary" />
-                  Basic Information
-                </CardTitle>
-                <div className="flex-shrink-0">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <User className="h-5 w-5 text-primary" />
+                Basic Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row-reverse gap-8 items-start">
+                {/* Left Side: Passport size Photo */}
+                <div className="flex-shrink-0 flex flex-col items-center md:items-start w-full md:w-auto">
                   {studentData.student_info.photo_url ? (
                     <img 
                       src={studentData.student_info.photo_url} 
                       alt={studentData.student_info.name} 
-                      className="h-16 w-16 rounded-full object-cover border-2 border-primary/20 shadow-sm"
+                      className="w-[140px] h-[180px] object-cover rounded-lg border-2 border-border shadow-md"
                     />
                   ) : (
-                    <div className="h-16 w-16 rounded-full border-2 border-primary/20 shadow-sm flex items-center justify-center bg-primary/10">
-                      <User className="h-8 w-8 text-primary/50" />
+                    <div className="w-[140px] h-[180px] rounded-lg border-2 border-dashed border-border shadow-sm flex flex-col items-center justify-center bg-muted/40">
+                      <User className="h-12 w-12 text-muted-foreground/50" />
+                      <span className="text-[11px] text-muted-foreground mt-2 font-medium">No Photo</span>
                     </div>
                   )}
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">Name:</span>
-                    <span className="text-sm">{studentData.student_info.name}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <BookOpen className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">USN:</span>
-                    <Badge variant="secondary" className="font-mono text-xs">{studentData.student_info.usn}</Badge>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">Email:</span>
-                    {studentData.student_info.email ?
-                  <a
-                    href={`mailto:${studentData.student_info.email}`}
-                    className="text-primary hover:underline text-sm break-words">
-                    
-                        {studentData.student_info.email}
-                      </a> :
 
-                  <span className="text-sm text-muted-foreground italic">Not provided</span>
-                  }
+                {/* Right Side: Details Grid */}
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 w-full">
+                  <div className="flex items-start gap-3">
+                    <User className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">Name</div>
+                      <div className="text-sm font-medium">{studentData.student_info.name}</div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">Mobile:</span>
-                    {studentData.student_info.mobile_number ?
-                  <a
-                    href={`tel:${studentData.student_info.mobile_number}`}
-                    className="text-primary hover:underline text-sm">
-                    
-                        {studentData.student_info.mobile_number}
-                      </a> :
-
-                  <span className="text-sm text-muted-foreground italic">Not provided</span>
-                  }
+                  <div className="flex items-start gap-3">
+                    <BookOpen className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">USN</div>
+                      <Badge variant="secondary" className="font-mono text-xs mt-0.5">{studentData.student_info.usn}</Badge>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">{translateTerminology("Branch")}:</span>
-                    <span className="text-sm">{studentData.student_info.branch}</span>
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">Email</div>
+                      {studentData.student_info.email ? (
+                        <a href={`mailto:${studentData.student_info.email}`} className="text-primary hover:underline text-sm break-all">
+                          {studentData.student_info.email}
+                        </a>
+                      ) : (
+                        <span className="text-sm text-muted-foreground italic">Not provided</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">{translateTerminology("Semester")}:</span>
-                    <Badge variant="outline" className="text-xs">Semester {studentData.student_info.semester}</Badge>
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">Mobile</div>
+                      {studentData.student_info.mobile_number ? (
+                        <a href={`tel:${studentData.student_info.mobile_number}`} className="text-primary hover:underline text-sm">
+                          {studentData.student_info.mobile_number}
+                        </a>
+                      ) : (
+                        <span className="text-sm text-muted-foreground italic">Not provided</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">Section:</span>
-                    <Badge variant="outline" className="text-xs">Section {studentData.student_info.section}</Badge>
+                  <div className="flex items-start gap-3">
+                    <Users className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">{translateTerminology("Branch")}</div>
+                      <div className="text-sm font-medium">{studentData.student_info.branch}</div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">Batch:</span>
-                    <span className="text-sm">{studentData.student_info.batch}</span>
+                  <div className="flex items-start gap-3">
+                    <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">{translateTerminology("Semester")}</div>
+                      <Badge variant="outline" className="text-xs mt-0.5">Semester {studentData.student_info.semester}</Badge>
+                    </div>
                   </div>
-                </div>
-              </div>
-
-              <Separator className="opacity-50" />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <BookOpen className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">Course:</span>
-                    <span className="text-sm">{studentData.student_info.course}</span>
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">Section</div>
+                      <Badge variant="outline" className="text-xs mt-0.5">Section {studentData.student_info.section}</Badge>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">Admission:</span>
-                    <span className="text-sm">{studentData.student_info.mode_of_admission}</span>
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">Batch</div>
+                      <div className="text-sm font-medium">{studentData.student_info.batch}</div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">Joined On:</span>
-                    <span className="text-sm">{studentData.student_info.date_of_admission}</span>
+                  <div className="flex items-start gap-3">
+                    <BookOpen className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">Course</div>
+                      <div className="text-sm font-medium">{studentData.student_info.course || '—'}</div>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Heart className="h-4 w-4 text-destructive" />
-                    <span className="text-sm font-semibold w-24">Blood Grp:</span>
-                    <Badge variant="destructive" className="text-xs">{studentData.student_info.blood_group}</Badge>
+                  <div className="flex items-start gap-3">
+                    <TrendingUp className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">Admission</div>
+                      <div className="text-sm font-medium">{studentData.student_info.mode_of_admission || '—'}</div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-24">{translateTerminology("Proctor")}:</span>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">{studentData.student_info.proctor?.name || 'Not assigned'}</span>
-                      {studentData.student_info.proctor?.email &&
-                    <a
-                      href={`mailto:${studentData.student_info.proctor.email}`}
-                      className="text-primary hover:underline text-xs">
-                      
+                  <div className="flex items-start gap-3">
+                    <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">Joined On</div>
+                      <div className="text-sm font-medium">{studentData.student_info.date_of_admission || '—'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Heart className="h-4 w-4 text-destructive mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">Blood Group</div>
+                      <Badge variant="destructive" className="text-xs mt-0.5">{studentData.student_info.blood_group || '—'}</Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 sm:col-span-2">
+                    <Users className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">{translateTerminology("Proctor")}</div>
+                      <div className="text-sm font-medium">{studentData.student_info.proctor?.name || 'Not assigned'}</div>
+                      {studentData.student_info.proctor?.email && (
+                        <a href={`mailto:${studentData.student_info.proctor.email}`} className="text-primary hover:underline text-xs block mt-0.5">
                           {studentData.student_info.proctor.email}
                         </a>
-                    }
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1012,90 +1044,153 @@ const StudentInfoScanner = () => {
                 Personal Information
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Date of Birth:</span>
-                    <span className="text-sm">{studentData.personal_info.date_of_birth || '—'}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Primary Lang:</span>
-                    <span className="text-sm">{studentData.personal_info.primary_language || '—'}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Alternate Mobile:</span>
-                    {studentData.personal_info.alternate_mobile ?
-                    <a href={`tel:${studentData.personal_info.alternate_mobile}`} className="text-primary hover:underline text-sm">{studentData.personal_info.alternate_mobile}</a> :
-                    <span className="text-sm text-muted-foreground italic">Not provided</span>
-                    }
+            <CardContent className="p-6">
+              {/* Personal Information Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="flex items-start gap-3">
+                  <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <div className="text-xs font-semibold text-muted-foreground">Date of Birth</div>
+                    <div className="text-sm font-medium">{studentData.personal_info.date_of_birth || '—'}</div>
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Personal Email:</span>
-                    {studentData.personal_info.personal_email ?
-                      <a href={`mailto:${studentData.personal_info.personal_email}`} className="text-primary hover:underline text-sm">{studentData.personal_info.personal_email}</a> :
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <div className="text-xs font-semibold text-muted-foreground">Primary Lang</div>
+                    <div className="text-sm font-medium">{studentData.personal_info.primary_language || '—'}</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <div className="text-xs font-semibold text-muted-foreground">Alternate Mobile</div>
+                    {studentData.personal_info.alternate_mobile ? (
+                      <a href={`tel:${studentData.personal_info.alternate_mobile}`} className="text-primary hover:underline text-sm">
+                        {studentData.personal_info.alternate_mobile}
+                      </a>
+                    ) : (
                       <span className="text-sm text-muted-foreground italic">Not provided</span>
-                    }
+                    )}
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Institutional Email:</span>
-                    {studentData.personal_info.institutional_email ?
-                      <a href={`mailto:${studentData.personal_info.institutional_email}`} className="text-primary hover:underline text-sm">{studentData.personal_info.institutional_email}</a> :
+                </div>
+                <div className="flex items-start gap-3">
+                  <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-semibold text-muted-foreground">Personal Email</div>
+                    {studentData.personal_info.personal_email ? (
+                      <a href={`mailto:${studentData.personal_info.personal_email}`} className="text-primary hover:underline text-sm break-all block">
+                        {studentData.personal_info.personal_email}
+                      </a>
+                    ) : (
                       <span className="text-sm text-muted-foreground italic">Not provided</span>
-                    }
+                    )}
                   </div>
-                  <div className="flex items-center gap-3">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Nationality:</span>
-                    <span className="text-sm">{studentData.personal_info.nationality || '—'}</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-semibold text-muted-foreground">Institutional Email</div>
+                    {studentData.personal_info.institutional_email ? (
+                      <a href={`mailto:${studentData.personal_info.institutional_email}`} className="text-primary hover:underline text-sm break-all block">
+                        {studentData.personal_info.institutional_email}
+                      </a>
+                    ) : (
+                      <span className="text-sm text-muted-foreground italic">Not provided</span>
+                    )}
                   </div>
-                  <div className="flex items-center gap-3">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Religion / Caste:</span>
-                    <span className="text-sm">{(studentData.personal_info.religion || '') + (studentData.personal_info.caste ? ` / ${studentData.personal_info.caste}` : '') || '—'}</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <User className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <div className="text-xs font-semibold text-muted-foreground">Nationality</div>
+                    <div className="text-sm font-medium">{studentData.personal_info.nationality || '—'}</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <User className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <div className="text-xs font-semibold text-muted-foreground">Religion / Caste</div>
+                    <div className="text-sm font-medium">{(studentData.personal_info.religion || '') + (studentData.personal_info.caste ? ` / ${studentData.personal_info.caste}` : '') || '—'}</div>
                   </div>
                 </div>
               </div>
 
-              <Separator className="opacity-50 my-4" />
+              <Separator className="my-6 opacity-50" />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="text-sm font-semibold">Official IDs</h4>
-                  <div className="mt-2 text-sm">
-                    <div>Aadhaar: {studentData.official_ids?.aadhaar_number || '—'}</div>
-                    <div>PAN: {studentData.official_ids?.pan_number || '—'}</div>
-                    <div>Passport: {studentData.official_ids?.passport_number || '—'}</div>
+              {/* Official IDs & Address */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Official IDs */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Official IDs</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-3 rounded-lg border bg-muted/20">
+                      <div className="text-xs font-semibold text-muted-foreground">Aadhaar</div>
+                      <div className="text-sm font-mono mt-0.5">{studentData.official_ids?.aadhaar_number || '—'}</div>
+                    </div>
+                    <div className="p-3 rounded-lg border bg-muted/20">
+                      <div className="text-xs font-semibold text-muted-foreground">PAN</div>
+                      <div className="text-sm font-mono mt-0.5">{studentData.official_ids?.pan_number || '—'}</div>
+                    </div>
+                    <div className="p-3 rounded-lg border bg-muted/20 sm:col-span-2">
+                      <div className="text-xs font-semibold text-muted-foreground">Passport</div>
+                      <div className="text-sm font-mono mt-0.5">{studentData.official_ids?.passport_number || '—'}</div>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-semibold">Address</h4>
-                  <div className="mt-2 text-sm">
-                    <div>Permanent: {studentData.address_info?.permanent || '—'}</div>
-                    <div>Current: {studentData.address_info?.current || '—'}</div>
-                    <div>{studentData.address_info?.city || ''} {studentData.address_info?.state ? ` / ${studentData.address_info.state}` : ''} {studentData.address_info?.pin_code ? ` - ${studentData.address_info.pin_code}` : ''}</div>
+
+                {/* Address */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Address Details</h4>
+                  <div className="space-y-3">
+                    <div className="p-3 rounded-lg border bg-muted/20">
+                      <div className="text-xs font-semibold text-muted-foreground">Permanent Address</div>
+                      <div className="text-sm mt-0.5 leading-relaxed">{studentData.address_info?.permanent || '—'}</div>
+                    </div>
+                    <div className="p-3 rounded-lg border bg-muted/20">
+                      <div className="text-xs font-semibold text-muted-foreground">Current Address</div>
+                      <div className="text-sm mt-0.5 leading-relaxed">
+                        {studentData.address_info?.current || '—'}
+                        { (studentData.address_info?.city || studentData.address_info?.state || studentData.address_info?.pin_code) && (
+                          <div className="text-xs text-muted-foreground mt-1 font-medium">
+                            {studentData.address_info?.city || ''}
+                            {studentData.address_info?.state ? ` / ${studentData.address_info.state}` : ''}
+                            {studentData.address_info?.pin_code ? ` - ${studentData.address_info.pin_code}` : ''}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <Separator className="opacity-50 my-4" />
-
-              <div className="flex items-center gap-4">
-                {studentData.social_links?.linkedin && <a href={studentData.social_links.linkedin} target="_blank" rel="noreferrer" className="text-primary hover:underline">LinkedIn</a>}
-                {studentData.social_links?.github && <a href={studentData.social_links.github} target="_blank" rel="noreferrer" className="text-primary hover:underline">GitHub</a>}
-                {studentData.social_links?.portfolio && <a href={studentData.social_links.portfolio} target="_blank" rel="noreferrer" className="text-primary hover:underline">Portfolio</a>}
-              </div>
+              { (studentData.social_links?.linkedin || studentData.social_links?.github || studentData.social_links?.portfolio) && (
+                <>
+                  <Separator className="my-6 opacity-50" />
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Social Profiles</h4>
+                    <div className="flex flex-row flex-nowrap items-center gap-3 overflow-x-auto pb-1">
+                      {studentData.social_links?.linkedin && (
+                        <a href={studentData.social_links.linkedin} target="_blank" rel="noreferrer" className="text-xs px-4 py-2 rounded-full border bg-muted/30 hover:bg-muted/60 transition-colors font-medium text-primary hover:underline">
+                          LinkedIn
+                        </a>
+                      )}
+                      {studentData.social_links?.github && (
+                        <a href={studentData.social_links.github} target="_blank" rel="noreferrer" className="text-xs px-4 py-2 rounded-full border bg-muted/30 hover:bg-muted/60 transition-colors font-medium text-primary hover:underline">
+                          GitHub
+                        </a>
+                      )}
+                      {studentData.social_links?.portfolio && (
+                        <a href={studentData.social_links.portfolio} target="_blank" rel="noreferrer" className="text-xs px-4 py-2 rounded-full border bg-muted/30 hover:bg-muted/60 transition-colors font-medium text-primary hover:underline">
+                          Portfolio
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
-
             }
 
             {/* Medical Information */}
@@ -1296,13 +1391,13 @@ const StudentInfoScanner = () => {
                   <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-1">Overall</div>
                 </div>
                 <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-accent/5 border border-border/50">
-                  <div className="text-3xl font-black text-primary">
+                  <div className="text-2xl font-black text-primary">
                     {studentData.attendance.present_classes}
                   </div>
                   <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-1">Present</div>
                 </div>
                 <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-accent/5 border border-border/50">
-                  <div className="text-3xl font-black text-muted-foreground">
+                  <div className="text-2xl font-black text-muted-foreground">
                     {studentData.attendance.total_classes}
                   </div>
                   <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-1">Total Classes</div>
@@ -1398,18 +1493,21 @@ const StudentInfoScanner = () => {
               <div key={subject} className="space-y-2">
                           <h4 className="font-medium text-lg">{subject}</h4>
                           <div className="space-y-2">
-                            {marks.map((mark: any, index: number) =>
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                                <div className="flex items-center gap-4">
-                                  <Badge variant="outline">Test {mark.test_number}</Badge>
-                                  <span className="font-medium">{mark.mark}/{mark.max_mark}</span>
-                                  <Badge variant="secondary">{mark.percentage}%</Badge>
+                             {marks.map((mark: any, index: number) => (
+                              <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3.5 rounded-xl border bg-muted/10 gap-3">
+                                <div className="flex items-center justify-between sm:justify-start gap-4">
+                                  <div className="flex items-center gap-3">
+                                    <Badge variant="outline" className="px-2 py-0.5 rounded-full font-semibold">Test {mark.test_number}</Badge>
+                                    <span className="font-semibold text-base">{mark.mark}/{mark.max_mark}</span>
+                                  </div>
+                                  <Badge variant="secondary" className="font-semibold">{mark.percentage}%</Badge>
                                 </div>
-                                <div className="text-sm text-gray-500">
-                                  {mark.faculty}
+                                <div className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 sm:text-right">
+                                  <User className="h-3 w-3 text-muted-foreground/60" />
+                                  <span>{mark.faculty}</span>
                                 </div>
                               </div>
-                  )}
+                            ))}
                           </div>
                         </div>
               )}
@@ -1468,7 +1566,7 @@ const StudentInfoScanner = () => {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className={`relative overflow-hidden ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-3xl shadow-xl p-4 sm:p-6`}
+            className={`relative overflow-hidden ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-2xl shadow-xl p-4 sm:p-6`}
             onClick={(e) => e.stopPropagation()}>
             
             <AnimatePresence>
@@ -1477,7 +1575,7 @@ const StudentInfoScanner = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm rounded-3xl"
+                  className="absolute inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm rounded-2xl"
                 >
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -1561,51 +1659,66 @@ const StudentInfoScanner = () => {
                     <p className="text-sm text-red-700 dark:text-red-300">{faceScanError}</p>
                   </div>
               }
-                <div className="flex gap-2">
-                  {!faceScanning ? (
+                <div className="flex flex-col gap-2 w-full">
+                  {/* First Row: Main scan / capture button */}
+                  <div className="w-full flex">
+                    {!faceScanning ? (
+                      <Button
+                        onClick={() => startFaceScanning(faceCameraMode)}
+                        className="w-full bg-primary hover:bg-primary/90 text-white">
+                        <Camera className="h-4 w-4 mr-2" />
+                        Start Scanning
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={captureAndRecognizeFace}
+                        disabled={isRecognizingFace}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white">
+                        {isRecognizingFace ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Recognizing...
+                          </>
+                        ) : (
+                          "Capture & Recognize"
+                        )}
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Second Row: Secondary action buttons */}
+                  <div className="flex gap-2 w-full">
                     <Button
-                      onClick={() => startFaceScanning(faceCameraMode)}
-                      className="flex-1 bg-primary hover:bg-primary/90 text-white">
-                      <Camera className="h-4 w-4 mr-2" />
-                      Start Scanning
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={captureAndRecognizeFace}
+                      onClick={() => fileInputRef.current?.click()}
                       disabled={isRecognizingFace}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white">
-                      {isRecognizingFace ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Recognizing...
-                        </>
-                      ) : (
-                        "Capture & Recognize"
-                      )}
+                      variant="outline"
+                      className="flex-1"
+                      title="Upload Photo">
+                      {isRecognizingFace ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4 sm:mr-1.5" />}
+                      {!isRecognizingFace && <span className="hidden sm:inline text-xs">Upload</span>}
                     </Button>
-                  )}
+                    
+                    <Button 
+                      onClick={handleSwitchFaceCamera} 
+                      variant="outline" 
+                      className="flex-1" 
+                      title="Switch Camera"
+                    >
+                      <RefreshCw className="h-4 w-4 sm:mr-1.5" />
+                      <span className="hidden sm:inline text-xs">Switch</span>
+                    </Button>
 
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isRecognizingFace}
-                    variant="outline"
-                    className="flex-none px-3"
-                    title="Upload Photo">
-                    {isRecognizingFace ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                  </Button>
-                  
-                  <Button onClick={handleSwitchFaceCamera} variant="outline" className="flex-none px-3" title="Switch Camera">
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
-
-                  <Button
-                  onClick={() => {
-                    setShowFaceScanner(false);
-                    stopFaceScanning();
-                  }}
-                  variant="outline">
-                    Close
-                  </Button>
+                    <Button
+                      onClick={() => {
+                        setShowFaceScanner(false);
+                        stopFaceScanning();
+                      }}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <span className="text-xs">Close</span>
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="text-center text-xs text-gray-500 mt-2">

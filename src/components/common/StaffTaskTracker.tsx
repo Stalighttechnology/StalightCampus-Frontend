@@ -2,7 +2,7 @@ import React, { useState, useEffect, forwardRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Clock, CheckCircle2, Plus, ArrowRight, User, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { AlertCircle, Clock, CheckCircle2, Plus, ArrowRight, User, ChevronLeft, ChevronRight, Search, ClipboardX } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { staffTaskApi, StaffTask } from '../../api/staff_task_api';
 import Swal from 'sweetalert2';
@@ -72,6 +72,7 @@ const StaffTaskTracker = () => {
   const [assignedTasksPage, setAssignedTasksPage] = useState(1);
   const [assignedTasksTotalPages, setAssignedTasksTotalPages] = useState(1);
   const [assignedTasksCount, setAssignedTasksCount] = useState(0);
+  const [activeTaskTab, setActiveTaskTab] = useState<'assigned_to_me' | 'assigned_by_me'>('assigned_to_me');
 
   // Form state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -653,21 +654,55 @@ const StaffTaskTracker = () => {
           )}
         </div>
 
-        <div className="flex flex-col xl:flex-row gap-6">
+        {/* Tab Navigation if user can assign tasks */}
+        {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && (
+          <div className="flex space-x-1 p-1 rounded-lg bg-muted border border-border overflow-x-auto mb-6 w-full">
+            <button
+              onClick={() => setActiveTaskTab('assigned_to_me')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                activeTaskTab === 'assigned_to_me'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              My Tasks
+            </button>
+            <button
+              onClick={() => setActiveTaskTab('assigned_by_me')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                activeTaskTab === 'assigned_by_me'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Assigned Tasks
+            </button>
+          </div>
+        )}
+
+        <div className="w-full">
           {/* Received Tasks */}
-          {true && (
-            <Card className="shadow-sm border-border flex-1">
+          {(!['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') || activeTaskTab === 'assigned_to_me') && (
+            <Card className="shadow-sm border-border w-full">
               <CardHeader className="pb-3 border-b border-border/50 bg-muted/20">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <ArrowRight className="w-5 h-5 text-primary rotate-90" />
-                  Tasks Assigned to Me
+                  My Tasks
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 bg-muted/10 min-h-[400px] flex flex-col">
                 {myTasksLoading ? (
                   <div className="text-center p-8 text-muted-foreground border border-dashed rounded-md bg-background flex-1">Loading tasks...</div>
                 ) : myTasks.length === 0 ? (
-                  <div className="text-center p-8 text-muted-foreground border border-dashed rounded-md bg-background flex-1">No tasks assigned to you.</div>
+                  <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-border rounded-xl bg-background/50 text-center flex-1 space-y-3">
+                    <div className="p-4 rounded-full bg-muted">
+                      <ClipboardX className="w-10 h-10 text-muted-foreground" />
+                    </div>
+                    <div className="max-w-sm">
+                      <p className="text-base font-semibold text-foreground">No Tasks Found</p>
+                      <p className="text-sm text-muted-foreground mt-1">No tasks assigned to you at the moment.</p>
+                    </div>
+                  </div>
                 ) : (
                   <div className="space-y-4 flex-1">
                     {myTasks.map(task => <TaskCard key={task.id} task={task} isReceived={true} />)}
@@ -710,19 +745,27 @@ const StaffTaskTracker = () => {
           )}
 
           {/* Assigned Tasks */}
-          {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && (
-            <Card className="shadow-sm border-border flex-1">
+          {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && activeTaskTab === 'assigned_by_me' && (
+            <Card className="shadow-sm border-border w-full">
               <CardHeader className="pb-3 border-b border-border/50 bg-primary/5">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <ArrowRight className="w-5 h-5 text-primary" />
-                  Tasks Assigned by Me
+                  Assigned Tasks
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 bg-muted/10 min-h-[400px] flex flex-col">
                 {assignedTasksLoading ? (
                   <div className="text-center p-8 text-muted-foreground border border-dashed rounded-md bg-background flex-1">Loading tasks...</div>
                 ) : assignedTasks.length === 0 ? (
-                  <div className="text-center p-8 text-muted-foreground border border-dashed rounded-md bg-background flex-1">You haven't assigned any tasks.</div>
+                  <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-border rounded-xl bg-background/50 text-center flex-1 space-y-3">
+                    <div className="p-4 rounded-full bg-muted">
+                      <ClipboardX className="w-10 h-10 text-muted-foreground" />
+                    </div>
+                    <div className="max-w-sm">
+                      <p className="text-base font-semibold text-foreground">No Tasks Assigned</p>
+                      <p className="text-sm text-muted-foreground mt-1">You haven't assigned any tasks to staff yet.</p>
+                    </div>
+                  </div>
                 ) : (
                   <div className="space-y-4 flex-1">
                     {assignedTasks.map(task => <TaskCard key={task.id} task={task} isReceived={false} />)}

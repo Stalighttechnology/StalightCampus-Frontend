@@ -416,9 +416,14 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
 
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Select value={roleFilter} onValueChange={setRoleFilter}>
-                    <SelectTrigger className="w-full sm:w-[150px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:block [&>span]:truncate [&>span]:max-w-[85px] shadow-sm font-medium text-sm">
+                    <SelectTrigger className="w-full sm:w-auto min-w-[100px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:block [&>span]:truncate [&>span]:max-w-[110px] shadow-sm font-medium text-sm">
                       <Filter className="h-4 w-4" />
-                      <SelectValue placeholder="Role" />
+                      <span>
+                        {roleFilter === "All" ? "Filter" : 
+                         roleFilter === "transport_admin" ? "Transport Admin" :
+                         roleFilter === "library_admin" ? "Library Admin" :
+                         roleFilter === "hms_admin" ? "Hostel Admin" : roleFilter}
+                      </span>
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
                       <SelectItem value="All">All Roles</SelectItem>
@@ -429,9 +434,9 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                   </Select>
  
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full sm:w-[130px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:block [&>span]:truncate [&>span]:max-w-[70px] shadow-sm font-medium text-sm">
+                    <SelectTrigger className="w-full sm:w-auto min-w-[100px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:block [&>span]:truncate [&>span]:max-w-[80px] shadow-sm font-medium text-sm">
                       <Filter className="h-4 w-4" />
-                      <SelectValue placeholder="Status" />
+                      <span>{statusFilter === "All" ? "Filter" : statusFilter}</span>
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
                       <SelectItem value="All">All Statuses</SelectItem>
