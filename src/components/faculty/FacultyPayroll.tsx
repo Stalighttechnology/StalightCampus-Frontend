@@ -195,31 +195,36 @@ const FacultyPayroll: React.FC<FacultyPayrollProps> = ({ user }) => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="text-right">
-                        <div className="font-bold text-lg text-emerald-600 dark:text-emerald-400">{formatCurrency(slip.net_salary)}</div>
-                        <div className="text-xs text-slate-400">Net Take-home</div>
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full sm:w-auto">
+                      <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
+                        <div className="text-left sm:text-right">
+                          <div className="font-bold text-lg text-emerald-600 dark:text-emerald-400">{formatCurrency(slip.net_salary)}</div>
+                          <div className="text-xs text-slate-400">Net Take-home</div>
+                        </div>
+                        <Badge variant="outline" className={`capitalize border-none ${statusColor(slip.payout_status || slip.run_status)}`}>
+                          {slip.payout_status || slip.run_status || 'Pending'}
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className={`capitalize border-none ${statusColor(slip.payout_status || slip.run_status)}`}>
-                        {slip.payout_status || slip.run_status || 'Pending'}
-                      </Badge>
-                      <Button
-                        size="sm" variant="outline"
-                        className="gap-1.5 text-xs"
-                        onClick={() => setExpandedSlip(expandedSlip === slip.id ? null : slip.id)}
-                      >
-                        {expandedSlip === slip.id ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                        Details
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="gap-1.5 text-xs bg-primary text-white hover:bg-primary/90"
-                        onClick={() => handleDownload(slip)}
-                        disabled={downloadingId === slip.id}
-                      >
-                        <Download size={13} />
-                        {downloadingId === slip.id ? 'Downloading...' : 'Payslip PDF'}
-                      </Button>
+                      
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <Button
+                          size="sm" variant="outline"
+                          className="gap-1.5 text-xs flex-1 sm:flex-initial h-10"
+                          onClick={() => setExpandedSlip(expandedSlip === slip.id ? null : slip.id)}
+                        >
+                          {expandedSlip === slip.id ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                          Details
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="gap-1.5 text-xs bg-primary text-white hover:bg-primary/90 flex-1 sm:flex-initial h-10"
+                          onClick={() => handleDownload(slip)}
+                          disabled={downloadingId === slip.id}
+                        >
+                          <Download size={13} />
+                          {downloadingId === slip.id ? 'Downloading...' : 'Payslip PDF'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
@@ -317,8 +322,8 @@ const FacultyPayroll: React.FC<FacultyPayrollProps> = ({ user }) => {
                   {pfEsi.monthly_breakdown && pfEsi.monthly_breakdown.length > 0 && (
                     <div>
                       <h3 className={`font-semibold text-base mb-3 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Monthly Breakdown</h3>
-                      <div className="overflow-x-auto rounded-lg border border-slate-300 dark:border-slate-800">
-                        <table className="w-full text-sm text-left whitespace-nowrap">
+                      <div className="overflow-x-auto custom-scrollbar rounded-lg border border-slate-300 dark:border-slate-800">
+                        <table className="w-full text-sm text-left whitespace-nowrap ">
                           <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
                             <tr>
                               <th className="px-5 py-3">Period</th>
