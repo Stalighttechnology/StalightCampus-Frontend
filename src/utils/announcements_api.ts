@@ -149,7 +149,7 @@ export const createAnnouncement = async (payload: CreateAnnouncementRequest) => 
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || error.message || "Failed to create announcement");
+      throw new Error(error.error || error.message || error.detail || "Failed to create announcement");
     }
 
     const data: Announcement = await response.json();
