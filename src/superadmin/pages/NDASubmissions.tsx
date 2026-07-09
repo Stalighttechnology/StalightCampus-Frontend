@@ -6,6 +6,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useTheme } from "../../context/ThemeContext";
 import { API_BASE_URL } from "@/utils/config";
 import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
+import { useToast } from "../../hooks/use-toast";
 
 const NDASubmissions = () => {
   const [submissions, setSubmissions] = useState<any[]>([]);
@@ -27,6 +28,7 @@ const NDASubmissions = () => {
   const [approvingId, setApprovingId] = useState<number | null>(null);
 
   const { theme } = useTheme();
+  const { toast } = useToast();
 
   // Debounce search
   useEffect(() => {
@@ -90,12 +92,23 @@ const NDASubmissions = () => {
       if (response.ok) {
         setSubmissions(submissions.filter(s => s.id !== id));
         setTotal(total - 1);
-        alert('NDA approved successfully and email sent!');
+        toast({
+          title: "Success",
+          description: "NDA approved successfully and email sent!",
+        });
       } else {
-        alert(data.error || 'Failed to approve submission');
+        toast({
+          title: "Error",
+          description: data.error || "Failed to approve submission",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      alert('Error approving submission');
+      toast({
+        title: "Error",
+        description: "Error approving submission",
+        variant: "destructive",
+      });
     } finally {
       setApprovingId(null);
     }
@@ -115,11 +128,23 @@ const NDASubmissions = () => {
         setSubmissions(submissions.filter(s => s.id !== deleteId));
         setTotal(total - 1);
         setDeleteId(null);
+        toast({
+          title: "Success",
+          description: "Submission deleted successfully",
+        });
       } else {
-        alert('Failed to delete submission');
+        toast({
+          title: "Error",
+          description: "Failed to delete submission",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      alert('Error deleting submission');
+      toast({
+        title: "Error",
+        description: "Error deleting submission",
+        variant: "destructive",
+      });
     } finally {
       setActionLoading(false);
     }
