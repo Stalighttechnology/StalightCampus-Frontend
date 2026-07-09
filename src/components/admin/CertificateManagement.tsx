@@ -53,6 +53,7 @@ const CertificateManagement = () => {
   const [selectedCert, setSelectedCert] = useState<IssuedCertificate | null>(null);
   const [revokingCert, setRevokingCert] = useState<IssuedCertificate | null>(null);
   const [revokeLoading, setRevokeLoading] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const fetchCertificates = async () => {
     try {
@@ -149,26 +150,19 @@ const CertificateManagement = () => {
   const totalPages = Math.ceil(count / limit);
   const currentPage = Math.floor(offset / limit) + 1;
 
-  if (activeTab === "create") {
-    return (
-      <CreateCertificate
-        onBack={() => setActiveTab("list")}
-        onSuccess={() => setActiveTab("list")}
-      />
-    );
-  }
+
 
   return (
     <div className="space-y-6">
       {/* HEADER ACTIONS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Certificate Credentials</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Certificate Credentials</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Issue and verify authenticity of certificates issued by Stalight Technologies.
           </p>
         </div>
-        <Button onClick={() => setActiveTab("create")} className="flex items-center gap-2">
+        <Button onClick={() => setIsCreateOpen(true)} className="flex items-center gap-2">
           <Plus className="w-4 h-4" /> Issue Certificate
         </Button>
       </div>
@@ -249,7 +243,7 @@ const CertificateManagement = () => {
           ) : certs.length === 0 ? (
             <div className="text-center py-16 text-slate-500 dark:text-slate-400">
               <FileText className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-3" />
-              <h3 className="font-bold text-lg">No Certificates Found</h3>
+              <h3 className="font-semibold text-lg">No Certificates Found</h3>
               <p className="text-sm text-slate-400 mt-1 max-w-sm mx-auto">
                 No issued certificate records matched your query. Click "Issue Certificate" to register one.
               </p>
@@ -270,7 +264,7 @@ const CertificateManagement = () => {
                 <TableBody>
                   {certs.map((cert) => (
                     <TableRow key={cert.id} className="hover:bg-slate-50/55 dark:hover:bg-slate-900/30">
-                      <TableCell className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
+                      <TableCell className="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300">
                         {cert.certificate_id}
                       </TableCell>
                       <TableCell>
@@ -351,7 +345,7 @@ const CertificateManagement = () => {
         {selectedCert && (
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <DialogTitle className="text-lg font-semibold flex items-center gap-2">
                 <FileText className="w-5 h-5 text-primary" /> Certificate Specifications
               </DialogTitle>
               <DialogDescription>
@@ -373,7 +367,7 @@ const CertificateManagement = () => {
               <div className="bg-slate-50 dark:bg-slate-900/30 p-4 rounded-lg space-y-3">
                 <div className="grid grid-cols-2">
                   <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Certificate ID</span>
-                  <span className="text-xs font-mono font-bold text-slate-900 dark:text-slate-100">{selectedCert.certificate_id}</span>
+                  <span className="text-xs font-mono font-semibold text-slate-900 dark:text-slate-100">{selectedCert.certificate_id}</span>
                 </div>
                 <div className="grid grid-cols-2 border-t border-slate-100 dark:border-slate-800/80 pt-2">
                   <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Recipient</span>
@@ -441,7 +435,7 @@ const CertificateManagement = () => {
         {revokingCert && (
           <DialogContent>
             <DialogHeader>
-              <DialogTitle className="text-rose-600 font-bold flex items-center gap-2">
+              <DialogTitle className="text-rose-600 font-semibold flex items-center gap-2">
                 <Trash2 className="w-5 h-5" /> Revoke Certificate Credential?
               </DialogTitle>
               <DialogDescription>
@@ -474,6 +468,19 @@ const CertificateManagement = () => {
             </DialogFooter>
           </DialogContent>
         )}
+      </Dialog>
+
+      {/* ISSUE CERTIFICATE DIALOG */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="max-w-2xl overflow-y-auto max-h-[90vh]">
+          <CreateCertificate
+            onBack={() => setIsCreateOpen(false)}
+            onSuccess={() => {
+              setIsCreateOpen(false);
+              fetchCertificates();
+            }}
+          />
+        </DialogContent>
       </Dialog>
     </div>
   );

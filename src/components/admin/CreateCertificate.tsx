@@ -79,27 +79,27 @@ const CreateCertificate = ({ onBack, onSuccess }: CreateCertificateProps) => {
 
   if (successData) {
     return (
-      <div className="max-w-md mx-auto w-full py-8">
-        <Card className="border-emerald-200 bg-emerald-50/20 shadow-xl text-center">
-          <CardHeader>
-            <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-2">
+      <div className="w-full py-4 text-center">
+        <div className="bg-emerald-50/20 border border-emerald-200 rounded-xl p-6 space-y-4">
+          <div>
+            <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
               <Check className="w-10 h-10 text-emerald-600" />
             </div>
-            <CardTitle className="text-emerald-800 text-2xl font-bold">Certificate Issued!</CardTitle>
-            <CardDescription>
+            <h2 className="text-emerald-800 text-2xl font-semibold">Certificate Issued!</h2>
+            <p className="text-sm text-slate-500 mt-1">
               Credential generated and registered successfully.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-white p-4 rounded-lg border border-slate-100">
+            </p>
+          </div>
+          <div className="space-y-4">
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-100 dark:border-slate-800">
               <span className="text-xs text-slate-400 font-semibold block uppercase">Certificate ID</span>
-              <span className="text-lg font-bold text-slate-800">{successData.certificate_id}</span>
+              <span className="text-lg font-semibold text-slate-800 dark:text-slate-200">{successData.certificate_id}</span>
             </div>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               The PDF copy of the certificate is generated and stored securely in the cloud repository.
             </p>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-2">
+          </div>
+          <div className="flex flex-col gap-2 pt-2">
             <Button asChild className="w-full flex items-center justify-center gap-2">
               <a href={successData.pdf_url} target="_blank" rel="noopener noreferrer">
                 <Download className="w-4 h-4" /> Download Certificate PDF
@@ -108,32 +108,33 @@ const CreateCertificate = ({ onBack, onSuccess }: CreateCertificateProps) => {
             <Button variant="outline" onClick={onSuccess} className="w-full">
               Go to Certificate List
             </Button>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto w-full py-4 space-y-6">
-      <div className="flex items-center gap-2">
+    <div className="w-full space-y-6">
+      <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="w-4 h-4 mr-1" /> Back
         </Button>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Issue New Certificate</h1>
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Issue New Certificate</h1>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-primary" /> Certificate Specifications
-            </CardTitle>
-            <CardDescription>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold flex items-center gap-2 text-slate-900 dark:text-slate-100">
+              <Award className="w-4 h-4 text-primary" /> Certificate Specifications
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Provide student details and choose the credential configuration.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            </p>
+          </div>
+
+          <div className="space-y-4 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="student_name">Student Full Name *</Label>
@@ -264,22 +265,23 @@ const CreateCertificate = ({ onBack, onSuccess }: CreateCertificateProps) => {
                 rows={4}
               />
             </div>
-          </CardContent>
-          <CardFooter className="flex justify-end gap-2 border-t border-slate-100 pt-4">
-            <Button type="button" variant="outline" onClick={onBack}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading} className="min-w-[150px]">
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...
-                </>
-              ) : (
-                "Generate Certificate"
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800 pt-4">
+          <Button type="button" variant="outline" onClick={onBack}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={loading} className="min-w-[150px]">
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...
+              </>
+            ) : (
+              "Generate Certificate"
+            )}
+          </Button>
+        </div>
       </form>
     </div>
   );
