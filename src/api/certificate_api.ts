@@ -17,6 +17,7 @@ export interface IssuedCertificate {
   status: 'Verified' | 'Revoked' | 'Expired';
   verification_url: string;
   pdf_url?: string;
+  image_url?: string;
   created_at: string;
 }
 

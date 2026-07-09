@@ -21,6 +21,7 @@ import {
   AlertTriangle,
   XCircle,
   Eye,
+  Award,
   Loader2
 } from "lucide-react";
 import {
@@ -348,7 +349,7 @@ const CertificateManagement = () => {
       {/* DETAIL DRAWER / DIALOG */}
       <Dialog open={selectedCert !== null} onOpenChange={() => setSelectedCert(null)}>
         {selectedCert && (
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-lg font-bold flex items-center gap-2">
                 <FileText className="w-5 h-5 text-primary" /> Certificate Specifications
@@ -359,6 +360,16 @@ const CertificateManagement = () => {
             </DialogHeader>
 
             <div className="space-y-4 my-2">
+              {selectedCert.image_url && selectedCert.status === "Verified" && (
+                <div className="w-full bg-white rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+                  <img
+                    src={selectedCert.image_url}
+                    alt="Certificate Preview"
+                    className="w-full h-auto object-contain bg-white"
+                  />
+                </div>
+              )}
+
               <div className="bg-slate-50 dark:bg-slate-900/30 p-4 rounded-lg space-y-3">
                 <div className="grid grid-cols-2">
                   <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Certificate ID</span>
