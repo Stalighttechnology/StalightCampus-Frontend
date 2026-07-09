@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../../components/ui/card";
-import { Download, Search, FileText, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { Download, Search, FileText, ChevronLeft, ChevronRight, Trash2, CheckCircle } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../components/ui/alert-dialog";
 import { useTheme } from "../../context/ThemeContext";
@@ -13,14 +13,18 @@ const NDASubmissions = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   
+  // Tabs state
+  const [activeTab, setActiveTab] = useState<'approved' | 'pending'>('approved');
+
   // Pagination state
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [total, setTotal] = useState(0);
 
-  // Delete state
+  // Action states
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [approvingId, setApprovingId] = useState<number | null>(null);
 
   const { theme } = useTheme();
 
@@ -43,7 +47,8 @@ const NDASubmissions = () => {
         const queryParams = new URLSearchParams({
           page: page.toString(),
           page_size: pageSize.toString(),
-          search: debouncedSearchTerm
+          search: debouncedSearchTerm,
+          is_approved: activeTab === 'approved' ? 'true' : 'false'
         });
         
         const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/nda-submissions/?${queryParams.toString()}`, {
@@ -65,7 +70,36 @@ const NDASubmissions = () => {
     };
 
     fetchSubmissions();
-  }, [page, pageSize, debouncedSearchTerm]);
+  }, [page, pageSize, debouncedSearchTerm, activeTab]);
+
+  const handleTabChange = (tab: 'approved' | 'pending') => {
+    setActiveTab(tab);
+    setPage(1);
+  };
+
+  const handleApprove = async (id: number) => {
+    setApprovingId(id);
+    try {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/nda-submissions/${id}/approve/`, {
+        method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setSubmissions(submissions.filter(s => s.id !== id));
+        setTotal(total - 1);
+        alert('NDA approved successfully and email sent!');
+      } else {
+        alert(data.error || 'Failed to approve submission');
+      }
+    } catch (error) {
+      alert('Error approving submission');
+    } finally {
+      setApprovingId(null);
+    }
+  };
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -97,14 +131,40 @@ const NDASubmissions = () => {
 
   return (
     <div className="space-y-6">
+      {/* Tab Switcher */}
+      <div className="flex space-x-1 bg-muted/60 p-1 rounded-lg w-fit">
+        <button
+          onClick={() => handleTabChange('approved')}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+            activeTab === 'approved'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          NDA & Consents
+        </button>
+        <button
+          onClick={() => handleTabChange('pending')}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+            activeTab === 'pending'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Approvals
+        </button>
+      </div>
+
       <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
         <CardHeader className="pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border/50">
           <div className="w-full">
             <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              NDA & Consents
+              {activeTab === 'approved' ? 'NDA & Consents' : 'NDA Approvals'}
             </CardTitle>
             <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              View and download all signed NDA documents.
+              {activeTab === 'approved' 
+                ? 'View and download all signed NDA documents.' 
+                : 'Review and approve pending NDA submissions.'}
             </p>
           </div>
           <div className="relative w-full sm:w-64 flex-shrink-0">
@@ -146,7 +206,7 @@ const NDASubmissions = () => {
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
                       <FileText className="w-8 h-8 mx-auto text-muted-foreground/50 mb-3" />
-                      <p>No submissions found matching your search.</p>
+                      <p>No submissions found.</p>
                     </td>
                   </tr>
                 ) : (
@@ -174,18 +234,33 @@ const NDASubmissions = () => {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {sub.pdf_url ? (
-                            <a
-                              href={sub.pdf_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-colors shadow-sm"
+                          {activeTab === 'pending' ? (
+                            <Button
+                              onClick={() => handleApprove(sub.id)}
+                              disabled={approvingId === sub.id}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-colors shadow-sm"
                             >
-                              <Download className="w-3.5 h-3.5" />
-                              Download
-                            </a>
+                              {approvingId === sub.id ? (
+                                <span className="w-3.5 h-3.5 border border-white border-t-transparent rounded-full animate-spin"></span>
+                              ) : (
+                                <CheckCircle className="w-3.5 h-3.5" />
+                              )}
+                              Approve
+                            </Button>
                           ) : (
-                            <span className="text-xs text-muted-foreground italic px-3 py-1.5 border border-dashed rounded-md">Pending PDF</span>
+                            sub.pdf_url ? (
+                              <a
+                                href={sub.pdf_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-colors shadow-sm"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                Download
+                              </a>
+                            ) : (
+                              <span className="text-xs text-muted-foreground italic px-3 py-1.5 border border-dashed rounded-md">Pending PDF</span>
+                            )
                           )}
                           <Button 
                             variant="ghost" 
