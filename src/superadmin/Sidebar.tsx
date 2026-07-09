@@ -54,6 +54,7 @@ const menuItems = [
   { id: "reports", label: "Reports", icon: <BarChart3 size={20} /> },
   { id: "nda", label: "NDA & Consents", icon: <FileText size={20} /> },
   { id: "marketing", label: "Marketing Emails", icon: <Mail size={20} /> },
+  { id: "certificates", label: "Certificates", icon: <FileText size={20} /> },
   { id: "profile", label: "My Profile", icon: <UserCircle2 size={20} /> },
 ];
 

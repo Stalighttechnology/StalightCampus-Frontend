@@ -20,6 +20,7 @@ import { useTheme } from "../context/ThemeContext";
 import { Sun, Moon, Menu } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Capacitor } from "@capacitor/core";
+import CertificateManagement from "../components/admin/CertificateManagement";
 
 interface Props {
   setIsAuthenticated: (val: boolean) => void;
@@ -155,6 +156,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
               <Route path="nda" element={<NDASubmissions />} />
               <Route path="marketing" element={<BulkEmailer />} />
               <Route path="profile" element={<Profile />} />
+              <Route path="certificates" element={<CertificateManagement />} />
               <Route path="*" element={
                 <div className="flex flex-col items-center justify-center h-[60vh]">
                   <h2 className="text-2xl font-bold text-muted-foreground mb-4">Coming Soon</h2>
