@@ -184,10 +184,9 @@ export const NDAConsentPortal: React.FC = () => {
           <div className="nda-success-icon">
             <svg width="40" height="40" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"></path></svg>
           </div>
-          <div className="nda-success-title">Documents Signed Successfully!</div>
+          <div className="nda-success-title">Submission Received!</div>
           <div className="nda-success-sub">
-            Your signed NDA &amp; Consent documents have been generated and emailed to <strong>{data.personal_email}</strong>.<br />
-            A copy has also been sent to the HR team.
+            We are verifying your details and will send the countersigned NDA document to <strong>{data.personal_email}</strong> once approved.
           </div>
           {submissionResult && (
             <div className="nda-success-info">
@@ -201,11 +200,6 @@ export const NDAConsentPortal: React.FC = () => {
                 <span>Role</span><span>{data.role}</span>
               </div>
             </div>
-          )}
-          {pdfUrl && (
-            <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="nda-btn nda-btn-primary">
-              Download Signed PDF
-            </a>
           )}
         </div>
       </div>
