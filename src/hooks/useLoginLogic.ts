@@ -56,6 +56,10 @@ export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
             setTokens(response.access, response.role, response.profile as Record<string, any>);
           }
 
+          if ((response as any).matched_child_id) {
+            localStorage.setItem('selectedStudentId', String((response as any).matched_child_id));
+          }
+
           const userRole = response.role;
           switch (userRole) {
             case "admin":

@@ -113,7 +113,8 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           const data = await response.json();
           if (data.success && data.children) {
             setChildrenList(data.children);
-            if (data.children.length > 0 && !localStorage.getItem('selectedStudentId')) {
+            const currentSavedId = localStorage.getItem('selectedStudentId');
+            if (data.children.length > 0 && (!currentSavedId || currentSavedId === 'null' || currentSavedId === 'undefined')) {
               localStorage.setItem('selectedStudentId', data.children[0].id.toString());
               setSelectedChildId(data.children[0].id.toString());
             }

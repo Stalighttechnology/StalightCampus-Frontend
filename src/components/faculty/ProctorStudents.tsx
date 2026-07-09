@@ -14,12 +14,14 @@ import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import FaceRecognitionUploader from "@/components/common/FaceRecognitionUploader";
+import ProctorStudentParentModal from "./ProctorStudentParentModal";
 
 const ProctorStudents = () => {
   const { theme } = useTheme();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const { value: search, debouncedValue: debouncedSearch, setValue: setSearch } = useDebouncedSearch('', 500);
   const [selectedStudentFace, setSelectedStudentFace] = useState<any>(null);
+  const [selectedStudentParent, setSelectedStudentParent] = useState<any>(null);
 
   const handleExportPDF = async () => {
     setDownloadingPDF(true);
@@ -153,16 +155,28 @@ const ProctorStudents = () => {
                     <td className={`px-4 py-2 text-center text-sm whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section}</td>
                     <td className={`px-4 py-2 text-center text-sm whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.contact || '-'}</td>
                     <td className={`px-4 py-2 text-center text-sm whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        title="Train Face"
-                        onClick={() => setSelectedStudentFace(student)}
-                        className="flex items-center gap-2 mx-auto"
-                      >
-                        <ScanFace className="w-4 h-4 text-primary" />
-                        <span className="text-xs text-primary">Train</span>
-                      </Button>
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Train Face"
+                          onClick={() => setSelectedStudentFace(student)}
+                          className="flex items-center gap-1.5 hover:bg-primary/10 transition-colors"
+                        >
+                          <ScanFace className="w-4 h-4 text-primary" />
+                          <span className="text-xs font-medium text-primary">Train</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Parental Access"
+                          onClick={() => setSelectedStudentParent(student)}
+                          className="flex items-center gap-1.5 hover:bg-primary/10 transition-colors"
+                        >
+                          <Users className="w-4 h-4 text-primary" />
+                          <span className="text-xs font-medium text-primary">Parents</span>
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -220,9 +234,9 @@ const ProctorStudents = () => {
         </CardFooter>
       )}
       <Dialog open={!!selectedStudentFace} onOpenChange={(open) => !open && setSelectedStudentFace(null)}>
-        <DialogContent className={`sm:max-w-[600px] ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white'}`}>
+        <DialogContent className={`sm:max-w-[600px] w-[95vw] p-4 sm:p-6 max-h-[90vh] overflow-y-auto ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white'}`}>
           <DialogHeader>
-            <DialogTitle>Train Face: {selectedStudentFace?.name} ({selectedStudentFace?.usn})</DialogTitle>
+            <DialogTitle className="pr-8 text-base sm:text-lg leading-tight">Train Face: {selectedStudentFace?.name} <span className="block sm:inline text-sm sm:text-base font-normal text-muted-foreground">({selectedStudentFace?.usn})</span></DialogTitle>
           </DialogHeader>
           {selectedStudentFace && (
             <FaceRecognitionUploader
@@ -234,6 +248,10 @@ const ProctorStudents = () => {
           )}
         </DialogContent>
       </Dialog>
+      <ProctorStudentParentModal 
+        student={selectedStudentParent} 
+        onClose={() => setSelectedStudentParent(null)} 
+      />
     </Card>
   );
 };

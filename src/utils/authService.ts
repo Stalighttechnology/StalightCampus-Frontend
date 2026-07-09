@@ -141,7 +141,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(sessionId ? { 'X-Session-Id': sessionId } : {}),
       ...(deviceId ? { 'X-Device-Id': deviceId } : {}),
-      ...(selectedStudentId ? { 'X-Student-ID': selectedStudentId } : {}),
+      ...(selectedStudentId && selectedStudentId !== 'null' && selectedStudentId !== 'undefined' ? { 'X-Student-ID': selectedStudentId } : {}),
     };
     options.headers = safeHeaders as Record<string, string>;
     options.credentials = 'include'; // Include cookies

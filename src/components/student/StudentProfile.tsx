@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Upload, Camera, CheckCircle, AlertCircle, Eye, EyeOff, Monitor, Smartphone, Tablet, Globe, RefreshCw, ShieldCheck, Clock , Trash, ScanFace, Check } from 'lucide-react';
+import { Upload, Camera, CheckCircle, AlertCircle, Eye, EyeOff, Monitor, Smartphone, Tablet, Globe, RefreshCw, ShieldCheck, Clock , Trash, ScanFace, Check, Users } from 'lucide-react';
 import { useTheme } from "@/context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { getFullStudentProfile } from "@/utils/student_api";
@@ -302,7 +302,9 @@ const StudentProfile: React.FC = () => {
         showSuccessAlert('Success', isEditingParent ? 'Parent details updated successfully!' : 'Parent account linked successfully!');
         setParentData({ parent_name: "", parent_email: "", old_email: "" });
         setIsEditingParent(false);
-        window.location.reload();
+        if (res.parents) {
+          setForm((prev: any) => ({ ...prev, linked_parents: res.parents }));
+        }
       } else {
         showErrorAlert('Error', res.message || 'Failed to link parent account');
       }
@@ -1611,18 +1613,7 @@ const StudentProfile: React.FC = () => {
                                   <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{parent.email}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <button 
-                                    onClick={() => {
-                                      setParentData({ parent_name: parent.name, parent_email: parent.email, old_email: parent.email });
-                                      setIsEditingParent(true);
-                                      // Scroll to edit form
-                                      document.getElementById('parent-edit-form')?.scrollIntoView({ behavior: 'smooth' });
-                                    }}
-                                    className={`p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}
-                                    title="Edit Parent"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                  </button>
+
                                   <div className="px-2 py-1 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200">
                                     Linked
                                   </div>
@@ -1633,59 +1624,13 @@ const StudentProfile: React.FC = () => {
                         </div>
                       )}
 
-                      {(!form.linked_parents || form.linked_parents.length < 2 || isEditingParent) && (
-                        <div id="parent-edit-form" className={`p-4 border rounded-lg space-y-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-medium">{isEditingParent ? 'Edit Parent Details' : 'Link New Parent'}</h4>
-                            {isEditingParent && (
-                              <button 
-                                onClick={() => {
-                                  setIsEditingParent(false);
-                                  setParentData({ parent_name: '', parent_email: '', old_email: '' });
-                                }}
-                                className="text-xs text-primary hover:underline"
-                              >
-                                Cancel Edit
-                              </button>
-                            )}
-                          </div>
-                        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          Grant your parents read-only access to your dashboard. <br />
-                          <strong>Note:</strong> Your parents can login with this email ID and your USN as the password.
-                        </p>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="parent_name" className="text-sm mb-1.5 block">Parent's Name</Label>
-                            <Input 
-                              id="parent_name" 
-                              placeholder="e.g. John Doe" 
-                              value={parentData.parent_name}
-                              onChange={(e) => setParentData({...parentData, parent_name: e.target.value})}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="parent_email" className="text-sm mb-1.5 block">Parent's Email</Label>
-                            <Input 
-                              id="parent_email" 
-                              type="email"
-                              placeholder="e.g. parent@example.com" 
-                              value={parentData.parent_email}
-                              onChange={(e) => setParentData({...parentData, parent_email: e.target.value})}
-                            />
-                          </div>
+                      {(!form.linked_parents || form.linked_parents.length === 0) && (
+                        <div className={`p-8 text-center border rounded-lg ${theme === 'dark' ? 'bg-card border-input text-muted-foreground' : 'bg-white border-gray-200 text-gray-500'}`}>
+                          <Users className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                          <p className="font-medium">No Parents Linked</p>
+                          <p className="text-sm mt-1">Please contact your proctor if you wish to grant parent access to your dashboard.</p>
                         </div>
-                        <div className="flex justify-end mt-2">
-                          <Button 
-                            disabled={!parentData.parent_name || !parentData.parent_email || linkingParent}
-                            onClick={handleLinkParent}
-                            className="bg-primary hover:bg-primary/90 text-white"
-                          >
-                            {linkingParent ? 'Saving...' : (isEditingParent ? 'Save Changes' : 'Enable Parent Access')}
-                          </Button>
-                        </div>
-                      </div>
-                    )}
+                      )}
                     </div>
                   </div>
                 )}

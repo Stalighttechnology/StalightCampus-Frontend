@@ -142,11 +142,11 @@ const FaceRecognitionUploader = ({
           </div>
         ) : (
           <div className="space-y-4">
-            <div className={`p-4 rounded-lg flex items-start gap-3 border ${theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' : 'bg-yellow-50 border-yellow-200 text-yellow-700'}`}>
+            <div className={`p-3 sm:p-4 rounded-lg flex items-start gap-2 sm:gap-3 border ${theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' : 'bg-yellow-50 border-yellow-200 text-yellow-700'}`}>
               <ShieldAlert className="w-5 h-5 mt-0.5 shrink-0" />
               <div className="text-sm">
-                <p className="font-semibold mb-1">Face Not Registered</p>
-                <p className="opacity-90">Please upload a clear picture of the face to enable automatic attendance. Upload 3 to 5 images for best results.</p>
+                <p className="font-semibold mb-1">To Register correctly !</p>
+                <p className="opacity-90 text-xs sm:text-sm">Please upload a clear picture of the face to enable student for AI INFO Scanner. Upload 3 to 5 images for best results.</p>
               </div>
             </div>
 
@@ -161,9 +161,9 @@ const FaceRecognitionUploader = ({
                 multiple
                 onChange={handleFileChange}
                 className={`block w-full text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}
-                  file:mr-4 file:py-2 file:px-4
+                  file:mr-2 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-3 sm:file:px-4
                   file:rounded-full file:border-0
-                  file:text-sm file:font-semibold
+                  file:text-xs sm:file:text-sm file:font-semibold
                   ${theme === 'dark' ? 'file:bg-primary/10 file:text-primary hover:file:bg-primary/20' : 'file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'}
                   ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}
               />
@@ -181,7 +181,7 @@ const FaceRecognitionUploader = ({
                       <img
                         src={url}
                         alt={`Face ${index + 1}`}
-                        className="w-full h-32 object-cover rounded"
+                        className="w-full h-24 sm:h-32 object-cover rounded"
                       />
                     </div>
                   ))}
@@ -197,10 +197,10 @@ const FaceRecognitionUploader = ({
               {loading ? "Training Model..." : "Enroll Face"}
             </Button>
 
-            <div className={`p-4 rounded text-sm ${theme === 'dark' ? 'bg-primary/10' : 'bg-blue-50'}`}>
+            <div className={`p-3 sm:p-4 rounded text-xs sm:text-sm ${theme === 'dark' ? 'bg-primary/10' : 'bg-blue-50'}`}>
               <h3 className={`font-medium mb-1 ${theme === 'dark' ? 'text-primary' : 'text-blue-800'}`}>Privacy Notice:</h3>
               <p className={theme === 'dark' ? 'text-primary/80' : 'text-blue-600'}>
-                The image is converted into a mathematical encoding and the original image is discarded immediately. This mathematical representation is used solely for the purpose of AI-powered attendance and cannot be reverse-engineered into a photo.
+                The image is converted into a mathematical encoding and the original image is discarded immediately. This mathematical representation is used solely for the purpose of AI-powered Student INFO Scanner and cannot be reverse-engineered into a photo.
               </p>
             </div>
           </div>
