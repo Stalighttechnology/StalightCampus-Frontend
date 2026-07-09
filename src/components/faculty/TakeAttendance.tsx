@@ -437,7 +437,7 @@ const TakeAttendance = () => {
 
   // Dropdown options (deduplicated by id)
   // Subject-first behavior: list all subjects assigned to this faculty
-  const assignedSubjects = Array.from(new Map(normalizedAssignments.map((a) => [a.subject_id, { id: a.subject_id, name: a.subject_name }])).values());
+  const assignedSubjects = Array.from(new Map(normalizedAssignments.map((a) => [a.subject_id, { id: a.subject_id, name: a.subject_name, subject_type: a.subject_type }])).values());
 
   // Branch options: if subjectStudents available (subject-only bootstrap), use branches from registrations; otherwise use assignment branches
   const branchesFromAssignments = Array.from(new Map(normalizedAssignments.map((a) => [a.branch_id, { id: a.branch_id, name: a.branch }])).values());

@@ -790,28 +790,32 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                           <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getStatusBadge(user.status, theme)}</td>
                           <td className="table-cell py-2 px-1 text-right">
                             <div className="action-buttons whitespace-nowrap justify-end gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => { setPromoteData(user); setRoleChangeAction("promote"); setSelectedNewRole(""); setPromoteStep(1); }}
-                                disabled={loading || (user.role !== 'teacher' && user.role !== 'hod')}
-                                className={theme === 'dark' ?
-                                  'p-2 rounded hover:bg-accent' :
-                                  'p-2 rounded hover:bg-gray-100'}
-                                title="Promote Role">
-                                <ArrowUpCircle className={theme === 'dark' ? 'w-5 h-5 text-purple-400' : 'w-5 h-5 text-purple-500'} />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => { setPromoteData(user); setRoleChangeAction("demote"); setSelectedNewRole(""); setPromoteStep(1); }}
-                                disabled={loading || (user.role !== 'hod' && user.role !== 'principal')}
-                                className={theme === 'dark' ?
-                                  'p-2 rounded hover:bg-accent' :
-                                  'p-2 rounded hover:bg-gray-100'}
-                                title="Demote Role">
-                                <ArrowDownCircle className={theme === 'dark' ? 'w-5 h-5 text-orange-400' : 'w-5 h-5 text-orange-500'} />
-                              </Button>
+                              {(user.role === 'teacher' || user.role === 'hod') && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => { setPromoteData(user); setRoleChangeAction("promote"); setSelectedNewRole(""); setPromoteStep(1); }}
+                                  disabled={loading}
+                                  className={theme === 'dark' ?
+                                    'p-2 rounded hover:bg-accent' :
+                                    'p-2 rounded hover:bg-gray-100'}
+                                  title="Promote Role">
+                                  <ArrowUpCircle className={theme === 'dark' ? 'w-5 h-5 text-purple-400' : 'w-5 h-5 text-purple-500'} />
+                                </Button>
+                              )}
+                              {(user.role === 'hod' || user.role === 'principal') && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => { setPromoteData(user); setRoleChangeAction("demote"); setSelectedNewRole(""); setPromoteStep(1); }}
+                                  disabled={loading}
+                                  className={theme === 'dark' ?
+                                    'p-2 rounded hover:bg-accent' :
+                                    'p-2 rounded hover:bg-gray-100'}
+                                  title="Demote Role">
+                                  <ArrowDownCircle className={theme === 'dark' ? 'w-5 h-5 text-orange-400' : 'w-5 h-5 text-orange-500'} />
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="icon"

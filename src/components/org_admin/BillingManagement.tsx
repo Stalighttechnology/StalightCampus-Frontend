@@ -413,9 +413,9 @@ export const BillingManagement: React.FC = () => {
   };
 
   const TIER_OPTIONS = [
-    { max: 750,   name: 'Small Tier' },
-    { max: 2500,  name: 'Medium Tier' },
-    { max: 6000,  name: 'Large Tier' },
+    { max: 750, name: 'Small Tier' },
+    { max: 2500, name: 'Medium Tier' },
+    { max: 6000, name: 'Large Tier' },
     { max: 12000, name: 'Very Large Tier' },
     { max: 30000, name: 'Enterprise Tier' },
   ];
@@ -488,10 +488,10 @@ export const BillingManagement: React.FC = () => {
                     <Button variant="default" size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => setIsUpgradeOpen(true)}>
                       Upgrade Plan
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className={isMaxCapacityReached ? "border-amber-300 text-amber-700 hover:bg-amber-100" : "border-amber-300 text-amber-700 hover:bg-amber-100"} 
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={isMaxCapacityReached ? "border-amber-300 text-amber-700 hover:bg-amber-100" : "border-amber-300 text-amber-700 hover:bg-amber-100"}
                       onClick={() => isMaxCapacityReached ? setIsTierUpgradeOpen(true) : setIsCapacityUpgradeOpen(true)}
                     >
                       {isMaxCapacityReached ? 'Upgrade Tier' : 'Increase Limit'}
@@ -510,10 +510,10 @@ export const BillingManagement: React.FC = () => {
                     <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90 text-white" onClick={() => setIsUpgradeOpen(true)}>
                       Upgrade to Advance
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className={isMaxCapacityReached ? "border-primary/30 text-primary hover:bg-primary/10" : "border-primary/30 text-primary hover:bg-primary/10"} 
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={isMaxCapacityReached ? "border-primary/30 text-primary hover:bg-primary/10" : "border-primary/30 text-primary hover:bg-primary/10"}
                       onClick={() => isMaxCapacityReached ? setIsTierUpgradeOpen(true) : setIsCapacityUpgradeOpen(true)}
                     >
                       {isMaxCapacityReached ? 'Upgrade Tier' : 'Increase Limit'}
@@ -529,10 +529,10 @@ export const BillingManagement: React.FC = () => {
                   <p className="font-medium text-sm">Advance Plan Active</p>
                   <p className="text-xs mt-1">You are on the highest tier with all Enterprise features unlocked.</p>
                   <div className="flex flex-wrap gap-2 mt-3">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className={theme === 'dark' ? "border-emerald-800 text-emerald-400 hover:bg-emerald-900/30 hover:text-emerald-300" : "border-emerald-300 text-emerald-700 hover:bg-emerald-100"} 
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={theme === 'dark' ? "border-emerald-800 text-emerald-400 hover:bg-emerald-900/30 hover:text-emerald-300" : "border-emerald-300 text-emerald-700 hover:bg-emerald-100"}
                       onClick={() => isMaxCapacityReached ? setIsTierUpgradeOpen(true) : setIsCapacityUpgradeOpen(true)}
                     >
                       {isMaxCapacityReached ? 'Upgrade Tier' : 'Increase Limit'}
@@ -776,7 +776,7 @@ export const BillingManagement: React.FC = () => {
                       </td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${ticket.priority === 'High' || ticket.priority === 'Critical' ? 'bg-red-100 text-red-700' :
-                            ticket.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                          ticket.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
                           }`}>
                           {ticket.priority}
                         </span>
@@ -1061,7 +1061,7 @@ export const BillingManagement: React.FC = () => {
               <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-2 border-t mt-4">
                 <Button variant="outline" className="w-full sm:w-auto" onClick={() => setShowEditOrg(false)}>Cancel</Button>
                 <Button className="w-full sm:w-auto" onClick={() => setEditOrgStep(2)}>
-                  Continue to Admin Details
+                  Continue to Next Details
                 </Button>
               </DialogFooter>
             </div>
@@ -1168,8 +1168,8 @@ export const BillingManagement: React.FC = () => {
         />
       )}
       {isTierUpgradeOpen && (
-        <UpgradeTierDialog 
-          onClose={() => setIsTierUpgradeOpen(false)} 
+        <UpgradeTierDialog
+          onClose={() => setIsTierUpgradeOpen(false)}
           currentPlan={org?.plan_type || 'basic'}
           orgName={org?.name || ''}
           currentMaxStudents={org?.max_students || 500}

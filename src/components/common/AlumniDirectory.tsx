@@ -8,7 +8,9 @@ import { Skeleton } from '../ui/skeleton';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Eye, Search, GraduationCap, Loader2, MousePointer2, Filter, CheckCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Eye, Search, GraduationCap, Loader2, MousePointer2, Filter, CheckCircle, Edit, Save, X } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 // ──────────────────────────────────
 //  Types
@@ -24,7 +26,13 @@ interface AlumniRow {
   mode_of_admission: string; branch: string;
 }
 interface AlumniDetail extends AlumniRow {
+  id: number;
   address: string; blood_group: string; date_of_birth: string; is_graduated: boolean;
+  current_company?: string; job_title?: string; industry?: string;
+  linkedin_url?: string; github_portfolio_url?: string;
+  higher_education?: string; university_name?: string;
+  final_cgpa?: string; honors_medals?: string; major_projects?: string;
+  clubs_committees?: string;
 }
 
 const authHeaders = () => ({
@@ -35,8 +43,14 @@ const authHeaders = () => ({
 // ──────────────────────────────────
 //  Component
 // ──────────────────────────────────
-const AlumniDirectory: React.FC = () => {
+interface AlumniDirectoryProps {
+  userRole?: string;
+  userBranchId?: string;
+}
+
+const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchId }) => {
   const { toast } = useToast();
+  console.log("AlumniDirectory props:", { userRole, userBranchId });
 
   // ── filter bootstrap ──
   const [filterData, setFilterData] = useState<FilterData>({ batches: [], branches: [], admission_modes: [] });
@@ -70,6 +84,9 @@ const AlumniDirectory: React.FC = () => {
   const [modalOpen, setModalOpen]               = useState(false);
   const [loadingDetail, setLoadingDetail]       = useState(false);
   const [selectedAlumni, setSelectedAlumni]     = useState<AlumniDetail | null>(null);
+  const [isEditing, setIsEditing]               = useState(false);
+  const [editForm, setEditForm]                 = useState<Partial<AlumniDetail>>({});
+  const [savingProfile, setSavingProfile]       = useState(false);
 
   // ──────────────────────────────────
   //  1. Load bootstrap filters once
@@ -79,22 +96,43 @@ const AlumniDirectory: React.FC = () => {
     try {
       const res  = await fetchWithTokenRefresh(`${API_ENDPOINT}/alumni/filters/`, { headers: authHeaders() });
       const json = await res.json();
-      if (json.success) setFilterData(json.data);
+      if (json.success) {
+        setFilterData(json.data);
+        if (userRole === 'hod' && userBranchId) {
+          setFilters(f => ({ ...f, branchId: userBranchId }));
+        }
+      }
     } catch (e) {
       console.error('Alumni filters error', e);
     } finally {
       setLoadingFilters(false);
     }
-  }, []);
+  }, [userRole, userBranchId]);
 
   useEffect(() => { fetchFilters(); }, [fetchFilters]);
+
+  useEffect(() => {
+    if (userRole === 'hod' && userBranchId && filterData.branches.length > 0) {
+      const matchedBranch = filterData.branches.find(b => 
+        String(b.id) === String(userBranchId) || 
+        b.name.toLowerCase() === String(userBranchId).toLowerCase()
+      );
+      if (matchedBranch) {
+        setFilters(f => ({ ...f, branchId: String(matchedBranch.id) }));
+      }
+    }
+  }, [userRole, userBranchId, filterData.branches]);
 
   // Reset dependent filters if parent is cleared
   useEffect(() => {
     if (!filters.batchId) {
-      setFilters(f => ({ ...f, branchId: '', admissionMode: '' }));
+      if (userRole === 'hod' && userBranchId) {
+        setFilters(f => ({ ...f, admissionMode: '' }));
+      } else {
+        setFilters(f => ({ ...f, branchId: '', admissionMode: '' }));
+      }
     }
-  }, [filters.batchId]);
+  }, [filters.batchId, userRole, userBranchId]);
 
   useEffect(() => {
     if (!filters.branchId) {
@@ -173,15 +211,25 @@ const AlumniDirectory: React.FC = () => {
   // ──────────────────────────────────
   //  4. View detail
   // ──────────────────────────────────
-  const viewDetail = async (usn: string) => {
+  const viewDetail = async (usn: string, editMode: boolean = false) => {
     setModalOpen(true);
     setLoadingDetail(true);
     setSelectedAlumni(null);
     try {
       const res  = await fetchWithTokenRefresh(`${API_ENDPOINT}/alumni/${usn}/`, { headers: authHeaders() });
       const json = await res.json();
-      if (json.success) setSelectedAlumni(json.data);
-      else toast({ title: 'Error', description: json.message || 'Not found', variant: 'destructive' });
+      if (json.success) {
+        setSelectedAlumni(json.data);
+        if (editMode) {
+          setEditForm(json.data);
+          setIsEditing(true);
+        } else {
+          setIsEditing(false);
+          setEditForm({});
+        }
+      } else {
+        toast({ title: 'Error', description: json.message || 'Not found', variant: 'destructive' });
+      }
     } catch (e) {
       toast({ title: 'Error', description: 'Network error', variant: 'destructive' });
     } finally {
@@ -192,6 +240,49 @@ const AlumniDirectory: React.FC = () => {
   // ──────────────────────────────────
   //  Helpers
   // ──────────────────────────────────
+  const handleSaveProfile = async () => {
+    if (!selectedAlumni) return;
+    setSavingProfile(true);
+    try {
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/alumni/${selectedAlumni.usn}/profile/`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify(editForm),
+      });
+      const json = await res.json();
+      if (json.success) {
+        Swal.fire({
+          title: 'Success!',
+          text: 'Alumni profile has been updated.',
+          icon: 'success',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#9333ea'
+        });
+        setSelectedAlumni(prev => prev ? { ...prev, ...editForm } : prev);
+        setIsEditing(false);
+      } else {
+        toast({ title: 'Error', description: json.message || 'Failed to update profile', variant: 'destructive' });
+      }
+    } catch (e) {
+      toast({ title: 'Error', description: 'Network error', variant: 'destructive' });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleEditChange = (field: keyof AlumniDetail, value: string) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const startEditing = () => {
+    setEditForm(selectedAlumni || {});
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setEditForm({});
+  };
   const setFilter = (key: keyof typeof filters, val: string) =>
     setFilters(f => ({ ...f, [key]: val }));
 
@@ -217,7 +308,11 @@ const AlumniDirectory: React.FC = () => {
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-gray-400">Batch</label>
               <Select value={filters.batchId} onValueChange={v => {
                 setFilter('batchId', v);
-                setTimeout(() => setBranchOpen(true), 150);
+                if (userRole === 'hod') {
+                  setTimeout(() => setModeOpen(true), 150);
+                } else {
+                  setTimeout(() => setBranchOpen(true), 150);
+                }
               }}>
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Select Batch" />
@@ -241,7 +336,7 @@ const AlumniDirectory: React.FC = () => {
                   setFilter('branchId', v);
                   setTimeout(() => setModeOpen(true), 150);
                 }}
-                disabled={!filters.batchId}
+                disabled={(!filters.batchId) || (userRole === 'hod')}
               >
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Select Branch" />
@@ -389,10 +484,15 @@ const AlumniDirectory: React.FC = () => {
                                 {a.mode_of_admission}
                               </span>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-4 py-3 flex gap-2">
                               <Button size="sm" variant="outline" onClick={() => viewDetail(a.usn)} className="gap-1">
                                 <Eye className="h-3.5 w-3.5" /> View
                               </Button>
+                              {['hod', 'principal', 'admin'].includes(userRole || '') && (
+                                <Button size="sm" variant="outline" onClick={() => viewDetail(a.usn, true)} className="gap-1 text-purple-600 border-purple-200 hover:bg-purple-50">
+                                  <Edit className="h-3.5 w-3.5" /> Edit
+                                </Button>
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -441,11 +541,35 @@ const AlumniDirectory: React.FC = () => {
       </Card>
 
       {/* Detail modal */}
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="w-[90%] rounded-2xl sm:max-w-[560px]">
+      <Dialog open={modalOpen} onOpenChange={(open) => {
+        setModalOpen(open);
+        if (!open) cancelEditing();
+      }}>
+        <DialogContent className="w-[90%] rounded-2xl sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-             Alumni Details
+            <DialogTitle className="flex items-center justify-between gap-2 pr-4">
+              <div className="flex items-center gap-2">
+                <GraduationCap className="h-5 w-5 text-purple-500" />
+                Alumni Details
+              </div>
+              {['hod', 'principal', 'admin'].includes(userRole || '') && selectedAlumni && !loadingDetail && (
+                <div>
+                  {isEditing ? (
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={cancelEditing} disabled={savingProfile}>
+                        <X className="w-4 h-4 mr-1" /> Cancel
+                      </Button>
+                      <Button size="sm" onClick={handleSaveProfile} disabled={savingProfile} className="bg-purple-600 hover:bg-purple-700 text-white">
+                        {savingProfile ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />} Save
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={startEditing}>
+                      <Edit className="w-4 h-4 mr-1" /> Edit Profile
+                    </Button>
+                  )}
+                </div>
+              )}
             </DialogTitle>
           </DialogHeader>
           <div className="py-2">
@@ -454,25 +578,99 @@ const AlumniDirectory: React.FC = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
               </div>
             ) : selectedAlumni ? (
-              <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                {([
-                  ['USN',            selectedAlumni.usn],
-                  ['Name',           selectedAlumni.name],
-                  ['Email',          selectedAlumni.email],
-                  ['Phone',          selectedAlumni.phone],
-                  ['Branch',         selectedAlumni.branch],
-                  ['Batch',          selectedAlumni.batch],
-                  ['Mode',           selectedAlumni.mode_of_admission],
-                  ['Blood Group',    selectedAlumni.blood_group],
-                  ['Date of Birth',  selectedAlumni.date_of_birth],
-                  ['Address',        selectedAlumni.address],
-                ] as [string, string | null][]).map(([label, value]) => (
-                  <div key={label} className="col-span-1">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">{label}</p>
-                    <p className="text-gray-800 dark:text-gray-200">{value || '—'}</p>
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 mb-6">
+                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                  <TabsTrigger value="career">Career & Networking</TabsTrigger>
+                  <TabsTrigger value="academic">Academic Legacy</TabsTrigger>
+                </TabsList>
+
+                {/* TAB 1: BASIC INFO */}
+                <TabsContent value="basic" className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                    {([
+                      ['USN',            selectedAlumni.usn],
+                      ['Name',           selectedAlumni.name],
+                      ['Email',          selectedAlumni.email],
+                      ['Phone',          selectedAlumni.phone],
+                      ['Branch',         selectedAlumni.branch],
+                      ['Batch',          selectedAlumni.batch],
+                      ['Mode',           selectedAlumni.mode_of_admission],
+                      ['Blood Group',    selectedAlumni.blood_group],
+                      ['Date of Birth',  selectedAlumni.date_of_birth],
+                      ['Address',        selectedAlumni.address],
+                    ] as [string, string | null][]).map(([label, value]) => (
+                      <div key={label} className="col-span-1">
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">{label}</p>
+                        <p className="text-gray-800 dark:text-gray-200">{value || '—'}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </TabsContent>
+
+                {/* TAB 2: CAREER & NETWORKING */}
+                <TabsContent value="career" className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                    {([
+                      ['current_company', 'Current Company', 'e.g. Google'],
+                      ['job_title', 'Job Title', 'e.g. Software Engineer'],
+                      ['industry', 'Industry', 'e.g. Technology'],
+                      ['linkedin_url', 'LinkedIn URL', 'https://linkedin.com/in/...'],
+                      ['github_portfolio_url', 'Portfolio / GitHub', 'https://github.com/...'],
+                    ] as [keyof AlumniDetail, string, string][]).map(([field, label, placeholder]) => (
+                      <div key={field} className={field.includes('url') ? "col-span-1 sm:col-span-2" : "col-span-1"}>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{label}</p>
+                        {isEditing ? (
+                          <Input
+                            placeholder={placeholder}
+                            value={(editForm[field] as string) || ''}
+                            onChange={(e) => handleEditChange(field, e.target.value)}
+                          />
+                        ) : (
+                          <p className="text-gray-800 dark:text-gray-200">
+                            {field.includes('url') && selectedAlumni[field] ? (
+                              <a href={selectedAlumni[field] as string} target="_blank" rel="noreferrer" className="text-purple-600 hover:underline">
+                                {selectedAlumni[field] as string}
+                              </a>
+                            ) : (
+                              (selectedAlumni[field] as string) || 'Not Provided'
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                {/* TAB 3: ACADEMIC LEGACY & HIGHER ED */}
+                <TabsContent value="academic" className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                    {([
+                      ['higher_education', 'Further Studies', 'e.g. M.Tech, MS'],
+                      ['university_name', 'University Name', 'e.g. Stanford'],
+                      ['final_cgpa', 'Final CGPA', 'e.g. 9.5'],
+                      ['honors_medals', 'Honors / Medals', 'e.g. Gold Medalist'],
+                      ['major_projects', 'Major Projects', 'Description of projects'],
+                      ['clubs_committees', 'Clubs / Committees', 'e.g. President of Coding Club'],
+                    ] as [keyof AlumniDetail, string, string][]).map(([field, label, placeholder]) => (
+                      <div key={field} className={['major_projects', 'clubs_committees'].includes(field as string) ? "col-span-1 sm:col-span-2" : "col-span-1"}>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{label}</p>
+                        {isEditing ? (
+                          <Input
+                            placeholder={placeholder}
+                            value={(editForm[field] as string) || ''}
+                            onChange={(e) => handleEditChange(field, e.target.value)}
+                          />
+                        ) : (
+                          <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                            {(selectedAlumni[field] as string) || 'Not Provided'}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
             ) : (
               <p className="text-center text-gray-400 py-6">No data found.</p>
             )}

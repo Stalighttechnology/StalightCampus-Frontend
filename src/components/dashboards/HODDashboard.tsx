@@ -46,6 +46,7 @@ import { useAuth } from "../../context/AuthContext";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 import ScheduleMeeting from "../common/ScheduleMeeting";
 import StaffTaskTracker from "../common/StaffTaskTracker";
+import AlumniDirectory from "../common/AlumniDirectory";
 
 interface HODUser {
   username: string;
@@ -156,7 +157,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'exam-applications': 'exam-applications',
       'syllabus-status': 'syllabus-status',
       'syllabus-monitor': 'syllabus-monitor',
-      'schedule-meeting': 'schedule-meeting'
+      'schedule-meeting': 'schedule-meeting',
+      'alumni-directory': 'alumni-directory'
     };
 
     return pathMap[lastPart] || 'dashboard';
@@ -218,7 +220,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'syllabus-monitor': '/hod/syllabus-monitor',
       'act-as-teacher': '/faculty/dashboard',
       'schedule-meeting': '/hod/schedule-meeting',
-      'staff-tasks': '/hod/staff-tasks'
+      'staff-tasks': '/hod/staff-tasks',
+      'alumni-directory': '/hod/alumni-directory'
     };
 
     const path = pathMap[page] || '/hod/dashboard';
@@ -298,6 +301,9 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         return <StudyMaterial />;
       case "scan-student-info":
         return <StudentInfoScanner />;
+      case "alumni-directory":
+        console.log("HODDashboard user object:", user);
+        return <AlumniDirectory userRole="hod" userBranchId={user.branch || (user as any).department || (user as any)?.extra?.branch_id?.toString() || user.branch_id?.toString() || (user as any).hod_profile?.branch?.id?.toString()} />;
       case "hod-announcement-management":
         return <HODAnnouncementManagement />;
       case "hod-profile":

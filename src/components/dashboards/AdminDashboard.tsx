@@ -30,6 +30,8 @@ import BillingManagement from "../org_admin/BillingManagement";
 import CampusLocationManager from "../dean/CampusLocationManager";
 import AlumniDirectory from "../common/AlumniDirectory";
 import PrincipalTimetableSettings from "../admin/PrincipalTimetableSettings";
+import DeanFinance from "../dean/DeanFinance";
+import Reports from "../FeesManager/Reports";
 
 import {
   Users,
@@ -230,7 +232,7 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
       case "alumni-directory":
         return (
           <div>
-            <AlumniDirectory />
+            <AlumniDirectory userRole={user?.role || "principal"} />
           </div>);
           
       case "timetable-config":
@@ -241,6 +243,10 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
 
       case "schedule-meeting":
         return <ScheduleMeeting />;
+      case "finance":
+        return <DeanFinance isReadOnly={true} />;
+      case "reports":
+        return <Reports isReadOnly={true} />;
       case "my-payroll":
         return <FacultyPayroll />;
       case "staff-tasks":
