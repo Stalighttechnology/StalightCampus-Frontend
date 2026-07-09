@@ -415,6 +415,14 @@ const StudentInfoScanner = () => {
           body: formData
         });
 
+        if (response.status === 429) {
+          setShowFaceScanner(false);
+          stopFaceScanning();
+          setIsRecognizingFace(false);
+          showErrorAlert("Daily Limit Reached", "Too Many Requests. You have reached your daily limit of 10 scans. Please try back again tomorrow.");
+          return;
+        }
+
         const data = await response.json();
 
         if (data.success) {
@@ -469,6 +477,13 @@ const StudentInfoScanner = () => {
         method: 'POST',
         body: formData
       });
+
+      if (response.status === 429) {
+        setIsRecognizingFace(false);
+        showErrorAlert("Daily Limit Reached", "Too Many Requests. You have reached your daily limit of 10 scans. Please try back again tomorrow.");
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
 
       const data = await response.json();
 
