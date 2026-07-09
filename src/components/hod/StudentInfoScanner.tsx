@@ -437,7 +437,7 @@ const StudentInfoScanner = () => {
                 await fetchStudentData(data.students[0].usn);
               }
             } else {
-              setFaceScanError('No registered students found in image');
+              setFaceScanError('Face detected, but this student is not found in your organization.');
               setTimeout(() => setFaceScanError(null), 3000);
             }
           }, 2500);
@@ -493,7 +493,7 @@ const StudentInfoScanner = () => {
               await fetchStudentData(data.students[0].usn);
             }
           } else {
-            showErrorAlert("Face Not Recognized", "No registered students found in image");
+            showErrorAlert("Face Not Recognized", "Face detected, but this student is not found in your organization.");
           }
         }, 2500);
       } else {
