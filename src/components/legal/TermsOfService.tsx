@@ -48,18 +48,18 @@ const sections = [
       {
         id: 3,
         icon: ScanFace,
-        title: 'Biometric Data & Facial Recognition',
-        summary: 'Live facial recognition consent and data handling.',
+        title: 'Facial Recognition Scan',
+        summary: 'Facial recognition scan consent and data handling.',
         content: (
           <>
             <p className="mb-3 text-sm">
-              Stalight ERP includes a live facial recognition attendance system. Where your institution
+              Stalight ERP includes a student identity verification system. Where your institution
               has enabled this feature:
             </p>
             <ul className="space-y-2 text-sm">
-              <li className="flex gap-3"><span className="mt-0.5 text-blue-500 shrink-0">•</span><span>You acknowledge and consent to your facial data being collected and processed solely for automated attendance marking and identity verification.</span></li>
-              <li className="flex gap-3"><span className="mt-0.5 text-blue-500 shrink-0">•</span><span>Your biometric data will not be shared with any third party or used beyond attendance and identity verification on this platform.</span></li>
-              <li className="flex gap-3"><span className="mt-0.5 text-blue-500 shrink-0">•</span><span>You may contact your institution's administration to request deletion of biometric data upon completion of your enrolment.</span></li>
+              <li className="flex gap-3"><span className="mt-0.5 text-blue-500 shrink-0">•</span><span>You acknowledge and consent to your facial scan data being collected and processed solely for student registration and identity verification.</span></li>
+              <li className="flex gap-3"><span className="mt-0.5 text-blue-500 shrink-0">•</span><span>Your facial scan data will not be shared with any third party or used beyond identity verification on this platform.</span></li>
+              <li className="flex gap-3"><span className="mt-0.5 text-blue-500 shrink-0">•</span><span>You may contact your institution's administration to request deletion of facial scan data upon completion of your enrolment.</span></li>
             </ul>
           </>
         ),
@@ -126,11 +126,11 @@ const sections = [
         id: 6,
         icon: CreditCard,
         title: 'Payments & Fee Transactions',
-        summary: 'Online fee payments via Razorpay / Stripe.',
+        summary: 'Online fee payments via Razorpay.',
         content: (
           <>
             <p className="mb-3 text-sm">
-              Fee payments are processed through a secure third-party payment gateway (Razorpay or Stripe).
+              Fee payments are processed through a secure third-party payment gateway (Razorpay).
               By initiating a payment, you agree that:
             </p>
             <ul className="space-y-2 text-sm">

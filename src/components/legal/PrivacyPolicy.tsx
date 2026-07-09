@@ -97,21 +97,20 @@ const sections = [
         ),
       },
       {
-        id: 'biometric-data',
+        id: 'facial-scan-data',
         icon: ScanFace,
-        title: 'Biometric & Facial Recognition data',
-        summary: 'Live facial recognition for attendance — currently active.',
+        title: 'Facial Recognition Scan data',
+        summary: 'Facial recognition scans for student registration and identity verification.',
         content: (
           <>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-medium">Currently live</span>
             </div>
             <p className="text-sm leading-relaxed">
-              Where enabled by your institution, we collect facial recognition data and photographs
-              for the sole purpose of automated attendance tracking and identity verification.
+              Where enabled by your institution, we collect facial recognition scans and photographs
+              for the sole purpose of student registration and identity verification.
               This data is stored securely and is never shared with third parties or used for any
-              purpose other than attendance. You will be informed by your institution before
-              biometric data collection begins.
+              other purpose.
             </p>
           </>
         ),
@@ -136,7 +135,7 @@ const sections = [
         content: (
           <p className="text-sm leading-relaxed">
             Records of fee payments and transaction history. Payments are processed through a secure
-            payment gateway (Razorpay/Stripe). We do not store raw credit or debit card numbers on
+            payment gateway (Razorpay). We do not store raw credit or debit card numbers on
             our servers.
           </p>
         ),
@@ -205,7 +204,7 @@ const sections = [
                     {[
                       ['Cloudflare R2', 'secure file and document storage'],
                       ['Firebase Cloud Messaging (FCM)', 'push notifications'],
-                      ['Razorpay / Stripe', 'fee payment processing'],
+                      ['Razorpay', 'fee payment processing'],
                       ['Google', 'authentication via Google Sign-In'],
                     ].map(([name, desc]) => (
                       <li key={name} className="flex gap-2 text-xs text-gray-500">
