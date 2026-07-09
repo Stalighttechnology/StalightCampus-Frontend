@@ -17,7 +17,8 @@ import { fetchWithTokenRefresh } from "../../utils/authService";
 
 const COAttainment = () => {
   const [dropdownData, setDropdownData] = useState({
-    branch: [] as {id: number;name: string;}[],
+    branch: [] as { id: number; name: string }[],
+    batch: [] as { id: number; name: string }[],
     semester: [] as {id: number;number: number;}[],
     section: [] as {id: number;name: string;}[],
     subject: [] as {id: number;name: string;}[],
@@ -26,6 +27,8 @@ const COAttainment = () => {
   const [selected, setSelected] = useState({
     branch: "",
     branch_id: undefined as number | undefined,
+    batch: "",
+    batch_id: undefined as number | undefined,
     subject: "",
     subject_id: undefined as number | undefined,
     section: "",
@@ -67,16 +70,18 @@ const COAttainment = () => {
   useEffect(() => {
     const fetchBootstrapData = async () => {
       try {
-        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/subject-bootstrap/?include=semesters`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.data) {
-            setDropdownData(prev => ({
-              ...prev,
-              semester: data.data.semesters || [],
-            }));
-          }
-        }
+        Promise.all([
+          fetchWithTokenRefresh(`${API_ENDPOINT}/hod/branches/`).then((res) => res.json()),
+          fetchWithTokenRefresh(`${API_ENDPOINT}/hod/batches/`).then((res) => res.json()),
+          fetchWithTokenRefresh(`${API_ENDPOINT}/hod/subject-bootstrap/?include=semesters`).then((res) => res.json())
+        ]).then(([branchRes, batchRes, semRes]) => {
+          setDropdownData((prev) => ({
+            ...prev,
+            branch: branchRes.success ? branchRes.data : [],
+            batch: batchRes.success ? (batchRes.batches || batchRes.data) : [],
+            semester: semRes.data.semesters || [],
+          }));
+        });
       } catch (err) {
         console.error("Failed to load bootstrap data", err);
       }
@@ -123,6 +128,9 @@ const COAttainment = () => {
       if (field === 'branch_id') {
         const branchObj = dropdownData.branch.find((b) => b.id === value);
         updated.branch = branchObj ? branchObj.name : "";
+      } else if (field === 'batch_id') {
+        const batchObj = dropdownData.batch.find((b) => b.id === value);
+        updated.batch = batchObj ? batchObj.name : "";
       } else if (field === 'semester_id') {
         const semObj = dropdownData.semester.find((s) => s.id === value);
         updated.semester = semObj ? semObj.number.toString() : "";
@@ -138,10 +146,16 @@ const COAttainment = () => {
     }
     setSelected(updated);
     // Only subject selection is required for CO attainment
-    const { subject_id } = { ...updated };
+    const { subject_id, batch_id } = { ...updated };
     if (subject_id) {
       try {
-        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/co-attainment/?subject_id=${subject_id}&target_pct=${targetThreshold}`);
+        const params = new URLSearchParams({
+          subject_id: subject_id.toString(),
+          target_pct: targetThreshold.toString()
+        });
+        if (batch_id) params.append('batch_id', batch_id.toString());
+
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/co-attainment/?${params.toString()}`);
         const data = await response.json();
 
         if (!response.ok || data.error) throw new Error(data.error || 'Failed to fetch CO attainment');
@@ -220,6 +234,8 @@ const COAttainment = () => {
         target_pct: targetThreshold.toString(),
         indirect_attainment: JSON.stringify(indirectAttainment)
       });
+      if (selected.batch_id) params.append('batch_id', selected.batch_id.toString());
+      
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/co-attainment/?${params.toString()}`);
       const data = await response.json();
 
@@ -283,6 +299,7 @@ const COAttainment = () => {
         target_pct: targetThreshold.toString(),
         indirect_attainment: JSON.stringify(indirectAttainment)
       });
+      if (selected.batch_id) params.append('batch_id', selected.batch_id.toString());
 
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/co-attainment/export-pdf/?${params.toString()}`);
       if (response.ok) {
@@ -324,6 +341,32 @@ const COAttainment = () => {
       <Card>
         <CardContent className="pt-4 space-y-4">
           <div id="co-attainment-selectors" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50 items-end">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Batch (Optional)</label>
+              <Select
+                value={selected.batch_id?.toString() || ""}
+                onValueChange={(value) => handleSelectChange('batch_id', Number(value))}
+                disabled={dropdownData.batch.length === 0}>
+                <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`} disabled={dropdownData.batch.length === 0}>
+                  <SelectValue placeholder={dropdownData.batch.length === 0 ? "No batch available" : "All Batches"} />
+                </SelectTrigger>
+                <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                  {dropdownData.batch.length === 0 ? (
+                    <SelectItem value="none" disabled>No batch available</SelectItem>
+                  ) : (
+                    <>
+                      <SelectItem value="0">All Batches</SelectItem>
+                      {dropdownData.batch.map((item) =>
+                        <SelectItem key={item.id} value={item.id.toString()}>
+                          {item.name}
+                        </SelectItem>
+                      )}
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium">{translateTerminology("Semester")}</label>
               <Select

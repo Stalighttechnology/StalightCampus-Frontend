@@ -44,6 +44,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [resultStatus, setResultStatus] = useState('All');
   const [isBranchOpen, setIsBranchOpen] = useState(false);
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isExamPeriodOpen, setIsExamPeriodOpen] = useState(false);
@@ -57,9 +58,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   useEffect(() => {
     if (upload) {
-      fetchStudentsPage(upload.id, 1, studentsPageSize, false, debouncedSearchQuery);
+      fetchStudentsPage(upload.id, 1, studentsPageSize, false, debouncedSearchQuery, resultStatus);
     }
-  }, [debouncedSearchQuery, upload?.id]);
+  }, [debouncedSearchQuery, upload?.id, resultStatus]);
 
   useEffect(() => {
     (async () => {
@@ -118,10 +119,11 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   }, [selected.batch, selected.branch, selected.semester, selected.exam_period]);
 
   // Helper to fetch a specific students page and merge marks
-  const fetchStudentsPage = async (uploadId: number, page?: number, pageSize?: number, overwriteExisting: boolean = false, searchStr?: string) => {
+  const fetchStudentsPage = async (uploadId: number, page?: number, pageSize?: number, overwriteExisting: boolean = false, searchStr?: string, statusStr?: string) => {
     setStudentsLoading(true);
     const queryStr = searchStr !== undefined ? searchStr : debouncedSearchQuery;
-    const stu = await getStudentsForUpload(uploadId, page, pageSize, undefined, queryStr);
+    const statusVal = statusStr !== undefined ? statusStr : resultStatus;
+    const stu = await getStudentsForUpload(uploadId, page, pageSize, undefined, queryStr, statusVal);
     setStudentsLoading(false);
     if (stu.success) {
       const studentList = stu.data?.students || [];
@@ -271,7 +273,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       setNavModalOpen(true);
       return;
     }
-    await fetchStudentsPage(upload.id, targetPage, pageSize ?? studentsPageSize, false, debouncedSearchQuery);
+    await fetchStudentsPage(upload.id, targetPage, pageSize ?? studentsPageSize, false, debouncedSearchQuery, resultStatus);
   };
 
   const confirmNavSave = async (saveFirst: boolean) => {
@@ -293,7 +295,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       // mark current page clean
       setDirtyPages((prev) => ({ ...(prev || {}), [studentsPage]: false }));
     }
-    await fetchStudentsPage(upload.id, pendingNav.page, pendingNav.pageSize ?? studentsPageSize, false, debouncedSearchQuery);
+    await fetchStudentsPage(upload.id, pendingNav.page, pendingNav.pageSize ?? studentsPageSize, false, debouncedSearchQuery, resultStatus);
     setPendingNav(null);
   };
 
@@ -308,7 +310,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       // refresh upload info
       setUpload({ ...upload, is_published: true });
       // refresh students in case published_result_id/is_withheld changed after publish
-      await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, false, debouncedSearchQuery);
+      await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, false, debouncedSearchQuery, resultStatus);
     } else {
       toast.error(res.message || 'Publish failed');
     }
@@ -327,7 +329,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
         toast.success(`Result ${actionText} for ${studentName}`);
         // Refresh students list to update withheld status
         if (upload) {
-          await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true, debouncedSearchQuery);
+          await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true, debouncedSearchQuery, resultStatus);
         }
       } else {
         toast.error(res.message || 'Toggle failed');
@@ -346,7 +348,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       toast.success(res.message || 'Import successful');
       setImportCieModalOpen(false);
       // reload current page to show imported marks
-      await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true, debouncedSearchQuery);
+      await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true, debouncedSearchQuery, resultStatus);
     } else {
       toast.error(res.message || 'Import failed');
     }
@@ -361,7 +363,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       toast.success(res.message || 'Import successful');
       setImportSeeModalOpen(false);
       // reload current page to show imported marks
-      await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true, debouncedSearchQuery);
+      await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true, debouncedSearchQuery, resultStatus);
     } else {
       toast.error(res.message || 'Import failed');
     }
@@ -545,14 +547,14 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               </p>
             </CardContent>
          </Card> :
-      students.length > 0 &&
+      upload &&
       <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg sm:text-xl">Student Marks Entry</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <div className="relative">
+            <div className="mb-4 flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by student name or USN..."
@@ -560,6 +562,18 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                   value={searchQuery}
                   onChange={(e: any) => setSearchQuery(e.target.value)}
                 />
+              </div>
+              <div className="w-full sm:w-48">
+                <Select value={resultStatus} onValueChange={setResultStatus}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Result Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Results</SelectItem>
+                    <SelectItem value="Regular">Regular</SelectItem>
+                    <SelectItem value="Withheld Results">Withheld Results</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="overflow-auto">
@@ -571,6 +585,17 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
           </div>
             {studentsLoading ?
             <SkeletonTable rows={10} cols={9} /> :
+            students.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground text-lg">
+                  {resultStatus === 'Withheld Results' 
+                    ? "No withheld results found" 
+                    : searchQuery 
+                      ? "No students match your search"
+                      : "No students found"}
+                </p>
+              </div>
+            ) :
 
             <div className="space-y-4">
                 {students.map((s) => {

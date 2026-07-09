@@ -25,6 +25,7 @@ const COAttainment = () => {
   const { data: assignments = [], isLoading: assignmentsLoading } = useFacultyAssignmentsQuery();
   const [dropdownData, setDropdownData] = useState({
     branch: [] as { id: number; name: string; }[],
+    batch: [] as { id: number; name: string; }[],
     semester: [] as { id: number; number: number; }[],
     section: [] as { id: number; name: string; }[],
     subject: [] as { id: number; name: string; }[],
@@ -33,6 +34,8 @@ const COAttainment = () => {
   const [selected, setSelected] = useState({
     branch: "",
     branch_id: undefined as number | undefined,
+    batch: "",
+    batch_id: undefined as number | undefined,
     subject: "",
     subject_id: undefined as number | undefined,
     section: "",
@@ -79,6 +82,19 @@ const COAttainment = () => {
 
   // Update dropdown data when assignments change
   useEffect(() => {
+    const fetchBatches = async () => {
+      try {
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/batches/`);
+        const data = await response.json();
+        if (data.success && data.data) {
+          setDropdownData(prev => ({ ...prev, batch: data.data }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch batches", err);
+      }
+    };
+    fetchBatches();
+
     const subjects = Array.from(
       new Map(assignments.map((a) => [a.subject_id, { id: a.subject_id, name: a.subject_name }])).values()
     );
@@ -93,6 +109,9 @@ const COAttainment = () => {
       if (field === 'branch_id') {
         const branchObj = dropdownData.branch.find((b) => b.id === value);
         updated.branch = branchObj ? branchObj.name : "";
+      } else if (field === 'batch_id') {
+        const batchObj = dropdownData.batch.find((b) => b.id === value);
+        updated.batch = batchObj ? batchObj.name : "";
       } else if (field === 'semester_id') {
         const semObj = dropdownData.semester.find((s) => s.id === value);
         updated.semester = semObj ? semObj.number.toString() : "";
@@ -108,12 +127,13 @@ const COAttainment = () => {
     }
     setSelected(updated);
     // Only subject selection is required for CO attainment
-    const { subject_id } = { ...updated };
+    const { subject_id, batch_id } = { ...updated };
     if (subject_id) {
       // Fetch aggregated CO attainment from server (no per-student marks by default)
       try {
         const data = await getCOAttainment({
           subject_id,
+          batch_id,
           target_pct: targetThreshold
         });
 
@@ -260,6 +280,7 @@ const COAttainment = () => {
         target_pct: targetThreshold.toString(),
         indirect_attainment: JSON.stringify(indirectAttainment)
       });
+      if (selected.batch_id) params.append('batch_id', selected.batch_id.toString());
 
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/co-attainment/export-pdf/?${params.toString()}`);
       if (response.ok) {
@@ -300,10 +321,35 @@ const COAttainment = () => {
     <div id="co-attainment-container">
       <Card>
         <CardContent className="pt-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50">
-            <div id="co-attainment-selectors" className="col-span-1 md:col-span-2 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Subject</label>
+          <div id="co-attainment-selectors" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50 items-end">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Batch (Optional)</label>
+              <Select
+                value={selected.batch_id?.toString() || ""}
+                onValueChange={(value) => handleSelectChange('batch_id', Number(value))}
+                disabled={dropdownData.batch.length === 0}>
+                <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`} disabled={dropdownData.batch.length === 0}>
+                  <SelectValue placeholder={dropdownData.batch.length === 0 ? "No batch available" : "All Batches"} />
+                </SelectTrigger>
+                <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                  {dropdownData.batch.length === 0 ? (
+                    <SelectItem value="none" disabled>No batch available</SelectItem>
+                  ) : (
+                    <>
+                      <SelectItem value="0">All Batches</SelectItem>
+                      {dropdownData.batch.map((item) =>
+                        <SelectItem key={item.id} value={item.id.toString()}>
+                          {item.name}
+                        </SelectItem>
+                      )}
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Subject</label>
                 {assignmentsLoading ?
                   <div className="h-11 bg-muted animate-pulse rounded-md" /> :
 
@@ -355,7 +401,7 @@ const COAttainment = () => {
                 </Button>
               </div>
             }
-          </div>
+
 
           {errorMessage &&
             <div className={`p-4 rounded-xl flex items-center gap-3 border ${theme === 'dark' ? 'bg-destructive/10 border-destructive/20 text-destructive-foreground' : 'bg-red-50 border-red-100 text-red-700'}`}>

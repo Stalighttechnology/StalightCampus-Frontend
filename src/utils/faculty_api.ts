@@ -2013,6 +2013,7 @@ export const submitQPForApproval = async (qpId: number, comment?: string): Promi
 export const getCOAttainment = async (params: {
   subject_id?: number;
   question_paper_id?: number;
+  batch_id?: number;
   target_pct?: number;
   indirect_attainment?: string;
 }) => {
@@ -2020,6 +2021,7 @@ export const getCOAttainment = async (params: {
     const query = new URLSearchParams();
     if (params.subject_id) query.append('subject_id', params.subject_id.toString());
     if (params.question_paper_id) query.append('question_paper', params.question_paper_id.toString());
+    if (params.batch_id) query.append('batch_id', params.batch_id.toString());
     if (params.target_pct) query.append('target_pct', params.target_pct.toString());
     if (params.indirect_attainment) query.append('indirect_attainment', params.indirect_attainment);
 

@@ -156,8 +156,13 @@ const computeStatus = (e: ExamEntry) => {
 const formatDate = (dstr?: string) => {
   if (!dstr) return '-';
   try {
+    const datePart = dstr.split('T')[0];
+    if (datePart.includes('-')) {
+      const [y, m, d] = datePart.split('-');
+      return `${d}/${m}/${y}`;
+    }
     const d = new Date(dstr);
-    return d.toLocaleDateString();
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
   } catch {
     return dstr;
   }
@@ -713,7 +718,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
                   <tr key={ex.id} className="hover:bg-muted/30">
                     <td className="px-4 py-3 font-medium">{ex.subject}</td>
                     <td className="px-4 py-3 whitespace-nowrap">{formatDate(ex.date)}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">{ex.start_time || '-'} - {ex.end_time || '-'}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{formatTime(ex.start_time) || '-'} - {formatTime(ex.end_time) || '-'}</td>
                     <td className="px-4 py-3">{ex.room || 'TBD'}</td>
                   </tr>
                 ))}

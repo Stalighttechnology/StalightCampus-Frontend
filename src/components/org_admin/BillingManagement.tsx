@@ -412,6 +412,14 @@ export const BillingManagement: React.FC = () => {
     return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
+  const formatDateTime = (dateStr: string | null | undefined) => {
+    if (!dateStr) return 'N/A';
+    return new Date(dateStr).toLocaleString('en-GB', { 
+      day: 'numeric', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', hour12: true 
+    });
+  };
+
   const TIER_OPTIONS = [
     { max: 750, name: 'Small Tier' },
     { max: 2500, name: 'Medium Tier' },
@@ -787,7 +795,7 @@ export const BillingManagement: React.FC = () => {
                           {ticket.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3">{formatDate(ticket.created_at)}</td>
+                      <td className="px-4 py-3">{formatDateTime(ticket.created_at)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <Button

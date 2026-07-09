@@ -395,13 +395,14 @@ export const createResultUploadBatch = async (payload: {batch: string;branch: st
   }
 };
 
-export const getStudentsForUpload = async (uploadId: number, page?: number, page_size?: number, request_type?: string, search?: string) => {
+export const getStudentsForUpload = async (uploadId: number, page?: number, page_size?: number, request_type?: string, search?: string, result_status?: string) => {
   try {
     const params = new URLSearchParams();
     if (page !== undefined) params.append('page', String(page));
     if (page_size !== undefined) params.append('page_size', String(page_size));
     if (request_type !== undefined && request_type !== '') params.append('request_type', request_type);
     if (search !== undefined && search !== '') params.append('search', search);
+    if (result_status !== undefined && result_status !== '' && result_status !== 'All') params.append('result_status', result_status);
 
     const url = `${API_ENDPOINT}/coe/result-upload/${uploadId}/students/` + (params.toString() ? `?${params}` : '');
     const response = await fetchWithTokenRefresh(url, {

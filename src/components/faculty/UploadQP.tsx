@@ -1113,10 +1113,28 @@ const UploadQP = () => {
                                         <Input value={q.maxMarks} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'maxMarks', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3" />
                                       </TableCell>
                                       <TableCell className="p-1 sm:p-2 whitespace-nowrap">
-                                        <Input value={q.co} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'co', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3" />
+                                        <Select disabled={isLocked} value={q.co} onValueChange={(val) => updateQuestion(q.id, 'co', val)}>
+                                          <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3">
+                                            <SelectValue placeholder="CO" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6', 'CO7', 'CO8'].map(co => (
+                                              <SelectItem key={co} value={co}>{co}</SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
                                       </TableCell>
                                       <TableCell className="p-1 sm:p-2 whitespace-nowrap">
-                                        <Input value={q.bloomsLevel} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'bloomsLevel', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3" />
+                                        <Select disabled={isLocked} value={q.bloomsLevel} onValueChange={(val) => updateQuestion(q.id, 'bloomsLevel', val)}>
+                                          <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3">
+                                            <SelectValue placeholder="Level" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'].map(lvl => (
+                                              <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
                                       </TableCell>
                                       {!isLocked && (
                                         <TableCell className="p-1 sm:p-2 text-right whitespace-nowrap">
