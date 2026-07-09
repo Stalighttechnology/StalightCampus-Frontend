@@ -171,7 +171,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
       if (roleFilter) {
         queryParams += `&role=${roleMap[roleFilter]}`;
       }
-      if (departmentFilter) {
+      if (departmentFilter && departmentFilter !== "All Branches") {
         queryParams += `&department=${encodeURIComponent(departmentFilter)}`;
       }
       if (appliedSearch.trim()) {
@@ -239,7 +239,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           const dataSource = res.results || res.branches || (res as any).data || [];
           const branchList = Array.isArray(dataSource) ? dataSource : [];
           const names = branchList.map((b: {name: string;}) => b.name).filter(Boolean);
-          setDepartments(names);
+          setDepartments(["All Branches", ...names]);
         }
       } catch (e) {
 
@@ -276,8 +276,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           filterParams.role = roleMap[roleFilter];
         }
 
-        // Add department filter if selected
-        if (departmentFilter) {
+        // Add department filter if selected and not 'All Branches'
+        if (departmentFilter && departmentFilter !== "All Branches") {
           filterParams.department = departmentFilter;
         }
         // Add search filter if provided
