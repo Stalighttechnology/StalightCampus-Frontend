@@ -178,14 +178,10 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
     setLoading(true);
     try {
       if (!leadId) return;
-      const [leadRes, activitiesRes, tasksRes] = await Promise.all([
-        crmApi.getLead(leadId),
-        crmApi.getActivities(leadId),
-        crmApi.getTasks(leadId)
-      ]);
+      const leadRes = await crmApi.getLead(leadId);
       setLead(leadRes.data);
-      setActivities(activitiesRes.data);
-      setTasks(tasksRes.data);
+      setActivities(leadRes.data.activities || []);
+      setTasks(leadRes.data.tasks || []);
     } catch (error) {
       console.error(error);
       toast.error('Failed to load lead details');
