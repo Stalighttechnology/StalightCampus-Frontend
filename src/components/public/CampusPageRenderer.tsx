@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Quote, GraduationCap, ArrowRight, MapPin, Phone, Mail, ChevronDown, CheckCircle, ExternalLink, Play, BookOpen } from 'lucide-react';
 import axios from 'axios';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { API_ENDPOINT } from '../../utils/config';
+import Swal from 'sweetalert2';
 
 interface Block {
   id: string;
@@ -25,6 +28,21 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
   // Enquiry form state
   const [enquiryForm, setEnquiryForm] = useState({ name: '', phone: '', email: '', course_interested: '', message: '' });
   const [enquiryStatus, setEnquiryStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [courses, setCourses] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await axios.get(`${API_ENDPOINT}/admission/public/${orgSlug}/`);
+        setCourses(res.data.courses || []);
+      } catch (err) {
+        console.error("Failed to fetch courses:", err);
+      }
+    };
+    if (orgSlug) {
+      fetchCourses();
+    }
+  }, [orgSlug]);
 
   const fadeUp = {
     hidden: { opacity: 0, y: 30 },
@@ -50,10 +68,39 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
       setTimeout(() => setEnquiryStatus('idle'), 3000);
       return;
     }
+
+    // Email Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(enquiryForm.email)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Email',
+        text: 'Please enter a valid email address.',
+        confirmButtonColor: 'var(--primary)'
+      });
+      return;
+    }
+
+    // Phone Validation
+    const cleanPhone = enquiryForm.phone.replace(/[\s\-()]/g, '');
+    const phoneRegex = /^(?:\+91)?\d{10}$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Phone Number',
+        text: 'Please enter a valid 10-digit mobile number (with or without +91 prefix).',
+        confirmButtonColor: 'var(--primary)'
+      });
+      return;
+    }
     
     setEnquiryStatus('submitting');
     try {
-      await axios.post(`/api/admission/public/${orgSlug}/enquiry/`, enquiryForm);
+      const payload = { ...enquiryForm, phone: cleanPhone };
+      if (!payload.course_interested) {
+        delete payload.course_interested;
+      }
+      await axios.post(`/api/admission/public/${orgSlug}/enquiry/`, payload);
       setEnquiryStatus('success');
       setEnquiryForm({ name: '', phone: '', email: '', course_interested: '', message: '' });
       setTimeout(() => setEnquiryStatus('idle'), 5000);
@@ -490,7 +537,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                           </div>
                           <div className="space-y-2">
                             <label className="text-sm font-medium">Phone Number</label>
-                            <input required type="tel" className="w-full p-3 border border-input rounded-xl bg-background" value={enquiryForm.phone} onChange={e => setEnquiryForm({...enquiryForm, phone: e.target.value})} />
+                            <input required type="tel" className="w-full p-3 border border-input rounded-xl bg-background" value={enquiryForm.phone} onChange={e => setEnquiryForm({...enquiryForm, phone: e.target.value.replace(/[^0-9+]/g, '')})} />
                           </div>
                         </div>
                         <div className="space-y-2">
@@ -499,7 +546,21 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">Interested Course (Optional)</label>
-                          <input type="text" className="w-full p-3 border border-input rounded-xl bg-background" value={enquiryForm.course_interested} onChange={e => setEnquiryForm({...enquiryForm, course_interested: e.target.value})} />
+                          <Select 
+                            value={enquiryForm.course_interested} 
+                            onValueChange={val => setEnquiryForm({...enquiryForm, course_interested: val})}
+                          >
+                            <SelectTrigger className="w-full p-3 border border-input rounded-xl bg-background text-left">
+                              <SelectValue placeholder="Select a course" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[240px] overflow-y-auto thin-scrollbar">
+                              {courses.map(c => (
+                                <SelectItem key={c.id} value={String(c.id)}>
+                                  {c.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">Your Message</label>

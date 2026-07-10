@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://campusapi.stalight.in/api/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
