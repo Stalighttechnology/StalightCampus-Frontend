@@ -149,6 +149,20 @@ export default function ScheduleMeeting() {
     }
   };
 
+  // Fetches only the past count for the tab badge — does NOT load content/details
+  const fetchPastCount = async () => {
+    try {
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/meetings/?type=past&page=1`);
+      if (res.ok) {
+        const data = await res.json();
+        setPastTotal(data.count ?? (Array.isArray(data) ? data.length : 0));
+        // Intentionally NOT setting pastMeetings — details load only on tab click
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const fetchMeetings = () => {
     fetchUpcoming(upcomingPage);
     fetchPast(pastPage);
@@ -166,6 +180,14 @@ export default function ScheduleMeeting() {
     }
   };
 
+  // On mount: fetch upcoming (default tab, full details) + past count only (for badge)
+  useEffect(() => {
+    fetchUpcoming(1);
+    fetchPastCount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // On tab click or page change: fetch the active tab's full details
   useEffect(() => {
     if (activeTab === 'upcoming') fetchUpcoming(upcomingPage);
     else fetchPast(pastPage);
@@ -790,7 +812,7 @@ export default function ScheduleMeeting() {
                             </span>
                             <span className="flex items-center gap-1">
                               <Users className="w-3.5 h-3.5" />
-                              <span className="capitalize">{meeting.target_roles.map((r: string) => r.replace('_', ' ')).join(', ')}</span>
+                              <span className="capitalize">{Array.isArray(meeting.target_roles) ? meeting.target_roles.map((r: string) => r.replace('_', ' ')).join(', ') : ''}</span>
                             </span>
                             <span className="flex items-center gap-1 font-medium">
                               Organizer: {meeting.organizer_name}
