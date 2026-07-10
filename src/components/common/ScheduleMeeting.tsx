@@ -572,12 +572,16 @@ export default function ScheduleMeeting() {
                         </div>
                       </div>
                     </div>
-
                     <div className="grid gap-2">
-                      <div className="flex items-center justify-between">
-                        <Label>Target Roles (Select at least one) *</Label>
+                      <div className="flex items-center justify-between gap-2">
+                        <Label className="flex-1 flex flex-col sm:flex-row sm:items-center sm:gap-1.5 cursor-pointer select-none">
+                          <span>Target Roles</span>
+                          <span className={`text-xs ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-500'} font-normal mt-0.5 sm:mt-0`}>
+                            (Select at least one) *
+                          </span>
+                        </Label>
                         <div 
-                          className="flex items-center space-x-2 cursor-pointer select-none"
+                          className="flex items-center space-x-2 cursor-pointer select-none shrink-0"
                           onClick={() => handleSelectAllToggle(!isAllSelected)}
                         >
                           <Checkbox 
@@ -588,7 +592,7 @@ export default function ScheduleMeeting() {
                           />
                           <label 
                             htmlFor="select-all-roles"
-                            className="text-xs font-semibold leading-none cursor-pointer text-primary"
+                            className="text-xs font-semibold leading-none cursor-pointer text-primary whitespace-nowrap"
                             onClick={(e) => e.stopPropagation()}
                           >
                             Select All

@@ -545,8 +545,8 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
         setModalOpen(open);
         if (!open) cancelEditing();
       }}>
-        <DialogContent className="w-[90%] rounded-2xl sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="w-[90%] h-[80vh] sm:h-auto rounded-2xl sm:max-w-[700px] max-h-[90vh] flex flex-col overflow-hidden">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center justify-between gap-2 pr-4">
               <div className="flex items-center gap-2">
                 <GraduationCap className="h-5 w-5 text-purple-500" />
@@ -572,17 +572,17 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
               )}
             </DialogTitle>
           </DialogHeader>
-          <div className="py-2">
+          <div className="py-2 flex-1 overflow-y-auto custom-scrollbar pr-1">
             {loadingDetail ? (
               <div className="flex justify-center py-10">
                 <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
               </div>
             ) : selectedAlumni ? (
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-6">
-                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                  <TabsTrigger value="career">Career & Networking</TabsTrigger>
-                  <TabsTrigger value="academic">Academic Legacy</TabsTrigger>
+                <TabsList className="flex overflow-x-auto w-full mb-6 justify-start sm:grid sm:grid-cols-3 whitespace-nowrap p-1 bg-muted text-muted-foreground rounded-lg h-10 scrollbar-none">
+                  <TabsTrigger value="basic" className="shrink-0 flex-1 text-xs px-2 sm:text-sm sm:px-3">Basic Info</TabsTrigger>
+                  <TabsTrigger value="career" className="shrink-0 flex-1 text-xs px-2 sm:text-sm sm:px-3">Career & Networking</TabsTrigger>
+                  <TabsTrigger value="academic" className="shrink-0 flex-1 text-xs px-2 sm:text-sm sm:px-3">Academic Legacy</TabsTrigger>
                 </TabsList>
 
                 {/* TAB 1: BASIC INFO */}

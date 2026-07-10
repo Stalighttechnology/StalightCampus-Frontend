@@ -627,6 +627,7 @@ const StaffTaskTracker = () => {
                           selected={selectedDate}
                           onSelect={setSelectedDate}
                           initialFocus
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                         />
                         <div className="p-3 border-t border-border flex flex-col gap-2 bg-popover">
                           <Label className="text-xs font-semibold text-foreground">Time</Label>
