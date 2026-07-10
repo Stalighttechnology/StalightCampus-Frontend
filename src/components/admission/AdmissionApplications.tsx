@@ -15,17 +15,25 @@ export default function AdmissionApplications() {
   const [loading, setLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     fetchApplications();
-  }, []);
+  }, [currentPage]);
 
   const fetchApplications = async () => {
+    setLoading(true);
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/?page=${currentPage}&page_size=20`);
       if (response.ok) {
         const data = await response.json();
-        setApplications(data);
+        if (data && data.results) {
+          setApplications(data.results);
+          setTotalCount(data.count);
+        } else {
+          setApplications(data || []);
+          setTotalCount(data ? data.length : 0);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -187,12 +195,8 @@ export default function AdmissionApplications() {
     );
   }
 
-  const totalCount = applications.length;
-  const totalPages = Math.ceil(totalCount / 10);
-  const paginatedApplications = applications.slice(
-    (currentPage - 1) * 10,
-    currentPage * 10
-  );
+  const totalPages = Math.ceil(totalCount / 20);
+  const paginatedApplications = applications;
 
   return (
     <div id="admission-applications-container" className="space-y-6 w-full max-w-full overflow-hidden">
@@ -247,7 +251,7 @@ export default function AdmissionApplications() {
         {totalPages > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
-              Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} applications
+              Showing {Math.min((currentPage - 1) * 20 + 1, totalCount)} to {Math.min(currentPage * 20, totalCount)} of {totalCount} applications
             </div>
             <div className="flex items-center gap-2">
               <Button

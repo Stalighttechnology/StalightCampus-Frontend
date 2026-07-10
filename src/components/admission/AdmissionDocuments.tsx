@@ -28,10 +28,10 @@ export default function AdmissionDocuments() {
 
   const fetchApplications = async () => {
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/?page_size=50`);
       if (response.ok) {
         const data = await response.json();
-        setApplications(data);
+        setApplications(data && data.results ? data.results : (data || []));
       }
     } catch (err) {
       console.error(err);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,13 +16,14 @@ export default function CounsellorManagement() {
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   
   const [newUser, setNewUser] = useState({
     username: '',
     email: '',
     phone: '',
     designation: '',
-    first_name: '',
     first_name: '',
     last_name: ''
   });
@@ -33,22 +34,24 @@ export default function CounsellorManagement() {
 
   useEffect(() => {
     fetchCounsellors();
-  }, []);
+  }, [currentPage]);
 
   const fetchCounsellors = async () => {
+    setLoading(true);
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/users/?role=counsellor`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/users/?role=counsellor&page=${currentPage}&page_size=20`);
       const data = await response.json();
       if (response.ok) {
-        setCounsellors(
-          Array.isArray(data.users) ? data.users 
+        const list = Array.isArray(data.users) ? data.users 
           : Array.isArray(data.results) ? data.results 
           : Array.isArray(data) ? data 
-          : []
-        );
+          : [];
+        setCounsellors(list);
+        setTotalCount(data.count !== undefined ? data.count : list.length);
       } else {
         toast.error(data.detail || "Failed to load counsellors");
         setCounsellors([]);
+        setTotalCount(0);
       }
     } catch (err) {
       console.error(err);
@@ -259,6 +262,39 @@ export default function CounsellorManagement() {
             </div>
           )}
         </CardContent>
+
+        {Math.ceil(totalCount / 20) > 1 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((currentPage - 1) * 20 + 1, totalCount)} to {Math.min(currentPage * 20, totalCount)} of {totalCount} counsellors
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1 || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className="text-sm font-semibold text-foreground">
+                  {currentPage}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.min(Math.ceil(totalCount / 20), currentPage + 1))}
+                disabled={currentPage === Math.ceil(totalCount / 20) || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       {/* Edit Dialog */}

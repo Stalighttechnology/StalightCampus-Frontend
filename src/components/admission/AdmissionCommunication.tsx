@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
@@ -9,17 +9,26 @@ import { SkeletonList } from '../ui/skeleton';
 export default function AdmissionCommunication() {
   const [applicants, setApplicants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     fetchApplicants();
-  }, []);
+  }, [currentPage]);
 
   const fetchApplicants = async () => {
+    setLoading(true);
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/enquiries/?minimal=true`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/enquiries/?minimal=true&page=${currentPage}&page_size=20`);
       if (response.ok) {
         const data = await response.json();
-        setApplicants(data);
+        if (data && data.results) {
+          setApplicants(data.results);
+          setTotalCount(data.count);
+        } else {
+          setApplicants(data || []);
+          setTotalCount(data ? data.length : 0);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -105,6 +114,39 @@ export default function AdmissionCommunication() {
             )}
           </div>
         </CardContent>
+
+        {Math.ceil(totalCount / 20) > 1 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((currentPage - 1) * 20 + 1, totalCount)} to {Math.min(currentPage * 20, totalCount)} of {totalCount} applicants
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1 || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className="text-sm font-semibold text-foreground">
+                  {currentPage}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.min(Math.ceil(totalCount / 20), currentPage + 1))}
+                disabled={currentPage === Math.ceil(totalCount / 20) || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

@@ -12,19 +12,26 @@ export default function AdmissionStudents() {
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [totalCount, setTotalCount] = useState(0);
+  const itemsPerPage = 20;
 
   useEffect(() => {
     fetchStudents();
-  }, []);
+  }, [currentPage]);
 
   const fetchStudents = async () => {
+    setLoading(true);
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/?status=enrolled&page=${currentPage}&page_size=${itemsPerPage}`);
       if (response.ok) {
         const data = await response.json();
-        // Only show enrolled students
-        setStudents(data.filter((app: any) => app.enquiry_details?.status === 'enrolled'));
+        if (data && data.results) {
+          setStudents(data.results);
+          setTotalCount(data.count);
+        } else {
+          setStudents(data || []);
+          setTotalCount(data ? data.length : 0);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -62,11 +69,8 @@ export default function AdmissionStudents() {
     document.body.removeChild(link);
   };
 
-  const totalCount = students.length;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = students.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = students;
 
   return (
     <div id="admission-students-container" className="space-y-6 w-full max-w-full overflow-hidden">
