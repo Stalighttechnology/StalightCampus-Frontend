@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,6 +74,27 @@ const LeadPipeline: React.FC = () => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { role } = useAuth();
   
+  const scrollRef = useRef<{ id: number | null }>({ id: null });
+  const startScrolling = (container: HTMLDivElement, direction: 'left' | 'right') => {
+    if (scrollRef.current.id) return;
+    const scrollSpeed = 8;
+    const step = () => {
+      if (direction === 'left') {
+        container.scrollLeft -= scrollSpeed;
+      } else {
+        container.scrollLeft += scrollSpeed;
+      }
+      scrollRef.current.id = requestAnimationFrame(step);
+    };
+    scrollRef.current.id = requestAnimationFrame(step);
+  };
+  const stopScrolling = () => {
+    if (scrollRef.current.id) {
+      cancelAnimationFrame(scrollRef.current.id);
+      scrollRef.current.id = null;
+    }
+  };
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [newLead, setNewLead] = useState({ name: '', email: '', phone: '', city: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -217,17 +238,20 @@ const LeadPipeline: React.FC = () => {
           onDragOver={(e) => {
             e.preventDefault();
             const container = e.currentTarget;
-            const scrollThreshold = 100;
-            const scrollSpeed = 15;
+            const scrollThreshold = 150;
             const rect = container.getBoundingClientRect();
             const x = e.clientX - rect.left;
             
             if (x < scrollThreshold) {
-              container.scrollLeft -= scrollSpeed;
+              startScrolling(container, 'left');
             } else if (rect.width - x < scrollThreshold) {
-              container.scrollLeft += scrollSpeed;
+              startScrolling(container, 'right');
+            } else {
+              stopScrolling();
             }
           }}
+          onDragLeave={stopScrolling}
+          onDrop={stopScrolling}
         >
           {STAGES.map((stage) => {
             const stageLeads = leads.filter(l => l.status === stage.id);
@@ -307,6 +331,7 @@ const LeadPipeline: React.FC = () => {
                         key={lead.id}
                         draggable
                         onDragStart={(e) => e.dataTransfer.setData('leadId', lead.id.toString())}
+                        onDragEnd={stopScrolling}
                         onClick={() => {
                           setSelectedLeadId(lead.id);
                           setIsDetailsOpen(true);
