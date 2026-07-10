@@ -89,7 +89,7 @@ const DeanFinance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
       className="space-y-8 pb-10"
     >
       {/* Dashboard Cards - Stats Grid */}
-      <div id="dean-finance-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div id="dean-finance-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 min-[1250px]:grid-cols-4 gap-6">
         <DashboardCard
           title="Total Collected"
           value={formatCurrency(dashboardData?.stats?.total_collected || 0)}

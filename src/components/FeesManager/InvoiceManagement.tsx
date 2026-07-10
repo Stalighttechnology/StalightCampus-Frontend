@@ -441,7 +441,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
 
           <CardContent className="p-6 pb-0">
           {/* Stats Overview */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 min-[1250px]:grid-cols-4 gap-6 mb-8">
             <DashboardCard
               title="Total Invoices"
               value={statsData?.total_invoices || 0}

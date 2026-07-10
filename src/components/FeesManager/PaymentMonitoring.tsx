@@ -399,7 +399,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
           <CardContent className="p-6 pb-0">
           {/* Stats Overview */}
           {stats &&
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 min-[1250px]:grid-cols-4 gap-6 mb-8">
               <DashboardCard
               title="Total Revenue"
               value={formatCurrency(stats.total_amount)}
@@ -786,7 +786,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   <div className={`p-4 rounded-lg border grid grid-cols-2 gap-y-4 ${theme === 'dark' ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'}`}>
                     <div>
                       <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Payment Amount</p>
-                      <p className={`text-xl font-bold mt-1 tracking-tight ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                      <p className={`text-xl font-semibold mt-1 tracking-tight ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         {formatCurrency(selectedPayment.amount)}
                       </p>
                     </div>

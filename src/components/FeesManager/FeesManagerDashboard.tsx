@@ -161,7 +161,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
   const renderDashboard = () => (
     <div className="space-y-8 pb-10">
       {/* Dashboard Cards - Stats Grid */}
-      <div id="feesmanager-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div id="feesmanager-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 min-[1250px]:grid-cols-5 gap-6">
         <DashboardCard
           title="Total Collected"
           value={formatCurrency(dashboardData?.stats?.total_collected || 0)}
