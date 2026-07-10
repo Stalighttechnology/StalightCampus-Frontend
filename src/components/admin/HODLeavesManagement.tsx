@@ -422,9 +422,9 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                 </div>
 
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="leave-filter-select w-[100px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 shadow-sm font-medium text-sm">
+                  <SelectTrigger className="leave-filter-select min-w-[100px] w-auto px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 shadow-sm font-medium text-sm">
                     <Filter className="h-4 w-4" />
-                    <span>Filter</span>
+                    <span>{statusFilter === "All" ? "Filter" : statusFilter}</span>
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
                     <SelectItem value="All">All Statuses</SelectItem>

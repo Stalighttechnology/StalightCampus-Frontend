@@ -821,7 +821,9 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                             {t.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-base sm:text-sm">{t.date}</TableCell>
+                        <TableCell className="text-base sm:text-sm">
+                          {t.created_at ? format(new Date(t.created_at), 'dd-MM-yyyy') : (t.date || "N/A")}
+                        </TableCell>
                       </TableRow>
                     )}
               </TableBody>

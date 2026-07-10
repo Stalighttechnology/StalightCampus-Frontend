@@ -404,7 +404,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
       )}
 
       {/* Existing Batches */}
-      <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm flex flex-col h-[calc(100vh-320px)] min-h-[500px]' : 'bg-white border border-gray-200 shadow-sm flex flex-col h-[calc(100vh-320px)] min-h-[500px]'}>
+      <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm flex flex-col h-auto md:h-[calc(100vh-320px)] md:min-h-[500px]' : 'bg-white border border-gray-200 shadow-sm flex flex-col h-auto md:h-[calc(100vh-320px)] md:min-h-[500px]'}>
         <CardHeader id="existing-batches-header" className="batch-card-header pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="batch-title">Existing Batches</CardTitle>
@@ -532,7 +532,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
                   </div>
 
                   {/* Mobile View: Stacked Cards */}
-                  <div className="grid grid-cols-1 gap-3 md:hidden overflow-y-auto custom-scrollbar flex-1 mb-4">
+                  <div className="grid grid-cols-1 gap-3 md:hidden mb-4">
                     {batches.map((batch) => (
                       <div
                         key={batch.id}

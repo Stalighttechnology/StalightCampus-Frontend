@@ -617,7 +617,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
       `}</style>
       <div id="faculty-attendance-dashboard-container" className={`space-y-6 animate-fade-in ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="faculty-attendance-card" className={theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}>
-          <CardHeader className="border-b border-border/50 pb-6">
+          <CardHeader className="border-b border-border/50 pb-2">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <CardTitle className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty Attendance Dashboard</CardTitle>
@@ -639,7 +639,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent className="pt-2">
             {!selectedBranch ? (
               <div className={`p-12 border-2 border-dashed rounded-[2rem] flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
                 <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>

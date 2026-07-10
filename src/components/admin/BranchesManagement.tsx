@@ -487,7 +487,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
       `}</style>
 
       <div className={`mx-auto w-full max-w-[400px] sm:max-w-full text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-        <Card id="branches-management-card" className={theme === 'dark' ? 'branches-card w-full bg-card border border-border flex flex-col h-[calc(100vh-280px)] min-h-[550px]' : 'branches-card w-full bg-white border border-gray-200 flex flex-col h-[calc(100vh-280px)] min-h-[550px]'}>
+        <Card id="branches-management-card" className={theme === 'dark' ? 'branches-card w-full bg-card border border-border flex flex-col h-[calc(100vh-240px)] min-h-[350px] md:h-[calc(100vh-280px)] md:min-h-[550px]' : 'branches-card w-full bg-white border border-gray-200 flex flex-col h-[calc(100vh-240px)] min-h-[350px] md:h-[calc(100vh-280px)] md:min-h-[550px]'}>
           <div id="branches-management-header-section" className="flex flex-col">
             <CardHeader className="pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="w-full">
@@ -636,7 +636,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
                   </div>
 
                   {/* Mobile View: Stacked Cards */}
-                  <div className="grid grid-cols-1 gap-3 md:hidden overflow-y-auto custom-scrollbar flex-1 mb-4">
+                  <div className="grid grid-cols-1 gap-3 md:hidden mb-4">
                     {filteredBranches.length === 0 ? (
                       <div className="py-10 text-center text-muted-foreground bg-card/30 rounded-lg border border-dashed border-border">
                         No branches found.

@@ -245,14 +245,30 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                     <ChevronRight className="h-3.5 w-3.5" />
                                 </Button>
                             </div>
-                            <Button variant="outline" size="sm" className={`h-8 px-2 text-xs font-medium ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`} onClick={handleToday}>
-                                Today
-                            </Button>
+                            <div className="flex items-center gap-1.5">
+                                <Button variant="outline" size="sm" className={`h-8 px-2 text-xs font-medium ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`} onClick={handleToday}>
+                                    Today
+                                </Button>
+                                {!readOnly && (
+                                    <Button 
+                                        size="sm" 
+                                        className={`sm:hidden h-8 px-3 text-xs font-semibold flex items-center gap-1.5 shadow-sm rounded-lg ${
+                                            isEditModeActive 
+                                                ? "bg-emerald-600 hover:bg-emerald-700 text-white" 
+                                                : "bg-primary hover:bg-primary/90 text-white"
+                                        }`}
+                                        onClick={() => setIsEditModeActive(!isEditModeActive)}
+                                    >
+                                        <Edit className="w-3.5 h-3.5" /> 
+                                        {isEditModeActive ? "Done" : "Edit"}
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </div>
 
                     {/* Legend & Actions */}
-                    <div className="flex flex-row items-center justify-between md:justify-end gap-3 w-full md:w-auto pt-1 md:pt-0">
+                    <div className="flex flex-row items-center justify-end md:justify-end gap-3 w-full md:w-auto pt-1 md:pt-0">
                         <div className="hidden sm:flex items-center gap-3 text-[11px] md:text-xs text-muted-foreground font-medium">
                             <span className="flex items-center gap-1.5">
                                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Holiday / Break
@@ -274,7 +290,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                         {!readOnly && (
                             <Button 
                                 size="sm" 
-                                className={`h-8 px-3 text-xs font-semibold flex items-center gap-1.5 shadow-sm rounded-lg ${
+                                className={`hidden sm:flex h-8 px-3 text-xs font-semibold items-center gap-1.5 shadow-sm rounded-lg ${
                                     isEditModeActive 
                                         ? "bg-emerald-600 hover:bg-emerald-700 text-white" 
                                         : "bg-primary hover:bg-primary/90 text-white"
@@ -289,7 +305,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                 </CardHeader>
 
                 {/* Calendar Grid Section */}
-                <CardContent className="flex-1 p-0 m-1 md:m-2 border rounded-2xl overflow-x-auto overflow-y-auto sm:overflow-x-visible flex flex-col custom-scrollbar">
+                <CardContent className="flex-1 p-0 m-1 md:m-2 rounded-2xl overflow-x-auto overflow-y-auto sm:overflow-x-visible flex flex-col custom-scrollbar">
                     <div className="w-full sm:min-w-[700px] flex-1 flex flex-col">
                         {/* Weekday Headers */}
                         <div className="grid grid-cols-7 bg-primary text-white rounded-t-2xl">

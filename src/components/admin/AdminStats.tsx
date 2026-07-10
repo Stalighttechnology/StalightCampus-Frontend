@@ -31,7 +31,9 @@ import {
   Bell,
   GitBranch,
   UserCheck,
-  Loader2
+  Loader2,
+  CreditCard,
+  FileCheck
 } from
   "lucide-react";
 import {
@@ -561,7 +563,11 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       {/* Action Cards */}
       <div
         id="admin-action-cards"
-        className={`grid grid-cols-2 md:grid-cols-2 ${user?.role === "org_admin" ? "lg:grid-cols-5" : "lg:grid-cols-4"} gap-4 mt-8`}>
+        className={`grid grid-cols-2 md:grid-cols-3 ${
+          user?.role === "org_admin" 
+            ? "lg:grid-cols-6" 
+            : "lg:grid-cols-5"
+        } gap-4 mt-8`}>
 
         <DashboardCard
           id="enroll-user-card"
@@ -618,12 +624,28 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
             onClick={() => handleCardClick("hod-leaves")} />
         )}
 
+        {user?.role !== "org_admin" && userTier >= 3 && (
+          <DashboardCard
+            id="qp-approvals-card"
+            title="Question Paper Approvals"
+            description="Approve question papers"
+            icon={<FileCheck size={20} />}
+            onClick={() => handleCardClick("qp-approvals")} />
+        )}
+
         <DashboardCard
           id="users-management-card"
           title="Users Management"
           description="Manage all system users"
           icon={<Users size={20} />}
           onClick={() => handleCardClick("users")} />
+
+        <DashboardCard
+          id="finance-card"
+          title="Finance"
+          description="View financial status and reports"
+          icon={<CreditCard size={20} />}
+          onClick={() => handleCardClick("finance")} />
 
       </div>
     </div>);
