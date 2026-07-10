@@ -541,7 +541,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                   </div>
                   <div>
                     <p className="text-sm sm:text-xs text-muted-foreground font-medium">Current Plan</p>
-                    <p className="text-lg font-bold text-primary uppercase tracking-tight">{subscriptionData.plan_name}</p>
+                    <p className="text-lg font-semibold text-primary uppercase tracking-tight">{subscriptionData.plan_name}</p>
                   </div>
                 </div>
                 {subscriptionData.plan_name.toLowerCase() !== 'advance' &&
@@ -594,7 +594,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
           <div className="space-y-4">
             <div className="flex items-center gap-2 px-1">
               <CreditCard size={18} className="text-primary" />
-              <h3 className="font-bold text-base">Payment History</h3>
+              <h3 className="font-semibold text-base">Payment History</h3>
             </div>
 
             <div className="rounded-xl border overflow-hidden custom-scrollbar">
@@ -619,7 +619,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                         <TableCell className="uppercase text-sm sm:text-xs font-semibold text-muted-foreground">
                           {p.plan_type}
                         </TableCell>
-                        <TableCell className="font-bold text-base sm:text-sm">
+                        <TableCell className="font-semibold text-base sm:text-sm">
                           ₹{(p.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </TableCell>
                         <TableCell className="text-sm sm:text-xs font-mono text-muted-foreground">
@@ -1078,7 +1078,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               </div>
 
               <div className="w-full mt-4 sm:mt-6 flex flex-col">
-                <h4 className={`text-sm sm:text-xs font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
+                <h4 className={`text-sm sm:text-xs font-semibold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
                 <div className={`border rounded-lg p-2.5 sm:p-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
                     <div className="flex flex-col justify-start">

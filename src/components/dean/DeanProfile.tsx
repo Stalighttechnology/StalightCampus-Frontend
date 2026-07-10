@@ -408,10 +408,10 @@ const DeanProfile = () => {
     <Card id="dean-profile-container">
       <CardHeader id="dean-profile-card" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
         <div className="flex-1 min-w-0">
-          <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+          <CardTitle className={`text-lg sm:text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
             Profile Information
           </CardTitle>
-          <p className="text-sm sm:text-sm mt-1 text-gray-500">Manage your dean profile and account settings</p>
+          <p className="text-xs sm:text-sm mt-1 text-gray-500">Manage your dean profile and account settings</p>
         </div>
 
         <div className="flex flex-row items-center gap-2 w-full sm:w-auto sm:ml-auto">
@@ -516,7 +516,7 @@ const DeanProfile = () => {
         </div>
       </CardHeader>
 
-      <CardContent className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-6">
+      <CardContent className="px-6 pb-6 pt-2">
         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-start">
           <div className="col-span-1 flex flex-col items-center">
             <div className="relative mb-3 sm:mb-4 flex-shrink-0 group cursor-pointer">
@@ -570,101 +570,44 @@ const DeanProfile = () => {
               </div>
             )}
 
-            <div className="text-base sm:text-lg font-semibold text-center sm:text-left mb-1">{profile.first_name} {profile.last_name}</div>
-            <div className={`text-xs sm:text-sm mb-4 sm:mb-6 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{profile.designation}</div>
+            <div className="text-base sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
+            <div className={`text-sm text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{profile.designation}</div>
 
             <div className="w-full mt-4 sm:mt-6 flex flex-col">
-              <h4 className={`text-md sm:text-md font-semibold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
+              <h4 className={`text-sm sm:text-xs font-semibold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
               <div className={`border rounded-lg p-2.5 sm:p-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
                   <div className="flex flex-col justify-start overflow-hidden">
-                    <span className={`text-md font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email ID</span>
-                    <Badge variant="secondary" className="w-fit max-w-full text-sm px-2.5 py-1 rounded-2xl bg-primary/10 text-primary border-none shadow-none truncate">{profile.email || '—'}</Badge>
+                    <span className={`text-sm sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email ID</span>
+                    <Badge variant="secondary" className="w-fit max-w-full text-xs sm:text-sm px-2.5 py-1 rounded-2xl bg-primary/10 text-primary border-none shadow-none truncate">{profile.email || '—'}</Badge>
                   </div>
                   <div className="flex flex-col justify-start">
-                    <span className={`text-md font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</span>
-                    <Badge variant="secondary" className="w-fit text-sm px-2.5 py-1 rounded-2xl bg-primary/10 text-primary border-none shadow-none">{profile.designation || '—'}</Badge>
+                    <span className={`text-sm sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</span>
+                    <Badge variant="secondary" className="w-fit text-xs px-2.5 py-1 rounded-2xl bg-primary/10 text-primary border-none shadow-none">{profile.designation || '—'}</Badge>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="col-span-1 sm:col-span-2 lg:col-span-3 w-full flex flex-col h-full custom-scrollbar">
-            <div className="flex items-center gap-1 sm:gap-2 mb-4 sm:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto">
-              <button
-                onClick={() => setActiveTab('personal')}
-                className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md transition-all font-medium whitespace-nowrap ${activeTab === 'personal' ?
-                'bg-primary text-white shadow-sm' :
-                theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
-                }>
-                
-                Personal
-              </button>
-              <button
-                onClick={() => setActiveTab('contact')}
-                className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md transition-all font-medium whitespace-nowrap ${activeTab === 'contact' ?
-                'bg-primary text-white shadow-sm' :
-                theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
-                }>
-                Contact
-              </button>
-              <button
-                onClick={() => setActiveTab('subscription')}
-                className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md transition-all font-medium whitespace-nowrap ${activeTab === 'subscription' ?
-                'bg-primary text-white shadow-sm' :
-                theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
-                }>
-                Plan Details
-              </button>
-              <button
-                onClick={() => setActiveTab('support')}
-                className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md transition-all font-medium whitespace-nowrap ${activeTab === 'support' ?
-                'bg-primary text-white shadow-sm' :
-                theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
-                }>
-                Support Tickets
-              </button>
-              <button
-                onClick={() => setActiveTab('activity')}
-                className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md transition-all font-medium whitespace-nowrap ${activeTab === 'activity' ?
-                'bg-primary text-white shadow-sm' :
-                theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
-                }>
-                Login Activity
-              </button>
-              <button
-                onClick={() => setActiveTab('help')}
-                className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md transition-all font-medium whitespace-nowrap ${activeTab === 'help' ?
-                'bg-primary text-white shadow-sm' :
-                theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
-                }>
-                Help & Learning
-              </button>
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md transition-all font-medium whitespace-nowrap ${activeTab === 'settings' ?
-                'bg-primary text-white shadow-sm' :
-                theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
-                }>
-                Settings
-              </button>
-              <button
-                onClick={() => setActiveTab('integrations')}
-                className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md transition-all font-medium whitespace-nowrap ${activeTab === 'integrations' ?
-                'bg-primary text-white shadow-sm' :
-                theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
-                }>
-                Integrations
-              </button>
+          <div className="col-span-1 sm:col-span-2 lg:col-span-3 w-full flex flex-col h-full">
+            <div className="flex items-center gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0 custom-scrollbar">
+              <button onClick={() => setActiveTab('personal')} className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
+              <button onClick={() => setActiveTab('contact')} className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'contact' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Contact</button>
+              <button onClick={() => setActiveTab('subscription')} className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'subscription' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Plan Details</button>
+              <button onClick={() => setActiveTab('support')} className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'support' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Support Tickets</button>
+              <button onClick={() => setActiveTab('activity')} className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
+              <button onClick={() => setActiveTab('help')} className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
+              <button onClick={() => setActiveTab('settings')} className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'settings' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Settings</button>
+              <button onClick={() => setActiveTab('integrations')} className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'integrations' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Integrations</button>
             </div>
 
-            <div className={`p-4 sm:p-6 rounded-xl border flex-1 ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-200'}`}>
+              <div className={`p-4 sm:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
               {activeTab === 'personal' &&
               <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <User className="w-5 h-5 text-primary" />
+                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+                      <User className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                       Personal Information
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -699,11 +642,11 @@ const DeanProfile = () => {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <BookOpen className="w-5 h-5 text-primary" />
+                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                       Academic Information
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                       <div className="space-y-2 overflow-hidden">
                         <Label className="text-sm font-semibold">Email ID</Label>
                         <p className={`text-sm p-2.5 rounded-lg border truncate ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-white border-gray-200'}`}>{profile.email || '—'}</p>
@@ -719,11 +662,11 @@ const DeanProfile = () => {
               {activeTab === 'contact' &&
               <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <Mail className="w-5 h-5 text-primary" />
+                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+                      <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                       Communication
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                       <div className="space-y-2">
                         <Label htmlFor="email" className="text-sm font-semibold">Email Address</Label>
                         {editing ?
@@ -755,8 +698,8 @@ const DeanProfile = () => {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-primary" />
+                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                       Address Details
                     </h3>
                     <div className="space-y-2">
@@ -839,8 +782,8 @@ const DeanProfile = () => {
                 <div className="animate-in fade-in duration-300 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Support Tickets</h3>
-                      <p className="text-sm text-muted-foreground">Raise and track issues with Super Admin HQ.</p>
+                      <h3 className={`font-semibold text-base sm:text-lg ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Support Tickets</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Raise and track issues with Super Admin HQ.</p>
                     </div>
                     <Button size="sm" className="bg-primary text-white hover:bg-primary/90" onClick={() => setShowRaiseTicket(true)}>Raise Ticket</Button>
                   </div>
@@ -931,7 +874,7 @@ const DeanProfile = () => {
               )}
               {activeTab === 'activity' &&
               <div>
-                <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Login Activity</h3>
+                <h3 className={`font-semibold text-sm sm:text-base ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Login Activity</h3>
                 <div className="mt-3">
                   <LoginActivity />
                 </div>
@@ -939,7 +882,7 @@ const DeanProfile = () => {
               }
               {activeTab === 'settings' && (
                 <div className="animate-in fade-in duration-300">
-                  <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Settings</h3>
+                  <h3 className={`font-semibold text-sm sm:text-base mb-3 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Settings</h3>
                   
                   <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
                     <div className="space-y-0.5">
@@ -957,7 +900,7 @@ const DeanProfile = () => {
               )}
               {activeTab === 'integrations' && (
                 <div className="animate-in fade-in duration-300">
-                  <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Integrations</h3>
+                  <h3 className={`font-semibold text-sm sm:text-base mb-3 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Integrations</h3>
                   <GoogleIntegrationTab 
                     googleConnected={googleConnected}
                     setGoogleConnected={setGoogleConnected}
