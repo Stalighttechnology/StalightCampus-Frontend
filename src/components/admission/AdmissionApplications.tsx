@@ -247,40 +247,53 @@ export default function AdmissionApplications() {
 
               <div className="space-y-4 pt-4 border-t border-border">
                 <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground pb-2">Actions</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-                  <Button 
-                    onClick={() => handleUpdateStatus(selectedApp.id, 'documents_verified')}
-                    variant="outline" size="sm" className="w-full text-blue-500 hover:text-blue-600 hover:bg-blue-50 justify-center whitespace-nowrap"
-                    disabled={selectedApp.enquiry_details?.status === 'documents_verified'}
-                  >
-                    <FileText className="w-4 h-4 mr-2 shrink-0" /> Verify Documents
-                  </Button>
+                {(() => {
+                  const appStages = ['new', 'contacted', 'interested', 'application_started', 'documents_pending', 'documents_verified', 'fee_pending', 'admission_confirmed', 'enrolled', 'rejected'];
+                  const currentStatus = selectedApp?.enquiry_details?.status;
+                  const isRejected = currentStatus === 'rejected';
+                  const currentIndex = appStages.indexOf(currentStatus);
                   
-                  <Button 
-                    onClick={() => handleUpdateStatus(selectedApp.id, 'admission_confirmed')}
-                    variant="outline" size="sm" className="w-full text-green-500 hover:text-green-600 hover:bg-green-50 justify-center whitespace-nowrap"
-                    disabled={selectedApp.enquiry_details?.status === 'admission_confirmed'}
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2 shrink-0" /> Confirm Admission
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => handleEnroll(selectedApp.id)}
-                    size="sm"
-                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 justify-center whitespace-nowrap"
-                    disabled={selectedApp.enquiry_details?.status === 'enrolled'}
-                  >
-                    <UserCheck className="w-4 h-4 mr-2 shrink-0" /> Enroll as Student
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => handleUpdateStatus(selectedApp.id, 'rejected')}
-                    variant="outline" size="sm" className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 justify-center whitespace-nowrap"
-                    disabled={selectedApp.enquiry_details?.status === 'rejected'}
-                  >
-                    <XCircle className="w-4 h-4 mr-2 shrink-0" /> Reject
-                  </Button>
-                </div>
+                  const verifyDisabled = isRejected || currentIndex >= appStages.indexOf('documents_verified');
+                  const confirmDisabled = isRejected || currentIndex >= appStages.indexOf('admission_confirmed');
+                  const enrollDisabled = isRejected || currentIndex >= appStages.indexOf('enrolled');
+
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                      <Button 
+                        onClick={() => handleUpdateStatus(selectedApp.id, 'documents_verified')}
+                        variant="outline" size="sm" className="w-full text-blue-500 hover:text-blue-600 hover:bg-blue-50 justify-center whitespace-nowrap"
+                        disabled={verifyDisabled}
+                      >
+                        <FileText className="w-4 h-4 mr-2 shrink-0" /> Verify Documents
+                      </Button>
+                      
+                      <Button 
+                        onClick={() => handleUpdateStatus(selectedApp.id, 'admission_confirmed')}
+                        variant="outline" size="sm" className="w-full text-green-500 hover:text-green-600 hover:bg-green-50 justify-center whitespace-nowrap"
+                        disabled={confirmDisabled}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2 shrink-0" /> Confirm Admission
+                      </Button>
+                      
+                      <Button 
+                        onClick={() => handleEnroll(selectedApp.id)}
+                        size="sm"
+                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90 justify-center whitespace-nowrap"
+                        disabled={enrollDisabled}
+                      >
+                        <UserCheck className="w-4 h-4 mr-2 shrink-0" /> Enroll as Student
+                      </Button>
+                      
+                      <Button 
+                        onClick={() => handleUpdateStatus(selectedApp.id, 'rejected')}
+                        variant="outline" size="sm" className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 justify-center whitespace-nowrap"
+                        disabled={isRejected}
+                      >
+                        <XCircle className="w-4 h-4 mr-2 shrink-0" /> Reject
+                      </Button>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}

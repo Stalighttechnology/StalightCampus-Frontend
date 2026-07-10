@@ -88,8 +88,15 @@ export default function AdmissionDocuments() {
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
   );
 
+  const isAppVerified = (app: any) => {
+    if (app.enquiry_details?.status === 'documents_pending') return false;
+    const verifiedStatuses = ['documents_verified', 'fee_pending', 'admission_confirmed', 'enrolled'];
+    if (app.enquiry_details?.status && verifiedStatuses.includes(app.enquiry_details.status)) return true;
+    return app.is_verified;
+  };
+
   const filteredApplications = applications.filter((app: any) => 
-    activeTab === 'pending' ? !app.is_verified : app.is_verified
+    activeTab === 'pending' ? !isAppVerified(app) : isAppVerified(app)
   );
 
   return (
@@ -109,17 +116,17 @@ export default function AdmissionDocuments() {
                   : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
-              Pending Verification ({applications.filter(a => !a.is_verified).length})
+              Pending Verification ({applications.filter(a => !isAppVerified(a)).length})
             </button>
             <button
               onClick={() => setActiveTab('history')}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all ${
+              className={`py-2 px-4 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'history'
                   ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                  : `border-transparent ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`
               }`}
             >
-              Verification History ({applications.filter(a => a.is_verified).length})
+              Verification History ({applications.filter(a => isAppVerified(a)).length})
             </button>
           </div>
 
@@ -137,7 +144,7 @@ export default function AdmissionDocuments() {
                       <CardTitle className="text-base font-semibold">{app.enquiry_details?.name}</CardTitle>
                       <p className="text-xs text-muted-foreground mt-1">App ID: #{app.id} • Course: {app.enquiry_details?.course_name}</p>
                     </div>
-                    {app.is_verified ? (
+                    {isAppVerified(app) ? (
                       <span className="text-xs bg-green-100 text-green-700 font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
                         <CheckCircle className="w-4 h-4" /> Verified
                       </span>

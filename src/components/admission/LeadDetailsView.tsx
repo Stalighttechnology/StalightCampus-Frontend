@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Phone, Mail, Clock, Calendar as CalendarIcon, CheckCircle2, User as UserIcon, AlertCircle, PhoneCall, MessageCircle, FileText } from 'lucide-react';
+import { Loader2, Phone, Mail, Clock, Calendar as CalendarIcon, CheckCircle2, User as UserIcon, AlertCircle, PhoneCall, MessageCircle, FileText, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -61,7 +61,9 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
   const [activities, setActivities] = useState<LeadActivity[]>([]);
   const [tasks, setTasks] = useState<LeadTask[]>([]);
   const [loading, setLoading] = useState(false);
-  
+  const [courses, setCourses] = useState<any[]>([]);
+  const [isEditingCourse, setIsEditingCourse] = useState(false);
+  const [updatingCourse, setUpdatingCourse] = useState(false);
   // New Task Form
   const [newTaskType, setNewTaskType] = useState('call');
   const [newTaskDesc, setNewTaskDesc] = useState('');
@@ -126,6 +128,9 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
   useEffect(() => {
     if (leadId && isOpen) {
       fetchLeadData();
+      if (courses.length === 0) {
+        fetchCourses();
+      }
       if (isManager && counsellors.length === 0) {
         fetchCounsellors();
       }
@@ -133,8 +138,21 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
       setLead(null);
       setActivities([]);
       setTasks([]);
+      setIsEditingCourse(false);
     }
   }, [leadId, isOpen, isManager]);
+
+  const fetchCourses = async () => {
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/courses/`);
+      const data = await response.json();
+      if (response.ok) {
+        setCourses(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch courses", err);
+    }
+  };
 
   const fetchCounsellors = async () => {
     try {
@@ -255,6 +273,23 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
     }
   };
 
+  const handleUpdateCourse = async (courseIdStr: string) => {
+    if (!leadId) return;
+    setUpdatingCourse(true);
+    try {
+      await crmApi.updateLead(leadId, { course_interested: courseIdStr === 'none' ? null : parseInt(courseIdStr) });
+      toast.success("Interested course updated!");
+      setIsEditingCourse(false);
+      fetchLeadData();
+      if (onLeadUpdated) onLeadUpdated();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update course");
+    } finally {
+      setUpdatingCourse(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -309,12 +344,40 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
                         <p className="font-medium">{lead.phone}</p>
                       </div>
                     </div>
-                    {lead.course_name && (
-                      <div className="pt-3 border-t">
-                        <p className="text-muted-foreground text-xs">Interested Course</p>
-                        <p className="font-medium text-sm">{lead.course_name}</p>
-                      </div>
-                    )}
+                    <div className="pt-3 border-t">
+                      <p className="text-muted-foreground text-xs mb-1">Interested Course</p>
+                      {isEditingCourse || !lead.course_name ? (
+                        <Select 
+                          value={courses.find(c => c.name === lead.course_name)?.id?.toString() || "none"} 
+                          onValueChange={handleUpdateCourse}
+                          disabled={updatingCourse}
+                        >
+                          <SelectTrigger className="w-full h-8 text-sm bg-muted/30">
+                            <SelectValue placeholder="Select Course" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover text-popover-foreground border shadow-md">
+                            <SelectItem value="none">No Course Selected</SelectItem>
+                            {courses.map(c => (
+                              <SelectItem key={c.id} value={c.id.toString()}>
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center justify-between group">
+                          <p className="font-medium text-sm">{lead.course_name}</p>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" 
+                            onClick={() => setIsEditingCourse(true)}
+                          >
+                            <Edit2 className="h-3 w-3 text-muted-foreground hover:text-primary" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
 

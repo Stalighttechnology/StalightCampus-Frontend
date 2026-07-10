@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CheckCircle, XCircle, Clock, FileText, RotateCcw, Loader2, FileDown, CalendarIcon, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -49,15 +49,14 @@ const FacultyAttendance = () => {
   const [startCalendarOpen, setStartCalendarOpen] = useState(false);
   const [endCalendarOpen, setEndCalendarOpen] = useState(false);
 
-  useEffect(() => {
-    fetchAttendanceData();
-  }, []);
+  const initialLoadRef = useRef(true);
 
   useEffect(() => {
     fetchHistoryPage(historyPage);
   }, [historyPage, historyStartDate, historyEndDate]);
 
   const fetchAttendanceData = async () => {
+    // Only call this manually if we really need to refresh just the dashboard
     try {
       setLoading(true);
       const weekAgo = new Date();
@@ -91,6 +90,24 @@ const FacultyAttendance = () => {
       const response = await getFacultyAttendanceRecords(params);
       if (response.success && response.data) {
         setHistoryRecords(response.data);
+        
+        if (initialLoadRef.current) {
+          initialLoadRef.current = false;
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          const weekAgoStr = weekAgo.toLocaleDateString('sv-SE');
+          const recent = response.data.filter((r: any) => r.date >= weekAgoStr).slice(0, 7);
+          setRecentRecords(recent);
+          
+          const today = new Date().toLocaleDateString('sv-SE');
+          const todayRec = response.data.find((r: any) => r.date === today) || null;
+          setTodayRecord(todayRec);
+          if (todayRec) {
+            setAttendanceStatus(todayRec.status as "present" | "absent");
+            setNotes(todayRec.notes || "");
+          }
+          setLoading(false);
+        }
         const norm = normalizePaginatedResponse(response, 'data');
         if (norm.meta && Object.keys(norm.meta).length > 0) {
           const meta = norm.meta;

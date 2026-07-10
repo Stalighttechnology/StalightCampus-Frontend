@@ -8,6 +8,7 @@ import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { toast } from 'sonner';
 import { useTheme } from "../../context/ThemeContext";
+import Swal from 'sweetalert2';
 
 interface Course {
   id?: number;
@@ -89,7 +90,18 @@ const AdmissionCourses: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this course?')) return;
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!'
+    });
+    
+    if (!result.isConfirmed) return;
+    
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/courses/${id}/`, {
         method: 'DELETE'

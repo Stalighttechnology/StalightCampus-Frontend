@@ -7,8 +7,11 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Skeleton } from '../ui/skeleton';
 import LeadDetailsView from './LeadDetailsView';
-import { User as UserIcon, AlertCircle, Clock } from 'lucide-react';
+import { User as UserIcon, AlertCircle, Clock, Plus } from 'lucide-react';
 import { useAuth } from "../../context/AuthContext";
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import Swal from 'sweetalert2';
 
 const STAGES = [
   { id: 'new', label: 'New Enquiry' },
@@ -70,6 +73,34 @@ const LeadPipeline: React.FC = () => {
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { role } = useAuth();
+  
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newLead, setNewLead] = useState({ name: '', email: '', phone: '', city: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleAddLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/enquiries/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newLead, status: 'new' })
+      });
+      if (response.ok) {
+        toast.success("Lead added successfully!");
+        setShowAddModal(false);
+        setNewLead({ name: '', email: '', phone: '', city: '' });
+        fetchLeads();
+      } else {
+        toast.error("Failed to add lead");
+      }
+    } catch (err) {
+      toast.error("An error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     fetchLeads();
@@ -145,9 +176,59 @@ const LeadPipeline: React.FC = () => {
           <CardTitle className="text-lg md:text-xl font-semibold">Lead Pipeline</CardTitle>
           <p className="text-xs md:text-sm text-muted-foreground mt-1">Manage and track your applicant pipelines by dragging stages.</p>
         </div>
+        <Button onClick={() => setShowAddModal(true)} size="sm" className="shadow-sm bg-primary hover:bg-primary/90 text-white">
+          <Plus size={16} className="mr-2" /> Add Lead
+        </Button>
       </CardHeader>
+      
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add Manual Lead</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddLead} className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name</label>
+              <input required type="text" value={newLead.name} onChange={e => setNewLead({...newLead, name: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" placeholder="Applicant Name" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email</label>
+              <input required type="email" value={newLead.email} onChange={e => setNewLead({...newLead, email: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" placeholder="Email Address" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phone</label>
+              <input required type="tel" value={newLead.phone} onChange={e => setNewLead({...newLead, phone: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" placeholder="Phone Number" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">City</label>
+              <input type="text" value={newLead.city} onChange={e => setNewLead({...newLead, city: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" placeholder="City (Optional)" />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
+              <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Adding...' : 'Add Lead'}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <CardContent className="flex-1 min-h-0 p-0 flex overflow-hidden">
-        <div className="flex gap-0 overflow-x-auto overflow-y-hidden p-6 flex-1 items-stretch min-h-0 custom-scrollbar">
+        <div 
+          className="flex gap-0 overflow-x-auto overflow-y-hidden p-6 flex-1 items-stretch min-h-0 custom-scrollbar"
+          onDragOver={(e) => {
+            e.preventDefault();
+            const container = e.currentTarget;
+            const scrollThreshold = 100;
+            const scrollSpeed = 15;
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            
+            if (x < scrollThreshold) {
+              container.scrollLeft -= scrollSpeed;
+            } else if (rect.width - x < scrollThreshold) {
+              container.scrollLeft += scrollSpeed;
+            }
+          }}
+        >
           {STAGES.map((stage) => {
             const stageLeads = leads.filter(l => l.status === stage.id);
             return (
@@ -155,7 +236,7 @@ const LeadPipeline: React.FC = () => {
                 key={stage.id}
                 className="min-w-[280px] w-[280px] flex flex-col h-full border-r border-border last:border-r-0 px-4"
                 onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
+                onDrop={async (e) => {
                   const leadIdStr = e.dataTransfer.getData('leadId');
                   if (leadIdStr) {
                     const leadId = parseInt(leadIdStr);
@@ -163,8 +244,19 @@ const LeadPipeline: React.FC = () => {
                     if (lead) {
                       const validation = isValidTransition(lead.status, stage.id);
                       if (!validation.valid) {
-                        toast.error(validation.reason || "Invalid stage transition");
-                        return;
+                        const result = await Swal.fire({
+                          title: 'Warning',
+                          text: validation.reason + ' Do you want to force move this lead anyway?',
+                          icon: 'warning',
+                          showCancelButton: true,
+                          confirmButtonColor: '#d33',
+                          cancelButtonColor: '#3085d6',
+                          confirmButtonText: 'Yes, force move it!'
+                        });
+                        
+                        if (!result.isConfirmed) {
+                          return;
+                        }
                       }
                       moveLead(leadId, stage.id);
                     }

@@ -60,6 +60,7 @@ export default function AdmissionCommunication() {
                     <th className="px-6 py-4 font-semibold">Address / City</th>
                     <th className="px-6 py-4 font-semibold">Phone Number</th>
                     <th className="px-6 py-4 font-semibold">Mail Address</th>
+                    <th className="px-6 py-4 font-semibold">Status</th>
                     <th className="px-6 py-4 text-right font-semibold">Contact</th>
                   </tr>
                 </thead>
@@ -77,6 +78,11 @@ export default function AdmissionCommunication() {
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
                         {applicant.email}
+                      </td>
+                      <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
+                        <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
+                          {applicant.status ? applicant.status.replace(/_/g, ' ') : 'N/A'}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">

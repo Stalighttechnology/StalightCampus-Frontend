@@ -58,11 +58,23 @@ const apiPost = async <T>(url: string, body?: any): Promise<{ data: T }> => {
   return { data };
 };
 
+const apiPatch = async <T>(url: string, body?: any): Promise<{ data: T }> => {
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}${url}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!response.ok) throw new Error('API Error');
+  const data = await response.json();
+  return { data };
+};
+
 export const crmApi = {
   // Leads
   getLeads: () => apiGet<Lead[]>('/admission/manager/enquiries/'),
   getLead: (id: number) => apiGet<Lead>(`/admission/manager/enquiries/${id}/`),
   createLead: (data: any) => apiPost('/admission/manager/enquiries/', data),
+  updateLead: (id: number, data: any) => apiPatch(`/admission/manager/enquiries/${id}/`, data),
   updateLeadStatus: (id: number, status: string) => apiPost(`/admission/manager/enquiries/${id}/update_status/`, { status }),
   assignCounsellor: (id: number, counsellor_id: number) => apiPost(`/admission/manager/enquiries/${id}/assign_counsellor/`, { counsellor_id }),
 
