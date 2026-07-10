@@ -426,11 +426,20 @@ const CampusPageBuilder: React.FC = () => {
                 <div className="mt-8 p-6 border-2 border-dashed border-border rounded-xl text-center bg-muted/10">
                   <h3 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wider">Add Content Block</h3>
                   <div className="flex flex-wrap justify-center gap-2">
-                    {BLOCK_TYPES.map(type => (
-                      <Button key={type} variant="outline" size="sm" onClick={() => addBlock(type)} className="capitalize bg-background">
-                        <Plus size={14} className="mr-1" /> {type}
-                      </Button>
-                    ))}
+                    {BLOCK_TYPES.map(type => {
+                      const isAdded = blocks.some(b => b.type === type);
+                      return (
+                        <Button 
+                          key={type} 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => addBlock(type)} 
+                          disabled={isAdded}
+                          className={`capitalize ${isAdded ? 'opacity-50 cursor-not-allowed' : 'bg-background'}`}>
+                          <Plus size={14} className="mr-1" /> {type}
+                        </Button>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="h-20"></div>
