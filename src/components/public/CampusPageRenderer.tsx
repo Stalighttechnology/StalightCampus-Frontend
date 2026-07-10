@@ -100,7 +100,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
       if (!payload.course_interested) {
         delete payload.course_interested;
       }
-      await axios.post(`/api/admission/public/${orgSlug}/enquiry/`, payload);
+      await axios.post(`${API_ENDPOINT}/admission/public/${orgSlug}/enquiry/`, payload);
       setEnquiryStatus('success');
       setEnquiryForm({ name: '', phone: '', email: '', course_interested: '', message: '' });
       setTimeout(() => setEnquiryStatus('idle'), 5000);
