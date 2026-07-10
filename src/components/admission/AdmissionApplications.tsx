@@ -80,7 +80,7 @@ export default function AdmissionApplications() {
           app.id === id ? { ...app, enquiry_details: { ...app.enquiry_details, status } } : app
         ));
         if (selectedApp?.id === id) {
-          setSelectedApp((prev: any) => ({ ...prev, enquiry_details: { ...prev.enquiry_details, status } }));
+          setSelectedApp((prev: any) => prev ? ({ ...prev, enquiry_details: { ...prev.enquiry_details, status } }) : null);
         }
       } else {
         toast.error("Failed to update status");
@@ -114,7 +114,7 @@ export default function AdmissionApplications() {
           app.id === id ? { ...app, enquiry_details: { ...app.enquiry_details, status: 'enrolled' } } : app
         ));
         if (selectedApp?.id === id) {
-          setSelectedApp((prev: any) => ({ ...prev, enquiry_details: { ...prev.enquiry_details, status: 'enrolled' } }));
+          setSelectedApp((prev: any) => prev ? ({ ...prev, enquiry_details: { ...prev.enquiry_details, status: 'enrolled' } }) : null);
         }
       } else {
         const errData = await response.json();

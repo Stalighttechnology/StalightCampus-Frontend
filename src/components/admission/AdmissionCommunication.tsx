@@ -66,7 +66,7 @@ export default function AdmissionCommunication() {
                 <tbody className="divide-y divide-border">
                   {applicants.map((applicant: any) => (
                     <tr key={applicant.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4 font-bold text-foreground">
+                      <td className="px-6 py-4 font-semibold text-foreground">
                         {applicant.name}
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">

@@ -7,8 +7,10 @@ import { Loader2, FileText, CheckCircle, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { SkeletonCard } from '../ui/skeleton';
 import Swal from 'sweetalert2';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function AdmissionDocuments() {
+  const { theme } = useTheme();
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending');
@@ -141,8 +143,11 @@ export default function AdmissionDocuments() {
                       </span>
                     ) : (
                       <Button 
+                        variant="outline"
                         onClick={() => handleVerify(app.id)}
-                        className="bg-green-600 hover:bg-green-700 text-white shadow-sm w-full sm:w-auto"
+                        className={`shadow-sm w-full sm:w-auto ${theme === 'dark' ?
+                          'text-green-400 border-green-400 hover:bg-green-900/20' :
+                          'text-green-700 border-green-600 hover:bg-green-100'}`}
                         size="sm"
                       >
                         <CheckCircle className="w-4 h-4 mr-2" /> Mark as Verified
