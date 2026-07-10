@@ -129,7 +129,7 @@ const LeadPipeline: React.FC = () => {
 
   const fetchLeads = async () => {
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/enquiries/`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/enquiries/?no_pagination=true`);
       if (response.ok) {
         const data = await response.json();
         setLeads(data);

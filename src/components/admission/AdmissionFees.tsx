@@ -18,11 +18,12 @@ export default function AdmissionFees() {
 
   const fetchApplications = async () => {
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/?page_size=50`);
       if (response.ok) {
         const data = await response.json();
+        const list = data && data.results ? data.results : (data || []);
         // Show applications that need fee payment or have completed it (including enrolled)
-        setApplications(data.filter((app: any) => 
+        setApplications(list.filter((app: any) => 
           ['documents_verified', 'fee_pending', 'admission_confirmed', 'enrolled'].includes(app.enquiry_details?.status)
         ));
       }
