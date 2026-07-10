@@ -89,7 +89,7 @@ const AdmissionLanding: React.FC = () => {
   };
 
   return (
-    <div className="h-screen bg-background overflow-x-hidden overflow-y-auto selection:bg-primary/30" style={getThemeStyle()}>
+    <div className="min-h-screen bg-background overflow-x-hidden selection:bg-primary/30" style={getThemeStyle()}>
       <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex justify-between items-center">
           <div className="flex items-center gap-2 md:gap-3">
