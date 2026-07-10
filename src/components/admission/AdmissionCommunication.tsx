@@ -22,12 +22,13 @@ export default function AdmissionCommunication() {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/enquiries/?minimal=true&page=${currentPage}&page_size=20`);
       if (response.ok) {
         const data = await response.json();
-        if (data && data.results) {
+        if (data && Array.isArray(data.results)) {
           setApplicants(data.results);
           setTotalCount(data.count);
         } else {
-          setApplicants(data || []);
-          setTotalCount(data ? data.length : 0);
+          const list = Array.isArray(data) ? data : [];
+          setApplicants(list);
+          setTotalCount(list.length);
         }
       }
     } catch (err) {

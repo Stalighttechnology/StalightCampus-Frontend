@@ -25,12 +25,13 @@ export default function AdmissionStudents() {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/?status=enrolled&page=${currentPage}&page_size=${itemsPerPage}`);
       if (response.ok) {
         const data = await response.json();
-        if (data && data.results) {
+        if (data && Array.isArray(data.results)) {
           setStudents(data.results);
           setTotalCount(data.count);
         } else {
-          setStudents(data || []);
-          setTotalCount(data ? data.length : 0);
+          const list = Array.isArray(data) ? data : [];
+          setStudents(list);
+          setTotalCount(list.length);
         }
       }
     } catch (err) {

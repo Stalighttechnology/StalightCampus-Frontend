@@ -31,7 +31,10 @@ export default function AdmissionDocuments() {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/?page_size=50`);
       if (response.ok) {
         const data = await response.json();
-        setApplications(data && data.results ? data.results : (data || []));
+        const list = data && Array.isArray(data.results) ? data.results 
+          : Array.isArray(data) ? data 
+          : [];
+        setApplications(list);
       }
     } catch (err) {
       console.error(err);
