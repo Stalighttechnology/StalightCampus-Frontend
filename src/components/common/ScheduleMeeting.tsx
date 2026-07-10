@@ -87,7 +87,12 @@ export default function ScheduleMeeting() {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const { user, role: userRole } = useAuth();
-  const [meetings, setMeetings] = useState<any[]>([]);
+  const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([]);
+  const [pastMeetings, setPastMeetings] = useState<any[]>([]);
+  const [upcomingTotal, setUpcomingTotal] = useState(0);
+  const [pastTotal, setPastTotal] = useState(0);
+  const [upcomingPage, setUpcomingPage] = useState(1);
+  const [pastPage, setPastPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -112,22 +117,41 @@ export default function ScheduleMeeting() {
     target_roles: [] as string[]
   });
 
-  const fetchMeetings = async () => {
+  const fetchUpcoming = async (page: number = 1) => {
     setLoading(true);
     try {
-      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/meetings/`);
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/meetings/?type=upcoming&page=${page}`);
       if (res.ok) {
         const data = await res.json();
-        console.log("Fetched meetings data:", data);
-        setMeetings(data);
-      } else {
-        showErrorAlert("Error", "Failed to load meetings.");
+        setUpcomingMeetings(data.results || (Array.isArray(data) ? data : []));
+        setUpcomingTotal(data.count ?? (Array.isArray(data) ? data.length : 0));
       }
     } catch (e) {
-      showErrorAlert("Error", "Network error while loading meetings.");
+      console.error(e);
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchPast = async (page: number = 1) => {
+    setLoading(true);
+    try {
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/meetings/?type=past&page=${page}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPastMeetings(data.results || (Array.isArray(data) ? data : []));
+        setPastTotal(data.count ?? (Array.isArray(data) ? data.length : 0));
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMeetings = () => {
+    fetchUpcoming(upcomingPage);
+    fetchPast(pastPage);
   };
 
   const fetchBranches = async () => {
@@ -143,8 +167,9 @@ export default function ScheduleMeeting() {
   };
 
   useEffect(() => {
-    fetchMeetings();
-  }, []);
+    if (activeTab === 'upcoming') fetchUpcoming(upcomingPage);
+    else fetchPast(pastPage);
+  }, [upcomingPage, pastPage, activeTab]);
 
   useEffect(() => {
     if (branches.length > 0 && userRole === 'hod') {
@@ -253,7 +278,7 @@ export default function ScheduleMeeting() {
     }
 
     // Frontend overlap check against already-loaded meetings for instant feedback
-    const myMeetings = meetings.filter((m: any) => {
+    const myMeetings = [...upcomingMeetings, ...pastMeetings].filter((m: any) => {
       const mStart = new Date(m.start_time);
       const mEnd = new Date(m.end_time);
       return mStart < endDateTime && mEnd > startDateTime;
@@ -298,7 +323,8 @@ export default function ScheduleMeeting() {
         setEndMinute(freshVals.endMinute);
         setEndPeriod(freshVals.endPeriod);
 
-        fetchMeetings();
+        fetchUpcoming(1);
+        setUpcomingPage(1);
       } else {
         const statusCode = res.status;
         let errorMsg = "Failed to create meeting.";
@@ -384,7 +410,8 @@ export default function ScheduleMeeting() {
         const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/meetings/${id}/`, { method: 'DELETE' });
         if (res.ok) {
           showSuccessAlert("Deleted", "Meeting has been deleted.");
-          fetchMeetings();
+          if (activeTab === 'upcoming') fetchUpcoming(upcomingPage);
+          else fetchPast(pastPage);
         } else {
           showErrorAlert("Error", "Failed to delete meeting.");
         }
@@ -657,11 +684,10 @@ export default function ScheduleMeeting() {
             </div>
           ) : (() => {
             const now = new Date();
-            const upcoming = meetings.filter(m => new Date(m.end_time) >= now);
-            const past = meetings.filter(m => new Date(m.end_time) < now)
-              .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
-
-            const displayMeetings = activeTab === 'upcoming' ? upcoming : past;
+            const displayMeetings = activeTab === 'upcoming' ? upcomingMeetings : pastMeetings;
+            const currentTotal = activeTab === 'upcoming' ? upcomingTotal : pastTotal;
+            const currentPage = activeTab === 'upcoming' ? upcomingPage : pastPage;
+            const totalPages = Math.ceil(currentTotal / 10);
 
             return (
               <>
@@ -676,7 +702,7 @@ export default function ScheduleMeeting() {
                           : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      Upcoming ({upcoming.length})
+                      Upcoming ({upcomingTotal})
                     </button>
                     <button
                       onClick={() => setActiveTab('past')}
@@ -686,7 +712,7 @@ export default function ScheduleMeeting() {
                           : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      History ({past.length})
+                      History ({pastTotal})
                     </button>
                   </div>
                 </div>
@@ -802,6 +828,32 @@ export default function ScheduleMeeting() {
                         </div>
                       );
                     })}
+                  </div>
+                )}
+                
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Showing page {currentPage} of {totalPages}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === 1 || loading}
+                        onClick={() => activeTab === 'upcoming' ? setUpcomingPage(p => p - 1) : setPastPage(p => p - 1)}
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === totalPages || loading}
+                        onClick={() => activeTab === 'upcoming' ? setUpcomingPage(p => p + 1) : setPastPage(p => p + 1)}
+                      >
+                        Next
+                      </Button>
+                    </div>
                   </div>
                 )}
               </>
