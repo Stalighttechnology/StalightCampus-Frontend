@@ -32,7 +32,8 @@ import {
   GitBranch,
   UserCheck,
   Loader2,
-  CreditCard
+  CreditCard,
+  FileCheck
 } from
   "lucide-react";
 import {
@@ -565,9 +566,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
         className={`grid grid-cols-2 md:grid-cols-3 ${
           user?.role === "org_admin" 
             ? "lg:grid-cols-6" 
-            : userTier >= 3 
-              ? "lg:grid-cols-9" 
-              : "lg:grid-cols-6"
+            : "lg:grid-cols-5"
         } gap-4 mt-8`}>
 
         <DashboardCard
@@ -623,6 +622,15 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
             description="Manage HOD leave requests"
             icon={<UserCheck size={20} />}
             onClick={() => handleCardClick("hod-leaves")} />
+        )}
+
+        {user?.role !== "org_admin" && userTier >= 3 && (
+          <DashboardCard
+            id="qp-approvals-card"
+            title="Question Paper Approvals"
+            description="Approve question papers"
+            icon={<FileCheck size={20} />}
+            onClick={() => handleCardClick("qp-approvals")} />
         )}
 
         <DashboardCard
