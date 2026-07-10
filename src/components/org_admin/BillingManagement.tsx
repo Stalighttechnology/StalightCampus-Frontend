@@ -433,9 +433,9 @@ export const BillingManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 min-[1250px]:grid-cols-3">
         {/* Current Plan Card */}
-        <Card id="billing-plan-card" className="col-span-1 md:col-span-1 lg:col-span-1">
+        <Card id="billing-plan-card" className="col-span-1 min-[1250px]:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               Current Plan
@@ -456,32 +456,32 @@ export const BillingManagement: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 p-4 border rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground flex items-center gap-2"><Tag className="h-4 w-4" /> Price</span>
-                <span className="text-sm font-medium">{planPrice}</span>
+            <div className="flex flex-col gap-2.5 p-4 border rounded-lg">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1">
+                <span className="text-sm text-muted-foreground flex items-center gap-2"><Tag className="h-4 w-4 shrink-0" /> Price</span>
+                <span className="text-sm font-medium break-all text-left sm:text-right">{planPrice}</span>
               </div>
-              <div className="flex justify-between items-center mt-2 pt-2 border-t">
-                <span className="text-sm text-muted-foreground flex items-center gap-2"><Users className="h-4 w-4" /> Capacity</span>
-                <div className="text-right">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 mt-2 pt-2 border-t">
+                <span className="text-sm text-muted-foreground flex items-center gap-2"><Users className="h-4 w-4 shrink-0" /> Capacity</span>
+                <div className="text-left sm:text-right">
                   <span className="text-sm font-medium">{org?.max_students} Students</span>
                   {org?.buffer_students > 0 && (
                     <div className="text-xs text-muted-foreground">({org?.base_capacity} Base + {org?.buffer_students} Buffer)</div>
                   )}
                 </div>
               </div>
-              <div className="flex justify-between items-center mt-2 pt-2 border-t">
-                <span className="text-sm text-muted-foreground flex items-center gap-2"><Users className="h-4 w-4" /> Active Students</span>
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 mt-2 pt-2 border-t">
+                <span className="text-sm text-muted-foreground flex items-center gap-2"><Users className="h-4 w-4 shrink-0" /> Active Students</span>
                 <span className={`text-sm font-medium ${org?.active_student_count > (org?.max_students || 0) ? 'text-red-500' : ''}`}>
                   {org?.active_student_count || 0} / {org?.max_students}
                 </span>
               </div>
-              <div className="flex justify-between items-center mt-2 pt-2 border-t">
-                <span className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4" /> Started At</span>
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 mt-2 pt-2 border-t">
+                <span className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4 shrink-0" /> Started At</span>
                 <span className="text-sm font-medium">{formatDate(org?.subscription_started_at || org?.created_at)}</span>
               </div>
-              <div className="flex justify-between items-center mt-2 pt-2 border-t">
-                <span className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4" /> Expiry Date</span>
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 mt-2 pt-2 border-t">
+                <span className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4 shrink-0" /> Expiry Date</span>
                 <span className="text-sm font-medium">{formatDate(org?.subscription_expires_at)}</span>
               </div>
             </div>
@@ -553,7 +553,7 @@ export const BillingManagement: React.FC = () => {
         </Card>
 
         {/* Organization Details Card */}
-        <Card id="billing-org-details-card" className="col-span-1 md:col-span-1 lg:col-span-2">
+        <Card id="billing-org-details-card" className="col-span-1 min-[1250px]:col-span-2">
           <CardHeader className="flex flex-row items-start justify-between">
             <div className="flex-1 pr-4">
               <CardTitle className="flex items-center gap-2 pb-2">
@@ -567,7 +567,7 @@ export const BillingManagement: React.FC = () => {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 mb-6 w-full">
+            <div className="flex flex-col min-[1250px]:flex-row items-center min-[1250px]:items-start gap-6 mb-6 w-full">
               {/* Brand Logo Display */}
               <div className="relative flex flex-col items-center justify-center border p-4 rounded-xl bg-muted/20 w-32 h-32 shrink-0 group">
                 {org?.logo ? (
@@ -601,7 +601,7 @@ export const BillingManagement: React.FC = () => {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 flex-1 w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 min-[1250px]:grid-cols-3 gap-x-6 gap-y-4 flex-1 w-full">
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Organization Name</p>
                   <p className="font-medium text-sm text-foreground">{org?.name || 'N/A'}</p>
@@ -618,11 +618,11 @@ export const BillingManagement: React.FC = () => {
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Tax ID / GSTIN</p>
                   <p className="font-medium text-sm text-foreground">{org?.tax_id || 'N/A'}</p>
                 </div>
-                <div className="col-span-2 lg:col-span-3">
+                <div className="col-span-1 sm:col-span-2 min-[1250px]:col-span-3">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Institution Address</p>
                   <p className="font-medium text-sm text-foreground">{org?.address || 'N/A'}</p>
                 </div>
-                <div className="col-span-2 lg:col-span-3">
+                <div className="col-span-1 sm:col-span-2 min-[1250px]:col-span-3">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Billing Address</p>
                   <p className="font-medium text-sm text-foreground">{org?.billing_address || 'N/A'}</p>
                 </div>
