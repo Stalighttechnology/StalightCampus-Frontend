@@ -74,9 +74,9 @@ const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false, 
       return;
     }
 
-    // Phone Validation (Allows optional +91 or 91 country code and 10 digit mobile numbers)
+    // Phone Validation (Allows optional +91 prefix and 10 digit mobile numbers)
     const cleanPhone = enquiryData.phone.replace(/[\s\-()]/g, '');
-    const phoneRegex = /^(?:\+91|91)?\d{10}$/;
+    const phoneRegex = /^(?:\+91)?\d{10}$/;
     if (!phoneRegex.test(cleanPhone)) {
       Swal.fire({
         icon: 'error',
@@ -275,7 +275,7 @@ const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false, 
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Phone</label>
-                <input type="tel" required value={enquiryData.phone} onChange={e => setEnquiryData({...enquiryData, phone: e.target.value})} className="w-full px-4 py-2 border border-input rounded bg-background" />
+                <input type="tel" required value={enquiryData.phone} onChange={e => setEnquiryData({...enquiryData, phone: e.target.value.replace(/[^0-9+]/g, '')})} className="w-full px-4 py-2 border border-input rounded bg-background" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">City</label>

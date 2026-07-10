@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
@@ -14,6 +14,7 @@ export default function AdmissionApplications() {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchApplications();
@@ -186,14 +187,21 @@ export default function AdmissionApplications() {
     );
   }
 
+  const totalCount = applications.length;
+  const totalPages = Math.ceil(totalCount / 10);
+  const paginatedApplications = applications.slice(
+    (currentPage - 1) * 10,
+    currentPage * 10
+  );
+
   return (
     <div id="admission-applications-container" className="space-y-6 w-full max-w-full overflow-hidden">
-      <Card className="overflow-hidden w-full border-border">
-        <CardHeader id="admission-applications-header">
-          <CardTitle className="text-lg">Submitted Applications</CardTitle>
+      <Card className="flex flex-col w-full border-border shadow-sm">
+        <CardHeader id="admission-applications-header" className="border-b pb-4">
+          <CardTitle className="text-lg font-semibold">Submitted Applications</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
-          {applications.length === 0 ? (
+        <CardContent className="p-0 flex-grow">
+          {paginatedApplications.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">No applications found.</p>
           ) : (
             <div className="overflow-x-auto">
@@ -208,7 +216,7 @@ export default function AdmissionApplications() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {applications.map(app => (
+                  {paginatedApplications.map(app => (
                     <tr key={app.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
                         <div className="font-semibold">{app.enquiry_details?.name}</div>
@@ -235,6 +243,39 @@ export default function AdmissionApplications() {
             </div>
           )}
         </CardContent>
+
+        {totalPages > 1 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} applications
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1 || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className="text-sm font-semibold text-foreground">
+                  {currentPage}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       <Dialog open={!!selectedApp} onOpenChange={(open) => !open && setSelectedApp(null)}>
