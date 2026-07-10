@@ -215,12 +215,12 @@ const CampusPageBuilder: React.FC = () => {
   return (
     <div id="campus-builder-container" className="flex flex-col min-h-[calc(100vh-160px)] border rounded-xl bg-background overflow-hidden shadow-sm border-border" style={getThemeStyle()}>
       {/* Topbar / Navigation */}
-      <header id="campus-builder-header" className="flex flex-col lg:flex-row items-center justify-between p-4 lg:px-6 lg:h-16 border-b border-border bg-card gap-4 shrink-0 shadow-sm z-10">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-8 w-full lg:w-auto">
-          <h1 className="font-bold text-lg flex items-center gap-2 text-primary sm:border-r border-border sm:pr-6">
+      <header id="campus-builder-header" className="flex flex-col min-[1250px]:flex-row min-[1250px]:items-center justify-between p-4 min-[1250px]:px-6 h-auto min-[1250px]:h-16 border-b border-border bg-card gap-4 shrink-0 shadow-sm z-10">
+        <div className="flex flex-col min-[1250px]:flex-row min-[1250px]:items-center gap-2.5 min-[1250px]:gap-8 w-full min-[1250px]:w-auto">
+          <h1 className="font-semibold text-lg flex items-center gap-2 text-primary border-b min-[1250px]:border-b-0 min-[1250px]:border-r border-border pb-2 min-[1250px]:pb-0 pr-0 min-[1250px]:pr-6 whitespace-nowrap">
             <LayoutTemplate className="w-5 h-5" /> Campus CMS
           </h1>
-          <nav className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
+          <nav className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
             {SIDEBAR_TABS.map(tab => (
               <button
                 key={tab.id}
@@ -234,16 +234,16 @@ const CampusPageBuilder: React.FC = () => {
             ))}
           </nav>
         </div>
-        <div className="flex items-center justify-between lg:justify-end gap-3 w-full lg:w-auto pt-2 lg:pt-0 border-t lg:border-t-0 border-border">
-          <h2 className="text-xs font-semibold text-muted-foreground truncate max-w-[180px] sm:max-w-none">Editing: {orgName || 'Campus Profile'}</h2>
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between min-[1250px]:justify-end gap-3 w-full min-[1250px]:w-auto pt-2 min-[1250px]:pt-0 border-t min-[1250px]:border-t-0 border-border min-[1250px]:self-center">
+          <h2 className="text-xs font-semibold text-muted-foreground truncate max-w-[200px] min-[1250px]:max-w-none">Editing: {orgName || 'Campus Profile'}</h2>
+          <div className="flex items-center gap-2 shrink-0">
             {orgId && (
               <Button 
                 variant="outline" size="sm" 
                 onClick={() => window.open(`/admissions/${encodeURIComponent(orgName || orgId)}`, '_blank')}
                 className="gap-1.5 text-xs h-8 px-2.5"
               >
-                <Eye size={14} /> <span className="hidden sm:inline">View Page</span>
+                <Eye size={14} /> <span>View Page</span>
               </Button>
             )}
             <Button onClick={handleSave} className="gap-1.5 text-xs h-8 px-2.5 shadow-md">
@@ -274,7 +274,7 @@ const CampusPageBuilder: React.FC = () => {
                 {blocks.map((block, index) => (
                   <Card key={block.id} className="relative group border-muted-foreground/20 hover:border-primary/40 transition-colors shadow-sm">
                     <CardHeader className="p-3 pb-0 flex flex-row items-center justify-between">
-                      <CardTitle className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+                      <CardTitle className="text-sm font-semibold uppercase tracking-wider text-foreground flex items-center gap-2">
                         <GripVertical size={16} className="text-muted-foreground" /> {block.type}
                       </CardTitle>
                       <div className="flex items-center gap-1 bg-muted/30 rounded-md p-1 border border-border/50">
@@ -512,7 +512,7 @@ const CampusPageBuilder: React.FC = () => {
           <div className="flex-1 flex overflow-y-auto justify-center bg-muted/10 p-8">
             <div className="w-full max-w-none bg-card rounded-2xl shadow-xl border border-border p-8 h-fit space-y-8">
               <div>
-                <h2 className="text-2xl font-bold flex items-center gap-2"><Baseline className="text-primary" /> Theme Settings</h2>
+                <h2 className="text-2xl font-semibold flex items-center gap-2"><Baseline className="text-primary" /> Theme Settings</h2>
                 <p className="text-muted-foreground mt-1">Customize the look and feel of your public campus page.</p>
               </div>
 
@@ -544,7 +544,7 @@ const CampusPageBuilder: React.FC = () => {
           <div className="flex-1 flex items-center justify-center bg-muted/20 text-muted-foreground">
             <div className="text-center">
               <Settings className="w-16 h-16 mx-auto mb-4 opacity-20" />
-              <h2 className="text-2xl font-bold mb-2">Module Under Construction</h2>
+              <h2 className="text-2xl font-semibold mb-2">Module Under Construction</h2>
               <p>The <strong>{SIDEBAR_TABS.find(t=>t.id===activeTab)?.label}</strong> module will be available in a future update.</p>
               <Button variant="outline" className="mt-6" onClick={() => setActiveTab('builder')}>Return to Page Builder</Button>
             </div>
