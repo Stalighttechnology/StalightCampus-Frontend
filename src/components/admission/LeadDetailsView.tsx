@@ -9,6 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Phone, Mail, Clock, Calendar as CalendarIcon, CheckCircle2, User as UserIcon, AlertCircle, PhoneCall, MessageCircle, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 import { crmApi, Lead, LeadActivity, LeadTask } from '../../api/crm_api';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
@@ -62,6 +67,51 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
   const [newTaskDesc, setNewTaskDesc] = useState('');
   const [newTaskDate, setNewTaskDate] = useState('');
   const [submittingTask, setSubmittingTask] = useState(false);
+
+  const getCurrentTime = () => {
+    const now = new Date();
+    let hours = now.getHours();
+    const period = hours >= 12 ? "PM" : "AM";
+    if (hours === 0) {
+      hours = 12;
+    } else if (hours > 12) {
+      hours -= 12;
+    }
+    return {
+      hour: String(hours).padStart(2, '0'),
+      minute: String(now.getMinutes()).padStart(2, '0'),
+      period
+    };
+  };
+
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedHour, setSelectedHour] = useState<string>(() => getCurrentTime().hour);
+  const [selectedMinute, setSelectedMinute] = useState<string>(() => getCurrentTime().minute);
+  const [selectedPeriod, setSelectedPeriod] = useState<string>(() => getCurrentTime().period);
+
+  useEffect(() => {
+    if (selectedDate) {
+      let hourNum = parseInt(selectedHour, 10);
+      if (selectedPeriod === "PM" && hourNum < 12) {
+        hourNum += 12;
+      } else if (selectedPeriod === "AM" && hourNum === 12) {
+        hourNum = 0;
+      }
+
+      const combinedDate = new Date(selectedDate);
+      combinedDate.setHours(hourNum);
+      combinedDate.setMinutes(parseInt(selectedMinute, 10));
+
+      const year = combinedDate.getFullYear();
+      const month = String(combinedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(combinedDate.getDate()).padStart(2, '0');
+      const hh = String(combinedDate.getHours()).padStart(2, '0');
+      const mm = String(combinedDate.getMinutes()).padStart(2, '0');
+      setNewTaskDate(`${year}-${month}-${day}T${hh}:${mm}`);
+    } else {
+      setNewTaskDate('');
+    }
+  }, [selectedDate, selectedHour, selectedMinute, selectedPeriod]);
 
   // New Activity Form
   const [newActivityType, setNewActivityType] = useState('note');
@@ -142,6 +192,11 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
       toast.success('Task created successfully');
       setNewTaskDesc('');
       setNewTaskDate('');
+      setSelectedDate(undefined);
+      const currentTime = getCurrentTime();
+      setSelectedHour(currentTime.hour);
+      setSelectedMinute(currentTime.minute);
+      setSelectedPeriod(currentTime.period);
       fetchLeadData();
       if (onLeadUpdated) onLeadUpdated();
     } catch (error) {
@@ -204,7 +259,7 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
         {loading || !lead ? (
           <div className="p-6">
             <DialogTitle className="sr-only">Loading Lead</DialogTitle>
@@ -225,32 +280,6 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
                     <Badge variant="outline">{lead.status.replace('_', ' ').toUpperCase()}</Badge>
                   </div>
                 </div>
-                {lead.assigned_to_name && !isManager ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-2 rounded-md">
-                    <UserIcon className="w-4 h-4" />
-                    <span>{lead.assigned_to_name}</span>
-                  </div>
-                ) : isManager ? (
-                  <div className="flex items-center gap-2">
-                    <Select 
-                      value={lead.assigned_to?.toString() || ""} 
-                      onValueChange={handleAssignCounsellor}
-                      disabled={assigning}
-                    >
-                      <SelectTrigger className="w-[180px] h-9 text-xs">
-                        <SelectValue placeholder="Assign Counsellor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unassigned" disabled>Select Counsellor</SelectItem>
-                        {counsellors.map(c => (
-                          <SelectItem key={c.id} value={c.id.toString()}>
-                            {c.first_name} {c.last_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ) : null}
               </div>
             </DialogHeader>
 
@@ -288,6 +317,41 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Assign Counsellor Card */}
+                {(lead.assigned_to_name || isManager) && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Assign Counsellor</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      {lead.assigned_to_name && !isManager ? (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-2 rounded-md w-full">
+                          <UserIcon className="w-4 h-4" />
+                          <span>{lead.assigned_to_name}</span>
+                        </div>
+                      ) : isManager ? (
+                        <Select 
+                          value={lead.assigned_to?.toString() || ""} 
+                          onValueChange={handleAssignCounsellor}
+                          disabled={assigning}
+                        >
+                          <SelectTrigger className="w-full h-10 text-sm">
+                            <SelectValue placeholder="Assign Counsellor" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover text-popover-foreground border shadow-md">
+                            <SelectItem value="unassigned" disabled>Select Counsellor</SelectItem>
+                            {counsellors.map(c => (
+                              <SelectItem key={c.id} value={c.id.toString()}>
+                                {c.first_name} {c.last_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : null}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
 
               {/* Right Column: Timeline & Tasks */}
@@ -318,13 +382,80 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
                                 <SelectItem value="meeting">Meeting</SelectItem>
                               </SelectContent>
                             </Select>
-                            <Input 
-                              type="datetime-local" 
-                              value={newTaskDate} 
-                              onChange={e => setNewTaskDate(e.target.value)}
-                              className="flex-1"
-                              required
-                            />
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className={cn(
+                                    "flex-1 justify-start text-left font-normal border-input bg-background hover:bg-accent hover:text-accent-foreground",
+                                    !selectedDate && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {selectedDate ? (
+                                    format(selectedDate, "PPP")
+                                  ) : (
+                                    <span>Pick due date</span>
+                                  )}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0 bg-popover text-popover-foreground border shadow-md" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={selectedDate}
+                                  onSelect={setSelectedDate}
+                                  initialFocus
+                                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Due Time</span>
+                            <div className="flex items-center gap-1.5">
+                              {/* Hour Select */}
+                              <Select value={selectedHour} onValueChange={setSelectedHour}>
+                                <SelectTrigger className="w-[70px] h-8 text-xs bg-background text-foreground border-input">
+                                  <SelectValue placeholder="12" />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-48 overflow-y-auto bg-popover text-popover-foreground border shadow-md">
+                                  {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map((h) => (
+                                    <SelectItem key={h} value={h} className="text-xs">
+                                      {h}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+
+                              <span className="text-muted-foreground text-xs font-semibold">:</span>
+
+                              {/* Minute Select */}
+                              <Select value={selectedMinute} onValueChange={setSelectedMinute}>
+                                <SelectTrigger className="w-[70px] h-8 text-xs bg-background text-foreground border-input">
+                                  <SelectValue placeholder="00" />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-48 overflow-y-auto bg-popover text-popover-foreground border shadow-md">
+                                  {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map((m) => (
+                                    <SelectItem key={m} value={m} className="text-xs">
+                                      {m}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+
+                              {/* Period Select */}
+                              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                                <SelectTrigger className="w-[70px] h-8 text-xs bg-background text-foreground border-input">
+                                  <SelectValue placeholder="PM" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-popover text-popover-foreground border shadow-md">
+                                  <SelectItem value="AM" className="text-xs">AM</SelectItem>
+                                  <SelectItem value="PM" className="text-xs">PM</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
                           <Textarea 
                             placeholder="Task description..." 

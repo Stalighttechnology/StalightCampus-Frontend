@@ -55,6 +55,17 @@ export default function AdmissionApplications() {
         confirmButtonColor: '#10b981',
       });
       if (!result.isConfirmed) return;
+    } else if (status === 'rejected') {
+      const result = await Swal.fire({
+        title: 'Reject Application?',
+        text: 'Are you sure you want to reject this student application?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, reject!',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#ef4444',
+      });
+      if (!result.isConfirmed) return;
     }
 
     try {

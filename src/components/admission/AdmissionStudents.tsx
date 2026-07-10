@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
@@ -11,6 +11,8 @@ export default function AdmissionStudents() {
   const { theme } = useTheme();
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchStudents();
@@ -60,6 +62,12 @@ export default function AdmissionStudents() {
     document.body.removeChild(link);
   };
 
+  const totalCount = students.length;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = students.slice(indexOfFirstItem, indexOfLastItem);
+
   return (
     <div id="admission-students-container" className="space-y-6 w-full max-w-full overflow-hidden">
       <Card className="overflow-hidden w-full border-border">
@@ -102,7 +110,7 @@ export default function AdmissionStudents() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {students.map(student => (
+                  {currentItems.map(student => (
                     <tr key={student.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4 font-mono font-medium whitespace-nowrap">#{student.id}</td>
                       <td className="px-6 py-4 font-medium whitespace-nowrap">
@@ -132,6 +140,38 @@ export default function AdmissionStudents() {
             </div>
           )}
         </CardContent>
+        {totalPages > 1 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)} to {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} enrolled students
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1 || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {currentPage}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

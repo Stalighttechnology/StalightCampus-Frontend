@@ -130,7 +130,7 @@ const AdmissionDashboard: React.FC = () => {
       )}
       
       {/* Premium Stats Grid */}
-      <div id="admission-stats-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div id="admission-stats-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
         {[
           {
             title: "Total Enquiries",
@@ -181,7 +181,7 @@ const AdmissionDashboard: React.FC = () => {
       </div>
 
       {/* Task Metrics Grid */}
-      <div id="task-stats-grid" className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div id="task-stats-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {[
           {
             title: "Overdue Tasks",

@@ -10,15 +10,17 @@ import { Calendar } from '@/components/ui/calendar';
 
 interface ApplicationWizardProps {
   isModal?: boolean;
+  onSuccess?: () => void;
 }
 
-const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false }) => {
+const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false, onSuccess }) => {
   const { org_slug } = useParams<{ org_slug: string }>();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState<any[]>([]);
   const [enquiryId, setEnquiryId] = useState<number | null>(null);
+  const [submittingApp, setSubmittingApp] = useState(false);
 
   // Form State
   const [enquiryData, setEnquiryData] = useState({ name: '', email: '', phone: '', course_interested: '', city: '' });
@@ -79,38 +81,73 @@ const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false }
     // Final Submit
     if (!enquiryId) return;
 
-    try {
-      const formData = new FormData();
-      formData.append('dob', personalData.dob);
-      formData.append('gender', personalData.gender);
-      formData.append('address', personalData.address);
-      formData.append('marks_10th', academicData.marks_10th);
-      formData.append('marks_12th', academicData.marks_12th);
-      formData.append('previous_degree_marks', academicData.previous_degree_marks);
+    Swal.fire({
+      title: 'Submit Application?',
+      text: 'Are you sure you want to submit your application? Please make sure all details and documents are correct.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Submit',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: 'var(--primary)',
+      cancelButtonColor: 'var(--muted)'
+    }).then(async (result) => {
+      if (!result.isConfirmed) return;
 
-      Object.entries(files).forEach(([key, file]) => {
-        if (file) formData.append(key, file);
-      });
+      setSubmittingApp(true);
+      try {
+        const formData = new FormData();
+        formData.append('dob', personalData.dob);
+        formData.append('gender', personalData.gender);
+        formData.append('address', personalData.address);
+        formData.append('marks_10th', academicData.marks_10th);
+        formData.append('marks_12th', academicData.marks_12th);
+        formData.append('previous_degree_marks', academicData.previous_degree_marks);
 
-      await axios.post(`/api/admission/public/${org_slug}/application/${enquiryId}/`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      Swal.fire({
-        icon: 'success',
-        title: 'Submitted!',
-        text: 'Application Submitted Successfully!',
-        confirmButtonColor: 'var(--primary)'
-      });
-      navigate(`/admissions/${org_slug}`);
-    } catch (err) {
-      console.error(err);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to submit application.',
-        confirmButtonColor: 'var(--primary)'
-      });
-    }
+        Object.entries(files).forEach(([key, file]) => {
+          if (file) formData.append(key, file);
+        });
+
+        await axios.post(`/api/admission/public/${org_slug}/application/${enquiryId}/`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        await Swal.fire({
+          icon: 'success',
+          title: 'Submitted!',
+          text: 'Application Submitted Successfully!',
+          confirmButtonColor: 'var(--primary)'
+        });
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          navigate(`/admissions/${org_slug}`);
+        }
+      } catch (err: any) {
+        console.error(err);
+        let errorMsg = 'Failed to submit application.';
+        if (err.response?.status === 500) {
+          errorMsg = 'Failed to submit application. One or more of your uploaded file names may be too long (maximum 100 characters). Please rename your files to be shorter and try again.';
+        } else if (err.response?.data) {
+          const data = err.response.data;
+          if (typeof data === 'object') {
+            const firstKey = Object.keys(data)[0];
+            const firstVal = data[firstKey];
+            if (Array.isArray(firstVal)) {
+              errorMsg = `${firstKey.replace('_', ' ')}: ${firstVal[0]}`;
+            } else if (typeof firstVal === 'string') {
+              errorMsg = firstVal;
+            }
+          }
+        }
+        Swal.fire({
+          icon: 'error',
+          title: 'Submission Failed',
+          text: errorMsg,
+          confirmButtonColor: 'var(--primary)'
+        });
+      } finally {
+        setSubmittingApp(false);
+      }
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
@@ -316,17 +353,60 @@ const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false }
                   { key: 'transfer_certificate', label: 'Transfer Certificate' },
                   { key: 'aadhaar_card', label: 'Aadhaar Card' }
                 ].map(({ key, label }) => (
-                  <div key={key}>
-                    <label className="block text-sm font-medium mb-1">{label}</label>
-                    <input type="file" accept="image/*,.pdf" onChange={e => handleFileChange(e, key)} className="w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                  <div key={key} className="space-y-1.5">
+                    <label className="block text-sm font-medium">{label}</label>
+                    <div className="relative">
+                      <input 
+                        type="file" 
+                        id={`file-input-${key}`}
+                        accept="image/*,.pdf" 
+                        onChange={e => handleFileChange(e, key)} 
+                        className="sr-only" 
+                      />
+                      <label 
+                        htmlFor={`file-input-${key}`}
+                        className="flex items-center justify-between px-4 py-2 border border-input rounded bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer text-sm font-medium transition-colors"
+                      >
+                        <span className="truncate max-w-[70%] text-muted-foreground">
+                          {files[key] ? files[key]?.name : "Choose file..."}
+                        </span>
+                        <span className="text-xs bg-primary/10 text-primary py-1 px-2.5 rounded shrink-0">
+                          Browse
+                        </span>
+                      </label>
+                    </div>
+                    {files[key] && (
+                      <div className="flex justify-end pr-1">
+                        <a
+                          href={URL.createObjectURL(files[key]!)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary font-semibold hover:underline"
+                        >
+                          View Document
+                        </a>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
 
             <div className="flex justify-between mt-6 pt-4 border-t border-border">
-              <Button type="button" variant="outline" onClick={() => setStep(step - 1)}>Back</Button>
-              <Button type="submit">{step === 4 ? 'Submit Application' : 'Continue'}</Button>
+              <Button type="button" variant="outline" onClick={() => setStep(step - 1)} disabled={submittingApp}>Back</Button>
+              <Button type="submit" disabled={submittingApp}>
+                {step === 4 ? (
+                  submittingApp ? (
+                    <>
+                      <Loader2 className="animate-spin w-4 h-4 mr-2" /> Submitting...
+                    </>
+                  ) : (
+                    'Submit Application'
+                  )
+                ) : (
+                  'Continue'
+                )}
+              </Button>
             </div>
           </form>
         )}

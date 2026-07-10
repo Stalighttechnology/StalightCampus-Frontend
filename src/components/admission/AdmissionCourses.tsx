@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Plus, Trash2, Edit, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { SkeletonTable } from '../ui/skeleton';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { toast } from 'sonner';
+import { useTheme } from "../../context/ThemeContext";
 
 interface Course {
   id?: number;
@@ -21,6 +22,20 @@ const AdmissionCourses: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [currentCourse, setCurrentCourse] = useState<Course>({ name: '', code: '', duration_years: 4, description: '' });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const { theme } = useTheme();
+  const pageSize = 10;
+  const totalCount = courses.length;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  const paginatedCourses = courses.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [courses, totalPages, currentPage]);
 
   useEffect(() => {
     fetchCourses();
@@ -124,10 +139,10 @@ const AdmissionCourses: React.FC = () => {
               </div>
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Description</label>
-                <textarea required value={currentCourse.description} onChange={e => setCurrentCourse({...currentCourse, description: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" rows={3} placeholder="Briefly describe the course..."></textarea>
+                <textarea required value={currentCourse.description} onChange={e => setCurrentCourse({...currentCourse, description: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm h-[100px] resize-none overflow-y-auto custom-scrollbar" placeholder="Briefly describe the course..."></textarea>
               </div>
-              <DialogFooter className="flex justify-end gap-2 pt-2 sm:space-x-0">
-                <Button type="button" variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
+              <DialogFooter className="pt-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
                 <Button type="submit">Save Course</Button>
               </DialogFooter>
             </form>
@@ -166,7 +181,7 @@ const AdmissionCourses: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {courses.map(course => (
+                  {paginatedCourses.map(course => (
                     <tr key={course.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4 font-mono font-medium text-foreground whitespace-nowrap">
                         {course.code}
@@ -197,6 +212,39 @@ const AdmissionCourses: React.FC = () => {
             </div>
           )}
         </CardContent>
+
+        {totalPages > 1 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((currentPage - 1) * pageSize + 1, totalCount)} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} courses
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1 || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {currentPage}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

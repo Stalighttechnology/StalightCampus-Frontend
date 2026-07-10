@@ -170,14 +170,18 @@ const AdmissionLanding: React.FC = () => {
 
       {isOpen && (
         <Dialog open={isApplyModalOpen} onOpenChange={setIsApplyModalOpen}>
-          <DialogContent className="w-[90vw] sm:max-w-xl p-0 overflow-hidden border-none bg-transparent shadow-none [&>button]:text-white [&>button]:bg-foreground/20 [&>button]:rounded-full [&>button]:p-2 [&>button]:m-2 [&>button]:hover:bg-foreground/40 [&>button]:transition-all">
+          <DialogContent 
+            className="w-[90vw] sm:max-w-xl p-0 overflow-hidden border-none bg-transparent shadow-none [&>button]:text-white [&>button]:bg-foreground/20 [&>button]:rounded-full [&>button]:p-2 [&>button]:m-2 [&>button]:hover:bg-foreground/40 [&>button]:transition-all"
+            onPointerDownOutside={(e) => e.preventDefault()}
+            onInteractOutside={(e) => e.preventDefault()}
+          >
             <div className="bg-background rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] w-full hide-scrollbar">
               <div className="p-5 md:p-6 space-y-4">
                 <div className="text-center space-y-1.5">
                   <h4 className="text-primary font-semibold tracking-wider uppercase text-xs md:text-sm">Admissions</h4>
                   <h3 className="text-xl md:text-2xl font-bold text-foreground">Start Your Journey</h3>
                 </div>
-                <ApplicationWizard isModal={true} />
+                <ApplicationWizard isModal={true} onSuccess={() => setIsApplyModalOpen(false)} />
               </div>
             </div>
           </DialogContent>
