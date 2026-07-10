@@ -177,7 +177,7 @@ const AdmissionLanding: React.FC = () => {
                   <h4 className="text-primary font-semibold tracking-wider uppercase text-xs md:text-sm">Admissions</h4>
                   <h3 className="text-xl md:text-2xl font-bold text-foreground">Start Your Journey</h3>
                 </div>
-                <ApplicationWizard isModal={true} />
+                <ApplicationWizard isModal={true} preloadedCourses={data.courses || []} orgSlug={org_slug} />
               </div>
             </div>
           </DialogContent>

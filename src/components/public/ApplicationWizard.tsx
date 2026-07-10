@@ -10,14 +10,17 @@ import { Calendar } from '@/components/ui/calendar';
 
 interface ApplicationWizardProps {
   isModal?: boolean;
+  preloadedCourses?: any[];
+  orgSlug?: string;
 }
 
-const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false }) => {
-  const { org_slug } = useParams<{ org_slug: string }>();
+const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false, preloadedCourses, orgSlug }) => {
+  const params = useParams<{ org_slug: string }>();
+  const org_slug = orgSlug || params.org_slug;
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(!preloadedCourses);
+  const [courses, setCourses] = useState<any[]>(preloadedCourses || []);
   const [enquiryId, setEnquiryId] = useState<number | null>(null);
 
   // Form State
@@ -34,8 +37,13 @@ const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false }
   });
 
   useEffect(() => {
-    fetchCourses();
-  }, [org_slug]);
+    if (preloadedCourses) {
+      setCourses(preloadedCourses);
+      setLoading(false);
+    } else if (org_slug) {
+      fetchCourses();
+    }
+  }, [org_slug, preloadedCourses]);
 
   const fetchCourses = async () => {
     try {
