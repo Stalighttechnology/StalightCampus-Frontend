@@ -275,7 +275,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       <div>
 
         {/* Dashboard Cards */}
-        <div id="admin-stats-grid" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+        <div id="admin-stats-grid" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6">
           <DashboardCard
             title={translateTerminology("Branches")}
             value={stats.total_branches || 0}
@@ -563,11 +563,10 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       {/* Action Cards */}
       <div
         id="admin-action-cards"
-        className={`grid grid-cols-2 md:grid-cols-3 ${
-          user?.role === "org_admin" 
-            ? "lg:grid-cols-6" 
+        className={`grid grid-cols-2 md:grid-cols-3 ${user?.role === "org_admin"
+            ? "lg:grid-cols-6"
             : "lg:grid-cols-5"
-        } gap-4 mt-8`}>
+          } gap-4 mt-8`}>
 
         <DashboardCard
           id="enroll-user-card"

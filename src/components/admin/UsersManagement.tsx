@@ -144,6 +144,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [promoteConfirmText, setPromoteConfirmText] = useState("");
   const [promoteStep, setPromoteStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
@@ -344,6 +345,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         });
       } finally {
         setLoading(false);
+        setInitialLoad(false);
       }
     };
     fetchUsers();
@@ -561,7 +563,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   );
 
 
-  if (loading && users.length === 0) {
+  if (initialLoad && loading) {
     return (
       <div className="space-y-6">
         <SkeletonPageHeader />

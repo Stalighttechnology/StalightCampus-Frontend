@@ -76,7 +76,20 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 10;
 
-  const fetchData = async (page: number = 1, search: string = filter) => {
+  
+  const fetchHODs = async () => {
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/users/?role=hod`);
+      const data = await response.json();
+      if (response.ok) {
+        setUsers(data.users || data.results || data || []);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+const fetchData = async (page: number = 1, search: string = filter) => {
     setLoading(true);
     setError(null);
     try {
@@ -516,7 +529,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
                     <Button
                       size="sm"
                       className="flex-1 flex items-center justify-center gap-1 md:w-auto"
-                      onClick={() => setIsAssignDialogOpen(true)}
+                      onClick={() => { setIsAssignDialogOpen(true); fetchHODs(); }}
                       disabled={loading}>
                       <UserPlus2Icon className="w-4 h-4" /> Assign HOD
                     </Button>
