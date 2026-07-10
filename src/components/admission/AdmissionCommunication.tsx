@@ -3,61 +3,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
-import { Loader2, Mail, Send, Plus } from 'lucide-react';
+import { Mail, Phone, Users } from 'lucide-react';
 import { SkeletonList } from '../ui/skeleton';
-import { showSuccessAlert, showErrorAlert } from '../../utils/sweetalert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function AdmissionCommunication() {
-  const [communications, setCommunications] = useState<any[]>([]);
+  const [applicants, setApplicants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [newMessage, setNewMessage] = useState({ target_group: 'all', subject: '', message: '', type: 'email' });
 
   useEffect(() => {
-    fetchCommunications();
+    fetchApplicants();
   }, []);
 
-  const fetchCommunications = async () => {
+  const fetchApplicants = async () => {
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/communications/`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/enquiries/?minimal=true`);
       if (response.ok) {
         const data = await response.json();
-        setCommunications(data);
+        setApplicants(data);
       }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.subject || !newMessage.message) {
-      showErrorAlert("Missing Fields", "Please fill in subject and message");
-      return;
-    }
-    
-    try {
-      const payload = { ...newMessage, type: 'email' };
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/communications/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (response.ok) {
-        setNewMessage({ target_group: 'all', subject: '', message: '', type: 'email' });
-        setShowAddDialog(false);
-        fetchCommunications();
-        showSuccessAlert("Sent!", "Email has been dispatched successfully.");
-      } else {
-        showErrorAlert("Error", "Failed to send email");
-      }
-    } catch (err) {
-      console.error(err);
-      showErrorAlert("Error", "Network error occurred");
     }
   };
 
@@ -75,99 +42,55 @@ export default function AdmissionCommunication() {
         <CardHeader id="admission-communication-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
           <div>
             <CardTitle className="text-lg font-semibold">Applicant Communication</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">Send updates and announcements to your applicant pipelines.</p>
+            <p className="text-xs text-muted-foreground mt-1">Connect with your applicants via phone or email.</p>
           </div>
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="shadow-sm">
-                <Plus className="w-4 h-4 mr-2" /> Compose Email
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[90vw] sm:max-w-[500px] max-h-[85vh] overflow-y-auto thin-scrollbar">
-              <DialogHeader>
-                <DialogTitle>Compose Message</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSendMessage} className="space-y-5 mt-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">To</label>
-                  <Select
-                    value={newMessage.target_group}
-                    onValueChange={val => setNewMessage({...newMessage, target_group: val})}
-                  >
-                    <SelectTrigger className="w-full bg-background border-input text-sm">
-                      <SelectValue placeholder="Select target group" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Pending Enquiries</SelectItem>
-                      <SelectItem value="verified">All Verified Applicants</SelectItem>
-                      <SelectItem value="enrolled">All Enrolled Students</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Subject</label>
-                  <input 
-                    type="text" 
-                    value={newMessage.subject}
-                    onChange={e => setNewMessage({...newMessage, subject: e.target.value})}
-                    className="w-full p-2.5 border border-input rounded-md bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none transition-all text-sm" 
-                    placeholder="Important update regarding your admission" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Message</label>
-                  <textarea 
-                    value={newMessage.message}
-                    onChange={e => setNewMessage({...newMessage, message: e.target.value})}
-                    className="w-full p-3 border border-input rounded-md bg-background min-h-[200px] resize-y focus:ring-1 focus:ring-primary focus:border-transparent outline-none transition-all text-sm" 
-                    placeholder="Type your message here..."
-                  ></textarea>
-                </div>
-                <div className="flex justify-end pt-2">
-                  <Button type="submit" className="px-8 font-semibold shadow-sm hover:shadow">
-                    <Send className="w-4 h-4 mr-2" /> Send Email
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            {communications.length === 0 ? (
+            {applicants.length === 0 ? (
               <div className="p-12 text-center text-muted-foreground">
-                <Mail className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p className="text-sm">No recent communications.</p>
-                <p className="text-xs mt-2">Click "Compose Email" above to send your first message.</p>
+                <Users className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                <p className="text-sm">No applicants found.</p>
               </div>
             ) : (
               <table className="w-full text-sm text-left">
                 <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
                   <tr>
-                    <th className="px-6 py-4 font-semibold">Subject</th>
-                    <th className="px-6 py-4 font-semibold">Sent To</th>
-                    <th className="px-6 py-4 font-semibold">Type</th>
-                    <th className="px-6 py-4 text-right font-semibold">Date Sent</th>
+                    <th className="px-6 py-4 font-semibold">Name</th>
+                    <th className="px-6 py-4 font-semibold">Address / City</th>
+                    <th className="px-6 py-4 font-semibold">Phone Number</th>
+                    <th className="px-6 py-4 font-semibold">Mail Address</th>
+                    <th className="px-6 py-4 text-right font-semibold">Contact</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {communications.map((comm: any) => (
-                    <tr key={comm.id} className="hover:bg-muted/30 transition-colors">
+                  {applicants.map((applicant: any) => (
+                    <tr key={applicant.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4 font-bold text-foreground">
-                        {comm.subject}
+                        {applicant.name}
                       </td>
-                      <td className="px-6 py-4 font-medium text-foreground">
-                        <span className="bg-muted px-2.5 py-0.5 rounded-md capitalize text-xs font-semibold">
-                          {comm.target_group.replace(/_/g, ' ')}
-                        </span>
+                      <td className="px-6 py-4 text-muted-foreground">
+                        {applicant.city || 'N/A'}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="text-[10px] font-bold tracking-wider uppercase bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1 w-fit">
-                          <Mail className="w-3 h-3" /> {comm.type}
-                        </span>
+                      <td className="px-6 py-4 text-muted-foreground">
+                        {applicant.phone}
                       </td>
-                      <td className="px-6 py-4 text-right text-muted-foreground whitespace-nowrap">
-                        {new Date(comm.sent_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                      <td className="px-6 py-4 text-muted-foreground">
+                        {applicant.email}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button size="sm" variant="outline" asChild className="h-8 shadow-sm">
+                            <a href={`tel:${applicant.phone}`}>
+                              <Phone className="w-4 h-4 mr-1.5" /> Call
+                            </a>
+                          </Button>
+                          <Button size="sm" asChild className="h-8 shadow-sm">
+                            <a href={`mailto:${applicant.email}`}>
+                              <Mail className="w-4 h-4 mr-1.5" /> Mail
+                            </a>
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
