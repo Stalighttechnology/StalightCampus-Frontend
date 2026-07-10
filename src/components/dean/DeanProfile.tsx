@@ -11,16 +11,20 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { User, Mail, Phone, MapPin, Calendar, Edit, Save, X, Eye, EyeOff, BookOpen, Camera , Trash} from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, Edit, Save, X, Eye, EyeOff, BookOpen, Camera, Trash, Loader2, LifeBuoy, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { Progress } from "../ui/progress";
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
-import Swal from "sweetalert2";
 import { showConfirmAlert, showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import { useTheme } from "../../context/ThemeContext";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { SkeletonCard, SkeletonPageHeader } from "../ui/skeleton";
 import LoginActivity from '../common/LoginActivity';
+import { getBillingAndSupport, BillingAndSupportResponse } from '../../utils/admin_api';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { format } from 'date-fns';
+import { ScrollArea } from '../ui/scroll-area';
+import { useToast } from '../../hooks/use-toast';
 
 interface DeanProfileShape {
   id: number;
@@ -65,7 +69,21 @@ const DeanProfile = () => {
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
   const urlParams = new URLSearchParams(window.location.search);
   const defaultTab = urlParams.get("google_connected") !== null ? "integrations" : "personal";
-  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity' | 'help' | 'settings' | 'integrations'>(defaultTab as any);
+  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity' | 'help' | 'settings' | 'integrations' | 'subscription' | 'support'>(defaultTab as any);
+  const { toast } = useToast();
+
+  // Billing / subscription state
+  const [billingData, setBillingData] = useState<BillingAndSupportResponse | null>(null);
+  const [loadingBilling, setLoadingBilling] = useState(false);
+
+  // Support tickets state
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [loadingTickets, setLoadingTickets] = useState(false);
+  const [showRaiseTicket, setShowRaiseTicket] = useState(false);
+  const [ticketForm, setTicketForm] = useState({ subject: '', description: '', priority: 'Medium' });
+  const [submittingTicket, setSubmittingTicket] = useState(false);
+  const [viewTicket, setViewTicket] = useState<any>(null);
+  const [deletingTicketId, setDeletingTicketId] = useState<number | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
   const [googleConnectLoading, setGoogleConnectLoading] = useState(false);
@@ -85,7 +103,72 @@ const DeanProfile = () => {
         .catch(err => console.error("Failed to fetch google status", err))
         .finally(() => setGoogleConnectLoading(false));
     }
+    if (activeTab === 'subscription' && !billingData) {
+      setLoadingBilling(true);
+      getBillingAndSupport()
+        .then(res => { if (res.success) setBillingData(res); })
+        .catch(() => {})
+        .finally(() => setLoadingBilling(false));
+    }
+    if (activeTab === 'support' && tickets.length === 0) {
+      setLoadingTickets(true);
+      fetchWithTokenRefresh(`${API_ENDPOINT}/admin/support-tickets/`)
+        .then(r => r.json())
+        .then(res => { if (res.tickets) setTickets(res.tickets); })
+        .catch(() => {})
+        .finally(() => setLoadingTickets(false));
+    }
   }, [activeTab]);
+
+  const handleRaiseTicket = async () => {
+    if (!ticketForm.subject.trim() || !ticketForm.description.trim()) {
+      showErrorAlert('Error', 'Subject and description are required');
+      return;
+    }
+    setSubmittingTicket(true);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/support-tickets/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ticketForm)
+      });
+      const res = await response.json();
+      if (res.success) {
+        showSuccessAlert('Ticket Raised', 'Support team will contact you shortly');
+        setShowRaiseTicket(false);
+        setTicketForm({ subject: '', description: '', priority: 'Medium' });
+        if (res.ticket) setTickets(prev => [res.ticket, ...prev]);
+      } else {
+        showErrorAlert('Error', res.error || 'Failed to raise ticket');
+      }
+    } catch {
+      showErrorAlert('Error', 'Network error');
+    } finally {
+      setSubmittingTicket(false);
+    }
+  };
+
+  const handleDeleteTicket = async (ticketId: number) => {
+    const confirmed = await showConfirmAlert('Delete ticket', 'Are you sure you want to delete this ticket?', 'Delete');
+    if (!confirmed.isConfirmed) return;
+    setDeletingTicketId(ticketId);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/support-tickets/${ticketId}/`, {
+        method: 'DELETE'
+      });
+      const res = await response.json();
+      if (res.success) {
+        showSuccessAlert('Deleted', 'Support ticket deleted');
+        setTickets(prev => prev.filter(t => t.id !== ticketId));
+      } else {
+        showErrorAlert('Error', res.error || 'Failed to delete ticket');
+      }
+    } catch {
+      showErrorAlert('Error', 'Network error');
+    } finally {
+      setDeletingTicketId(null);
+    }
+  };
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -524,8 +607,23 @@ const DeanProfile = () => {
                 'bg-primary text-white shadow-sm' :
                 theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
                 }>
-                
                 Contact
+              </button>
+              <button
+                onClick={() => setActiveTab('subscription')}
+                className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md transition-all font-medium whitespace-nowrap ${activeTab === 'subscription' ?
+                'bg-primary text-white shadow-sm' :
+                theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
+                }>
+                Plan Details
+              </button>
+              <button
+                onClick={() => setActiveTab('support')}
+                className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md transition-all font-medium whitespace-nowrap ${activeTab === 'support' ?
+                'bg-primary text-white shadow-sm' :
+                theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
+                }>
+                Support Tickets
               </button>
               <button
                 onClick={() => setActiveTab('activity')}
@@ -533,7 +631,6 @@ const DeanProfile = () => {
                 'bg-primary text-white shadow-sm' :
                 theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
                 }>
-                
                 Login Activity
               </button>
               <button
@@ -685,6 +782,151 @@ const DeanProfile = () => {
               {activeTab === 'help' && (
                 <div className="animate-in fade-in duration-300">
                   <HelpLearningCard />
+                </div>
+              )}
+              {activeTab === 'subscription' && (
+                <div className="animate-in fade-in duration-300 space-y-4">
+                  <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Plan Details</h3>
+                  {loadingBilling ? (
+                    <div className="flex items-center justify-center py-12"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>
+                  ) : billingData?.org_details ? (() => {
+                    const org = billingData.org_details!;
+                    const planName = org.plan_type === 'advance' ? 'Advance' : org.plan_type === 'pro' ? 'Pro' : 'Basic';
+                    const formatDate = (d: string | null | undefined) => d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A';
+                    return (
+                      <div className="space-y-4">
+                        <div className={`flex items-center justify-between p-4 rounded-lg border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Current Plan</p>
+                            <p className="text-xl font-semibold text-primary">{planName}</p>
+                          </div>
+                          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${org.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {org.is_active ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                            {org.is_active ? 'Active' : 'Inactive'}
+                          </div>
+                        </div>
+                        <div className={`grid grid-cols-2 gap-3 p-4 rounded-lg border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+                          <div>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Max Students</p>
+                            <p className="font-semibold text-sm">{org.max_students}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Active Students</p>
+                            <p className="font-semibold text-sm">{org.active_student_count || 0}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Started</p>
+                            <p className="font-semibold text-sm">{formatDate(org.subscription_started_at || org.created_at)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Expires</p>
+                            <p className="font-semibold text-sm">{formatDate(org.subscription_expires_at)}</p>
+                          </div>
+                        </div>
+                        <div className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Organization</p>
+                          <p className="font-semibold text-sm">{org.name || 'N/A'}</p>
+                          {org.tech_poc_name && <p className="text-sm text-muted-foreground mt-1">POC: {org.tech_poc_name} · {org.tech_poc_email}</p>}
+                        </div>
+                      </div>
+                    );
+                  })() : (
+                    <p className="text-center text-muted-foreground py-8">No subscription data available.</p>
+                  )}
+                </div>
+              )}
+              {activeTab === 'support' && (
+                <div className="animate-in fade-in duration-300 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Support Tickets</h3>
+                      <p className="text-sm text-muted-foreground">Raise and track issues with Super Admin HQ.</p>
+                    </div>
+                    <Button size="sm" className="bg-primary text-white hover:bg-primary/90" onClick={() => setShowRaiseTicket(true)}>Raise Ticket</Button>
+                  </div>
+
+                  {/* Raise Ticket Dialog */}
+                  <Dialog open={showRaiseTicket} onOpenChange={setShowRaiseTicket}>
+                    <DialogContent className="w-[90%] sm:max-w-[500px] mx-auto rounded-xl">
+                      <DialogHeader><DialogTitle>Raise Support Ticket</DialogTitle></DialogHeader>
+                      <div className="space-y-4 pt-4">
+                        <div><Label>Subject</Label><Input value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} placeholder="Brief summary" disabled={submittingTicket} /></div>
+                        <div>
+                          <Label>Priority</Label>
+                          <Select value={ticketForm.priority} onValueChange={(v) => setTicketForm({ ...ticketForm, priority: v })}>
+                            <SelectTrigger className="w-full" disabled={submittingTicket}><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Low">Low</SelectItem>
+                              <SelectItem value="Medium">Medium</SelectItem>
+                              <SelectItem value="High">High</SelectItem>
+                              <SelectItem value="Critical">Critical</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div><Label>Description</Label><Textarea value={ticketForm.description} onChange={(e) => setTicketForm({ ...ticketForm, description: e.target.value })} disabled={submittingTicket} placeholder="Detailed description..." className="min-h-[80px]" /></div>
+                        <Button className="w-full" onClick={handleRaiseTicket} disabled={submittingTicket}>
+                          {submittingTicket ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : 'Submit Ticket'}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* View Ticket Dialog */}
+                  <Dialog open={!!viewTicket} onOpenChange={(open) => !open && setViewTicket(null)}>
+                    <DialogContent className="w-[90%] sm:max-w-[500px] mx-auto rounded-xl">
+                      <DialogHeader><DialogTitle>Ticket Details</DialogTitle></DialogHeader>
+                      {viewTicket && (
+                        <div className="space-y-4 pt-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div><Label className="text-[10px] uppercase text-muted-foreground">Status</Label><div className="mt-1"><span className={`px-2 py-1 rounded-full text-xs font-medium ${viewTicket.status === 'Resolved' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>{viewTicket.status}</span></div></div>
+                            <div><Label className="text-[10px] uppercase text-muted-foreground">Priority</Label><div className="mt-1"><span className={`px-2 py-1 rounded-full text-xs font-medium ${viewTicket.priority === 'Critical' ? 'bg-red-100 text-red-700' : viewTicket.priority === 'High' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>{viewTicket.priority}</span></div></div>
+                          </div>
+                          <div><Label className="text-[10px] uppercase text-muted-foreground">Subject</Label><p className="mt-1 font-semibold">{viewTicket.subject}</p></div>
+                          <div><Label className="text-[10px] uppercase text-muted-foreground">Description</Label><ScrollArea className="h-28 mt-1 rounded-md border p-3 bg-muted/20"><p className="text-sm whitespace-pre-wrap">{viewTicket.description}</p></ScrollArea></div>
+                          {viewTicket.response && <div><Label className="text-[10px] uppercase text-muted-foreground">HQ Response</Label><div className="mt-1 p-3 rounded-md bg-emerald-50 border border-emerald-100"><p className="text-sm italic">{viewTicket.response}</p></div></div>}
+                        </div>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* Tickets Table */}
+                  <div className={`rounded-md border overflow-x-auto ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                    <table className="w-full text-sm text-left whitespace-nowrap">
+                      <thead className={`text-xs uppercase ${theme === 'dark' ? 'bg-zinc-900 text-muted-foreground' : 'bg-gray-100 text-gray-500'}`}>
+                        <tr>
+                          <th className="px-4 py-3">Ticket ID</th>
+                          <th className="px-4 py-3">Subject</th>
+                          <th className="px-4 py-3">Priority</th>
+                          <th className="px-4 py-3">Status</th>
+                          <th className="px-4 py-3">Date</th>
+                          <th className="px-4 py-3">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {loadingTickets ? (
+                          <tr><td colSpan={6} className="text-center py-8"><Loader2 className="animate-spin mx-auto h-6 w-6 text-primary" /></td></tr>
+                        ) : tickets.length === 0 ? (
+                          <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">No support tickets found.</td></tr>
+                        ) : tickets.map((t) => (
+                          <tr key={t.id} className={`border-t ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-100 hover:bg-gray-50'} transition`}>
+                            <td className="px-4 py-3 font-mono text-primary">#{t.ticket_id || t.id}</td>
+                            <td className="px-4 py-3 font-medium">{t.subject}</td>
+                            <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${t.priority === 'High' || t.priority === 'Critical' ? 'bg-red-100 text-red-700' : t.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>{t.priority}</span></td>
+                            <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${t.status === 'Resolved' || t.status === 'Closed' ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700'}`}>{t.status}</span></td>
+                            <td className="px-4 py-3 text-xs">{t.created_at ? format(new Date(t.created_at), 'dd MMM yyyy, hh:mm a') : 'N/A'}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="sm" className="h-7 px-2 text-primary hover:bg-primary/10 text-xs" onClick={() => setViewTicket(t)}><Eye size={13} /> View</Button>
+                                <Button variant="ghost" size="sm" className="h-7 px-2 text-red-600 hover:bg-red-50 text-xs" onClick={() => handleDeleteTicket(t.id)} disabled={deletingTicketId === t.id}>
+                                  {deletingTicketId === t.id ? <Loader2 size={13} className="animate-spin" /> : null} Delete
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
               {activeTab === 'activity' &&
