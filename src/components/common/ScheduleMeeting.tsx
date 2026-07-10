@@ -379,6 +379,8 @@ export default function ScheduleMeeting() {
                 return 'HMS Admin Profile';
               case 'fees_manager':
                 return 'Fee Manager Profile';
+              case 'admission_manager':
+                return 'Admission Manager Profile';
               default:
                 return 'Profile';
             }
@@ -405,6 +407,8 @@ export default function ScheduleMeeting() {
                 return '/hms/profile';
               case 'fees_manager':
                 return '/fees-manager/profile';
+              case 'admission_manager':
+                return '/admission-manager/profile';
               default:
                 return '/profile';
             }
