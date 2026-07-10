@@ -9,6 +9,8 @@ import { SkeletonCard } from '../ui/skeleton';
 import Swal from 'sweetalert2';
 import { useTheme } from '../../context/ThemeContext';
 
+import { downloadFile } from '../../utils/downloadHelper';
+
 export default function AdmissionDocuments() {
   const { theme } = useTheme();
   const [applications, setApplications] = useState<any[]>([]);
@@ -65,6 +67,34 @@ export default function AdmissionDocuments() {
     }
   };
 
+  const handleDownload = async (e: React.MouseEvent, url: string, label: string) => {
+    e.preventDefault();
+    try {
+      let targetUrl = url;
+      if (url.includes('/api/r2/download/')) {
+        try {
+          const parsedUrl = new URL(url);
+          const paramUrl = parsedUrl.searchParams.get('file_url');
+          if (paramUrl) {
+            targetUrl = paramUrl;
+          }
+        } catch (parseErr) {
+          console.warn("Failed to parse URL, using original:", parseErr);
+        }
+      }
+
+      let extension = 'pdf';
+      if (targetUrl.toLowerCase().includes('.png')) extension = 'png';
+      else if (targetUrl.toLowerCase().includes('.jpg') || targetUrl.toLowerCase().includes('.jpeg')) extension = 'jpg';
+      
+      const filename = `${label.replace(/\s+/g, '_')}_${Date.now()}.${extension}`;
+      await downloadFile(targetUrl, filename);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      toast.error("Failed to download file");
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -77,7 +107,11 @@ export default function AdmissionDocuments() {
   const renderDocumentLink = (url: string | null, label: string) => {
     if (!url) return <span className="text-muted-foreground text-sm flex items-center gap-2"><XCircle className="w-4 h-4" /> Missing {label}</span>;
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center gap-2 text-sm font-medium">
+      <a 
+        href={url} 
+        onClick={(e) => handleDownload(e, url, label)}
+        className="text-blue-500 hover:underline flex items-center gap-2 text-sm font-medium cursor-pointer"
+      >
         <FileText className="w-4 h-4" /> View {label} <ExternalLink className="w-3 h-3" />
       </a>
     );

@@ -8,6 +8,7 @@ import { SkeletonTable } from '../ui/skeleton';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Swal from 'sweetalert2';
+import { downloadFile } from '../../utils/downloadHelper';
 
 export default function AdmissionApplications() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -126,6 +127,34 @@ export default function AdmissionApplications() {
     }
   };
 
+  const handleDownload = async (e: React.MouseEvent, url: string, label: string) => {
+    e.preventDefault();
+    try {
+      let targetUrl = url;
+      if (url.includes('/api/r2/download/')) {
+        try {
+          const parsedUrl = new URL(url);
+          const paramUrl = parsedUrl.searchParams.get('file_url');
+          if (paramUrl) {
+            targetUrl = paramUrl;
+          }
+        } catch (parseErr) {
+          console.warn("Failed to parse URL, using original:", parseErr);
+        }
+      }
+
+      let extension = 'pdf';
+      if (targetUrl.toLowerCase().includes('.png')) extension = 'png';
+      else if (targetUrl.toLowerCase().includes('.jpg') || targetUrl.toLowerCase().includes('.jpeg')) extension = 'jpg';
+      
+      const filename = `${label.replace(/\s+/g, '_')}_${Date.now()}.${extension}`;
+      await downloadFile(targetUrl, filename);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      toast.error("Failed to download file");
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -230,9 +259,8 @@ export default function AdmissionApplications() {
                         <span className="text-xs font-medium truncate max-w-[130px]" title={doc.label}>{doc.label}</span>
                         <a 
                           href={fileUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-xs text-primary font-semibold hover:underline shrink-0"
+                          onClick={(e) => handleDownload(e, fileUrl, doc.label)}
+                          className="text-xs text-primary font-semibold hover:underline shrink-0 cursor-pointer"
                         >
                           View File
                         </a>
