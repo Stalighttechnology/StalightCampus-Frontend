@@ -61,8 +61,34 @@ const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false, 
 
   const handleEnquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Email Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(enquiryData.email)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Email',
+        text: 'Please enter a valid email address.',
+        confirmButtonColor: 'var(--primary)'
+      });
+      return;
+    }
+
+    // Phone Validation (Allows optional +91 or 91 country code and 10 digit mobile numbers)
+    const cleanPhone = enquiryData.phone.replace(/[\s\-()]/g, '');
+    const phoneRegex = /^(?:\+91|91)?\d{10}$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Phone Number',
+        text: 'Please enter a valid 10-digit mobile number (with or without +91 prefix).',
+        confirmButtonColor: 'var(--primary)'
+      });
+      return;
+    }
+
     try {
-      const payload = { ...enquiryData };
+      const payload = { ...enquiryData, phone: cleanPhone };
       if (!payload.course_interested) {
         delete payload.course_interested;
       }
@@ -161,7 +187,56 @@ const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false, 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
     if (e.target.files && e.target.files[0]) {
-      setFiles({ ...files, [key]: e.target.files[0] });
+      const file = e.target.files[0];
+      
+      const isPhotoOrSign = key === 'photo' || key === 'signature';
+      const maxSize = isPhotoOrSign ? 50 * 1024 : 5 * 1024 * 1024; // 50KB or 5MB
+      
+      // Validate file type
+      const fileType = file.type.toLowerCase();
+      const fileName = file.name.toLowerCase();
+      
+      if (isPhotoOrSign) {
+        const isImage = fileType.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(fileName);
+        if (!isImage) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Invalid File Type',
+            text: 'Only image files are allowed for Passport Photo and Signature.',
+            confirmButtonColor: 'var(--primary)'
+          });
+          e.target.value = '';
+          return;
+        }
+      } else {
+        const isPdfOrImage = fileType.startsWith('image/') || fileType === 'application/pdf' || /\.(pdf|jpg|jpeg|png|gif|webp|bmp)$/i.test(fileName);
+        if (!isPdfOrImage) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Invalid File Type',
+            text: 'Only PDF and image files are allowed for Marks Cards, Transfer Certificate, and Aadhaar Card.',
+            confirmButtonColor: 'var(--primary)'
+          });
+          e.target.value = '';
+          return;
+        }
+      }
+      
+      // Validate file size
+      if (file.size > maxSize) {
+        Swal.fire({
+          icon: 'error',
+          title: 'File Too Large',
+          text: isPhotoOrSign 
+            ? `Passport Photo and Signature must be less than 50KB. (Your file: ${(file.size / 1024).toFixed(1)}KB)` 
+            : `Documents must be less than 5MB. (Your file: ${(file.size / (1024 * 1024)).toFixed(1)}MB)`,
+          confirmButtonColor: 'var(--primary)'
+        });
+        e.target.value = '';
+        return;
+      }
+      
+      setFiles({ ...files, [key]: file });
     }
   };
 
@@ -368,7 +443,7 @@ const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false, 
                       <input 
                         type="file" 
                         id={`file-input-${key}`}
-                        accept="image/*,.pdf" 
+                        accept={(key === 'photo' || key === 'signature') ? "image/*" : "image/*,.pdf"} 
                         onChange={e => handleFileChange(e, key)} 
                         className="sr-only" 
                       />

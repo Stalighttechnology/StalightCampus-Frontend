@@ -9,6 +9,8 @@ import { SkeletonCard } from '../ui/skeleton';
 import Swal from 'sweetalert2';
 import { useTheme } from '../../context/ThemeContext';
 
+import { downloadFile } from '../../utils/downloadHelper';
+
 export default function AdmissionDocuments() {
   const { theme } = useTheme();
   const [applications, setApplications] = useState<any[]>([]);
@@ -65,6 +67,57 @@ export default function AdmissionDocuments() {
     }
   };
 
+  const handlePreview = async (e: React.MouseEvent, url: string) => {
+    e.preventDefault();
+    try {
+      let targetUrl = url;
+      if (url.includes('/api/r2/download/')) {
+        try {
+          const parsedUrl = new URL(url);
+          const paramUrl = parsedUrl.searchParams.get('file_url');
+          if (paramUrl) {
+            targetUrl = paramUrl;
+          }
+        } catch (parseErr) {
+          console.warn("Failed to parse URL, using original:", parseErr);
+        }
+      }
+
+      // Check if it's already using backend domain
+      let finalUrl = targetUrl;
+      const isExternal = targetUrl.startsWith('http') && !targetUrl.includes(window.location.origin) && !targetUrl.includes('127.0.0.1') && !targetUrl.includes('localhost');
+      if (isExternal) {
+        finalUrl = `${API_ENDPOINT}/r2/download/?file_url=${encodeURIComponent(targetUrl)}`;
+      } else if (targetUrl.startsWith('/')) {
+        finalUrl = `${window.location.origin}${targetUrl}`;
+      }
+
+      const response = await fetchWithTokenRefresh(finalUrl);
+      if (!response.ok) {
+        throw new Error("Failed to load file preview");
+      }
+
+      const blob = await response.blob();
+      
+      // Determine correct MIME type
+      let mimeType = blob.type;
+      if (targetUrl.toLowerCase().endsWith('.pdf')) {
+        mimeType = 'application/pdf';
+      } else if (targetUrl.toLowerCase().endsWith('.png')) {
+        mimeType = 'image/png';
+      } else if (targetUrl.toLowerCase().endsWith('.jpg') || targetUrl.toLowerCase().endsWith('.jpeg')) {
+        mimeType = 'image/jpeg';
+      }
+
+      const file = new Blob([blob], { type: mimeType });
+      const previewUrl = window.URL.createObjectURL(file);
+      window.open(previewUrl, '_blank');
+    } catch (error) {
+      console.error("Error previewing file:", error);
+      toast.error("Failed to preview file");
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -77,7 +130,11 @@ export default function AdmissionDocuments() {
   const renderDocumentLink = (url: string | null, label: string) => {
     if (!url) return <span className="text-muted-foreground text-sm flex items-center gap-2"><XCircle className="w-4 h-4" /> Missing {label}</span>;
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center gap-2 text-sm font-medium">
+      <a 
+        href={url} 
+        onClick={(e) => handlePreview(e, url)}
+        className="text-blue-500 hover:underline flex items-center gap-2 text-sm font-medium cursor-pointer"
+      >
         <FileText className="w-4 h-4" /> View {label} <ExternalLink className="w-3 h-3" />
       </a>
     );

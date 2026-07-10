@@ -748,7 +748,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             <DialogTrigger asChild>
               <Button className="flex-1 sm:flex-none w-full sm:w-auto text-sm px-3 sm:px-4 h-9 bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
             </DialogTrigger>
-            <DialogContent ref={passwordDialogContentRef} className="w-[calc(100vw-1.5rem)] sm:w-full max-w-[420px] rounded-xl sm:rounded-2xl">
+            <DialogContent ref={passwordDialogContentRef} className="w-[calc(100vw-1.5rem)] sm:w-full max-w-[420px] rounded-xl sm:rounded-2xl" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
               <DialogHeader>
                 <DialogTitle>Change Password</DialogTitle>
               </DialogHeader>

@@ -8,6 +8,7 @@ import { SkeletonTable } from '../ui/skeleton';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Swal from 'sweetalert2';
+import { downloadFile } from '../../utils/downloadHelper';
 
 export default function AdmissionApplications() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -126,6 +127,57 @@ export default function AdmissionApplications() {
     }
   };
 
+  const handlePreview = async (e: React.MouseEvent, url: string) => {
+    e.preventDefault();
+    try {
+      let targetUrl = url;
+      if (url.includes('/api/r2/download/')) {
+        try {
+          const parsedUrl = new URL(url);
+          const paramUrl = parsedUrl.searchParams.get('file_url');
+          if (paramUrl) {
+            targetUrl = paramUrl;
+          }
+        } catch (parseErr) {
+          console.warn("Failed to parse URL, using original:", parseErr);
+        }
+      }
+
+      // Check if it's already using backend domain
+      let finalUrl = targetUrl;
+      const isExternal = targetUrl.startsWith('http') && !targetUrl.includes(window.location.origin) && !targetUrl.includes('127.0.0.1') && !targetUrl.includes('localhost');
+      if (isExternal) {
+        finalUrl = `${API_ENDPOINT}/r2/download/?file_url=${encodeURIComponent(targetUrl)}`;
+      } else if (targetUrl.startsWith('/')) {
+        finalUrl = `${window.location.origin}${targetUrl}`;
+      }
+
+      const response = await fetchWithTokenRefresh(finalUrl);
+      if (!response.ok) {
+        throw new Error("Failed to load file preview");
+      }
+
+      const blob = await response.blob();
+      
+      // Determine correct MIME type
+      let mimeType = blob.type;
+      if (targetUrl.toLowerCase().endsWith('.pdf')) {
+        mimeType = 'application/pdf';
+      } else if (targetUrl.toLowerCase().endsWith('.png')) {
+        mimeType = 'image/png';
+      } else if (targetUrl.toLowerCase().endsWith('.jpg') || targetUrl.toLowerCase().endsWith('.jpeg')) {
+        mimeType = 'image/jpeg';
+      }
+
+      const file = new Blob([blob], { type: mimeType });
+      const previewUrl = window.URL.createObjectURL(file);
+      window.open(previewUrl, '_blank');
+    } catch (error) {
+      console.error("Error previewing file:", error);
+      toast.error("Failed to preview file");
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -230,9 +282,8 @@ export default function AdmissionApplications() {
                         <span className="text-xs font-medium truncate max-w-[130px]" title={doc.label}>{doc.label}</span>
                         <a 
                           href={fileUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-xs text-primary font-semibold hover:underline shrink-0"
+                          onClick={(e) => handlePreview(e, fileUrl)}
+                          className="text-xs text-primary font-semibold hover:underline shrink-0 cursor-pointer"
                         >
                           View File
                         </a>

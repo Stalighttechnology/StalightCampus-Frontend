@@ -13,6 +13,7 @@ import Swal from "sweetalert2";
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { API_ENDPOINT } from "@/utils/config";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,8 @@ const FacultyAttendance = () => {
 
   const [historyStartDate, setHistoryStartDate] = useState<Date | undefined>(undefined);
   const [historyEndDate, setHistoryEndDate] = useState<Date | undefined>(undefined);
+  const [tempStartDate, setTempStartDate] = useState<Date | undefined>(undefined);
+  const [tempEndDate, setTempEndDate] = useState<Date | undefined>(undefined);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [historyFilterOpen, setHistoryFilterOpen] = useState(false);
   const [startCalendarOpen, setStartCalendarOpen] = useState(false);
@@ -142,6 +145,19 @@ const FacultyAttendance = () => {
   const handleEndDateChange = (date: Date | undefined) => {
     setHistoryEndDate(date);
     setHistoryPage(1);
+    setEndCalendarOpen(false);
+  };
+
+  const handleTempStartDateChange = (date: Date | undefined) => {
+    setTempStartDate(date);
+    setStartCalendarOpen(false);
+    if (date) {
+      setTimeout(() => setEndCalendarOpen(true), 150);
+    }
+  };
+
+  const handleTempEndDateChange = (date: Date | undefined) => {
+    setTempEndDate(date);
     setEndCalendarOpen(false);
   };
 
@@ -618,110 +634,123 @@ const FacultyAttendance = () => {
               Attendance History
             </CardTitle>
             <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end sm:justify-start mb-3 sm:mb-0">
-              {historyStartDate || historyEndDate ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setHistoryStartDate(undefined);
-                    setHistoryEndDate(undefined);
-                    setHistoryPage(1);
-                  }}
-                  className={`flex-1 sm:flex-none flex items-center gap-0.5 sm:gap-1 transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-9 px-2.5 whitespace-nowrap ${theme === 'dark'
-                    ? 'text-red-400 border-red-400 hover:bg-red-900/20 hover:text-red-400'
-                    : 'text-red-700 border-red-600 hover:bg-red-100 hover:text-red-700'
-                    }`}
-                >
-                  <XCircle className="w-4 h-4" />
-                  <span>Clear Filter</span>
-                </Button>
-              ) : null}
-
               {(() => {
                 const isFilterDisabled = !historyLoading && historyRecords.length === 0 && !historyStartDate && !historyEndDate;
                 const isExportDisabled = exportingPdf || historyLoading || historyRecords.length === 0;
 
                 return (
                   <>
-                    <Popover open={historyFilterOpen} onOpenChange={setHistoryFilterOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={isFilterDisabled}
-                          className="flex-1 sm:flex-none flex items-center justify-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-md sm:text-sm h-9 px-2.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <Filter className="w-4 h-4" />
-                          <span>Filter</span>
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className={`w-72 p-4 space-y-4 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
-                        align="end"
-                        onInteractOutside={(event) => {
-                          // Prevent closing when interacting with calendar popups
-                          const target = event.target as HTMLElement;
-                          if (target.closest('[data-radix-popper-content-wrapper]')) {
-                            event.preventDefault();
-                          }
+                    {historyStartDate || historyEndDate ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setHistoryStartDate(undefined);
+                          setHistoryEndDate(undefined);
+                          setHistoryPage(1);
                         }}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-md sm:text-sm h-9 px-2.5 whitespace-nowrap"
                       >
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Start Date</label>
-                          <Popover open={startCalendarOpen} onOpenChange={setStartCalendarOpen}>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full justify-start text-left font-normal h-10 px-3 border",
-                                  !historyStartDate && "text-muted-foreground",
-                                  theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {historyStartDate ? format(historyStartDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 border border-border" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={historyStartDate}
-                                onSelect={handleStartDateChange}
-                                disabled={(date) => date > new Date()}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">End Date</label>
-                          <Popover open={endCalendarOpen} onOpenChange={setEndCalendarOpen}>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full justify-start text-left font-normal h-10 px-3 border",
-                                  !historyEndDate && "text-muted-foreground",
-                                  theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {historyEndDate ? format(historyEndDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 border border-border" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={historyEndDate}
-                                onSelect={handleEndDateChange}
-                                disabled={(date) => date > new Date() || (historyStartDate ? date <= historyStartDate : false)}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                        <XCircle className="w-4 h-4" />
+                        <span>Clear Filter</span>
+                      </Button>
+                    ) : (
+                      <Dialog open={historyFilterOpen} onOpenChange={(open) => {
+                        if (open) {
+                          setTempStartDate(historyStartDate);
+                          setTempEndDate(historyEndDate);
+                        }
+                        setHistoryFilterOpen(open);
+                      }}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isFilterDisabled}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-md sm:text-sm h-9 px-2.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <Filter className="w-4 h-4" />
+                            <span>Filter</span>
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent
+                          className={`sm:max-w-[425px] p-6 space-y-4 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
+                        >
+                          <DialogHeader>
+                            <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Filter Attendance History</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Start Date</label>
+                              <Popover open={startCalendarOpen} onOpenChange={setStartCalendarOpen}>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal h-10 px-3 border",
+                                      !tempStartDate && "text-muted-foreground",
+                                      theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {tempStartDate ? format(tempStartDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0 border border-border" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={tempStartDate}
+                                    onSelect={handleTempStartDateChange}
+                                    disabled={(date) => date > new Date()}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">End Date</label>
+                              <Popover open={endCalendarOpen} onOpenChange={setEndCalendarOpen}>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal h-10 px-3 border",
+                                      !tempEndDate && "text-muted-foreground",
+                                      theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {tempEndDate ? format(tempEndDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0 border border-border" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={tempEndDate}
+                                    onSelect={handleTempEndDateChange}
+                                    disabled={(date) => date > new Date() || (tempStartDate ? date <= tempStartDate : false)}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button 
+                              className="w-full bg-primary hover:bg-primary/90 text-white" 
+                              onClick={() => {
+                                setHistoryStartDate(tempStartDate);
+                                setHistoryEndDate(tempEndDate);
+                                setHistoryPage(1);
+                                setHistoryFilterOpen(false);
+                              }}
+                            >
+                              Apply Filter
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    )}
 
                     {/* Desktop Export PDF Button */}
                     <Button

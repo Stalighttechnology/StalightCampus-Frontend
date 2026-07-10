@@ -352,7 +352,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                 Change Password
               </Button>
             </DialogTrigger>
-            <DialogContent ref={passwordDialogContentRef} className="w-[calc(100vw-1.5rem)] sm:w-full max-w-[420px] rounded-xl sm:rounded-2xl">
+            <DialogContent ref={passwordDialogContentRef} className="w-[calc(100vw-1.5rem)] sm:w-full max-w-[420px] rounded-xl sm:rounded-2xl" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
               <DialogHeader>
                 <DialogTitle>Change Password</DialogTitle>
               </DialogHeader>
