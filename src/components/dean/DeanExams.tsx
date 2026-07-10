@@ -8,8 +8,9 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue } from
-"@/components/ui/select";
+  SelectValue
+} from
+  "@/components/ui/select";
 import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { useTheme } from "../../context/ThemeContext";
@@ -17,7 +18,7 @@ import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { SkeletonStatsGrid, SkeletonTable, SkeletonPageHeader, SkeletonCard } from "../ui/skeleton";
 import { Button } from "../ui/button";
 import { Alert, AlertDescription } from "../ui/alert";
-import { RefreshCcw, BookOpen, Clock, Calendar, CheckCircle2, History } from "lucide-react";
+import { RefreshCcw, BookOpen, Clock, Calendar, CheckCircle2, History, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../ui/dialog";
@@ -109,7 +110,7 @@ const groupExams = (exams: ExamEntry[]): ExamGroup[] => {
 
     g.status = hasOngoing ? 'ongoing' : allPast ? 'past' : 'upcoming';
     g.is_published = allPublished;
-    
+
     if (g.subjects.length > 0) {
       const firstD = formatDate(g.subjects[0].date);
       const lastD = formatDate(g.subjects[g.subjects.length - 1].date);
@@ -124,7 +125,7 @@ const groupExams = (exams: ExamEntry[]): ExamGroup[] => {
         g.dateStr = `${firstD} - ${lastD}`;
       }
     }
-    
+
     return g;
   });
 };
@@ -176,13 +177,16 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
   const [counts, setCounts] = useState({ ongoing: 0, upcoming: 0, past: 0 });
   const [error, setError] = useState<string | null>(null);
   const [upcomingOnly, setUpcomingOnly] = useState<boolean>(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [pages, setPages] = useState({ ongoing: 1, upcoming: 1, past: 1 });
   const pageSize = 10;
   const [firstLoad, setFirstLoad] = useState(true);
   const [viewGroupId, setViewGroupId] = useState<string | null>(null);
 
+  const setPage = (section: 'ongoing' | 'upcoming' | 'past', page: number) =>
+    setPages(prev => ({ ...prev, [section]: page }));
+
   const load = async () => {
-    setLoading(true);setError(null);
+    setLoading(true); setError(null);
     try {
       // build query params
       const qs: string[] = [];
@@ -231,7 +235,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
   };
 
   useEffect(() => {
-    setCurrentPage(1);
+    setPages({ ongoing: 1, upcoming: 1, past: 1 });
     load();
   }, [upcomingOnly]);
 
@@ -305,16 +309,16 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
     });
 
     if (!result.isConfirmed) return;
-    
+
     try {
       setLoading(true);
       const publishedIds = unpublished.map(ex => ex.id);
-      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/dean/reports/exams/publish-all/`, { 
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/dean/reports/exams/publish-all/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ exam_ids: publishedIds })
       });
-      
+
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
         throw new Error(json.message || 'Failed to publish exams');
@@ -373,15 +377,39 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
 
   const allGroups = [...grouped.ongoing, ...grouped.upcoming, ...grouped.past, ...grouped.other] as any as ExamGroup[];
 
-  const totalGroups = grouped.past.length;
-  const totalPages = Math.max(1, Math.ceil(totalGroups / pageSize));
-  const paginatedPastGroups = grouped.past.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  // Per-section pagination
+  const sectionPagination = {
+    ongoing: {
+      total: grouped.ongoing.length,
+      totalPages: Math.max(1, Math.ceil(grouped.ongoing.length / pageSize)),
+      page: pages.ongoing,
+      list: grouped.ongoing.slice((pages.ongoing - 1) * pageSize, pages.ongoing * pageSize),
+    },
+    upcoming: {
+      total: grouped.upcoming.length,
+      totalPages: Math.max(1, Math.ceil(grouped.upcoming.length / pageSize)),
+      page: pages.upcoming,
+      list: grouped.upcoming.slice((pages.upcoming - 1) * pageSize, pages.upcoming * pageSize),
+    },
+    past: {
+      total: grouped.past.length,
+      totalPages: Math.max(1, Math.ceil(grouped.past.length / pageSize)),
+      page: pages.past,
+      list: grouped.past.slice((pages.past - 1) * pageSize, pages.past * pageSize),
+    },
+    other: {
+      total: grouped.other.length,
+      totalPages: Math.max(1, Math.ceil(grouped.other.length / pageSize)),
+      page: 1,
+      list: grouped.other,
+    },
+  };
 
   const currentGroup = allGroups.find(g => g.id === viewGroupId);
   const countCards = [
-    { key: 'ongoing', title: 'Ongoing', count: grouped.ongoing.length, color: 'green' },
-    { key: 'upcoming', title: 'Upcoming', count: grouped.upcoming.length, color: 'blue' },
-    { key: 'past', title: 'Past', count: grouped.past.length, color: 'gray' }
+    { key: 'ongoing', title: 'Ongoing', count: counts.ongoing, color: 'green' },
+    { key: 'upcoming', title: 'Upcoming', count: counts.upcoming, color: 'blue' },
+    { key: 'past', title: 'Past', count: counts.past, color: 'gray' }
   ];
 
 
@@ -390,7 +418,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
       <Card id="dean-exams-container">
         <CardContent className="px-6 pb-6 pt-2 space-y-8">
           {firstLoad ?
-          <div className="space-y-6">
+            <div className="space-y-6">
               <SkeletonStatsGrid items={4} />
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <SkeletonCard className="h-24" />
@@ -401,35 +429,35 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
               <SkeletonTable rows={10} cols={8} />
             </div> :
 
-          <div className={loading ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity"}>
+            <div className={loading ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity"}>
 
 
               {/* Stats Cards Row */}
               <div id="dean-exams-stats-grid" className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 {countCards.map((c) =>
-              <div key={c.key} className={`p-6 rounded-xl border shadow-sm transition-all hover:shadow-md flex items-center gap-6 ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-300'}`
-              }>
+                  <div key={c.key} className={`p-6 rounded-xl border shadow-sm transition-all hover:shadow-md flex items-center gap-6 ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-300'}`
+                  }>
                     <div className={`p-3 rounded-xl ${c.color === 'green' ? theme === 'dark' ? 'bg-green-900/20 text-green-400' : 'bg-green-50 text-green-600' :
-                c.color === 'blue' ? theme === 'dark' ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-600' :
-                theme === 'dark' ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'}`
-                }>
+                      c.color === 'blue' ? theme === 'dark' ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-600' :
+                        theme === 'dark' ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'}`
+                    }>
                       {c.key === 'ongoing' ? <Clock className="w-6 h-6" /> :
-                  c.key === 'upcoming' ? <Calendar className="w-6 h-6" /> :
-                  <History className="w-6 h-6" />}
+                        c.key === 'upcoming' ? <Calendar className="w-6 h-6" /> :
+                          <History className="w-6 h-6" />}
                     </div>
                     <div>
                       <div className={`text-xs font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                         {c.title}
                       </div>
                       <div className={`text-3xl font-bold mt-1 ${c.color === 'green' ? theme === 'dark' ? 'text-green-400' : 'text-green-600' :
-                  c.color === 'blue' ? theme === 'dark' ? 'text-blue-400' : 'text-blue-600' :
-                  theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`
-                  }>
+                        c.color === 'blue' ? theme === 'dark' ? 'text-blue-400' : 'text-blue-600' :
+                          theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`
+                      }>
                         {c.count}
                       </div>
                     </div>
                   </div>
-              )}
+                )}
               </div>
 
               {/* Filters Row */}
@@ -438,23 +466,24 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
               </div>
 
               {error &&
-            <Alert variant="destructive" className="border-red-500/50 bg-red-500/10">
+                <Alert variant="destructive" className="border-red-500/50 bg-red-500/10">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
-            }
+              }
 
               <div className="space-y-10">
-                {['ongoing', 'upcoming', 'past', 'other'].map((sectionKey) => {
-                const list = (grouped as any)[sectionKey];
-                if (list.length === 0 && sectionKey !== 'upcoming' && sectionKey !== 'ongoing') return null;
+                {(['ongoing', 'upcoming', 'past', 'other'] as const).map((sectionKey) => {
+                  const pg = sectionPagination[sectionKey];
+                  const list = grouped[sectionKey];
+                  if (list.length === 0 && sectionKey !== 'upcoming' && sectionKey !== 'ongoing') return null;
 
-                return (
-                  <div key={sectionKey} className="space-y-4">
+                  return (
+                    <div key={sectionKey} className="space-y-4">
                       <div className="flex items-center gap-2 px-1">
                         <div className={`w-2 h-2 rounded-full ${sectionKey === 'ongoing' ? 'bg-green-500' :
-                      sectionKey === 'upcoming' ? 'bg-blue-500' :
-                      'bg-gray-400'}`
-                      } />
+                          sectionKey === 'upcoming' ? 'bg-blue-500' :
+                            'bg-gray-400'}`
+                        } />
                         <h3 className="font-semibold text-lg capitalize tracking-tight">
                           {sectionKey === 'other' ? 'Scheduled' : sectionKey} Exams
                         </h3>
@@ -464,7 +493,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
                       </div>
 
                       {list.length === 0 ?
-                    <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                        <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                           <div className={`p-5 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                             <BookOpen className="w-10 h-10 text-primary opacity-50" />
                           </div>
@@ -476,14 +505,14 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
                           </p>
                         </div> :
 
-                    <div className={`md:rounded-xl md:border md:shadow-sm overflow-hidden ${theme === 'dark' ? 'md:bg-card md:border-border' : 'md:bg-white md:border-gray-200'}`}
-                    >
+                        <div className={`md:rounded-xl md:border md:shadow-sm overflow-hidden ${theme === 'dark' ? 'md:bg-card md:border-border' : 'md:bg-white md:border-gray-200'}`}
+                        >
                           {/* Desktop Table View */}
                           <div className="hidden md:block overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200 dark:divide-border">
                               <thead className={theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}>
                                 <tr className={`text-left text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`
-                            }>
+                                }>
                                   <th className="px-6 py-4">Exam Details</th>
                                   <th className="px-6 py-4 text-center">Batch / Branch / Sem</th>
                                   <th className="px-6 py-4 text-center">Date & Time</th>
@@ -494,8 +523,8 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
                                 </tr>
                               </thead>
                               <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                                {(sectionKey === 'past' ? paginatedPastGroups : list).map((g: any) =>
-                            <tr key={g.id} className={`text-sm hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
+                                {pg.list.map((g: any) =>
+                                  <tr key={g.id} className={`text-sm hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
                                     <td className="px-6 py-4">
                                       <div className="font-semibold text-foreground">
                                         {g.title}
@@ -524,36 +553,36 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
 
                                     <td className="px-6 py-4 text-center">
                                       <Badge className={`capitalize ${g.status === 'ongoing' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                                g.status === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
-                                'bg-gray-500/10 text-gray-600 border-gray-500/20'}`
-                                } variant="outline">
+                                        g.status === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                                          'bg-gray-500/10 text-gray-600 border-gray-500/20'}`
+                                      } variant="outline">
                                         {g.status}
                                       </Badge>
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                       {g.is_published ?
-                                <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" /> :
-                                <span className="text-xs text-muted-foreground">Draft</span>
-                                }
+                                        <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" /> :
+                                        <span className="text-xs text-muted-foreground">Draft</span>
+                                      }
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <Button
-                                          variant="default"
-                                          size="sm"
-                                          onClick={() => setViewGroupId(g.id)}
-                                          className="h-8 text-xs font-semibold">
-                                          View
-                                        </Button>
+                                      <Button
+                                        variant="default"
+                                        size="sm"
+                                        onClick={() => setViewGroupId(g.id)}
+                                        className="h-8 text-xs font-semibold">
+                                        View
+                                      </Button>
                                     </td>
                                   </tr>
-                            )}
+                                )}
                               </tbody>
                             </table>
                           </div>
 
                           {/* Mobile Card View */}
                           <div className="md:hidden space-y-3">
-                            {(sectionKey === 'past' ? paginatedPastGroups : list).map((g: any) => (
+                            {pg.list.map((g: any) => (
                               <div
                                 key={g.id}
                                 className={`rounded-xl border p-4 space-y-3 ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-white border-gray-200'}`}
@@ -577,13 +606,12 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
                                   </div>
                                   <div className="flex flex-col items-end gap-1.5 shrink-0 pt-0.5">
                                     <Badge
-                                      className={`capitalize text-xs font-semibold px-2.5 py-0.5 ${
-                                        g.status === 'ongoing'
+                                      className={`capitalize text-xs font-semibold px-2.5 py-0.5 ${g.status === 'ongoing'
                                           ? 'bg-green-500/10 text-green-600 border-green-500/20'
                                           : g.status === 'upcoming'
-                                          ? 'bg-blue-500/10 text-blue-600 border-blue-500/20'
-                                          : 'bg-gray-500/10 text-gray-500 border-gray-400/30'
-                                      }`}
+                                            ? 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+                                            : 'bg-gray-500/10 text-gray-500 border-gray-400/30'
+                                        }`}
                                       variant="outline"
                                     >
                                       {g.status}
@@ -651,49 +679,54 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
                             ))}
                           </div>
                         </div>
-                    }
+                      }
+
+                      {/* Per-section pagination */}
+                      {pg.totalPages > 1 && (
+                        <div className={`flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t ${theme === 'dark' ? 'border-border' : 'border-gray-200'} mt-auto`}>
+                          <div>
+                            Showing {pg.total === 0 ? 0 : (pg.page - 1) * pageSize + 1} to {Math.min(pg.page * pageSize, pg.total)} of {pg.total} requests
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={pg.page === 1 || loading}
+                              onClick={() => sectionKey !== 'other' && setPage(sectionKey as any, pg.page - 1)}
+                              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all disabled:opacity-50"
+                            >
+                              Previous
+                            </Button>
+                            <div className="flex items-center justify-center min-w-[2rem]">
+                              <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {pg.page}
+                              </span>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={pg.page === pg.totalPages || loading}
+                              onClick={() => sectionKey !== 'other' && setPage(sectionKey as any, pg.page + 1)}
+                              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all disabled:opacity-50"
+                            >
+                              Next
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>);
 
-              })}
+                })}
 
               </div>
             </div>
           }
         </CardContent>
-        {totalPages > 1 && (
-          <CardFooter className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-border mt-auto gap-4">
-            <div className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Showing {totalGroups === 0 ? 0 : (currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalGroups)} of {totalGroups} {totalGroups === 1 ? 'exam schedule' : 'exam schedules'}
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === 1 || loading}
-                onClick={() => setCurrentPage(currentPage - 1)}
-                className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg"
-              >
-                Previous
-              </Button>
-              <div className={`flex items-center justify-center min-w-[40px] h-9 px-3 text-sm font-bold rounded-lg border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
-                {currentPage}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === totalPages || loading}
-                onClick={() => setCurrentPage(currentPage + 1)}
-                className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg"
-              >
-                Next
-              </Button>
-            </div>
-          </CardFooter>
-        )}
+
       </Card>
-      
+
       <Dialog open={!!viewGroupId} onOpenChange={(open) => !open && setViewGroupId(null)}>
-        <DialogContent 
+        <DialogContent
           onPointerDownOutside={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
           className="w-[90vw] max-h-[80vh] md:max-w-2xl md:max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl">
