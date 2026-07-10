@@ -775,8 +775,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
           </div>
 
           <div className="rounded-md border bg-card shadow-sm max-h-[350px] overflow-y-auto custom-scrollbar relative">
-            <Table className="whitespace-nowrap">
-              <TableHeader className={`sticky top-0 z-10  ${theme === 'dark' ? 'bg-zinc-900' : 'bg-gray-100'}`}>
+            <Table className="whitespace-nowrap">              <TableHeader className={`sticky top-0 z-10  ${theme === 'dark' ? 'bg-zinc-900' : 'bg-gray-100'}`}>
                 <TableRow>
                   <TableHead className="text-sm sm:text-xs">Ticket ID</TableHead>
                   <TableHead className="text-sm sm:text-xs">Subject</TableHead>
@@ -784,25 +783,18 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                   <TableHead className="text-sm sm:text-xs">Priority</TableHead>
                   <TableHead className="text-sm sm:text-xs">Status</TableHead>
                   <TableHead className="text-sm sm:text-xs">Date</TableHead>
+                  <TableHead className="text-sm sm:text-xs">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loadingTickets ? <TableRow><TableCell colSpan={6} className="text-center h-24">Loading tickets...</TableCell></TableRow> :
-                  tickets.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center h-24 text-muted-foreground">No support tickets found.</TableCell></TableRow> :
+                {loadingTickets ? <TableRow><TableCell colSpan={7} className="text-center h-24">Loading tickets...</TableCell></TableRow> :
+                  tickets.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center h-24 text-muted-foreground">No support tickets found.</TableCell></TableRow> :
                     tickets.map((t) =>
                       <TableRow key={t.id}>
-                        <TableCell className="font-medium text-base sm:text-sm">{t.id}</TableCell>
+                        <TableCell className="font-mono text-base sm:text-sm text-primary">#{t.ticket_id || t.id}</TableCell>
                         <TableCell className="font-medium text-base sm:text-sm">{t.subject}</TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 transition-colors"
-                            onClick={() => setViewTicket(t)}>
-
-                            <Eye size={14} />
-                            View
-                          </Button>
+                        <TableCell className="text-base sm:text-sm truncate max-w-[200px]" title={t.description}>
+                          {t.description}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={
@@ -822,7 +814,29 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-base sm:text-sm">
-                          {t.created_at ? format(new Date(t.created_at), 'dd-MM-yyyy') : (t.date || "N/A")}
+                          {t.created_at ? format(new Date(t.created_at), 'dd MMM yyyy, hh:mm a') : (t.date || "N/A")}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 transition-colors"
+                              onClick={() => setViewTicket(t)}>
+                              <Eye size={14} />
+                              View
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                              onClick={() => handleDeleteTicket(t.id)}
+                              disabled={deletingTicketId === t.id}
+                            >
+                              {deletingTicketId === t.id ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
+                              Delete
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     )}
