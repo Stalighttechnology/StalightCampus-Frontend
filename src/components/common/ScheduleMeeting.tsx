@@ -704,7 +704,7 @@ export default function ScheduleMeeting() {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 max-h-[65vh] overflow-y-auto custom-scrollbar pr-1 pb-2">
                     {displayMeetings.map((meeting) => {
                       const start = new Date(meeting.start_time);
                       const end = new Date(meeting.end_time);
