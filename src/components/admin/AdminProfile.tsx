@@ -822,7 +822,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-base sm:text-sm">
-                          {t.created_at ? new Date(t.created_at).toLocaleDateString() : (t.date || "N/A")}
+                          {t.created_at ? format(new Date(t.created_at), 'dd-MM-yyyy') : (t.date || "N/A")}
                         </TableCell>
                       </TableRow>
                     )}
