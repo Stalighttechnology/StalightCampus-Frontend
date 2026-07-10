@@ -144,7 +144,6 @@ export default function ScheduleMeeting() {
 
   useEffect(() => {
     fetchMeetings();
-    fetchBranches();
   }, []);
 
   useEffect(() => {
@@ -169,8 +168,12 @@ export default function ScheduleMeeting() {
       setEndHour(freshVals.endHour);
       setEndMinute(freshVals.endMinute);
       setEndPeriod(freshVals.endPeriod);
+      
+      if (branches.length === 0) {
+        fetchBranches();
+      }
     }
-  }, [showDialog]);
+  }, [showDialog, branches.length]);
 
   const getTargetRolesForUser = (role: string) => {
     switch (role) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_ENDPOINT } from '../../utils/config';
 import Swal from 'sweetalert2';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -10,15 +11,18 @@ import { Calendar } from '@/components/ui/calendar';
 
 interface ApplicationWizardProps {
   isModal?: boolean;
+  preloadedCourses?: any[];
+  orgSlug?: string;
   onSuccess?: () => void;
 }
 
-const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false, onSuccess }) => {
-  const { org_slug } = useParams<{ org_slug: string }>();
+const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false, preloadedCourses, orgSlug, onSuccess }) => {
+  const params = useParams<{ org_slug: string }>();
+  const org_slug = orgSlug || params.org_slug;
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(!preloadedCourses);
+  const [courses, setCourses] = useState<any[]>(preloadedCourses || []);
   const [enquiryId, setEnquiryId] = useState<number | null>(null);
   const [submittingApp, setSubmittingApp] = useState(false);
 
@@ -36,12 +40,17 @@ const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false, 
   });
 
   useEffect(() => {
-    fetchCourses();
-  }, [org_slug]);
+    if (preloadedCourses) {
+      setCourses(preloadedCourses);
+      setLoading(false);
+    } else if (org_slug) {
+      fetchCourses();
+    }
+  }, [org_slug, preloadedCourses]);
 
   const fetchCourses = async () => {
     try {
-      const res = await axios.get(`/api/admission/public/${org_slug}/`);
+      const res = await axios.get(`${API_ENDPOINT}/admission/public/${org_slug}/`);
       setCourses(res.data.courses || []);
     } catch (err) {
       console.error(err);
@@ -57,7 +66,7 @@ const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false, 
       if (!payload.course_interested) {
         delete payload.course_interested;
       }
-      const res = await axios.post(`/api/admission/public/${org_slug}/enquiry/`, payload);
+      const res = await axios.post(`${API_ENDPOINT}/admission/public/${org_slug}/enquiry/`, payload);
       setEnquiryId(res.data.id);
       setStep(2);
     } catch (err) {
@@ -107,7 +116,7 @@ const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false, 
           if (file) formData.append(key, file);
         });
 
-        await axios.post(`/api/admission/public/${org_slug}/application/${enquiryId}/`, formData, {
+        await axios.post(`${API_ENDPOINT}/admission/public/${org_slug}/application/${enquiryId}/`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         await Swal.fire({
