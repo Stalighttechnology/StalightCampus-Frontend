@@ -86,10 +86,26 @@ const StaffTaskTracker = () => {
     due_date: ''
   });
 
+  const getCurrentTime = () => {
+    const now = new Date();
+    let hours = now.getHours();
+    const period = hours >= 12 ? "PM" : "AM";
+    if (hours === 0) {
+      hours = 12;
+    } else if (hours > 12) {
+      hours -= 12;
+    }
+    return {
+      hour: String(hours).padStart(2, '0'),
+      minute: String(now.getMinutes()).padStart(2, '0'),
+      period
+    };
+  };
+
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedHour, setSelectedHour] = useState<string>("12");
-  const [selectedMinute, setSelectedMinute] = useState<string>("00");
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("PM");
+  const [selectedHour, setSelectedHour] = useState<string>(() => getCurrentTime().hour);
+  const [selectedMinute, setSelectedMinute] = useState<string>(() => getCurrentTime().minute);
+  const [selectedPeriod, setSelectedPeriod] = useState<string>(() => getCurrentTime().period);
 
   useEffect(() => {
     if (selectedDate) {
@@ -264,9 +280,10 @@ const StaffTaskTracker = () => {
       setIsDialogOpen(false);
       setNewTask({ title: '', description: '', task_type: 'general', priority: 'medium', assigned_to: '', assigned_to_name: '', due_date: '' });
       setSelectedDate(undefined);
-      setSelectedHour("12");
-      setSelectedMinute("00");
-      setSelectedPeriod("PM");
+      const currentTime = getCurrentTime();
+      setSelectedHour(currentTime.hour);
+      setSelectedMinute(currentTime.minute);
+      setSelectedPeriod(currentTime.period);
 
       // Optimistic UI update instead of fetching all tasks again
       if (createdTask.assigned_to === currentUserId) {
@@ -443,9 +460,10 @@ const StaffTaskTracker = () => {
                 setSubPage(1);
                 setSelectedBranch("");
                 setSelectedDate(undefined);
-                setSelectedHour("12");
-                setSelectedMinute("00");
-                setSelectedPeriod("PM");
+                const currentTime = getCurrentTime();
+                setSelectedHour(currentTime.hour);
+                setSelectedMinute(currentTime.minute);
+                setSelectedPeriod(currentTime.period);
               }
             }}>
               <DialogTrigger asChild>
