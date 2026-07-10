@@ -18,11 +18,11 @@ const getApiBaseUrl = (): string => {
       return `http://${hostname}:8000`;
     }
     
-    // In production, use the current protocol and hostname (without port 8000)
-    return `${protocol}//${hostname}`;
+    // Default to the dedicated backend API server in production
+    return "https://campusapi.stalight.in";
   }
   
-  return envUrl || "http://localhost:8000";
+  return envUrl || "https://campusapi.stalight.in";
 };
 
 const API_BASE_URL = getApiBaseUrl().replace(/\/+$/, '');
