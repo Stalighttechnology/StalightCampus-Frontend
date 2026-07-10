@@ -21,6 +21,58 @@ const SIDEBAR_TABS = [
 
 const BLOCK_TYPES = ['hero', 'about', 'courses', 'facilities', 'placement', 'testimonials', 'gallery', 'faq', 'contact', 'enquiry'] as const;
 
+
+const ImageUploader = ({ value, onChange, placeholder = "Upload Image" }: { value: string, onChange: (url: string) => void, placeholder?: string }) => {
+  const [isUploading, setIsUploading] = React.useState(false);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('File size must be less than 2MB');
+      return;
+    }
+    
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'website/images');
+    
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/r2/upload/`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+      if (data.success) {
+        onChange(data.url);
+        toast.success('Image uploaded successfully');
+      } else {
+        toast.error(data.message || 'Upload failed');
+      }
+    } catch (err) {
+      toast.error('Upload failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="flex gap-2 items-center flex-1 w-full">
+      <input 
+        type="file" 
+        accept="image/*" 
+        onChange={handleFileChange} 
+        disabled={isUploading}
+        className="text-xs w-full max-w-[200px] file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+        title={placeholder}
+      />
+      {isUploading && <span className="text-xs text-muted-foreground animate-pulse shrink-0">Uploading...</span>}
+      {value && <img src={value} alt="Preview" className="h-8 w-8 object-cover rounded shadow-sm border border-border shrink-0" />}
+    </div>
+  );
+};
+
 const CampusPageBuilder: React.FC = () => {
   const [activeTab, setActiveTab] = useState('builder');
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -250,13 +302,18 @@ const CampusPageBuilder: React.FC = () => {
                             <input type="text" placeholder="CTA Button Text" value={block.data.ctaText || ''} onChange={e => updateBlock(block.id, { ctaText: e.target.value })} className="w-full p-2 border border-input rounded text-sm bg-background" />
                             <input type="text" placeholder="CTA Link (Optional)" value={block.data.ctaLink || ''} onChange={e => updateBlock(block.id, { ctaLink: e.target.value })} className="w-full p-2 border border-input rounded text-sm bg-background" />
                           </div>
-                          <div className="flex gap-2 items-center">
-                            <MonitorPlay className="w-4 h-4 text-muted-foreground" />
-                            <input type="text" placeholder="Upload Image/Video URL" value={block.data.bannerUrl || block.data.backgroundVideoUrl || ''} onChange={e => {
-                              const val = e.target.value;
-                              if(val.match(/\.(mp4|webm)$/i)) updateBlock(block.id, { backgroundVideoUrl: val, bannerUrl: '' });
-                              else updateBlock(block.id, { bannerUrl: val, backgroundVideoUrl: '' });
-                            }} className="flex-1 p-2 border border-input rounded text-sm bg-background" />
+                          <div className="flex flex-col gap-2 border-t border-border pt-3 mt-2">
+                            <label className="text-xs font-semibold">Hero Media</label>
+                            <div className="flex gap-2 items-center">
+                              <MonitorPlay className="w-4 h-4 text-muted-foreground shrink-0" />
+                              <input type="text" placeholder="Background Video URL (.mp4, .webm) OR use Image Upload below" value={block.data.backgroundVideoUrl || ''} onChange={e => {
+                                updateBlock(block.id, { backgroundVideoUrl: e.target.value });
+                              }} className="flex-1 p-2 border border-input rounded text-sm bg-background" />
+                            </div>
+                            <div className="flex gap-2 items-center">
+                              <ImageIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                              <ImageUploader value={block.data.bannerUrl || ''} onChange={url => updateBlock(block.id, { bannerUrl: url })} placeholder="Upload Hero Image" />
+                            </div>
                           </div>
                         </div>
                       )}
@@ -265,8 +322,8 @@ const CampusPageBuilder: React.FC = () => {
                           <label className="text-xs font-semibold">Rich Text Content (HTML supported)</label>
                           <textarea placeholder="<p>About our institution...</p>" value={block.data.text || ''} onChange={e => updateBlock(block.id, { text: e.target.value })} className="w-full p-2 border border-input rounded text-sm font-mono bg-muted/30" rows={4} />
                           <div className="flex gap-2 items-center border-t border-border pt-3">
-                            <ImageIcon className="w-4 h-4 text-muted-foreground" />
-                            <input type="text" placeholder="Upload About Image URL" value={block.data.image || ''} onChange={e => updateBlock(block.id, { image: e.target.value })} className="flex-1 p-2 border border-input rounded text-sm bg-background" />
+                            <ImageIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                            <ImageUploader value={block.data.image || ''} onChange={url => updateBlock(block.id, { image: url })} placeholder="Upload About Image" />
                           </div>
                           <div className="pt-2 border-t border-border">
                             <label className="text-xs font-semibold mb-2 block">Statistics Cards</label>
@@ -326,9 +383,9 @@ const CampusPageBuilder: React.FC = () => {
                             <label className="text-xs font-semibold">Recruiter Logos (URLs)</label>
                             {(block.data.recruiters || []).map((url: string, i: number) => (
                               <div key={i} className="flex gap-2 mt-1">
-                                <input type="text" value={url} onChange={e=>{
-                                  const n=[...block.data.recruiters]; n[i]=e.target.value; updateBlock(block.id, {recruiters: n});
-                                }} className="flex-1 p-1.5 text-sm border border-input bg-background text-foreground rounded" />
+                                <ImageUploader value={url} onChange={newUrl => {
+                                  const n=[...block.data.recruiters]; n[i]=newUrl; updateBlock(block.id, {recruiters: n});
+                                }} placeholder="Upload Logo" />
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={()=>{
                                   const n=block.data.recruiters.filter((_:any, idx:number)=>idx!==i); updateBlock(block.id, {recruiters: n});
                                 }}><Trash2 size={14}/></Button>
@@ -356,9 +413,12 @@ const CampusPageBuilder: React.FC = () => {
                               <textarea placeholder="Quote..." value={item.quote || ''} onChange={e => {
                                 const n = [...block.data.items]; n[i].quote = e.target.value; updateBlock(block.id, {items: n});
                               }} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" rows={2} />
-                              <input type="text" placeholder="Upload Profile Image URL (Optional)" value={item.image || ''} onChange={e => {
-                                  const n = [...block.data.items]; n[i].image = e.target.value; updateBlock(block.id, {items: n});
-                                }} className="w-full p-1.5 text-sm border border-input bg-background text-foreground rounded" />
+                              <div className="flex items-center gap-2 mt-2 bg-background p-1.5 border border-input rounded">
+                                <ImageIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                                <ImageUploader value={item.image || ''} onChange={url => {
+                                  const n = [...block.data.items]; n[i].image = url; updateBlock(block.id, {items: n});
+                                }} placeholder="Upload Profile Image (Optional)" />
+                              </div>
                             </div>
                           ))}
                           <Button variant="secondary" size="sm" onClick={() => updateBlock(block.id, {items: [...(block.data.items||[]), {name:'', quote:''}]})} className="text-xs">Add Testimonial</Button>
@@ -369,9 +429,11 @@ const CampusPageBuilder: React.FC = () => {
                           {(block.data.images || []).map((img: string, i: number) => (
                             <div key={i} className="flex gap-2">
                               <ImageIcon className="w-4 h-4 text-muted-foreground mt-2 shrink-0" />
-                              <input type="text" placeholder="Upload Image/Video URL" value={img} onChange={e => {
-                                const n = [...block.data.images]; n[i] = e.target.value; updateBlock(block.id, {images: n});
-                              }} className="flex-1 p-1.5 text-sm border border-input bg-background text-foreground rounded" />
+                              <div className="flex-1 bg-background p-1.5 border border-input rounded">
+                                <ImageUploader value={img} onChange={url => {
+                                  const n = [...block.data.images]; n[i] = url; updateBlock(block.id, {images: n});
+                                }} placeholder="Upload Gallery Image" />
+                              </div>
                               <Button variant="ghost" size="icon" className="text-destructive h-8 w-8" onClick={() => {
                                 const n = block.data.images.filter((_:any, idx:number) => idx !== i); updateBlock(block.id, {images: n});
                               }}><Trash2 size={14}/></Button>
