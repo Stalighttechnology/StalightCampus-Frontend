@@ -796,8 +796,8 @@ const AppContent = () => {
       <Sonner />
       <NetworkStatus />
       <FeaturePopup />
-      {/* Exit App Premium Bottom Sheet Modal */}
-      {showExitDialog && (
+      {/* Exit App Premium Bottom Sheet Modal — native mobile only */}
+      {showExitDialog && Capacitor.isNativePlatform() && (
         <div 
           onClick={() => setShowExitDialog(false)}
           className="fixed inset-0 z-[99999] flex items-end justify-center bg-slate-950/40 backdrop-blur-[2px] animate-in fade-in duration-200"
