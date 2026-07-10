@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { API_ENDPOINT } from '../../utils/config';
@@ -97,6 +97,7 @@ export default function ScheduleMeeting() {
   const [showDialog, setShowDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+  const isInitialMount = useRef(true);
 
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const initVals = getInitialScheduleState();
@@ -149,14 +150,14 @@ export default function ScheduleMeeting() {
     }
   };
 
-  // Fetches only the past count for the tab badge — does NOT load content/details
-  const fetchPastCount = async () => {
+  // Single call that returns both upcoming + past counts for tab badges
+  const fetchCounts = async () => {
     try {
-      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/meetings/?type=past&page=1`);
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/meetings/counts/`);
       if (res.ok) {
         const data = await res.json();
-        setPastTotal(data.count ?? (Array.isArray(data) ? data.length : 0));
-        // Intentionally NOT setting pastMeetings — details load only on tab click
+        setUpcomingTotal(data.upcoming ?? 0);
+        setPastTotal(data.past ?? 0);
       }
     } catch (e) {
       console.error(e);
@@ -180,15 +181,20 @@ export default function ScheduleMeeting() {
     }
   };
 
-  // On mount: fetch upcoming (default tab, full details) + past count only (for badge)
+  // On mount: one combined counts call (both badges) + upcoming content (default tab)
   useEffect(() => {
+    fetchCounts();
     fetchUpcoming(1);
-    fetchPastCount();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // On tab click or page change: fetch the active tab's full details
+  // Skipped on initial mount (handled by the mount-only effect above)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     if (activeTab === 'upcoming') fetchUpcoming(upcomingPage);
     else fetchPast(pastPage);
   }, [upcomingPage, pastPage, activeTab]);
