@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
+import { API_ENDPOINT } from '../../utils/config';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GraduationCap, ArrowRight, MapPin, Phone, Mail } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -21,7 +22,7 @@ const AdmissionLanding: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const res = await axios.get(`/api/admission/public/${org_slug}/`);
+      const res = await axios.get(`${API_ENDPOINT}/admission/public/${org_slug}/`);
       setData(res.data);
     } catch (err) {
       console.error(err);
