@@ -25,12 +25,13 @@ const AdmissionCourses: React.FC = () => {
   const [currentCourse, setCurrentCourse] = useState<Course>({ name: '', code: '', duration_years: 4, description: '' });
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalServerCount, setTotalServerCount] = useState(0);
   const { theme } = useTheme();
-  const pageSize = 10;
-  const totalCount = courses.length;
+  const pageSize = 20;
+  const totalCount = totalServerCount;
   const totalPages = Math.ceil(totalCount / pageSize);
 
-  const paginatedCourses = courses.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedCourses = courses;
 
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
@@ -39,15 +40,17 @@ const AdmissionCourses: React.FC = () => {
   }, [courses, totalPages, currentPage]);
 
   useEffect(() => {
-    fetchCourses();
-  }, []);
+    fetchCourses(currentPage);
+  }, [currentPage]);
 
-  const fetchCourses = async () => {
+  const fetchCourses = async (page: number = 1) => {
+    setLoading(true);
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/courses/`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/courses/?page=${page}`);
       if (response.ok) {
         const data = await response.json();
-        setCourses(data);
+        setCourses(data.results || (Array.isArray(data) ? data : []));
+        setTotalServerCount(data.count ?? (Array.isArray(data) ? data.length : 0));
       }
     } catch (err) {
       console.error(err);
@@ -76,7 +79,7 @@ const AdmissionCourses: React.FC = () => {
         setCurrentCourse({ name: '', code: '', duration_years: 4, description: '' });
         toast.success(method === 'POST' ? 'Course added successfully!' : 'Course updated successfully!');
         if (method === 'POST') {
-           setCourses(prev => [...prev, savedCourse]);
+           fetchCourses(currentPage); // Re-fetch to maintain pagination
         } else {
            setCourses(prev => prev.map(c => c.id === savedCourse.id ? savedCourse : c));
         }
@@ -108,7 +111,7 @@ const AdmissionCourses: React.FC = () => {
       });
       if (response.ok) {
         toast.success('Course deleted successfully');
-        setCourses(prev => prev.filter(c => c.id !== id));
+        fetchCourses(currentPage); // Re-fetch to get correct paginated results
       } else {
         toast.error('Failed to delete course');
       }
