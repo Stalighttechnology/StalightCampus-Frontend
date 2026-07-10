@@ -67,7 +67,7 @@ export default function AdmissionDocuments() {
     }
   };
 
-  const handleDownload = async (e: React.MouseEvent, url: string, label: string) => {
+  const handlePreview = async (e: React.MouseEvent, url: string) => {
     e.preventDefault();
     try {
       let targetUrl = url;
@@ -83,15 +83,38 @@ export default function AdmissionDocuments() {
         }
       }
 
-      let extension = 'pdf';
-      if (targetUrl.toLowerCase().includes('.png')) extension = 'png';
-      else if (targetUrl.toLowerCase().includes('.jpg') || targetUrl.toLowerCase().includes('.jpeg')) extension = 'jpg';
+      // Check if it's already using backend domain
+      let finalUrl = targetUrl;
+      const isExternal = targetUrl.startsWith('http') && !targetUrl.includes(window.location.origin) && !targetUrl.includes('127.0.0.1') && !targetUrl.includes('localhost');
+      if (isExternal) {
+        finalUrl = `${API_ENDPOINT}/r2/download/?file_url=${encodeURIComponent(targetUrl)}`;
+      } else if (targetUrl.startsWith('/')) {
+        finalUrl = `${window.location.origin}${targetUrl}`;
+      }
+
+      const response = await fetchWithTokenRefresh(finalUrl);
+      if (!response.ok) {
+        throw new Error("Failed to load file preview");
+      }
+
+      const blob = await response.blob();
       
-      const filename = `${label.replace(/\s+/g, '_')}_${Date.now()}.${extension}`;
-      await downloadFile(targetUrl, filename);
+      // Determine correct MIME type
+      let mimeType = blob.type;
+      if (targetUrl.toLowerCase().endsWith('.pdf')) {
+        mimeType = 'application/pdf';
+      } else if (targetUrl.toLowerCase().endsWith('.png')) {
+        mimeType = 'image/png';
+      } else if (targetUrl.toLowerCase().endsWith('.jpg') || targetUrl.toLowerCase().endsWith('.jpeg')) {
+        mimeType = 'image/jpeg';
+      }
+
+      const file = new Blob([blob], { type: mimeType });
+      const previewUrl = window.URL.createObjectURL(file);
+      window.open(previewUrl, '_blank');
     } catch (error) {
-      console.error("Error downloading file:", error);
-      toast.error("Failed to download file");
+      console.error("Error previewing file:", error);
+      toast.error("Failed to preview file");
     }
   };
 
@@ -109,7 +132,7 @@ export default function AdmissionDocuments() {
     return (
       <a 
         href={url} 
-        onClick={(e) => handleDownload(e, url, label)}
+        onClick={(e) => handlePreview(e, url)}
         className="text-blue-500 hover:underline flex items-center gap-2 text-sm font-medium cursor-pointer"
       >
         <FileText className="w-4 h-4" /> View {label} <ExternalLink className="w-3 h-3" />
