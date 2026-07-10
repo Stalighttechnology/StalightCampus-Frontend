@@ -220,7 +220,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                     {/* Month Title & Navigation */}
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 w-full md:w-auto">
                         <div className="flex flex-row items-center justify-between w-full sm:w-auto gap-2">
-                            <h2 className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            <h2 className={`text-2xl font-semibold tracking-tight min-w-[160px] ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                                 {format(currentDate, 'MMMM')}
                             </h2>
                             <div className="flex sm:hidden items-center gap-2.5 text-[10px] text-muted-foreground font-medium shrink-0">

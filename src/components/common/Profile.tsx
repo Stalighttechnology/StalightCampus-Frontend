@@ -51,18 +51,7 @@ const Profile = ({ role, user }: ProfileProps) => {
   const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
   const [googleConnectLoading, setGoogleConnectLoading] = useState(false);
 
-  useEffect(() => {
-    if (activeTab === 'integrations' && googleConnected === null) {
-      setGoogleConnectLoading(true);
-      fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/status/`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.connected !== undefined) setGoogleConnected(data.connected);
-        })
-        .catch(err => console.error("Failed to fetch google status", err))
-        .finally(() => setGoogleConnectLoading(false));
-    }
-  }, [activeTab]);
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   useEffect(() => {
@@ -323,7 +312,7 @@ const Profile = ({ role, user }: ProfileProps) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label htmlFor="email" className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</label>
-                <Input id="email" name="email" value={profile.email} onChange={handleChange} disabled={role === 'admission_manager' ? (!editing || loading) : true} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
+                <Input id="email" name="email" value={profile.email} onChange={handleChange} disabled={true} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
               </div>
               <div>
                 <label htmlFor="mobile_number" className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</label>
