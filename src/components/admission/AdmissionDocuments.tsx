@@ -160,7 +160,7 @@ export default function AdmissionDocuments() {
     return app.is_verified;
   };
 
-  const filteredApplications = applications.filter((app: any) => 
+  const filteredApplications = (applications || []).filter((app: any) => 
     activeTab === 'pending' ? !isAppVerified(app) : isAppVerified(app)
   );
 
@@ -188,7 +188,7 @@ export default function AdmissionDocuments() {
                   : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
-              Pending Verification ({applications.filter(a => !isAppVerified(a)).length})
+              Pending Verification ({(applications || []).filter(a => !isAppVerified(a)).length})
             </button>
             <button
               onClick={() => setActiveTab('history')}
@@ -198,7 +198,7 @@ export default function AdmissionDocuments() {
                   : `border-transparent ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`
               }`}
             >
-              Verification History ({applications.filter(a => isAppVerified(a)).length})
+              Verification History ({(applications || []).filter(a => isAppVerified(a)).length})
             </button>
           </div>
 
