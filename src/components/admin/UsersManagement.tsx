@@ -258,6 +258,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         setTotalUsers(0);
         setTotalPages(0);
         setLoading(false);
+        setInitialLoad(false);
         return;
       }
 
@@ -726,7 +727,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
               }
 
-              if (loading) {
+              if (loading && users.length === 0) {
                 return (
                   <div className="table-wrapper block overflow-x-auto custom-scrollbar">
                     <SkeletonTable rows={pageSize} cols={6} />
@@ -751,7 +752,15 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
               }
 
               return (
-                <div className="table-wrapper block overflow-x-auto custom-scrollbar    ">
+                <div className={cn(
+                  "table-wrapper block overflow-x-auto custom-scrollbar relative",
+                  loading && "opacity-60 pointer-events-none"
+                )}>
+                  {loading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/30 z-10">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                  )}
                   <table className="users-table w-full text-left">
                     <thead className={`table-header border-b ${theme === 'dark' ? 'border-border text-foreground' : 'border-gray-200 text-gray-900'}`}>
                       <tr>
