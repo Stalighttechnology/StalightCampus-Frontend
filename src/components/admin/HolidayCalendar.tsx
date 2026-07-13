@@ -432,41 +432,40 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                 </CardContent>
             </Card>
 
-            {/* Bottom Summary Pill */}
-            <div className={`border-2 border-dashed rounded-2xl md:rounded-full px-4 py-3 md:px-6 md:py-4 flex flex-col md:flex-row md:items-center gap-2 md:gap-2 shadow-sm shrink-0 ${
+            {/* Bottom Summary List */}
+            <div className={`border-2 border-dashed rounded-2xl px-4 py-4 md:px-6 md:py-5 flex flex-col gap-3 shadow-sm shrink-0 ${
                 theme === 'dark' ? 'border-primary/30 bg-muted/10' : 'border-primary/20 bg-primary/5'
             }`}>
-                <span className="text-xs md:text-sm font-semibold uppercase tracking-wider text-primary whitespace-nowrap">
-                    Upcoming Events & Holidays :
+                <span className="text-sm md:text-base font-semibold uppercase tracking-wider text-primary">
+                    Upcoming Events & Holidays
                 </span>
-                <div className="w-full flex-1 overflow-x-auto thin-scrollbar flex gap-2.5 md:gap-3 text-xs md:text-sm font-semibold md:ml-2 items-center">
+                <ul className="flex flex-col gap-2 list-disc list-inside text-sm font-medium pl-1">
                     {upcomingHolidays.length > 0 ? (
                         upcomingHolidays.map((holiday, i) => {
                             const isEvent = holiday.holiday_type === 'event';
                             return (
-                                <span 
+                                <li 
                                     key={holiday.id} 
                                     onClick={() => {
                                         const eventDate = parseISO(holiday.date);
                                         setCurrentDate(eventDate);
                                     }}
-                                    className={`whitespace-nowrap flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border cursor-pointer hover:scale-105 active:scale-95 transition-all ${
+                                    className={`cursor-pointer hover:underline decoration-dashed underline-offset-4 ${
                                         isEvent
-                                            ? (theme === 'dark' ? 'bg-primary/20 border-primary/30 text-primary-foreground hover:bg-primary/30' : 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/20')
-                                            : (theme === 'dark' ? 'bg-rose-500/20 border-rose-500/30 text-rose-300 hover:bg-rose-500/30' : 'bg-rose-50 border-rose-100 text-rose-600 hover:bg-rose-100/50')
+                                            ? (theme === 'dark' ? 'text-primary-foreground' : 'text-primary')
+                                            : (theme === 'dark' ? 'text-rose-400' : 'text-rose-600')
                                     }`}
                                 >
-                                    <span className={`w-1.5 h-1.5 rounded-full ${isEvent ? 'bg-primary' : 'bg-rose-500'}`}></span>
                                     {holiday.description}
-                                </span>
+                                </li>
                             );
                         })
                     ) : (
-                        <span className="text-xs md:text-sm text-muted-foreground italic pl-1">
+                        <li className="text-sm text-muted-foreground italic list-none -ml-4">
                             No upcoming events or holidays scheduled.
-                        </span>
+                        </li>
                     )}
-                </div>
+                </ul>
             </div>
 
             {/* Event dialog (Add/Edit) */}

@@ -74,6 +74,12 @@ const StaffTaskTracker = () => {
   const [assignedTasksCount, setAssignedTasksCount] = useState(0);
   const [activeTaskTab, setActiveTaskTab] = useState<'assigned_to_me' | 'assigned_by_me'>('assigned_to_me');
 
+  useEffect(() => {
+    if (role === 'org_admin') {
+      setActiveTaskTab('assigned_by_me');
+    }
+  }, [role]);
+
   // Form state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newTask, setNewTask] = useState({
@@ -703,7 +709,7 @@ const StaffTaskTracker = () => {
         </div>
 
         {/* Tab Navigation if user can assign tasks */}
-        {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && (
+        {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && role !== 'org_admin' && (
           <div className="flex space-x-1 p-1 rounded-lg bg-muted border border-border overflow-x-auto mb-6 w-full">
             <button
               onClick={() => setActiveTaskTab('assigned_to_me')}
@@ -730,7 +736,7 @@ const StaffTaskTracker = () => {
 
         <div className="w-full">
           {/* Received Tasks */}
-          {(!['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') || activeTaskTab === 'assigned_to_me') && (
+          {role !== 'org_admin' && (!['superadmin', 'dean', 'principal', 'hod'].includes(role || '') || activeTaskTab === 'assigned_to_me') && (
             <Card className="shadow-sm border-border w-full">
               <CardHeader className="pb-3 border-b border-border/50 bg-muted/20">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -793,7 +799,7 @@ const StaffTaskTracker = () => {
           )}
 
           {/* Assigned Tasks */}
-          {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && activeTaskTab === 'assigned_by_me' && (
+          {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && (role === 'org_admin' || activeTaskTab === 'assigned_by_me') && (
             <Card className="shadow-sm border-border w-full">
               <CardHeader className="pb-3 border-b border-border/50 bg-primary/5">
                 <CardTitle className="text-lg flex items-center gap-2">

@@ -285,8 +285,6 @@ export const BillingManagement: React.FC = () => {
     }
     try {
       setSubmittingTicket(true);
-      // show a persistent 'Submitting' toast so user knows action is in progress
-      const pending = toast({ title: 'Submitting...', description: 'Raising support ticket', });
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/support-tickets/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -294,9 +292,6 @@ export const BillingManagement: React.FC = () => {
       });
       const res = await response.json();
       if (res.success) {
-        // update toast to success
-        pending.update({ title: 'Ticket raised', description: 'Support team will contact you shortly' });
-        setTimeout(() => pending.dismiss(), 2500);
         showSuccessAlert('Ticket Raised', 'Support team will contact you shortly');
         setShowRaiseTicket(false);
         setTicketForm({ subject: '', description: '', priority: 'Medium' });
@@ -305,12 +300,9 @@ export const BillingManagement: React.FC = () => {
           setData({ ...data, support_tickets: [res.ticket, ...(data.support_tickets || [])] });
         }
       } else {
-        pending.update({ title: 'Failed', description: res.error || 'Failed to raise ticket' });
-        setTimeout(() => pending.dismiss(), 3500);
         showErrorAlert('Error', res.error || 'Failed to raise ticket');
       }
     } catch (err) {
-      toast({ title: 'Network error', description: 'Network error while raising ticket' });
       showErrorAlert('Error', 'Network error while raising ticket');
     } finally {
       setSubmittingTicket(false);
@@ -443,13 +435,13 @@ export const BillingManagement: React.FC = () => {
             <CardDescription>Your current subscription tier</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg border">
               <div>
-                <p className="font-semibold text-xl text-primary">{planName}</p>
+                <p className="font-semibold text-xl text-primary capitalize">{planName}</p>
               </div>
-              <div className="flex flex-col items-end gap-1">
-                <span className="text-xs text-muted-foreground">Status</span>
-                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${org?.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Status:</span>
+                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${org?.is_active ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'}`}>
                   {org?.is_active ? <CheckCircle2 className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5" />}
                   {org?.is_active ? 'Active' : 'Inactive'}
                 </div>
