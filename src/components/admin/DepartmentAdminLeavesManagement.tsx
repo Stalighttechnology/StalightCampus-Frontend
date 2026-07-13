@@ -455,7 +455,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                 <SkeletonTable rows={8} cols={5} />
               </div>
             ) : (
-              <div className="border rounded-xl overflow-hidden shadow-sm">
+              <div className="border rounded-xl overflow-y-auto max-h-[600px] custom-scrollbar shadow-sm relative">
                 {/* Mobile: stacked cards */}
                 <div className="md:hidden space-y-3 p-2">
                   {Array.isArray(filteredLeaveRequests) && filteredLeaveRequests.length > 0 ?
