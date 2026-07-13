@@ -18,6 +18,7 @@ interface HolidayCalendarProps {
 
 export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = false, showExams = false, showLeaves = false, userRole }) => {
     const [holidays, setHolidays] = useState<Holiday[]>([]);
+    const [upcomingHolidays, setUpcomingHolidays] = useState<Holiday[]>([]);
     const [examEvents, setExamEvents] = useState<ExamEvent[]>([]);
     const [leaveEvents, setLeaveEvents] = useState<LeaveEvent[]>([]);
     const [loading, setLoading] = useState(true);
@@ -57,9 +58,31 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
         }
     };
 
+    const fetchUpcomingHolidays = async () => {
+        try {
+            const startDate = format(new Date(), 'yyyy-MM-dd');
+            const endDate = format(addMonths(new Date(), 12), 'yyyy-MM-dd');
+            const data = await getHolidays(startDate, endDate);
+            
+            const today = startOfDay(new Date());
+            const filtered = data
+                .filter(h => parseISO(h.date) >= today)
+                .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime())
+                .slice(0, 25);
+                
+            setUpcomingHolidays(filtered);
+        } catch (err) {
+            console.error('Failed to fetch upcoming holidays');
+        }
+    };
+
     useEffect(() => {
         fetchHolidays(currentDate);
     }, [currentDate.getMonth(), currentDate.getFullYear()]);
+
+    useEffect(() => {
+        fetchUpcomingHolidays();
+    }, []);
 
     // Fetch student exams for the current month when showExams is enabled
     useEffect(() => {
@@ -174,6 +197,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
             });
             setIsModalOpen(false);
             fetchHolidays();
+            fetchUpcomingHolidays();
             await showSuccessAlert('Saved!', 'Event/Holiday has been saved successfully.');
         } catch (err) {
             await showErrorAlert('Error', 'Failed to save event/holiday.');
@@ -194,23 +218,13 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                 await deleteHoliday(existingHoliday.id);
                 setIsModalOpen(false);
                 fetchHolidays();
+                fetchUpcomingHolidays();
                 await showSuccessAlert('Deleted!', 'Event/Holiday has been deleted.');
             } catch (err) {
                 await showErrorAlert('Error', 'Failed to delete event/holiday.');
             }
         }
     };
-
-    // Calculate upcoming holidays for current month and future
-    const upcomingHolidays = useMemo(() => {
-        return holidays
-            .filter(h => {
-                const hDate = parseISO(h.date);
-                return hDate >= startOfMonth(currentDate);
-            })
-            .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime())
-            .slice(0, 5);
-    }, [holidays, currentDate]);
 
     return (
         <div className="space-y-3 flex flex-col pb-2 w-full max-w-full">
@@ -233,8 +247,8 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                             </div>
                         </div>
                         
-                        <div className="flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-between sm:justify-start">
-                            <div className={`flex flex-1 sm:flex-initial items-center justify-between sm:justify-start gap-1 p-1 rounded-lg border ${theme === 'dark' ? 'bg-muted/10 border-border/50' : 'bg-gray-50 border-gray-200'}`}>
+                        <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2">
+                            <div className={`flex shrink-0 items-center justify-center gap-1 p-1 rounded-lg border ${theme === 'dark' ? 'bg-muted/10 border-border/50' : 'bg-gray-50 border-gray-200'}`}>
                                 <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md hover:bg-primary/10" onClick={handlePreviousMonth}>
                                     <ChevronLeft className="h-3.5 w-3.5" />
                                 </Button>
@@ -245,14 +259,14 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                     <ChevronRight className="h-3.5 w-3.5" />
                                 </Button>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                                <Button variant="outline" size="sm" className={`h-8 px-2 text-xs font-medium ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`} onClick={handleToday}>
+                            <div className="flex flex-1 items-center gap-2">
+                                <Button variant="outline" size="sm" className={`flex-1 h-8 px-3 sm:px-2 text-xs font-medium ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`} onClick={handleToday}>
                                     Today
                                 </Button>
                                 {!readOnly && (
                                     <Button 
                                         size="sm" 
-                                        className={`sm:hidden h-8 px-3 text-xs font-semibold flex items-center gap-1.5 shadow-sm rounded-lg ${
+                                        className={`sm:hidden flex-1 h-8 px-3 text-xs font-semibold flex justify-center items-center gap-1.5 shadow-sm rounded-lg ${
                                             isEditModeActive 
                                                 ? "bg-emerald-600 hover:bg-emerald-700 text-white" 
                                                 : "bg-primary hover:bg-primary/90 text-white"
@@ -364,10 +378,10 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                         </div>
 
                                         {/* Holiday details text & Pill */}
-                                        <div className="mt-1 flex-1 flex-col gap-1 hidden sm:flex overflow-y-auto custom-scrollbar">
+                                        <div className="mt-1 flex-1 flex-col gap-1 hidden sm:flex overflow-y-auto overflow-x-hidden custom-scrollbar">
                                             {isCurrentMonth && hasHoliday && (
-                                                <div className="flex flex-col gap-1 items-start">
-                                                    <span className={`text-[10px] md:text-xs font-medium leading-tight line-clamp-1 ${dayHolidays[0].holiday_type === 'event' ? 'text-primary' : 'text-rose-500'}`} title={dayHolidays[0].description}>
+                                                <div className="flex flex-col gap-1 items-start w-full">
+                                                    <span className={`text-[10px] md:text-xs font-medium leading-tight line-clamp-1 break-all w-full ${dayHolidays[0].holiday_type === 'event' ? 'text-primary' : 'text-rose-500'}`} title={dayHolidays[0].description}>
                                                         {dayHolidays[0].description}
                                                     </span>
                                                     <span
@@ -381,8 +395,8 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
 
                                             {/* Exam chips */}
                                             {isCurrentMonth && !hasLeave && dayExams.slice(0, 2).map(exam => (
-                                                <div key={exam.id} className="flex flex-col gap-0.5 items-start">
-                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 text-amber-600 dark:text-amber-400" title={exam.subject}>
+                                                <div key={exam.id} className="flex flex-col gap-0.5 items-start w-full">
+                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 break-all w-full text-amber-600 dark:text-amber-400" title={exam.subject}>
                                                         {exam.subject}
                                                     </span>
                                                     <span
@@ -399,8 +413,8 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
 
                                             {/* Leave chips */}
                                             {isCurrentMonth && dayLeaves.slice(0, 1).map(leave => (
-                                                <div key={leave.id} className="flex flex-col gap-0.5 items-start">
-                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 text-teal-600 dark:text-teal-400" title={leave.leave_type}>
+                                                <div key={leave.id} className="flex flex-col gap-0.5 items-start w-full">
+                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 break-all w-full text-teal-600 dark:text-teal-400" title={leave.leave_type}>
                                                         {leave.leave_type?.replace(/_/g, ' ')}
                                                     </span>
                                                     <span
@@ -436,36 +450,39 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
             <div className={`border-2 border-dashed rounded-2xl px-4 py-4 md:px-6 md:py-5 flex flex-col gap-3 shadow-sm shrink-0 ${
                 theme === 'dark' ? 'border-primary/30 bg-muted/10' : 'border-primary/20 bg-primary/5'
             }`}>
-                <span className="text-sm md:text-base font-semibold uppercase tracking-wider text-primary">
+                <span className="text-sm md:text-base font-semibold uppercase tracking-wider text-primary mb-2 block">
                     Upcoming Events & Holidays
                 </span>
-                <ul className="flex flex-col gap-2 list-disc list-inside text-sm font-medium pl-1">
-                    {upcomingHolidays.length > 0 ? (
-                        upcomingHolidays.map((holiday, i) => {
-                            const isEvent = holiday.holiday_type === 'event';
-                            return (
-                                <li 
-                                    key={holiday.id} 
-                                    onClick={() => {
-                                        const eventDate = parseISO(holiday.date);
-                                        setCurrentDate(eventDate);
-                                    }}
-                                    className={`cursor-pointer hover:underline decoration-dashed underline-offset-4 ${
-                                        isEvent
-                                            ? (theme === 'dark' ? 'text-primary-foreground' : 'text-primary')
-                                            : (theme === 'dark' ? 'text-rose-400' : 'text-rose-600')
-                                    }`}
-                                >
-                                    {holiday.description}
-                                </li>
-                            );
-                        })
-                    ) : (
-                        <li className="text-sm text-muted-foreground italic list-none -ml-4">
-                            No upcoming events or holidays scheduled.
-                        </li>
-                    )}
-                </ul>
+                <div className="max-h-[180px] sm:max-h-none overflow-y-auto sm:overflow-visible custom-scrollbar pr-1 sm:pr-0">
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 text-sm font-medium">
+                        {upcomingHolidays.length > 0 ? (
+                            upcomingHolidays.map((holiday, i) => {
+                                const isEvent = holiday.holiday_type === 'event';
+                                return (
+                                    <li 
+                                        key={holiday.id} 
+                                        onClick={(e) => handleEventClick(e, holiday)}
+                                        className={`cursor-pointer group flex items-start gap-2 w-full p-1.5 -mx-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${
+                                            isEvent
+                                                ? (theme === 'dark' ? 'text-primary-foreground' : 'text-primary')
+                                                : (theme === 'dark' ? 'text-rose-400' : 'text-rose-600')
+                                        }`}
+                                    >
+                                        <div className={`w-1.5 h-1.5 mt-1.5 rounded-full shrink-0 ${isEvent ? 'bg-primary' : 'bg-rose-500'}`} />
+                                        <div className="flex flex-col min-w-0 flex-1">
+                                            <span className="truncate group-hover:underline decoration-dashed underline-offset-4">{holiday.description}</span>
+                                            <span className="opacity-75 text-xs font-normal">({format(parseISO(holiday.date), 'MMM d, EEE')})</span>
+                                        </div>
+                                    </li>
+                                );
+                            })
+                        ) : (
+                            <li className="text-sm text-muted-foreground italic pl-1">
+                                No upcoming events or holidays scheduled.
+                            </li>
+                        )}
+                    </ul>
+                </div>
             </div>
 
             {/* Event dialog (Add/Edit) */}
