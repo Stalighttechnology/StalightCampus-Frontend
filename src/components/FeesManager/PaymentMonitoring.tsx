@@ -112,6 +112,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
   const [notifying, setNotifying] = useState(false);
   const [hasNotified, setHasNotified] = useState(false);
   const [downloadingReceiptId, setDownloadingReceiptId] = useState<number | null>(null);
+  const [expandedInvoice, setExpandedInvoice] = useState<string | null>(null);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -599,75 +600,164 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                     </TableCell>
                   </TableRow> :
 
-                payments.map((p) =>
-                <TableRow key={p.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
-                      <TableCell className="py-5 px-6 align-middle">
-                        <div className="font-mono font-semibold text-primary tracking-tighter text-sm uppercase">{p.invoice.invoice_number}</div>
-                        <div className="text-[13px] font-semibold text-muted-foreground uppercase tracking-widest mt-1">
-                          {new Date(p.payment_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 align-middle">
-                        <div className="font-semibold text-foreground leading-tight">{p.invoice.student.name}</div>
-                        <div className="text-[13px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">
-                          {p.invoice.student.usn} • Sem {p.invoice.semester && p.invoice.semester !== 'N/A' ? p.invoice.semester : p.invoice.student.semester || 'N/A'}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right align-middle">
-                        <div className="font-semibold text-green-600">{formatCurrency(p.amount)}</div>
+                Object.values(
+                  payments.reduce((acc, p) => {
+                    const invNum = p.invoice.invoice_number;
+                    if (!acc[invNum]) acc[invNum] = [];
+                    acc[invNum].push(p);
+                    return acc;
+                  }, {} as Record<string, Payment[]>)
+                ).map((group) => {
+                  const invNum = group[0].invoice.invoice_number;
+                  const isExpanded = expandedInvoice === invNum;
+                  const latestPayment = group.reduce((latest, current) => 
+                     new Date(current.payment_date) > new Date(latest.payment_date) ? current : latest
+                  );
+                  const totalAmount = group.reduce((sum, p) => sum + Number(p.amount), 0);
+                  const p = latestPayment; 
 
-                      </TableCell>
-                      <TableCell className="text-center align-middle">
-                        {getMethodBadge(p.payment_method)}
-                      </TableCell>
-                      <TableCell className="text-center align-middle">
-                        {getStatusBadge(p.status)}
-                      </TableCell>
-                      <TableCell className="text-right pr-6 align-middle">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className={`h-9 w-9 rounded-full transition-all active:scale-95 ${theme === 'dark' ? 'text-blue-400 hover:bg-blue-950/30' : 'text-blue-600 hover:bg-blue-50'}`}
-                            onClick={() => fetchPaymentDetails(p.id)}
-                            title="View Details">
-                            <Eye className="h-4.5 w-4.5" />
-                          </Button>
-                          {(p.status === 'completed' || p.status === 'success' || p.status === 'pending') &&
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className={`h-9 w-9 rounded-full transition-all active:scale-95 ${
-                                p.status === 'pending'
-                                  ? 'text-gray-400 dark:text-gray-600 opacity-50 cursor-not-allowed'
-                                  : (theme === 'dark' ? 'text-green-400 hover:bg-green-950/30' : 'text-green-600 hover:bg-green-50')
-                              }`}
-                              onClick={() => p.status !== 'pending' && downloadReceipt(p.id)}
-                              disabled={downloadingReceiptId !== null || p.status === 'pending'}
-                              title={p.status === 'pending' ? "Cannot Download Receipt for Pending Payment" : "Download Receipt"}>
-                              {downloadingReceiptId === p.id ? (
-                                <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                              ) : (
-                                <Download className="h-4.5 w-4.5" />
-                              )}
-                            </Button>
-                          }
-                          {!isReadOnly && p.status === 'successful' && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => confirmRefund(p.id)}
-                              className={`h-8 w-8 transition-all active:scale-95 ${theme === 'dark' ? 'text-amber-400 hover:bg-amber-950/30' : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50'}`}
-                              title="Process Refund"
-                              disabled={refundLoading === p.id}
-                            >
-                              <RotateCcw className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                )
+                  return (
+                    <React.Fragment key={invNum}>
+                      <TableRow className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
+                        <TableCell className="py-5 px-6 align-middle">
+                          <div className="font-mono font-semibold text-primary tracking-tighter text-sm uppercase">{p.invoice.invoice_number}</div>
+                          <div className="text-[13px] font-semibold text-muted-foreground uppercase tracking-widest mt-1 flex items-center gap-2">
+                            {new Date(p.payment_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                            {group.length > 1 && <Badge variant="secondary" className="text-[10px] py-0 px-1">{group.length} Payments</Badge>}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 align-middle">
+                          <div className="font-semibold text-foreground leading-tight">{p.invoice.student.name}</div>
+                          <div className="text-[13px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">
+                            {p.invoice.student.usn} • Sem {p.invoice.semester && p.invoice.semester !== 'N/A' ? p.invoice.semester : p.invoice.student.semester || 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right align-middle">
+                          <div className="font-semibold text-green-600">{formatCurrency(totalAmount)}</div>
+                        </TableCell>
+                        <TableCell className="text-center align-middle">
+                          {group.length > 1 ? <Badge variant="outline" className="text-muted-foreground">Multiple</Badge> : getMethodBadge(p.payment_method)}
+                        </TableCell>
+                        <TableCell className="text-center align-middle">
+                          {group.length > 1 ? <Badge variant="outline" className="text-muted-foreground">Multiple</Badge> : getStatusBadge(p.status)}
+                        </TableCell>
+                        <TableCell className="text-right pr-6 align-middle">
+                          <div className="flex justify-end gap-2">
+                            {group.length > 1 ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-3 text-xs font-semibold rounded-lg hover:bg-primary/10 hover:text-primary transition-colors border border-border/50 shadow-sm"
+                                onClick={() => setExpandedInvoice(isExpanded ? null : invNum)}
+                              >
+                                {isExpanded ? 'Hide' : 'View All'}
+                              </Button>
+                            ) : (
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className={`h-9 w-9 rounded-full transition-all active:scale-95 ${theme === 'dark' ? 'text-blue-400 hover:bg-blue-950/30' : 'text-blue-600 hover:bg-blue-50'}`}
+                                  onClick={() => fetchPaymentDetails(p.id)}
+                                  title="View Details">
+                                  <Eye className="h-4.5 w-4.5" />
+                                </Button>
+                                {(p.status === 'completed' || p.status === 'success' || p.status === 'pending') &&
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={`h-9 w-9 rounded-full transition-all active:scale-95 ${
+                                      p.status === 'pending'
+                                        ? 'text-gray-400 dark:text-gray-600 opacity-50 cursor-not-allowed'
+                                        : (theme === 'dark' ? 'text-green-400 hover:bg-green-950/30' : 'text-green-600 hover:bg-green-50')
+                                    }`}
+                                    onClick={() => p.status !== 'pending' && downloadReceipt(p.id)}
+                                    disabled={downloadingReceiptId !== null || p.status === 'pending'}
+                                    title={p.status === 'pending' ? "Cannot Download Receipt for Pending Payment" : "Download Receipt"}>
+                                    {downloadingReceiptId === p.id ? (
+                                      <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                                    ) : (
+                                      <Download className="h-4.5 w-4.5" />
+                                    )}
+                                  </Button>
+                                }
+                                {!isReadOnly && p.status === 'successful' && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => confirmRefund(p.id)}
+                                    className={`h-8 w-8 transition-all active:scale-95 ${theme === 'dark' ? 'text-amber-400 hover:bg-amber-950/30' : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50'}`}
+                                    title="Process Refund"
+                                    disabled={refundLoading === p.id}
+                                  >
+                                    <RotateCcw className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      
+                      {/* Expanded Sub-rows for Multiple Payments */}
+                      {isExpanded && group.length > 1 && group.map((subPayment, idx) => (
+                        <TableRow key={subPayment.id} className="bg-muted/30 border-b border-border/50">
+                          <TableCell className="py-3 px-6 align-middle pl-10 border-l-2 border-l-primary/30">
+                            <div className="text-[12px] font-semibold text-muted-foreground flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary/40"></div>
+                              {new Date(subPayment.payment_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-6 align-middle">
+                            <div className="text-[12px] font-medium text-muted-foreground italic">
+                              {subPayment.transaction_id ? `Txn: ${subPayment.transaction_id}` : `Payment ${idx + 1}`}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right align-middle">
+                            <div className="font-semibold text-[13px] text-green-600/80">{formatCurrency(subPayment.amount)}</div>
+                          </TableCell>
+                          <TableCell className="text-center align-middle scale-90 origin-center">
+                            {getMethodBadge(subPayment.payment_method)}
+                          </TableCell>
+                          <TableCell className="text-center align-middle scale-90 origin-center">
+                            {getStatusBadge(subPayment.status)}
+                          </TableCell>
+                          <TableCell className="text-right pr-6 align-middle">
+                            <div className="flex justify-end gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className={`h-8 w-8 rounded-full transition-all active:scale-95 ${theme === 'dark' ? 'text-blue-400 hover:bg-blue-950/30' : 'text-blue-600 hover:bg-blue-50'}`}
+                                  onClick={() => fetchPaymentDetails(subPayment.id)}
+                                  title="View Details">
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                {(subPayment.status === 'completed' || subPayment.status === 'success' || subPayment.status === 'pending') &&
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={`h-8 w-8 rounded-full transition-all active:scale-95 ${
+                                      subPayment.status === 'pending'
+                                        ? 'text-gray-400 dark:text-gray-600 opacity-50 cursor-not-allowed'
+                                        : (theme === 'dark' ? 'text-green-400 hover:bg-green-950/30' : 'text-green-600 hover:bg-green-50')
+                                    }`}
+                                    onClick={() => subPayment.status !== 'pending' && downloadReceipt(subPayment.id)}
+                                    disabled={downloadingReceiptId !== null || subPayment.status === 'pending'}
+                                    title={subPayment.status === 'pending' ? "Cannot Download Receipt for Pending Payment" : "Download Receipt"}>
+                                    {downloadingReceiptId === subPayment.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Download className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                }
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
+                  );
+                })
                 }
               </TableBody>
             </Table>
