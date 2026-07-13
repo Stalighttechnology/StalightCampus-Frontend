@@ -172,8 +172,13 @@ const formatDate = (dstr?: string) => {
 const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => {
   const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
-  const [exams, setExams] = useState<ExamEntry[]>([]);
-  const [activeExams, setActiveExams] = useState<ExamEntry[]>([]);
+  
+  const [sections, setSections] = useState({
+    ongoing: { list: [] as ExamGroup[], total: 0 },
+    upcoming: { list: [] as ExamGroup[], total: 0 },
+    past: { list: [] as ExamGroup[], total: 0 }
+  });
+  
   const [counts, setCounts] = useState({ ongoing: 0, upcoming: 0, past: 0 });
   const [error, setError] = useState<string | null>(null);
   const [upcomingOnly, setUpcomingOnly] = useState<boolean>(false);
@@ -185,59 +190,64 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
   const setPage = (section: 'ongoing' | 'upcoming' | 'past', page: number) =>
     setPages(prev => ({ ...prev, [section]: page }));
 
-  const load = async () => {
-    setLoading(true); setError(null);
+  const fetchSection = async (section: 'ongoing' | 'upcoming' | 'past', page: number) => {
     try {
-      // build query params
-      const qs: string[] = [];
-      qs.push(`page_size=200`);
-      if (upcomingOnly) {
-        qs.push(`upcoming=1`);
-      } else {
-        // If we're showing everything, the main list should be 'past' 
-        // since ongoing/upcoming are pinned separately
-        qs.push(`past=1`);
-      }
-      const url = `${API_ENDPOINT}/dean/reports/exams/${qs.length ? `?${qs.join('&')}` : ''}`;
-
+      setLoading(true);
+      const qs: string[] = [`${section}=1`, `page=${page}`, `page_size=${pageSize}`];
+      const url = `${API_ENDPOINT}/dean/reports/exams/?${qs.join('&')}`;
       const res = await fetchWithTokenRefresh(url);
       const json = await res.json();
-
       if (json.success) {
         const normalized = normalizePaginatedResponse(json, 'data');
-        const list: ExamEntry[] = normalized.items && normalized.items.length ? normalized.items : Array.isArray(json.data) ? json.data : json.data || [];
-        setExams(list.map((x) => ({ ...x, id: x.id })));
-
+        const list = normalized.items || json.data || [];
+        setSections(prev => ({
+          ...prev,
+          [section]: {
+            list,
+            total: (normalized as any).totalItems || json.count || 0
+          }
+        }));
         if (json.counts) {
           setCounts(json.counts);
         }
-
-        // Fetch active (upcoming/ongoing) exams to pin them
-        if (!upcomingOnly) {
-          const activeUrl = `${API_ENDPOINT}/dean/reports/exams/?upcoming=1&page_size=200`;
-          const activeRes = await fetchWithTokenRefresh(activeUrl);
-          const activeJson = await activeRes.json();
-          if (activeJson.success) {
-            setActiveExams(activeJson.data || []);
-          }
-        }
       } else {
-        setExams([]);
-        setError(json.message || 'Failed to load exams');
+          setError(json.message || 'Failed to load exams');
       }
     } catch (e: any) {
-      setExams([]);
+      console.error(`Failed to fetch ${section}:`, e);
       setError(e?.message || 'Network error');
     } finally {
       setLoading(false);
-      setFirstLoad(false);
     }
   };
 
   useEffect(() => {
-    setPages({ ongoing: 1, upcoming: 1, past: 1 });
-    load();
+    const loadAll = async () => {
+      setLoading(true);
+      setFirstLoad(true);
+      setPages({ ongoing: 1, upcoming: 1, past: 1 });
+      await Promise.all([
+        fetchSection('ongoing', 1),
+        fetchSection('upcoming', 1),
+        fetchSection('past', 1)
+      ]);
+      setFirstLoad(false);
+      setLoading(false);
+    };
+    loadAll();
   }, [upcomingOnly]);
+
+  useEffect(() => {
+    if (!firstLoad) fetchSection('ongoing', pages.ongoing);
+  }, [pages.ongoing]);
+
+  useEffect(() => {
+    if (!firstLoad) fetchSection('upcoming', pages.upcoming);
+  }, [pages.upcoming]);
+
+  useEffect(() => {
+    if (!firstLoad) fetchSection('past', pages.past);
+  }, [pages.past]);
 
 
 
@@ -260,8 +270,16 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/dean/reports/exams/${id}/publish/`, { method: 'POST' });
       const json = await res.json();
       if (json.success) {
-        setExams((prev) => prev.map((ex) => ex.id === id ? { ...ex, is_published: true } : ex));
-        setActiveExams((prev) => prev.map((ex) => ex.id === id ? { ...ex, is_published: true } : ex));
+        const updateList = (list: ExamGroup[]) => list.map(g => ({
+          ...g,
+          subjects: g.subjects.map(ex => ex.id === id ? { ...ex, is_published: true } : ex),
+          is_published: g.subjects.every(ex => ex.id === id || ex.is_published)
+        }));
+        setSections(prev => ({
+          ongoing: { ...prev.ongoing, list: updateList(prev.ongoing.list) },
+          upcoming: { ...prev.upcoming, list: updateList(prev.upcoming.list) },
+          past: { ...prev.past, list: updateList(prev.past.list) },
+        }));
         MySwal.fire({
           title: 'Published',
           text: 'Exam results published successfully',
@@ -324,8 +342,18 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
         throw new Error(json.message || 'Failed to publish exams');
       }
 
-      setExams((prev) => prev.map((ex) => publishedIds.includes(ex.id) ? { ...ex, is_published: true } : ex));
-      setActiveExams((prev) => prev.map((ex) => publishedIds.includes(ex.id) ? { ...ex, is_published: true } : ex));
+      setSections(prev => {
+        const updateList = (list: ExamGroup[]) => list.map(g => ({
+          ...g,
+          subjects: g.subjects.map(ex => publishedIds.includes(ex.id) ? { ...ex, is_published: true } : ex),
+          is_published: g.subjects.every(ex => publishedIds.includes(ex.id) || ex.is_published)
+        }));
+        return {
+          ongoing: { ...prev.ongoing, list: updateList(prev.ongoing.list) },
+          upcoming: { ...prev.upcoming, list: updateList(prev.upcoming.list) },
+          past: { ...prev.past, list: updateList(prev.past.list) },
+        };
+      });
       MySwal.fire({
         title: 'Published',
         text: 'All selected subjects published successfully',
@@ -346,66 +374,31 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
     }
   };
 
-  const grouped = {
-    ongoing: [] as ExamEntry[],
-    upcoming: [] as ExamEntry[],
-    past: [] as ExamEntry[],
-    other: [] as ExamEntry[]
-  };
+  const allGroups = [...sections.ongoing.list, ...sections.upcoming.list, ...sections.past.list];
+  const currentGroup = allGroups.find(g => g.id === viewGroupId);
 
-  // Use activeExams for ongoing and upcoming sections
-  const groupedActiveExams = groupExams(activeExams);
-  groupedActiveExams.forEach((g) => {
-    if (g.status === 'ongoing') grouped.ongoing.push(g as any);
-    else if (g.status === 'upcoming') grouped.upcoming.push(g as any);
-    else if (g.status === 'past') grouped.past.push(g as any);
-    else grouped.other.push(g as any);
-  });
-
-  // Use main exams list for past section (and avoid duplicates)
-  const groupedMainExams = groupExams(exams);
-  groupedMainExams.forEach((g) => {
-    if (g.status === 'past') {
-      if (!grouped.past.find(x => x.id === g.id)) grouped.past.push(g as any);
-    } else {
-      if (g.status === 'ongoing' && !grouped.ongoing.find(x => x.id === g.id)) grouped.ongoing.push(g as any);
-      else if (g.status === 'upcoming' && !grouped.upcoming.find(x => x.id === g.id)) grouped.upcoming.push(g as any);
-      else if (g.status === 'past' && !grouped.past.find(x => x.id === g.id)) grouped.past.push(g as any);
-      else if (!grouped.other.find(x => x.id === g.id)) grouped.other.push(g as any);
-    }
-  });
-
-  const allGroups = [...grouped.ongoing, ...grouped.upcoming, ...grouped.past, ...grouped.other] as any as ExamGroup[];
-
-  // Per-section pagination
   const sectionPagination = {
     ongoing: {
-      total: grouped.ongoing.length,
-      totalPages: Math.max(1, Math.ceil(grouped.ongoing.length / pageSize)),
+      total: sections.ongoing.total,
+      totalPages: Math.max(1, Math.ceil(sections.ongoing.total / pageSize)),
       page: pages.ongoing,
-      list: grouped.ongoing.slice((pages.ongoing - 1) * pageSize, pages.ongoing * pageSize),
+      list: sections.ongoing.list,
     },
     upcoming: {
-      total: grouped.upcoming.length,
-      totalPages: Math.max(1, Math.ceil(grouped.upcoming.length / pageSize)),
+      total: sections.upcoming.total,
+      totalPages: Math.max(1, Math.ceil(sections.upcoming.total / pageSize)),
       page: pages.upcoming,
-      list: grouped.upcoming.slice((pages.upcoming - 1) * pageSize, pages.upcoming * pageSize),
+      list: sections.upcoming.list,
     },
     past: {
-      total: grouped.past.length,
-      totalPages: Math.max(1, Math.ceil(grouped.past.length / pageSize)),
+      total: sections.past.total,
+      totalPages: Math.max(1, Math.ceil(sections.past.total / pageSize)),
       page: pages.past,
-      list: grouped.past.slice((pages.past - 1) * pageSize, pages.past * pageSize),
+      list: sections.past.list,
     },
-    other: {
-      total: grouped.other.length,
-      totalPages: Math.max(1, Math.ceil(grouped.other.length / pageSize)),
-      page: 1,
-      list: grouped.other,
-    },
+    other: { total: 0, totalPages: 1, page: 1, list: [] }
   };
 
-  const currentGroup = allGroups.find(g => g.id === viewGroupId);
   const countCards = [
     { key: 'ongoing', title: 'Ongoing', count: counts.ongoing, color: 'green' },
     { key: 'upcoming', title: 'Upcoming', count: counts.upcoming, color: 'blue' },
@@ -474,7 +467,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
               <div className="space-y-10">
                 {(['ongoing', 'upcoming', 'past', 'other'] as const).map((sectionKey) => {
                   const pg = sectionPagination[sectionKey];
-                  const list = grouped[sectionKey];
+                  const list = pg.list;
                   if (list.length === 0 && sectionKey !== 'upcoming' && sectionKey !== 'ongoing') return null;
 
                   return (
