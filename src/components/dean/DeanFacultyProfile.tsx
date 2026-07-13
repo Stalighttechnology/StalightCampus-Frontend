@@ -458,9 +458,10 @@ const DeanFacultyProfile = ({
     >
       <style>{`
         @media (min-width: 481px) and (max-width: 768px) {
-          .dean-profile .filters-row { display: flex !important; flex-direction: row !important; align-items: flex-end !important; gap: 1rem !important; }
-          .dean-profile .filters-row .flex-1 { flex: 1 1 0% !important; min-width: 0 !important; }
-          .dean-profile .filters-row .flex-shrink-0 { align-self: flex-end !important; margin-top: 0 !important; }
+          .dean-profile .filters-row { display: flex !important; flex-direction: row !important; align-items: flex-end !important; gap: 0.75rem !important; }
+          .dean-profile .filters-row .flex-1 { flex: 1 1 200px !important; min-width: 150px !important; max-width: 240px !important; }
+          .dean-profile .filters-row .flex-shrink-0 { flex-shrink: 0 !important; align-self: flex-end !important; margin-top: 0 !important; width: auto !important; }
+          .dean-profile .filters-row .flex-shrink-0 button { width: auto !important; }
         }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -740,17 +741,11 @@ const DeanFacultyProfile = ({
               id="dean-faculty-container"
               className={
                 theme === "dark"
-                  ? "w-full bg-card border border-border"
-                  : "w-full bg-white border border-gray-200"
+                  ? "w-full bg-card border border-border relative overflow-hidden"
+                  : "w-full bg-white border border-gray-200 relative overflow-hidden"
               }
             >
               <CardContent className="px-6 pb-6 pt-6 space-y-6">
-                {/* Profile content stays visible during background refetch */}
-                {profileFetching && (
-                  <div className="h-0.5 w-full rounded overflow-hidden bg-primary/10">
-                    <div className="h-full bg-primary animate-pulse rounded" style={{ width: "60%" }} />
-                  </div>
-                )}
                 <div>
                   {/* Stats Cards */}
                   <div className="p-0">
