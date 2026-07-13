@@ -771,7 +771,7 @@ const DeanAttendanceFilters = () => {
 
           <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/30 pt-6">
             <div className="text-[11px] text-muted-foreground italic font-medium">
-              Note: "A" indicates auto-marked absence due to missing records.
+              Note: "A" indicates auto-marked absence.
             </div>
             <Button onClick={() => setViewingPerson(null)} className="rounded-xl px-8 bg-primary text-white hover:bg-primary/90">Close</Button>
           </DialogFooter>

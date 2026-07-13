@@ -201,16 +201,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
         }
     };
 
-    // Calculate upcoming holidays for current month and future
-    const upcomingHolidays = useMemo(() => {
-        return holidays
-            .filter(h => {
-                const hDate = parseISO(h.date);
-                return hDate >= startOfMonth(currentDate);
-            })
-            .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime())
-            .slice(0, 5);
-    }, [holidays, currentDate]);
+
 
     return (
         <div className="space-y-3 flex flex-col pb-2 w-full max-w-full">
@@ -432,41 +423,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                 </CardContent>
             </Card>
 
-            {/* Bottom Summary List */}
-            <div className={`border-2 border-dashed rounded-2xl px-4 py-4 md:px-6 md:py-5 flex flex-col gap-3 shadow-sm shrink-0 ${
-                theme === 'dark' ? 'border-primary/30 bg-muted/10' : 'border-primary/20 bg-primary/5'
-            }`}>
-                <span className="text-sm md:text-base font-semibold uppercase tracking-wider text-primary">
-                    Upcoming Events & Holidays
-                </span>
-                <ul className="flex flex-col gap-2 list-disc list-inside text-sm font-medium pl-1">
-                    {upcomingHolidays.length > 0 ? (
-                        upcomingHolidays.map((holiday, i) => {
-                            const isEvent = holiday.holiday_type === 'event';
-                            return (
-                                <li 
-                                    key={holiday.id} 
-                                    onClick={() => {
-                                        const eventDate = parseISO(holiday.date);
-                                        setCurrentDate(eventDate);
-                                    }}
-                                    className={`cursor-pointer hover:underline decoration-dashed underline-offset-4 ${
-                                        isEvent
-                                            ? (theme === 'dark' ? 'text-primary-foreground' : 'text-primary')
-                                            : (theme === 'dark' ? 'text-rose-400' : 'text-rose-600')
-                                    }`}
-                                >
-                                    {holiday.description}
-                                </li>
-                            );
-                        })
-                    ) : (
-                        <li className="text-sm text-muted-foreground italic list-none -ml-4">
-                            No upcoming events or holidays scheduled.
-                        </li>
-                    )}
-                </ul>
-            </div>
+
 
             {/* Event dialog (Add/Edit) */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

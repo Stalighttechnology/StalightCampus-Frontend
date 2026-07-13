@@ -601,7 +601,7 @@ const FacultyAttendanceView: React.FC = () => {
                   >
                     {exportingToday ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
                   </Button>
-                  
+
                   {/* Desktop Export PDF Button */}
                   <button
                     onClick={handleExportTodayPDF}
@@ -878,7 +878,7 @@ const FacultyAttendanceView: React.FC = () => {
                     >
                       {exportingRecords ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
                     </Button>
-                    
+
                     {/* Desktop Export Report Button */}
                     <button
                       onClick={handleExportRecordsPDF}
@@ -915,39 +915,39 @@ const FacultyAttendanceView: React.FC = () => {
                         {facultySummary
                           .filter(summary => selectedFacultyId === "all" || summary.id === selectedFacultyId)
                           .map((summary) =>
-                          <React.Fragment key={summary.id}>
-                            <tr className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedFaculty?.id === summary.id ? theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50' : ''}`}>
-                              <td className={`px-6 py-4 whitespace-nowrap font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                                {summary.name}
-                              </td>
-                              <td className={`px-6 py-4 whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                                {summary.total_days}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-green-600 font-medium">
-                                {summary.present_days}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-red-600 font-medium">
-                                {summary.absent_days}
-                              </td>
-                              <td className={`px-6 py-4 whitespace-nowrap font-medium ${summary.attendance_percentage >= 75 ? 'text-green-600' :
-                                summary.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`
-                              }>
-                                {summary.attendance_percentage.toFixed(1)}%
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-right">
-                                <button
-                                  onClick={() => fetchFacultyDetails(summary)}
-                                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark' ?
-                                    'bg-primary/20 text-primary hover:bg-primary/30' :
-                                    'bg-primary text-white hover:bg-primary/90'}`
-                                  }>
+                            <React.Fragment key={summary.id}>
+                              <tr className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedFaculty?.id === summary.id ? theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50' : ''}`}>
+                                <td className={`px-6 py-4 whitespace-nowrap font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                  {summary.name}
+                                </td>
+                                <td className={`px-6 py-4 whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                  {summary.total_days}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-green-600 font-medium">
+                                  {summary.present_days}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-red-600 font-medium">
+                                  {summary.absent_days}
+                                </td>
+                                <td className={`px-6 py-4 whitespace-nowrap font-medium ${summary.attendance_percentage >= 75 ? 'text-green-600' :
+                                  summary.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`
+                                }>
+                                  {summary.attendance_percentage.toFixed(1)}%
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right">
+                                  <button
+                                    onClick={() => fetchFacultyDetails(summary)}
+                                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark' ?
+                                      'bg-primary/20 text-primary hover:bg-primary/30' :
+                                      'bg-primary text-white hover:bg-primary/90'}`
+                                    }>
 
-                                  {selectedFaculty?.id === summary.id && isDetailLoading ? 'Loading...' : 'View'}
-                                </button>
-                              </td>
-                            </tr>
-                          </React.Fragment>
-                        )}
+                                    {selectedFaculty?.id === summary.id && isDetailLoading ? 'Loading...' : 'View'}
+                                  </button>
+                                </td>
+                              </tr>
+                            </React.Fragment>
+                          )}
                       </tbody>
                     </table>
                   </div>
@@ -1044,7 +1044,7 @@ const FacultyAttendanceView: React.FC = () => {
                   return sortedDetails.map((record) => {
                     const date = new Date(record.date + "T00:00:00");
                     const dateStr = record.date;
-                    const isFuture = date > new Date().setHours(0,0,0,0);
+                    const isFuture = date > new Date().setHours(0, 0, 0, 0);
 
                     const isPresent = record?.status?.toLowerCase() === 'present';
                     const isAbsent = record?.status?.toLowerCase() === 'absent';
@@ -1096,7 +1096,7 @@ const FacultyAttendanceView: React.FC = () => {
 
           <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/30 pt-6">
             <div className="text-[11px] text-muted-foreground italic font-medium">
-              Note: "A" indicates auto-marked absence due to missing records.
+              Note: "A" indicates auto-marked absence.
             </div>
             <Button onClick={() => setSelectedFaculty(null)} className="rounded-xl px-8 bg-primary text-white hover:bg-primary/90">Close</Button>
           </DialogFooter>

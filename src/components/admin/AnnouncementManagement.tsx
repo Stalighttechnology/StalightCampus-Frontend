@@ -519,7 +519,7 @@ const AdminAnnouncementManagement = () => {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
                 <Input
                   id="title"
                   placeholder="Announcement title"
@@ -531,7 +531,7 @@ const AdminAnnouncementManagement = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="message">Message *</Label>
+                <Label htmlFor="message">Message <span className="text-red-500">*</span></Label>
                 <Textarea
                   id="message"
                   placeholder="Announcement message"
@@ -645,7 +645,7 @@ const AdminAnnouncementManagement = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Target Roles *</Label>
+                <Label>Target Roles <span className="text-red-500">*</span></Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {roles.map((role) => {
                     const isSelected = formData.target_roles?.includes(role) || false;

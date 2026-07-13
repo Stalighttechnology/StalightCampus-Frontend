@@ -133,6 +133,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [users, setUsers] = useState<User[]>([]);
   const [roleFilter, setRoleFilter] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [departments, setDepartments] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState(""); // input value
   const [appliedSearch, setAppliedSearch] = useState(""); // applied term
@@ -163,6 +164,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const isAnyFilterActive =
     (roleFilter !== "" && (!rolesNeedingDept.includes(roleFilter) || departmentFilter !== "")) ||
     (roleFilter === "" && departmentFilter !== "") ||
+    statusFilter !== "All" ||
     appliedSearch !== "";
 
   const handleDownloadCSV = async () => {
@@ -175,12 +177,20 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
       if (departmentFilter && departmentFilter !== "All Branches") {
         queryParams += `&department=${encodeURIComponent(departmentFilter)}`;
       }
+      if (statusFilter !== "All") {
+        queryParams += `&is_active=${statusFilter === "Active"}`;
+      }
       if (appliedSearch.trim()) {
         queryParams += `&search=${encodeURIComponent(appliedSearch.trim())}`;
       }
 
+      const roleStr = roleFilter ? roleFilter.replace(/ /g, '_') : 'All_Roles';
+      const deptStr = (departmentFilter && departmentFilter !== "All Branches") ? departmentFilter.replace(/ /g, '_') : 'All_Departments';
+      const statusStr = statusFilter ? statusFilter : 'All_Status';
+      const fileName = `${roleStr}_${deptStr}_${statusStr}.csv`;
+
       const url = `${API_ENDPOINT}/admin/users/export-csv/${queryParams}`;
-      await downloadFile(url, `User_List_${new Date().toISOString().slice(0, 10)}.csv`);
+      await downloadFile(url, fileName);
       toast({
         title: "Success",
         description: "User list CSV exported successfully",
@@ -199,7 +209,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   // Reset current page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [roleFilter, departmentFilter, appliedSearch]);
+  }, [roleFilter, departmentFilter, appliedSearch, statusFilter]);
 
   // Debounce search input
   useEffect(() => {
@@ -211,11 +221,11 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
   // Clear search query when dropdown filters change
   useEffect(() => {
-    if (roleFilter || departmentFilter) {
+    if (roleFilter || departmentFilter || statusFilter !== "All") {
       setSearchQuery("");
       setAppliedSearch("");
     }
-  }, [roleFilter, departmentFilter]);
+  }, [roleFilter, departmentFilter, statusFilter]);
 
   const handleRoleFilterChange = (val: string) => {
     setRoleFilter(val);
@@ -281,6 +291,10 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         // Add department filter if selected and not 'All Branches'
         if (departmentFilter && departmentFilter !== "All Branches") {
           filterParams.department = departmentFilter;
+        }
+        // Add status filter if selected
+        if (statusFilter !== "All") {
+          filterParams.is_active = statusFilter === "Active";
         }
         // Add search filter if provided
         if (appliedSearch.trim()) {
@@ -350,7 +364,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
       }
     };
     fetchUsers();
-  }, [setError, toast, currentPage, roleFilter, departmentFilter, pageSize, appliedSearch]);
+  }, [setError, toast, currentPage, roleFilter, departmentFilter, statusFilter, pageSize, appliedSearch]);
 
   const filteredUsers = Array.isArray(users) ? users : [];
 
@@ -661,7 +675,16 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                         options={departments}
                         triggerId="dept-select-trigger"
                         disabled={roleFilter !== "" && !rolesNeedingDept.includes(roleFilter)} />
-                      
+                    </div>
+
+                    <div className="flex flex-col gap-2 flex-1 min-w-0">
+                      <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Status</span>
+                      <SelectMenu
+                        label=""
+                        placeholder="Choose Status"
+                        value={statusFilter}
+                        onChange={setStatusFilter}
+                        options={["All", "Active", "Inactive"]} />
                     </div>
                   </div>
                 </div>
