@@ -116,6 +116,20 @@ const ApplyLeaveAdmin = () => {
     return leave.status === statusFilter.toUpperCase();
   });
 
+  const formatDateString = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split(' to ');
+    const formatSingle = (d: string) => {
+      const [y, m, d2] = d.split('-');
+      if (y && m && d2) return `${d2}-${m}-${y}`;
+      return d;
+    };
+    if (parts.length === 2) {
+      return `${formatSingle(parts[0])} to ${formatSingle(parts[1])}`;
+    }
+    return formatSingle(parts[0]);
+  };
+
   const handleSubmit = async () => {
     if (!leaveTitle || !dateRange?.from || !reason.trim()) {
       setError("Please fill in all required fields.");
@@ -250,7 +264,7 @@ const ApplyLeaveAdmin = () => {
 
               {/* Leave Title */}
               <div className="space-y-2">
-                <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title for Leave *</Label>
+                <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title for Leave <span className="text-red-500">*</span></Label>
                 <Input
                   value={leaveTitle}
                   onChange={(e) => setLeaveTitle(e.target.value)}
@@ -262,7 +276,7 @@ const ApplyLeaveAdmin = () => {
 
               {/* Date Range */}
               <div className="space-y-2">
-                <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range *</Label>
+                <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range <span className="text-red-500">*</span></Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -310,7 +324,7 @@ const ApplyLeaveAdmin = () => {
 
               {/* Reason for Leave */}
               <div className="space-y-2">
-                <Label htmlFor="reason" className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason for Leave *</Label>
+                <Label htmlFor="reason" className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason for Leave <span className="text-red-500">*</span></Label>
                 <Textarea
                   id="reason"
                   value={reason}
@@ -398,7 +412,7 @@ const ApplyLeaveAdmin = () => {
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>{leave.title}</h3>
-                            <div className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.date}</div>
+                            <div className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{formatDateString(leave.date)}</div>
                           </div>
                           <div className="shrink-0">
                             <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
@@ -448,7 +462,7 @@ const ApplyLeaveAdmin = () => {
                           key={leave.id}
                           className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
                           <td className={`py-3 px-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</td>
-                          <td className={`py-3 px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.date}</td>
+                          <td className={`py-3 px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{formatDateString(leave.date)}</td>
                           <td className="py-3 px-4 text-sm">
                             <Button
                               size="sm"
