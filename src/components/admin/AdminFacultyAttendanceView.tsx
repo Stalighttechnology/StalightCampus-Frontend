@@ -434,6 +434,14 @@ const AdminFacultyAttendanceView: React.FC = () => {
   };
 
   useEffect(() => {
+    setSelectedFacultyId("all");
+    setSelectedFaculty(null);
+    setTodayAttendance([]);
+    setFacultySummary([]);
+    setAttendanceRecords([]);
+  }, [selectedBranch]);
+
+  useEffect(() => {
     if (selectedBranch) {
       if (activeTab === 'today') {
         fetchTodayAttendance(1, todayPagination.page_size);
