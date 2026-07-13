@@ -182,14 +182,14 @@ const renderTargetRoles = (targetRoles: string[]) => {
   const remainingCount = targetRoles.length - visibleRoles.length;
 
   return (
-    <div className="flex flex-wrap justify-center gap-1.5 max-w-[200px] mx-auto">
+    <div className="flex flex-nowrap justify-center gap-1.5 mx-auto">
       {visibleRoles.map((role) => (
         <Badge key={role} variant="outline" className="text-xs px-2 py-0.5 h-5 font-medium whitespace-nowrap rounded-md">
           {formatRoleName(role)}
         </Badge>
       ))}
       {remainingCount > 0 && (
-        <Badge variant="secondary" className="text-xs px-2 py-0.5 h-5 font-semibold bg-muted text-muted-foreground border-none rounded-md">
+        <Badge variant="secondary" className="text-xs px-2 py-0.5 h-5 font-semibold bg-muted text-muted-foreground border-none rounded-md whitespace-nowrap">
           +{remainingCount} more
         </Badge>
       )}
@@ -421,7 +421,7 @@ export const AnnouncementSections = ({
                       <TableRow className={theme === 'dark' ? 'hover:bg-transparent' : 'bg-gray-50/50 hover:bg-gray-50/50'}>
                         <TableHead className="w-[250px] text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Announcement</TableHead>
                         <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Reason</TableHead>
-                        <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Target Roles</TableHead>
+                        <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 whitespace-nowrap">Target Roles</TableHead>
                         <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Priority</TableHead>
                         <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Status</TableHead>
                         <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Expires</TableHead>
@@ -458,7 +458,7 @@ export const AnnouncementSections = ({
                                 View Content
                               </Button>
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center whitespace-nowrap">
                               {activeTab === 'received' ? (
                                 <Badge variant="outline" className="text-xs px-2 py-0.5 h-5 font-medium rounded-md">
                                   {formatRoleName(announcement.created_by_role)}

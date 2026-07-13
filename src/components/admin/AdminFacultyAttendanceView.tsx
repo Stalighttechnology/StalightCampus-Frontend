@@ -434,6 +434,14 @@ const AdminFacultyAttendanceView: React.FC = () => {
   };
 
   useEffect(() => {
+    setSelectedFacultyId("all");
+    setSelectedFaculty(null);
+    setTodayAttendance([]);
+    setFacultySummary([]);
+    setAttendanceRecords([]);
+  }, [selectedBranch]);
+
+  useEffect(() => {
     if (selectedBranch) {
       if (activeTab === 'today') {
         fetchTodayAttendance(1, todayPagination.page_size);
@@ -727,7 +735,17 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                    ) : null
+                    ) : (
+                      <div className={`flex flex-col items-center justify-center p-8 sm:p-12 border-2 border-dashed rounded-[2rem] mt-4 sm:mt-6 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                        <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                          <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                        </div>
+                        <div className="text-center max-w-sm mt-4">
+                          <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Faculty Found</p>
+                          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>There are no faculty members currently assigned to this branch.</p>
+                        </div>
+                      </div>
+                    )
                   )}
                 </div>
 

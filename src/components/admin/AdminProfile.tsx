@@ -519,7 +519,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
     if (activeTab === 'subscription') {
       if (subLoading) return (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 min-[1150px]:grid-cols-3 gap-4">
             <Skeleton className="h-24 w-full rounded-xl" />
             <Skeleton className="h-24 w-full rounded-xl" />
             <Skeleton className="h-24 w-full rounded-xl" />
@@ -532,9 +532,9 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
       return (
         <div className="space-y-8 animate-in fade-in duration-500">
           {/* Plan Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 min-[1150px]:grid-cols-3 gap-4">
             <Card className={cn("border-none shadow-sm", theme === 'dark' ? 'bg-zinc-900' : 'bg-white')}>
-              <CardContent className="p-4 flex items-center justify-between gap-4">
+              <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600">
                     <ShieldCheck size={24} />

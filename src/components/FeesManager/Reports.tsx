@@ -244,8 +244,11 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
             <div className="space-y-2">
               <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Role Type <span className="text-red-500">*</span></Label>
               <Select value={selectedRole} onValueChange={(val) => {
+                const isFirstSelection = selectedRole === '';
                 setSelectedRole(val);
-                setTimeout(() => setIsStartPopoverOpen(true), 100);
+                if (isFirstSelection) {
+                  setTimeout(() => setIsStartPopoverOpen(true), 100);
+                }
               }}>
                 <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                   <SelectValue placeholder="Select Role" />

@@ -288,6 +288,13 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
   };
 
 
+  const formatDateString = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    if (y && m && d) return `${d}-${m}-${y}`;
+    return dateStr;
+  };
+
   if (loading && leaveRequests.length === 0) {
     return (
       <div className="space-y-6">
@@ -454,9 +461,9 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                       <div className="mt-3 space-y-3">
                         <div className={`p-2.5 rounded-lg border text-sm flex items-center gap-2 ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50/50 border-gray-100'}`}>
                           <CalendarIcon className="w-4 h-4 text-primary/60" />
-                          <span className="font-medium text-foreground">{leave.from}</span>
+                          <span className="font-medium text-foreground">{formatDateString(leave.from)}</span>
                           <span className="text-muted-foreground">to</span>
-                          <span className="font-medium text-foreground">{leave.to}</span>
+                          <span className="font-medium text-foreground">{formatDateString(leave.to)}</span>
                         </div>
 
                         <Button
@@ -516,11 +523,11 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
               <table className="hidden md:table w-full text-sm text-left border-collapse">
                 <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-border bg-card shadow-sm' : 'border-gray-200 bg-gray-50 shadow-sm'}`}>
                   <tr>
-                    <th className={`py-3 px-2 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("HOD")}</th>
-                    <th className={`py-3 px-4 md:px-12 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
-                    <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
-                    <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
-                    <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Action</th>
+                    <th className={`py-3 px-2 md:px-4 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("HOD")}</th>
+                    <th className={`py-3 px-4 md:px-12 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
+                    <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
+                    <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
+                    <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -530,14 +537,14 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                         key={leave.id}
                         className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
 
-                        <td className="py-4 px-2 md:px-4">
+                        <td className="py-4 px-2 md:px-4 text-center">
                           <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.name}</div>
                           <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.department}</div>
                         </td>
-                        <td className={`py-4 px-2 md:px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                          {leave.from} <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {leave.to}
+                        <td className={`py-4 px-2 md:px-4 text-sm text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {formatDateString(leave.from)} <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {formatDateString(leave.to)}
                         </td>
-                        <td className="py-4 px-2 md:px-4 text-sm">
+                        <td className="py-4 px-2 md:px-4 text-sm text-center">
                           <button
                             onClick={() => setViewReason(leave.reason)}
                             className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${theme === 'dark'
@@ -548,10 +555,10 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                             View
                           </button>
                         </td>
-                        <td className="py-4 px-2 md:px-4">{getStatusBadge(leave.status, theme)}</td>
-                        <td className="py-4 px-2 md:px-4">
+                        <td className="py-4 px-2 md:px-4 text-center">{getStatusBadge(leave.status, theme)}</td>
+                        <td className="py-4 px-2 md:px-4 text-center">
                           {leave.status === "Pending" ?
-                            <div className="flex flex-col md:flex-row gap-2">
+                            <div className="flex flex-col md:flex-row justify-center gap-2">
                               <Button
                                 variant="outline"
                                 className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?

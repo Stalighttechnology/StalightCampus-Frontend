@@ -9,16 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
   SelectContent,
-  SelectItem } from
-"@/components/ui/select";
+  SelectItem
+} from
+  "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger } from
-"@/components/ui/dialog";
+  DialogTrigger
+} from
+  "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
@@ -27,8 +29,9 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogHeader,
-  AlertDialogTitle } from
-"@/components/ui/alert-dialog";
+  AlertDialogTitle
+} from
+  "@/components/ui/alert-dialog";
 import { Loader2, Plus, CalendarIcon, Check, Info } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -44,8 +47,9 @@ import {
   toggleAnnouncementActive,
   markAnnouncementRead,
   Announcement,
-  CreateAnnouncementRequest } from
-"@/utils/announcements_api";
+  CreateAnnouncementRequest
+} from
+  "@/utils/announcements_api";
 import AnnouncementSections from "@/components/common/AnnouncementSections";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -156,7 +160,7 @@ const HODAnnouncementManagement = () => {
         const response = await updateAnnouncement(editingId, payload);
         if (response.success) {
           setMyAnnouncements((prev) =>
-          prev.map((a) => a.id === editingId ? response.data : a)
+            prev.map((a) => a.id === editingId ? response.data : a)
           );
           MySwal.fire({
             title: "Updated",
@@ -293,7 +297,7 @@ const HODAnnouncementManagement = () => {
       const response = await toggleAnnouncementActive(announcementId);
       if (response.success) {
         setMyAnnouncements((prev) =>
-        prev.map((a) => a.id === announcementId ? response.data : a)
+          prev.map((a) => a.id === announcementId ? response.data : a)
         );
       } else {
         MySwal.fire({
@@ -320,7 +324,7 @@ const HODAnnouncementManagement = () => {
       const response = await markAnnouncementRead(announcementId);
       if (response.success) {
         setReceivedAnnouncements((prev) =>
-        prev.map((a) => a.id === announcementId ? { ...a, is_read: true } : a)
+          prev.map((a) => a.id === announcementId ? { ...a, is_read: true } : a)
         );
         // Optimistically update local unread count for real-time feel
         setUnreadReceivedCount((prev) => Math.max(0, prev - 1));
@@ -384,14 +388,14 @@ const HODAnnouncementManagement = () => {
                       <Button
                         onClick={() => resetForm()}
                         className="w-full sm:w-auto gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 transition-all duration-200 shadow-md">
-                        
+
                         <Plus className="w-4 h-4" />
                         New Announcement
                       </Button>
                     </DialogTrigger>
                     <DialogContent
                       className="mobile-modal w-[90%] sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl custom-scrollbar">
-                      
+
                       <DialogHeader>
                         <DialogTitle>
                           {editingId ? "Edit Announcement" : "Create Announcement"}
@@ -407,37 +411,37 @@ const HODAnnouncementManagement = () => {
                         <div className="space-y-2">
                           <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
                           <Input
-                              id="title"
-                              placeholder="Announcement title"
-                              value={formData.title}
-                              onChange={(e) =>
+                            id="title"
+                            placeholder="Announcement title"
+                            value={formData.title}
+                            onChange={(e) =>
                               setFormData({ ...formData, title: e.target.value })
-                              } />
-                            
+                            } />
+
                         </div>
 
                         <div className="space-y-2">
                           <Label htmlFor="message">Message <span className="text-red-500">*</span></Label>
                           <Textarea
-                              id="message"
-                              placeholder="Announcement message"
-                              value={formData.message}
-                              onChange={(e) =>
+                            id="message"
+                            placeholder="Announcement message"
+                            value={formData.message}
+                            onChange={(e) =>
                               setFormData({ ...formData, message: e.target.value })
-                              }
-                              className={`h-20 resize-none overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`} />
-                            
+                            }
+                            className={`h-20 resize-none overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`} />
+
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="priority">Priority</Label>
                             <Select
-                                value={formData.priority}
-                                onValueChange={(value: any) =>
+                              value={formData.priority}
+                              onValueChange={(value: any) =>
                                 setFormData({ ...formData, priority: value })
-                                }>
-                                
+                              }>
+
                               <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
@@ -455,27 +459,27 @@ const HODAnnouncementManagement = () => {
                             <Popover>
                               <PopoverTrigger asChild>
                                 <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                      "w-full justify-start text-left font-normal",
-                                      !formData.expires_at && "text-muted-foreground",
-                                      theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'
-                                    )}>
-                                    
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !formData.expires_at && "text-muted-foreground",
+                                    theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'
+                                  )}>
+
                                   <CalendarIcon className="mr-2 h-4 w-4" />
                                   {formData.expires_at ? format(new Date(formData.expires_at), "PPP") : <span>Pick a date</span>}
                                 </Button>
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0" align="start">
                                 <Calendar
-                                    mode="single"
-                                    selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
-                                    onSelect={(date) =>
+                                  mode="single"
+                                  selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
+                                  onSelect={(date) =>
                                     setFormData({ ...formData, expires_at: date ? format(date, "yyyy-MM-dd") : "" })
-                                    }
-                                    disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
-                                    initialFocus />
-                                  
+                                  }
+                                  disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
+                                  initialFocus />
+
                               </PopoverContent>
                             </Popover>
                           </div>
@@ -489,7 +493,24 @@ const HODAnnouncementManagement = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Target Roles <span className="text-red-500">*</span></Label>
+                          <div className="flex justify-between items-center">
+                            <Label>Target Roles <span className="text-red-500">*</span></Label>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className={`h-6 text-xs px-2 ${theme === 'dark' ? 'text-primary hover:bg-primary/20' : 'text-primary hover:bg-primary/10'}`}
+                              onClick={() => {
+                                if (formData.target_roles?.length === roles.length) {
+                                  setFormData({ ...formData, target_roles: [] });
+                                } else {
+                                  setFormData({ ...formData, target_roles: [...roles] });
+                                }
+                              }}
+                            >
+                              {formData.target_roles?.length === roles.length ? "Deselect All" : "Select All"}
+                            </Button>
+                          </div>
                           <div className="grid grid-cols-2 gap-3">
                             {roles.map((role) => {
                               const isSelected = formData.target_roles?.includes(role) || false;
@@ -510,15 +531,14 @@ const HODAnnouncementManagement = () => {
                                       });
                                     }
                                   }}
-                                  className={`flex items-center justify-between p-3 rounded-lg border text-sm font-medium transition-all duration-200 ${
-                                    isSelected
+                                  className={`flex items-center justify-between p-3 rounded-lg border text-sm font-medium transition-all duration-200 ${isSelected
                                       ? theme === 'dark'
                                         ? 'bg-primary/20 border-primary text-primary-foreground shadow-sm'
                                         : 'bg-primary/10 border-primary text-primary shadow-sm'
                                       : theme === 'dark'
                                         ? 'bg-card border-border hover:bg-accent text-muted-foreground'
                                         : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'
-                                  }`}
+                                    }`}
                                 >
                                   <span className="capitalize">{role}</span>
                                   {isSelected && (
@@ -532,25 +552,25 @@ const HODAnnouncementManagement = () => {
 
                         <div className="flex gap-3 justify-end pt-4">
                           <Button
-                              variant="outline"
-                              onClick={() => setShowCreateDialog(false)}>
-                              
+                            variant="outline"
+                            onClick={() => setShowCreateDialog(false)}>
+
                             Cancel
                           </Button>
                           <Button
-                              onClick={handleCreateOrUpdate}
-                              disabled={submitting}
-                              className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 transition-all duration-200">
-                              
-                             {submitting ? (
-                               <>
-                                 <Loader2 className="w-4 h-4 animate-spin mr-2 inline-block" />
-                                 {editingId ? "Updating..." : "Creating..."}
-                               </>
-                             ) : (
-                               <>{editingId ? "Update" : "Create"} Announcement</>
-                             )}
-                           </Button>
+                            onClick={handleCreateOrUpdate}
+                            disabled={submitting}
+                            className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 transition-all duration-200">
+
+                            {submitting ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin mr-2 inline-block" />
+                                {editingId ? "Updating..." : "Creating..."}
+                              </>
+                            ) : (
+                              <>{editingId ? "Update" : "Create"} Announcement</>
+                            )}
+                          </Button>
                         </div>
                       </div>
                     </DialogContent>
@@ -580,7 +600,7 @@ const HODAnnouncementManagement = () => {
             />
           }
         </Card>
-    </div>
+      </div>
     </>);
 
 };

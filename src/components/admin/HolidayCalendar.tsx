@@ -18,6 +18,7 @@ interface HolidayCalendarProps {
 
 export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = false, showExams = false, showLeaves = false, userRole }) => {
     const [holidays, setHolidays] = useState<Holiday[]>([]);
+    const [upcomingHolidays, setUpcomingHolidays] = useState<Holiday[]>([]);
     const [examEvents, setExamEvents] = useState<ExamEvent[]>([]);
     const [leaveEvents, setLeaveEvents] = useState<LeaveEvent[]>([]);
     const [loading, setLoading] = useState(true);
@@ -47,7 +48,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
             setLoading(true);
             const startDate = format(startOfMonth(date), 'yyyy-MM-dd');
             const endDate = format(endOfMonth(date), 'yyyy-MM-dd');
-            
+
             const data = await getHolidays(startDate, endDate);
             setHolidays(data);
         } catch (err) {
@@ -57,16 +58,38 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
         }
     };
 
+    const fetchUpcomingHolidays = async () => {
+        try {
+            const startDate = format(new Date(), 'yyyy-MM-dd');
+            const endDate = format(addMonths(new Date(), 12), 'yyyy-MM-dd');
+            const data = await getHolidays(startDate, endDate);
+
+            const today = startOfDay(new Date());
+            const filtered = data
+                .filter(h => parseISO(h.date) >= today)
+                .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime())
+                .slice(0, 25);
+
+            setUpcomingHolidays(filtered);
+        } catch (err) {
+            console.error('Failed to fetch upcoming holidays');
+        }
+    };
+
     useEffect(() => {
         fetchHolidays(currentDate);
     }, [currentDate.getMonth(), currentDate.getFullYear()]);
+
+    useEffect(() => {
+        fetchUpcomingHolidays();
+    }, []);
 
     // Fetch student exams for the current month when showExams is enabled
     useEffect(() => {
         if (!showExams) return;
         const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
         const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
-        
+
         getStudentExams(startDate, endDate).then(setExamEvents).catch(() => setExamEvents([]));
     }, [showExams, currentDate.getMonth(), currentDate.getFullYear()]);
 
@@ -75,7 +98,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
         if (!showLeaves) return;
         const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
         const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
-        
+
         getMyApprovedLeaves(userRole, startDate, endDate).then(setLeaveEvents).catch(() => setLeaveEvents([]));
     }, [showLeaves, userRole, currentDate.getMonth(), currentDate.getFullYear()]);
 
@@ -174,6 +197,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
             });
             setIsModalOpen(false);
             fetchHolidays();
+            fetchUpcomingHolidays();
             await showSuccessAlert('Saved!', 'Event/Holiday has been saved successfully.');
         } catch (err) {
             await showErrorAlert('Error', 'Failed to save event/holiday.');
@@ -194,6 +218,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                 await deleteHoliday(existingHoliday.id);
                 setIsModalOpen(false);
                 fetchHolidays();
+                fetchUpcomingHolidays();
                 await showSuccessAlert('Deleted!', 'Event/Holiday has been deleted.');
             } catch (err) {
                 await showErrorAlert('Error', 'Failed to delete event/holiday.');
@@ -223,9 +248,9 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                 </span>
                             </div>
                         </div>
-                        
-                        <div className="flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-between sm:justify-start">
-                            <div className={`flex flex-1 sm:flex-initial items-center justify-between sm:justify-start gap-1 p-1 rounded-lg border ${theme === 'dark' ? 'bg-muted/10 border-border/50' : 'bg-gray-50 border-gray-200'}`}>
+
+                        <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2">
+                            <div className={`flex shrink-0 items-center justify-center gap-1 p-1 rounded-lg border ${theme === 'dark' ? 'bg-muted/10 border-border/50' : 'bg-gray-50 border-gray-200'}`}>
                                 <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md hover:bg-primary/10" onClick={handlePreviousMonth}>
                                     <ChevronLeft className="h-3.5 w-3.5" />
                                 </Button>
@@ -236,21 +261,20 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                     <ChevronRight className="h-3.5 w-3.5" />
                                 </Button>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                                <Button variant="outline" size="sm" className={`h-8 px-2 text-xs font-medium ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`} onClick={handleToday}>
+                            <div className="flex flex-1 items-center gap-2">
+                                <Button variant="outline" size="sm" className={`flex-1 h-8 px-3 sm:px-2 text-xs font-medium ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`} onClick={handleToday}>
                                     Today
                                 </Button>
                                 {!readOnly && (
-                                    <Button 
-                                        size="sm" 
-                                        className={`sm:hidden h-8 px-3 text-xs font-semibold flex items-center gap-1.5 shadow-sm rounded-lg ${
-                                            isEditModeActive 
-                                                ? "bg-emerald-600 hover:bg-emerald-700 text-white" 
+                                    <Button
+                                        size="sm"
+                                        className={`sm:hidden flex-1 h-8 px-3 text-xs font-semibold flex justify-center items-center gap-1.5 shadow-sm rounded-lg ${isEditModeActive
+                                                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
                                                 : "bg-primary hover:bg-primary/90 text-white"
-                                        }`}
+                                            }`}
                                         onClick={() => setIsEditModeActive(!isEditModeActive)}
                                     >
-                                        <Edit className="w-3.5 h-3.5" /> 
+                                        <Edit className="w-3.5 h-3.5" />
                                         {isEditModeActive ? "Done" : "Edit"}
                                     </Button>
                                 )}
@@ -279,16 +303,15 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                             )}
                         </div>
                         {!readOnly && (
-                            <Button 
-                                size="sm" 
-                                className={`hidden sm:flex h-8 px-3 text-xs font-semibold items-center gap-1.5 shadow-sm rounded-lg ${
-                                    isEditModeActive 
-                                        ? "bg-emerald-600 hover:bg-emerald-700 text-white" 
+                            <Button
+                                size="sm"
+                                className={`hidden sm:flex h-8 px-3 text-xs font-semibold items-center gap-1.5 shadow-sm rounded-lg ${isEditModeActive
+                                        ? "bg-emerald-600 hover:bg-emerald-700 text-white"
                                         : "bg-primary hover:bg-primary/90 text-white"
-                                }`}
+                                    }`}
                                 onClick={() => setIsEditModeActive(!isEditModeActive)}
                             >
-                                <Edit className="w-3.5 h-3.5" /> 
+                                <Edit className="w-3.5 h-3.5" />
                                 {isEditModeActive ? "Done" : "Edit"}
                             </Button>
                         )}
@@ -323,15 +346,14 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                     <div
                                         key={day.toString()}
                                         onClick={() => handleDayClick(day)}
-                                        className={`h-full min-h-0 p-1.5 hover:bg-primary/5 transition-colors relative flex flex-col justify-between ${
-                                            hasHoliday || hasExam || hasLeave || (!readOnly && isEditModeActive) ? 'cursor-pointer' : ''
-                                        } ${!isCurrentMonth ? (theme === 'dark' ? 'bg-muted/10 text-muted-foreground/30' : 'bg-gray-50/50 text-gray-400') : (
-                                            hasHoliday ? (
-                                                dayHolidays[0].holiday_type === 'event'
-                                                    ? (theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5')
-                                                    : (theme === 'dark' ? 'bg-rose-500/10' : 'bg-rose-50/50')
-                                            ) : hasExam ? (theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50/60') : hasLeave ? (theme === 'dark' ? 'bg-teal-500/10' : 'bg-teal-50/60') : (theme === 'dark' ? 'bg-card' : 'bg-white')
-                                        )} ${isToday ? 'ring-1 ring-primary/30' : ''}`}
+                                        className={`h-full min-h-0 p-1.5 hover:bg-primary/5 transition-colors relative flex flex-col justify-between ${hasHoliday || hasExam || hasLeave || (!readOnly && isEditModeActive) ? 'cursor-pointer' : ''
+                                            } ${!isCurrentMonth ? (theme === 'dark' ? 'bg-muted/10 text-muted-foreground/30' : 'bg-gray-50/50 text-gray-400') : (
+                                                hasHoliday ? (
+                                                    dayHolidays[0].holiday_type === 'event'
+                                                        ? (theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5')
+                                                        : (theme === 'dark' ? 'bg-rose-500/10' : 'bg-rose-50/50')
+                                                ) : hasExam ? (theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50/60') : hasLeave ? (theme === 'dark' ? 'bg-teal-500/10' : 'bg-teal-50/60') : (theme === 'dark' ? 'bg-card' : 'bg-white')
+                                            )} ${isToday ? 'ring-1 ring-primary/30' : ''}`}
                                     >
                                         {/* Left border strip */}
                                         {hasHoliday && (
@@ -355,10 +377,10 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                         </div>
 
                                         {/* Holiday details text & Pill */}
-                                        <div className="mt-1 flex-1 flex-col gap-1 hidden sm:flex overflow-y-auto custom-scrollbar">
+                                        <div className="mt-1 flex-1 flex-col gap-1 hidden sm:flex overflow-y-auto overflow-x-hidden custom-scrollbar">
                                             {isCurrentMonth && hasHoliday && (
-                                                <div className="flex flex-col gap-1 items-start">
-                                                    <span className={`text-[10px] md:text-xs font-medium leading-tight line-clamp-1 ${dayHolidays[0].holiday_type === 'event' ? 'text-primary' : 'text-rose-500'}`} title={dayHolidays[0].description}>
+                                                <div className="flex flex-col gap-1 items-start w-full">
+                                                    <span className={`text-[10px] md:text-xs font-medium leading-tight line-clamp-1 break-all w-full ${dayHolidays[0].holiday_type === 'event' ? 'text-primary' : 'text-rose-500'}`} title={dayHolidays[0].description}>
                                                         {dayHolidays[0].description}
                                                     </span>
                                                     <span
@@ -372,8 +394,8 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
 
                                             {/* Exam chips */}
                                             {isCurrentMonth && !hasLeave && dayExams.slice(0, 2).map(exam => (
-                                                <div key={exam.id} className="flex flex-col gap-0.5 items-start">
-                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 text-amber-600 dark:text-amber-400" title={exam.subject}>
+                                                <div key={exam.id} className="flex flex-col gap-0.5 items-start w-full">
+                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 break-all w-full text-amber-600 dark:text-amber-400" title={exam.subject}>
                                                         {exam.subject}
                                                     </span>
                                                     <span
@@ -390,8 +412,8 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
 
                                             {/* Leave chips */}
                                             {isCurrentMonth && dayLeaves.slice(0, 1).map(leave => (
-                                                <div key={leave.id} className="flex flex-col gap-0.5 items-start">
-                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 text-teal-600 dark:text-teal-400" title={leave.leave_type}>
+                                                <div key={leave.id} className="flex flex-col gap-0.5 items-start w-full">
+                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 break-all w-full text-teal-600 dark:text-teal-400" title={leave.leave_type}>
                                                         {leave.leave_type?.replace(/_/g, ' ')}
                                                     </span>
                                                     <span
@@ -427,7 +449,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
 
             {/* Event dialog (Add/Edit) */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent 
+                <DialogContent
                     onPointerDownOutside={(e) => e.preventDefault()}
                     className={theme === 'dark' ? 'bg-card text-foreground border border-border w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}
                 >

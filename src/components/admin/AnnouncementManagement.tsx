@@ -309,10 +309,10 @@ const AdminAnnouncementManagement = () => {
         if (response.success) {
           const isMy = myAnnouncements.some((a) => a.id === announcementId);
           const isReceived = receivedAnnouncements.some((a) => a.id === announcementId);
-          
+
           setMyAnnouncements((prev) => prev.filter((a) => a.id !== announcementId));
           setReceivedAnnouncements((prev) => prev.filter((a) => a.id !== announcementId));
-          
+
           if (isMy) setTotalMyCount((prev) => Math.max(0, prev - 1));
           if (isReceived) setTotalReceivedCount((prev) => Math.max(0, prev - 1));
 
@@ -461,7 +461,7 @@ const AdminAnnouncementManagement = () => {
 
   const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager"];
   const BASIC_ROLES = ["student", "hod", "faculty", "principal", "org_admin", "dean"];
-  
+
   const getTargetRolesForUser = (userRole: string) => {
     switch (userRole) {
       case "principal":
@@ -645,7 +645,24 @@ const AdminAnnouncementManagement = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Target Roles <span className="text-red-500">*</span></Label>
+                <div className="flex justify-between items-center">
+                  <Label>Target Roles <span className="text-red-500">*</span></Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className={`h-6 text-xs px-2 ${theme === 'dark' ? 'text-primary hover:bg-primary/20' : 'text-primary hover:bg-primary/10'}`}
+                    onClick={() => {
+                      if (formData.target_roles?.length === roles.length) {
+                        setFormData({ ...formData, target_roles: [] });
+                      } else {
+                        setFormData({ ...formData, target_roles: [...roles] });
+                      }
+                    }}
+                  >
+                    {formData.target_roles?.length === roles.length ? "Deselect All" : "Select All"}
+                  </Button>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {roles.map((role) => {
                     const isSelected = formData.target_roles?.includes(role) || false;
@@ -667,12 +684,12 @@ const AdminAnnouncementManagement = () => {
                           }
                         }}
                         className={`flex items-center gap-3 p-3 rounded-lg border text-sm font-medium transition-all duration-200 cursor-pointer select-none ${isSelected
-                            ? theme === 'dark'
-                              ? 'bg-primary/20 border-primary text-primary-foreground shadow-sm'
-                              : 'bg-primary/10 border-primary text-primary shadow-sm'
-                            : theme === 'dark'
-                              ? 'bg-card border-border hover:bg-accent text-muted-foreground'
-                              : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'
+                          ? theme === 'dark'
+                            ? 'bg-primary/20 border-primary text-primary-foreground shadow-sm'
+                            : 'bg-primary/10 border-primary text-primary shadow-sm'
+                          : theme === 'dark'
+                            ? 'bg-card border-border hover:bg-accent text-muted-foreground'
+                            : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'
                           }`}
                       >
                         <Checkbox
