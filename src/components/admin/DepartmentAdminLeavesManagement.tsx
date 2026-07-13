@@ -647,7 +647,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
             )}
           </CardContent>
 
-          {totalCount > 1 && (
+          {totalCount > 10 && (
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
               <div>
                 Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
