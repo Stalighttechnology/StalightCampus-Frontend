@@ -58,6 +58,9 @@ interface Payment {
   invoice: {
     id: number;
     invoice_number: string;
+    semester?: number | null;
+    invoice_type?: string | null;
+    academic_year?: string | null;
     student: {
       id: number;
       name: string;
@@ -225,6 +228,9 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
         normalized.invoice = {
           id: null,
           invoice_number: 'N/A',
+          invoice_type: 'Custom',
+          academic_year: 'N/A',
+          semester: null,
           student: { id: null, name: 'N/A', usn: '', department: '', semester: '' },
           fee_assignment: { template: { name: 'N/A', fee_type: '' } }
         } as any;
@@ -233,6 +239,9 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
         normalized.invoice.fee_assignment = normalized.invoice.fee_assignment || { template: { name: 'N/A', fee_type: '' } };
         normalized.invoice.student.department = normalized.invoice.student.department || normalized.invoice.student.branch || '';
         normalized.invoice.student.semester = normalized.invoice.student.semester || '';
+        normalized.invoice.invoice_type = normalized.invoice.invoice_type || '';
+        normalized.invoice.academic_year = normalized.invoice.academic_year || '';
+        normalized.invoice.semester = normalized.invoice.semester || null;
       }
 
 
@@ -592,7 +601,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                       <TableCell className="px-6 align-middle">
                         <div className="font-semibold text-foreground leading-tight">{p.invoice.student.name}</div>
                         <div className="text-[13px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">
-                          {p.invoice.student.usn} • Sem {p.invoice.student.semester}
+                          {p.invoice.student.usn} • Sem {p.invoice.semester && p.invoice.semester !== 'N/A' ? p.invoice.semester : p.invoice.student.semester || 'N/A'}
                         </div>
                       </TableCell>
                       <TableCell className="text-right align-middle">
@@ -756,7 +765,13 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                     </div>
                     <div className="col-span-2">
                       <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>{translateTerminology("Semester")}</p>
-                      <p className="text-sm font-semibold mt-1 text-primary">Semester {selectedPayment.invoice.student.semester || 'N/A'}</p>
+                      <p className="text-sm font-semibold mt-1 text-primary">
+                        {selectedPayment.invoice.semester && selectedPayment.invoice.semester !== 'N/A'
+                          ? `Semester ${selectedPayment.invoice.semester}`
+                          : selectedPayment.invoice.student.semester && selectedPayment.invoice.student.semester !== 'N/A'
+                          ? `Semester ${selectedPayment.invoice.student.semester}`
+                          : 'N/A'}
+                      </p>
                     </div>
                   </div>
 
@@ -771,7 +786,9 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                     <div>
                       <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Fee Type / Semester</p>
                       <p className={`text-sm font-medium mt-1 capitalize ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
-                        {selectedPayment.invoice?.fee_assignment?.template?.fee_type || 'N/A'}
+                        {selectedPayment.invoice?.fee_assignment?.template?.fee_type || 
+                         (selectedPayment.invoice?.invoice_type ? selectedPayment.invoice.invoice_type.replace('_', ' ') : 'N/A')}
+                        {selectedPayment.invoice?.academic_year ? ` (${selectedPayment.invoice.academic_year})` : ''}
                       </p>
                     </div>
                     <div>

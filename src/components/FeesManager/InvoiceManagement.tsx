@@ -79,6 +79,14 @@ interface Invoice {
   status: 'unpaid' | 'partially_paid' | 'paid' | 'overdue';
   created_at: string;
   academic_year?: string;
+  semester?: number | null;
+  components?: {
+    id: number;
+    name: string;
+    amount: number;
+    paid: number;
+    balance: number;
+  }[];
 }
 
 interface Payment {
@@ -319,7 +327,13 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
         ...inv,
         total_amount: (inv.total_amount_cents ?? 0) / 100,
         paid_amount: (inv.paid_amount_cents ?? 0) / 100,
-        pending_amount: (inv.pending_amount_cents ?? 0) / 100
+        pending_amount: (inv.pending_amount_cents ?? 0) / 100,
+        components: (inv.components || []).map((c: any) => ({
+          ...c,
+          amount: (c.amount_cents ?? 0) / 100,
+          paid: (c.paid_cents ?? 0) / 100,
+          balance: (c.balance_cents ?? 0) / 100
+        }))
       };
 
       const normalizedPayments = (inv.payments || []).map((p: any) => ({
@@ -742,7 +756,9 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                       </TableCell>
                       <TableCell className="align-middle">
                         <div className="font-semibold text-foreground leading-tight text-sm sm:text-md">{inv.student.name}</div>
-                        <div className="text-[13px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">{inv.student.usn} • Sem {inv.student.semester}</div>
+                        <div className="text-[13px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">
+                          {inv.student.usn} • Sem {inv.semester && inv.semester !== 'N/A' ? inv.semester : inv.student.semester || 'N/A'}
+                        </div>
                       </TableCell>
                       <TableCell className="align-middle">
                         <div className="font-medium text-sm leading-tight">{inv.fee_assignment?.template?.name || 'Manual Entry'}</div>
@@ -886,7 +902,13 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
               </div>
               <div className="col-span-2">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{translateTerminology("Semester")}</p>
-                <p className="text-sm font-semibold mt-1 text-primary">Semester {selectedInvoice?.student?.semester || 'N/A'}</p>
+                <p className="text-sm font-semibold mt-1 text-primary">
+                  {selectedInvoice?.semester && selectedInvoice.semester !== 'N/A'
+                    ? `Semester ${selectedInvoice.semester}`
+                    : selectedInvoice?.student?.semester && selectedInvoice.student.semester !== 'N/A'
+                    ? `Semester ${selectedInvoice.student.semester}`
+                    : 'N/A'}
+                </p>
               </div>
             </div>
 
@@ -911,6 +933,35 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 </p>
               </div>
             </div>
+
+            {/* Fee Components / Particulars */}
+            {selectedInvoice?.components && selectedInvoice.components.length > 0 && (
+              <div className="space-y-3">
+                <h4 className={`text-xs font-semibold uppercase tracking-widest block px-1 ${theme === 'dark' ? 'text-foreground/85' : 'text-slate-700'}`}>Particulars / Fee Components</h4>
+                <div className={`border rounded-lg overflow-hidden ${theme === 'dark' ? 'bg-card border-border' : 'border-slate-200 bg-white'}`}>
+                  <Table>
+                    <TableHeader className={`border-b ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-slate-50 border-slate-200'}`}>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="h-9 text-xs font-semibold uppercase text-muted-foreground px-4">Particulars</TableHead>
+                        <TableHead className="h-9 text-right text-xs font-semibold uppercase text-muted-foreground px-4">Amount</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedInvoice.components.map((comp) => (
+                        <TableRow key={comp.id} className={`transition-colors border-b last:border-0 ${theme === 'dark' ? 'border-border hover:bg-muted/20' : 'border-slate-100 hover:bg-slate-50/50'}`}>
+                          <TableCell className={`py-2.5 px-4 text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-slate-700'}`}>
+                            {comp.name}
+                          </TableCell>
+                          <TableCell className={`py-2.5 px-4 text-right font-bold text-xs ${theme === 'dark' ? 'text-foreground' : 'text-slate-900'}`}>
+                            {formatCurrency(comp.amount)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
 
             {/* Financial Summary */}
             <div className={`p-4 rounded-lg border grid grid-cols-3 gap-4 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-slate-200'}`}>
