@@ -699,9 +699,9 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 invoices.length === 0 ?
 
                 <TableRow>
-                    <TableCell colSpan={7} className="h-80 p-0 align-middle">
+                    <TableCell colSpan={7} className="h-80 text-center p-0 sm:p-4">
                       {!(selectedFilters.batchId && selectedFilters.branchId && selectedFilters.semesterId && selectedFilters.sectionId && selectedFilters.admissionMode) && appliedSearch.length < 3 ?
-                        <div className="sticky left-0 right-0 w-full max-w-[90vw] sm:max-w-3xl mx-auto flex flex-col items-center justify-center bg-muted/5 p-4 sm:p-8 rounded-xl border border-dashed my-4 sm:mx-6 text-center">
+                        <div className="sticky left-4 sm:static flex flex-col items-center justify-center bg-muted/5 p-4 sm:p-8 rounded-xl border border-dashed w-[calc(100vw-2rem)] sm:w-auto ml-0 sm:mx-6 my-4 sm:my-0 text-center">
                           <div className="relative mb-4 sm:mb-6">
                             <div className="absolute -top-4 -right-4 bg-primary/10 p-3 rounded-full animate-bounce">
                               <MousePointer2 className="h-3 w-3 text-primary" />
@@ -711,10 +711,10 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                             </div>
                           </div>
                           <h3 className="text-lg font-semibold text-foreground mb-2">Selection Required</h3>
-                          <p className="text-muted-foreground max-w-sm mb-6 sm:mb-8 text-sm px-2">
+                          <p className="text-muted-foreground max-w-sm mb-6 sm:mb-8 text-sm px-2 sm:px-0">
                             Please complete the cascading filter selection or search by USN to load invoice data.
                           </p>
-                          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 sm:gap-4 w-full">
+                          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 sm:gap-4 w-full sm:max-w-2xl">
                             {[
                         { label: 'Batch', active: !!selectedFilters.batchId },
                         { label: translateTerminology("Branch"), active: !!selectedFilters.branchId },
