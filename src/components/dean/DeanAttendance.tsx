@@ -140,7 +140,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                           </div>
                         ) : (
                           <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            {h.status === 'present' ? 'Present' : 'Absent'}{h.marked_at ? ` • ${new Date(h.marked_at).toLocaleTimeString()}` : ''}
+                            {h.status === 'present' ? 'Present' : h.status === 'absent' ? 'Absent' : h.status === 'holiday' ? 'Holiday' : 'Not Marked'}{h.marked_at ? ` • ${new Date(h.marked_at).toLocaleTimeString()}` : ''}
                           </div>
                         )}
                       </div>
@@ -157,9 +157,13 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                         ) : (
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${h.status === 'present'
                               ? (theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800')
-                              : (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
+                              : h.status === 'absent'
+                              ? (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
+                              : h.status === 'holiday'
+                              ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-800')
+                              : (theme === 'dark' ? 'bg-yellow-900/30 text-yellow-400' : 'bg-yellow-100 text-yellow-800')
                             }`}>
-                            {h.status === 'present' ? 'Present' : 'Absent'}
+                            {h.status === 'present' ? 'Present' : h.status === 'absent' ? 'Absent' : h.status === 'holiday' ? 'Holiday' : 'Not Marked'}
                           </span>
                         )}
                       </div>
@@ -217,7 +221,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
               <CardContent className="flex-1">
                 <div className="grid grid-cols-1 gap-3">
                   {allAdmins.length > 0 ? allAdmins.map((a: any) => {
-                    const isPresent = a.is_present || false;
+                    const isPresent = a.status === 'present' || a.is_present === true;
                     return (
                       <div key={a.id} className={`flex items-center justify-between p-3 rounded ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
                         <div className="min-w-0 flex-1 mr-2">
@@ -227,9 +231,13 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                         <div className="flex-shrink-0">
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${isPresent
                               ? (theme === 'dark' ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-100 text-indigo-800')
-                              : (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
+                              : a.status === 'absent'
+                              ? (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
+                              : a.status === 'holiday'
+                              ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-800')
+                              : (theme === 'dark' ? 'bg-yellow-900/30 text-yellow-400' : 'bg-yellow-100 text-yellow-800')
                             }`}>
-                            {isPresent ? (isMonthly ? 'Active in Period' : 'Present') : (isMonthly ? 'Inactive' : 'Absent')}
+                            {isPresent ? (isMonthly ? 'Active in Period' : 'Present') : (isMonthly ? 'Inactive' : a.status === 'absent' ? 'Absent' : a.status === 'holiday' ? 'Holiday' : 'Not Marked')}
                           </span>
                         </div>
                       </div>

@@ -1,5 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useRef } from "react";
+import Swal from "sweetalert2";
 import {
   Card,
   CardContent,
@@ -96,10 +97,10 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
       !formData.role
     ) {
       setError("All fields are required");
-      toast({
-        variant: "destructive",
+      Swal.fire({
         title: "Error",
-        description: "All fields are required",
+        text: "All fields are required",
+        icon: "error"
       });
       return;
     }
@@ -107,10 +108,10 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
     // Block submission if email or phone is invalid
     if (emailError || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z][a-zA-Z0-9-]*\.[a-zA-Z]{2,}$/.test(formData.email)) {
       setError("Please enter a valid email address.");
-      toast({
-        variant: "destructive",
+      Swal.fire({
         title: "Error",
-        description: "Please enter a valid email address.",
+        text: "Please enter a valid email address.",
+        icon: "error"
       });
       return;
     }
@@ -118,10 +119,10 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
     if (formData.phone && !/^\d{10}$/.test(formData.phone.trim())) {
       setPhoneError("Phone number must be exactly 10 digits.");
       setError("Please enter a valid 10-digit phone number.");
-      toast({
-        variant: "destructive",
+      Swal.fire({
         title: "Error",
-        description: "Please enter a valid 10-digit phone number.",
+        text: "Please enter a valid 10-digit phone number.",
+        icon: "error"
       });
       return;
     }
@@ -142,7 +143,7 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
     try {
       const response = await enrollUser(payload);
       if (response.success) {
-        toast({ title: "Success", description: "User enrolled successfully" });
+        Swal.fire({ title: "Success", text: "User enrolled successfully", icon: "success" });
         setFormData({
           email: "",
           first_name: "",
@@ -153,18 +154,18 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
         });
       } else {
         setError(response.message || "Failed to enroll staff");
-        toast({
-          variant: "destructive",
+        Swal.fire({
           title: "Error",
-          description: response.message || "Failed to enroll staff",
+          text: response.message || "Failed to enroll staff",
+          icon: "error"
         });
       }
     } catch (err) {
       setError("Network error while enrolling staff");
-      toast({
-        variant: "destructive",
+      Swal.fire({
         title: "Error",
-        description: "Network error while enrolling user",
+        text: "Network error while enrolling user",
+        icon: "error"
       });
     } finally {
       setLoading(false);
