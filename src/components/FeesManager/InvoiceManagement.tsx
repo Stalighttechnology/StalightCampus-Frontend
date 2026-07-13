@@ -678,15 +678,15 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
           {/* Table Area */}
           <div className="rounded-xl border border-border/50 overflow-hidden bg-card/30">
             <Table>
-              <TableHeader className="bg-muted/30 text-md sm:text-lg">
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="font-semibold py-4 px-6 text-foreground h-12">Invoice Info</TableHead>
-                  <TableHead className="font-semibold text-foreground h-12">Student Details</TableHead>
-                  <TableHead className="font-semibold text-foreground h-12">Template Details</TableHead>
-                  <TableHead className="text-right font-semibold text-foreground h-12">Total</TableHead>
-                  <TableHead className="text-right font-semibold text-foreground h-12">Pending</TableHead>
-                  <TableHead className="text-center font-semibold text-foreground h-12">Status</TableHead>
-                  <TableHead className="text-right font-semibold pr-6 text-foreground h-12">Actions</TableHead>
+              <TableHeader className="bg-muted/40">
+                <TableRow className="hover:bg-transparent border-b border-border/50">
+                  <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Invoice Info</TableHead>
+                  <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Student Details</TableHead>
+                  <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Template Details</TableHead>
+                  <TableHead className="px-6 py-4 text-right text-[13px] font-semibold uppercase tracking-wider">Total</TableHead>
+                  <TableHead className="px-6 py-4 text-right text-[13px] font-semibold uppercase tracking-wider">Pending</TableHead>
+                  <TableHead className="px-6 py-4 text-center text-[13px] font-semibold uppercase tracking-wider">Status</TableHead>
+                  <TableHead className="px-6 py-4 text-right pr-6 text-[13px] font-semibold uppercase tracking-wider">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
