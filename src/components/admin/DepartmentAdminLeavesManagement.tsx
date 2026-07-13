@@ -293,6 +293,13 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
   };
 
 
+  const formatDateString = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    if (y && m && d) return `${d}-${m}-${y}`;
+    return dateStr;
+  };
+
   return (
     <>
       <style>{`
@@ -476,9 +483,9 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                         <div className="mt-3 space-y-3">
                           <div className={`p-2.5 rounded-lg border text-sm flex items-center gap-2 ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50/50 border-gray-100'}`}>
                             <CalendarIcon className="w-4 h-4 text-primary/60" />
-                            <span className="font-medium text-foreground">{leave.from}</span>
+                            <span className="font-medium text-foreground">{formatDateString(leave.from)}</span>
                             <span className="text-muted-foreground">to</span>
-                            <span className="font-medium text-foreground">{leave.to}</span>
+                            <span className="font-medium text-foreground">{formatDateString(leave.to)}</span>
                           </div>
 
                           <Button
@@ -542,11 +549,11 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                 <table className="hidden md:table w-full text-sm text-left border-collapse">
                   <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-border bg-card shadow-sm' : 'border-gray-200 bg-gray-50 shadow-sm'}`}>
                     <tr>
-                      <th className={`py-3 px-2 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Admin</th>
-                      <th className={`py-3 px-4 md:px-12 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
-                      <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
-                      <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
-                      <th className={`py-3 px-2 text-right font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>
+                      <th className={`py-3 px-2 md:px-4 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Admin</th>
+                      <th className={`py-3 px-4 md:px-12 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
+                      <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
+                      <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
+                      <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -556,16 +563,16 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                           key={leave.id}
                           className={`transition-colors duration-200 border-b ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
 
-                          <td className="py-4 px-2 md:px-4">
+                          <td className="py-4 px-2 md:px-4 text-center">
                             <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.name}</div>
                             <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                               {leave.role === 'transport_admin' ? 'Transport Admin' : leave.role === 'library_admin' ? 'Library Admin' : leave.role === 'hms_admin' ? 'Hostel Admin' : leave.role} • {leave.department}
                             </div>
                           </td>
-                          <td className={`py-4 px-2 md:px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                            {leave.from} <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {leave.to}
+                          <td className={`py-4 px-2 md:px-4 text-sm text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            {formatDateString(leave.from)} <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {formatDateString(leave.to)}
                           </td>
-                          <td className="py-4 px-2 md:px-4 text-sm">
+                          <td className="py-4 px-2 md:px-4 text-sm text-center">
                             <button
                               onClick={() => setViewLeave(leave)}
                               className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${
@@ -577,10 +584,10 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                               View
                             </button>
                           </td>
-                          <td className="py-4 px-2 md:px-4">{getStatusBadge(leave.status, theme)}</td>
-                          <td className="py-4 px-2 md:px-4 text-right">
+                          <td className="py-4 px-2 md:px-4 text-center">{getStatusBadge(leave.status, theme)}</td>
+                          <td className="py-4 px-2 md:px-4 text-center">
                             {leave.status === "Pending" ? (
-                              <div className="flex justify-end gap-2">
+                              <div className="flex justify-center gap-2">
                                 <Button
                                   onClick={() => handleApprove(leave.id)}
                                   size="sm"
