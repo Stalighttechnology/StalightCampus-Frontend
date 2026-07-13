@@ -783,6 +783,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                   name="total_semesters"
                   value={editData?.total_semesters || 8}
                   onChange={handleEditChange}
+                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
                   className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}
                 />
               </div>
@@ -842,7 +843,9 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                   max="20"
                   placeholder="e.g. 8"
                   value={newBranch.total_semesters}
-                  onChange={(e) => setNewBranch({ ...newBranch, total_semesters: parseInt(e.target.value) || 8 })} />
+                  onChange={(e) => setNewBranch({ ...newBranch, total_semesters: parseInt(e.target.value) || 8 })}
+                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                />
               </div>
             </div>
             <DialogFooter className="flex gap-3">
