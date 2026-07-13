@@ -140,15 +140,14 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
-      setAppliedSearch(searchQuery.trim());
+      setAppliedSearch((prev) => {
+        const next = searchQuery.trim();
+        if (prev !== next) setCurrentPage(1);
+        return next;
+      });
     }, 500);
     return () => clearTimeout(timer);
   }, [searchQuery]);
-
-  // Reset pagination when dropdown filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [statusFilter, methodFilter, dateRange, appliedSearch]);
 
   const fetchData = async () => {
     try {
@@ -162,13 +161,10 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
         ...(dateRange !== 'all' && { date_range: dateRange })
       };
 
-      // Fetch payments and stats in parallel
-      const [paymentsJson, statsJson] = await Promise.all([
-      getPayments(params),
-      getPaymentStats(params)]
-      );
+      // Fetch payments
+      const paymentsJson = await getPayments(params);
 
-      if (!paymentsJson.success || !statsJson.success) {
+      if (!paymentsJson.success) {
         throw new Error('Failed to fetch payment data');
       }
 
@@ -185,24 +181,30 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
       const normalizedPayments = (paymentsJson.data || []).map((p: any) => normalize(p));
       setMeta(paymentsJson.meta || null);
 
-      const s = statsJson.data || {};
-      const normalizedStats = {
-        ...s,
-        total_amount: toRupees(s.total_amount_cents ?? s.total_amount),
-        today_amount: toRupees(s.today_amount_cents ?? s.today_amount),
-        monthly_amount: toRupees(s.monthly_amount_cents ?? s.monthly_amount),
-        refunded_amount: toRupees(s.refunded_amount_cents ?? s.refunded_amount),
-        outstanding_amount: toRupees(s.outstanding_amount_cents ?? s.outstanding_amount)
-      };
-
       setPayments(normalizedPayments || []);
-      setStats(normalizedStats);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
+
+  // Fetch stats only once on component mount
+  useEffect(() => {
+    getPaymentStats({}).then(statsJson => {
+      if (statsJson.success) {
+        const s = statsJson.data || {};
+        setStats({
+          ...s,
+          total_amount: toRupees(s.total_amount_cents ?? s.total_amount),
+          today_amount: toRupees(s.today_amount_cents ?? s.today_amount),
+          monthly_amount: toRupees(s.monthly_amount_cents ?? s.monthly_amount),
+          refunded_amount: toRupees(s.refunded_amount_cents ?? s.refunded_amount),
+          outstanding_amount: toRupees(s.outstanding_amount_cents ?? s.outstanding_amount)
+        });
+      }
+    }).catch(console.error);
+  }, []);
 
   const fetchPaymentDetails = async (paymentId: number) => {
     // Open dialog immediately so the button always responds and user sees loading
@@ -454,6 +456,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   onOpenChange={(open) => setOpenSelect(open ? 'status' : null)}
                   onValueChange={(val) => {
                     setStatusFilter(val);
+                    setCurrentPage(1);
                     setTimeout(() => setOpenSelect('method'), 100);
                   }}>
                   <SelectTrigger className="h-10 bg-background border-border/50">
@@ -476,6 +479,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   onOpenChange={(open) => setOpenSelect(open ? 'method' : null)}
                   onValueChange={(val) => {
                     setMethodFilter(val);
+                    setCurrentPage(1);
                     setTimeout(() => setOpenSelect('date'), 100);
                   }}>
                   <SelectTrigger className="h-10 bg-background border-border/50">
@@ -501,6 +505,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   onOpenChange={(open) => setOpenSelect(open ? 'date' : null)}
                   onValueChange={(val) => {
                     setDateRange(val);
+                    setCurrentPage(1);
                     setOpenSelect(null);
                   }}>
                   <SelectTrigger className="h-10 bg-background border-border/50">
