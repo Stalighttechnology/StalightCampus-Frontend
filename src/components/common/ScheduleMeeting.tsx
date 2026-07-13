@@ -481,7 +481,7 @@ export default function ScheduleMeeting() {
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="title">Meeting Title *</Label>
+                      <Label htmlFor="title">Meeting Title <span className="text-destructive">*</span></Label>
                       <Input 
                         id="title" 
                         value={formData.title} 
@@ -496,7 +496,7 @@ export default function ScheduleMeeting() {
                         value={formData.description} 
                         onChange={e => setFormData({...formData, description: e.target.value})} 
                         placeholder="Meeting agenda..."
-                        rows={2}
+                        className="resize-none h-24 overflow-y-auto custom-scrollbar"
                       />
                     </div>
 
@@ -639,7 +639,7 @@ export default function ScheduleMeeting() {
                         <Label className="flex-1 flex flex-col sm:flex-row sm:items-center sm:gap-1.5 cursor-pointer select-none">
                           <span>Target Roles</span>
                           <span className={`text-xs ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-500'} font-normal mt-0.5 sm:mt-0`}>
-                            (Select at least one) *
+                            (Select at least one) <span className="text-destructive">*</span>
                           </span>
                         </Label>
                         <div 
@@ -773,24 +773,24 @@ export default function ScheduleMeeting() {
                       return (
                         <div
                           key={meeting.id}
-                          className={`rounded-lg border p-4 flex flex-col gap-2 transition-all hover:shadow-md ${isPast ? 'opacity-70' : ''} ${theme === "dark"
+                          className={`rounded-lg border p-4 flex flex-col gap-2 transition-all hover:shadow-md h-full ${isPast ? 'opacity-70' : ''} ${theme === "dark"
                             ? "bg-card border-border text-foreground"
                             : "bg-white border-gray-200 text-gray-900"
                             }`}
                         >
-                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950/50">
+                           <div className="flex flex-row flex-wrap items-start justify-between gap-2 min-w-0">
+                            <div className="flex items-start gap-2 min-w-0 flex-1">
+                              <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950/50 mt-0.5">
                                 <Video className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                               </span>
-                              <div className="min-w-0">
-                                <p className="font-semibold text-sm truncate">{meeting.title}</p>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-semibold text-sm break-words">{meeting.title}</p>
                                 {meeting.description && (
-                                  <p className="text-xs text-muted-foreground truncate">{meeting.description}</p>
+                                  <p className="text-xs text-muted-foreground break-words mt-1">{meeting.description}</p>
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-1.5 sm:shrink-0 sm:self-auto self-start pl-10 sm:pl-0">
+                            <div className="flex items-center gap-1.5 shrink-0 self-start">
                               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isPast ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'}`}>
                                 {isPast ? 'Completed' : 'Upcoming'}
                               </span>
@@ -802,7 +802,7 @@ export default function ScheduleMeeting() {
                                   <Button
                                     variant="outline"
                                     size="icon"
-                                    className="h-6 w-6 ml-2 rounded-md border-red-200/20 hover:bg-red-50 text-red-500"
+                                    className="h-6 w-6 rounded-md border-red-200/20 hover:bg-red-50 text-red-500 flex items-center justify-center p-0 shrink-0"
                                     title="Delete Meeting"
                                     onClick={() => handleDelete(meeting.id)}
                                   >
@@ -813,34 +813,36 @@ export default function ScheduleMeeting() {
                             </div>
                           </div>
 
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground border-b pb-2.5">
-                            <span className="flex items-center gap-1">
-                              <CalendarDays className="w-3.5 h-3.5" /> {dateStr}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5" /> {timeStr}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Users className="w-3.5 h-3.5" />
-                              <span className="capitalize">{Array.isArray(meeting.target_roles) ? meeting.target_roles.map((r: string) => r.replace('_', ' ')).join(', ') : ''}</span>
-                            </span>
-                            <span className="flex items-center gap-1 font-medium">
+                          <div className="flex flex-col gap-2 text-xs text-muted-foreground border-b pb-2.5 pl-10 sm:pl-0">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                              <span className="flex items-center gap-1.5">
+                                <CalendarDays className="w-4 h-4 text-primary flex-shrink-0" /> {dateStr}
+                              </span>
+                              <span className="flex items-center gap-1.5">
+                                <Clock className="w-4 h-4 text-primary flex-shrink-0" /> {timeStr}
+                              </span>
+                            </div>
+                            <div className="flex items-start gap-1.5">
+                              <Users className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                              <span className="capitalize leading-normal">{Array.isArray(meeting.target_roles) ? meeting.target_roles.map((r: string) => r.replace('_', ' ')).join(', ') : ''}</span>
+                            </div>
+                            <div className="text-xs font-medium">
                               Organizer: {meeting.organizer_name}
-                            </span>
+                            </div>
                           </div>
 
                           {meeting.google_meet_link && !isPast && (
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                            <div className="flex flex-row items-center justify-between gap-3 pt-2 pl-10 sm:pl-0 min-w-0 mt-auto">
                               <a
                                 href={meeting.google_meet_link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-2 hover:text-primary/80 transition-colors font-mono truncate max-w-full sm:max-w-[200px] md:max-w-xs break-all"
+                                className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-2 hover:text-primary/80 transition-colors font-mono truncate flex-1 min-w-0"
                               >
-                                {meeting.google_meet_link}
+                                <span className="truncate">{meeting.google_meet_link}</span>
                                 <ExternalLink className="w-3 h-3 flex-shrink-0" />
                               </a>
-                              <div className="flex items-center gap-1.5 shrink-0 sm:self-auto self-end">
+                              <div className="flex items-center gap-1.5 shrink-0">
                                 <Button
                                   variant="outline"
                                   size="icon"
