@@ -55,6 +55,10 @@ import {
 
 interface Payment {
   id: number;
+  components?: {
+    component_name: string;
+    allocated_amount: number;
+  }[];
   invoice: {
     id: number;
     invoice_number: string;
@@ -629,14 +633,18 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                             title="View Details">
                             <Eye className="h-4.5 w-4.5" />
                           </Button>
-                          {(p.status === 'completed' || p.status === 'success') &&
+                          {(p.status === 'completed' || p.status === 'success' || p.status === 'pending') &&
                             <Button
                               variant="ghost"
                               size="icon"
-                              className={`h-9 w-9 rounded-full transition-all active:scale-95 ${theme === 'dark' ? 'text-green-400 hover:bg-green-950/30' : 'text-green-600 hover:bg-green-50'}`}
-                              onClick={() => downloadReceipt(p.id)}
-                              disabled={downloadingReceiptId !== null}
-                              title="Download Receipt">
+                              className={`h-9 w-9 rounded-full transition-all active:scale-95 ${
+                                p.status === 'pending'
+                                  ? 'text-gray-400 dark:text-gray-600 opacity-50 cursor-not-allowed'
+                                  : (theme === 'dark' ? 'text-green-400 hover:bg-green-950/30' : 'text-green-600 hover:bg-green-50')
+                              }`}
+                              onClick={() => p.status !== 'pending' && downloadReceipt(p.id)}
+                              disabled={downloadingReceiptId !== null || p.status === 'pending'}
+                              title={p.status === 'pending' ? "Cannot Download Receipt for Pending Payment" : "Download Receipt"}>
                               {downloadingReceiptId === p.id ? (
                                 <Loader2 className="h-4.5 w-4.5 animate-spin" />
                               ) : (
@@ -804,6 +812,33 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                     </div>
                   </div>
 
+                  {/* Particulars Breakdown */}
+                  {selectedPayment.components && selectedPayment.components.length > 0 && (
+                    <div className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'}`}>
+                      <p className={`text-xs font-semibold uppercase tracking-widest mb-3 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                        Particulars Breakdown
+                      </p>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead>
+                            <tr className={`border-b ${theme === 'dark' ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500'}`}>
+                              <th className="pb-2 font-medium">Particulars</th>
+                              <th className="pb-2 font-medium text-right">Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/20">
+                            {selectedPayment.components.map((comp, idx) => (
+                              <tr key={idx} className={theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}>
+                                <td className="py-2.5 font-medium">{comp.component_name}</td>
+                                <td className="py-2.5 text-right font-semibold">{formatCurrency(comp.allocated_amount)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Financial Summary */}
                   <div className={`p-4 rounded-lg border grid grid-cols-2 gap-y-4 ${theme === 'dark' ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'}`}>
                     <div>
@@ -854,11 +889,12 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
 
           {/* Footer Actions */}
           <div className={`p-6 border-t flex flex-col sm:flex-row gap-3 flex-shrink-0 ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
-             {selectedPayment && (selectedPayment.status === 'completed' || selectedPayment.status === 'success') && (
+             {selectedPayment && (selectedPayment.status === 'completed' || selectedPayment.status === 'success' || selectedPayment.status === 'pending') && (
               <button
-                onClick={() => downloadReceipt(selectedPayment.id)}
-                disabled={downloadingReceiptId !== null}
-                className="flex-1 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm"
+                onClick={() => selectedPayment.status !== 'pending' && downloadReceipt(selectedPayment.id)}
+                disabled={downloadingReceiptId !== null || selectedPayment.status === 'pending'}
+                className="flex-1 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm"
+                title={selectedPayment.status === 'pending' ? "Cannot Download Receipt for Pending Payment" : "Download Receipt"}
               >
                 {downloadingReceiptId === selectedPayment.id ? (
                   <>
