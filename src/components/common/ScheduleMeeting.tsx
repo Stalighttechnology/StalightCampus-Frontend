@@ -762,7 +762,7 @@ export default function ScheduleMeeting() {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 max-h-[65vh] overflow-y-auto custom-scrollbar pr-1 pb-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 pb-2">
                     {displayMeetings.map((meeting) => {
                       const start = new Date(meeting.start_time);
                       const end = new Date(meeting.end_time);
@@ -866,24 +866,33 @@ export default function ScheduleMeeting() {
                 )}
                 
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
-                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                      Showing page {currentPage} of {totalPages}
-                    </p>
-                    <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground pt-4 border-t border-border mt-6">
+                    <div>
+                      Showing {Math.min((currentPage - 1) * 10 + 1, currentTotal)} to {Math.min(currentPage * 10, currentTotal)} of {currentTotal} meetings
+                    </div>
+                    <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={currentPage === 1 || loading}
                         onClick={() => activeTab === 'upcoming' ? setUpcomingPage(p => p - 1) : setPastPage(p => p - 1)}
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
                       >
                         Previous
                       </Button>
+
+                      <div className="flex items-center justify-center min-w-[2rem]">
+                        <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {currentPage}
+                        </span>
+                      </div>
+
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={currentPage === totalPages || loading}
                         onClick={() => activeTab === 'upcoming' ? setUpcomingPage(p => p + 1) : setPastPage(p => p + 1)}
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
                       >
                         Next
                       </Button>
