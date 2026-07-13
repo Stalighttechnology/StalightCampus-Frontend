@@ -481,7 +481,7 @@ const StaffTaskTracker = () => {
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="title">Task Title</Label>
+                    <Label htmlFor="title">Task Title <span className="text-destructive">*</span></Label>
                     <Input id="title" value={newTask.title} onChange={e => setNewTask({ ...newTask, title: e.target.value })} />
                   </div>
                   <div className="grid gap-2">
@@ -490,7 +490,7 @@ const StaffTaskTracker = () => {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label>Priority</Label>
+                    <Label>Priority <span className="text-destructive">*</span></Label>
                     <Select value={newTask.priority} onValueChange={(val) => setNewTask({ ...newTask, priority: val })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select priority" />
@@ -506,7 +506,7 @@ const StaffTaskTracker = () => {
                   {/* Branch selector only for principal */}
                   {role === 'principal' && (
                     <div className="grid gap-2">
-                      <Label>Select Branch First</Label>
+                      <Label>Select Branch First <span className="text-destructive">*</span></Label>
                       <Select value={selectedBranch} onValueChange={(val) => {
                         setSelectedBranch(val);
                         setSubPage(1);
@@ -542,7 +542,7 @@ const StaffTaskTracker = () => {
                   )}
 
                   <div className="grid gap-2">
-                    <Label>Assign To</Label>
+                    <Label>Assign To <span className="text-destructive">*</span></Label>
                     <Select
                       value={newTask.assigned_to}
                       onValueChange={(val) => {
@@ -627,7 +627,7 @@ const StaffTaskTracker = () => {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label>Due Date & Time</Label>
+                    <Label>Due Date & Time <span className="text-destructive">*</span></Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
