@@ -331,12 +331,12 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
                 title="Applications"
                 value={stats.admission_applications || 0}
                 description="Submitted forms"
-                icon={<ClipboardList className={theme === 'dark' ? "text-purple-400 text-3xl" : "text-purple-500 text-3xl"} />} />
+                icon={<ClipboardList size={30} className={theme === 'dark' ? "text-purple-400" : "text-purple-500"} />} />
               <DashboardCard
                 title="Admissions Confirmed"
                 value={stats.admissions_confirmed || 0}
                 description="Seat allocated"
-                icon={<UserCheck className={theme === 'dark' ? "text-green-400 text-3xl" : "text-green-500 text-3xl"} />} />
+                icon={<UserCheck size={30} className={theme === 'dark' ? "text-green-400" : "text-green-500"} />} />
               <DashboardCard
                 title="Enrolled"
                 value={stats.admissions_enrolled || 0}
@@ -564,8 +564,8 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       <div
         id="admin-action-cards"
         className={`grid grid-cols-2 md:grid-cols-3 ${user?.role === "org_admin"
-            ? "lg:grid-cols-6"
-            : "lg:grid-cols-5"
+          ? "lg:grid-cols-6"
+          : "lg:grid-cols-5"
           } gap-4 mt-8`}>
 
         <DashboardCard
