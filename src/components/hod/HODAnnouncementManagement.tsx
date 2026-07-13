@@ -489,7 +489,24 @@ const HODAnnouncementManagement = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Target Roles *</Label>
+                          <div className="flex justify-between items-center">
+                            <Label>Target Roles *</Label>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className={`h-6 text-xs px-2 ${theme === 'dark' ? 'text-primary hover:bg-primary/20' : 'text-primary hover:bg-primary/10'}`}
+                              onClick={() => {
+                                if (formData.target_roles?.length === roles.length) {
+                                  setFormData({ ...formData, target_roles: [] });
+                                } else {
+                                  setFormData({ ...formData, target_roles: [...roles] });
+                                }
+                              }}
+                            >
+                              {formData.target_roles?.length === roles.length ? "Deselect All" : "Select All"}
+                            </Button>
+                          </div>
                           <div className="grid grid-cols-2 gap-3">
                             {roles.map((role) => {
                               const isSelected = formData.target_roles?.includes(role) || false;
