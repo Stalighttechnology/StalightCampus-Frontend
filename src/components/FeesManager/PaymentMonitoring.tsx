@@ -621,9 +621,11 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                       <TableRow className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
                         <TableCell className="py-5 px-6 align-middle">
                           <div className="font-mono font-semibold text-primary tracking-tighter text-sm uppercase">{p.invoice.invoice_number}</div>
-                          <div className="text-[13px] font-semibold text-muted-foreground uppercase tracking-widest mt-1 flex items-center gap-2">
-                            {new Date(p.payment_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
-                            {group.length > 1 && <Badge variant="secondary" className="text-[10px] py-0 px-1">{group.length} Payments</Badge>}
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <span className="text-[13px] font-semibold text-muted-foreground uppercase tracking-widest">
+                                {new Date(p.payment_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </span>
+                            {group.length > 1 && <Badge variant="secondary" className="text-[10px] py-0.5 px-1.5 whitespace-nowrap tracking-normal normal-case">{group.length} Payments</Badge>}
                           </div>
                         </TableCell>
                         <TableCell className="px-6 align-middle">
