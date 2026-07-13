@@ -689,7 +689,7 @@ const DeanFacultyProfile = ({
                     <Button
                       onClick={handleExportPDF}
                       variant="outline"
-                      className="hidden lg:flex items-center justify-center gap-2 px-4 h-10 bg-primary text-white hover:bg-primary/90 hover:text-white w-full lg:w-auto"
+                      className="hidden lg:flex items-center justify-center gap-2 px-4 h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md rounded-lg w-full lg:w-auto flex-1 lg:flex-initial whitespace-nowrap"
                       disabled={
                         !selectedBranch || !selectedFaculty || facultiesLoading || exportLoading
                       }
