@@ -44,14 +44,14 @@ export default function GoogleIntegrationTab() {
 
   return (
     <div className="animate-in fade-in duration-300 space-y-6">
-      <div className={`flex flex-col p-5 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200 shadow-sm'}`}>
+      <div className={`flex flex-col p-4 sm:p-5 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200 shadow-sm'}`}>
         
         {/* Top Section: App Info */}
-        <div className="flex items-start gap-4">
+        <div className="flex flex-col sm:flex-row items-start gap-4 w-full min-w-0">
           <div className={`p-2.5 rounded-lg flex-shrink-0 ${theme === 'dark' ? 'bg-accent/50' : 'bg-gray-50 border border-gray-100'}`}>
             <GoogleLogo className="w-7 h-7" />
           </div>
-          <div className="flex-1 space-y-1">
+          <div className="flex-1 w-full min-w-0 space-y-1">
             <h4 className="text-base font-semibold text-foreground">Google Account</h4>
             <p className={`text-sm max-w-2xl ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Connect your Google account to automatically generate Meet links for your online classes and meetings.
@@ -59,12 +59,12 @@ export default function GoogleIntegrationTab() {
             
             {/* Connect Button (Only if not connected) */}
             {!googleConnected && (
-              <div className="pt-3">
+              <div className="pt-3 w-full">
                 {googleConnectLoading ? (
                   <Button disabled variant="outline">Loading...</Button>
                 ) : (
                   <Button
-                    className={`w-full sm:w-auto font-medium shadow-sm transition-colors border ${theme === 'dark' ? 'bg-[#131314] hover:bg-[#1e1e20] text-[#e3e3e3] border-[#8e918f]' : 'bg-white hover:bg-[#f8f9fa] text-[#3c4043] border-[#747775]'}`}
+                    className={`w-full sm:w-auto font-medium shadow-sm transition-colors border whitespace-normal sm:whitespace-nowrap h-auto sm:h-9 py-2.5 sm:py-0 ${theme === 'dark' ? 'bg-[#131314] hover:bg-[#1e1e20] text-[#e3e3e3] border-[#8e918f]' : 'bg-white hover:bg-[#f8f9fa] text-[#3c4043] border-[#747775]'}`}
                     onClick={async () => {
                       try {
                         const isNative = Capacitor.isNativePlatform();
@@ -72,7 +72,7 @@ export default function GoogleIntegrationTab() {
                         const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/connect/${sourceQuery}`);
                         const data = await res.json();
                         if (data.authorization_url) {
-                          if (isNative) {
+                           if (isNative) {
                             await Browser.open({ url: data.authorization_url });
                           } else {
                             window.location.href = data.authorization_url;
