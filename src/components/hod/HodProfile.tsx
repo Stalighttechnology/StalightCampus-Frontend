@@ -260,6 +260,11 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    if (name === "mobile_number") {
+      const numericValue = value.replace(/[^0-9]/g, "");
+      setProfile((prev) => ({ ...prev, [name]: numericValue }));
+      return;
+    }
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -295,6 +300,16 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
         showErrorAlert("Error", "Invalid email format");
         setLoading(false);
         return;
+      }
+
+      if (profile.mobile_number) {
+        const phoneRegex = /^\d{10}$/;
+        if (!phoneRegex.test(profile.mobile_number.trim())) {
+          setLocalError("Please enter a valid 10-digit mobile number");
+          showErrorAlert("Error", "Please enter a valid 10-digit mobile number");
+          setLoading(false);
+          return;
+        }
       }
 
       const updates: {
