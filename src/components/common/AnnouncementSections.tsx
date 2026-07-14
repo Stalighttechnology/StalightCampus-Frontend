@@ -298,7 +298,7 @@ export const AnnouncementSections = ({
   };
 
   const filteredMyAnnouncements = showExpired
-    ? myAnnouncements
+    ? myAnnouncements.filter(a => isExpired(a.expires_at) || !a.is_active)
     : myAnnouncements.filter(a => !isExpired(a.expires_at) && a.is_active);
 
   const filteredReceivedAnnouncements = receivedAnnouncements.filter(a => !isExpired(a.expires_at));
@@ -599,8 +599,8 @@ export const AnnouncementSections = ({
                                 variant="ghost"
                                 size="sm"
                                 className={`w-full h-9 text-xs font-semibold border flex items-center justify-center gap-1.5 rounded-xl ${(announcement.is_active && !isExpired(announcement.expires_at))
-                                    ? theme === 'dark' ? 'text-orange-400 border-orange-900/30 bg-orange-950/20 hover:bg-orange-950/40' : 'text-orange-500 border-orange-100 bg-orange-50/30 hover:bg-orange-50/50'
-                                    : theme === 'dark' ? 'text-green-400 border-green-900/30 bg-green-950/20 hover:bg-green-950/40' : 'text-green-500 border-green-100 bg-green-50/30 hover:bg-green-50/50'
+                                  ? theme === 'dark' ? 'text-orange-400 border-orange-900/30 bg-orange-950/20 hover:bg-orange-950/40' : 'text-orange-500 border-orange-100 bg-orange-50/30 hover:bg-orange-50/50'
+                                  : theme === 'dark' ? 'text-green-400 border-green-900/30 bg-green-950/20 hover:bg-green-950/40' : 'text-green-500 border-green-100 bg-green-50/30 hover:bg-green-50/50'
                                   }`}
                                 onClick={() => onToggleActive(announcement.id)}
                               >
@@ -958,7 +958,7 @@ export const AnnouncementSections = ({
                   <DialogTitle className="text-lg sm:text-xl font-semibold tracking-tight text-foreground flex-1 min-w-0">
                     {viewingAnnouncement?.title}
                   </DialogTitle>
-                  
+
                   {viewingAnnouncement?.exam_data && viewingAnnouncement.exam_data.length > 0 && (
                     <div className="flex items-center gap-2 shrink-0">
                       {/* Mobile Export Button */}
