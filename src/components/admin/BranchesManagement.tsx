@@ -228,6 +228,11 @@ const fetchData = async (page: number = 1, search: string = filter) => {
         }
       }
 
+      if (totalSemesters < 1 || totalSemesters > 20) {
+        toast({ variant: "destructive", title: "Invalid Semesters", description: "Total semesters must be between 1 and 20." });
+        return;
+      }
+
       setLoading(true);
       try {
         const response = await manageBranches(
@@ -823,8 +828,11 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                   value={editData?.total_semesters === undefined ? 8 : editData.total_semesters}
                   onChange={handleEditChange}
                   onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                  className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}
+                  className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} ${Number(editData?.total_semesters) > 20 ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                 />
+                {Number(editData?.total_semesters) > 20 && (
+                  <p className="text-xs text-red-500 font-medium">Maximum allowed semesters is 20.</p>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Assigned HOD</label>
