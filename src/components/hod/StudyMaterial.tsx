@@ -22,7 +22,8 @@ import {
   TableRow
 } from
   "../ui/table";
-import { Download, FileText, UploadCloud, X, Trash2, Loader2 } from "lucide-react";
+import { Download, FileText, UploadCloud, X, Trash2, Loader2, ChevronDown } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "../ui/dropdown-menu";
 import { uploadStudyMaterial, getStudyMaterials, getBranches, manageSections, getSemesters, manageSubjects, deleteStudyMaterial } from "../../utils/hod_api";
 import { uploadFileViaBackendProxy, downloadFileViaBackendProxy } from "../../utils/common_api";
 import { useTheme } from "../../context/ThemeContext";
@@ -158,7 +159,7 @@ const useUploadModal = () => {
   const [subjectId, setSubjectId] = useState("");
   const [semesterId, setSemesterId] = useState("");
   const [branchId, setBranchId] = useState("");
-  const [sectionId, setSectionId] = useState("");
+  const [sectionIds, setSectionIds] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
 
   const [dragActive, setDragActive] = useState(false);
@@ -196,7 +197,7 @@ const useUploadModal = () => {
     setSubjectId("");
     setSemesterId("");
     setBranchId("");
-    setSectionId("");
+    setSectionIds([]);
     setDragActive(false);
   };
 
@@ -209,7 +210,7 @@ const useUploadModal = () => {
     subjectCode,
     semesterId,
     branchId,
-    sectionId,
+    sectionIds,
     uploading,
     setUploading,
     handleFileChange,
@@ -223,7 +224,7 @@ const useUploadModal = () => {
     setSubjectId,
     setSemesterId,
     setBranchId,
-    setSectionId,
+    setSectionIds,
     resetForm
   };
 };
@@ -420,7 +421,7 @@ const StudyMaterials = () => {
     subjectId,
     semesterId,
     branchId,
-    sectionId,
+    sectionIds,
     uploading,
     setUploading,
     handleFileChange,
@@ -434,7 +435,7 @@ const StudyMaterials = () => {
     setSubjectId,
     setSemesterId,
     setBranchId,
-    setSectionId,
+    setSectionIds,
     resetForm
   } = useUploadModal();
 
@@ -594,10 +595,10 @@ const StudyMaterials = () => {
       return;
     }
 
-    if (!branchId || !semesterId) {
+    if (!branchId || !semesterId || sectionIds.length === 0) {
       Swal.fire({
         title: "Missing Configuration",
-        text: "Please select branch and semester.",
+        text: "Please select branch, semester, and section.",
         icon: "warning",
         confirmButtonText: "OK",
         confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
@@ -668,7 +669,7 @@ const StudyMaterials = () => {
         subject_code: subjectCode,
         semester_id: semesterId,
         branch_id: branchId,
-        section_id: sectionId,
+        section_ids: sectionIds,
         file_url: finalFileUrl
       });
 
@@ -937,7 +938,7 @@ const StudyMaterials = () => {
             {/* Left Side: Form Fields */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="material-title">Material Title *</Label>
+                <Label htmlFor="material-title">Material Title <span className="text-red-500">*</span></Label>
                 <Input
                   id="material-title"
                   placeholder="Enter title (e.g. Unit 1 Notes)"
@@ -949,7 +950,7 @@ const StudyMaterials = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>{translateTerminology("Branch")} *</Label>
+                <Label>{translateTerminology("Branch")} <span className="text-red-500">*</span></Label>
                 <Select
                   open={isModalBranchOpen}
                   onOpenChange={setIsModalBranchOpen}
@@ -979,7 +980,7 @@ const StudyMaterials = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>{translateTerminology("Semester")} *</Label>
+                  <Label>{translateTerminology("Semester")} <span className="text-red-500">*</span></Label>
                   <Select
                     open={isModalSemesterOpen}
                     onOpenChange={setIsModalSemesterOpen}
@@ -1006,38 +1007,70 @@ const StudyMaterials = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Section</Label>
-                  <Select
-                    open={isModalSectionOpen}
-                    onOpenChange={setIsModalSectionOpen}
-                    value={sectionId}
-                    onValueChange={(value) => {
-                      setSectionId(value);
-                      setTimeout(() => setIsModalSubjectOpen(true), 150);
-                    }}
-                    disabled={uploading || !semesterId}>
-
-                    <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
-                      <SelectValue placeholder="Optional" />
-                    </SelectTrigger>
-                    <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900')}>
+                <div className="space-y-2 flex flex-col justify-end">
+                  <Label>Section <span className="text-red-500">*</span></Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className={cn("w-full justify-between font-normal bg-background min-h-10 h-auto py-1 px-3", theme === 'dark' ? 'border-border' : 'border-gray-300')} disabled={uploading || !semesterId}>
+                        {sectionIds.length > 0 ? (
+                          <div className="flex flex-wrap gap-1 items-center max-w-[90%] max-h-20 overflow-y-auto py-0.5 pr-1 custom-scrollbar">
+                            {sectionIds.map(id => {
+                              const sec = modalSections.find(s => s.id === id);
+                              return (
+                                <span key={id} className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-md font-medium border border-primary/20">
+                                  Sec {sec ? sec.name : id}
+                                  <button
+                                    type="button"
+                                    className="hover:bg-primary/20 rounded-full p-0.5 transition-colors focus:outline-none"
+                                    onPointerDown={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      setSectionIds(sectionIds.filter(x => x !== id));
+                                    }}
+                                  >
+                                    <X size={10} />
+                                  </button>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <span>Select Section</span>
+                        )}
+                        <ChevronDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 max-h-[200px] overflow-y-auto">
                       {modalSections.length > 0 ? (
                         modalSections.map((s) => (
-                          <SelectItem key={s.id} value={s.id}>
+                          <DropdownMenuCheckboxItem
+                            key={s.id}
+                            checked={sectionIds.includes(s.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSectionIds([...sectionIds, s.id]);
+                              } else {
+                                setSectionIds(sectionIds.filter((id) => id !== s.id));
+                              }
+                            }}
+                          >
                             Sec {s.name}
-                          </SelectItem>
+                          </DropdownMenuCheckboxItem>
                         ))
                       ) : (
                         <div className="py-2 px-8 text-sm text-muted-foreground text-center">No sections available</div>
                       )}
-                    </SelectContent>
-                  </Select>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Course / Subject *</Label>
+                <Label>Course / Subject <span className="text-red-500">*</span></Label>
                 <Select
                   open={isModalSubjectOpen}
                   onOpenChange={setIsModalSubjectOpen}
@@ -1075,7 +1108,7 @@ const StudyMaterials = () => {
 
             {/* Right Side: Upload Area */}
             <div className="space-y-4">
-              <Label>File Upload *</Label>
+              <Label>File Upload <span className="text-red-500">*</span></Label>
               <div
                 onDragEnter={handleDrag}
                 onDragOver={handleDrag}
@@ -1150,7 +1183,7 @@ const StudyMaterials = () => {
             </Button>
             <Button
               onClick={handleUpload}
-              disabled={uploading || !file || !title || !branchId || !semesterId || !subjectId && !subjectName}>
+              disabled={uploading || !file || !title || !branchId || !semesterId || sectionIds.length === 0 || (!subjectId && !subjectName)}>
 
               {uploading ?
                 <>
