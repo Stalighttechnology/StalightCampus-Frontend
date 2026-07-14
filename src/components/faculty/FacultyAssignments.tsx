@@ -756,7 +756,7 @@ const FacultyAssignments = () => {
                           animate={{ opacity: 1, y: 0 }}
                           className={`p-5 rounded-xl border transition-all ${theme === 'dark' ?
                             'bg-muted/10 border-border/40 hover:bg-muted/20' :
-                            'bg-white border-gray-100 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5'}`
+                            'bg-white border-gray-200 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5'}`
                           }>
 
                           <div className="flex items-start justify-between mb-4">
@@ -769,12 +769,6 @@ const FacultyAssignments = () => {
                                 <p className="text-xs text-muted-foreground line-clamp-1">{assignment.description}</p>
                               </div>
                             </div>
-                            <span className={`px-2.5 py-1 rounded-full text-[12px] font-bold uppercase tracking-wider ${isOverdue ?
-                              'bg-red-500/10 text-red-500' :
-                              'bg-green-500/10 text-green-500'}`
-                            }>
-                              {isOverdue ? 'Overdue' : 'Active'}
-                            </span>
                           </div>
 
                           <div className="grid grid-cols-2 gap-4 mb-5 p-3 rounded-xl bg-muted/30">
@@ -789,11 +783,22 @@ const FacultyAssignments = () => {
                                 <p className="text-xs font-semibold">{new Date(assignment.due_date).toLocaleDateString()}</p>
                               </div>
                             </div>
-                            <div className="col-span-2">
+                            <div>
                               <p className="text-[12px] uppercase font-bold text-muted-foreground mb-1 tracking-tight">Class Info</p>
                               <p className="text-xs font-medium text-muted-foreground">
                                 {assignment.branch_name} • Sem {assignment.semester_number} • {assignment.section_name || 'All Sections'}
                               </p>
+                            </div>
+                            <div>
+                              <p className="text-[12px] uppercase font-bold text-muted-foreground mb-1 tracking-tight">Status</p>
+                              <div className="flex items-center mt-0.5">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isOverdue ?
+                                  'bg-red-500/10 text-red-500' :
+                                  'bg-green-500/10 text-green-500'}`
+                                }>
+                                  {isOverdue ? 'Overdue' : 'Active'}
+                                </span>
+                              </div>
                             </div>
                           </div>
 
