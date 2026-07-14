@@ -792,7 +792,7 @@ const StudentAnnouncements = () => {
                               <div className="flex flex-wrap items-center gap-y-2 gap-x-4 pt-2">
                                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                   <User size={14} className="opacity-70" />
-                                  <span className="font-medium text-foreground/80">{announcement.created_by_name || 'Administrator'}</span>
+                                  <span className="font-medium text-foreground/80">From: {announcement.created_by_name || 'Administrator'}</span>
                                 </div>
                                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                   <Clock size={14} className="opacity-70" />
