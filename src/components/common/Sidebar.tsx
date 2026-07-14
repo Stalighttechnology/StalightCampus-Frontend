@@ -640,7 +640,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   if (user?.role === 'hod') {
     if (role === 'faculty') {
-      menuItems['faculty'] = menuItems['faculty'].filter(item => item.page !== 'apply-leave' && item.page !== 'faculty-attendance');
+      menuItems['faculty'] = menuItems['faculty'].filter(item => item.page !== 'apply-leave' && item.page !== 'faculty-attendance' && item.page !== 'reimbursements' && item.page !== 'my-payroll');
       menuItems['faculty'].push({ name: "Return to HOD", page: "return-to-hod" });
     }
   }

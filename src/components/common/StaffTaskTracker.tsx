@@ -475,7 +475,11 @@ const StaffTaskTracker = () => {
               <DialogTrigger asChild>
                 <Button className="w-full sm:w-auto"><Plus className="w-4 h-4 mr-2" /> Assign New Task</Button>
               </DialogTrigger>
-              <DialogContent className="w-[90vw] sm:w-full sm:max-w-[450px] h-[80vh] sm:h-auto max-h-[80vh] sm:max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl">
+              <DialogContent
+                className="w-[90vw] sm:w-full sm:max-w-[450px] h-[80vh] sm:h-auto max-h-[80vh] sm:max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl"
+                onInteractOutside={(e) => e.preventDefault()}
+                onPointerDownOutside={(e) => e.preventDefault()}
+              >
                 <DialogHeader>
                   <DialogTitle>Assign Task</DialogTitle>
                 </DialogHeader>
