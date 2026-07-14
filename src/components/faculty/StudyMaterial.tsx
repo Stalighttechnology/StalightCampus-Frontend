@@ -139,6 +139,9 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
       <TableCell className={`text-sm md:text-base ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'} font-medium px-6 py-4 whitespace-nowrap`}>
         {material.subject_name}
       </TableCell>
+      <TableCell className={`hidden md:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap`}>
+        {material.subject_code}
+      </TableCell>
       <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap text-center`}>
         {material.semester || "N/A"}
       </TableCell>
@@ -479,8 +482,9 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                     <TableRow className="border-none hover:bg-transparent h-14">
                       <TableHead className="w-[100px] px-6 py-4 text-base md:text-md font-semibold text-slate-800">Type</TableHead>
                       <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800">Title</TableHead>
-                      <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800">Course</TableHead>
-                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800">{translateTerminology("Semester")}</TableHead>
+                      <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800">Course Name</TableHead>
+                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800">Code</TableHead>
+                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 text-center">Sem</TableHead>
                       <TableHead className="hidden lg:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800">Uploaded By</TableHead>
                       <TableHead className="text-right px-6 py-4 text-base md:text-md font-semibold text-slate-800">Action</TableHead>
                     </TableRow>
@@ -488,13 +492,13 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                   <TableBody>
                     {loading ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="p-4 text-center">
+                        <TableCell colSpan={7} className="p-4 text-center">
                           <SkeletonList items={5} />
                         </TableCell>
                       </TableRow>
                     ) : materials.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="p-8">
+                        <TableCell colSpan={7} className="p-8">
                           <div className={`flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
                             <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                               <BookOpen className="w-12 h-12" />
