@@ -10,6 +10,7 @@ import {
 "../ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CheckCircle, XCircle, Eye, Download, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
@@ -59,6 +60,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [finalizedPagination, setFinalizedPagination] = useState<PaginationInfo | null>(null);
   const [pendingPage, setPendingPage] = useState(1);
   const [finalizedPage, setFinalizedPage] = useState(1);
+  const [activeTab, setActiveTab] = useState("pending");
   const [conflictQP, setConflictQP] = useState<{id: number; subject: string; test_type: string; set_number?: string; faculty: string} | null>(null);
   const [showConflictDialog, setShowConflictDialog] = useState(false);
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
@@ -100,7 +102,15 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   useEffect(() => {
     fetchPendingQPs();
-    fetchFinalizedQPs();
+  }, [pendingPage]);
+
+  useEffect(() => {
+    if (activeTab === "finalized") {
+      fetchFinalizedQPs();
+    }
+  }, [finalizedPage, activeTab]);
+
+  useEffect(() => {
 
     // Ensure SweetAlert appears above the dialog and is interactive
     try {
@@ -451,216 +461,223 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   }
 
   return (
-    <div ref={ref} id="coe-qp-approvals-container" className="space-y-6">
-      <Card>
-        <CardHeader id="coe-qp-approvals-card">
-          <CardTitle>Question Paper Final Approvals</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {pendingQPs.length === 0 ?
-          <Card className="border-dashed border-2 shadow-none bg-transparent">
-                <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="bg-primary/5 p-6 rounded-full mb-4">
-                    <CheckCircle className="w-12 h-12 text-primary/40" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">No pending approvals</h3>
-                  <p className="text-muted-foreground max-w-sm mx-auto">
-                    All question papers have been processed. New submissions will appear here for your final review and approval.
-                  </p>
-                </CardContent>
-             </Card> :
-
-          <div className="space-y-4">
-              {Array.isArray(pendingQPs) && pendingQPs.map((qp) =>
-            <Card key={qp.id} className="p-4 sm:p-5">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="w-full">
-                      <div className="flex items-center flex-wrap gap-2 mb-2">
-                        <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type} {qp.set_number}</h3>
-                        {qp.status &&
-                    (() => {
-                      const s = qp.status;
-                      if (s === 'rejected') return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
-                      if (s === 'approved') return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
-                      if (s.startsWith('pending')) return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-                      return <Badge className="bg-gray-100 text-gray-800">{s}</Badge>;
-                    })()
-                    }
+    <div ref={ref} id="coe-qp-approvals-container" className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Card className={theme === 'dark' ? 'bg-card border border-border flex flex-col min-h-[550px]' : 'bg-white border border-gray-200 flex flex-col min-h-[550px]'}>
+          <CardHeader className="pb-2">
+            <div id="qp-approvals-header-section" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <CardTitle className={`mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Final Approvals</CardTitle>
+                <div className="flex items-center gap-3">
+                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and finalize question papers</p>
+                </div>
+              </div>
+              <TabsList className="grid grid-cols-2 w-full sm:w-auto">
+                <TabsTrigger value="pending" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">Pending Approvals</TabsTrigger>
+                <TabsTrigger value="finalized" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">Finalized Papers</TabsTrigger>
+              </TabsList>
+            </div>
+          </CardHeader>
+          <TabsContent value="pending" className="flex-1 mt-0">
+            <CardContent>
+              {pendingQPs.length === 0 ?
+              <Card className="border-dashed border-2 shadow-none bg-transparent">
+                    <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                      <div className="bg-primary/5 p-6 rounded-full mb-4">
+                        <CheckCircle className="w-12 h-12 text-primary/40" />
                       </div>
-                      <div className="space-y-1 sm:space-y-0.5">
-                        <p className="text-[16px] sm:text-sm text-muted-foreground">Faculty: {qp.faculty}</p>
-                        <p className="text-[16px] sm:text-sm text-muted-foreground">Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
-                        {qp.branch &&
-                    <p className="text-[16px] sm:text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
-                    }
-                        {qp.last_action ?
-                    <div className="mt-1">
-                            <p className="text-[16px] sm:text-sm text-muted-foreground capitalize">Last: {qp.last_action.action} by {qp.last_action.actor || 'Unknown'} ({qp.last_action.role || 'N/A'})</p>
-                            {qp.last_action.comment ?
-                      <p className="text-[16px] sm:text-sm text-muted-foreground italic">"{qp.last_action.comment}"</p> :
-                      null}
-                          </div> :
-                    null}
+                      <h3 className="text-xl font-semibold mb-2">No pending approvals</h3>
+                      <p className="text-muted-foreground max-w-sm mx-auto">
+                        All question papers have been processed. New submissions will appear here for your final review and approval.
+                      </p>
+                    </CardContent>
+                 </Card> :
+              <div className="space-y-4">
+                  {Array.isArray(pendingQPs) && pendingQPs.map((qp) =>
+                <Card key={qp.id} className="p-4 sm:p-5">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="w-full">
+                          <div className="flex items-center flex-wrap gap-2 mb-2">
+                            <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type} {qp.set_number}</h3>
+                            {qp.status &&
+                        (() => {
+                          const s = qp.status;
+                          if (s === 'rejected') return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
+                          if (s === 'approved') return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
+                          if (s.startsWith('pending')) return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+                          return <Badge className="bg-gray-100 text-gray-800">{s}</Badge>;
+                        })()
+                        }
+                          </div>
+                          <div className="space-y-1 sm:space-y-0.5">
+                            <p className="text-[16px] sm:text-sm text-muted-foreground">Faculty: {qp.faculty}</p>
+                            <p className="text-[16px] sm:text-sm text-muted-foreground">Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
+                            {qp.branch &&
+                        <p className="text-[16px] sm:text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
+                        }
+                            {qp.last_action ?
+                        <div className="mt-1">
+                                <p className="text-[16px] sm:text-sm text-muted-foreground capitalize">Last: {qp.last_action.action} by {qp.last_action.actor || 'Unknown'} ({qp.last_action.role || 'N/A'})</p>
+                                {qp.last_action.comment ?
+                          <p className="text-[16px] sm:text-sm text-muted-foreground italic">"{qp.last_action.comment}"</p> :
+                          null}
+                              </div> :
+                        null}
+                          </div>
+                        </div>
+                        <div className="flex w-full sm:w-auto gap-2">
+                          <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {setSelectedQP(qp);setQpDetail(null);fetchQPDetail(qp.id);setDialogOpen(true);}}
+                        className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold sm:font-normal bg-primary text-white hover:bg-primary/90 hover:text-white">
+                            <Eye className="w-4 h-4 mr-1 sm:mr-2" />
+                            Review
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex w-full sm:w-auto gap-2">
-                      <Button
+                    </Card>
+                )}
+                </div>
+              }
+            </CardContent>
+            {pendingPagination && (pendingPagination.next || pendingPagination.previous) && (
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div className="text-sm text-muted-foreground text-center sm:text-left">
+                  Showing page {pendingPage} of {pendingPagination.total_pages} — {pendingPagination.count} entries
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
+                  <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {setSelectedQP(qp);setQpDetail(null);fetchQPDetail(qp.id);setDialogOpen(true);}}
-                    className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold sm:font-normal bg-primary text-white hover:bg-primary/90 hover:text-white">
-                    
-                        <Eye className="w-4 h-4 mr-1 sm:mr-2" />
-                        Review
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-            )}
-            </div>
-          }
-        </CardContent>
-          {pendingPagination && (pendingPagination.next || pendingPagination.previous) && (
-            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-              <div className="text-sm text-muted-foreground text-center sm:text-left">
-                Showing page {pendingPage} of {pendingPagination.total_pages} — {pendingPagination.count} entries
-              </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPendingPage((prev) => Math.max(1, prev - 1))}
-                  disabled={pendingPage === 1 || !pendingPagination.previous}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                >
-                  <ChevronLeft className="w-4 h-4 mr-1" />
-                  Prev
-                </Button>
-                <span className="text-sm font-medium px-2">
-                  {pendingPage} / {pendingPagination.total_pages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPendingPage((prev) => prev + 1)}
-                  disabled={!pendingPagination.next}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              </div>
-            </CardFooter>
-          )}
-      </Card>
-
-      {/* Finalized QPs section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Finalized Question Papers</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {finalizedQPs.length === 0 ?
-          <Card className="border-dashed border-2 shadow-none bg-transparent">
-                <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="bg-primary/5 p-6 rounded-full mb-4">
-                    <Eye className="w-12 h-12 text-primary/40" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">No finalized papers</h3>
-                  <p className="text-muted-foreground max-w-sm mx-auto">
-                    Approved and finalized question papers will be archived here for your reference.
-                  </p>
-                </CardContent>
-             </Card> :
-
-          <div className="space-y-4">
-              {Array.isArray(finalizedQPs) && finalizedQPs.map((qp) =>
-            <Card key={`final-${qp.id}`} className="p-4 sm:p-5">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="w-full">
-                      <div className="flex items-center flex-wrap gap-2 mb-2">
-                        <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type} {qp.set_number}</h3>
-                        {qp.status &&
-                    (() => {
-                      const s = qp.status;
-                      if (s === 'rejected') return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
-                      if (s === 'approved') return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
-                      if (s.startsWith('pending')) return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-                      return <Badge className="bg-gray-100 text-gray-800">{s}</Badge>;
-                    })()
-                    }
-                      </div>
-                      <div className="space-y-1 sm:space-y-0.5">
-                        <p className="text-[16px] sm:text-sm text-muted-foreground">Faculty: {qp.faculty}</p>
-                        <p className="text-[16px] sm:text-sm text-muted-foreground">Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
-                        {qp.branch &&
-                    <p className="text-[16px] sm:text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
-                    }
-                        {qp.last_action ?
-                    <div className="mt-1">
-                            <p className="text-[16px] sm:text-sm text-muted-foreground capitalize">Last: {qp.last_action.action} by {qp.last_action.actor || 'Unknown'} ({qp.last_action.role || 'N/A'})</p>
-                            {qp.last_action.comment ?
-                      <p className="text-[16px] sm:text-sm text-muted-foreground italic">"{qp.last_action.comment}"</p> :
-                      null}
-                          </div> :
-                    null}
-                      </div>
-                    </div>
-                    <div className="flex w-full sm:w-auto gap-2">
-                      <Button
+                    onClick={() => setPendingPage((prev) => Math.max(1, prev - 1))}
+                    disabled={pendingPage === 1 || !pendingPagination.previous}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Prev
+                  </Button>
+                  <span className="text-sm font-medium px-2">
+                    {pendingPage} / {pendingPagination.total_pages}
+                  </span>
+                  <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      setSelectedQP(qp);
-                      setQpDetail(null);
-                      fetchQPDetail(qp.id);
-                      setDialogOpen(true);
-                    }}
-                    className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold bg-primary text-white hover:bg-primary/90 hover:text-white sm:font-semibold">
-                    
-                        <Eye className="w-4 h-4 mr-1 sm:mr-2" />
-                        View
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
+                    onClick={() => setPendingPage((prev) => prev + 1)}
+                    disabled={!pendingPagination.next}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+              </CardFooter>
             )}
-            </div>
-          }
-        </CardContent>
-          {finalizedPagination && (finalizedPagination.next || finalizedPagination.previous) && (
-            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-              <div className="text-sm text-muted-foreground text-center sm:text-left">
-                Showing page {finalizedPage} of {finalizedPagination.total_pages} — {finalizedPagination.count} entries
-              </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFinalizedPage((prev) => Math.max(1, prev - 1))}
-                  disabled={finalizedPage === 1 || !finalizedPagination.previous}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                >
-                  <ChevronLeft className="w-4 h-4 mr-1" />
-                  Prev
-                </Button>
-                <span className="text-sm font-medium px-2">
-                  {finalizedPage} / {finalizedPagination.total_pages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFinalizedPage((prev) => prev + 1)}
-                  disabled={!finalizedPagination.next}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              </div>
-            </CardFooter>
-          )}
-      </Card>
+          </TabsContent>
+
+          <TabsContent value="finalized" className="flex-1 mt-0">
+            <CardContent>
+              {finalizedQPs.length === 0 ?
+              <Card className="border-dashed border-2 shadow-none bg-transparent">
+                    <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                      <div className="bg-primary/5 p-6 rounded-full mb-4">
+                        <Eye className="w-12 h-12 text-primary/40" />
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2">No finalized papers</h3>
+                      <p className="text-muted-foreground max-w-sm mx-auto">
+                        Approved and finalized question papers will be archived here for your reference.
+                      </p>
+                    </CardContent>
+                 </Card> :
+              <div className="space-y-4">
+                  {Array.isArray(finalizedQPs) && finalizedQPs.map((qp) =>
+                <Card key={`final-${qp.id}`} className="p-4 sm:p-5">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="w-full">
+                          <div className="flex items-center flex-wrap gap-2 mb-2">
+                            <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type} {qp.set_number}</h3>
+                            {qp.status &&
+                        (() => {
+                          const s = qp.status;
+                          if (s === 'rejected') return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
+                          if (s === 'approved') return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
+                          if (s.startsWith('pending')) return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+                          return <Badge className="bg-gray-100 text-gray-800">{s}</Badge>;
+                        })()
+                        }
+                          </div>
+                          <div className="space-y-1 sm:space-y-0.5">
+                            <p className="text-[16px] sm:text-sm text-muted-foreground">Faculty: {qp.faculty}</p>
+                            <p className="text-[16px] sm:text-sm text-muted-foreground">Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
+                            {qp.branch &&
+                        <p className="text-[16px] sm:text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
+                        }
+                            {qp.last_action ?
+                        <div className="mt-1">
+                                <p className="text-[16px] sm:text-sm text-muted-foreground capitalize">Last: {qp.last_action.action} by {qp.last_action.actor || 'Unknown'} ({qp.last_action.role || 'N/A'})</p>
+                                {qp.last_action.comment ?
+                          <p className="text-[16px] sm:text-sm text-muted-foreground italic">"{qp.last_action.comment}"</p> :
+                          null}
+                              </div> :
+                        null}
+                          </div>
+                        </div>
+                        <div className="flex w-full sm:w-auto gap-2">
+                          <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedQP(qp);
+                          setQpDetail(null);
+                          fetchQPDetail(qp.id);
+                          setDialogOpen(true);
+                        }}
+                        className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold bg-primary text-white hover:bg-primary/90 hover:text-white sm:font-semibold">
+                            <Eye className="w-4 h-4 mr-1 sm:mr-2" />
+                            View
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                )}
+                </div>
+              }
+            </CardContent>
+            {finalizedPagination && (finalizedPagination.next || finalizedPagination.previous) && (
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div className="text-sm text-muted-foreground text-center sm:text-left">
+                  Showing page {finalizedPage} of {finalizedPagination.total_pages} — {finalizedPagination.count} entries
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFinalizedPage((prev) => Math.max(1, prev - 1))}
+                    disabled={finalizedPage === 1 || !finalizedPagination.previous}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Prev
+                  </Button>
+                  <span className="text-sm font-medium px-2">
+                    {finalizedPage} / {finalizedPagination.total_pages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFinalizedPage((prev) => prev + 1)}
+                    disabled={!finalizedPagination.next}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
+          </TabsContent>
+        </Card>
+      </Tabs>
       <Dialog
         open={dialogOpen}
         onOpenChange={(open) => {

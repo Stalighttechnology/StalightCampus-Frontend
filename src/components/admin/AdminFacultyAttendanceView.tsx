@@ -759,7 +759,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                       <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
                         <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b border-border flex flex-row justify-between items-center gap-4">
                           <CardTitle className={`text-sm sm:text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                            Today's Faculty Attendance <span className="inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
+                            Faculty Attendance <span className="inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
                           </CardTitle>
                           {/* Desktop Export PDF Button */}
                           <Button
@@ -828,7 +828,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                         <div className="font-medium faculty-name">{record.faculty_name}</div>
                                       </td>
                                       <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                                        <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status}</span>
+                                        <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status === 'not_marked' ? 'Not Marked' : record.status.charAt(0).toUpperCase() + record.status.slice(1)}</span>
                                       </td>
                                       <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} meta-text`}>
                                         {record.marked_at ? new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not marked'}
@@ -1265,7 +1265,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           <div className="font-bold">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
                           {!record && !isFuture && !isNonWorkingDay && <div className="text-red-300 mt-1 flex items-center gap-1"><XCircle className="w-3 h-3" /> Auto-marked Absent</div>}
                           {isNonWorkingDay && <div className="text-slate-300 mt-1">{isHoliday ? 'Holiday' : 'Sunday'}</div>}
-                          {record && <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>{isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status}</div>}
+                          {record && <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>{isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status === 'not_marked' ? 'Not Marked' : record.status.charAt(0).toUpperCase() + record.status.slice(1)}</div>}
                         </div>
                       </div>);
 

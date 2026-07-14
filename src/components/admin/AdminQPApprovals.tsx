@@ -52,6 +52,8 @@ const AdminQPApprovals = () => {
   const [historyTotalCount, setHistoryTotalCount] = useState(0);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [isHistoryView, setIsHistoryView] = useState(false);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [activeTab, setActiveTab] = useState("pending");
   const { theme } = useTheme();
   const { toast } = useToast();
 
@@ -76,8 +78,10 @@ const AdminQPApprovals = () => {
   }, [currentPage]);
 
   useEffect(() => {
-    fetchHistoryQPs(historyPage);
-  }, [historyPage]);
+    if (activeTab === "history") {
+      fetchHistoryQPs(historyPage);
+    }
+  }, [historyPage, activeTab]);
 
   // Ensure SweetAlert appears above the dialog and is interactive
   useEffect(() => {
@@ -119,7 +123,6 @@ const AdminQPApprovals = () => {
     }
   };
 
-  const [downloadingPDF, setDownloadingPDF] = useState(false);
 
   const downloadPDF = async () => {
     if (!qpDetail) return;
@@ -442,7 +445,7 @@ const AdminQPApprovals = () => {
       `}</style>
 
       <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <Tabs defaultValue="pending" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <Card id="qp-approvals-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
           <CardHeader id="qp-approvals-header-section" className="pb-2">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

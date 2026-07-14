@@ -102,12 +102,10 @@ const AttendanceTable = React.memo(({
     if (attendance === "NA" || attendance === null || attendance === undefined) {
       return "text-gray-400";
     }
-    if (typeof attendance === "string") {
-      return "text-gray-400";
-    }
     const num = typeof attendance === 'string' ? parseFloat(attendance) : attendance;
-    if (num < 40) return "text-red-500";
-    if (num <= 60) return "text-orange-500";
+    if (isNaN(num)) return "text-gray-400";
+    if (num < 60) return "text-red-500";
+    if (num < 75) return "text-orange-500";
     return "text-green-500";
   };
 
@@ -650,15 +648,10 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
     if (attendance === "NA" || attendance === null || attendance === undefined) {
       return "text-gray-400";
     }
-    if (typeof attendance === "string") {
-      return "text-gray-400";
-    }
-    if (attendance < 40) {
-      return "text-red-500";
-    }
-    if (attendance <= 60) {
-      return "text-orange-500";
-    }
+    const num = typeof attendance === 'string' ? parseFloat(attendance) : attendance;
+    if (isNaN(num)) return "text-gray-400";
+    if (num < 60) return "text-red-500";
+    if (num < 75) return "text-orange-500";
     return "text-green-500";
   };
 

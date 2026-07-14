@@ -42,6 +42,8 @@ interface Profile {
   address: string;
   bio: string;
   profile_picture?: string;
+  branch_name?: string;
+  branch_code?: string;
 }
 
 interface HodProfileProps {
@@ -150,7 +152,9 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
             mobile_number: payload.mobile_number || payload.mobile || "",
             address: payload.address || "",
             bio: payload.bio || "",
-            profile_picture: payload.profile_picture || payload.profile_picture_url || ""
+            profile_picture: payload.profile_picture || payload.profile_picture_url || "",
+            branch_name: payload.branch_name || "",
+            branch_code: payload.branch_code || ""
           };
           setProfile(fetchedProfile as any);
         } else {
@@ -656,6 +660,14 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
                       <span className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</span>
                       <span className={`text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.mobile_number || '—'}</span>
                     </div>
+                    {profile.branch_name && (
+                      <div className="flex flex-col justify-start">
+                        <span className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch</span>
+                        <span className={`text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>
+                          {profile.branch_name} {profile.branch_code ? `(${profile.branch_code})` : ''}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
