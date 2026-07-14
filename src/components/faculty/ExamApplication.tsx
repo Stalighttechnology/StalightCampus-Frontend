@@ -607,19 +607,23 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <Button
-                        onClick={() => openFor(student)}
-                        className={`w-full h-9 font-medium ${
-                          studentStatuses[student.usn] === 'Applied'
-                            ? theme === 'dark' ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
-                            : 'bg-primary hover:bg-[#9147e0] text-white border-0'
-                        } ${!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        variant={studentStatuses[student.usn] === 'Applied' ? 'outline' : 'default'}
-                        disabled={!student.is_window_open && studentStatuses[student.usn] !== 'Applied'}
-                        title={!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? "Exam application is closed for this period" : ""}
-                      >
-                        {studentStatuses[student.usn] === 'Applied' ? 'Edit Application' : 'Apply'}
-                      </Button>
+                      {!(studentStatuses[student.usn] === 'Applied' && !student.is_window_open) && (
+                        <Button
+                          onClick={() => openFor(student)}
+                          className={`w-full h-9 font-medium ${
+                            studentStatuses[student.usn] === 'Applied'
+                              ? theme === 'dark' ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
+                              : 'bg-primary hover:bg-[#9147e0] text-white border-0'
+                          } ${!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          variant={studentStatuses[student.usn] === 'Applied' ? 'outline' : 'default'}
+                          disabled={!student.is_window_open && studentStatuses[student.usn] !== 'Applied'}
+                          title={!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? "Exam application is closed for this period" : ""}
+                        >
+                          {!student.is_window_open && studentStatuses[student.usn] !== 'Applied'
+                            ? 'Closed'
+                            : studentStatuses[student.usn] === 'Applied' ? 'Edit Application' : 'Apply'}
+                        </Button>
+                      )}
                       {studentStatuses[student.usn] === 'Applied' && (
                         <div className="grid grid-cols-2 gap-2">
                           <Button
@@ -685,19 +689,23 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm flex gap-2 justify-center">
-                        <Button
-                          onClick={() => openFor(student)}
-                          className={`h-8 px-3 font-semibold transition-colors ${
-                            studentStatuses[student.usn] === 'Applied'
-                              ? theme === 'dark' ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
-                              : 'bg-primary hover:bg-[#9147e0] text-white border-0'
-                          } ${!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          variant={studentStatuses[student.usn] === 'Applied' ? 'outline' : 'default'}
-                          disabled={!student.is_window_open && studentStatuses[student.usn] !== 'Applied'}
-                          title={!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? "Exam application is closed for this period" : ""}
-                        >
-                          {studentStatuses[student.usn] === 'Applied' ? 'Edit Application' : 'Apply'}
-                        </Button>
+                        {!(studentStatuses[student.usn] === 'Applied' && !student.is_window_open) && (
+                          <Button
+                            onClick={() => openFor(student)}
+                            className={`h-8 px-3 font-semibold transition-colors ${
+                              studentStatuses[student.usn] === 'Applied'
+                                ? theme === 'dark' ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
+                                : 'bg-primary hover:bg-[#9147e0] text-white border-0'
+                            } ${!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            variant={studentStatuses[student.usn] === 'Applied' ? 'outline' : 'default'}
+                            disabled={!student.is_window_open && studentStatuses[student.usn] !== 'Applied'}
+                            title={!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? "Exam application is closed for this period" : ""}
+                          >
+                            {!student.is_window_open && studentStatuses[student.usn] !== 'Applied'
+                              ? 'Closed'
+                              : studentStatuses[student.usn] === 'Applied' ? 'Edit Application' : 'Apply'}
+                          </Button>
+                        )}
                         {studentStatuses[student.usn] === 'Applied' && (
                           <Button
                             onClick={() => handleDirectDownload(student)}
