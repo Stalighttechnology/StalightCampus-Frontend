@@ -363,7 +363,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
       {/* Add New Batch Card */}
       {!isReadOnly && (
         <Card id="add-new-batch-card" className={theme === 'dark' ? 'bg-card border border-border shadow-sm mb-6' : 'bg-white border border-gray-200 shadow-sm mb-6'}>
-        <CardHeader className="batch-card-header pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <CardHeader className="batch-card-header pb-4 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="w-full">
             <CardTitle className="batch-title">
               Add New Batch
@@ -373,7 +373,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
             </p>
           </div>
         </CardHeader>
-        <CardContent className="batch-card-content">
+        <CardContent className="batch-card-content pt-6">
           <div className="batch-add-controls flex flex-col sm:flex-row gap-2 mb-2">
             <Input
               name="start_year"
@@ -405,7 +405,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
 
       {/* Existing Batches */}
       <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm flex flex-col h-auto md:h-[calc(100vh-320px)] md:min-h-[500px]' : 'bg-white border border-gray-200 shadow-sm flex flex-col h-auto md:h-[calc(100vh-320px)] md:min-h-[500px]'}>
-        <CardHeader id="existing-batches-header" className="batch-card-header pb-2">
+        <CardHeader id="existing-batches-header" className="batch-card-header pb-4 border-b">
           <div className="flex items-center justify-between">
             <CardTitle className="batch-title">Existing Batches</CardTitle>
             <div className="flex items-center gap-2">
@@ -462,7 +462,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
             </div>
           </div>
         </CardHeader>
-        <CardContent className="batch-card-content flex-1 overflow-hidden flex flex-col pt-0">
+        <CardContent className="batch-card-content flex-1 overflow-hidden flex flex-col pt-3">
           {loading ? (
             <SkeletonTable rows={pageSize} cols={4} />
           ) : (

@@ -537,7 +537,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
       <div className={`mx-auto w-full max-w-[400px] sm:max-w-full text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="branches-management-card" className={theme === 'dark' ? 'branches-card w-full bg-card border border-border flex flex-col h-[calc(100vh-240px)] min-h-[350px] md:h-[calc(100vh-280px)] md:min-h-[550px]' : 'branches-card w-full bg-white border border-gray-200 flex flex-col h-[calc(100vh-240px)] min-h-[350px] md:h-[calc(100vh-280px)] md:min-h-[550px]'}>
           <div id="branches-management-header-section" className="flex flex-col">
-            <CardHeader className="pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <CardHeader className="pb-2 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="w-full">
                 <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   Branch Management

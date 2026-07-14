@@ -627,7 +627,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
       <div className={`users-container text-sm sm:text-base max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
         <Card id="users-management-card" className={`users-card ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
           <div id="users-management-header-filters">
-            <CardHeader className="users-card-header flex flex-row items-start justify-between gap-4">
+            <CardHeader className="users-card-header border-b pb-4 flex flex-row items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <CardTitle className={`users-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>User Management</CardTitle>
                 <p className={`users-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage all users in the system</p>
@@ -649,7 +649,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                 {downloadingCSV ? "Exporting..." : "Export CSV"}
               </Button>
             </CardHeader>
-             <CardContent className="users-card-content pb-0">
+             <CardContent className="users-card-content pb-0 pt-3">
               <div className="filters-search flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-2 sm:mb-10">
                 {/* Filters Section */}
                 <div className="flex-1 w-full">

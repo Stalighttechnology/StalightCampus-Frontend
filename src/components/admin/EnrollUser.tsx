@@ -176,13 +176,13 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
     <div className={`overflow-y-hidden ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       <div className="w-full mx-auto">
         <Card id="enroll-user-card" className={theme === 'dark' ? 'w-full bg-card border border-border shadow-lg rounded-lg' : 'w-full bg-white border border-gray-200 shadow-lg rounded-lg'}>
-          <CardHeader id="enroll-user-header" className="pb-4">
+          <CardHeader id="enroll-user-header" className="border-b pb-4">
             <CardTitle className={`text-2xl font-semibold leading-none tracking-tight text-gray-900 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Staff Enrollment Form</CardTitle>
             <CardDescription className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Add a new staff member to the system
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-3">
             <div className="space-y-5">
               <div>
                 <label htmlFor="role" className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
