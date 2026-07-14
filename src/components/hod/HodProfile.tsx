@@ -42,6 +42,7 @@ interface Profile {
   address: string;
   bio: string;
   profile_picture?: string;
+  department?: string;
 }
 
 interface HodProfileProps {
@@ -59,7 +60,8 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
     mobile_number: "",
     address: "",
     bio: "",
-    profile_picture: ""
+    profile_picture: "",
+    department: ""
   });
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -150,7 +152,8 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
             mobile_number: payload.mobile_number || payload.mobile || "",
             address: payload.address || "",
             bio: payload.bio || "",
-            profile_picture: payload.profile_picture || payload.profile_picture_url || ""
+            profile_picture: payload.profile_picture || payload.profile_picture_url || "",
+            department: payload.department || payload.branch || ""
           };
           setProfile(fetchedProfile as any);
         } else {
@@ -165,7 +168,8 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
               email: currentUser?.email || "",
               mobile_number: "",
               address: "",
-              bio: ""
+              bio: "",
+              department: ""
             });
           }
         }
@@ -648,6 +652,10 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
                 <h4 className={`text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
                 <div className={`border rounded-lg p-2.5 sm:p-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
+                    <div className="flex flex-col justify-start">
+                      <span className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Department</span>
+                      <span className={`text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.department || '—'}</span>
+                    </div>
                     <div className="flex flex-col justify-start">
                       <span className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</span>
                       <span className={`text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.email || '—'}</span>
