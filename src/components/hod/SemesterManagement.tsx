@@ -424,9 +424,9 @@ const SemesterManagement = () => {
   return (
     <div id="hod-semester-container" className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-        <CardHeader>
+        <CardHeader className="border-b pb-4">
           <div id="semester-list-header" className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3">
-            <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Semester List</CardTitle>
+            <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester List</CardTitle>
             <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
               <Button
                 onClick={() => openModal()}
@@ -457,7 +457,7 @@ const SemesterManagement = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pt-4">
 
 
           {loading ? (
@@ -513,7 +513,7 @@ const SemesterManagement = () => {
 
               {/* Desktop / Tablet: keep existing table - hidden on mobile */}
               <div className="hidden sm:block">
-                <table className="w-full text-sm table-fixed">
+                <table className="w-full text-sm table-fixed ">
                   <thead className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-gray-100 text-gray-900 border-gray-300'}>
                     <tr className="border-b">
                       <th className="p-2 text-left" style={{ width: '15%' }}>NAME</th>

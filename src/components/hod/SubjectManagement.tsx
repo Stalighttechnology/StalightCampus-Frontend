@@ -318,10 +318,10 @@ const SubjectManagement = () => {
     <div id="hod-subjects-container" className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <div id="courses-header-filters-section">
-          <CardHeader>
+          <CardHeader className="border-b pb-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-2 sm:gap-4">
               <div className="flex items-start justify-between w-full sm:w-auto">
-                <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Manage Courses</CardTitle>
+                <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Manage Courses</CardTitle>
               </div>
               <div className="flex flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 <Button
@@ -337,7 +337,7 @@ const SubjectManagement = () => {
                   
                   + Add Course
                 </Button>
-
+ 
                 {/* Mobile Download PDF Icon Button */}
                 <Button
                   onClick={handleExportPDF}
@@ -348,7 +348,7 @@ const SubjectManagement = () => {
                 >
                   {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
                 </Button>
-
+ 
                 <Button
                   onClick={handleExportPDF}
                   disabled={state.loading || downloadingPDF || !state.filters.semester_id || !state.filters.subject_type || state.filters.semester_id === "all" || state.filters.subject_type === "all"}
@@ -363,7 +363,7 @@ const SubjectManagement = () => {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="pb-4">
+          <CardContent className="pb-4 pt-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="w-full md:w-48">
                 <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Filter by Semester</label>

@@ -507,8 +507,8 @@ const StudentEnrollment = () => {
     <div id="hod-student-enrollment-container" className="w-full mx-auto max-w-none">
       <Card className="shadow-lg">
         <div id="elective-enrollment-filters-section">
-          <CardHeader className="pb-4 md:pb-2 lg:pb-4 flex flex-row items-start justify-between">
-            <CardTitle>Student Enrollment <span className="block sm:inline">(Elective / Open Elective)</span></CardTitle>
+          <CardHeader className="pb-4 md:pb-2 lg:pb-4 flex flex-row items-start justify-between border-b pb-4">
+            <CardTitle className="text-2xl font-semibold">Student Enrollment <span className="block sm:inline">(Elective / Open Elective)</span></CardTitle>
             <Button
               onClick={handleExportPDF}
               disabled={!selectedSubjectId || isLoading || saving || downloadingPDF}
@@ -519,7 +519,7 @@ const StudentEnrollment = () => {
               {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
             </Button>
           </CardHeader>
-          <CardContent className="space-y-4 sm:space-y-5 md:space-y-4 lg:space-y-6 p-4 sm:p-5 md:p-4 lg:p-6 pb-0">
+          <CardContent className="space-y-4 sm:space-y-5 md:space-y-4 lg:space-y-6 p-4 sm:p-5 md:p-4 lg:p-6 pb-0 pt-6">
             <div className="w-full">
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 w-full">
                 <div className="space-y-2">

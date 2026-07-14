@@ -449,11 +449,11 @@ const StaffTaskTracker = () => {
   };
 
   return (
-    <Card className="border-border bg-card text-card-foreground p-6">
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-border/50">
+    <Card className="border-border bg-card text-card-foreground">
+      <CardHeader className="border-b pb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Task Tracker</h2>
+            <CardTitle className="text-2xl font-semibold tracking-tight">Task Tracker</CardTitle>
             <p className="text-muted-foreground text-sm">Manage and track internal faculty and academic tasks.</p>
           </div>
 
@@ -711,6 +711,8 @@ const StaffTaskTracker = () => {
             </Dialog>
           )}
         </div>
+      </CardHeader>
+      <CardContent className="space-y-6 pt-6">
 
         {/* Tab Navigation if user can assign tasks */}
         {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && role !== 'org_admin' && (
@@ -865,7 +867,7 @@ const StaffTaskTracker = () => {
             </Card>
           )}
         </div>
-      </div>
+      </CardContent>
     </Card>
   );
 };

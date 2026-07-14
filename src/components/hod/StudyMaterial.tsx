@@ -727,7 +727,7 @@ const StudyMaterials = () => {
     <div id="hod-study-materials-container" className="w-full mx-auto max-w-none">
       <Card className={`shadow-lg ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
         <div id="hod-study-materials-header-section" className="space-y-4">
-          <CardHeader className="pb-4">
+          <CardHeader className="pb-4 border-b">
             <div className="flex justify-between items-center gap-2">
               <CardTitle className="text-2xl font-semibold leading-none tracking-tight">Study Materials</CardTitle>
               <Button
@@ -740,7 +740,7 @@ const StudyMaterials = () => {
               </Button>
             </div>
           </CardHeader>
-          <div className="px-6 pb-2">
+          <div className="px-6 pb-2 pt-6">
             {/* Filters Grid */}
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

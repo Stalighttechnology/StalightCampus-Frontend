@@ -362,11 +362,15 @@ const ApplyLeave = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leave Application Form - Left Side */}
         <Card id="hod-leave-application-form" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-        <CardHeader>
-          <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
-          <p className="text-sm text-muted-foreground mt-1 font-normal">Your leave request will be routed to the <span className="font-medium text-primary">Principal</span> for approval.</p>
+        <CardHeader className="border-b pb-4">
+          <div className="flex flex-row items-center justify-between gap-3">
+            <div>
+              <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1 font-normal">Your leave request will be routed to the <span className="font-medium text-primary">Principal</span> for approval.</p>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 pt-6">
           {/* Error Message */}
           {error &&
             <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
@@ -463,11 +467,11 @@ const ApplyLeave = () => {
 
         {/* Recent Leave Applications - Right Side */}
         <Card id="hod-recent-leave-applications" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-        <CardHeader>
-          <div className="flex flex-row items-start justify-between gap-3">
+        <CardHeader className="border-b pb-4">
+          <div className="flex flex-row items-center justify-between gap-3">
             <div>
-              <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
-              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
+              <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
+              <p className={`text-sm mt-1 font-normal ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
             </div>
             <div className="relative flex-shrink-0" ref={filterRef}>
               <Button
@@ -484,7 +488,7 @@ const ApplyLeave = () => {
                         key={status}
                         type="button"
                         className={cn(
-                          "block w-full text-left px-4 py-2 text-sm hover:bg-accent cursor-pointer",
+                           "block w-full text-left px-4 py-2 text-sm hover:bg-accent cursor-pointer",
                           theme === 'dark' ? 'hover:bg-accent text-foreground' : 'hover:bg-gray-100 text-gray-700',
                           statusFilter === status && "font-semibold bg-accent/50"
                         )}
@@ -501,8 +505,8 @@ const ApplyLeave = () => {
             </div>
           </div>
         </CardHeader>
-
-        <CardContent className="flex-1 max-h-[500px] overflow-y-auto custom-scrollbar">
+ 
+        <CardContent className="flex-1 max-h-[500px] overflow-y-auto custom-scrollbar pt-6">
           <div className="overflow-x-auto thin-scrollbar">
             {/* Mobile: stacked cards */}
             <div className="md:hidden space-y-3">

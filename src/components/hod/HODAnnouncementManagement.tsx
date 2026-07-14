@@ -402,7 +402,7 @@ const HODAnnouncementManagement = () => {
               header={
                 <CardHeader className="announcements-card-header flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 gap-4 border-b ">
                   <div className="space-y-1">
-                    <CardTitle className="announcements-card-title text-xl font-semibold">Branch Announcements</CardTitle>
+                    <CardTitle className="announcements-card-title text-2xl font-semibold">Branch Announcements</CardTitle>
                     <CardDescription className={`announcements-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       Create and manage announcements for your branch
                     </CardDescription>
