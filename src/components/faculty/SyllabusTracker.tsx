@@ -38,6 +38,7 @@ const SyllabusTracker = () => {
     section_id: a.section_id ? Number(a.section_id) : null
   })), [assignments]);
 
+  const [branchId, setBranchId] = useState<number | null>(null);
   const [semesterId, setSemesterId] = useState<number | null>(null);
   const [subjectId, setSubjectId] = useState<number | null>(null);
   const [sectionId, setSectionId] = useState<number | null>(null);
@@ -49,6 +50,7 @@ const SyllabusTracker = () => {
   // Local state for progress edits
   const [progressEdits, setProgressEdits] = useState<{[weekNum: number]: { topics_covered: string; notes: string; is_completed: boolean } }>({});
 
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isSubjectOpen, setIsSubjectOpen] = useState(false);
   const [isSectionOpen, setIsSectionOpen] = useState(false);
   
@@ -96,16 +98,23 @@ const SyllabusTracker = () => {
     }
   };
 
-  // 1. Semesters (Unique list from assignments)
-  const semesters = useMemo(() => {
-    const list = normalizedAssignments.map(a => ({ id: a.semester_id, number: a.semester }));
-    return Array.from(new Map(list.filter(s => s.id).map(s => [s.id, s])).values()).sort((a,b) => (a.number || 0) - (b.number || 0));
+  // 0. Branches (Unique list from assignments)
+  const branches = useMemo(() => {
+    const list = normalizedAssignments.map(a => ({ id: a.branch_id, name: a.branch }));
+    return Array.from(new Map(list.filter(b => b.id).map(b => [b.id, b])).values()).sort((a,b) => (a.name || "").localeCompare(b.name || ""));
   }, [normalizedAssignments]);
 
-  // 2. Subjects (Filtered by chosen Semester)
+  // 1. Semesters (Filtered by chosen Branch)
+  const semesters = useMemo(() => {
+    if (!branchId) return [];
+    const list = normalizedAssignments.filter(a => a.branch_id === branchId).map(a => ({ id: a.semester_id, number: a.semester }));
+    return Array.from(new Map(list.filter(s => s.id).map(s => [s.id, s])).values()).sort((a,b) => (a.number || 0) - (b.number || 0));
+  }, [branchId, normalizedAssignments]);
+
+  // 2. Subjects (Filtered by chosen Semester & Branch)
   const subjects = useMemo(() => {
-    if (!semesterId) return [];
-    const filtered = normalizedAssignments.filter(a => a.semester_id === semesterId);
+    if (!branchId || !semesterId) return [];
+    const filtered = normalizedAssignments.filter(a => a.branch_id === branchId && a.semester_id === semesterId);
     const list = filtered.map(a => ({
       id: a.subject_id,
       name: a.subject_name,
@@ -113,21 +122,30 @@ const SyllabusTracker = () => {
       type: a.subject_type || "regular"
     }));
     return Array.from(new Map(list.filter(s => s.id).map(s => [s.id, s])).values());
-  }, [semesterId, normalizedAssignments]);
+  }, [branchId, semesterId, normalizedAssignments]);
 
   // 3. Sections (Filtered by chosen Semester & Subject)
   const sections = useMemo(() => {
-    if (!semesterId || !subjectId) return [];
-    const filtered = normalizedAssignments.filter(a => a.semester_id === semesterId && a.subject_id === subjectId);
+    if (!branchId || !semesterId || !subjectId) return [];
+    const filtered = normalizedAssignments.filter(a => a.branch_id === branchId && a.semester_id === semesterId && a.subject_id === subjectId);
     const list = filtered.map(a => ({ id: a.section_id, name: a.section }));
     return Array.from(new Map(list.filter(s => s.id).map(s => [s.id, s])).values());
-  }, [semesterId, subjectId, normalizedAssignments]);
+  }, [branchId, semesterId, subjectId, normalizedAssignments]);
 
   // Determine if chosen subject is elective
   const selectedSubject = useMemo(() => subjects.find(s => s.id === subjectId), [subjectId, subjects]);
   const isElective = useMemo(() => selectedSubject?.type === "elective" || selectedSubject?.type === "open_elective", [selectedSubject]);
 
   // Reset cascade
+  useEffect(() => {
+    setSemesterId(null);
+    setSubjectId(null);
+    setSectionId(null);
+    if (branchId && semesters.length > 0) {
+      setIsSemesterOpen(true);
+    }
+  }, [branchId]);
+
   useEffect(() => {
     setSubjectId(null);
     setSectionId(null);
@@ -307,12 +325,24 @@ const SyllabusTracker = () => {
         </CardHeader>
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
           {/* Dropdown Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold uppercase opacity-80">{translateTerminology("Branch")}</label>
+              <Select value={branchId?.toString() || ""} onValueChange={(v) => setBranchId(Number(v))}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={translateTerminology("Select Branch")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-1">
               <label className="text-xs font-semibold uppercase opacity-80">{translateTerminology("Semester")}</label>
-              <Select value={semesterId?.toString() || ""} onValueChange={(v) => setSemesterId(Number(v))}>
+              <Select value={semesterId?.toString() || ""} onValueChange={(v) => setSemesterId(Number(v))} disabled={!branchId} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateTerminology("Select Semester")} />
+                  <SelectValue placeholder={!branchId ? "Select Branch first" : translateTerminology("Select Semester")} />
                 </SelectTrigger>
                 <SelectContent>
                   {semesters.map(s => <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>)}
