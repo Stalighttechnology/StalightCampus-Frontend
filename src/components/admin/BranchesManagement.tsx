@@ -251,7 +251,12 @@ const fetchData = async (page: number = 1, search: string = filter) => {
           toast({ title: "Success", description: "Branch updated successfully" });
         } else {
           setError(response.message || "Failed to update branch");
-          toast({ variant: "destructive", title: "Error", description: response.message || "Failed to update branch" });
+          MySwal.fire({
+            icon: 'error',
+            title: 'Update Failed',
+            text: response.message || "Failed to update branch",
+            confirmButtonColor: '#3085d6'
+          });
         }
       } catch (err) {
         setError("Network error");
@@ -346,6 +351,28 @@ const fetchData = async (page: number = 1, search: string = filter) => {
         return;
       }
     }
+
+    const confirmMessage = `
+      <div class="text-left text-sm mt-2">
+        <p class="mb-1"><strong>Branch Name:</strong> ${trimmedName}</p>
+        <p class="mb-1"><strong>Branch Code:</strong> ${trimmedCode || "N/A"}</p>
+        <p class="mb-1"><strong>Total Semesters:</strong> ${totalSemesters}</p>
+      </div>
+      <p class="mt-4 text-sm text-gray-500">Are these details correct?</p>
+    `;
+
+    const result = await MySwal.fire({
+      title: 'Confirm Branch Details',
+      html: confirmMessage,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, create branch',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33'
+    });
+
+    if (!result.isConfirmed) return;
 
     setLoading(true);
     try {
@@ -595,6 +622,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                         <tr>
                           <th className="branch-name-col py-3 px-3 text-left font-bold">{translateTerminology("Branch Name")}</th>
                           <th className="py-3 px-3 hidden sm:table-cell font-bold">{translateTerminology("Branch Code")}</th>
+                          <th className="py-3 px-3 font-bold text-center">Semesters</th>
                           <th className="hod-col py-3 px-3 font-bold">Assigned HOD</th>
                           <th className="py-3 px-3 hidden sm:table-cell font-bold">HOD Contact</th>
                           {!isReadOnly && <th className="actions-col py-3 px-3 text-right w-24 font-bold">Actions</th>}
@@ -622,6 +650,10 @@ const fetchData = async (page: number = 1, search: string = filter) => {
 
                               <td className="py-3 px-3 hidden sm:table-cell align-middle">
                                 <span className="opacity-70">{branch.branch_code || "--"}</span>
+                              </td>
+
+                              <td className="py-3 px-3 align-middle text-center">
+                                <span className="font-semibold">{branch.total_semesters || "--"}</span>
                               </td>
 
                               <td className="py-3 px-3 align-middle hod-cell">
@@ -703,7 +735,11 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                             )}
                           </div>
 
-                          <div className={`grid grid-cols-2 gap-2 pt-2 border-t text-[11px] sm:text-xs ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'}`}>
+                          <div className={`grid grid-cols-3 gap-2 pt-2 border-t text-[11px] sm:text-xs ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'}`}>
+                            <div>
+                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[9px] mb-0.5">Semesters</span>
+                              <span className="font-medium">{branch.total_semesters || "--"}</span>
+                            </div>
                             <div>
                               <span className="block opacity-60 uppercase font-bold tracking-wider text-[9px] mb-0.5">Assigned HOD</span>
                               <span className="font-medium break-words">{branch.hod || "--"}</span>

@@ -138,15 +138,12 @@ const PromotionOverview = ({ onTabChange, theme, stats }: { onTabChange: (tab: "
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Bulk promote students</span>
-                <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Promote selected students</span>
-                <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>View promotion history</span>
-                <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
               </div>
             </div>
             <Button onClick={() => onTabChange("promote")} className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white">
@@ -172,15 +169,12 @@ const PromotionOverview = ({ onTabChange, theme, stats }: { onTabChange: (tab: "
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Individual demotion</span>
-                <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Bulk demotion</span>
-                <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Track demotion reasons</span>
-                <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
               </div>
             </div>
             <Button onClick={() => onTabChange("demote")} className="w-full mt-6 bg-red-600 hover:bg-red-700 text-white">
@@ -1444,15 +1438,6 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
                 </SelectContent>
               </Select>
             </div>
-
-            <Button
-              onClick={() => updateState({ showBulkDemoteDialog: true })}
-              disabled={!state.selectedSemester}
-              className="w-full sm:w-auto self-start"
-              variant="destructive">
-              <Users className="h-4 w-4 mr-2" />
-              Bulk Demote Students
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -1467,17 +1452,6 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
                 <span className="text-xl sm:text-semibold md:text-lg">Students in {state.selectedSemester} - {state.selectedSection}</span>
               </span>
               <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="select-all-students-demote"
-                    checked={state.selectedStudents.length === state.students.length && state.students.length > 0}
-                    onCheckedChange={handleSelectAll}
-                    className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
-
-                  <label htmlFor="select-all-students-demote" className={`text-sm cursor-pointer whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    Select All
-                  </label>
-                </div>
                 <Button
                   onClick={() => updateState({ showBulkDemoteDialog: true })}
                   disabled={state.selectedStudents.length === 0}
