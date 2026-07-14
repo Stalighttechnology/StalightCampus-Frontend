@@ -199,14 +199,14 @@ const BulkUpload = ({ setError, toast }: BulkUploadProps) => {
     <div className={` w-full mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       <Card id="bulk-upload-card">
         <div id="bulk-upload-form-section">
-          <CardHeader>
-            <CardTitle>Bulk Upload Faculty</CardTitle>
+          <CardHeader className="border-b pb-4">
+            <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Bulk Upload Faculty</CardTitle>
             <CardDescription className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Upload CSV or Excel files to bulk enroll faculty members
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             <div
               onDrop={handleDrop}
               onDragOver={(e) => {

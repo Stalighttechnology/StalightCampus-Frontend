@@ -740,7 +740,7 @@ const StudyMaterials = () => {
               </Button>
             </div>
           </CardHeader>
-          <div className="px-6 pb-2 pt-6">
+          <div className="px-6 pb-2 pt-3">
             {/* Filters Grid */}
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

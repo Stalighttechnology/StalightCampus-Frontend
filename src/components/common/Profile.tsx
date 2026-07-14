@@ -516,7 +516,7 @@ const Profile = ({ role, user }: ProfileProps) => {
           </div>
         </CardHeader>
 
-        <CardContent className="px-6 pb-6 pt-2 space-y-8">
+        <CardContent className="px-6 pb-3 pt-2 space-y-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-start">
             <div className="col-span-1 flex flex-col items-center">
               <div className="relative mb-3 sm:mb-4 mt-4 flex-shrink-0 group cursor-pointer">

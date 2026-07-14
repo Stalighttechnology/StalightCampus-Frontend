@@ -427,14 +427,17 @@ export const BillingManagement: React.FC = () => {
     <div className="space-y-6">
       <div className="grid gap-6 grid-cols-1 min-[1250px]:grid-cols-3">
         {/* Current Plan Card */}
-        <Card id="billing-plan-card" className="col-span-1 min-[1250px]:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Current Plan
-            </CardTitle>
-            <CardDescription>Your current subscription tier</CardDescription>
+        <Card id="billing-plan-card" className="col-span-1 min-[1250px]:col-span-1 flex flex-col h-full">
+          <CardHeader className="border-b pb-4 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className={`text-2xl font-semibold flex items-center gap-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Current Plan
+              </CardTitle>
+              <CardDescription>Your current subscription tier</CardDescription>
+            </div>
+            <div className="h-9 shrink-0" />
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg border">
               <div>
                 <p className="font-semibold text-xl text-primary capitalize">{planName}</p>
@@ -545,10 +548,10 @@ export const BillingManagement: React.FC = () => {
         </Card>
 
         {/* Organization Details Card */}
-        <Card id="billing-org-details-card" className="col-span-1 min-[1250px]:col-span-2">
-          <CardHeader className="flex flex-row items-start justify-between">
+        <Card id="billing-org-details-card" className="col-span-1 min-[1250px]:col-span-2 flex flex-col h-full">
+          <CardHeader className="border-b pb-4 flex flex-row items-center justify-between">
             <div className="flex-1 pr-4">
-              <CardTitle className="flex items-center gap-2 pb-2">
+              <CardTitle className={`text-2xl font-semibold flex items-center gap-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Organization Details
               </CardTitle>
               <CardDescription>Administrative and contact information</CardDescription>
@@ -558,7 +561,7 @@ export const BillingManagement: React.FC = () => {
               Edit
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="flex flex-col min-[1250px]:flex-row items-center min-[1250px]:items-start gap-6 mb-6 w-full">
               {/* Brand Logo Display */}
               <div className="relative flex flex-col items-center justify-center border p-4 rounded-xl bg-muted/20 w-32 h-32 shrink-0 group">

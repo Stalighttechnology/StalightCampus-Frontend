@@ -747,10 +747,10 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     <ErrorBoundary>
       <div id="hod-faculty-assignments-container" className={` space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="add-faculty-assignment-card" ref={formRef} className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-          <CardHeader>
-            <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{state.editingId ? "Edit Faculty Assignment" : "Add Faculty Assignment"}</CardTitle>
+          <CardHeader className="border-b pb-2">
+            <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{state.editingId ? "Edit Faculty Assignment" : "Add Faculty Assignment"}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Branch")}
@@ -1081,10 +1081,10 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
         </Card>
 
         <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-          <CardHeader>
+          <CardHeader className="border-b pb-2">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
               <div className="flex items-start justify-between w-full sm:w-auto">
-                <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Assignments List</CardTitle>
+                <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Assignments List</CardTitle>
                 {/* Mobile Download PDF Icon Button */}
                 <Button
                   onClick={handleExportPDF}
@@ -1109,7 +1109,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Select

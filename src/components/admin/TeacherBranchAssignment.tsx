@@ -345,7 +345,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
       <div className={`${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       <Card id="teacher-assignments-card" className={theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}>
         <div id="teacher-assignments-header-section" className="flex flex-col">
-          <CardHeader className="assignment-card-header">
+          <CardHeader className="assignment-card-header border-b pb-4">
             <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <CardTitle className={`assignment-title text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty-Branch Assignments</CardTitle>
@@ -367,7 +367,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             </div>
           </CardHeader>
           {/* Search and Filter Controls */}
-          <div className="controls-wrapper px-4 sm:px-6 flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="controls-wrapper px-4 sm:px-6 flex flex-col sm:flex-row gap-4 mb-4 pt-3">
             <div className="search-container relative w-full sm:w-64">
               <Input
                   placeholder="Search teachers by name or email..."

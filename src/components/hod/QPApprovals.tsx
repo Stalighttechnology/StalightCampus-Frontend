@@ -455,10 +455,10 @@ const QPApprovals = () => {
       <div id="hod-qp-approvals-container" className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <Card className={theme === 'dark' ? 'bg-card border border-border flex flex-col min-h-[550px]' : 'bg-white border border-gray-200 flex flex-col min-h-[550px]'}>
-            <CardHeader className="pb-2">
+            <CardHeader className="border-b pb-4">
               <div id="qp-approvals-header-section" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <CardTitle className={`mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Approvals</CardTitle>
+                  <CardTitle className={`text-2xl font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Approvals</CardTitle>
                   <div className="flex items-center gap-3">
                     <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and track question papers from your department faculty</p>
                   </div>
@@ -471,7 +471,7 @@ const QPApprovals = () => {
             </CardHeader>
 
             <TabsContent value="pending" className="flex-1 mt-0">
-              <CardContent className="px-4 sm:px-6 pt-0">
+              <CardContent className="px-4 sm:px-6 pt-3">
                 <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4 mb-4">
                   {pendingQPs.length === 0 ?
                     <div className={`flex flex-col h-full items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
@@ -520,7 +520,7 @@ const QPApprovals = () => {
             </TabsContent>
 
             <TabsContent value="history" className="flex-1 mt-0">
-              <CardContent className="px-4 sm:px-6 pt-0">
+              <CardContent className="px-4 sm:px-6 pt-6">
                 <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4 mb-4">
                   {historyLoading && historyQPs.length === 0 ? (
                     <SkeletonTable rows={3} cols={3} />
