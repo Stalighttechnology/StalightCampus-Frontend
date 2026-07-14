@@ -409,8 +409,16 @@ const handleApprove = async (index: number) => {
           </div>
           <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Weekly attendance percentage</p>
           <div className={`min-h-[250px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-            {chartData.length === 1 && chartData[0].week === "No Data" ? (
-              <p className={`text-sm text-center italic ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>No attendance data available</p>
+            {(!chartData.some(d => d.attendance > 0) && !isLoading) || (chartData.length === 1 && chartData[0].week === "No Data") ? (
+              <div className={`h-[250px] flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-8 space-y-3 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                  <Calendar className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                </div>
+                <div className="text-center">
+                  <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance data</p>
+                  <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance data will appear here once recorded</p>
+                </div>
+              </div>
             ) : (
               <div className="overflow-x-auto custom-scrollbar pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
                 <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
@@ -447,51 +455,63 @@ const handleApprove = async (index: number) => {
           </div>
           <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty, Students, and Total Members</p>
           <div className="min-h-[250px] focus:outline-none">
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                  <Pie
-                    data={memberData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    label={renderCustomizedLabel}
-                    labelLine={false}
+            {totalMembers === 0 && !isLoading ? (
+              <div className={`h-[250px] flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-8 space-y-3 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                  <Users className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                </div>
+                <div className="text-center">
+                  <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No members found</p>
+                  <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Add faculty or students to see distribution</p>
+                </div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                    <Pie
+                      data={memberData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={80}
+                      paddingAngle={2}
+                      label={renderCustomizedLabel}
+                      labelLine={false}
+                    />
+                    {/* Subtle center background for better contrast (only render in dark theme) */}
+                    {theme === 'dark' && (
+                      <circle cx="50%" cy="50%" r={42} fill="#0b1220" opacity={0.06} />
+                    )}
+                    {/* Center label showing total members */}
+                    <text x="50%" y="46%" textAnchor="middle" fill={theme === 'dark' ? '#cbd5e1' : '#6b7280'} fontSize={12}>
+                      Total Members
+                    </text>
+                    <text x="50%" y="58%" textAnchor="middle" fill={theme === 'dark' ? '#e5e7eb' : '#0f172a'} fontSize={20} fontWeight={700}>
+                      {totalMembers}
+                    </text>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: theme === 'dark' ? '#1c1c1e' : '#fff',
+                      borderRadius: "8px",
+                      border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e5e7eb',
+                    }}
+                    labelStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
+                    itemStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
                   />
-                  {/* Subtle center background for better contrast (only render in dark theme) */}
-                  {theme === 'dark' && (
-                    <circle cx="50%" cy="50%" r={42} fill="#0b1220" opacity={0.06} />
-                  )}
-                  {/* Center label showing total members */}
-                  <text x="50%" y="46%" textAnchor="middle" fill={theme === 'dark' ? '#cbd5e1' : '#6b7280'} fontSize={12}>
-                    Total Members
-                  </text>
-                  <text x="50%" y="58%" textAnchor="middle" fill={theme === 'dark' ? '#e5e7eb' : '#0f172a'} fontSize={20} fontWeight={700}>
-                    {totalMembers}
-                  </text>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: theme === 'dark' ? '#1c1c1e' : '#fff',
-                    borderRadius: "8px",
-                    border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e5e7eb',
-                  }}
-                  labelStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
-                  itemStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
-                />
-                <Legend 
-                  verticalAlign="bottom" 
-                  height={36}
-                  formatter={(value) => (
-                    <span className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                      {value}
-                    </span>
-                  )}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                    formatter={(value) => (
+                      <span className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                        {value}
+                      </span>
+                    )}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
