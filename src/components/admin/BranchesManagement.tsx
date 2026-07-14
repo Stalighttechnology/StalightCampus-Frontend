@@ -176,7 +176,10 @@ const fetchData = async (page: number = 1, search: string = filter) => {
 
   const filteredBranches = branches;
 
-  const handleEdit = (branch: Branch) => {
+  const handleEdit = async (branch: Branch) => {
+    if (users.length === 0) {
+      await fetchHODs();
+    }
     setEditingId(branch.id);
     setEditData(branch);
   };
@@ -797,7 +800,10 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">-- Unassign --</SelectItem>
-                    {users.map((u) =>
+                    {users.filter((u) => {
+                      const name = `${u.first_name} ${u.last_name}`.trim();
+                      return !branches.some(b => b.hod === name && b.id !== editData?.id);
+                    }).map((u) =>
                       <SelectItem key={u.id} value={`${u.first_name} ${u.last_name}`.trim()}>
                         {`${u.first_name} ${u.last_name}`.trim()}
                       </SelectItem>
@@ -892,10 +898,16 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                     <SelectValue placeholder={translateTerminology("Select HOD")} />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                    {users.length === 0 ? (
-                      <SelectItem value="none" disabled>No HODs found</SelectItem>
+                    {users.filter(u => {
+                        const name = `${u.first_name} ${u.last_name}`.trim();
+                        return !branches.some(b => b.hod === name);
+                      }).length === 0 ? (
+                      <SelectItem value="none" disabled>No available HODs found</SelectItem>
                     ) : (
-                      users.map((user) =>
+                      users.filter(u => {
+                        const name = `${u.first_name} ${u.last_name}`.trim();
+                        return !branches.some(b => b.hod === name);
+                      }).map((user) =>
                         <SelectItem key={user.id} value={user.id.toString()}>
                           {`${user.first_name} ${user.last_name}`.trim()}
                         </SelectItem>
