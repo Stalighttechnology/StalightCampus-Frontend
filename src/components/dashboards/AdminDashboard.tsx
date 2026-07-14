@@ -17,6 +17,7 @@ import AdminProfile from "../admin/AdminProfile";
 import AdminQPApprovals from "../admin/AdminQPApprovals";
 import TeacherBranchAssignment from "../admin/TeacherBranchAssignment";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
+import AdminCOAttainment from "../common/AdminCOAttainment";
 import { useToast } from "../../hooks/use-toast";
 import AdminAttendance from "../admin/AdminAttendance";
 import AdminFacultyAttendanceView from "../admin/AdminFacultyAttendanceView";
@@ -59,10 +60,11 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
   const { toast } = useToast();
   const { theme } = useTheme();
 
-  // Get active page from URL path
   const getActivePageFromPath = (pathname: string) => {
-    const path = pathname.replace('/admin', '').replace('/', '');
-    return path || 'dashboard';
+    const pathParts = pathname.split('/').filter(Boolean);
+    const lastPart = pathParts[pathParts.length - 1] || '';
+    if (lastPart === 'admin') return 'dashboard';
+    return lastPart;
   };
 
   const activePage = getActivePageFromPath(location.pathname);
@@ -136,6 +138,9 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
           <div>
             <TeacherBranchAssignment setError={setError} toast={toast} />
           </div>);
+          
+      case "co-attainment":
+        return <AdminCOAttainment />;
 
       case "batches":
         return (

@@ -13,6 +13,7 @@ import DeanExams from "../dean/DeanExams";
 import DeanFacultyProfile from "../dean/DeanFacultyProfile";
 import DeanFinance from "../dean/DeanFinance";
 import DeanAlerts from "../dean/DeanAlerts";
+import AdminCOAttainment from "../common/AdminCOAttainment";
 import DeanAttendanceRecords from "../dean/DeanAttendanceRecords";
 import DeanProfile from "../dean/DeanProfile";
 import ManageAdminLeavesDean from "../dean/ManageAdminLeavesDean";
@@ -63,6 +64,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'announcement-management': 'announcement-management',
     'schedule-meeting': 'schedule-meeting',
     'alumni-directory': 'alumni-directory',
+    'co-attainment': 'co-attainment',
   };
   return pathMap[lastPart] || 'dashboard';
 };
@@ -107,6 +109,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
 
       case 'exams':
         return <div><DeanExams /></div>;
+      case 'co-attainment':
+        return <div><AdminCOAttainment /></div>;
       case 'faculty':
         return <div><DeanFacultyProfile /></div>;
       case 'finance':

@@ -323,6 +323,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Users", page: "users" },
       { name: "Bulk Upload Faculty", page: "bulk-upload" },
       { name: "Question Paper Approvals", page: "qp-approvals" },
+      { name: translateTerminology("CO/PO Attainment"), page: "co-attainment" },
       { name: "HOD Attendance", page: "hod-attendance" },
       { name: "Faculty Attendance", page: "faculty-attendance" },
       { name: "HOD Leaves", page: "hod-leaves" },
@@ -493,6 +494,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Makeup Requests", page: "makeup-requests" },
       { name: "Student Status", page: "student-status" },
       { name: "Course Statistics", page: "course-statistics" },
+      { name: translateTerminology("CO/PO Attainment"), page: "co-attainment" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Fee Settings", page: "fee-settings" },
       { name: "Scan for Student Info", page: "scan-student-info" },
@@ -507,6 +509,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     dean: [
       { name: "Dashboard", page: "dashboard" },
       { name: "Exams", page: "exams" },
+      { name: translateTerminology("CO/PO Attainment"), page: "co-attainment" },
       { name: "Faculty", page: "faculty" },
       { name: "Today's Attendance", page: "attendance" },
       { name: "Attendance Filters", page: "attendance-filters" },

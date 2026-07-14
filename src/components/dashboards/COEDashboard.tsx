@@ -16,6 +16,7 @@ import MakeupRequests from "../coe/MakeupRequests";
 import RevaluationRequests from "../coe/RevaluationRequests";
 import ExamScheduling from "../coe/ExamScheduling";
 import COEFeeSettings from "../coe/COEFeeSettings";
+import AdminCOAttainment from "../common/AdminCOAttainment";
 import { API_ENDPOINT } from "../../utils/config";
 import { useTheme } from "../../context/ThemeContext";
 import { isPageAllowed } from "../../utils/planGating";
@@ -69,6 +70,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'my-attendance': 'my-attendance',
       'announcement-management': 'announcement-management',
       'profile': 'profile',
+      'co-attainment': 'co-attainment',
       'schedule-meeting': 'schedule-meeting'
     };
 
@@ -112,6 +114,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'announcement-management': '/coe/announcement-management',
       'profile': '/coe/profile',
       'fee-settings': '/coe/fee-settings',
+      'co-attainment': '/coe/co-attainment',
       'schedule-meeting': '/coe/schedule-meeting'
     };
 
@@ -143,6 +146,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
         return <StudentStatus />;
       case 'course-statistics':
         return <CourseStatistics />;
+      case 'co-attainment':
+        return <AdminCOAttainment />;
       case 'makeup-requests':
         return <MakeupRequests />;
       case 'revaluation-requests':
