@@ -617,7 +617,7 @@ const ExamApplication: React.FC = () => {
                                 disabled={!student.is_window_open && studentStatuses[student.usn] !== 'Applied'}
                                 title={!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? "Exam application is closed for this period" : ""}
                               >
-                                Apply
+                                {!student.is_window_open && studentStatuses[student.usn] !== 'Applied' ? "Closed" : "Apply"}
                               </Button>
                             )}
                             {studentStatuses[student.usn] === 'Applied' &&

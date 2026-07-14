@@ -81,6 +81,7 @@ const ProctorStudents = () => {
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isSectionOpen, setIsSectionOpen] = useState(false);
   const [isProctorOpen, setIsProctorOpen] = useState(false);
+  const [proctorError, setProctorError] = useState("");
 
   const studentsPerPage = 20;
 
@@ -463,6 +464,7 @@ const ProctorStudents = () => {
   };
 
   const handleCancelEdit = () => {
+    setProctorError("");
     updateState({
       editMode: false,
       selectedUSNs: [],
@@ -686,7 +688,10 @@ const ProctorStudents = () => {
                       }
                       setIsProctorOpen(open);
                     }}
-                    onValueChange={(value) => updateState({ selectedProctor: value })}
+                    onValueChange={(value) => {
+                      updateState({ selectedProctor: value });
+                      setProctorError("");
+                    }}
                     disabled={state.loading}>
                     <SelectTrigger className={`text-base w-full ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                       <SelectValue placeholder={state.loadingProctors ? "Loading..." : "Choose a proctor"} />
@@ -830,11 +835,20 @@ const ProctorStudents = () => {
                 <div className="w-full md:w-auto flex gap-2 md:mt-6">
                   <Button
                     onClick={async () => {
+                      if (!state.selectedProctor) {
+                        toast({
+                          variant: "destructive",
+                          title: "Required Field",
+                          description: "Please select a proctor"
+                        });
+                        setIsProctorOpen(true);
+                        return;
+                      }
                       updateState({ saving: true });
                       await handleEditToggle();
                       updateState({ saving: false });
                     }}
-                    disabled={state.saving || state.selectedUSNs.length === 0 || !state.selectedProctor}
+                    disabled={state.saving || state.selectedUSNs.length === 0}
                     className="flex-1 sm:flex-none text-white bg-green-600 hover:bg-green-700 text-base font-semibold shadow-sm transition-all duration-200 flex items-center justify-center gap-2"
                   >
                     {state.saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving</> : "Save Changes"}

@@ -521,7 +521,7 @@ const StudentEnrollment = () => {
           </CardHeader>
           <CardContent className="space-y-4 sm:space-y-5 md:space-y-4 lg:space-y-6 p-4 sm:p-5 md:p-4 lg:p-6 pb-0">
             <div className="w-full">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 w-full">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">{translateTerminology("Semester")}</label>
                   <Select open={isSemesterOpen} onOpenChange={setIsSemesterOpen} value={semesterId} onValueChange={(v: string) => {
@@ -645,50 +645,52 @@ const StudentEnrollment = () => {
               </div>
             </div>
 
-            <div className={`flex flex-col lg:flex-row items-stretch lg:items-center gap-4 mb-6 p-4 sm:p-5 rounded-lg border ${theme === 'dark' ? 'bg-muted/50 border-border' : 'bg-gray-50 border-gray-100'}`
+            <div className={`flex flex-col xl:flex-row items-stretch xl:items-center gap-4 mb-6 p-4 sm:p-5 rounded-lg border ${theme === 'dark' ? 'bg-muted/50 border-border' : 'bg-gray-50 border-gray-100'}`
             }>
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40 text-gray-500" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  disabled={!selectedSubjectId}
-                  placeholder={selectedSubjectId ? "Search by USN or name" : "Select subject to search"}
-                  className={`w-full pl-10 pr-12 py-2.5 text-sm rounded-md border shadow-sm transition-all placeholder-gray-400 focus:ring-2 focus:ring-purple-500/20 ${!selectedSubjectId ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ?
-                      'bg-background border-border text-foreground placeholder:text-muted-foreground' :
-                      'bg-white border-gray-300 text-gray-900'}`
-                  } />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                <Button
-                  onClick={save}
-                  disabled={saving || students.length === 0}
-                  className="w-full sm:w-auto px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95">
-
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Enrollment"}
-                </Button>
-                <Button
-                  onClick={handleExportPDF}
-                  disabled={!selectedSubjectId || isLoading || saving || downloadingPDF}
-                  className="hidden sm:flex px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95 items-center justify-center gap-2">
-                  {downloadingPDF ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <FileDown className="h-4.5 w-4.5" />
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40 text-gray-500" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    disabled={!selectedSubjectId}
+                    placeholder={selectedSubjectId ? "Search by USN or name" : "Select subject to search"}
+                    className={`w-full pl-10 pr-12 py-2.5 text-sm rounded-md border shadow-sm transition-all placeholder-gray-400 focus:ring-2 focus:ring-purple-500/20 ${!selectedSubjectId ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ?
+                        'bg-background border-border text-foreground placeholder:text-muted-foreground' :
+                        'bg-white border-gray-300 text-gray-900'}`
+                    } />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Clear
+                    </button>
                   )}
-                  <span>Export PDF</span>
-                </Button>
+                </div>
+                <div className="flex flex-row items-center gap-3 shrink-0">
+                  <Button
+                    onClick={save}
+                    disabled={saving || students.length === 0}
+                    className="w-full sm:w-auto px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95">
+
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Enrollment"}
+                  </Button>
+                  <Button
+                    onClick={handleExportPDF}
+                    disabled={!selectedSubjectId || isLoading || saving || downloadingPDF}
+                    className="hidden sm:flex px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95 items-center justify-center gap-2">
+                    {downloadingPDF ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <FileDown className="h-4.5 w-4.5" />
+                    )}
+                    <span>Export PDF</span>
+                  </Button>
+                </div>
               </div>
-              <div className="flex flex-row items-center justify-center lg:justify-start gap-4 lg:gap-6 text-sm pt-2 lg:pt-0 border-t lg:border-none border-gray-200 dark:border-gray-800 mt-2 lg:mt-0">
+              <div className="flex flex-row items-center justify-center xl:justify-start gap-4 xl:gap-6 text-sm pt-2 xl:pt-0 border-t xl:border-none border-gray-200 dark:border-gray-800 mt-2 xl:mt-0">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-gray-600 dark:text-gray-400">Enrolled:</span>
                   <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${theme === 'dark' ?

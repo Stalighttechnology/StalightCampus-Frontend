@@ -774,7 +774,7 @@ interface UploadStudyMaterialRequest {
   subject_code?: string;
   semester_id: string;
   branch_id: string;
-  section_id?: string;
+  section_ids?: string[];
   file_url: string;
 }
 
