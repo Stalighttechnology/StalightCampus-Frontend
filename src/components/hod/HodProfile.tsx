@@ -667,14 +667,6 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
                       <span className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</span>
                       <span className={`text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.mobile_number || '—'}</span>
                     </div>
-                    {profile.branch_name && (
-                      <div className="flex flex-col justify-start">
-                        <span className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch</span>
-                        <span className={`text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>
-                          {profile.branch_name} {profile.branch_code ? `(${profile.branch_code})` : ''}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
