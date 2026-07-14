@@ -106,7 +106,8 @@ export const fetchAnnouncements = async (
       page: String(safePage),
       page_size: String(safePageSize),
       include_inactive: String(includeInactive),
-      include_expired: String(includeExpired)
+      include_expired: String(includeExpired),
+      _t: String(Date.now())
     });
 
     if (myPage !== undefined && myPage !== null) params.append("my_page", String(myPage));

@@ -277,7 +277,10 @@ const HODAnnouncementManagement = () => {
 
   const handleToggleActive = async (announcementId: number) => {
     const announcement = myAnnouncements.find((a) => a.id === announcementId) || receivedAnnouncements.find((a) => a.id === announcementId);
-    const isCurrentlyActive = announcement ? announcement.is_active : false;
+    if (!announcement) return;
+
+    const isExpired = new Date(announcement.expires_at) < new Date();
+    const isCurrentlyActive = announcement.is_active && !isExpired;
 
     if (isCurrentlyActive) {
       const result = await MySwal.fire({
@@ -291,14 +294,35 @@ const HODAnnouncementManagement = () => {
         target: document.body
       });
       if (!result.isConfirmed) return;
+    } else {
+      const result = await MySwal.fire({
+        title: "Activate Announcement?",
+        text: "Are you sure you want to activate this announcement? It will be sent as a push notification to the target roles and extended for 1 week.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#10b981",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, activate it!",
+        target: document.body
+      });
+      if (!result.isConfirmed) return;
     }
 
     try {
       const response = await toggleAnnouncementActive(announcementId);
       if (response.success) {
-        setMyAnnouncements((prev) =>
-          prev.map((a) => a.id === announcementId ? response.data : a)
-        );
+        if (!isCurrentlyActive) {
+          // If we activated it, reset page to 1 and close the archive view.
+          // The state changes will automatically trigger the useEffect to load announcements correctly.
+          setMyPage(1);
+          setShowArchive(false);
+        } else {
+          // If we deactivated it, just update local state and refresh the list
+          setMyAnnouncements((prev) =>
+            prev.map((a) => a.id === announcementId ? response.data : a)
+          );
+          loadAnnouncements();
+        }
       } else {
         MySwal.fire({
           title: "Error",
