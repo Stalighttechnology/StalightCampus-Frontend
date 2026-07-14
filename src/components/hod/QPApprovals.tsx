@@ -76,6 +76,7 @@ const QPApprovals = () => {
   const [historyTotalPages, setHistoryTotalPages] = useState(1);
   const [historyTotalCount, setHistoryTotalCount] = useState(0);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("pending");
 
   const toggleExpanded = (key: string) => {
     setExpanded((p) => ({ ...p, [key]: !p[key] }));
@@ -118,8 +119,10 @@ const QPApprovals = () => {
   }, [currentPage]);
 
   useEffect(() => {
-    fetchHistoryQPs(historyPage);
-  }, [historyPage]);
+    if (activeTab === "history") {
+      fetchHistoryQPs(historyPage);
+    }
+  }, [historyPage, activeTab]);
 
   const fetchPendingQPs = async (page: number = 1) => {
     setLoading(true);
@@ -449,8 +452,8 @@ const QPApprovals = () => {
         }
       `}</style>
 
-      <div id="hod-qp-approvals-container" className={`w-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-        <Tabs defaultValue="pending" className="w-full">
+      <div id="hod-qp-approvals-container" className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <Card className={theme === 'dark' ? 'bg-card border border-border flex flex-col min-h-[550px]' : 'bg-white border border-gray-200 flex flex-col min-h-[550px]'}>
             <CardHeader className="pb-2">
               <div id="qp-approvals-header-section" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

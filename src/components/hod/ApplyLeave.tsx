@@ -376,7 +376,7 @@ const ApplyLeave = () => {
           
           {/* Leave Title */}
           <div className="space-y-2">
-            <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Title for Leave *</Label>
+            <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Title for Leave <span className="text-red-500">*</span></Label>
             <Input
                 value={leaveTitle}
                 onChange={(e) => setLeaveTitle(e.target.value)}
@@ -388,7 +388,7 @@ const ApplyLeave = () => {
 
           {/* Date Range */}
           <div className="space-y-2">
-            <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Date Range *</Label>
+            <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Date Range <span className="text-red-500">*</span></Label>
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -439,7 +439,7 @@ const ApplyLeave = () => {
 
           {/* Reason for Leave */}
           <div className="space-y-2">
-            <Label htmlFor="reason" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Reason for Leave *</Label>
+            <Label htmlFor="reason" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Reason for Leave <span className="text-red-500">*</span></Label>
             <Textarea
                 id="reason"
                 value={reason}

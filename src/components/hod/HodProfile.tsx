@@ -11,7 +11,7 @@ import { manageProfile } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
 import { showConfirmAlert, showSuccessAlert, showErrorAlert, showInfoAlert } from "../../utils/sweetalert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Eye, EyeOff , Trash} from 'lucide-react';
+import { Eye, EyeOff, Trash } from 'lucide-react';
 import { SkeletonCard } from "../ui/skeleton";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
@@ -43,6 +43,8 @@ interface Profile {
   bio: string;
   profile_picture?: string;
   department?: string;
+  branch_name?: string;
+  branch_code?: string;
 }
 
 interface HodProfileProps {
@@ -75,7 +77,7 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
-    const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(window.location.search);
   const defaultTab = urlParams.get("google_connected") !== null ? "integrations" : "personal";
   const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'about' | 'activity' | 'help' | 'settings' | 'integrations'>(defaultTab as any);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -153,7 +155,9 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
             address: payload.address || "",
             bio: payload.bio || "",
             profile_picture: payload.profile_picture || payload.profile_picture_url || "",
-            department: payload.department || payload.branch || ""
+            department: payload.department || payload.branch || "",
+            branch_name: payload.branch_name || "",
+            branch_code: payload.branch_code || ""
           };
           setProfile(fetchedProfile as any);
         } else {
@@ -187,7 +191,7 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
     fetchProfile();
   }, [propUser, setError]);
 
-  
+
   const handleDeleteProfilePicture = async () => {
     const confirmed = await showConfirmAlert('Remove Photo', 'Are you sure you want to remove your profile picture?', 'Remove');
     if (!confirmed.isConfirmed) return;
@@ -197,7 +201,7 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
         method: 'DELETE'
       });
       const res = await response.json();
-      
+
       if (res.success) {
         setProfile((prev: any) => ({ ...prev, profile_picture: "", profile_image: "" }));
         const userStr = sessionStorage.getItem("user");
@@ -428,8 +432,8 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
           </div>);
 
 
-      
-      
+
+
       case 'settings':
         return (
           <div className="animate-in fade-in duration-300">
@@ -450,7 +454,7 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
             <HelpLearningCard />
           </div>
         );
-      case 'contact': 
+      case 'contact':
         return (
           <div className="space-y-4 sm:space-y-5">
             <div>
@@ -498,15 +502,14 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
           <div className="flex flex-row items-center gap-2 w-full sm:w-auto sm:ml-auto">
             <Button
               size="sm"
-              onClick={() => {if (editing) handleSaveProfile();else setEditing(true);}}
+              onClick={() => { if (editing) handleSaveProfile(); else setEditing(true); }}
               variant="outline"
-              className={`flex-1 sm:flex-none w-full sm:w-auto text-sm text-white border transition-colors ${
-                editing 
-                  ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white' 
+              className={`flex-1 sm:flex-none w-full sm:w-auto text-sm text-white border transition-colors ${editing
+                  ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white'
                   : 'bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white'
-              }`}
+                }`}
               disabled={loading}>
-              
+
               {editing ? loading ? 'Saving Profile...' : 'Save Profile' : 'Edit Profile'}
             </Button>
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
@@ -527,13 +530,13 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
                         value={passwordData.current_password}
                         onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
                         className="pr-10" />
-                      
+
                       <button
                         type="button"
                         onClick={() => setShowPasswords((prev) => ({ ...prev, current: !prev.current }))}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
                         aria-label={showPasswords.current ? 'Hide current password' : 'Show current password'}>
-                        
+
                         {showPasswords.current ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
                     </div>
@@ -547,13 +550,13 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
                         value={passwordData.new_password}
                         onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
                         className="pr-10" />
-                      
+
                       <button
                         type="button"
                         onClick={() => setShowPasswords((prev) => ({ ...prev, next: !prev.next }))}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
                         aria-label={showPasswords.next ? 'Hide new password' : 'Show new password'}>
-                        
+
                         {showPasswords.next ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
                     </div>
@@ -567,13 +570,13 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
                         value={passwordData.confirm_password}
                         onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
                         className="pr-10" />
-                      
+
                       <button
                         type="button"
                         onClick={() => setShowPasswords((prev) => ({ ...prev, confirm: !prev.confirm }))}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
                         aria-label={showPasswords.confirm ? 'Hide confirm password' : 'Show confirm password'}>
-                        
+
                         {showPasswords.confirm ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
                     </div>
@@ -602,8 +605,8 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
                     </AvatarFallback>
                   </Avatar>
                   {(editing || !profile?.profile_picture) && (
-                    <label 
-                      htmlFor="profile-picture-upload" 
+                    <label
+                      htmlFor="profile-picture-upload"
                       className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center text-white cursor-pointer"
                     >
                       <Camera className="h-5 w-5 mb-1 transform scale-75 group-hover:scale-100 group-hover:animate-bounce transition-transform duration-300" />
@@ -612,19 +615,19 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
                   )}
                 </div>
                 {(editing || !profile?.profile_picture) && (
-                  <label 
-                    htmlFor="profile-picture-upload" 
+                  <label
+                    htmlFor="profile-picture-upload"
                     className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg md:hidden"
                   >
                     <Camera className="h-4 w-4" />
                   </label>
                 )}
-                <input 
-                  id="profile-picture-upload" 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handleProfilePictureSelect} 
-                  className="hidden" 
+                <input
+                  id="profile-picture-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePictureSelect}
+                  className="hidden"
                 />
                 {editing && profile?.profile_picture && (
                   <button

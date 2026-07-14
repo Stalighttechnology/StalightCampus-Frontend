@@ -160,6 +160,7 @@ const useUploadModal = () => {
   const [semesterId, setSemesterId] = useState("");
   const [branchId, setBranchId] = useState("");
   const [sectionIds, setSectionIds] = useState<string[]>([]);
+  const [isSectionDropdownOpen, setIsSectionDropdownOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const [dragActive, setDragActive] = useState(false);
@@ -225,6 +226,8 @@ const useUploadModal = () => {
     setSemesterId,
     setBranchId,
     setSectionIds,
+    isSectionDropdownOpen,
+    setIsSectionDropdownOpen,
     resetForm
   };
 };
@@ -436,6 +439,8 @@ const StudyMaterials = () => {
     setSemesterId,
     setBranchId,
     setSectionIds,
+    isSectionDropdownOpen,
+    setIsSectionDropdownOpen,
     resetForm
   } = useUploadModal();
 
@@ -520,7 +525,7 @@ const StudyMaterials = () => {
       if (!branchId) {
         setModalSemesters([]);
         setSemesterId("");
-        setSectionId("");
+        setSectionIds([]);
         setModalSubjects([]);
         setSubjectCode("");
         return;
@@ -546,7 +551,7 @@ const StudyMaterials = () => {
       if (!branchId || !semesterId) {
         setModalSections([]);
         setModalSubjects([]);
-        setSectionId("");
+        setSectionIds([]);
         setSubjectCode("");
         return;
       }
@@ -1007,66 +1012,117 @@ const StudyMaterials = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2 flex flex-col justify-end">
-                  <Label>Section <span className="text-red-500">*</span></Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-between font-normal bg-background min-h-10 h-auto py-1 px-3", theme === 'dark' ? 'border-border' : 'border-gray-300')} disabled={uploading || !semesterId}>
-                        {sectionIds.length > 0 ? (
-                          <div className="flex flex-wrap gap-1 items-center max-w-[90%] max-h-20 overflow-y-auto py-0.5 pr-1 custom-scrollbar">
-                            {sectionIds.map(id => {
-                              const sec = modalSections.find(s => s.id === id);
-                              return (
-                                <span key={id} className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-md font-medium border border-primary/20">
-                                  Sec {sec ? sec.name : id}
-                                  <button
-                                    type="button"
-                                    className="hover:bg-primary/20 rounded-full p-0.5 transition-colors focus:outline-none"
-                                    onPointerDown={(e) => {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                    }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                      setSectionIds(sectionIds.filter(x => x !== id));
-                                    }}
-                                  >
-                                    <X size={10} />
-                                  </button>
-                                </span>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <span>Select Section</span>
-                        )}
-                        <ChevronDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56 max-h-[200px] overflow-y-auto">
-                      {modalSections.length > 0 ? (
-                        modalSections.map((s) => (
-                          <DropdownMenuCheckboxItem
-                            key={s.id}
-                            checked={sectionIds.includes(s.id)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSectionIds([...sectionIds, s.id]);
-                              } else {
-                                setSectionIds(sectionIds.filter((id) => id !== s.id));
-                              }
-                            }}
-                          >
-                            Sec {s.name}
-                          </DropdownMenuCheckboxItem>
-                        ))
-                      ) : (
-                        <div className="py-2 px-8 text-sm text-muted-foreground text-center">No sections available</div>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                 <div className="space-y-2 flex flex-col justify-end">
+                   <Label>Section <span className="text-red-500">*</span></Label>
+                   <div className="relative">
+                     {/* Trigger button */}
+                     <button
+                       type="button"
+                       disabled={uploading || !semesterId}
+                       onClick={() => setIsSectionDropdownOpen(prev => !prev)}
+                       className={cn(
+                         "w-full min-h-10 h-auto py-1 px-3 rounded-md border text-sm flex items-center justify-between gap-2 bg-background font-normal",
+                         theme === 'dark' ? 'border-border text-foreground' : 'border-gray-300 text-gray-900',
+                         (uploading || !semesterId) && 'opacity-50 cursor-not-allowed'
+                       )}
+                     >
+                       <div className="flex flex-row gap-1 items-center overflow-x-auto py-1 flex-1 min-w-0 custom-scrollbar">
+                         {sectionIds.length > 0 ? sectionIds.map(id => {
+                           const sec = modalSections.find(s => s.id === id);
+                           return (
+                             <span key={id} className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-md font-medium border border-primary/20 shrink-0">
+                               Sec {sec ? sec.name : id}
+                               <span
+                                 role="button"
+                                 tabIndex={0}
+                                 className="hover:bg-primary/20 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer"
+                                 onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
+                                 onClick={(e) => { e.stopPropagation(); e.preventDefault(); setSectionIds(sectionIds.filter(x => x !== id)); }}
+                               >
+                                 <X size={10} />
+                               </span>
+                             </span>
+                           );
+                         }) : <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}>Select Section</span>}
+                       </div>
+                       <ChevronDown className={cn("h-4 w-4 opacity-50 shrink-0 transition-transform", isSectionDropdownOpen && 'rotate-180')} />
+                     </button>
+
+                     {/* Custom dropdown panel */}
+                     {isSectionDropdownOpen && (
+                       <>
+                         {/* Backdrop to close */}
+                         <div
+                           className="fixed inset-0 z-[9998]"
+                           onClick={() => setIsSectionDropdownOpen(false)}
+                         />
+                         <div className={cn(
+                           "absolute left-0 top-full mt-1 w-full z-[9999] rounded-md border shadow-lg overflow-hidden",
+                           theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
+                         )}>
+                           {modalSections.length > 0 ? (
+                             <>
+                               {/* Select All row */}
+                               <label
+                                 className={cn(
+                                   "flex items-center gap-3 px-3 py-2 cursor-pointer border-b text-sm font-medium select-none",
+                                   theme === 'dark'
+                                     ? 'hover:bg-accent border-border text-foreground'
+                                     : 'hover:bg-gray-50 border-gray-100 text-gray-900'
+                                 )}
+                               >
+                                 <input
+                                   type="checkbox"
+                                   className="h-4 w-4 rounded accent-primary cursor-pointer shrink-0"
+                                   checked={sectionIds.length === modalSections.length && modalSections.length > 0}
+                                   ref={el => { if (el) el.indeterminate = sectionIds.length > 0 && sectionIds.length < modalSections.length; }}
+                                   onChange={(e) => {
+                                     if (e.target.checked) {
+                                       setSectionIds(modalSections.map(s => s.id));
+                                     } else {
+                                       setSectionIds([]);
+                                     }
+                                   }}
+                                 />
+                                 Select All
+                               </label>
+                               {/* Individual section rows */}
+                               <div className="max-h-[180px] overflow-y-auto">
+                                 {modalSections.map((s) => (
+                                   <label
+                                     key={s.id}
+                                     className={cn(
+                                       "flex items-center gap-3 px-3 py-2 cursor-pointer text-sm select-none",
+                                       theme === 'dark'
+                                         ? 'hover:bg-accent text-foreground'
+                                         : 'hover:bg-gray-50 text-gray-900'
+                                     )}
+                                   >
+                                     <input
+                                       type="checkbox"
+                                       className="h-4 w-4 rounded accent-primary cursor-pointer shrink-0"
+                                       checked={sectionIds.includes(s.id)}
+                                       onChange={(e) => {
+                                         if (e.target.checked) {
+                                           setSectionIds(prev => [...prev, s.id]);
+                                         } else {
+                                           setSectionIds(prev => prev.filter(id => id !== s.id));
+                                         }
+                                       }}
+                                     />
+                                     Sec {s.name}
+                                   </label>
+                                 ))}
+                               </div>
+                             </>
+                           ) : (
+                             <div className="py-3 px-4 text-sm text-muted-foreground text-center">No sections available</div>
+                           )}
+                         </div>
+                       </>
+                     )}
+                   </div>
+                 </div>
               </div>
 
               <div className="space-y-2">
