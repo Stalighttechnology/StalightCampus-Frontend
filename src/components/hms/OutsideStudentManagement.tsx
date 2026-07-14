@@ -527,7 +527,7 @@ const OutsideStudentManagement: React.FC = () => {
           </div>
         </CardHeader>
 
-        <CardContent className="pt-6">
+        <CardContent className="pt-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <CardTitle className="text-lg font-semibold">Outside Student Directory</CardTitle>
           </div>

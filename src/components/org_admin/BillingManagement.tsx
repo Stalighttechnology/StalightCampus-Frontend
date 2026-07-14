@@ -406,9 +406,9 @@ export const BillingManagement: React.FC = () => {
 
   const formatDateTime = (dateStr: string | null | undefined) => {
     if (!dateStr) return 'N/A';
-    return new Date(dateStr).toLocaleString('en-GB', { 
+    return new Date(dateStr).toLocaleString('en-GB', {
       day: 'numeric', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit', hour12: true 
+      hour: '2-digit', minute: '2-digit', hour12: true
     });
   };
 
@@ -561,7 +561,7 @@ export const BillingManagement: React.FC = () => {
               Edit
             </Button>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex flex-col min-[1250px]:flex-row items-center min-[1250px]:items-start gap-6 mb-6 w-full">
               {/* Brand Logo Display */}
               <div className="relative flex flex-col items-center justify-center border p-4 rounded-xl bg-muted/20 w-32 h-32 shrink-0 group">

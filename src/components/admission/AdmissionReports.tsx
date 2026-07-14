@@ -45,8 +45,8 @@ export default function AdmissionReports() {
     );
   }
 
-  const conversionRate = analytics.total_enquiries > 0 
-    ? ((analytics.total_applications / analytics.total_enquiries) * 100).toFixed(1) 
+  const conversionRate = analytics.total_enquiries > 0
+    ? ((analytics.total_applications / analytics.total_enquiries) * 100).toFixed(1)
     : 0;
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#ffc658'];
@@ -60,16 +60,16 @@ export default function AdmissionReports() {
       return;
     }
 
-    const headers = isCourseReport 
+    const headers = isCourseReport
       ? ['Course Name', 'Total Enquiries']
       : ['Status', 'Total Enquiries'];
 
-    const rows = dataList.map((c: any) => isCourseReport 
+    const rows = dataList.map((c: any) => isCourseReport
       ? [c.course_interested__name || 'Unknown', c.count]
       : [(c.status || '').replace(/_/g, ' ').toUpperCase(), c.count]
     );
 
-    let csvContent = "data:text/csv;charset=utf-8," 
+    let csvContent = "data:text/csv;charset=utf-8,"
       + headers.join(",") + "\n"
       + rows.map((e: any[]) => e.join(",")).join("\n");
 
@@ -137,13 +137,13 @@ export default function AdmissionReports() {
           </CardContent>
         </Card>
       </div>
-      
+
       <Card>
         <CardHeader id="admission-reports-header" className="border-b pb-4">
           <CardTitle className="text-lg font-semibold">Admission Reports & Analytics</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">Generate custom csv reports and view metrics visualization.</p>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-8">
             <div className="space-y-2">
               <label className="text-sm font-medium">Report Type</label>
@@ -242,5 +242,5 @@ export default function AdmissionReports() {
 
 // Temporary Icon Component
 const FileTextIcon = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="16" x2="8" y1="13" y2="13" /><line x1="16" x2="8" y1="17" y2="17" /><line x1="10" x2="8" y1="9" y2="9" /></svg>
 );

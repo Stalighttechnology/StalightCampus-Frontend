@@ -498,10 +498,10 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
                       <a href={`tel:${dashboardData.student_profile.proctor.phone_number}`} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
                         <FaPhone className="w-4 h-4" /> Call
                       </a>
-                      <a 
-                        href={`https://wa.me/${dashboardData.student_profile.proctor.phone_number.length === 10 ? '91' + dashboardData.student_profile.proctor.phone_number : dashboardData.student_profile.proctor.phone_number.replace(/\D/g, '')}`} 
-                        target="_blank" 
-                        rel="noreferrer" 
+                      <a
+                        href={`https://wa.me/${dashboardData.student_profile.proctor.phone_number.length === 10 ? '91' + dashboardData.student_profile.proctor.phone_number : dashboardData.student_profile.proctor.phone_number.replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noreferrer"
                         className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b858] text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
                       >
                         <FaWhatsapp className="w-4 h-4" /> WhatsApp
@@ -668,7 +668,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="p-5 pt-6">
+            <CardContent className="p-5 pt-4">
               <div className="w-full h-[250px] md:h-[320px]">
                 {dashboardData.performance_overview.subject_performance.length > 0 ?
                   <Bar key={`chart-${viewportTrigger}`} data={generateChartData} options={chartOptions} /> :

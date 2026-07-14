@@ -31,9 +31,9 @@ export default function AdmissionDocuments() {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/?page_size=50`);
       if (response.ok) {
         const data = await response.json();
-        const list = data && Array.isArray(data.results) ? data.results 
-          : Array.isArray(data) ? data 
-          : [];
+        const list = data && Array.isArray(data.results) ? data.results
+          : Array.isArray(data) ? data
+            : [];
         setApplications(list);
       }
     } catch (err) {
@@ -63,7 +63,7 @@ export default function AdmissionDocuments() {
       });
       if (response.ok) {
         toast.success("Documents verified successfully!");
-        setApplications(apps => apps.map(app => 
+        setApplications(apps => apps.map(app =>
           app.id === id ? { ...app, is_verified: true, enquiry_details: { ...app.enquiry_details, status: 'documents_verified' } } : app
         ));
       } else {
@@ -106,7 +106,7 @@ export default function AdmissionDocuments() {
       }
 
       const blob = await response.blob();
-      
+
       // Determine correct MIME type
       let mimeType = blob.type;
       if (targetUrl.toLowerCase().endsWith('.pdf')) {
@@ -138,8 +138,8 @@ export default function AdmissionDocuments() {
   const renderDocumentLink = (url: string | null, label: string) => {
     if (!url) return <span className="text-muted-foreground text-sm flex items-center gap-2"><XCircle className="w-4 h-4" /> Missing {label}</span>;
     return (
-      <a 
-        href={url} 
+      <a
+        href={url}
         onClick={(e) => handlePreview(e, url)}
         className="text-blue-500 hover:underline flex items-center gap-2 text-sm font-medium cursor-pointer"
       >
@@ -147,10 +147,10 @@ export default function AdmissionDocuments() {
       </a>
     );
   };
-  
+
   // Temporary component for missing icon
   const XCircle = ({ className }: { className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10" /><path d="m15 9-6 6" /><path d="m9 9 6 6" /></svg>
   );
 
   const isAppVerified = (app: any) => {
@@ -160,7 +160,7 @@ export default function AdmissionDocuments() {
     return app.is_verified;
   };
 
-  const filteredApplications = (applications || []).filter((app: any) => 
+  const filteredApplications = (applications || []).filter((app: any) =>
     activeTab === 'pending' ? !isAppVerified(app) : isAppVerified(app)
   );
 
@@ -178,25 +178,23 @@ export default function AdmissionDocuments() {
           <CardTitle className="text-lg font-semibold">Document Verification</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">Review and verify documents uploaded by applicants.</p>
         </CardHeader>
-        <CardContent className="pt-6 flex-grow">
+        <CardContent className="pt-4 flex-grow">
           <div className="flex border-b border-border mb-6">
             <button
               onClick={() => setActiveTab('pending')}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all ${
-                activeTab === 'pending'
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all ${activeTab === 'pending'
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
+                }`}
             >
               Pending Verification ({(applications || []).filter(a => !isAppVerified(a)).length})
             </button>
             <button
               onClick={() => setActiveTab('history')}
-              className={`py-2 px-4 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'history'
+              className={`py-2 px-4 border-b-2 font-medium text-sm transition-colors ${activeTab === 'history'
                   ? 'border-primary text-primary'
                   : `border-transparent ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`
-              }`}
+                }`}
             >
               Verification History ({(applications || []).filter(a => isAppVerified(a)).length})
             </button>
@@ -221,7 +219,7 @@ export default function AdmissionDocuments() {
                         <CheckCircle className="w-4 h-4" /> Verified
                       </span>
                     ) : (
-                      <Button 
+                      <Button
                         variant="outline"
                         onClick={() => handleVerify(app.id)}
                         className={`shadow-sm w-full sm:w-auto ${theme === 'dark' ?

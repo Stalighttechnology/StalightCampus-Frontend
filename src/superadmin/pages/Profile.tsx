@@ -141,7 +141,7 @@ const SuperAdminProfile: React.FC = () => {
             <Shield className="text-primary" size={20} /> Identity Profile
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4">
           <div className="flex items-center gap-4 mb-5">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
               <UserCircle2 size={36} className="text-primary" />
@@ -177,7 +177,7 @@ const SuperAdminProfile: React.FC = () => {
           <CardHeader className="pb-4 border-b border-border/50">
             <CardTitle className="text-lg font-semibold">Edit Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-5 pt-6">
+          <CardContent className="space-y-5 pt-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>First Name</Label>

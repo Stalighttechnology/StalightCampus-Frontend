@@ -188,45 +188,45 @@ const ApplyLeave = () => {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const processed = rawLeaves.
-    map((leave: LeaveData) => ({
-      raw: leave,
-      mapped: {
-        id: leave.id.toString(),
-        title: leave.title || leave.faculty_name || "Leave Application",
-        start_date: leave.start_date,
-        end_date: leave.end_date,
-        reason: leave.reason,
-        status: leave.status
-      } as Leave
-    })).
-    filter((item) => {
-      const r = item.raw;
-      const status = (r.status || '').toUpperCase();
+      map((leave: LeaveData) => ({
+        raw: leave,
+        mapped: {
+          id: leave.id.toString(),
+          title: leave.title || leave.faculty_name || "Leave Application",
+          start_date: leave.start_date,
+          end_date: leave.end_date,
+          reason: leave.reason,
+          status: leave.status
+        } as Leave
+      })).
+      filter((item) => {
+        const r = item.raw;
+        const status = (r.status || '').toUpperCase();
 
-      // Tuned Rule: If user is on Page 1, apply "recency" filters to keep view clean.
-      // If user is on Page 2+, they are explicitly looking for history, so show everything.
-      if (page > 1) return true;
+        // Tuned Rule: If user is on Page 1, apply "recency" filters to keep view clean.
+        // If user is on Page 2+, they are explicitly looking for history, so show everything.
+        if (page > 1) return true;
 
-      if (status === 'PENDING') {
-        try {
-          const end = new Date(r.end_date);
-          const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-          return endDateOnly >= todayDateOnly;
-        } catch {
-          return false;
+        if (status === 'PENDING') {
+          try {
+            const end = new Date(r.end_date);
+            const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+            return endDateOnly >= todayDateOnly;
+          } catch {
+            return false;
+          }
         }
-      }
 
-      if (status === 'APPROVED' || status === 'REJECTED') {
-        const refStr = r.reviewed_at || r.submitted_at;
-        if (!refStr) return false;
-        const ref = new Date(refStr);
-        const refDateOnly = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
-        return refDateOnly >= sevenDaysAgo;
-      }
-      return false;
-    }).
-    map((item) => item.mapped) as Leave[];
+        if (status === 'APPROVED' || status === 'REJECTED') {
+          const refStr = r.reviewed_at || r.submitted_at;
+          if (!refStr) return false;
+          const ref = new Date(refStr);
+          const refDateOnly = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
+          return refDateOnly >= sevenDaysAgo;
+        }
+        return false;
+      }).
+      map((item) => item.mapped) as Leave[];
 
     setLeaves(processed);
   };
@@ -362,62 +362,62 @@ const ApplyLeave = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leave Application Form - Left Side */}
         <Card id="hod-leave-application-form" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-        <CardHeader className="border-b pb-4">
-          <div className="flex flex-row items-center justify-between gap-3">
-            <div>
-              <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1 font-normal">Your leave request will be routed to the <span className="font-medium text-primary">Principal</span> for approval.</p>
+          <CardHeader className="border-b pb-4">
+            <div className="flex flex-row items-center justify-between gap-3">
+              <div>
+                <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1 font-normal">Your leave request will be routed to the <span className="font-medium text-primary">Principal</span> for approval.</p>
+              </div>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6 pt-6">
-          {/* Error Message */}
-          {error &&
-            <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
-              {error}
-            </div>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-4">
+            {/* Error Message */}
+            {error &&
+              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+                {error}
+              </div>
             }
-          
-          {/* Leave Title */}
-          <div className="space-y-2">
-            <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Title for Leave <span className="text-red-500">*</span></Label>
-            <Input
+
+            {/* Leave Title */}
+            <div className="space-y-2">
+              <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Title for Leave <span className="text-red-500">*</span></Label>
+              <Input
                 value={leaveTitle}
                 onChange={(e) => setLeaveTitle(e.target.value)}
                 placeholder="Enter a title for your leave"
                 disabled={loading}
                 className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'} />
-              
-          </div>
 
-          {/* Date Range */}
-          <div className="space-y-2">
-            <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Date Range <span className="text-red-500">*</span></Label>
-            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-              <PopoverTrigger asChild>
-                <Button
+            </div>
+
+            {/* Date Range */}
+            <div className="space-y-2">
+              <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Date Range <span className="text-red-500">*</span></Label>
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
                     variant="outline"
                     onClick={() => setIsCalendarOpen(true)}
                     className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}>
-                    
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange?.from ?
-                    dateRange.to ?
-                    <>
-                        {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")}
-                      </> :
 
-                    format(dateRange.from, "PPP") :
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateRange?.from ?
+                      dateRange.to ?
+                        <>
+                          {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")}
+                        </> :
+
+                        format(dateRange.from, "PPP") :
 
 
-                    <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Pick a date range</span>
+                      <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Pick a date range</span>
                     }
-                </Button>
-              </PopoverTrigger>
+                  </Button>
+                </PopoverTrigger>
 
-              {/* Calendar with theme support and disabled past dates */}
-              <PopoverContent className={theme === 'dark' ? 'w-auto p-0 bg-background text-foreground border-border shadow-lg' : 'w-auto p-0 bg-white text-gray-900 border-gray-200 shadow-lg'}>
-                <Calendar
+                {/* Calendar with theme support and disabled past dates */}
+                <PopoverContent className={theme === 'dark' ? 'w-auto p-0 bg-background text-foreground border-border shadow-lg' : 'w-auto p-0 bg-white text-gray-900 border-gray-200 shadow-lg'}>
+                  <Calendar
                     mode="range"
                     selected={dateRange}
                     onSelect={(range) => {
@@ -436,259 +436,258 @@ const ApplyLeave = () => {
                     disabled={(date) => date < today} // Disable dates before today
                     initialFocus
                     className={theme === 'dark' ? 'rounded-md bg-background text-foreground [&_.rdp-day:hover]:bg-accent [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed' : 'rounded-md bg-white text-gray-900 [&_.rdp-day:hover]:bg-gray-100 [&_.rdp-day_selected]:bg-blue-600 [&_.rdp-day_selected]:text-white [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed'} />
-                  
-              </PopoverContent>
-            </Popover>
-          </div>
 
-          {/* Reason for Leave */}
-          <div className="space-y-2">
-            <Label htmlFor="reason" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Reason for Leave <span className="text-red-500">*</span></Label>
-            <Textarea
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Reason for Leave */}
+            <div className="space-y-2">
+              <Label htmlFor="reason" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Reason for Leave <span className="text-red-500">*</span></Label>
+              <Textarea
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Please provide a detailed reason for your leave request"
                 className={theme === 'dark' ? 'min-h-[100px] bg-background text-foreground border-border' : 'min-h-[100px] bg-white text-gray-900 border-gray-300'}
                 disabled={loading} />
-              
-          </div>
 
-          {/* Submit Button */}
-          <Button
+            </div>
+
+            {/* Submit Button */}
+            <Button
               onClick={handleSubmit}
               className={theme === 'dark' ? 'w-full text-white bg-primary hover:bg-[#9147e0] border-border' : 'w-full text-white bg-primary hover:bg-[#9147e0] border-primary'}
               disabled={loading || !branchId}>
-              
-            {loading ? "Submitting..." : "Submit Request"}
-          </Button>
-        </CardContent>
-      </Card>
+
+              {loading ? "Submitting..." : "Submit Request"}
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Recent Leave Applications - Right Side */}
         <Card id="hod-recent-leave-applications" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-        <CardHeader className="border-b pb-4">
-          <div className="flex flex-row items-center justify-between gap-3">
-            <div>
-              <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
-              <p className={`text-sm mt-1 font-normal ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
-            </div>
-            <div className="relative flex-shrink-0" ref={filterRef}>
-              <Button
-                onClick={() => setShowFilter((prev) => !prev)}
-                className="w-10 sm:w-auto h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90 p-0 sm:px-4">
-                <FilterIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">{statusFilter === "All" ? "Filter" : statusFilter}</span>
-              </Button>
-              {showFilter &&
-                <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-20 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
-                  <div className="py-1">
-                    {["All", "Approved", "Pending", "Rejected"].map((status) => (
-                      <button
-                        key={status}
-                        type="button"
-                        className={cn(
-                           "block w-full text-left px-4 py-2 text-sm hover:bg-accent cursor-pointer",
-                          theme === 'dark' ? 'hover:bg-accent text-foreground' : 'hover:bg-gray-100 text-gray-700',
-                          statusFilter === status && "font-semibold bg-accent/50"
-                        )}
-                        onClick={() => {
-                          setStatusFilter(status);
-                          setShowFilter(false);
-                        }}>
-                        {status === "All" ? "All Status" : status}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              }
-            </div>
-          </div>
-        </CardHeader>
- 
-        <CardContent className="flex-1 max-h-[500px] overflow-y-auto custom-scrollbar pt-6">
-          <div className="overflow-x-auto thin-scrollbar">
-            {/* Mobile: stacked cards */}
-            <div className="md:hidden space-y-3">
-              {loading ?
-                <div className="space-y-3">
-                  <SkeletonCard />
-                  <SkeletonCard />
-                  <SkeletonCard />
-                </div> :
-                filteredLeaves.length === 0 ?
-                <div className={`flex flex-col items-center justify-center p-8 text-center space-y-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                  <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
-                    <FilterIcon className={`w-8 h-8 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
-                  </div>
-                  <div className="max-w-xs mx-auto text-center">
-                    <h3 className={`text-md font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      No Leave Requests Found
-                    </h3>
-                    <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      There are no leave requests matching the selected status or filters.
-                    </p>
-                  </div>
-                </div> :
-
-                filteredLeaves.map((leave) =>
-                <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="font-medium">{leave.title}</div>
-                        <div className="text-xs text-muted-foreground">{leave.start_date} to {leave.end_date}</div>
-                      </div>
-                      <div className="shrink-0">
-                        {renderStatus(theme, leave.status)}
-                      </div>
-                    </div>
-                    <div className="mt-3">
-                      <button
-                        onClick={() => setSelectedReason(leave.reason)}
-                        className={`w-full text-center text-sm font-semibold py-2 px-4 rounded-lg transition border ${
-                          theme === 'dark'
-                            ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
-                            : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100'
-                        }`}
-                      >
-                        View Reason
-                      </button>
+          <CardHeader className="border-b pb-4">
+            <div className="flex flex-row items-center justify-between gap-3">
+              <div>
+                <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
+                <p className={`text-sm mt-1 font-normal ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
+              </div>
+              <div className="relative flex-shrink-0" ref={filterRef}>
+                <Button
+                  onClick={() => setShowFilter((prev) => !prev)}
+                  className="w-10 sm:w-auto h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90 p-0 sm:px-4">
+                  <FilterIcon className="w-4 h-4" />
+                  <span className="hidden sm:inline">{statusFilter === "All" ? "Filter" : statusFilter}</span>
+                </Button>
+                {showFilter &&
+                  <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-20 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+                    <div className="py-1">
+                      {["All", "Approved", "Pending", "Rejected"].map((status) => (
+                        <button
+                          key={status}
+                          type="button"
+                          className={cn(
+                            "block w-full text-left px-4 py-2 text-sm hover:bg-accent cursor-pointer",
+                            theme === 'dark' ? 'hover:bg-accent text-foreground' : 'hover:bg-gray-100 text-gray-700',
+                            statusFilter === status && "font-semibold bg-accent/50"
+                          )}
+                          onClick={() => {
+                            setStatusFilter(status);
+                            setShowFilter(false);
+                          }}>
+                          {status === "All" ? "All Status" : status}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                )
                 }
+              </div>
             </div>
+          </CardHeader>
 
-            {/* Desktop / Tablet: table */}
-            <table className="hidden md:table w-full text-sm text-left border-collapse">
-              <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
-                <tr>
-                  <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</th>
-                  <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
-                  <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
-                  <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
+          <CardContent className="flex-1 max-h-[500px] overflow-y-auto custom-scrollbar pt-6">
+            <div className="overflow-x-auto thin-scrollbar">
+              {/* Mobile: stacked cards */}
+              <div className="md:hidden space-y-3">
                 {loading ?
-                  <tr>
-                    <td colSpan={4} className="p-4">
-                      <SkeletonTable rows={5} cols={4} />
-                    </td>
-                  </tr> :
+                  <div className="space-y-3">
+                    <SkeletonCard />
+                    <SkeletonCard />
+                    <SkeletonCard />
+                  </div> :
                   filteredLeaves.length === 0 ?
-                  <tr>
-                    <td colSpan={4} className="p-0">
-                      <div className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                        <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
-                          <FilterIcon className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+                    <div className={`flex flex-col items-center justify-center p-8 text-center space-y-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                      <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
+                        <FilterIcon className={`w-8 h-8 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+                      </div>
+                      <div className="max-w-xs mx-auto text-center">
+                        <h3 className={`text-md font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          No Leave Requests Found
+                        </h3>
+                        <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          There are no leave requests matching the selected status or filters.
+                        </p>
+                      </div>
+                    </div> :
+
+                    filteredLeaves.map((leave) =>
+                      <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="font-medium">{leave.title}</div>
+                            <div className="text-xs text-muted-foreground">{leave.start_date} to {leave.end_date}</div>
+                          </div>
+                          <div className="shrink-0">
+                            {renderStatus(theme, leave.status)}
+                          </div>
                         </div>
-                        <div className="max-w-xs mx-auto">
-                          <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                            No Leave Requests Found
-                          </h3>
-                          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            There are no leave requests matching the selected status or filters.
-                          </p>
+                        <div className="mt-3">
+                          <button
+                            onClick={() => setSelectedReason(leave.reason)}
+                            className={`w-full text-center text-sm font-semibold py-2 px-4 rounded-lg transition border ${theme === 'dark'
+                                ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100'
+                              }`}
+                          >
+                            View Reason
+                          </button>
                         </div>
                       </div>
-                    </td>
-                  </tr> :
-
-                  filteredLeaves.map((leave) =>
-                  <tr
-                    key={leave.id}
-                    className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
-                    
-                      <td className={`py-3 px-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</td>
-                      <td className={`py-3 px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {leave.start_date} to {leave.end_date}
-                      </td>
-                      <td className="py-3 px-4 text-sm">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedReason(leave.reason)}
-                          className={`h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                          <Eye className="w-3 h-3 mr-1" />
-                          View
-                        </Button>
-                      </td>
-                      <td className="py-3 px-4">
-                        {renderStatus(theme, leave.status)}
-                      </td>
-                    </tr>
-                  )
-                  }
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-        {totalPages > 1 && (
-          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-            <div>
-              Showing {totalCount === 0 ? 0 : (currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1 || loading}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-              >
-                Previous
-              </Button>
-
-              <div className="flex items-center justify-center min-w-[2rem]">
-                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {currentPage}
-                </span>
+                    )
+                }
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages || loading}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-              >
-                Next
-              </Button>
+              {/* Desktop / Tablet: table */}
+              <table className="hidden md:table w-full text-sm text-left border-collapse">
+                <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
+                  <tr>
+                    <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</th>
+                    <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
+                    <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
+                    <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ?
+                    <tr>
+                      <td colSpan={4} className="p-4">
+                        <SkeletonTable rows={5} cols={4} />
+                      </td>
+                    </tr> :
+                    filteredLeaves.length === 0 ?
+                      <tr>
+                        <td colSpan={4} className="p-0">
+                          <div className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                            <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
+                              <FilterIcon className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+                            </div>
+                            <div className="max-w-xs mx-auto">
+                              <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                No Leave Requests Found
+                              </h3>
+                              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                                There are no leave requests matching the selected status or filters.
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                      </tr> :
+
+                      filteredLeaves.map((leave) =>
+                        <tr
+                          key={leave.id}
+                          className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
+
+                          <td className={`py-3 px-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</td>
+                          <td className={`py-3 px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            {leave.start_date} to {leave.end_date}
+                          </td>
+                          <td className="py-3 px-4 text-sm">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedReason(leave.reason)}
+                              className={`h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}
+                            >
+                              <Eye className="w-3 h-3 mr-1" />
+                              View
+                            </Button>
+                          </td>
+                          <td className="py-3 px-4">
+                            {renderStatus(theme, leave.status)}
+                          </td>
+                        </tr>
+                      )
+                  }
+                </tbody>
+              </table>
             </div>
-          </CardFooter>
-        )}
+          </CardContent>
+          {totalPages > 1 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing {totalCount === 0 ? 0 : (currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1 || loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Previous
+                </Button>
 
-        {/* Popup Modal */}
-        <Dialog open={!!selectedReason} onOpenChange={() => setSelectedReason(null)}>
-          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-lg p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-lg p-4 sm:p-6'}>
-            <DialogHeader>
-              <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Leave Reason</DialogTitle>
-            </DialogHeader>
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {currentPage}
+                  </span>
+                </div>
 
-            {/* Scrollable reason */}
-            <div
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages || loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
+
+          {/* Popup Modal */}
+          <Dialog open={!!selectedReason} onOpenChange={() => setSelectedReason(null)}>
+            <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-lg p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-lg p-4 sm:p-6'}>
+              <DialogHeader>
+                <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Leave Reason</DialogTitle>
+              </DialogHeader>
+
+              {/* Scrollable reason */}
+              <div
                 className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
                         max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                
-              {selectedReason}
-            </div>
 
-            <div className="flex justify-end mt-4">
-              <Button
+                {selectedReason}
+              </div>
+
+              <div className="flex justify-end mt-4">
+                <Button
                   variant="outline"
                   onClick={() => setSelectedReason(null)}
                   className={theme === 'dark' ?
-                  'text-white bg-primary border border-primary hover:bg-primary/70 hover:text-white' :
-                  'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white'}>
-                  
-                Close
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </Card>
+                    'text-white bg-primary border border-primary hover:bg-primary/70 hover:text-white' :
+                    'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white'}>
+
+                  Close
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </Card>
       </div>
     </div>);
 

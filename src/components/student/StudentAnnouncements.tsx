@@ -171,7 +171,7 @@ const parseAnnouncements = (announcements: Announcement[]) => {
     if (newExamMatch || examPublishMatch || examReschMatch) {
       const matchObj = newExamMatch || examPublishMatch || examReschMatch;
       const rawExamName = matchObj ? matchObj[1].trim() : "Exam";
-      
+
       let examName = rawExamName;
       let subjectNameFallback = "General Subject";
       if (rawExamName.includes(" - ")) {
@@ -457,7 +457,7 @@ const ExamAnnouncementCard = ({ exam, theme, handleMarkRead }: { exam: ExamAnnou
                   <div className="flex-1 min-w-0 pr-2">
                     <DialogTitle className="text-xl font-semibold truncate">{exam.examName} Schedule</DialogTitle>
                   </div>
-                  
+
                   {/* Mobile Export Button */}
                   <Button
                     variant="outline"
@@ -616,265 +616,265 @@ const StudentAnnouncements = () => {
       `}</style>
       <div>
         <Card id="announcements-card" className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
-        <div id="announcements-header-stats">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className={`text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  Announcements
-                </h2>
-                <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                  Stay updated with the latest news, notices, and alerts from the campus.
-                </p>
-              </div>
-            </div>
-          </CardHeader>
-
-          <div className="px-6 pb-0">
-            {/* Summary Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { label: "Total", value: stats.total, color: "blue", icon: <Megaphone className="opacity-80" size={20} /> },
-                { label: "Unread", value: stats.unread, color: "yellow", icon: <Bell className="opacity-80" size={20} /> },
-                { label: "Urgent", value: stats.urgent, color: "red", icon: <AlertCircle className="opacity-80" size={20} /> },
-                { label: "Recent", value: stats.recent, color: "emerald", icon: <Clock className="opacity-80" size={20} /> },
-              ].map((stat, i) => (
-                <div
-                  key={i}
-                  className={`relative overflow-hidden group p-4 rounded-xl border transition-all duration-300 hover:shadow-md ${theme === 'dark'
-                    ? 'bg-muted/30 border-border hover:bg-muted/50'
-                    : 'bg-gray-50/50 border-gray-100 hover:bg-white hover:border-gray-200'
-                    }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className={`text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                        {stat.label}
-                      </p>
-                      <p className={`text-2xl font-semibold mt-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {stat.value}
-                      </p>
-                    </div>
-                    <div className={`p-2 rounded-lg ${stat.color === 'blue' ? 'bg-blue-500/10 text-blue-500' :
-                      stat.color === 'yellow' ? 'bg-yellow-500/10 text-yellow-500' :
-                        stat.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-500' :
-                          'bg-red-500/10 text-red-500'
-                      }`}>
-                      {stat.icon}
-                    </div>
-                  </div>
+          <div id="announcements-header-stats">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className={`text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    Announcements
+                  </h2>
+                  <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                    Stay updated with the latest news, notices, and alerts from the campus.
+                  </p>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
+              </div>
+            </CardHeader>
 
-        <CardContent className="space-y-8 pt-6">
-
-          {/* Filters & Actions */}
-          <div className="flex flex-row items-center justify-between gap-2 w-full sm:gap-4">
-            <div className="relative flex-1 sm:max-w-md">
-              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} size={18} />
-              <Input
-                placeholder="Search announcements..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full pl-10 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200 shadow-sm'}`}
-              />
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0 sm:w-auto">
-              <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
-                <SelectTrigger className="filter-btn w-9 h-9 p-0 sm:w-[100px] sm:px-3 sm:gap-2 flex items-center justify-center rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden shadow-sm font-medium text-sm">
-                  <Filter className="h-4 w-4" />
-                  <span className="filter-text hidden sm:inline">Filter</span>
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
-                  <SelectItem value="all">All Items</SelectItem>
-                  <SelectItem value="unread">Unread Only</SelectItem>
-                  <SelectItem value="priority">By Priority</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {filterType === "priority" && (
-                <Select value={priorityFilter} onValueChange={(value: any) => setPriorityFilter(value)}>
-                  <SelectTrigger className={`w-[110px] sm:w-[160px] ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200 shadow-sm'}`}>
-                    <SelectValue placeholder="Priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Priorities</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          </div>
-
-          {/* Announcement List */}
-          {loading ? (
-            <SkeletonList items={5} />
-          ) : error ? (
-            <div className={`p-8 rounded-xl border text-center ${theme === 'dark' ? 'bg-red-900/10 border-red-900/20 text-red-400' : 'bg-red-50 text-red-600 border-red-100'}`}>
-              <AlertCircle className="w-10 h-10 mx-auto mb-3 opacity-80" />
-              <p className="font-medium">{error}</p>
-              <Button variant="outline" className="mt-4" onClick={loadAnnouncements}>Try Again</Button>
-            </div>
-          ) : (
-            <div>
-              <div className="grid grid-cols-1 gap-4">
-                <AnimatePresence mode="popLayout">
-                  {filtered.length === 0 ? (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className={`p-16 rounded-xl border border-dashed text-center ${theme === 'dark' ? 'border-border' : 'border-gray-200 bg-gray-50/30'}`}
-                    >
-                      <div className="max-w-xs mx-auto space-y-3">
-                        <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
-                          <Megaphone className="text-muted-foreground" size={28} />
-                        </div>
-                        <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No announcements</h3>
-                        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          There are no announcements matching your current filters.
+            <div className="px-6 pb-0">
+              {/* Summary Stats */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { label: "Total", value: stats.total, color: "blue", icon: <Megaphone className="opacity-80" size={20} /> },
+                  { label: "Unread", value: stats.unread, color: "yellow", icon: <Bell className="opacity-80" size={20} /> },
+                  { label: "Urgent", value: stats.urgent, color: "red", icon: <AlertCircle className="opacity-80" size={20} /> },
+                  { label: "Recent", value: stats.recent, color: "emerald", icon: <Clock className="opacity-80" size={20} /> },
+                ].map((stat, i) => (
+                  <div
+                    key={i}
+                    className={`relative overflow-hidden group p-4 rounded-xl border transition-all duration-300 hover:shadow-md ${theme === 'dark'
+                      ? 'bg-muted/30 border-border hover:bg-muted/50'
+                      : 'bg-gray-50/50 border-gray-100 hover:bg-white hover:border-gray-200'
+                      }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className={`text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          {stat.label}
+                        </p>
+                        <p className={`text-2xl font-semibold mt-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {stat.value}
                         </p>
                       </div>
-                    </motion.div>
-                  ) : (
-                    <>
-                      {/* Render Exam Announcement Groups */}
-                      {examGroups.map(exam => (
-                        <ExamAnnouncementCard
-                          key={exam.examName}
-                          exam={exam}
-                          theme={theme}
-                          handleMarkRead={handleMarkRead}
-                        />
-                      ))}
+                      <div className={`p-2 rounded-lg ${stat.color === 'blue' ? 'bg-blue-500/10 text-blue-500' :
+                        stat.color === 'yellow' ? 'bg-yellow-500/10 text-yellow-500' :
+                          stat.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-500' :
+                            'bg-red-500/10 text-red-500'
+                        }`}>
+                        {stat.icon}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
-                      {/* Render Regular Announcements */}
-                      {regular.map((announcement, idx) => (
-                        <motion.div
-                          key={announcement.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: idx * 0.05 }}
-                          className={`relative group p-5 rounded-xl border transition-all duration-300 hover:shadow-md ${!announcement.is_read
-                            ? theme === 'dark' ? 'bg-primary/5 border-primary/20' : 'bg-blue-50/50 border-blue-100'
-                            : theme === 'dark' ? 'bg-card border-border hover:bg-muted/30' : 'bg-white border-gray-100 hover:border-gray-200'
-                            }`}
-                        >
-                          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                            <div className="flex-1 space-y-3">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <Badge className={`${getPriorityColor(announcement.priority, theme)} border font-medium px-2 py-0.5 uppercase text-[10px]`}>
-                                  {announcement.priority}
-                                </Badge>
-                                {isRecent(announcement.created_at) && (
-                                  <Badge className="bg-primary text-white border-none text-[10px]">NEW</Badge>
-                                )}
-                                {!announcement.is_read && (
-                                  <span className="w-2 h-2 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50"></span>
-                                )}
-                              </div>
+          <CardContent className="space-y-8 pt-4">
 
-                              <div>
-                                <h3 className={`text-lg sm:text-md font-semibold leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                                  {announcement.title}
-                                </h3>
-                                <p className={`text-sm mt-2 leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                                  {announcement.message}
-                                </p>
-                              </div>
+            {/* Filters & Actions */}
+            <div className="flex flex-row items-center justify-between gap-2 w-full sm:gap-4">
+              <div className="relative flex-1 sm:max-w-md">
+                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} size={18} />
+                <Input
+                  placeholder="Search announcements..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={`w-full pl-10 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200 shadow-sm'}`}
+                />
+              </div>
 
-                              <div className="flex flex-wrap items-center gap-y-2 gap-x-4 pt-2">
-                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                  <User size={14} className="opacity-70" />
-                                  <span className="font-medium text-foreground/80">From: {announcement.created_by_name || 'Administrator'}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                  <Clock size={14} className="opacity-70" />
-                                  <span>{formatDate(announcement.created_at)}</span>
-                                </div>
-                                {announcement.expires_at && (
-                                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                    <Calendar size={14} className="opacity-70" />
-                                    <span>Expires: {announcement.expires_at.split('T')[0]}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+              <div className="flex items-center gap-2 shrink-0 sm:w-auto">
+                <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
+                  <SelectTrigger className="filter-btn w-9 h-9 p-0 sm:w-[100px] sm:px-3 sm:gap-2 flex items-center justify-center rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden shadow-sm font-medium text-sm">
+                    <Filter className="h-4 w-4" />
+                    <span className="filter-text hidden sm:inline">Filter</span>
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
+                    <SelectItem value="all">All Items</SelectItem>
+                    <SelectItem value="unread">Unread Only</SelectItem>
+                    <SelectItem value="priority">By Priority</SelectItem>
+                  </SelectContent>
+                </Select>
 
-                            <div className="flex md:flex-col items-center md:items-end justify-between gap-3 min-w-fit">
-                              {!announcement.is_read && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleMarkRead(announcement.id)}
-                                  className={`h-9 px-3 gap-2 ${theme === 'dark' ? 'text-primary hover:bg-primary/10' : 'text-blue-600 hover:bg-blue-50'}`}
-                                >
-                                  <Eye size={16} />
-                                  <span className="text-xs font-semibold">Mark as read</span>
-                                </Button>
-                              )}
-                              <Badge
-                                variant="outline"
-                                className={`text-[10px] px-2.5 py-1 font-medium ${theme === 'dark' ? 'bg-primary/10 border-primary/20 text-primary-foreground' : 'bg-primary/5 border-primary/20 text-primary'}`}
-                              >
-                                {formatRoleLabel(announcement.created_by_role)}
-                              </Badge>
-                            </div>
+                {filterType === "priority" && (
+                  <Select value={priorityFilter} onValueChange={(value: any) => setPriorityFilter(value)}>
+                    <SelectTrigger className={`w-[110px] sm:w-[160px] ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200 shadow-sm'}`}>
+                      <SelectValue placeholder="Priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Priorities</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            </div>
+
+            {/* Announcement List */}
+            {loading ? (
+              <SkeletonList items={5} />
+            ) : error ? (
+              <div className={`p-8 rounded-xl border text-center ${theme === 'dark' ? 'bg-red-900/10 border-red-900/20 text-red-400' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                <AlertCircle className="w-10 h-10 mx-auto mb-3 opacity-80" />
+                <p className="font-medium">{error}</p>
+                <Button variant="outline" className="mt-4" onClick={loadAnnouncements}>Try Again</Button>
+              </div>
+            ) : (
+              <div>
+                <div className="grid grid-cols-1 gap-4">
+                  <AnimatePresence mode="popLayout">
+                    {filtered.length === 0 ? (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className={`p-16 rounded-xl border border-dashed text-center ${theme === 'dark' ? 'border-border' : 'border-gray-200 bg-gray-50/30'}`}
+                      >
+                        <div className="max-w-xs mx-auto space-y-3">
+                          <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
+                            <Megaphone className="text-muted-foreground" size={28} />
                           </div>
-                        </motion.div>
-                      ))}
-                    </>
-                  )}
-                </AnimatePresence>
+                          <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No announcements</h3>
+                          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            There are no announcements matching your current filters.
+                          </p>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <>
+                        {/* Render Exam Announcement Groups */}
+                        {examGroups.map(exam => (
+                          <ExamAnnouncementCard
+                            key={exam.examName}
+                            exam={exam}
+                            theme={theme}
+                            handleMarkRead={handleMarkRead}
+                          />
+                        ))}
+
+                        {/* Render Regular Announcements */}
+                        {regular.map((announcement, idx) => (
+                          <motion.div
+                            key={announcement.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className={`relative group p-5 rounded-xl border transition-all duration-300 hover:shadow-md ${!announcement.is_read
+                              ? theme === 'dark' ? 'bg-primary/5 border-primary/20' : 'bg-blue-50/50 border-blue-100'
+                              : theme === 'dark' ? 'bg-card border-border hover:bg-muted/30' : 'bg-white border-gray-100 hover:border-gray-200'
+                              }`}
+                          >
+                            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                              <div className="flex-1 space-y-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <Badge className={`${getPriorityColor(announcement.priority, theme)} border font-medium px-2 py-0.5 uppercase text-[10px]`}>
+                                    {announcement.priority}
+                                  </Badge>
+                                  {isRecent(announcement.created_at) && (
+                                    <Badge className="bg-primary text-white border-none text-[10px]">NEW</Badge>
+                                  )}
+                                  {!announcement.is_read && (
+                                    <span className="w-2 h-2 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50"></span>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <h3 className={`text-lg sm:text-md font-semibold leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                    {announcement.title}
+                                  </h3>
+                                  <p className={`text-sm mt-2 leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                                    {announcement.message}
+                                  </p>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-y-2 gap-x-4 pt-2">
+                                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <User size={14} className="opacity-70" />
+                                    <span className="font-medium text-foreground/80">From: {announcement.created_by_name || 'Administrator'}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <Clock size={14} className="opacity-70" />
+                                    <span>{formatDate(announcement.created_at)}</span>
+                                  </div>
+                                  {announcement.expires_at && (
+                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                      <Calendar size={14} className="opacity-70" />
+                                      <span>Expires: {announcement.expires_at.split('T')[0]}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex md:flex-col items-center md:items-end justify-between gap-3 min-w-fit">
+                                {!announcement.is_read && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleMarkRead(announcement.id)}
+                                    className={`h-9 px-3 gap-2 ${theme === 'dark' ? 'text-primary hover:bg-primary/10' : 'text-blue-600 hover:bg-blue-50'}`}
+                                  >
+                                    <Eye size={16} />
+                                    <span className="text-xs font-semibold">Mark as read</span>
+                                  </Button>
+                                )}
+                                <Badge
+                                  variant="outline"
+                                  className={`text-[10px] px-2.5 py-1 font-medium ${theme === 'dark' ? 'bg-primary/10 border-primary/20 text-primary-foreground' : 'bg-primary/5 border-primary/20 text-primary'}`}
+                                >
+                                  {formatRoleLabel(announcement.created_by_role)}
+                                </Badge>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
-            </div>
+            )}
+          </CardContent>
+
+          {!loading && !error && totalPages > 1 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing page {currentPage} of {totalPages} ({totalCount} announcements)
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Previous
+                </Button>
+
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {currentPage}
+                  </span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
           )}
-        </CardContent>
-
-        {!loading && !error && totalPages > 1 && (
-          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-            <div>
-              Showing page {currentPage} of {totalPages} ({totalCount} announcements)
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-              >
-                Previous
-              </Button>
-
-              <div className="flex items-center justify-center min-w-[2rem]">
-                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {currentPage}
-                </span>
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-              >
-                Next
-              </Button>
-            </div>
-          </CardFooter>
-        )}
-      </Card>
-    </div>
-  </>
-);
+        </Card>
+      </div>
+    </>
+  );
 };
 
 export default StudentAnnouncements;

@@ -9,14 +9,15 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Eye, EyeOff , Trash} from 'lucide-react';
+import { Eye, EyeOff, Trash } from 'lucide-react';
 import { useTheme } from "../../context/ThemeContext";
 import { showConfirmAlert, showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import {
   getFeesManagerProfile,
   updateFeesManagerProfile,
-  changeFeesManagerPassword } from
-"../../utils/fees_manager_api";
+  changeFeesManagerPassword
+} from
+  "../../utils/fees_manager_api";
 import {
   Skeleton,
   SkeletonStatsGrid,
@@ -24,8 +25,9 @@ import {
   SkeletonList,
   SkeletonPageHeader,
   SkeletonCard,
-  SkeletonForm } from
-"@/components/ui/skeleton";
+  SkeletonForm
+} from
+  "@/components/ui/skeleton";
 import LoginActivity from '../common/LoginActivity';
 
 import { Camera } from 'lucide-react';
@@ -103,7 +105,7 @@ const FeesManagerProfile: React.FC = () => {
     }
   };
 
-  
+
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -133,7 +135,7 @@ const FeesManagerProfile: React.FC = () => {
           body: JSON.stringify({ profile_picture_url: fileUrl })
         });
         const res = await response.json();
-        
+
         if (res.success) {
           setProfile((prev: any) => ({ ...prev, profile_picture: fileUrl }));
           setFormData((prev: any) => ({ ...prev, profile_picture: fileUrl }));
@@ -166,7 +168,7 @@ const FeesManagerProfile: React.FC = () => {
         method: 'DELETE'
       });
       const res = await response.json();
-      
+
       if (res.success) {
         setProfile((prev: any) => ({ ...prev, profile_picture: "", profile_image: "" }));
         setFormData((prev: any) => ({ ...prev, profile_picture: "", profile_image: "" }));
@@ -245,7 +247,7 @@ const FeesManagerProfile: React.FC = () => {
               <Skeleton className="h-4 w-64" />
             </div>
           </CardHeader>
-          <CardContent className="px-6 pb-6 pt-6">
+          <CardContent className="px-6 pb-6 pt-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-8">
               <div className="col-span-1 flex flex-col items-center space-y-4">
                 <Skeleton className="h-24 w-24 rounded-full" />
@@ -279,11 +281,10 @@ const FeesManagerProfile: React.FC = () => {
               size="sm"
               onClick={() => { if (editing) handleSave(); else setEditing(true); }}
               variant="outline"
-              className={`flex-1 sm:flex-none w-full sm:w-auto text-sm text-white border transition-colors ${
-                editing 
-                  ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white' 
+              className={`flex-1 sm:flex-none w-full sm:w-auto text-sm text-white border transition-colors ${editing
+                  ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white'
                   : 'bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white'
-              }`}
+                }`}
               disabled={loading}>
               {editing ? loading ? 'Saving Profile...' : 'Save Profile' : 'Edit Profile'}
             </Button>
@@ -346,8 +347,8 @@ const FeesManagerProfile: React.FC = () => {
                     </AvatarFallback>
                   </Avatar>
                   {(editing || !(profile as any)?.profile_picture) && (
-                    <label 
-                      htmlFor="feesmanager-profile-picture-upload" 
+                    <label
+                      htmlFor="feesmanager-profile-picture-upload"
                       className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center text-white cursor-pointer"
                     >
                       <Camera className="h-5 w-5 mb-1 transform scale-75 group-hover:scale-100 group-hover:animate-bounce transition-transform duration-300" />
@@ -356,8 +357,8 @@ const FeesManagerProfile: React.FC = () => {
                   )}
                 </div>
                 {(editing || !(profile as any)?.profile_picture) && (
-                  <label 
-                    htmlFor="feesmanager-profile-picture-upload" 
+                  <label
+                    htmlFor="feesmanager-profile-picture-upload"
                     className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg md:hidden"
                   >
                     <Camera className="h-4 w-4" />
@@ -473,7 +474,7 @@ const FeesManagerProfile: React.FC = () => {
                 {activeTab === 'integrations' && (
                   <div className="animate-in fade-in duration-300">
                     <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Integrations</h3>
-                    <GoogleIntegrationTab 
+                    <GoogleIntegrationTab
                       googleConnected={googleConnected}
                       setGoogleConnected={setGoogleConnected}
                       googleConnectLoading={googleConnectLoading}

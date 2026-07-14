@@ -146,15 +146,15 @@ const BulkUpload = ({ setError, toast }: BulkUploadProps) => {
         const updatedCount = response.updated_count || 0;
         setUploadedCount(createdCount);
         setUpdatedCount(updatedCount);
-        
+
         // Use the backend's detailed message
         const message = response.message || `${createdCount} faculty added, ${updatedCount} faculty updated`;
         setSuccessMessage(message);
-        
+
         toast({ title: "Success", description: message });
         setFile(null);
         if (inputRef.current) inputRef.current.value = "";
-        
+
         // Clear success message after 10 seconds
         setTimeout(() => {
           setUploadedCount(0);
@@ -206,7 +206,7 @@ const BulkUpload = ({ setError, toast }: BulkUploadProps) => {
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-6 pt-6">
+          <CardContent className="space-y-6 pt-4">
             <div
               onDrop={handleDrop}
               onDragOver={(e) => {

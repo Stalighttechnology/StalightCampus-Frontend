@@ -182,7 +182,7 @@ const UploadQP = () => {
         if (res?.success && res.data) {
           setDropdownData((prev) => ({ ...prev, batch: res.data || [] }));
         }
-      } catch (err) {}
+      } catch (err) { }
     };
     loadBatches();
   }, []);
@@ -266,11 +266,11 @@ const UploadQP = () => {
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
     const dataUrl = canvas.toDataURL();
-    
+
     // Discard any redo states if we drew something new
     const nextHistory = historyRef.current.slice(0, historyStepRef.current + 1);
     nextHistory.push(dataUrl);
-    
+
     historyRef.current = nextHistory;
     historyStepRef.current = nextHistory.length - 1;
   };
@@ -295,7 +295,7 @@ const UploadQP = () => {
     if (!canvasRef.current) return { x: 0, y: 0 };
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    
+
     // Scale coordinates in case canvas bounding box is resized
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
@@ -328,11 +328,11 @@ const UploadQP = () => {
     if (!ctx) return;
 
     const coords = getCoordinates(e);
-    
+
     ctx.beginPath();
     ctx.moveTo(lastXRef.current, lastYRef.current);
     ctx.lineTo(coords.x, coords.y);
-    
+
     ctx.strokeStyle = isEraser ? '#ffffff' : brushColor;
     ctx.lineWidth = brushSize;
     ctx.lineCap = 'round';
@@ -417,7 +417,7 @@ const UploadQP = () => {
         if (question) {
           updateQuestion(drawingQuestionId, 'content', question.content + imageHtml);
         }
-        
+
         toast({
           title: "Drawing Saved",
           description: "Your drawing has been uploaded and inserted into the question content."
@@ -454,7 +454,7 @@ const UploadQP = () => {
             if (mobileSyncInterval.current) clearInterval(mobileSyncInterval.current);
             const currentQuestionId = drawingQuestionId;
             setMobileSyncId(null);
-            
+
             try {
               // Convert base64 to file manually (safer for large URIs)
               const base64Data = data.image_data.split(',')[1];
@@ -477,7 +477,7 @@ const UploadQP = () => {
                   }
                   return q;
                 }));
-                
+
                 toast({
                   title: "Mobile Drawing Synced!",
                   description: "Your drawing has been successfully synced from your phone."
@@ -903,7 +903,7 @@ const UploadQP = () => {
             </CardContent>
           </div>
 
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             {rejectedQPs.length > 0 &&
               <div className="mb-4 space-y-2">
                 <div className="font-semibold">Rejected Question Papers</div>
@@ -1002,47 +1002,47 @@ const UploadQP = () => {
                                                 disabled={uploadingId !== null}
                                                 className="h-8 w-8 p-0 hover:bg-muted"
                                                 onClick={() => {
-                                                   const MySwal = withReactContent(Swal);
-                                                   MySwal.fire({
-                                                     title: 'Add Diagram / Image',
-                                                     text: 'Select how you want to add a diagram/image to this question',
-                                                     icon: 'question',
-                                                     showCancelButton: true,
-                                                     showDenyButton: true,
-                                                     confirmButtonColor: 'hsl(var(--primary))',
-                                                     denyButtonColor: '#0ea5e9',
-                                                     cancelButtonColor: '#6c757d',
-                                                     confirmButtonText: 'Upload Local Image',
-                                                     denyButtonText: 'Draw Diagram',
-                                                     cancelButtonText: 'Cancel'
-                                                   }).then((result) => {
-                                                     if (result.isConfirmed) {
-                                                       const fileInput = document.getElementById(`diagram-upload-${q.id}`);
-                                                       if (fileInput) (fileInput as HTMLInputElement).click();
-                                                     } else if (result.isDenied) {
-                                                       MySwal.fire({
-                                                         title: 'Draw Diagram',
-                                                         text: 'Where would you like to draw?',
-                                                         icon: 'question',
-                                                         showCancelButton: true,
-                                                         showDenyButton: true,
-                                                         confirmButtonColor: '#0ea5e9',
-                                                         denyButtonColor: '#8b5cf6',
-                                                         confirmButtonText: 'Draw on this Computer',
-                                                         denyButtonText: 'Draw on Phone (Touch)',
-                                                         cancelButtonText: 'Cancel'
-                                                       }).then((drawResult) => {
-                                                         if (drawResult.isConfirmed) {
-                                                           setDrawingQuestionId(q.id);
-                                                           setIsDrawingOpen(true);
-                                                         } else if (drawResult.isDenied) {
-                                                           setDrawingQuestionId(q.id);
-                                                           setMobileSyncId(crypto.randomUUID());
-                                                         }
-                                                       });
-                                                     }
-                                                   });
-                                                 }}
+                                                  const MySwal = withReactContent(Swal);
+                                                  MySwal.fire({
+                                                    title: 'Add Diagram / Image',
+                                                    text: 'Select how you want to add a diagram/image to this question',
+                                                    icon: 'question',
+                                                    showCancelButton: true,
+                                                    showDenyButton: true,
+                                                    confirmButtonColor: 'hsl(var(--primary))',
+                                                    denyButtonColor: '#0ea5e9',
+                                                    cancelButtonColor: '#6c757d',
+                                                    confirmButtonText: 'Upload Local Image',
+                                                    denyButtonText: 'Draw Diagram',
+                                                    cancelButtonText: 'Cancel'
+                                                  }).then((result) => {
+                                                    if (result.isConfirmed) {
+                                                      const fileInput = document.getElementById(`diagram-upload-${q.id}`);
+                                                      if (fileInput) (fileInput as HTMLInputElement).click();
+                                                    } else if (result.isDenied) {
+                                                      MySwal.fire({
+                                                        title: 'Draw Diagram',
+                                                        text: 'Where would you like to draw?',
+                                                        icon: 'question',
+                                                        showCancelButton: true,
+                                                        showDenyButton: true,
+                                                        confirmButtonColor: '#0ea5e9',
+                                                        denyButtonColor: '#8b5cf6',
+                                                        confirmButtonText: 'Draw on this Computer',
+                                                        denyButtonText: 'Draw on Phone (Touch)',
+                                                        cancelButtonText: 'Cancel'
+                                                      }).then((drawResult) => {
+                                                        if (drawResult.isConfirmed) {
+                                                          setDrawingQuestionId(q.id);
+                                                          setIsDrawingOpen(true);
+                                                        } else if (drawResult.isDenied) {
+                                                          setDrawingQuestionId(q.id);
+                                                          setMobileSyncId(crypto.randomUUID());
+                                                        }
+                                                      });
+                                                    }
+                                                  });
+                                                }}
                                               >
                                                 {uploadingId === q.id ? (
                                                   <Loader2 size={16} className="animate-spin text-primary" />
@@ -1277,7 +1277,7 @@ const UploadQP = () => {
                                           {s.maxMarks}m
                                         </Badge>
                                       </div>
-                                      <div 
+                                      <div
                                         className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} text-left whitespace-pre-line break-words`}
                                         dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
                                       />
@@ -1303,7 +1303,7 @@ const UploadQP = () => {
                                       </div>
                                       <div className="flex-1 pt-2">
                                         <div className="flex justify-between items-start gap-4">
-                                          <div 
+                                          <div
                                             className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left whitespace-pre-line break-words`}
                                             dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
                                           />
@@ -1347,8 +1347,8 @@ const UploadQP = () => {
           setDrawingQuestionId(null);
         }
       }}>
-        <DialogContent 
-          onInteractOutside={(e) => e.preventDefault()} 
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
           className={`max-w-2xl ${theme === 'dark' ? 'bg-card text-foreground border-gray-700' : 'bg-white text-gray-900'}`}
         >
@@ -1359,7 +1359,7 @@ const UploadQP = () => {
             {/* Control Panel */}
             <div className="flex flex-wrap items-center gap-4 justify-between w-full p-2 border rounded-md">
               <div className="flex items-center gap-2">
-                <Button 
+                <Button
                   variant={isEraser ? "outline" : "default"}
                   size="sm"
                   onClick={() => setIsEraser(false)}
@@ -1378,21 +1378,21 @@ const UploadQP = () => {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs">Color:</span>
-                <input 
-                  type="color" 
-                  value={brushColor} 
-                  onChange={(e) => setBrushColor(e.target.value)} 
+                <input
+                  type="color"
+                  value={brushColor}
+                  onChange={(e) => setBrushColor(e.target.value)}
                   disabled={isEraser}
                   className="w-8 h-8 rounded cursor-pointer border-0 p-0"
                 />
               </div>
               <div className="flex items-center gap-2 flex-1 max-w-[150px]">
                 <span className="text-xs whitespace-nowrap">Size: {brushSize}px</span>
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="20" 
-                  value={brushSize} 
+                <input
+                  type="range"
+                  min="1"
+                  max="20"
+                  value={brushSize}
                   onChange={(e) => setBrushSize(Number(e.target.value))}
                   className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 />
@@ -1447,8 +1447,8 @@ const UploadQP = () => {
 
             {/* Save / Close Actions */}
             <div className="flex justify-end gap-2 w-full">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setIsDrawingOpen(false);
                   setDrawingQuestionId(null);
@@ -1456,8 +1456,8 @@ const UploadQP = () => {
               >
                 Cancel
               </Button>
-              <Button 
-                onClick={saveCanvasDrawing} 
+              <Button
+                onClick={saveCanvasDrawing}
                 disabled={drawingSubmitting}
                 className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white"
               >
@@ -1490,7 +1490,7 @@ const UploadQP = () => {
             </p>
             <div className="bg-white p-4 rounded-xl shadow-sm border">
               {mobileSyncId && (
-                <QRCodeSVG 
+                <QRCodeSVG
                   value={`${window.location.origin}/mobile-draw?session=${mobileSyncId}`}
                   size={200}
                   level="H"

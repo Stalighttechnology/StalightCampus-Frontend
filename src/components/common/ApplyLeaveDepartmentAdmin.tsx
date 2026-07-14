@@ -274,7 +274,7 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6 pt-6">
+          <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6 pt-4">
 
 
             {/* Title */}
@@ -445,11 +445,10 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
                       <div className="mt-3">
                         <button
                           onClick={() => setViewReason(leave.reason)}
-                          className={`w-full text-center text-sm font-semibold py-2 px-4 rounded-lg transition border ${
-                            theme === 'dark'
+                          className={`w-full text-center text-sm font-semibold py-2 px-4 rounded-lg transition border ${theme === 'dark'
                               ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
                               : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100'
-                          }`}
+                            }`}
                         >
                           View Reason
                         </button>

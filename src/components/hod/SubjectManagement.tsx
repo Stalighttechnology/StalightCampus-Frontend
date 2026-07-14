@@ -59,7 +59,7 @@ interface SubjectManagementState {
   semesters: Semester[];
   showModal: "add" | "edit" | null;
   currentSubject: Subject | null;
-  newSubject: {code: string;name: string;semester_id: string;subject_type: string;credits: number;};
+  newSubject: { code: string; name: string; semester_id: string; subject_type: string; credits: number; };
   loading: boolean;
   branchId: string;
   currentPage: number;
@@ -334,10 +334,10 @@ const SubjectManagement = () => {
                   }}
                   className="flex-1 sm:flex-none w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
                   disabled={state.loading || !state.branchId}>
-                  
+
                   + Add Course
                 </Button>
- 
+
                 {/* Mobile Download PDF Icon Button */}
                 <Button
                   onClick={handleExportPDF}
@@ -348,7 +348,7 @@ const SubjectManagement = () => {
                 >
                   {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
                 </Button>
- 
+
                 <Button
                   onClick={handleExportPDF}
                   disabled={state.loading || downloadingPDF || !state.filters.semester_id || !state.filters.subject_type || state.filters.semester_id === "all" || state.filters.subject_type === "all"}
@@ -363,7 +363,7 @@ const SubjectManagement = () => {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="pb-4 pt-6">
+          <CardContent className="pb-4 pt-4">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="w-full md:w-48">
                 <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Filter by Semester</label>
@@ -375,7 +375,7 @@ const SubjectManagement = () => {
                     updateState({ filters: { ...state.filters, semester_id: val }, currentPage: 1 });
                     setTimeout(() => setIsTypeOpen(true), 150);
                   }}>
-                  
+
                   <SelectTrigger className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
                     <SelectValue placeholder={translateTerminology("Choose Semester")} />
                   </SelectTrigger>
@@ -399,7 +399,7 @@ const SubjectManagement = () => {
                   onOpenChange={setIsTypeOpen}
                   value={state.filters.subject_type}
                   onValueChange={(val) => updateState({ filters: { ...state.filters, subject_type: val }, currentPage: 1 })}>
-                  
+
                   <SelectTrigger className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
                     <SelectValue placeholder="Choose Type" />
                   </SelectTrigger>
@@ -556,7 +556,7 @@ const SubjectManagement = () => {
 
       {/* Add/Edit Subject Modal */}
       {state.showModal &&
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={() => updateState({ showModal: null })}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={() => updateState({ showModal: null })}>
           <div className={`p-6 rounded-lg shadow-lg w-[90%] sm:w-[420px] max-h-[85vh] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}`} onClick={(e) => e.stopPropagation()}>
             <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               {state.showModal === "add" ? "Add New Subject" : "Edit Subject"}
@@ -566,54 +566,54 @@ const SubjectManagement = () => {
             <div className="mb-4">
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Code</label>
               <Input
-              type="text"
-              value={state.newSubject.code}
-              onChange={(e) => {
-                const code = e.target.value.toUpperCase(); // auto-uppercase
-                updateState({
-                  newSubject: { ...state.newSubject, code }
-                });
-              }}
-              placeholder="e.g., PH1L001, BCS601"
-              disabled={state.loading}
-              className={`${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'} px-3 py-2 rounded`} />
-            
+                type="text"
+                value={state.newSubject.code}
+                onChange={(e) => {
+                  const code = e.target.value.toUpperCase(); // auto-uppercase
+                  updateState({
+                    newSubject: { ...state.newSubject, code }
+                  });
+                }}
+                placeholder="e.g., PH1L001, BCS601"
+                disabled={state.loading}
+                className={`${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'} px-3 py-2 rounded`} />
+
             </div>
 
             {/* Course Name */}
             <div className="mb-4">
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Name</label>
               <Input
-              type="text"
-              value={state.newSubject.name}
-              onChange={(e) =>
-              updateState({
-                newSubject: { ...state.newSubject, name: e.target.value }
-              })
-              }
-              placeholder="e.g., Mathematics"
-              disabled={state.loading}
-              className={`${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'} px-3 py-2 rounded`} />
-            
+                type="text"
+                value={state.newSubject.name}
+                onChange={(e) =>
+                  updateState({
+                    newSubject: { ...state.newSubject, name: e.target.value }
+                  })
+                }
+                placeholder="e.g., Mathematics"
+                disabled={state.loading}
+                className={`${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'} px-3 py-2 rounded`} />
+
             </div>
 
             {/* Semester */}
             <div className="mb-4">
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Semester")}</label>
               <Select
-              value={state.newSubject.semester_id}
-              onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, semester_id: val } })}
-              disabled={state.loading}>
-              
+                value={state.newSubject.semester_id}
+                onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, semester_id: val } })}
+                disabled={state.loading}>
+
                 <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
                   <SelectValue placeholder={translateTerminology("Select Semester")} />
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                   {state.semesters.map((semester) =>
-                <SelectItem key={semester.id} value={semester.id}>
+                    <SelectItem key={semester.id} value={semester.id}>
                       Semester {semester.number}
                     </SelectItem>
-                )}
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -622,10 +622,10 @@ const SubjectManagement = () => {
             <div className="mb-4">
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Type</label>
               <Select
-              value={state.newSubject.subject_type}
-              onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, subject_type: val } })}
-              disabled={state.loading}>
-              
+                value={state.newSubject.subject_type}
+                onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, subject_type: val } })}
+                disabled={state.loading}>
+
                 <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
                   <SelectValue placeholder="Select Type" />
                 </SelectTrigger>
@@ -641,102 +641,102 @@ const SubjectManagement = () => {
             <div className="mb-4">
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Credits</label>
               <Input
-              type="number"
-              min={0}
-              value={state.newSubject.credits}
-              onChange={(e) =>
-              updateState({ newSubject: { ...state.newSubject, credits: Number(e.target.value) } })
-              }
-              placeholder="e.g., 3"
-              disabled={state.loading}
-              className={`${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'} px-3 py-2 rounded`} />
-            
+                type="number"
+                min={0}
+                value={state.newSubject.credits}
+                onChange={(e) =>
+                  updateState({ newSubject: { ...state.newSubject, credits: Number(e.target.value) } })
+                }
+                placeholder="e.g., 3"
+                disabled={state.loading}
+                className={`${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'} px-3 py-2 rounded`} />
+
             </div>
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-4">
               <Button
-              onClick={() => {
-                updateState({
-                  showModal: null,
-                  newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                  currentSubject: null
-                });
-              }}
-              className={`${theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 bottom-1 '}`}
-              disabled={state.loading}>
-              
+                onClick={() => {
+                  updateState({
+                    showModal: null,
+                    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                    currentSubject: null
+                  });
+                }}
+                className={`${theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 bottom-1 '}`}
+                disabled={state.loading}>
+
                 Cancel
               </Button>
 
               <Button
-              onClick={async () => {
-                if (!state.newSubject.code || !state.newSubject.name || !state.newSubject.semester_id) {
-                  showErrorAlert("Error", "All fields are required");
-                  return;
-                }
-
-                const data: ManageSubjectsRequest = {
-                  action: state.showModal === "add" ? "create" : "update",
-                  branch_id: state.branchId,
-                  name: state.newSubject.name,
-                  subject_code: state.newSubject.code,
-                  semester_id: state.newSubject.semester_id,
-                  subject_type: state.newSubject.subject_type,
-                  credits: Number(state.newSubject.credits),
-                  ...(state.showModal === "edit" && state.currentSubject ? { subject_id: state.currentSubject.id } : {})
-                };
-
-                updateState({ loading: true });
-                try {
-                  const response = await manageSubjects(data, "POST");
-                  if (response.success) {
-                    const isCreate = data.action === 'create';
-                    const createdId = response.data?.subject_id as unknown as string;
-                    const updatedSubject: Subject = {
-                      id: isCreate ? createdId || `${Date.now()}` : state.currentSubject ? state.currentSubject.id : createdId || `${Date.now()}`,
-                      name: state.newSubject.name,
-                      subject_code: state.newSubject.code,
-                      semester_id: state.newSubject.semester_id,
-                      subject_type: state.newSubject.subject_type,
-                      credits: state.newSubject.credits
-                    };
-
-                    if (isCreate) {
-                      const newSubjects = [updatedSubject, ...state.subjects].slice(0, state.pageSize);
-                      const newTotalCount = state.totalCount + 1;
-                      const newTotalPages = Math.ceil(newTotalCount / state.pageSize);
-                      showSuccessAlert("Success", "Subject added successfully!");
-                      updateState({
-                        subjects: newSubjects,
-                        totalCount: newTotalCount,
-                        totalPages: newTotalPages,
-                        showModal: null,
-                        newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                        currentSubject: null
-                      });
-                    } else {
-                      const newSubjects = state.subjects.map((s) => s.id === updatedSubject.id ? updatedSubject : s);
-                      showSuccessAlert("Success", "Subject updated successfully!");
-                      updateState({
-                        subjects: newSubjects,
-                        showModal: null,
-                        newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                        currentSubject: null
-                      });
-                    }
-                  } else {
-                    showErrorAlert("Error", response.message);
+                onClick={async () => {
+                  if (!state.newSubject.code || !state.newSubject.name || !state.newSubject.semester_id) {
+                    showErrorAlert("Error", "All fields are required");
+                    return;
                   }
-                } catch (err) {
-                  showErrorAlert("Error", "Failed to save subject");
-                } finally {
-                  updateState({ loading: false });
-                }
-              }}
-              className="bg-primary text-white border border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
-              disabled={state.loading}>
-              
+
+                  const data: ManageSubjectsRequest = {
+                    action: state.showModal === "add" ? "create" : "update",
+                    branch_id: state.branchId,
+                    name: state.newSubject.name,
+                    subject_code: state.newSubject.code,
+                    semester_id: state.newSubject.semester_id,
+                    subject_type: state.newSubject.subject_type,
+                    credits: Number(state.newSubject.credits),
+                    ...(state.showModal === "edit" && state.currentSubject ? { subject_id: state.currentSubject.id } : {})
+                  };
+
+                  updateState({ loading: true });
+                  try {
+                    const response = await manageSubjects(data, "POST");
+                    if (response.success) {
+                      const isCreate = data.action === 'create';
+                      const createdId = response.data?.subject_id as unknown as string;
+                      const updatedSubject: Subject = {
+                        id: isCreate ? createdId || `${Date.now()}` : state.currentSubject ? state.currentSubject.id : createdId || `${Date.now()}`,
+                        name: state.newSubject.name,
+                        subject_code: state.newSubject.code,
+                        semester_id: state.newSubject.semester_id,
+                        subject_type: state.newSubject.subject_type,
+                        credits: state.newSubject.credits
+                      };
+
+                      if (isCreate) {
+                        const newSubjects = [updatedSubject, ...state.subjects].slice(0, state.pageSize);
+                        const newTotalCount = state.totalCount + 1;
+                        const newTotalPages = Math.ceil(newTotalCount / state.pageSize);
+                        showSuccessAlert("Success", "Subject added successfully!");
+                        updateState({
+                          subjects: newSubjects,
+                          totalCount: newTotalCount,
+                          totalPages: newTotalPages,
+                          showModal: null,
+                          newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                          currentSubject: null
+                        });
+                      } else {
+                        const newSubjects = state.subjects.map((s) => s.id === updatedSubject.id ? updatedSubject : s);
+                        showSuccessAlert("Success", "Subject updated successfully!");
+                        updateState({
+                          subjects: newSubjects,
+                          showModal: null,
+                          newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                          currentSubject: null
+                        });
+                      }
+                    } else {
+                      showErrorAlert("Error", response.message);
+                    }
+                  } catch (err) {
+                    showErrorAlert("Error", "Failed to save subject");
+                  } finally {
+                    updateState({ loading: false });
+                  }
+                }}
+                className="bg-primary text-white border border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
+                disabled={state.loading}>
+
                 {state.showModal === "add" ? "Add Course" : "Update Course"}
               </Button>
             </div>

@@ -7,15 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Badge } from "../ui/badge";
 import { useToast } from "../../hooks/use-toast";
 import CreateCertificate from "./CreateCertificate";
-import { 
-  Search, 
-  Plus, 
-  RotateCcw, 
-  ExternalLink, 
-  Trash2, 
-  FileText, 
-  Mail, 
-  Calendar, 
+import {
+  Search,
+  Plus,
+  RotateCcw,
+  ExternalLink,
+  Trash2,
+  FileText,
+  Mail,
+  Calendar,
   Building,
   CheckCircle,
   AlertTriangle,
@@ -39,12 +39,12 @@ const CertificateManagement = () => {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"list" | "create">("list");
-  
+
   // Search & Filter state
   const [search, setSearch] = useState("");
   const [type, setType] = useState("");
   const [status, setStatus] = useState("");
-  
+
   // Pagination
   const [limit] = useState(10);
   const [offset, setOffset] = useState(0);
@@ -169,7 +169,7 @@ const CertificateManagement = () => {
 
       {/* SEARCH AND FILTERS */}
       <Card className="shadow-sm border-slate-200/60 dark:border-slate-800">
-        <CardContent className="pt-6">
+        <CardContent className="pt-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div className="space-y-2 col-span-1 md:col-span-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Search</label>
@@ -293,10 +293,10 @@ const CertificateManagement = () => {
                             </Button>
                           )}
                           {cert.status !== "Revoked" && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => setRevokingCert(cert)} 
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setRevokingCert(cert)}
                               title="Revoke Certificate"
                             >
                               <Trash2 className="w-4 h-4 text-rose-500 hover:text-rose-700" />
