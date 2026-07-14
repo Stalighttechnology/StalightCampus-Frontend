@@ -56,6 +56,20 @@ interface Claim {
   created_at: string;
 }
 
+const formatDate = (dateString: string) => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  } catch (e) {
+    return dateString;
+  }
+};
+
 const EmployeeReimbursements: React.FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -247,7 +261,7 @@ const EmployeeReimbursements: React.FC = () => {
                             </Badge>
                           </td>
                           <td className={`px-3 py-3 sm:px-5 sm:py-4 ${isDark ? 'text-slate-400' : 'text-slate-505'} min-w-max`}>
-                            {claim.created_at}
+                            {formatDate(claim.created_at)}
                           </td>
                         </tr>
                       );
@@ -290,7 +304,7 @@ const EmployeeReimbursements: React.FC = () => {
                     </div>
 
                     <div className="flex justify-between items-center text-xs text-muted-foreground">
-                      <span>Submitted: {claim.created_at}</span>
+                      <span>Submitted: {formatDate(claim.created_at)}</span>
                       <span className="font-semibold text-blue-500 text-sm flex items-center gap-0.5">
                         <IndianRupee size={12} />{Number(claim.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </span>
@@ -355,7 +369,10 @@ const EmployeeReimbursements: React.FC = () => {
 
       {/* New Claim Dialog */}
       <Dialog open={showForm} onOpenChange={(open) => { if (!open) setShowForm(false); }}>
-        <DialogContent className={`w-[90vw] sm:max-w-lg rounded-xl p-0 shadow-2xl border max-h-[80vh] overflow-y-auto custom-scrollbar  ${isDark ? 'bg-[#0f172a] text-slate-100 border-slate-800' : 'bg-white text-slate-900 border-slate-200'}`}>
+        <DialogContent 
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+          className={`w-[90vw] sm:max-w-lg rounded-xl p-0 shadow-2xl border max-h-[80vh] overflow-y-auto custom-scrollbar  ${isDark ? 'bg-[#0f172a] text-slate-100 border-slate-800' : 'bg-white text-slate-900 border-slate-200'}`}>
           <DialogHeader className={`px-6 pt-6 pb-4 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
             <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
               Submit Reimbursement Claim
@@ -408,7 +425,7 @@ const EmployeeReimbursements: React.FC = () => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief details about the expense..."
-                className={inputClass}
+                className={`${inputClass} resize-none custom-scrollbar`}
               />
             </div>
 
@@ -442,7 +459,7 @@ const EmployeeReimbursements: React.FC = () => {
 
           <div
             className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
-                      max-h-64 overflow-y-auto rounded-md ${isDark ? 'text-foreground' : 'text-gray-900'}`}
+                      max-h-64 overflow-y-auto custom-scrollbar rounded-md ${isDark ? 'text-foreground' : 'text-gray-900'}`}
           >
             {descModal?.text || <span className="italic text-slate-400">No description provided.</span>}
           </div>
