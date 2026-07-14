@@ -238,8 +238,11 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   const [branches, setBranches] = useState<{ id: string; name: string; }[]>([]);
   const [semesters, setSemesters] = useState<{ id: string; number: number; }[]>([]);
   const [sections, setSections] = useState<{ id: string; name: string; }[]>([]);
+  const [isSemestersLoading, setIsSemestersLoading] = useState<boolean>(false);
+  const [isSectionsLoading, setIsSectionsLoading] = useState<boolean>(false);
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isSectionOpen, setIsSectionOpen] = useState(false);
+
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -276,15 +279,22 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   useEffect(() => {
     if (selectedBranch !== "") {
       const loadSemesters = async () => {
-        const resp = await getSemesters(selectedBranch);
-        if (resp && resp.success) {
-          setSemesters(resp.data || []);
-        } else {
-          setSemesters([]);
-        }
+        setIsSemestersLoading(true);
+        setSemesters([]);
         setSelectedSemester("");
         setSections([]);
         setSelectedSection("");
+        
+        const resp = await getSemesters(selectedBranch);
+        if (resp && resp.success) {
+          setSemesters(resp.data || []);
+          if (resp.data && resp.data.length > 0) {
+            setIsSemesterOpen(true);
+          }
+        } else {
+          setSemesters([]);
+        }
+        setIsSemestersLoading(false);
       };
       loadSemesters();
     } else {
@@ -298,13 +308,20 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   useEffect(() => {
     if (selectedBranch !== "" && selectedSemester !== "") {
       const loadSections = async () => {
+        setIsSectionsLoading(true);
+        setSections([]);
+        setSelectedSection("");
+        
         const resp = await getSections(selectedBranch, selectedSemester);
         if (resp && resp.success) {
           setSections(resp.data || []);
+          if (resp.data && resp.data.length > 0) {
+            setIsSectionOpen(true);
+          }
         } else {
           setSections([]);
         }
-        setSelectedSection("");
+        setIsSectionsLoading(false);
       };
       loadSections();
     } else {
@@ -368,9 +385,6 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
               <Select value={selectedBranch} onValueChange={(value) => {
                 setSelectedBranch(value);
-                if (value !== "") {
-                  setTimeout(() => setIsSemesterOpen(true), 150);
-                }
               }}>
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder={translateTerminology("Choose Branch")} />
@@ -392,16 +406,14 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 value={selectedSemester}
                 onValueChange={(value) => {
                   setSelectedSemester(value);
-                  if (value !== "") {
-                    setTimeout(() => setIsSectionOpen(true), 150);
-                  }
                 }}
-                disabled={selectedBranch === "" || semesters.length === 0}
+                disabled={isSemestersLoading || selectedBranch === "" || semesters.length === 0}
                 open={isSemesterOpen}
-                onOpenChange={setIsSemesterOpen}>
+                onOpenChange={setIsSemesterOpen}
+              >
 
-                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${selectedBranch === "" || semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={selectedBranch === "" || semesters.length === 0}>
-                  <SelectValue placeholder={translateTerminology("Choose Semester")} />
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${isSemestersLoading || selectedBranch === "" || semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={isSemestersLoading || selectedBranch === "" || semesters.length === 0}>
+                  <SelectValue placeholder={isSemestersLoading ? "Loading..." : translateTerminology("Choose Semester")} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   {semesters.length > 0 ? (
@@ -419,12 +431,13 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
               <Select
                 value={selectedSection}
                 onValueChange={(value) => setSelectedSection(value)}
-                disabled={selectedSemester === "" || sections.length === 0}
+                disabled={isSectionsLoading || selectedSemester === "" || sections.length === 0}
                 open={isSectionOpen}
-                onOpenChange={setIsSectionOpen}>
+                onOpenChange={setIsSectionOpen}
+              >
 
-                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${selectedSemester === "" || sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={selectedSemester === "" || sections.length === 0}>
-                  <SelectValue placeholder="Choose Section" />
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${isSectionsLoading || selectedSemester === "" || sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={isSectionsLoading || selectedSemester === "" || sections.length === 0}>
+                  <SelectValue placeholder={isSectionsLoading ? "Loading..." : "Choose Section"} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   {sections.length > 0 ? (

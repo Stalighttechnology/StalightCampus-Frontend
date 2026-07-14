@@ -138,6 +138,8 @@ const StudyMaterialsStudent = () => {
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
+  const [isSemestersLoading, setIsSemestersLoading] = useState<boolean>(false);
+  const [isSectionsLoading, setIsSectionsLoading] = useState<boolean>(false);
   const [isSemesterOpen, setIsSemesterOpen] = useState<boolean>(false);
   const [isSectionOpen, setIsSectionOpen] = useState<boolean>(false);
 
@@ -154,16 +156,22 @@ const StudyMaterialsStudent = () => {
   useEffect(() => {
     if (selectedBranch) {
       const loadSemesters = async () => {
-        const resp = await getSemesters(selectedBranch);
-        if (resp && resp.success) {
-          setSemesters(resp.data || []);
-          setIsSemesterOpen(true);
-        } else {
-          setSemesters([]);
-        }
+        setIsSemestersLoading(true);
+        setSemesters([]);
         setSelectedSemester("");
         setSections([]);
         setSelectedSection("");
+        
+        const resp = await getSemesters(selectedBranch);
+        if (resp && resp.success) {
+          setSemesters(resp.data || []);
+          if (resp.data && resp.data.length > 0) {
+            setIsSemesterOpen(true);
+          }
+        } else {
+          setSemesters([]);
+        }
+        setIsSemestersLoading(false);
       };
       loadSemesters();
     } else {
@@ -177,14 +185,20 @@ const StudyMaterialsStudent = () => {
   useEffect(() => {
     if (selectedBranch && selectedSemester) {
       const loadSections = async () => {
+        setIsSectionsLoading(true);
+        setSections([]);
+        setSelectedSection("");
+        
         const resp = await getSections(selectedBranch, selectedSemester);
         if (resp && resp.success) {
           setSections(resp.data || []);
-          setIsSectionOpen(true);
+          if (resp.data && resp.data.length > 0) {
+            setIsSectionOpen(true);
+          }
         } else {
           setSections([]);
         }
-        setSelectedSection("");
+        setIsSectionsLoading(false);
       };
       loadSections();
     } else {
@@ -298,12 +312,12 @@ const StudyMaterialsStudent = () => {
               <Select
                 value={selectedSemester || undefined}
                 onValueChange={setSelectedSemester}
-                disabled={semesters.length === 0}
+                disabled={isSemestersLoading || semesters.length === 0}
                 open={isSemesterOpen}
                 onOpenChange={setIsSemesterOpen}
               >
-                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                  <SelectValue placeholder={translateTerminology("Choose Semester")} />
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${isSemestersLoading || semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+                  <SelectValue placeholder={isSemestersLoading ? "Loading..." : translateTerminology("Choose Semester")} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   {semesters.map((s) => (
@@ -315,12 +329,12 @@ const StudyMaterialsStudent = () => {
               <Select
                 value={selectedSection || undefined}
                 onValueChange={setSelectedSection}
-                disabled={sections.length === 0}
+                disabled={isSectionsLoading || sections.length === 0}
                 open={isSectionOpen}
                 onOpenChange={setIsSectionOpen}
               >
-                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                  <SelectValue placeholder="Choose Section" />
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${isSectionsLoading || sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+                  <SelectValue placeholder={isSectionsLoading ? "Loading..." : "Choose Section"} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   {sections.map((sec) => (
