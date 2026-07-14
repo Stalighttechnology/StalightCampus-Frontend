@@ -611,7 +611,7 @@ const handleApprove = async (index: number) => {
                   {leaveRequests.length === 0 && !isLoading ? (
                     <tr>
                       <td colSpan={5} className="py-8">
-                        <div className={`mx-auto w-full max-w-sm border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center space-y-3 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                        <div className={`w-full border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center space-y-3 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
                           <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
                             <ClipboardList className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
                           </div>
