@@ -525,7 +525,7 @@ const StudyMaterials = () => {
       if (!branchId) {
         setModalSemesters([]);
         setSemesterId("");
-        setSectionId("");
+        setSectionIds([]);
         setModalSubjects([]);
         setSubjectCode("");
         return;
@@ -551,7 +551,7 @@ const StudyMaterials = () => {
       if (!branchId || !semesterId) {
         setModalSections([]);
         setModalSubjects([]);
-        setSectionId("");
+        setSectionIds([]);
         setSubjectCode("");
         return;
       }
