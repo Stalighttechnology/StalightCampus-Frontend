@@ -2722,3 +2722,54 @@ export const getFacultyAttendanceRecords = async (params?: {
     return { success: false, message: "Network error" };
   }
 };
+
+export interface PromotionHistoryItem {
+  id: number;
+  usn: string;
+  name: string;
+  from_semester: number | null;
+  to_semester: number | null;
+  status: string;
+  processed_at: string | null;
+  remarks: string;
+}
+
+export interface GetPromotionHistoryResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    items: PromotionHistoryItem[];
+    total: number;
+    page: number;
+    pages: number;
+    has_next: boolean;
+    has_previous: boolean;
+  };
+}
+
+export const getPromotionHistory = async (params?: {
+  status?: string;
+  month?: string;
+  page?: number;
+  page_size?: number;
+}): Promise<GetPromotionHistoryResponse> => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append("status", params.status);
+    if (params?.month) queryParams.append("month", params.month);
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.page_size) queryParams.append("page_size", params.page_size.toString());
+
+    const url = `${API_ENDPOINT}/hod/promotion-history/${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+
+    const response = await fetchWithTokenRefresh(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};

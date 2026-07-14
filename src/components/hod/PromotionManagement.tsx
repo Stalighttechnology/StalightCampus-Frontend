@@ -48,11 +48,15 @@ import {
   bulkDemoteStudents,
   manageStudents,
   getPromotionBootstrap,
-  graduateStudents
+  graduateStudents,
+  getPromotionHistory,
+  PromotionHistoryItem
 } from
   "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonTable } from "../ui/skeleton";
+import { API_ENDPOINT } from "../../utils/config";
+import { fetchWithTokenRefresh } from "../../utils/authService";
 
 interface Semester {
   id: string;
@@ -117,9 +121,149 @@ const PromotionManagement = () => {
 
 };
 
+const PromotionHistoryModal = ({ open, onOpenChange, type, theme }: { open: boolean; onOpenChange: (open: boolean) => void; type: 'promoted' | 'demoted'; theme: string; }) => {
+  const [data, setData] = useState<PromotionHistoryItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      fetchHistory(1);
+    }
+  }, [open, type]);
+
+  const fetchHistory = async (pageNum: number) => {
+    setLoading(true);
+    try {
+      const res = await getPromotionHistory({ status: type, month: 'current', page: pageNum, page_size: 10 });
+      if (res.success && res.data) {
+        setData(res.data.items);
+        setTotalPages(res.data.pages);
+        setPage(res.data.page);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/promotion-history/?status=${type}&month=current&export=true`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
+        }
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `promotion_history_${type}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      } else {
+        Swal.fire({ icon: 'error', title: 'Export Failed', text: 'Failed to export history' });
+      }
+    } catch (error) {
+      console.error("Export error", error);
+      Swal.fire({ icon: 'error', title: 'Export Failed', text: 'Network error occurred' });
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className={`w-[95vw] sm:w-[90vw] md:max-w-4xl max-h-[85vh] overflow-y-auto custom-scrollbar rounded-xl ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+        <DialogHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b pb-4 mb-4 gap-4">
+          <DialogTitle className="text-lg sm:text-xl text-left">
+            Students {type === 'promoted' ? 'Promoted' : 'Demoted'} This Month
+          </DialogTitle>
+          <Button variant="outline" size="sm" onClick={handleExport} className="w-full sm:w-auto">
+            Export CSV
+          </Button>
+        </DialogHeader>
+        
+        {loading ? (
+          <SkeletonTable columns={6} rows={5} />
+        ) : data.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">No records found.</div>
+        ) : (
+          <>
+            <div className="overflow-x-auto rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>USN</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Semesters</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Reason</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{item.usn}</TableCell>
+                      <TableCell>{item.name}</TableCell>
+                      <TableCell>{item.from_semester || 'N/A'} → {item.to_semester || 'N/A'}</TableCell>
+                      <TableCell>{item.processed_at ? new Date(item.processed_at).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell className="max-w-[200px] truncate" title={item.remarks}>{item.remarks || '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            
+            <div className="flex items-center justify-between mt-4">
+              <span className="text-sm text-gray-500">Page {page} of {totalPages}</span>
+              <div className="space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => fetchHistory(page - 1)} 
+                  disabled={page === 1}
+                >
+                  Previous
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => fetchHistory(page + 1)} 
+                  disabled={page === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const PromotionOverview = ({ onTabChange, theme, stats }: { onTabChange: (tab: "overview" | "promote" | "demote") => void; theme: string; stats: { promoted_this_month: number; demoted_this_month: number; active_operations: number; }; }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'promoted' | 'demoted'>('promoted');
+
+  const handleStatClick = (type: 'promoted' | 'demoted') => {
+    setModalType(type);
+    setModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
+      <PromotionHistoryModal 
+        open={modalOpen} 
+        onOpenChange={setModalOpen} 
+        type={modalType} 
+        theme={theme} 
+      />
       <div id="hod-promotion-cards-wrapper" className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Promotion Card */}
         <Card className={`h-full flex flex-col ${theme === 'dark' ? 'bg-card text-foreground border-border hover:border-green-500' : 'bg-white text-gray-900 border-gray-200 hover:border-green-500'}`}>
@@ -194,11 +338,17 @@ const PromotionOverview = ({ onTabChange, theme, stats }: { onTabChange: (tab: "
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
+            <div 
+              onClick={() => handleStatClick('promoted')}
+              className={`text-center p-4 rounded-lg cursor-pointer transition-all transform hover:-translate-y-1 hover:shadow-md ${theme === 'dark' ? 'bg-muted hover:bg-muted/80' : 'bg-gray-100 hover:bg-gray-200'}`}
+            >
               <div className="text-2xl font-bold text-green-400">{stats.promoted_this_month}</div>
               <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Students Promoted This Month</div>
             </div>
-            <div className={`text-center p-4 rounded-lg ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
+            <div 
+              onClick={() => handleStatClick('demoted')}
+              className={`text-center p-4 rounded-lg cursor-pointer transition-all transform hover:-translate-y-1 hover:shadow-md ${theme === 'dark' ? 'bg-muted hover:bg-muted/80' : 'bg-gray-100 hover:bg-gray-200'}`}
+            >
               <div className="text-2xl font-bold text-red-400">{stats.demoted_this_month}</div>
               <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Students Demoted This Month</div>
             </div>
