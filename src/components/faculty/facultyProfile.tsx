@@ -531,10 +531,6 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Experience (years)</label>
                 <Input value={formData.experience_years} onChange={(e) => handleChange("experience_years", e.target.value)} disabled={!isEditing} placeholder="Experience" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
               </div>
-              <div className="w-full">
-                <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Office Location</label>
-                <Input value={formData.office_location} onChange={(e) => handleChange("office_location", e.target.value)} disabled={!isEditing} placeholder="Office" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
-              </div>
             </div>
           </div>);
 
@@ -887,6 +883,10 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               <h4 className={`text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
               <div className={`border rounded-lg p-2.5 sm:p-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
+                  <div className="flex flex-col justify-start">
+                    <span className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</span>
+                    <span className={`text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{formData.email || '—'}</span>
+                  </div>
                   <div className="flex flex-col justify-start">
                     <span className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Department</span>
                     <span className={`text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{formData.department || '—'}</span>
