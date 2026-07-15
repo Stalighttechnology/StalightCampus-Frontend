@@ -248,6 +248,7 @@ export const getCourseApplicationStats = async (filters: {
 export const getFilterOptions = async (): Promise<{
   batches: Batch[];
   branches: Branch[];
+  org_pass_criteria?: { pass_cie_percent: number; pass_see_percent: number; pass_total_percent: number; };
 }> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/filter-options/`, {
@@ -264,7 +265,8 @@ export const getFilterOptions = async (): Promise<{
       const data = result.data;
       return {
         batches: Array.isArray(data?.batches) ? data.batches : [],
-        branches: Array.isArray(data?.branches) ? data.branches : []
+        branches: Array.isArray(data?.branches) ? data.branches : [],
+        org_pass_criteria: result.org_pass_criteria
       };
     }
 
@@ -458,6 +460,19 @@ export const saveMarksForUpload = async (uploadId: number, marks: any[]) => {
     return await response.json();
   } catch (error) {
 
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+export const updateOrgPassingCriteria = async (pass_cie_percent: number, pass_see_percent: number, pass_total_percent: number) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/result-upload/org-passing-criteria/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pass_cie_percent, pass_see_percent, pass_total_percent })
+    });
+    return await response.json();
+  } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
