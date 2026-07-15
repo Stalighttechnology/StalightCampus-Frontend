@@ -93,7 +93,7 @@ const FacultyAttendance = () => {
       const response = await getFacultyAttendanceRecords(params);
       if (response.success && response.data) {
         setHistoryRecords(response.data);
-        
+
         if (initialLoadRef.current) {
           initialLoadRef.current = false;
           const weekAgo = new Date();
@@ -101,7 +101,7 @@ const FacultyAttendance = () => {
           const weekAgoStr = weekAgo.toLocaleDateString('sv-SE');
           const recent = response.data.filter((r: any) => r.date >= weekAgoStr).slice(0, 7);
           setRecentRecords(recent);
-          
+
           const today = new Date().toLocaleDateString('sv-SE');
           const todayRec = response.data.find((r: any) => r.date === today) || null;
           setTodayRecord(todayRec);
@@ -325,6 +325,10 @@ const FacultyAttendance = () => {
         return <CheckCircle className="w-5 h-5 text-green-600" />;
       case "absent":
         return <XCircle className="w-5 h-5 text-red-600" />;
+      case "holiday":
+        return <CalendarIcon className="w-5 h-5 text-blue-600" />;
+      case "weekly_off":
+        return <CalendarIcon className="w-5 h-5 text-slate-500" />;
       default:
         return <Clock className="w-5 h-5 text-gray-500" />;
     }
@@ -336,6 +340,10 @@ const FacultyAttendance = () => {
         return theme === 'dark' ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-200';
       case "absent":
         return theme === 'dark' ? 'bg-red-900/20 border-red-700' : 'bg-red-50 border-red-200';
+      case "holiday":
+        return theme === 'dark' ? 'bg-blue-900/20 border-blue-700' : 'bg-blue-50 border-blue-200';
+      case "weekly_off":
+        return theme === 'dark' ? 'bg-slate-900/20 border-slate-700' : 'bg-slate-50 border-slate-200';
       default:
         return theme === 'dark' ? 'bg-gray-900/20 border-gray-700' : 'bg-gray-50 border-gray-200';
     }
@@ -736,8 +744,8 @@ const FacultyAttendance = () => {
                             </div>
                           </div>
                           <DialogFooter>
-                            <Button 
-                              className="w-full bg-primary hover:bg-primary/90 text-white" 
+                            <Button
+                              className="w-full bg-primary hover:bg-primary/90 text-white"
                               onClick={() => {
                                 setHistoryStartDate(tempStartDate);
                                 setHistoryEndDate(tempEndDate);
