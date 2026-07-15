@@ -294,7 +294,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
         <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
           <div>
-            <CardTitle>Alumni Directory</CardTitle>
+            <CardTitle className="text-lg sm:text-2xl font-semibold">Alumni Directory</CardTitle>
             <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
               View and manage graduated students
             </CardDescription>

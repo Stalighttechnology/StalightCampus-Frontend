@@ -21,8 +21,9 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
-  DialogTitle } from
-"../ui/dialog";
+  DialogTitle
+} from
+  "../ui/dialog";
 import { manageUsers, manageUserAction, getBranchesWithHODs } from "../../utils/admin_api";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
@@ -37,12 +38,12 @@ interface User {
   status: string;
   username?: string; // Added to store original username
   department?: string;
-  extra?: {usn?: string;branch?: string;branches?: string[];};
+  extra?: { usn?: string; branch?: string; branches?: string[]; };
 }
 
 interface UsersManagementProps {
   setError: (error: string | null) => void;
-  toast: (options: {variant?: string;title: string;description: string;}) => void;
+  toast: (options: { variant?: string; title: string; description: string; }) => void;
 }
 
 // Utility to safely extract arrays from API responses
@@ -62,9 +63,9 @@ function extractArray<T>(obj: unknown, primaryKey: keyof any, fallbackKey?: keyo
 const getStatusBadge = (status: string, theme: string) => {
   const baseClass = "px-3 py-1 rounded-full text-xs font-medium";
   if (status === "Active")
-  return <span className={`${baseClass} ${theme === 'dark' ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`}>Active</span>;
+    return <span className={`${baseClass} ${theme === 'dark' ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`}>Active</span>;
   if (status === "Inactive")
-  return <span className={`${baseClass} ${theme === 'dark' ? 'bg-red-900 text-red-300' : 'bg-red-500 text-white'}`}>Inactive</span>;
+    return <span className={`${baseClass} ${theme === 'dark' ? 'bg-red-900 text-red-300' : 'bg-red-500 text-white'}`}>Inactive</span>;
 };
 
 const getRoleBadge = (role: string, theme: string) => {
@@ -76,16 +77,16 @@ const getRoleBadge = (role: string, theme: string) => {
 };
 
 const ALL_ROLES = [
-  "Student", 
-  "Head of Department", 
-  "Teacher", 
-  "COE", 
-  "Fees Manager", 
-  "Principal", 
-  "Org Admin", 
-  "HMS", 
-  "Warden", 
-  "Dean", 
+  "Student",
+  "Head of Department",
+  "Teacher",
+  "COE",
+  "Fees Manager",
+  "Principal",
+  "Org Admin",
+  "HMS",
+  "Warden",
+  "Dean",
   "Placement Officer",
   "Transport Admin",
   "Library Admin",
@@ -249,7 +250,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         if (res.success) {
           const dataSource = res.results || res.branches || (res as any).data || [];
           const branchList = Array.isArray(dataSource) ? dataSource : [];
-          const names = branchList.map((b: {name: string;}) => b.name).filter(Boolean);
+          const names = branchList.map((b: { name: string; }) => b.name).filter(Boolean);
           setDepartments(["All Branches", ...names]);
         }
       } catch (e) {
@@ -276,7 +277,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
       setError(null);
       try {
         // Prepare filter parameters
-        const filterParams: {page: number;page_size: number;role?: string;is_active?: boolean;search?: string;department?: string;} = {
+        const filterParams: { page: number; page_size: number; role?: string; is_active?: boolean; search?: string; department?: string; } = {
           page: currentPage,
           page_size: pageSize
         };
@@ -403,18 +404,18 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           // Update local state with returned user data instead of making another GET call
           if (response.user) {
             setUsers((prevUsers) =>
-            prevUsers.map((user) =>
-            user.id === editData.id ?
-            {
-              ...user,
-              name: `${response.user.first_name || ""} ${response.user.last_name || ""}`.trim() || response.user.username || "N/A",
-              email: response.user.email || "N/A",
-              role: response.user.role || "N/A",
-              status: response.user.is_active ? "Active" : "Inactive",
-              username: response.user.username || ""
-            } :
-            user
-            )
+              prevUsers.map((user) =>
+                user.id === editData.id ?
+                  {
+                    ...user,
+                    name: `${response.user.first_name || ""} ${response.user.last_name || ""}`.trim() || response.user.username || "N/A",
+                    email: response.user.email || "N/A",
+                    role: response.user.role || "N/A",
+                    status: response.user.is_active ? "Active" : "Inactive",
+                    username: response.user.username || ""
+                  } :
+                  user
+              )
             );
           }
           setEditingId(null);
@@ -593,7 +594,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         @media (max-width: 480px) {
           .users-card { border-radius: 12px; }
           .users-card-header { padding: 16px; }
-          .users-card-title { font-size: 18px; font-weight: 600; line-height: 1.2; }
+          .users-card-title { font-size: 1.125rem; font-weight: 600; line-height: 1.2; }
           .users-card-desc { font-size: 16px; margin-top: 4px; }
           .users-card-content { padding: 16px; }
           .users-card-content.pb-0 { padding-bottom: 0 !important; }
@@ -632,7 +633,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                 <CardTitle className={`users-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>User Management</CardTitle>
                 <p className={`users-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage all users in the system</p>
               </div>
-              
+
               {/* Desktop Download CSV Button */}
               <Button
                 onClick={handleDownloadCSV}
@@ -649,7 +650,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                 {downloadingCSV ? "Exporting..." : "Export CSV"}
               </Button>
             </CardHeader>
-             <CardContent className="users-card-content pb-0 pt-3">
+            <CardContent className="users-card-content pb-0 pt-3">
               <div className="filters-search flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-2 sm:mb-10">
                 {/* Filters Section */}
                 <div className="flex-1 w-full">
@@ -662,7 +663,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                         value={roleFilter}
                         onChange={handleRoleFilterChange}
                         options={roles} />
-                      
+
                     </div>
 
                     <div className="flex flex-col gap-2 flex-1 min-w-0">
@@ -733,20 +734,20 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
                 return (
                   <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
-                  <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                    <Search className="w-10 h-10 text-primary opacity-50" />
-                  </div>
-                  <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    {needsDept ? "Department Selection Required" : "Ready to manage users?"}
-                  </h3>
-                  <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    {needsDept ?
-                      <>Please select a <strong>Department</strong> to view all {roleFilter}s.</> :
+                    <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                      <Search className="w-10 h-10 text-primary opacity-50" />
+                    </div>
+                    <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {needsDept ? "Department Selection Required" : "Ready to manage users?"}
+                    </h3>
+                    <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      {needsDept ?
+                        <>Please select a <strong>Department</strong> to view all {roleFilter}s.</> :
 
-                      <>Select a <strong>User Role</strong> or <strong>Department</strong> above to load the user list.</>
+                        <>Select a <strong>User Role</strong> or <strong>Department</strong> above to load the user list.</>
                       }
-                  </p>
-                </div>);
+                    </p>
+                  </div>);
 
               }
 
@@ -801,11 +802,10 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                       {filteredUsers.map((user) =>
                         <tr
                           key={user.id}
-                          className={`table-row border-b transition-colors duration-200 ${
-                            theme === 'dark' ?
+                          className={`table-row border-b transition-colors duration-200 ${theme === 'dark' ?
                               'border-border hover:bg-accent' :
                               'border-gray-200 hover:bg-gray-50'
-                          }`}
+                            }`}
                         >
                           <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[200px]">
                             {user.name}
@@ -881,50 +881,50 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
             })()}
 
-          {/* Mobile: show table only; compact card list removed */}
+            {/* Mobile: show table only; compact card list removed */}
 
-        </CardContent>
-        {totalPages > 1 &&
-          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-            <div>
-              Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalUsers)} of {totalUsers} users
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1 || loading}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Previous
-              </Button>
-
-              <div className="flex items-center justify-center min-w-[2rem]">
-                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {currentPage}
-                </span>
+          </CardContent>
+          {totalPages > 1 &&
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalUsers)} of {totalUsers} users
               </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1 || loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Previous
+                </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages || loading}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Next
-              </Button>
-            </div>
-          </CardFooter>
-        }
-      </Card>
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {currentPage}
+                  </span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages || loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          }
+        </Card>
       </div>
 
       <Dialog open={editingId !== null} onOpenChange={(open) => !open && (setEditingId(null) || setEditData(null))}>
         <DialogContent
           className={
-          theme === 'dark' ?
-          'bg-card border border-border text-foreground w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto' :
-          'bg-white border border-gray-200 text-gray-900 w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto'
+            theme === 'dark' ?
+              'bg-card border border-border text-foreground w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto' :
+              'bg-white border border-gray-200 text-gray-900 w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto'
           }>
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Edit User Details</DialogTitle>
@@ -969,12 +969,12 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={promoteData !== null} onOpenChange={(open) => { if(!open) { setPromoteData(null); setSelectedNewRole(""); setPromoteConfirmText(""); setPromoteStep(1); }}}>
+      <Dialog open={promoteData !== null} onOpenChange={(open) => { if (!open) { setPromoteData(null); setSelectedNewRole(""); setPromoteConfirmText(""); setPromoteStep(1); } }}>
         <DialogContent
           className={
-          theme === 'dark' ?
-          'bg-card border border-border text-foreground w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto' :
-          'bg-white border border-gray-200 text-gray-900 w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto'
+            theme === 'dark' ?
+              'bg-card border border-border text-foreground w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto' :
+              'bg-white border border-gray-200 text-gray-900 w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto'
           }>
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>

@@ -127,9 +127,9 @@ const FacultyPayroll: React.FC<FacultyPayrollProps> = ({ user }) => {
       <Card className={cardClass}>
         <CardHeader className="border-b pb-4">
           <div className="flex items-center gap-3">
-            
+
             <div>
-              <CardTitle className="text-2xl font-semibold">My Salary & Payroll</CardTitle>
+              <CardTitle className="text-lg sm:text-2xl font-semibold">My Salary & Payroll</CardTitle>
               <CardDescription>View your payslips, statutory deductions, and salary history.</CardDescription>
             </div>
           </div>
@@ -145,11 +145,10 @@ const FacultyPayroll: React.FC<FacultyPayrollProps> = ({ user }) => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`pb-3 text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all border-b-2 ${
-                  activeTab === tab.id
+                className={`pb-3 text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all border-b-2 ${activeTab === tab.id
                     ? 'border-primary text-primary'
                     : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                }`}
+                  }`}
               >
                 {tab.icon} {tab.label}
               </button>
@@ -203,7 +202,7 @@ const FacultyPayroll: React.FC<FacultyPayrollProps> = ({ user }) => {
                           {slip.payout_status || slip.run_status || 'Pending'}
                         </Badge>
                       </div>
-                      
+
                       <div className="flex gap-2 w-full sm:w-auto">
                         <Button
                           size="sm" variant="outline"
@@ -349,10 +348,9 @@ const FacultyPayroll: React.FC<FacultyPayrollProps> = ({ user }) => {
                                 <td className="px-5 py-3 text-right text-red-500">{formatCurrency(row.tds)}</td>
                                 <td className="px-5 py-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(row.net_salary)}</td>
                                 <td className="px-5 py-3 text-center">
-                                  <Badge variant="outline" className={`capitalize border-none text-xs ${
-                                    row.payout_status === 'paid' || row.payout_status === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
-                                    row.payout_status === 'failed' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'
-                                  }`}>
+                                  <Badge variant="outline" className={`capitalize border-none text-xs ${row.payout_status === 'paid' || row.payout_status === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
+                                      row.payout_status === 'failed' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'
+                                    }`}>
                                     {row.payout_status || 'Pending'}
                                   </Badge>
                                 </td>
