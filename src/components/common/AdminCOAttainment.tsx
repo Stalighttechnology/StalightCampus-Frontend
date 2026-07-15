@@ -31,7 +31,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
 
   const [coAttainment, setCoAttainment] = useState<Record<string, any>>({});
   const [overallAttainment, setOverallAttainment] = useState<number>(0);
-  const [targetThreshold, setTargetThreshold] = useState<number>(60);
+  const [targetThreshold, setTargetThreshold] = useState<number | "">(60);
   const [downloadingPDF, setDownloadingPDF] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   
@@ -135,7 +135,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
     if (subject_id) {
       setErrorMessage("");
       try {
-        let url = `${API_ENDPOINT}/co-attainment/?subject_id=${subject_id}&target_pct=${targetThreshold}`;
+        let url = `${API_ENDPOINT}/co-attainment/?subject_id=${subject_id}&target_pct=${targetThreshold || 60}`;
         if (batch_id && batch_id !== 0) {
           url += `&batch_id=${batch_id}`;
         }
@@ -152,7 +152,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
           attainmentData[result.co] = {
             co: result.co,
             maxMarks: result.max_marks,
-            targetMarks: result.max_marks * (targetThreshold / 100),
+            targetMarks: result.max_marks * ((Number(targetThreshold) || 60) / 100),
             avgMarks: result.avg_marks,
             percentage: result.avg_pct,
             studentsAboveTarget: result.students_above_target,
@@ -204,7 +204,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
     try {
       const params = new URLSearchParams({
         subject_id: selected.subject_id.toString(),
-        target_pct: targetThreshold.toString(),
+        target_pct: (targetThreshold || 60).toString(),
         indirect_attainment: JSON.stringify(indirectAttainment)
       });
       if (selected.batch_id && selected.batch_id !== 0) params.append('batch_id', selected.batch_id.toString());
@@ -220,7 +220,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
         attainmentData[result.co] = {
           co: result.co,
           maxMarks: result.max_marks,
-          targetMarks: result.max_marks * (targetThreshold / 100),
+          targetMarks: result.max_marks * ((Number(targetThreshold) || 60) / 100),
           avgMarks: result.avg_marks,
           percentage: result.avg_pct,
           studentsAboveTarget: result.students_above_target,
@@ -246,8 +246,12 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
   };
 
   const handleTargetThresholdChange = (value: string) => {
-    const numValue = parseFloat(value) || 60;
-    if (numValue >= 0 && numValue <= 100) {
+    if (value === "") {
+      setTargetThreshold("");
+      return;
+    }
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
       setTargetThreshold(numValue);
     }
   };
@@ -259,7 +263,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
     try {
       const params = new URLSearchParams({
         subject_id: selected.subject_id.toString(),
-        target_pct: targetThreshold.toString(),
+        target_pct: (targetThreshold || 60).toString(),
         indirect_attainment: JSON.stringify(indirectAttainment)
       });
       if (selected.batch_id && selected.batch_id !== 0) params.append('batch_id', selected.batch_id.toString());

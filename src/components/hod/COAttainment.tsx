@@ -64,8 +64,7 @@ const COAttainment = () => {
   const [poAttainment, setPoAttainment] = useState<Record<string, number>>({});
   const [copoMapping, setCopoMapping] = useState<Record<string, Record<string, number | null>>>({});
 
-  // Target threshold (default 60%, but configurable)
-  const [targetThreshold, setTargetThreshold] = useState<number>(60);
+  const [targetThreshold, setTargetThreshold] = useState<number | "">(60);
 
   // Initial data fetch
   useEffect(() => {
@@ -152,7 +151,7 @@ const COAttainment = () => {
       try {
         const params = new URLSearchParams({
           subject_id: subject_id.toString(),
-          target_pct: targetThreshold.toString()
+          target_pct: (targetThreshold || 60).toString()
         });
         if (batch_id) params.append('batch_id', batch_id.toString());
 
@@ -169,7 +168,7 @@ const COAttainment = () => {
           attainmentData[result.co] = {
             co: result.co,
             maxMarks: result.max_marks,
-            targetMarks: result.max_marks * (targetThreshold / 100),
+            targetMarks: result.max_marks * ((Number(targetThreshold) || 60) / 100),
             avgMarks: result.avg_marks,
             // Method 1: average-based percentage
             percentage: result.avg_pct,
@@ -232,7 +231,7 @@ const COAttainment = () => {
       // Call backend API with indirect attainment
       const params = new URLSearchParams({
         subject_id: selected.subject_id.toString(),
-        target_pct: targetThreshold.toString(),
+        target_pct: (targetThreshold || 60).toString(),
         indirect_attainment: JSON.stringify(indirectAttainment)
       });
       if (selected.batch_id) params.append('batch_id', selected.batch_id.toString());
@@ -248,7 +247,7 @@ const COAttainment = () => {
         attainmentData[result.co] = {
           co: result.co,
           maxMarks: result.max_marks,
-          targetMarks: result.max_marks * (targetThreshold / 100),
+          targetMarks: result.max_marks * ((Number(targetThreshold) || 60) / 100),
           avgMarks: result.avg_marks,
           percentage: result.avg_pct,
           studentsAboveTarget: result.students_above_target,
@@ -282,9 +281,12 @@ const COAttainment = () => {
   };
 
   const handleTargetThresholdChange = (value: string) => {
-    const numValue = parseFloat(value) || 60;
-    // Validate target threshold (should be 0-100)
-    if (numValue >= 0 && numValue <= 100) {
+    if (value === "") {
+      setTargetThreshold("");
+      return;
+    }
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
       setTargetThreshold(numValue);
     }
   };
@@ -297,7 +299,7 @@ const COAttainment = () => {
     try {
       const params = new URLSearchParams({
         subject_id: selected.subject_id.toString(),
-        target_pct: targetThreshold.toString(),
+        target_pct: (targetThreshold || 60).toString(),
         indirect_attainment: JSON.stringify(indirectAttainment)
       });
       if (selected.batch_id) params.append('batch_id', selected.batch_id.toString());
