@@ -345,23 +345,23 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
       <div className={`${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       <Card id="teacher-assignments-card" className={theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}>
         <div id="teacher-assignments-header-section" className="flex flex-col">
-          <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+          <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <CardTitle>Faculty-Branch Assignments</CardTitle>
               <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
                 Assign primary branches to faculty members
               </CardDescription>
             </div>
-            <div className="w-auto">
+            <div className="w-full sm:w-auto">
               <Button
                 onClick={() => {
                   setSelectedTeacher(null);
                   setSelectedBranch("");
                   setShowBranchDialog(true);
                 }}
-                className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white h-9 px-3 font-semibold shadow-md">
+                className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white h-9 px-3 font-semibold shadow-md w-full sm:w-auto">
                 <Building className="h-4 w-4" />
-                <span className="hidden sm:inline">Assign Primary Branch</span>
+                Assign Primary Branch
               </Button>
             </div>
           </CardHeader>

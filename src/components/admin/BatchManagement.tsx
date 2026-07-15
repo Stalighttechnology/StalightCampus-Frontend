@@ -405,7 +405,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
 
         {/* Existing Batches */}
         <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm flex flex-col h-auto md:h-[calc(100vh-320px)] md:min-h-[500px]' : 'bg-white border border-gray-200 shadow-sm flex flex-col h-auto md:h-[calc(100vh-320px)] md:min-h-[500px]'}>
-          <CardHeader id="existing-batches-header" className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+          <CardHeader id="existing-batches-header" className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
                 <CardTitle>Existing Batches</CardTitle>
@@ -419,7 +419,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
                 Manage, edit, or delete created batches
               </CardDescription>
             </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-auto">
+            <div className="flex flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
                 <div className="relative flex-1 sm:flex-initial sm:w-64">
                   <Input
                     placeholder="Search batches..."
@@ -580,17 +580,17 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
                             )}
                           </div>
 
-                          <div className={`grid grid-cols-3 gap-2 pt-2 border-t text-[11px] sm:text-xs ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'}`}>
+                          <div className={`grid grid-cols-3 gap-2 pt-2 border-t text-xs sm:text-sm ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'}`}>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[9px] mb-0.5">Start Year</span>
+                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">Start Year</span>
                               <span className="font-medium">{batch.start_year}</span>
                             </div>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[9px] mb-0.5">End Year</span>
+                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">End Year</span>
                               <span className="font-medium">{batch.end_year}</span>
                             </div>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[9px] mb-0.5">Created At</span>
+                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">Created At</span>
                               <span className="font-medium">{new Date(batch.created_at).toLocaleDateString()}</span>
                             </div>
                           </div>

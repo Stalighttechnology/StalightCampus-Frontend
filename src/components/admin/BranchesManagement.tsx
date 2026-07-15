@@ -537,7 +537,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
       <div className={`mx-auto w-full max-w-[400px] sm:max-w-full text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="branches-management-card" className={theme === 'dark' ? 'branches-card w-full bg-card border border-border flex flex-col h-[calc(100vh-240px)] min-h-[350px] md:h-[calc(100vh-280px)] md:min-h-[550px]' : 'branches-card w-full bg-white border border-gray-200 flex flex-col h-[calc(100vh-240px)] min-h-[350px] md:h-[calc(100vh-280px)] md:min-h-[550px]'}>
           <div id="branches-management-header-section" className="flex flex-col">
-            <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+            <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <CardTitle>Branch Management</CardTitle>
                 <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
@@ -545,15 +545,15 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                 </CardDescription>
               </div>
 
-              <div className="flex flex-row gap-2 w-auto items-center">
+              <div className="flex flex-row gap-2 w-full sm:w-auto items-center">
                 {!isReadOnly && (
-                  <div className="flex flex-row gap-2 w-auto branches-mobile-row">
+                  <div className="flex flex-row gap-2 w-full sm:w-auto branches-mobile-row">
                     <Button
                       size="sm"
                       className="flex items-center justify-center gap-1 w-auto"
                       onClick={() => setIsAddDialogOpen(true)}
                       disabled={loading}>
-                      <PlusIcon className="w-4 h-4" /> <span className="hidden sm:inline">Add Branch</span>
+                      <PlusIcon className="w-4 h-4" /> Add Branch
                     </Button>
 
                     <Button
@@ -561,7 +561,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                       className="flex items-center justify-center gap-1 w-auto"
                       onClick={() => { setIsAssignDialogOpen(true); fetchHODs(); }}
                       disabled={loading}>
-                      <UserPlus2Icon className="w-4 h-4" /> <span className="hidden sm:inline">Assign HOD</span>
+                      <UserPlus2Icon className="w-4 h-4" /> Assign HOD
                     </Button>
                   </div>
                 )}
@@ -733,17 +733,17 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                             )}
                           </div>
 
-                          <div className={`grid grid-cols-3 gap-2 pt-2 border-t text-[11px] sm:text-xs ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'}`}>
+                          <div className={`grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t text-xs sm:text-sm ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'}`}>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[9px] mb-0.5">Semesters</span>
+                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">Semesters</span>
                               <span className="font-medium">{branch.total_semesters || "--"}</span>
                             </div>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[9px] mb-0.5">Assigned HOD</span>
+                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">Assigned HOD</span>
                               <span className="font-medium break-words">{branch.hod || "--"}</span>
                             </div>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[9px] mb-0.5">HOD Contact</span>
+                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">HOD Contact</span>
                               <span className="font-medium break-words text-wrap">{branch.hod_contact || "--"}</span>
                             </div>
                           </div>

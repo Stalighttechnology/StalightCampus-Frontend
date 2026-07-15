@@ -330,15 +330,15 @@ export default function PrincipalTimetableSettings() {
   return (
     <div className="space-y-6 w-full">
       <Card className={`border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-        <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+        <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <CardTitle>Timetable Timing Configuration</CardTitle>
+            <CardTitle>Timetable Configuration</CardTitle>
             <p className={`block text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>
               Configure the daily class periods and breaks for your institution.
             </p>
           </div>
-          <div>
-            <Button onClick={() => handleOpen()} className="w-auto shadow-sm">
+          <div className="w-full sm:w-auto">
+            <Button onClick={() => handleOpen()} className="w-full sm:w-auto shadow-sm">
               <Plus className="w-4 h-4 mr-2" /> Add Slot
             </Button>
           </div>
