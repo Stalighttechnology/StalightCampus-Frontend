@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { FiBell, FiMoon, FiSun, FiMenu } from "react-icons/fi";
+import { FiBell, FiMoon, FiSun, FiMenu, FiBellOff } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
@@ -443,8 +443,9 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                       );
                     })
                     ) : (
-                      <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                        No recent notifications
+                      <div className="px-4 py-8 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-2">
+                        <FiBellOff className="w-8 h-8 text-muted-foreground/40 mb-1" />
+                        <span>No recent notifications</span>
                       </div>
                     )}
                   </div>
