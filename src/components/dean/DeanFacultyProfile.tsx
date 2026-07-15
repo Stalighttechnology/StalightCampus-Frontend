@@ -7,7 +7,8 @@ import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar as CalendarComponent } from "../ui/calendar";
-import { Calendar as CalendarIcon, Sliders, AlertCircle, FileText, Loader2, Filter } from "lucide-react";
+import { Calendar as CalendarIcon, Sliders, AlertCircle, FileText, Loader2, Filter, Clock, UserCheck, UserX, Percent } from "lucide-react";
+import DashboardCard from "../common/DashboardCard";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Label } from "../ui/label";
@@ -751,22 +752,33 @@ const DeanFacultyProfile = ({
                   <div className="p-0">
                     <div
                       id="dean-faculty-stats-grid"
-                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8"
+                      className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8"
                     >
-                      <StatsCard label="Weekly Hours" value={profile.total_weekly_hours ?? 0} color="blue" theme={theme} />
-                      <StatsCard label="Present Days" value={profile.attendance_summary?.present_days ?? 0} color="green" theme={theme} />
-                      <StatsCard label="Absent Days" value={profile.attendance_summary?.absent_days ?? 0} color="red" theme={theme} />
-                      <StatsCard label="Attendance %" value={profile.attendance_summary?.percent_present ?? "N/A"} color="purple" theme={theme} />
-                      <StatsCard
-                        label="Leave Days"
-                        value={
-                          <div className="flex flex-col">
-                            <span>{profile.attendance_summary?.leave_days ?? 0}</span>
-                            <span className="text-sm font-medium opacity-70">Total: {profile.attendance_summary?.total_leave_days_all_time ?? 0}</span>
-                          </div>
-                        }
-                        color="yellow"
-                        theme={theme}
+                      <DashboardCard
+                        title="Weekly Hours"
+                        value={profile.total_weekly_hours ?? 0}
+                        icon={<Clock className="w-5 h-5" />}
+                      />
+                      <DashboardCard
+                        title="Present Days"
+                        value={profile.attendance_summary?.present_days ?? 0}
+                        icon={<UserCheck className="w-5 h-5" />}
+                      />
+                      <DashboardCard
+                        title="Absent Days"
+                        value={profile.attendance_summary?.absent_days ?? 0}
+                        icon={<UserX className="w-5 h-5" />}
+                      />
+                      <DashboardCard
+                        title="Attendance %"
+                        value={typeof profile.attendance_summary?.percent_present === 'number' ? `${profile.attendance_summary.percent_present}%` : (profile.attendance_summary?.percent_present ?? "N/A")}
+                        icon={<Percent className="w-5 h-5" />}
+                      />
+                      <DashboardCard
+                        title="Leave Days"
+                        value={profile.attendance_summary?.leave_days ?? 0}
+                        description={`Total: ${profile.attendance_summary?.total_leave_days_all_time ?? 0}`}
+                        icon={<CalendarIcon className="w-5 h-5" />}
                       />
                     </div>
 
@@ -863,53 +875,6 @@ const DeanFacultyProfile = ({
   );
 };
 
-// ─── Subcomponent: Stats Card ─────────────────────────────────────────────────
-
-interface StatsCardProps {
-  readonly label: string;
-  readonly value: string | number | React.ReactNode;
-  readonly color: "blue" | "green" | "red" | "purple" | "yellow" | "amber";
-  readonly theme: string;
-}
-
-function StatsCard({ label, value, color, theme }: StatsCardProps) {
-  const colorMap: Record<
-    string,
-    {
-      gradient: string; border: string; label: string; value: string;
-      darkGradient: string; darkBorder: string; darkLabel: string; darkValue: string;
-    }
-  > = {
-    blue: { gradient: "from-blue-50 to-blue-100", border: "border-blue-200", label: "text-blue-600", value: "text-blue-900", darkGradient: "from-blue-900/20 to-blue-800/20", darkBorder: "border-blue-800/30", darkLabel: "text-blue-400", darkValue: "text-blue-100" },
-    green: { gradient: "from-green-50 to-green-100", border: "border-green-200", label: "text-green-600", value: "text-green-900", darkGradient: "from-green-900/20 to-green-800/20", darkBorder: "border-green-800/30", darkLabel: "text-green-400", darkValue: "text-green-100" },
-    red: { gradient: "from-red-50 to-red-100", border: "border-red-200", label: "text-red-600", value: "text-red-900", darkGradient: "from-red-900/20 to-red-800/20", darkBorder: "border-red-800/30", darkLabel: "text-red-400", darkValue: "text-red-100" },
-    purple: { gradient: "from-purple-50 to-purple-100", border: "border-purple-200", label: "text-purple-600", value: "text-purple-900", darkGradient: "from-purple-900/20 to-purple-800/20", darkBorder: "border-purple-800/30", darkLabel: "text-purple-400", darkValue: "text-purple-100" },
-    yellow: { gradient: "from-yellow-50 to-yellow-100", border: "border-yellow-200", label: "text-yellow-600", value: "text-yellow-900", darkGradient: "from-yellow-900/20 to-yellow-800/20", darkBorder: "border-yellow-800/30", darkLabel: "text-yellow-400", darkValue: "text-yellow-100" },
-    amber: { gradient: "from-amber-50 to-amber-100", border: "border-amber-200", label: "text-amber-600", value: "text-amber-900", darkGradient: "from-amber-900/20 to-amber-800/20", darkBorder: "border-amber-800/30", darkLabel: "text-amber-400", darkValue: "text-amber-100" },
-  };
-
-  const cfg = colorMap[color] ?? colorMap.blue;
-  return (
-    <div
-      className={`bg-gradient-to-br ${theme === "dark" ? cfg.darkGradient : cfg.gradient
-        } p-6 rounded-xl border ${theme === "dark" ? cfg.darkBorder : cfg.border}`}
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <p
-            className={`text-base sm:text-sm font-semibold uppercase tracking-wide mb-1 ${theme === "dark" ? cfg.darkLabel : cfg.label
-              }`}
-          >
-            {label}
-          </p>
-          <div className={`text-4xl sm:text-3xl font-black ${theme === "dark" ? cfg.darkValue : cfg.value}`}>
-            {value}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── Subcomponent: Date Picker Field ─────────────────────────────────────────
 
