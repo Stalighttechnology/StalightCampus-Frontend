@@ -45,6 +45,11 @@ const ProctorStudentParentModal: React.FC<ProctorStudentParentModalProps> = ({ s
   };
 
   const handleLinkParent = async () => {
+    if (!parentData.parent_email.trim().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast({ title: 'Invalid Email', description: 'Please enter a valid email address.', variant: 'destructive' });
+      return;
+    }
+    
     setLinkingParent(true);
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/link-parent/`, {
