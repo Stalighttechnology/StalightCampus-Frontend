@@ -216,9 +216,10 @@ const UploadQP = () => {
               setCurrentQPMeta(null);
             }
           } else {
-            // server returned QPs but none matched the requested test_type — treat as no saved QP
+            // server returned QPs but none matched the requested test_type/set_number — treat as no saved QP
             setQuestions(defaultTemplate);
             setQpId(null);
+            setCurrentQPMeta(null);
           }
         } else {
           // no saved QP — use default template for this selection
