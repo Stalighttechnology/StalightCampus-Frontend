@@ -129,6 +129,7 @@ const DeanStats = () => {
   const totalFaculty = summary?.total_faculty ?? rows.reduce((s, r) => s + (r.faculty || 0), 0);
   const totalHods = summary?.total_hods ?? 0;
   const totalCoe = summary?.total_coe ?? 0;
+  const totalPrincipals = summary?.total_principals ?? 0;
   const totalPresent = summary?.total_present_all ?? rows.reduce((s, r) => s + (r.present_today || 0), 0);
   const overallPercent = totalStudents ? Math.round((totalPresent / totalStudents) * 100) : 0;
   
@@ -249,7 +250,7 @@ const DeanStats = () => {
         <CardContent className="space-y-8 p-2">
           {loading ? (
             <div className="space-y-8">
-              <SkeletonStatsGrid items={5} />
+              <SkeletonStatsGrid items={6} />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <SkeletonChart className="h-80" />
                 <SkeletonChart className="h-80" />
@@ -263,7 +264,7 @@ const DeanStats = () => {
             </Alert>
           ) : (
             <>
-              <div id="dean-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+              <div id="dean-stats-grid" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                 <DashboardCard
                   title={translateTerminology("Branches")}
                   value={totalBranches}
@@ -296,6 +297,12 @@ const DeanStats = () => {
                     icon={<FaUserCheck className={theme === 'dark' ? 'text-green-400 text-3xl' : 'text-green-500 text-3xl'} />}
                   />
                 )}
+                <DashboardCard
+                  title="Principals"
+                  value={totalPrincipals}
+                  description="Institution heads"
+                  icon={<FaUserTie className={theme === 'dark' ? 'text-pink-400 text-3xl' : 'text-pink-500 text-3xl'} />}
+                />
               </div>
 
               <div id="dean-charts-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
