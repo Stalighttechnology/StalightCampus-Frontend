@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -330,22 +330,24 @@ const CampusLocationManager: React.FC = () => {
   }, []);
 
   return (
-    <div id="dean-campus-locations-container" className={`flex flex-col h-[100dvh] overflow-hidden p-4 sm:p-4 text-sm sm:text-base w-full max-w-[412px] sm:max-w-none sm:min-h-screen mx-auto ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200 rounded-lg'}`}>
+    <div id="dean-campus-locations-container" className={`flex flex-col h-[100dvh] overflow-hidden text-sm sm:text-base w-full max-w-[412px] sm:max-w-none sm:min-h-screen mx-auto`}>
       {/* Header area (fixed) */}
-      <div id="dean-campus-locations-header" className="shrink-0 pb-4 border-b -mx-4 sm:-mx-4 px-4 sm:px-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-4">
-          <div className="flex-1">
-            <h2 className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Campus Location Management</h2>
-            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Set and manage campus boundaries for geolocation-based attendance</p>
+      <Card className={`shrink-0 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+        <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle>Campus Location Management</CardTitle>
+            <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+              Set and manage campus boundaries for geolocation-based attendance
+            </CardDescription>
           </div>
-          <div className="w-full sm:w-auto">
-            <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white h-10 font-bold shadow-md">
-              <Plus className="h-5 w-5" />
-              Add Location
+          <div className="w-auto">
+            <Button onClick={() => setShowForm(true)} className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white h-9 px-3 font-semibold shadow-md">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Add Location</span>
             </Button>
           </div>
-        </div>
-      </div>
+        </CardHeader>
+      </Card>
 
       <div className="flex-1 overflow-hidden w-full pt-3">
         <Dialog open={showForm} onOpenChange={setShowForm}>
@@ -465,7 +467,7 @@ const CampusLocationManager: React.FC = () => {
                           <div className="flex-1 min-w-0 w-full">
                             <div className="flex flex-wrap items-center gap-2">
                               <h3 className={`font-semibold truncate max-w-[180px] sm:max-w-none ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{location.name}</h3>
-                              {location.is_active && <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'}`}>Active</span>}
+                              {location.is_active && <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap ${theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'}`}>Active</span>}
                             </div>
                             {location.description && <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{location.description}</p>}
                             <div className={`mt-2 text-xs space-y-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>

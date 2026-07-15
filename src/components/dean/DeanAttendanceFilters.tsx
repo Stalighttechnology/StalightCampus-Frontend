@@ -30,7 +30,7 @@ import { Button } from "../ui/button";
 import { Calendar, Trash2, ChevronDown, AlertCircle, Filter, FileDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SkeletonStatsGrid, SkeletonPageHeader, SkeletonCard } from "../ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 const DeanAttendanceFilters = () => {
@@ -231,14 +231,12 @@ const DeanAttendanceFilters = () => {
       ) : (
         <>
           <Card className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} w-full max-w-full flex flex-col mb-4 ${loading ? 'opacity-70 pointer-events-none' : ''}`}>
-            <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-row items-center justify-between gap-3 sm:gap-4 border-b mb-3">
-              <div className="flex-1 min-w-0">
-                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  Attendance Filters
-                </CardTitle>
-                <p className={`hidden sm:block text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle>Attendance Filters</CardTitle>
+                <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
                   Filter and analyze attendance data historically by date and role
-                </p>
+                </CardDescription>
               </div>
               <div className="flex items-center gap-2">
                 {(() => {

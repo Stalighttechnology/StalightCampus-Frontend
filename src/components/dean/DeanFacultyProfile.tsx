@@ -2,7 +2,7 @@ import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -536,24 +536,21 @@ const DeanFacultyProfile = ({
                   : "w-full bg-white border border-gray-200 flex flex-col mb-4"
               }
             >
-              <div id="dean-faculty-header-section" className="border-b border-border/50 pb-4">
-                <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b mb-3">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      Faculty Profile
-                    </CardTitle>
-                    <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      View faculty attendance, schedule and assignments
-                    </p>
-                  </div>
-                </CardHeader>
-                <CardContent className="pb-0">
+              <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle>Faculty Profile</CardTitle>
+                  <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+                    View faculty attendance, schedule and assignments
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="pb-0 pt-2">
                   <div
                     id="dean-faculty-filters"
-                    className="filters-row flex flex-col lg:flex-row gap-6 items-start lg:items-end"
+                    className="filters-row flex flex-col lg:flex-row gap-6 items-start lg:items-end mb-4"
                   >
                     {/* Branch selector */}
-                    <div className="flex-1">
+                    <div className="flex-1 ">
                       <Label
                         className={`text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"
                           }`}
@@ -732,7 +729,6 @@ const DeanFacultyProfile = ({
                     </div>
                   </div>
                 </CardContent>
-              </div>
             </Card>
           </div>
 

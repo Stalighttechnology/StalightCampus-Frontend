@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { API_ENDPOINT } from '../../utils/config';
 import { useTheme } from '../../context/ThemeContext';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -456,14 +456,12 @@ export default function ScheduleMeeting() {
   return (
     <div className="space-y-6 animate-in fade-in">
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
-        <CardHeader className="pb-4 border-b bg-muted/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 space-y-0">
+        <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
           <div>
-            <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              Meetings & Schedules
-            </CardTitle>
-            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+            <CardTitle>Meetings &amp; Schedules</CardTitle>
+            <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
               Schedule and manage online meetings across staff roles.
-            </p>
+            </CardDescription>
           </div>
           
           {!['warden', 'library_admin', 'transport_admin'].includes(userRole || '') && (

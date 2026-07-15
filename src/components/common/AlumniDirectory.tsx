@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { useToast } from '../../hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 import { Input } from '../ui/input';
@@ -292,12 +292,12 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
   return (
     <div className="space-y-6">
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
-        <CardHeader className="pb-4 border-b bg-muted/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 space-y-0">
-          <div className="flex items-center gap-3">
-            <div>
-              <CardTitle className="text-2xl font-semibold text-gray-900 dark:text-white">Alumni Directory</CardTitle>
-              <p className="text-[16px] mt-1 text-gray-500 dark:text-gray-400">View and manage graduated students</p>
-            </div>
+        <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle>Alumni Directory</CardTitle>
+            <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+              View and manage graduated students
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">

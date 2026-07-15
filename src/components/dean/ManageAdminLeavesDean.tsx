@@ -198,7 +198,7 @@ const ManageAdminLeavesDean = () => {
         <div className="mb-6">
           <Card className={`flex-1 ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
             <CardHeader id="dean-pending-leaves" className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Pending Leave Requests {pendingPagination.totalItems > 0 && `(${pendingPagination.totalItems})`}
               </CardTitle>
             </CardHeader>
@@ -412,7 +412,7 @@ const ManageAdminLeavesDean = () => {
         <Card className={`flex-1 ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader id="dean-recent-leaves">
             <div className="flex items-center justify-between">
-              <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Recent Leave History
               </CardTitle>
               <div className="relative" ref={filterRef}>
