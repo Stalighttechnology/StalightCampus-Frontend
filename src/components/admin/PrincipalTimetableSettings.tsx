@@ -140,14 +140,31 @@ export default function PrincipalTimetableSettings() {
       });
     } else {
       setEditingSlot(null);
-      const start = { hour: "09", minute: "00", period: "AM" };
-      const end = { hour: "10", minute: "00", period: "AM" };
-      setStartTimeParts(start);
-      setEndTimeParts(end);
+      let defaultStartStr = "09:00";
+      let defaultEndStr = "10:00";
+      let startParts = { hour: "09", minute: "00", period: "AM" };
+      let endParts = { hour: "10", minute: "00", period: "AM" };
+
+      if (slots.length > 0) {
+        const sortedSlots = [...slots].sort((a, b) => a.end_time.localeCompare(b.end_time));
+        const lastSlot = sortedSlots[sortedSlots.length - 1];
+        defaultStartStr = lastSlot.end_time.substring(0, 5);
+        startParts = parseTimeTo12h(defaultStartStr);
+        
+        const [hStr, mStr] = defaultStartStr.split(":");
+        let hour = parseInt(hStr, 10);
+        let minute = parseInt(mStr, 10);
+        hour = (hour + 1) % 24;
+        defaultEndStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+        endParts = parseTimeTo12h(defaultEndStr);
+      }
+
+      setStartTimeParts(startParts);
+      setEndTimeParts(endParts);
       setFormData({
         name: "",
-        start_time: "09:00",
-        end_time: "10:00",
+        start_time: defaultStartStr,
+        end_time: defaultEndStr,
         is_break: false,
         order: slots.length > 0 ? Math.max(...slots.map(s => s.order)) + 1 : 1,
       });
@@ -427,18 +444,7 @@ export default function PrincipalTimetableSettings() {
                   />
                   <Label htmlFor="is_break" className="cursor-pointer select-none">This is a break/lunch period</Label>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="slot-order">Order</Label>
-                  <Input 
-                    id="slot-order"
-                    type="number" 
-                    required 
-                    value={formData.order} 
-                    onChange={e => setFormData({...formData, order: parseInt(e.target.value) || 0})} 
-                    className={theme === 'dark' ? 'bg-background border-border' : ''}
-                    placeholder="Enter order number (e.g. 1)"
-                  />
-                </div>
+
                 <div className="pt-4 flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
                   <Button type="submit">Save Slot</Button>
