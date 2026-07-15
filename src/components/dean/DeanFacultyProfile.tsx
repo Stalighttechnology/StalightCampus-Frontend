@@ -477,7 +477,6 @@ const DeanFacultyProfile = ({
           .dean-profile .dean-buttons-row button.dean-mobile-icon-btn { width: 40px !important; min-width: 40px !important; height: 40px !important; min-height: 40px !important; padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; }
           .dean-profile h1 { font-size: 1.75rem !important; line-height: 1.4 !important; }
           .dean-profile h2 { font-size: 1.375rem !important; line-height: 1.45 !important; }
-          .dean-profile h3 { font-size: 1.125rem !important; line-height: 1.5 !important; }
           .dean-profile, .dean-profile p, .dean-profile label, .dean-profile input, .dean-profile button { font-size: 0.875rem !important; }
           .dean-profile .card, .dean-profile .card-content { padding-left: 12px !important; padding-right: 12px !important; }
           .dean-profile .button-group { flex-direction: column !important; gap: 8px !important; }

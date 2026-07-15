@@ -197,7 +197,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
 
       <Card>
         <div id="feesmanager-reports-header">
-          <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+          <CardHeader className="border-b border-border/50 flex flex-row items-start sm:items-center justify-between space-y-0">
             <div>
               <CardTitle>Staff Attendance Audit</CardTitle>
               <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
@@ -238,7 +238,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
 
           <CardContent className="p-6 pb-4">
           {/* Filters Section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-muted/10 p-5 rounded-2xl border border-border/50">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-muted/10 p-2 rounded-2xl border border-border/50">
             <div className="space-y-2">
               <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Role Type <span className="text-red-500">*</span></Label>
               <Select value={selectedRole} onValueChange={(val) => {
