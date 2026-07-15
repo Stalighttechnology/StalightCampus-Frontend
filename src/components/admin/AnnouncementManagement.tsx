@@ -489,7 +489,7 @@ const AdminAnnouncementManagement = () => {
     <CardHeader className="announcements-card-header border-b pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div className="min-w-0">
         <CardTitle className={`announcements-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Announcement Management</CardTitle>
-        <p className={`announcements-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Create and manage system announcements</p>
+        <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Create and manage system announcements</p>
       </div>
       <div className="announce-actions">
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

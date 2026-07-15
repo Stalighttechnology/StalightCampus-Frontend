@@ -409,7 +409,7 @@ const FacultyAnnouncementManagement = () => {
                       <CardTitle className={`tracking-tight text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                         Announcements for Students
                       </CardTitle>
-                      <p className={`text-[14px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                         Create and manage announcements for your Students
                       </p>
                     </div>
