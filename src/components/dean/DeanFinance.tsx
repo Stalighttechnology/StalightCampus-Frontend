@@ -106,6 +106,7 @@ const DeanFinance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
           title="Overdue Amount"
           value={formatCurrency(dashboardData?.stats?.overdue_amount || 0)}
           description="Requires immediate attention"
+          icon={<AlertCircle className={theme === 'dark' ? "text-rose-400" : "text-rose-500"} />}
         />
         <DashboardCard
           title="Collection Rate"
