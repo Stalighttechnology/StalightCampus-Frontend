@@ -579,7 +579,7 @@ const FacultyAttendance = () => {
                         <div>
                           <p className="font-medium capitalize">{record.status}</p>
                           <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            {new Date(record.date).toLocaleDateString()}
+                            {record.date.split('-').reverse().join('-')}
                           </p>
                         </div>
                       </div>
@@ -816,7 +816,7 @@ const FacultyAttendance = () => {
                         <div>
                           <p className="font-medium capitalize">{record.status}</p>
                           <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            {new Date(record.date).toLocaleDateString()}
+                            {record.date.split('-').reverse().join('-')}
                           </p>
                         </div>
                       </div>
