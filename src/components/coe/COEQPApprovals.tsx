@@ -31,7 +31,7 @@ interface QPPending {
   branch?: {id: number | null;name: string | null;};
   status?: string;
   current_holder?: string | null;
-  last_action?: {actor?: string;role?: string;action?: string;comment?: string;} | null;
+  last_action?: {actor?: string;role?: string;action?: string;comment?: string; timestamp?: string;} | null;
   exam_start?: string;
   has_exam_started?: boolean;
 }
@@ -517,7 +517,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                         }
                             {qp.last_action ?
                         <div className="mt-1">
-                                <p className="text-[16px] sm:text-sm text-muted-foreground capitalize">Last: {qp.last_action.action} by {qp.last_action.actor || 'Unknown'} ({qp.last_action.role || 'N/A'})</p>
+                                <p className="text-[16px] sm:text-sm text-muted-foreground capitalize">Last: {qp.last_action.action}{qp.last_action.role !== 'system' && ` by ${qp.last_action.actor || 'Unknown'}`} ({qp.last_action.role || 'N/A'}){qp.last_action.timestamp ? ` on ${new Date(qp.last_action.timestamp).toLocaleDateString()}` : ''}</p>
                                 {qp.last_action.comment ?
                           <p className="text-[16px] sm:text-sm text-muted-foreground italic">"{qp.last_action.comment}"</p> :
                           null}
@@ -614,7 +614,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                         }
                             {qp.last_action ?
                         <div className="mt-1">
-                                <p className="text-[16px] sm:text-sm text-muted-foreground capitalize">Last: {qp.last_action.action} by {qp.last_action.actor || 'Unknown'} ({qp.last_action.role || 'N/A'})</p>
+                                <p className="text-[16px] sm:text-sm text-muted-foreground capitalize">Last: {qp.last_action.action}{qp.last_action.role !== 'system' && ` by ${qp.last_action.actor || 'Unknown'}`} ({qp.last_action.role || 'N/A'}){qp.last_action.timestamp ? ` on ${new Date(qp.last_action.timestamp).toLocaleDateString()}` : ''}</p>
                                 {qp.last_action.comment ?
                           <p className="text-[16px] sm:text-sm text-muted-foreground italic">"{qp.last_action.comment}"</p> :
                           null}

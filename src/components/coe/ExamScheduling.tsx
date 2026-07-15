@@ -331,10 +331,29 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
     e.preventDefault();
 
     // Frontend validation
+    if (formData.subjects.length === 0) {
+      toast.error("Please add at least one subject to schedule.");
+      return;
+    }
+    
     if (formData.subjects.length > 0) {
       const invalidSubject = formData.subjects.find(s => !s.subject_id || !s.date);
       if (invalidSubject) {
         toast.error("Please ensure all subjects have a selected subject and date.");
+        return;
+      }
+      
+      const now = new Date();
+      const pastTimeSubject = formData.subjects.find(s => {
+        if (!s.date || !s.start_time) return false;
+        const [year, month, day] = s.date.split('-').map(Number);
+        const [hours, minutes] = s.start_time.split(':').map(Number);
+        const examDateTime = new Date(year, month - 1, day, hours, minutes);
+        return examDateTime < now;
+      });
+      
+      if (pastTimeSubject) {
+        toast.error("You cannot schedule an exam in the past. Please select a valid future date and time.");
         return;
       }
     }
@@ -421,6 +440,19 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
   const handleUpdateExam = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingExamId) return;
+    
+    if (editFormData.date && editFormData.start_time) {
+      const now = new Date();
+      const [year, month, day] = editFormData.date.split('-').map(Number);
+      const [hours, minutes] = editFormData.start_time.split(':').map(Number);
+      const examDateTime = new Date(year, month - 1, day, hours, minutes);
+      
+      if (examDateTime < now) {
+        toast.error("You cannot schedule an exam in the past. Please select a valid future date and time.");
+        return;
+      }
+    }
+    
     setLoading(true);
     try {
       const res = await updateExamSchedule({

@@ -22,7 +22,7 @@ interface QPPending {
   branch?: { id: number | null; name: string | null; };
   status?: string;
   current_holder?: string | null;
-  last_action?: { actor?: string; role?: string; action?: string; comment?: string; } | null;
+  last_action?: { actor?: string; role?: string; action?: string; comment?: string; timestamp?: string; } | null;
 }
 
 interface QPDetail {
@@ -89,7 +89,7 @@ const QPApprovals = () => {
     if (s.includes('approve') || s.includes('finalized') || s.includes('pass')) {
       return `${base} bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50`;
     }
-    if (s.includes('reject') || s.includes('fail')) {
+    if (s.includes('reject') || s.includes('fail') || s.includes('expire')) {
       return `${base} bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50`;
     }
     return `${base} bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800/50`;
@@ -393,7 +393,7 @@ const QPApprovals = () => {
 
               {qp.last_action &&
                 <div className={`mt-3 p-2 rounded text-xs ${theme === 'dark' ? 'bg-primary/30' : 'bg-primary/5 border'}`}>
-                  <p className="font-medium mb-1 capitalize">Action: {qp.last_action.action} by {qp.last_action.actor || 'Unknown'} ({qp.last_action.role || 'N/A'})</p>
+                  <p className="font-medium mb-1 capitalize">Action: {qp.last_action.action}{qp.last_action.role !== 'system' && ` by ${qp.last_action.actor || 'Unknown'}`} ({qp.last_action.role || 'N/A'}){qp.last_action.timestamp ? ` on ${new Date(qp.last_action.timestamp).toLocaleDateString()}` : ''}</p>
                   <p className="text-muted-foreground italic line-clamp-2">
                     "{qp.last_action.comment || 'No comment provided'}"
                   </p>
@@ -401,7 +401,7 @@ const QPApprovals = () => {
               }
               {isHistory && qp.status && (
                 <div className="mt-2 space-y-1">
-                  <span className={getStatusBadgeStyle(qp.status)}>Status: {qp.status.replace('_', ' ').toUpperCase()}</span>
+                  <span className={getStatusBadgeStyle(qp.status)}>Status: {qp.status.replace('admin', 'principal').replace('_', ' ').toUpperCase()}</span>
                   {qp.current_holder && (
                     <div className="text-center text-xs text-muted-foreground">
                       Waiting on: {qp.current_holder}
@@ -652,6 +652,27 @@ const QPApprovals = () => {
                   </div>
               }
 
+
+              {selectedQP?.has_exam_started && (
+                selectedQP?.status === 'approved' ? (
+                  <div className={`p-3 rounded-md border text-sm mb-4 ${
+                    theme === 'dark' 
+                      ? 'bg-green-950/40 border-green-500/30 text-green-400' 
+                      : 'bg-green-50 border-green-200 text-green-700'
+                  }`}>
+                    ✅ <strong>Approved & Locked:</strong> This question paper is approved for the exam. Actions are locked as the exam has started.
+                  </div>
+                ) : (
+                  <div className={`p-3 rounded-md border text-sm mb-4 ${
+                    theme === 'dark' 
+                      ? 'bg-red-950/40 border-red-500/30 text-red-400' 
+                      : 'bg-red-50 border-red-200 text-red-700'
+                  }`}>
+                    ⚠️ <strong>Exam Locked:</strong> This exam started on {selectedQP.exam_start ? new Date(selectedQP.exam_start).toLocaleString() : 'N/A'}. Question paper approvals and actions are disabled.
+                  </div>
+                )
+              )}
+
               {!isHistoryView && (
                 <div>
                   <label className="block text-sm font-medium mb-2">Comment (optional)</label>
@@ -669,14 +690,14 @@ const QPApprovals = () => {
                   <>
                     <Button
                       onClick={() => selectedQP && handleApprove(selectedQP.id)}
-                      disabled={actionLoading}
+                      disabled={actionLoading || !!selectedQP?.has_exam_started}
                       className={`action-btn-mobile w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}>
                       <CheckCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
                       <span className="whitespace-normal">Approve</span>
                     </Button>
                     <Button
                       onClick={() => selectedQP && handleReject(selectedQP.id)}
-                      disabled={actionLoading}
+                      disabled={actionLoading || !!selectedQP?.has_exam_started}
                       className={`action-btn-mobile w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}>
                       <XCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
                       <span className="whitespace-normal">Reject</span>
