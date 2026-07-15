@@ -298,7 +298,7 @@ const HODSemesterMonitor = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="gap-2"
+                          className="gap-2 flex-1 sm:flex-none"
                           onClick={() => handleViewSectionProgress(subj)}
                         >
                           <Eye className="w-4 h-4" /> View Section Progress
