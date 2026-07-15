@@ -971,27 +971,21 @@ export const BillingManagement: React.FC = () => {
 
       {/* Edit Organization Details Dialog */}
       <Dialog open={showEditOrg} onOpenChange={setShowEditOrg}>
-        <DialogContent className="w-[90%] sm:w-[95%] sm:max-w-[550px] h-[80vh] sm:h-auto overflow-y-auto mx-auto rounded-xl">
-          <DialogHeader>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b pb-3">
-              <DialogTitle className="text-xl font-semibold">Edit Organization Details</DialogTitle>
-              <div className="flex items-center gap-1.5 bg-muted px-2.5 py-1 rounded-full text-xs font-semibold shrink-0">
-                <span className={editOrgStep === 1 ? "text-primary font-semibold" : "text-muted-foreground"}>Identity</span>
-                <span className="text-muted-foreground">/</span>
-                <span className={editOrgStep === 2 ? "text-primary font-semibold" : "text-muted-foreground"}>Admin Details</span>
-              </div>
-            </div>
+        <DialogContent className="w-[90%] sm:w-[95%] sm:max-w-[550px] max-h-[85vh] overflow-y-auto mx-auto rounded-xl flex flex-col gap-4 custom-scrollbar">
+          <DialogHeader className="border-b pb-3">
+            <DialogTitle className="text-xl font-semibold text-left">Edit Organization Details</DialogTitle>
           </DialogHeader>
 
-          {editOrgStep === 1 && (
-            <div className="space-y-5 py-4">
-              <div className="space-y-1">
-                <h3 className="text-lg font-semibold text-foreground">Institutional Identity</h3>
-                <p className="text-muted-foreground text-xs">Organization's core details.</p>
+          <div className="space-y-6 py-2 flex-1">
+            {/* Part 1: Institutional Identity */}
+            <div className="space-y-3">
+              <div className="space-y-0.5 sm:space-y-1">
+                <h3 className="text-base font-semibold text-foreground">Institutional Identity</h3>
+                <p className="text-muted-foreground text-[11px]">Organization's core details.</p>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-1.5">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="space-y-1 sm:space-y-1.5">
                   <Label htmlFor="orgName" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Organization Name *</Label>
                   <Input
                     id="orgName"
@@ -1003,8 +997,8 @@ export const BillingManagement: React.FC = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1 sm:space-y-1.5">
                     <Label htmlFor="accreditationId" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Accreditation ID</Label>
                     <Input
                       id="accreditationId"
@@ -1014,7 +1008,7 @@ export const BillingManagement: React.FC = () => {
                       onChange={(e) => setOrgForm({ ...orgForm, accreditation_id: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-1 sm:space-y-1.5">
                     <span className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest block">Brand Logo</span>
                     <div className="flex items-center gap-3">
                       <div className="relative w-12 h-12 bg-background rounded-xl flex items-center justify-center overflow-hidden border flex-shrink-0">
@@ -1049,7 +1043,7 @@ export const BillingManagement: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1 sm:space-y-1.5">
                   <Label htmlFor="institutionAddress" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Institution Address</Label>
                   <Input
                     id="institutionAddress"
@@ -1060,26 +1054,20 @@ export const BillingManagement: React.FC = () => {
                   />
                 </div>
               </div>
-
-              <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-2 border-t mt-4">
-                <Button variant="outline" className="w-full sm:w-auto" onClick={() => setShowEditOrg(false)}>Cancel</Button>
-                <Button className="w-full sm:w-auto" onClick={() => setEditOrgStep(2)}>
-                  Continue to Next Details
-                </Button>
-              </DialogFooter>
             </div>
-          )}
 
-          {editOrgStep === 2 && (
-            <div className="space-y-5 py-4">
-              <div className="space-y-1">
-                <h3 className="text-lg font-semibold text-foreground">Admin & Billing Details</h3>
-                <p className="text-muted-foreground text-xs">Technical contact person and tax details.</p>
+            <hr className="border-border/50" />
+
+            {/* Part 2: Admin & Billing Details */}
+            <div className="space-y-3">
+              <div className="space-y-0.5 sm:space-y-1">
+                <h3 className="text-base font-semibold text-foreground">Admin & Billing Details</h3>
+                <p className="text-muted-foreground text-[11px]">Technical contact person and tax details.</p>
               </div>
 
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1 sm:space-y-1.5">
                     <Label htmlFor="pocName" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Technical POC Name</Label>
                     <Input
                       id="pocName"
@@ -1089,7 +1077,7 @@ export const BillingManagement: React.FC = () => {
                       onChange={(e) => setOrgForm({ ...orgForm, tech_poc_name: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-1 sm:space-y-1.5">
                     <Label htmlFor="pocMobile" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Technical POC Mobile</Label>
                     <Input
                       id="pocMobile"
@@ -1101,8 +1089,8 @@ export const BillingManagement: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1 sm:space-y-1.5">
                     <Label htmlFor="pocEmail" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Technical POC Email</Label>
                     <Input
                       id="pocEmail"
@@ -1113,7 +1101,7 @@ export const BillingManagement: React.FC = () => {
                       onChange={(e) => setOrgForm({ ...orgForm, tech_poc_email: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-1 sm:space-y-1.5">
                     <Label htmlFor="taxId" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Tax ID / GSTIN</Label>
                     <Input
                       id="taxId"
@@ -1125,7 +1113,7 @@ export const BillingManagement: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1 sm:space-y-1.5">
                   <Label htmlFor="billingAddress" className="text-xs sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Billing Address</Label>
                   <Textarea
                     id="billingAddress"
@@ -1136,15 +1124,15 @@ export const BillingManagement: React.FC = () => {
                   />
                 </div>
               </div>
-
-              <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-2 border-t mt-4">
-                <Button variant="outline" className="w-full sm:w-auto" onClick={() => setEditOrgStep(1)}>Back</Button>
-                <Button className="w-full sm:w-auto" onClick={handleSaveOrgDetails} disabled={savingOrg}>
-                  {savingOrg ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Details'}
-                </Button>
-              </DialogFooter>
             </div>
-          )}
+          </div>
+
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-3 border-t">
+            <Button variant="outline" className="w-full sm:w-auto" onClick={() => setShowEditOrg(false)}>Cancel</Button>
+            <Button className="w-full sm:w-auto" onClick={handleSaveOrgDetails} disabled={savingOrg}>
+              {savingOrg ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Details'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -306,7 +306,12 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
     <div id="co-attainment-container">
       <Card>
         <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
-          <CardTitle>CO Attainment</CardTitle>
+          <div>
+            <CardTitle>CO Attainment</CardTitle>
+            <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+              Track institutional Course Outcome (CO) attainment and PO mapping.
+            </CardDescription>
+          </div>
           <>
             {/* Desktop Button */}
             <Button
