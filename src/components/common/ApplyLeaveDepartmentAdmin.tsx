@@ -264,16 +264,17 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-6 lg:gap-8">
         {/* Leave Application Form - Left Side */}
         <Card id="apply-leave-form-card" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="p-4 sm:p-6 border-b bg-muted/30 flex flex-row items-center justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
-              <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Submit a new leave application request</p>
+          <CardHeader className="border-b pb-4">
+            <div className="flex flex-row items-center justify-between gap-3">
+              <div>
+                <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+                <p className={`text-sm mt-1 font-normal ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Your leave request will be routed to the <span className="font-semibold text-primary">{props.routedTo || "Dean"}</span> for approval.
+                </p>
+              </div>
             </div>
           </CardHeader>
-          <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
-            <div className={`p-3 rounded-lg border text-xs sm:text-sm ${theme === 'dark' ? 'bg-blue-900/10 border-blue-800/50 text-blue-300' : 'bg-blue-50/50 border-blue-200 text-blue-800'}`}>
-              Your leave request will be routed to the <span className="font-semibold text-primary">{props.routedTo || "Principal"}</span> for approval.
-            </div>
+          <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6 pt-4">
 
 
             {/* Title */}
@@ -360,58 +361,58 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
 
         {/* Leave Requests List - Right Side */}
         <Card id="recent-leaves-card" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="p-4 sm:p-6 border-b bg-muted/30 flex flex-row items-center justify-between gap-4">
-            {/* Title */}
-            <div className="flex-1 min-w-0">
-              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Leave Requests
-              </CardTitle>
-              <p className={`hidden sm:block text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your submitted requests</p>
+          <CardHeader className="border-b pb-4">
+            <div className="flex flex-row items-center justify-between gap-4 w-full">
+              <div>
+                <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Recent Leave Applications
+                </CardTitle>
+                <p className={`text-sm mt-1 font-normal ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
+              </div>
+
+              {/* Filter Button */}
+              <div className="flex-shrink-0 mt-2 sm:mt-0">
+                <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center justify-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md h-9 w-9 sm:h-9 sm:w-auto sm:px-3 whitespace-nowrap rounded-lg"
+                    >
+                      <Filter className="w-4 h-4" />
+                      <span className="hidden sm:inline ml-1.5 text-sm">Filter</span>
+                    </Button>
+                  </PopoverTrigger>
+
+                  <PopoverContent className={`w-40 sm:w-48 p-2 sm:p-3 lg:p-4 ${theme === 'dark' ?
+                    'bg-card text-foreground border-border' :
+                    'bg-white text-gray-900 border-gray-200'}`
+                  }>
+                    <div className="space-y-1 sm:space-y-2">
+                      <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Filter Status</p>
+                      {['All', 'Pending', 'Approved', 'Rejected'].map((status) =>
+                        <Button
+                          key={status}
+                          variant={filterStatus === status ? "default" : "ghost"}
+                          className={`w-full justify-start text-xs h-8 px-2 transition-all duration-200 ${filterStatus === status ?
+                            'bg-primary text-white hover:bg-primary/90' :
+                            'hover:bg-primary/10 hover:text-primary'}`
+                          }
+                          onClick={() => {
+                            setFilterStatus(status as any);
+                            setFilterOpen(false);
+                          }}>
+
+                          {status}
+                        </Button>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
-
-            {/* Filter Button */}
-            <div className="flex-shrink-0 mt-2 sm:mt-0">
-              <Popover open={filterOpen} onOpenChange={setFilterOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center justify-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md h-9 w-9 sm:h-9 sm:w-auto sm:px-3 whitespace-nowrap rounded-lg"
-                  >
-                    <Filter className="w-4 h-4" />
-                    <span className="hidden sm:inline ml-1.5 text-sm">Filter</span>
-                  </Button>
-                </PopoverTrigger>
-
-                <PopoverContent className={`w-40 sm:w-48 p-2 sm:p-3 lg:p-4 ${theme === 'dark' ?
-                  'bg-card text-foreground border-border' :
-                  'bg-white text-gray-900 border-gray-200'}`
-                }>
-                  <div className="space-y-1 sm:space-y-2">
-                    <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Filter Status</p>
-                    {['All', 'Pending', 'Approved', 'Rejected'].map((status) =>
-                      <Button
-                        key={status}
-                        variant={filterStatus === status ? "default" : "ghost"}
-                        className={`w-full justify-start text-xs h-8 px-2 transition-all duration-200 ${filterStatus === status ?
-                          'bg-primary text-white hover:bg-primary/90' :
-                          'hover:bg-primary/10 hover:text-primary'}`
-                        }
-                        onClick={() => {
-                          setFilterStatus(status as any);
-                          setFilterOpen(false);
-                        }}>
-
-                        {status}
-                      </Button>
-                    )}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-
           </CardHeader>
-          <CardContent className="flex-1 p-4 pt-2 sm:pt-0 max-h-[500px] overflow-y-auto custom-scrollbar">
+          <CardContent className="flex-1 p-4 pt-6 sm:pt-6 max-h-[500px] overflow-y-auto custom-scrollbar">
             <div className="overflow-x-auto thin-scrollbar">
               {/* Mobile: stacked cards */}
               <div className="md:hidden space-y-3">
@@ -444,11 +445,10 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
                       <div className="mt-3">
                         <button
                           onClick={() => setViewReason(leave.reason)}
-                          className={`w-full text-center text-sm font-semibold py-2 px-4 rounded-lg transition border ${
-                            theme === 'dark'
+                          className={`w-full text-center text-sm font-semibold py-2 px-4 rounded-lg transition border ${theme === 'dark'
                               ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
                               : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100'
-                          }`}
+                            }`}
                         >
                           View Reason
                         </button>

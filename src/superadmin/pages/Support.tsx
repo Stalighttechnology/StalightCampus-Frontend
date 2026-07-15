@@ -15,16 +15,16 @@ import { API_BASE_URL } from "@/utils/config";
 import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
 
 const getPriorityClass = (p: string) =>
-p === 'Critical' ? 'border-red-500 text-red-600 bg-red-50 dark:bg-red-900/10' :
-p === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-900/10' :
-p === 'Medium' ? 'border-yellow-500 text-yellow-700 bg-yellow-50 dark:bg-yellow-900/10' :
-'border-blue-400 text-blue-600 bg-blue-50 dark:bg-blue-900/10';
+  p === 'Critical' ? 'border-red-500 text-red-600 bg-red-50 dark:bg-red-900/10' :
+    p === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-900/10' :
+      p === 'Medium' ? 'border-yellow-500 text-yellow-700 bg-yellow-50 dark:bg-yellow-900/10' :
+        'border-blue-400 text-blue-600 bg-blue-50 dark:bg-blue-900/10';
 
 const getStatusClass = (s: string) =>
-s === 'Resolved' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
-s === 'Closed' ? 'bg-gray-100 text-gray-600 border-gray-300' :
-s === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-'bg-blue-100 text-blue-800 border-blue-200';
+  s === 'Resolved' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+    s === 'Closed' ? 'bg-gray-100 text-gray-600 border-gray-300' :
+      s === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+        'bg-blue-100 text-blue-800 border-blue-200';
 
 const Support = () => {
   const [data, setData] = useState<any[]>([]);
@@ -41,7 +41,7 @@ const Support = () => {
   const { theme } = useTheme();
 
   const allSkills = Array.from(new Set(developers.flatMap(d => d.developer_skills || [])));
-  const filteredDevelopers = developers.filter(dev => 
+  const filteredDevelopers = developers.filter(dev =>
     selectedSkills.length === 0 || selectedSkills.every(skill => dev.developer_skills?.includes(skill))
   );
 
@@ -67,7 +67,7 @@ const Support = () => {
     }
   }, [page, priorityFilter, statusFilter]);
 
-  useEffect(() => {fetchData();}, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   useEffect(() => {
     const fetchDevs = async () => {
@@ -77,13 +77,13 @@ const Support = () => {
         });
         const data = await res.json();
         if (data.developers) setDevelopers(data.developers);
-      } catch(e) {}
+      } catch (e) { }
     };
     fetchDevs();
   }, []);
 
   // Reset to page 1 when filters change
-  useEffect(() => {setPage(1);}, [priorityFilter, statusFilter]);
+  useEffect(() => { setPage(1); }, [priorityFilter, statusFilter]);
 
   const handleUpdate = async () => {
     try {
@@ -123,7 +123,7 @@ const Support = () => {
             </p>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4 pt-6">
+        <CardContent className="space-y-4 pt-4">
           {/* Filters */}
           <div className="flex flex-wrap gap-3 items-center pb-2">
             <div className="flex items-center gap-2">
@@ -182,9 +182,9 @@ const Support = () => {
                         className="cursor-pointer hover:bg-muted/50 transition-colors"
                         onClick={() => {
                           setSelectedTicket(item);
-                          setUpdateForm({ 
-                            status: item.status, 
-                            response: item.response || '', 
+                          setUpdateForm({
+                            status: item.status,
+                            response: item.response || '',
                             assigned_developer_id: item.assigned_developer?.id || '',
                             deadline: item.deadline ? item.deadline.slice(0, 16) : ''
                           });
@@ -218,9 +218,9 @@ const Support = () => {
                           <Button variant="outline" size="sm" className="gap-2" onClick={(e) => {
                             e.stopPropagation();
                             setSelectedTicket(item);
-                            setUpdateForm({ 
-                              status: item.status, 
-                              response: item.response || '', 
+                            setUpdateForm({
+                              status: item.status,
+                              response: item.response || '',
                               assigned_developer_id: item.assigned_developer?.id || '',
                               deadline: item.deadline ? item.deadline.slice(0, 16) : ''
                             });
@@ -277,7 +277,7 @@ const Support = () => {
           </DialogHeader>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-            
+
             {/* Left Column: Ticket Details */}
             <div className="space-y-5">
               <div>
@@ -360,7 +360,7 @@ const Support = () => {
             {/* Right Column: Resolution & Assignment */}
             <div className="space-y-5 bg-muted/20 p-5 rounded-xl border">
               <h4 className="font-semibold text-sm border-b pb-2">Resolution & Assignment</h4>
-              
+
               <div>
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Update Status</Label>
                 <Select value={updateForm.status} onValueChange={(val) => setUpdateForm({ ...updateForm, status: val })}>
@@ -382,7 +382,7 @@ const Support = () => {
                   placeholder="Enter response to the organization..."
                   rows={4}
                   value={updateForm.response}
-                  onChange={(e) => setUpdateForm({ ...updateForm, response: e.target.value })} 
+                  onChange={(e) => setUpdateForm({ ...updateForm, response: e.target.value })}
                 />
               </div>
 
@@ -393,15 +393,15 @@ const Support = () => {
                     <Button variant="ghost" size="sm" className="h-6 text-xs text-primary/80 hover:text-primary" onClick={() => setSelectedSkills([])}>Clear Filters</Button>
                   )}
                 </div>
-                
+
                 {allSkills.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-2 mb-3">
                     {allSkills.map(skill => (
-                      <Badge 
-                        key={skill} 
+                      <Badge
+                        key={skill}
                         variant={selectedSkills.includes(skill) ? "default" : "outline"}
                         className={`cursor-pointer transition-all ${selectedSkills.includes(skill) ? 'shadow-sm' : 'hover:border-primary/50'}`}
-                        onClick={() => setSelectedSkills(prev => 
+                        onClick={() => setSelectedSkills(prev =>
                           prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
                         )}
                       >
@@ -411,8 +411,8 @@ const Support = () => {
                   </div>
                 )}
 
-                <Select 
-                  value={updateForm.assigned_developer_id ? String(updateForm.assigned_developer_id) : "unassigned"} 
+                <Select
+                  value={updateForm.assigned_developer_id ? String(updateForm.assigned_developer_id) : "unassigned"}
                   onValueChange={(val) => setUpdateForm({ ...updateForm, assigned_developer_id: val === "unassigned" ? "" : val })}
                 >
                   <SelectTrigger className="w-full mt-1.5 h-10">
@@ -431,8 +431,8 @@ const Support = () => {
 
               <div>
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Deadline (Optional)</Label>
-                <input 
-                  type="datetime-local" 
+                <input
+                  type="datetime-local"
                   className="w-full mt-1.5 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
                   value={updateForm.deadline}
                   onChange={(e) => setUpdateForm({ ...updateForm, deadline: e.target.value })}
@@ -440,7 +440,7 @@ const Support = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="flex justify-end pt-4 border-t gap-3">
             <Button variant="outline" onClick={() => setSelectedTicket(null)}>Cancel</Button>
             <Button onClick={handleUpdate}>Save Changes</Button>

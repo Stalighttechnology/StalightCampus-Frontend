@@ -24,7 +24,7 @@ interface CampusPageRendererProps {
 
 const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName, orgSlug, isOpen, isPreviewMode = false, onApplyClick }) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  
+
   // Enquiry form state
   const [enquiryForm, setEnquiryForm] = useState({ name: '', phone: '', email: '', course_interested: '', message: '' });
   const [enquiryStatus, setEnquiryStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
@@ -93,7 +93,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
       });
       return;
     }
-    
+
     setEnquiryStatus('submitting');
     try {
       const payload = { ...enquiryForm, phone: cleanPhone };
@@ -115,32 +115,32 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
     <div className="w-full font-sans">
       <main className="flex flex-col w-full">
         {blocks.map((block: Block, idx: number) => {
-          
+
           if (block.type === 'hero') {
             const hasVideo = block.data.backgroundVideoUrl && block.data.backgroundVideoUrl !== '';
             return (
               <section id={block.type} key={idx} className="relative w-full min-h-[85vh] flex items-center justify-center overflow-hidden">
                 {hasVideo ? (
-                  <video 
+                  <video
                     autoPlay loop muted playsInline
                     className="absolute inset-0 z-0 w-full h-full object-cover transform scale-105"
                     src={block.data.backgroundVideoUrl}
                   />
                 ) : (
-                  <div 
+                  <div
                     className="absolute inset-0 z-0 bg-cover bg-center transform scale-105"
-                    style={{ 
-                      backgroundImage: `url(${block.data.bannerUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop'})` 
+                    style={{
+                      backgroundImage: `url(${block.data.bannerUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop'})`
                     }}
                   />
                 )}
-                
-                <div 
-                  className="absolute inset-0 z-10" 
+
+                <div
+                  className="absolute inset-0 z-10"
                   style={{ backgroundColor: `rgba(0,0,0, ${block.data.overlayOpacity || 0.6})` }}
                 ></div>
-                
-                <motion.div 
+
+                <motion.div
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true }}
@@ -151,19 +151,19 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                     <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
                     Admissions {isOpen ? 'Open' : 'Closed'} for 2026
                   </motion.div>
-                  
+
                   <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-tight px-2">
                     {block.data.title || 'Welcome to Campus'}
                   </motion.h2>
-                  
+
                   <motion.p variants={fadeUp} className="text-lg md:text-xl lg:text-2xl text-white/80 max-w-3xl font-light leading-relaxed px-4">
                     {block.data.subtitle || 'A great place to learn'}
                   </motion.p>
-                  
+
                   {isOpen && (
                     <motion.div variants={fadeUp} className="pt-8">
-                      <Button 
-                        size="lg" 
+                      <Button
+                        size="lg"
                         className="text-lg px-10 py-8 rounded-full shadow-2xl shadow-primary/30 hover:scale-105 transition-transform duration-300 gap-3"
                         onClick={() => {
                           if (block.data.ctaLink === '#apply' && onApplyClick) {
@@ -191,7 +191,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
             return (
               <section id={block.type} key={idx} className="relative py-16 md:py-24 px-4 md:px-6">
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-background to-background -z-10"></div>
-                <motion.div 
+                <motion.div
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-100px" }}
@@ -201,11 +201,11 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                   <motion.div variants={fadeUp} className="flex-1 space-y-6 md:space-y-8 w-full">
                     <h4 className="text-primary font-semibold tracking-wider uppercase text-sm">Our Heritage</h4>
                     <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight">A Legacy of <span className="text-primary">Excellence</span></h3>
-                    <div 
+                    <div
                       className="text-lg text-muted-foreground leading-relaxed prose prose-lg dark:prose-invert"
                       dangerouslySetInnerHTML={{ __html: block.data.text || '<p>About our organization...</p>' }}
                     />
-                    
+
                     {stats.length > 0 && (
                       <div className="grid grid-cols-2 gap-4 md:gap-6 pt-6 md:pt-8">
                         {stats.map((stat: any, i: number) => (
@@ -217,13 +217,13 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                       </div>
                     )}
                   </motion.div>
-                  
+
                   <motion.div variants={fadeUp} className="flex-1 relative w-full mt-8 md:mt-0">
                     <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full -z-10 transform scale-90 translate-x-10 translate-y-10"></div>
                     <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-border bg-card">
-                      <img 
-                        src={block.data.image || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1000&auto=format&fit=crop'} 
-                        alt="Campus" 
+                      <img
+                        src={block.data.image || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1000&auto=format&fit=crop'}
+                        alt="Campus"
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -240,7 +240,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
             ];
             return (
               <section id={block.type} key={idx} className="py-16 md:py-24 px-4 md:px-6 bg-muted/20 border-y border-border/50">
-                <motion.div 
+                <motion.div
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-100px" }}
@@ -272,7 +272,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
             return (
               <section id={block.type} key={idx} className="py-16 md:py-24 px-4 md:px-6 bg-primary text-primary-foreground relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 blur-[100px] rounded-full"></div>
-                <motion.div 
+                <motion.div
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-100px" }}
@@ -286,7 +286,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                       <p className="text-lg md:text-xl text-primary-foreground/80 leading-relaxed">
                         Our dedicated placement cell ensures you get the best start to your career.
                       </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4">
                         <div>
                           <p className="text-3xl md:text-4xl font-black">{percentage}</p>
                           <p className="text-xs md:text-sm font-medium uppercase tracking-wider mt-2 opacity-80">Placed</p>
@@ -323,7 +323,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
             const courseList = block.data.autoFetch ? block.data.fetchedCourses || [] : block.data.items || [];
             return (
               <section id={block.type} key={idx} className="py-16 md:py-24 px-4 md:px-6">
-                <motion.div 
+                <motion.div
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-100px" }}
@@ -334,7 +334,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                     <motion.h4 variants={fadeUp} className="text-primary font-semibold tracking-wider uppercase text-sm">Academic Programs</motion.h4>
                     <motion.h3 variants={fadeUp} className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">Discover Your Future</motion.h3>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {courseList.map((course: any, i: number) => (
                       <motion.div key={i} variants={fadeUp} className="group bg-card rounded-3xl border border-border overflow-hidden hover:shadow-xl transition-all duration-300">
@@ -376,7 +376,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
           if (block.type === 'testimonials') {
             return (
               <section id={block.type} key={idx} className="py-16 md:py-24 px-4 md:px-6">
-                <motion.div 
+                <motion.div
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-100px" }}
@@ -387,11 +387,11 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                     <motion.h4 variants={fadeUp} className="text-primary font-semibold tracking-wider uppercase text-sm">Success Stories</motion.h4>
                     <motion.h3 variants={fadeUp} className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">What Our Students Say</motion.h3>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {block.data.items?.map((item: any, i: number) => (
-                      <motion.div 
-                        key={i} 
+                      <motion.div
+                        key={i}
                         variants={fadeUp}
                         className="bg-card p-8 rounded-3xl border border-border shadow-sm relative group hover:shadow-lg transition-shadow"
                       >
@@ -423,7 +423,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
           if (block.type === 'gallery') {
             return (
               <section id={block.type} key={idx} className="py-16 md:py-24 px-4 md:px-6 bg-muted/30 border-y border-border/50">
-                <motion.div 
+                <motion.div
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-100px" }}
@@ -436,19 +436,19 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                       <motion.h3 variants={fadeUp} className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">Life at {orgName}</motion.h3>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                     {block.data.images?.map((img: string, i: number) => (
-                      <motion.div 
-                        key={i} 
+                      <motion.div
+                        key={i}
                         variants={fadeUp}
                         className={`group relative overflow-hidden rounded-2xl shadow-sm ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}
                       >
                         <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors z-10"></div>
-                        <img 
-                          src={img || 'https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1000&auto=format&fit=crop'} 
-                          alt={`Gallery ${i}`} 
-                          className={`w-full object-cover transition-transform duration-700 group-hover:scale-110 ${i === 0 ? 'h-full min-h-[400px]' : 'h-64'}`} 
+                        <img
+                          src={img || 'https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1000&auto=format&fit=crop'}
+                          alt={`Gallery ${i}`}
+                          className={`w-full object-cover transition-transform duration-700 group-hover:scale-110 ${i === 0 ? 'h-full min-h-[400px]' : 'h-64'}`}
                         />
                       </motion.div>
                     ))}
@@ -461,7 +461,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
           if (block.type === 'faq') {
             return (
               <section id={block.type} key={idx} className="py-16 md:py-24 px-4 md:px-6">
-                <motion.div 
+                <motion.div
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-100px" }}
@@ -472,11 +472,11 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                     <motion.h4 variants={fadeUp} className="text-primary font-semibold tracking-wider uppercase text-sm">Questions?</motion.h4>
                     <motion.h3 variants={fadeUp} className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">Frequently Asked Questions</motion.h3>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {block.data.items?.map((faq: any, i: number) => (
                       <motion.div key={i} variants={fadeUp} className="border border-border rounded-xl bg-card overflow-hidden transition-all">
-                        <button 
+                        <button
                           className="w-full px-6 py-4 text-left flex justify-between items-center font-semibold hover:bg-muted/50 transition-colors"
                           onClick={() => setActiveFaq(activeFaq === i ? null : i)}
                         >
@@ -499,7 +499,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
           if (block.type === 'enquiry') {
             return (
               <section id={block.type} key={idx} className="py-16 md:py-24 px-4 md:px-6 bg-muted/20 border-t border-border/50">
-                <motion.div 
+                <motion.div
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-100px" }}
@@ -518,7 +518,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                       <div className="flex items-center gap-3"><Mail className="w-5 h-5" /> {block.data.email || 'admissions@campus.edu'}</div>
                     </div>
                   </div>
-                  
+
                   <div className="p-6 md:p-10 md:w-3/5">
                     {enquiryStatus === 'success' ? (
                       <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-12">
@@ -533,22 +533,22 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <label className="text-sm font-medium">Full Name</label>
-                            <input required type="text" className="w-full p-3 border border-input rounded-xl bg-background" value={enquiryForm.name} onChange={e => setEnquiryForm({...enquiryForm, name: e.target.value})} />
+                            <input required type="text" className="w-full p-3 border border-input rounded-xl bg-background" value={enquiryForm.name} onChange={e => setEnquiryForm({ ...enquiryForm, name: e.target.value })} />
                           </div>
                           <div className="space-y-2">
                             <label className="text-sm font-medium">Phone Number</label>
-                            <input required type="tel" className="w-full p-3 border border-input rounded-xl bg-background" value={enquiryForm.phone} onChange={e => setEnquiryForm({...enquiryForm, phone: e.target.value.replace(/[^0-9+]/g, '')})} />
+                            <input required type="tel" className="w-full p-3 border border-input rounded-xl bg-background" value={enquiryForm.phone} onChange={e => setEnquiryForm({ ...enquiryForm, phone: e.target.value.replace(/[^0-9+]/g, '') })} />
                           </div>
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">Email Address</label>
-                          <input required type="email" className="w-full p-3 border border-input rounded-xl bg-background" value={enquiryForm.email} onChange={e => setEnquiryForm({...enquiryForm, email: e.target.value})} />
+                          <input required type="email" className="w-full p-3 border border-input rounded-xl bg-background" value={enquiryForm.email} onChange={e => setEnquiryForm({ ...enquiryForm, email: e.target.value })} />
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">Interested Course (Optional)</label>
-                          <Select 
-                            value={enquiryForm.course_interested} 
-                            onValueChange={val => setEnquiryForm({...enquiryForm, course_interested: val})}
+                          <Select
+                            value={enquiryForm.course_interested}
+                            onValueChange={val => setEnquiryForm({ ...enquiryForm, course_interested: val })}
                           >
                             <SelectTrigger className="w-full p-3 border border-input rounded-xl bg-background text-left">
                               <SelectValue placeholder="Select a course" />
@@ -564,7 +564,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">Your Message</label>
-                          <textarea required className="w-full p-3 border border-input rounded-xl bg-background min-h-[100px]" value={enquiryForm.message} onChange={e => setEnquiryForm({...enquiryForm, message: e.target.value})}></textarea>
+                          <textarea required className="w-full p-3 border border-input rounded-xl bg-background min-h-[100px]" value={enquiryForm.message} onChange={e => setEnquiryForm({ ...enquiryForm, message: e.target.value })}></textarea>
                         </div>
                         {enquiryStatus === 'error' && <p className="text-red-500 text-sm">Error submitting form. Please try again.</p>}
                         <Button type="submit" className="w-full p-6 text-lg rounded-xl" disabled={enquiryStatus === 'submitting'}>
@@ -581,7 +581,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
           if (block.type === 'contact') {
             return (
               <section id={block.type} key={idx} className="py-16 md:py-24 px-4 md:px-6">
-                <motion.div 
+                <motion.div
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-100px" }}
@@ -593,7 +593,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                       <h4 className="text-primary font-semibold tracking-wider uppercase text-sm mb-2">Get in Touch</h4>
                       <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">Contact Us</h3>
                     </div>
-                    
+
                     <div className="space-y-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
@@ -623,18 +623,18 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                         </div>
                       </div>
                     </div>
-                    
+
                     {block.data.whatsappLink && (
                       <Button className="bg-green-600 hover:bg-green-700 text-white gap-2" onClick={() => window.open(block.data.whatsappLink, '_blank')}>
                         Chat on WhatsApp
                       </Button>
                     )}
                   </div>
-                  
+
                   <div className="h-[300px] md:h-[400px] w-full rounded-3xl overflow-hidden shadow-lg border border-border bg-muted">
                     {block.data.googleMapsUrl ? (
-                      <iframe 
-                        src={block.data.googleMapsUrl} 
+                      <iframe
+                        src={block.data.googleMapsUrl}
                         width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"
                       ></iframe>
                     ) : (

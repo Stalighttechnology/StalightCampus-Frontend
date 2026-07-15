@@ -249,11 +249,11 @@ const ApplyLeaveAdmin = () => {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Leave Application Form - Left Side */}
           <Card id="apply-leave-form-card" className={`apply-leave-card ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-            <CardHeader>
-              <CardTitle className={`apply-leave-title text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1 font-normal">Your leave request will be routed to the <span className="font-medium text-primary">Dean</span> for approval.</p>
+            <CardHeader className="border-b pb-4">
+              <CardTitle className={`apply-leave-title text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+              <p className={`text-sm mt-1 font-normal ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Your leave request will be routed to the <span className="font-semibold text-primary">Dean</span> for approval.</p>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
               {/* Error Message */}
               {error && (
                 <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
@@ -347,11 +347,11 @@ const ApplyLeaveAdmin = () => {
 
           {/* Recent Leave Applications - Right Side */}
           <Card id="recent-leaves-card" className={`apply-leave-card ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-            <CardHeader>
-              <div className="flex flex-row items-start sm:items-center justify-between gap-4 w-full">
-                <div className="flex flex-col gap-1">
-                  <CardTitle className={`apply-leave-title text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
-                  <p className={`apply-leave-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
+            <CardHeader className="border-b pb-4">
+              <div className="flex flex-row items-center justify-between gap-4 w-full">
+                <div>
+                  <CardTitle className={`apply-leave-title text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
+                  <p className={`apply-leave-desc text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
                 </div>
                 <div className="relative flex-shrink-0 mt-2 sm:mt-0" ref={filterRef}>
                   <Button
@@ -385,7 +385,7 @@ const ApplyLeaveAdmin = () => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="flex-1 max-h-[500px] overflow-y-auto custom-scrollbar flex flex-col p-6">
+            <CardContent className="flex-1 max-h-[500px] overflow-y-auto custom-scrollbar flex flex-col p-6 pt-6">
               {loading ? (
                 <div className="space-y-3 flex-1">
                   <SkeletonList items={3} />

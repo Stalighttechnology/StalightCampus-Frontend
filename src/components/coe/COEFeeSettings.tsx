@@ -67,7 +67,7 @@ const COEFeeSettings = () => {
         if (app.makeup_open) types.push('Makeup');
         return `<li><b>${app.batch} (${app.exam_period})</b> - ${types.join(' & ')}</li>`;
       }).join('');
-      
+
       Swal.fire({
         title: 'Action Not Allowed',
         html: `<p style="margin-bottom: 15px;">You cannot edit fee settings while there are active applications open. Please close the following applications to continue:</p>
@@ -212,12 +212,12 @@ const COEFeeSettings = () => {
             </Button>
           )}
         </CardHeader>
-        <CardContent className="px-6 pb-6 pt-6">
+        <CardContent className="px-6 pb-6 pt-4">
           {isEditing ? (
             // Edit Mode Form
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
+
                 {/* Revaluation Fee Input */}
                 <div className="space-y-2">
                   <Label htmlFor="reval" className="font-semibold text-sm flex items-center gap-2">
@@ -305,7 +305,7 @@ const COEFeeSettings = () => {
           ) : (
             // View Mode Cards
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
+
               {/* Revaluation Fee Card */}
               <div className={`p-6 md:p-8 min-h-[180px] rounded-2xl border flex flex-col justify-between ${theme === 'dark' ? 'bg-secondary/15 border-border' : 'bg-slate-50/50 border-gray-100'}`}>
                 <div className="flex justify-between items-start mb-4">

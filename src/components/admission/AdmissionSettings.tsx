@@ -66,7 +66,7 @@ export default function AdmissionSettings() {
       });
       if (response.ok) {
         toast.success(`Campaign ${current_status ? 'deactivated' : 'activated'} successfully!`);
-        setCampaigns(prev => prev.map(c => 
+        setCampaigns(prev => prev.map(c =>
           c.id === id ? { ...c, is_active: !current_status } : c
         ));
       } else {
@@ -106,7 +106,7 @@ export default function AdmissionSettings() {
             <form onSubmit={handleCreateCampaign} className="space-y-4 mt-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Campaign Name</label>
-                <input type="text" required value={newCampaign.name} onChange={e => setNewCampaign({...newCampaign, name: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background text-sm focus:ring-1 focus:ring-primary focus:border-transparent outline-none" placeholder="e.g., Fall 2026 Admissions" />
+                <input type="text" required value={newCampaign.name} onChange={e => setNewCampaign({ ...newCampaign, name: e.target.value })} className="w-full p-2.5 border border-input rounded bg-background text-sm focus:ring-1 focus:ring-primary focus:border-transparent outline-none" placeholder="e.g., Fall 2026 Admissions" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col">
@@ -135,7 +135,7 @@ export default function AdmissionSettings() {
                             const y = date.getFullYear();
                             const m = String(date.getMonth() + 1).padStart(2, '0');
                             const d = String(date.getDate()).padStart(2, '0');
-                            setNewCampaign({...newCampaign, start_date: `${y}-${m}-${d}`});
+                            setNewCampaign({ ...newCampaign, start_date: `${y}-${m}-${d}` });
                           }
                         }}
                         initialFocus
@@ -143,7 +143,7 @@ export default function AdmissionSettings() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                
+
                 <div className="flex flex-col">
                   <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">End Date</label>
                   <Popover>
@@ -170,7 +170,7 @@ export default function AdmissionSettings() {
                             const y = date.getFullYear();
                             const m = String(date.getMonth() + 1).padStart(2, '0');
                             const d = String(date.getDate()).padStart(2, '0');
-                            setNewCampaign({...newCampaign, end_date: `${y}-${m}-${d}`});
+                            setNewCampaign({ ...newCampaign, end_date: `${y}-${m}-${d}` });
                           }
                         }}
                         initialFocus
@@ -186,15 +186,15 @@ export default function AdmissionSettings() {
           </DialogContent>
         </Dialog>
       </CardHeader>
-      
-      <CardContent className="pt-6 space-y-6">
+
+      <CardContent className="pt-4 space-y-6">
         {/* Info banner explaining Admission Campaigns */}
         <div className="border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20 p-4 rounded-xl flex gap-4 text-xs md:text-sm text-blue-800 dark:text-blue-200">
           <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold mb-1 text-blue-950 dark:text-blue-100">What is an Admission Campaign?</p>
             <p className="leading-relaxed text-blue-800/95 dark:text-blue-200/90">
-              An Admission Campaign is how you organize and track different batches of student intakes over time (e.g., <strong>"Fall 2026 Admissions"</strong> vs <strong>"Spring 2027 Admissions"</strong>). 
+              An Admission Campaign is how you organize and track different batches of student intakes over time (e.g., <strong>"Fall 2026 Admissions"</strong> vs <strong>"Spring 2027 Admissions"</strong>).
               When a student applies, they are automatically tagged to the currently active campaign. This allows you to generate reports and track conversion rates specifically for that one intake period, without mixing the data up with students who applied in previous years!
             </p>
           </div>

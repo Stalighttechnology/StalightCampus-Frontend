@@ -547,190 +547,190 @@ const DeanFacultyProfile = ({
                   </div>
                 </CardHeader>
                 <CardContent className="pb-0">
-                <div
-                  id="dean-faculty-filters"
-                  className="filters-row flex flex-col lg:flex-row gap-6 items-start lg:items-end"
-                >
-                  {/* Branch selector */}
-                  <div className="flex-1">
-                    <Label
-                      className={`text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"
-                        }`}
-                    >
-                      {translateTerminology("Branch")}
-                    </Label>
-                    <Select
-                      value={selectedBranch || ""}
-                      onValueChange={(val) => {
-                        setSelectedBranch(val || null);
-                        // Use a slightly longer timeout of 350ms to ensure the Select completes 
-                        // its close animation and focus restoration before triggering the Popover
-                        setTimeout(() => {
-                          setFacultyPopoverOpen(true);
-                        }, 350);
-                      }}
-                    >
-                      <SelectTrigger
-                        className={`w-full font-normal ${theme === "dark"
-                            ? "bg-background border-border"
-                            : "bg-white border-gray-200"
+                  <div
+                    id="dean-faculty-filters"
+                    className="filters-row flex flex-col lg:flex-row gap-6 items-start lg:items-end"
+                  >
+                    {/* Branch selector */}
+                    <div className="flex-1">
+                      <Label
+                        className={`text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"
                           }`}
                       >
-                        <SelectValue placeholder="Select a branch" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {branches.map((b: Branch) => (
-                          <SelectItem
-                            key={(b.branch_id ?? b.id) ?? ""}
-                            value={String((b.branch_id ?? b.id) ?? "")}
-                          >
-                            {b.branch || b.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Faculty selector */}
-                  <div className="flex-1">
-                    <Label
-                      className={`text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"
-                        }`}
-                    >
-                      Faculty
-                    </Label>
-                    <FacultySearchDropdown
-                      selectedBranch={selectedBranch}
-                      selectedFaculty={selectedFaculty}
-                      setSelectedFaculty={setSelectedFaculty}
-                      profile={profile}
-                      faculties={faculties}
-                      facultiesLoading={facultiesLoading}
-                      facultySearch={facultySearch}
-                      setFacultySearch={setFacultySearch}
-                      facultyPage={facultyPage}
-                      setFacultyPage={setFacultyPage}
-                      facultyPagination={facultyPagination}
-                      theme={theme}
-                      facultyPopoverOpen={facultyPopoverOpen}
-                      setFacultyPopoverOpen={setFacultyPopoverOpen}
-                    />
-                  </div>
-
-                  {/* Action buttons (Filters & Export PDF) in a single row on mobile */}
-                  <div className="flex-shrink-0 flex items-end gap-3 w-full lg:w-auto mt-2 lg:mt-0 dean-buttons-row">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="flex items-center justify-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md h-9 px-3 whitespace-nowrap rounded-lg w-full lg:w-auto flex-1 lg:flex-initial"
-                          disabled={
-                            !selectedBranch || !selectedFaculty || facultiesLoading
-                          }
-                          title={
-                            !selectedBranch || !selectedFaculty
-                              ? "Select branch and faculty to enable filters"
-                              : undefined
-                          }
+                        {translateTerminology("Branch")}
+                      </Label>
+                      <Select
+                        value={selectedBranch || ""}
+                        onValueChange={(val) => {
+                          setSelectedBranch(val || null);
+                          // Use a slightly longer timeout of 350ms to ensure the Select completes 
+                          // its close animation and focus restoration before triggering the Popover
+                          setTimeout(() => {
+                            setFacultyPopoverOpen(true);
+                          }, 350);
+                        }}
+                      >
+                        <SelectTrigger
+                          className={`w-full font-normal ${theme === "dark"
+                            ? "bg-background border-border"
+                            : "bg-white border-gray-200"
+                            }`}
                         >
-                          <Filter className="w-4 h-4" />
-                          <span className="ml-1.5 text-sm">Filter</span>
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent
-                        className={`${theme === "dark"
+                          <SelectValue placeholder="Select a branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {branches.map((b: Branch) => (
+                            <SelectItem
+                              key={(b.branch_id ?? b.id) ?? ""}
+                              value={String((b.branch_id ?? b.id) ?? "")}
+                            >
+                              {b.branch || b.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Faculty selector */}
+                    <div className="flex-1">
+                      <Label
+                        className={`text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"
+                          }`}
+                      >
+                        Faculty
+                      </Label>
+                      <FacultySearchDropdown
+                        selectedBranch={selectedBranch}
+                        selectedFaculty={selectedFaculty}
+                        setSelectedFaculty={setSelectedFaculty}
+                        profile={profile}
+                        faculties={faculties}
+                        facultiesLoading={facultiesLoading}
+                        facultySearch={facultySearch}
+                        setFacultySearch={setFacultySearch}
+                        facultyPage={facultyPage}
+                        setFacultyPage={setFacultyPage}
+                        facultyPagination={facultyPagination}
+                        theme={theme}
+                        facultyPopoverOpen={facultyPopoverOpen}
+                        setFacultyPopoverOpen={setFacultyPopoverOpen}
+                      />
+                    </div>
+
+                    {/* Action buttons (Filters & Export PDF) in a single row on mobile */}
+                    <div className="flex-shrink-0 flex items-end gap-3 w-full lg:w-auto mt-2 lg:mt-0 dean-buttons-row">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="flex items-center justify-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md h-9 px-3 whitespace-nowrap rounded-lg w-full lg:w-auto flex-1 lg:flex-initial"
+                            disabled={
+                              !selectedBranch || !selectedFaculty || facultiesLoading
+                            }
+                            title={
+                              !selectedBranch || !selectedFaculty
+                                ? "Select branch and faculty to enable filters"
+                                : undefined
+                            }
+                          >
+                            <Filter className="w-4 h-4" />
+                            <span className="ml-1.5 text-sm">Filter</span>
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent
+                          className={`${theme === "dark"
                             ? "bg-card border-border"
                             : "bg-white border-gray-200"
-                          } dean-filters-dialog`}
-                      >
-                        <DialogHeader>
-                          <DialogTitle>Attendance Report Filters</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 py-2">
-                          <DatePickerField
-                            label="Start Date"
-                            date={startDate}
-                            onDateChange={setStartDate}
-                            popoverOpen={startDatePopoverOpen}
-                            onPopoverChange={setStartDatePopoverOpen}
-                            theme={theme}
-                          />
-                          <DatePickerField
-                            label="End Date"
-                            date={endDate}
-                            onDateChange={setEndDate}
-                            popoverOpen={endDatePopoverOpen}
-                            onPopoverChange={setEndDatePopoverOpen}
-                            theme={theme}
-                          />
-                          <div className="flex justify-end gap-2">
-                            <DialogClose asChild>
-                              <Button
-                                onClick={handleClearDates}
-                                className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors"
-                              >
-                                Clear
-                              </Button>
-                            </DialogClose>
-                            <DialogClose asChild>
-                              <Button
-                                onClick={handleDateFilter}
-                                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-                              >
-                                Apply
-                              </Button>
-                            </DialogClose>
+                            } dean-filters-dialog`}
+                        >
+                          <DialogHeader>
+                            <DialogTitle>Attendance Report Filters</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 py-2">
+                            <DatePickerField
+                              label="Start Date"
+                              date={startDate}
+                              onDateChange={setStartDate}
+                              popoverOpen={startDatePopoverOpen}
+                              onPopoverChange={setStartDatePopoverOpen}
+                              theme={theme}
+                            />
+                            <DatePickerField
+                              label="End Date"
+                              date={endDate}
+                              onDateChange={setEndDate}
+                              popoverOpen={endDatePopoverOpen}
+                              onPopoverChange={setEndDatePopoverOpen}
+                              theme={theme}
+                            />
+                            <div className="flex justify-end gap-2">
+                              <DialogClose asChild>
+                                <Button
+                                  onClick={handleClearDates}
+                                  className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors"
+                                >
+                                  Clear
+                                </Button>
+                              </DialogClose>
+                              <DialogClose asChild>
+                                <Button
+                                  onClick={handleDateFilter}
+                                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                                >
+                                  Apply
+                                </Button>
+                              </DialogClose>
+                            </div>
                           </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                        </DialogContent>
+                      </Dialog>
 
-                    {/* Desktop/Tablet Export Button */}
-                    <Button
-                      onClick={handleExportPDF}
-                      variant="outline"
-                      className="hidden lg:flex items-center justify-center gap-2 px-4 h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md rounded-lg w-full lg:w-auto flex-1 lg:flex-initial whitespace-nowrap"
-                      disabled={
-                        !selectedBranch || !selectedFaculty || facultiesLoading || exportLoading
-                      }
-                      title={
-                        !selectedBranch || !selectedFaculty
-                          ? "Select branch and faculty to enable export"
-                          : undefined
-                      }
-                    >
-                      {exportLoading ? (
-                        <>
+                      {/* Desktop/Tablet Export Button */}
+                      <Button
+                        onClick={handleExportPDF}
+                        variant="outline"
+                        className="hidden lg:flex items-center justify-center gap-2 px-4 h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md rounded-lg w-full lg:w-auto flex-1 lg:flex-initial whitespace-nowrap"
+                        disabled={
+                          !selectedBranch || !selectedFaculty || facultiesLoading || exportLoading
+                        }
+                        title={
+                          !selectedBranch || !selectedFaculty
+                            ? "Select branch and faculty to enable export"
+                            : undefined
+                        }
+                      >
+                        {exportLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Exporting...
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="h-4 w-4" />
+                            Export PDF
+                          </>
+                        )}
+                      </Button>
+                      {/* Mobile Export Icon Button */}
+                      <Button
+                        onClick={handleExportPDF}
+                        size="icon"
+                        variant="outline"
+                        className="flex lg:hidden items-center justify-center h-9 w-9 p-0 border border-input bg-background text-foreground flex-shrink-0 shadow-sm dean-mobile-icon-btn"
+                        disabled={
+                          !selectedBranch || !selectedFaculty || facultiesLoading || exportLoading
+                        }
+                        title="Export PDF"
+                      >
+                        {exportLoading ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          Exporting...
-                        </>
-                      ) : (
-                        <>
+                        ) : (
                           <FileText className="h-4 w-4" />
-                          Export PDF
-                        </>
-                      )}
-                    </Button>
-                    {/* Mobile Export Icon Button */}
-                    <Button
-                      onClick={handleExportPDF}
-                      size="icon"
-                      variant="outline"
-                      className="flex lg:hidden items-center justify-center h-9 w-9 p-0 border border-input bg-background text-foreground flex-shrink-0 shadow-sm dean-mobile-icon-btn"
-                      disabled={
-                        !selectedBranch || !selectedFaculty || facultiesLoading || exportLoading
-                      }
-                      title="Export PDF"
-                    >
-                      {exportLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <FileText className="h-4 w-4" />
-                      )}
-                    </Button>
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
+                </CardContent>
               </div>
             </Card>
           </div>
@@ -745,7 +745,7 @@ const DeanFacultyProfile = ({
                   : "w-full bg-white border border-gray-200 relative overflow-hidden"
               }
             >
-              <CardContent className="px-6 pb-6 pt-6 space-y-6">
+              <CardContent className="px-6 pb-6 pt-4 space-y-6">
                 <div>
                   {/* Stats Cards */}
                   <div className="p-0">
@@ -830,8 +830,8 @@ const DeanFacultyProfile = ({
             !profileLoading && (
               <div
                 className={`mt-4 flex flex-col items-center justify-center py-24 px-4 rounded-xl border-2 border-dashed ${theme === "dark"
-                    ? "border-border bg-card/30"
-                    : "border-gray-200 bg-gray-50/50"
+                  ? "border-border bg-card/30"
+                  : "border-gray-200 bg-gray-50/50"
                   }`}
               >
                 <div
@@ -1005,8 +1005,8 @@ function AssignmentsList({ assignments, theme }: AssignmentsListProps) {
             <div
               key={key}
               className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${theme === "dark"
-                  ? "bg-muted/50 border-border"
-                  : "bg-gray-50 border-gray-200"
+                ? "bg-muted/50 border-border"
+                : "bg-gray-50 border-gray-200"
                 }`}
             >
               <div
@@ -1325,8 +1325,8 @@ function FacultySearchDropdown({
           <div className="p-2 border-b border-border">
             <input
               className={`w-full px-3 py-2 text-sm rounded-md border outline-none focus:ring-1 focus:ring-primary ${theme === "dark"
-                  ? "bg-background border-border text-foreground"
-                  : "bg-white border-gray-200 text-gray-900"
+                ? "bg-background border-border text-foreground"
+                : "bg-white border-gray-200 text-gray-900"
                 }`}
               placeholder="Search faculty..."
               value={facultySearch}

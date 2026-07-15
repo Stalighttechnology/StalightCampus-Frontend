@@ -1189,10 +1189,10 @@ const StudentManagement = () => {
 
       {/* Add Student Manually Form */}
       <Card id="add-student-manually-card" className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-        <CardHeader>
-          <CardTitle className={`text-2xl font-semibold leading-none tracking-tight text-gray-900 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Add Student Manually</CardTitle>
+        <CardHeader className="border-b pb-2">
+          <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Add Student Manually</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-visible custom-scrollbar">
+        <CardContent className="overflow-visible custom-scrollbar pt-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-3">
             {/* USN */}
             <div className="flex flex-col">
@@ -1493,9 +1493,9 @@ const StudentManagement = () => {
 
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <div id="student-list-header-section">
-          <CardHeader>
+          <CardHeader className="border-b pb-2">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 md:gap-4">
-              <CardTitle>Student List</CardTitle>
+              <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Student List</CardTitle>
               <div className="flex w-full sm:w-auto gap-2">
                 {/* Bulk Upload Button */}
                 <Button
@@ -1520,7 +1520,7 @@ const StudentManagement = () => {
             </div>
           </CardHeader>
 
-          <CardContent className="pb-4">
+          <CardContent className="pb-4 pt-3">
             <div className="flex flex-col gap-3">
               {/* Search bar — full width on all screens */}
               <div className="search-wrapper flex gap-2 w-full">

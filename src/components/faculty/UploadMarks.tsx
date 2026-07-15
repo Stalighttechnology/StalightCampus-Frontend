@@ -316,7 +316,7 @@ const UploadMarks = () => {
         if (res?.success && res.data) {
           setDropdownData((prev) => ({ ...prev, batch: res.data || [] }));
         }
-      } catch (err) {}
+      } catch (err) { }
     };
     loadBatches();
   }, []);
@@ -1137,7 +1137,7 @@ const UploadMarks = () => {
           </CardContent>
         </div>
 
-        <CardContent className="pt-6">
+        <CardContent className="pt-4">
           <TabsContent value="manual">
             {!areAllDropdownsSelected() ?
               <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
@@ -1350,8 +1350,8 @@ const UploadMarks = () => {
                                             variant="outline"
                                             size="sm"
                                             className={`h-8 px-2 text-xs flex items-center gap-1 border-dashed shrink-0 ${isSaved
-                                                ? "text-emerald-600 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 dark:border-emerald-950 dark:hover:border-emerald-900 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/30"
-                                                : "text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300 dark:border-blue-950 dark:hover:border-blue-900 bg-blue-50/50 hover:bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30"
+                                              ? "text-emerald-600 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 dark:border-emerald-950 dark:hover:border-emerald-900 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/30"
+                                              : "text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300 dark:border-blue-950 dark:hover:border-blue-900 bg-blue-50/50 hover:bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30"
                                               }`}
                                             disabled={isSaved}
                                             onClick={() => {
@@ -1585,7 +1585,7 @@ const UploadMarks = () => {
                                         {s.maxMarks}m
                                       </Badge>
                                     </div>
-                                    <div 
+                                    <div
                                       className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} text-left whitespace-pre-line break-words`}
                                       dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
                                     />
@@ -1611,7 +1611,7 @@ const UploadMarks = () => {
                                     </div>
                                     <div className="flex-1 pt-2">
                                       <div className="flex justify-between items-start gap-4">
-                                        <div 
+                                        <div
                                           className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left whitespace-pre-line break-words`}
                                           dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
                                         />

@@ -1013,7 +1013,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
           </div>
         </CardHeader>
 
-        <CardContent className="px-6 pb-6 pt-2 space-y-8">
+        <CardContent className="px-6 pb-6 pt-3 space-y-8">
           {localError && <div className="text-red-500 text-center">{localError}</div>}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-start">

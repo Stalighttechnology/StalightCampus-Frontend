@@ -316,11 +316,11 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
 
       <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="department-admin-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
-          <CardHeader id="department-admin-leaves-header-section" className="leave-card-header pb-2">
+          <CardHeader id="dept-admin-leaves-header-section" className="leave-card-header border-b pb-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
               <div>
                 <div className="flex items-center gap-3 mb-1">
-                  <CardTitle className={`leave-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</CardTitle>
+                  <CardTitle className={`leave-card-title text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</CardTitle>
                   {totalCount > 0 &&
                     <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
                       {totalCount} Total
@@ -439,7 +439,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                       <SelectItem value="hms_admin">Hostel Admin</SelectItem>
                     </SelectContent>
                   </Select>
- 
+
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-full sm:w-auto min-w-[100px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:block [&>span]:truncate [&>span]:max-w-[80px] shadow-sm font-medium text-sm">
                       <Filter className="h-4 w-4" />
@@ -456,7 +456,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
               </div>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 px-2 sm:px-6 pt-2">
+          <CardContent className="flex-1 px-2 sm:px-6 pt-3">
             {loading ? (
               <div className="space-y-6">
                 <SkeletonTable rows={8} cols={5} />

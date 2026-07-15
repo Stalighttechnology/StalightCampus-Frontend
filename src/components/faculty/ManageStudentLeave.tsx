@@ -237,7 +237,7 @@ const ManageStudentLeave = () => {
             </div>
           </div>
         </div>
-        <CardContent className="p-4 sm:p-6 pt-0 lg:pt-6">
+        <CardContent className="p-4 sm:p-6 pt-0 lg:pt-4">
           {isLoading ? (
             <div className="space-y-4">
               <div className="md:hidden">
@@ -291,8 +291,8 @@ const ManageStudentLeave = () => {
                     <Button
                       onClick={() => setViewReason(leave.reason)}
                       className={`w-full mb-3 h-10 rounded-xl font-medium transition-all duration-200 ${theme === 'dark'
-                          ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
-                          : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
+                        ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
+                        : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
                         }`}
                       variant="outline"
                     >

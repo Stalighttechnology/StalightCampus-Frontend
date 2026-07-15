@@ -657,7 +657,7 @@ const MenuManagement: React.FC = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4">
           {/* Menu Grid */}
           {loading || skeletonMode || initialLoading ?
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -890,8 +890,8 @@ const MenuManagement: React.FC = () => {
                       key={item.id}
                       onClick={() => toggleItemSelection(item.id!)}
                       className={`flex items-center gap-3 p-3 rounded-md cursor-pointer border transition-all ${formData.items.includes(item.id!) ?
-                          'bg-primary/5 border-primary/30 shadow-sm ring-1 ring-primary/20' :
-                          'bg-background hover:bg-muted/50 border-transparent'}`
+                        'bg-primary/5 border-primary/30 shadow-sm ring-1 ring-primary/20' :
+                        'bg-background hover:bg-muted/50 border-transparent'}`
                       }>
 
                       <div className={`w-3 h-3 rounded-full flex-shrink-0 ${item.vegetarian ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]'}`} />

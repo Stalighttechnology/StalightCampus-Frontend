@@ -19,10 +19,10 @@ interface QPPending {
   set_number?: string;
   faculty: string;
   submitted_at: string;
-  branch?: {id: number | null;name: string | null;};
+  branch?: { id: number | null; name: string | null; };
   status?: string;
   current_holder?: string | null;
-  last_action?: {actor?: string;role?: string;action?: string;comment?: string;} | null;
+  last_action?: { actor?: string; role?: string; action?: string; comment?: string; } | null;
 }
 
 interface QPDetail {
@@ -48,8 +48,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter } from
-"../ui/dialog";
+  DialogFooter
+} from
+  "../ui/dialog";
 
 const QPApprovals = () => {
   const [pendingQPs, setPendingQPs] = useState<QPPending[]>([]);
@@ -112,7 +113,8 @@ const QPApprovals = () => {
     } catch (e) {
 
       // ignore when DOM not available
-    }}, []);
+    }
+  }, []);
 
   useEffect(() => {
     fetchPendingQPs(currentPage);
@@ -265,7 +267,7 @@ const QPApprovals = () => {
     });
 
     if (!result || result.isDismissed || !result.isConfirmed) {
-      try {MySwal.close();} catch (e) {}
+      try { MySwal.close(); } catch (e) { }
       return;
     }
 
@@ -281,7 +283,7 @@ const QPApprovals = () => {
       });
       const data = await response.json();
       if (data.success) {
-        try {MySwal.close();} catch (e) {}
+        try { MySwal.close(); } catch (e) { }
         const t = toast({ title: 'Approved', description: data.message || 'QP approved and forwarded to Admin.' });
         setTimeout(() => t.dismiss(), 3000);
         fetchPendingQPs(currentPage);
@@ -316,7 +318,7 @@ const QPApprovals = () => {
     });
 
     if (!result || result.isDismissed || !result.isConfirmed) {
-      try {MySwal.close();} catch (e) {}
+      try { MySwal.close(); } catch (e) { }
       return;
     }
 
@@ -332,7 +334,7 @@ const QPApprovals = () => {
       });
       const data = await response.json();
       if (data.success) {
-        try {MySwal.close();} catch (e) {}
+        try { MySwal.close(); } catch (e) { }
         const t = toast({ title: 'Rejected', description: data.message || 'QP rejected and sent back to Faculty for edits.' });
         setTimeout(() => t.dismiss(), 3000);
         fetchPendingQPs(currentPage);
@@ -455,15 +457,15 @@ const QPApprovals = () => {
       <div id="hod-qp-approvals-container" className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <Card className={theme === 'dark' ? 'bg-card border border-border flex flex-col min-h-[550px]' : 'bg-white border border-gray-200 flex flex-col min-h-[550px]'}>
-            <CardHeader className="pb-2">
+            <CardHeader className="border-b pb-4">
               <div id="qp-approvals-header-section" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <CardTitle className={`mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Approvals</CardTitle>
+                  <CardTitle className={`text-2xl font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Approvals</CardTitle>
                   <div className="flex items-center gap-3">
                     <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and track question papers from your department faculty</p>
                   </div>
                 </div>
-                 <TabsList className="grid grid-cols-2 w-full sm:w-auto">
+                <TabsList className="grid grid-cols-2 w-full sm:w-auto">
                   <TabsTrigger value="pending" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">Pending Requests</TabsTrigger>
                   <TabsTrigger value="history" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">History</TabsTrigger>
                 </TabsList>
@@ -471,7 +473,7 @@ const QPApprovals = () => {
             </CardHeader>
 
             <TabsContent value="pending" className="flex-1 mt-0">
-              <CardContent className="px-4 sm:px-6 pt-0">
+              <CardContent className="px-4 sm:px-6 pt-3">
                 <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4 mb-4">
                   {pendingQPs.length === 0 ?
                     <div className={`flex flex-col h-full items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
@@ -520,7 +522,7 @@ const QPApprovals = () => {
             </TabsContent>
 
             <TabsContent value="history" className="flex-1 mt-0">
-              <CardContent className="px-4 sm:px-6 pt-0">
+              <CardContent className="px-4 sm:px-6 pt-4">
                 <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4 mb-4">
                   {historyLoading && historyQPs.length === 0 ? (
                     <SkeletonTable rows={3} cols={3} />
@@ -594,60 +596,60 @@ const QPApprovals = () => {
             </DialogHeader>
             <div className="overflow-auto custom-scrollbar px-4 py-2 space-y-4 flex-1">
               {detailLoading ?
-              <div className="text-center py-4">Loading QP details...</div> :
-              qpDetail ?
-              <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
-                  <h4 className="font-semibold mb-4">Question Paper Preview</h4>
-                  <div className="space-y-4">
-                    {qpDetail.questions.map((q, qIndex) =>
-                  <div key={qIndex} className="space-y-3">
-                        {q.subparts.map((s, sIndex) => {
-                      const key = `${qIndex}-${sIndex}`;
-                      const isExpanded = !!expanded[key];
-                      const shortContent = (s.content || '').length > 160 ? (s.content || '').slice(0, 160) + '…' : s.content || '';
-                      return (
-                        <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900">
-                              <div className="flex items-start gap-3">
-                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-medium text-sm">
-                                  {q.question_number}{s.subpart_label}
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex justify-between items-start gap-4">
-                                    <div 
-                                      className="text-sm text-gray-900 dark:text-gray-100 mb-1 flex-1"
-                                      dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
-                                    />
-                                    <div className="ml-2 flex-shrink-0">
-                                      <Badge className="text-gray-900 dark:text-gray-100 font-semibold text-sm bg-transparent">{s.max_marks}m</Badge>
+                <div className="text-center py-4">Loading QP details...</div> :
+                qpDetail ?
+                  <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                    <h4 className="font-semibold mb-4">Question Paper Preview</h4>
+                    <div className="space-y-4">
+                      {qpDetail.questions.map((q, qIndex) =>
+                        <div key={qIndex} className="space-y-3">
+                          {q.subparts.map((s, sIndex) => {
+                            const key = `${qIndex}-${sIndex}`;
+                            const isExpanded = !!expanded[key];
+                            const shortContent = (s.content || '').length > 160 ? (s.content || '').slice(0, 160) + '…' : s.content || '';
+                            return (
+                              <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900">
+                                <div className="flex items-start gap-3">
+                                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-medium text-sm">
+                                    {q.question_number}{s.subpart_label}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="flex justify-between items-start gap-4">
+                                      <div
+                                        className="text-sm text-gray-900 dark:text-gray-100 mb-1 flex-1"
+                                        dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
+                                      />
+                                      <div className="ml-2 flex-shrink-0">
+                                        <Badge className="text-gray-900 dark:text-gray-100 font-semibold text-sm bg-transparent">{s.max_marks}m</Badge>
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                                      <Badge className="text-gray-600 dark:text-gray-400 bg-transparent">CO: {q.co}</Badge>
+                                      <Badge className="text-gray-600 dark:text-gray-400 bg-transparent">{q.blooms_level}</Badge>
+                                      {(s.content || '').length > 160 &&
+                                        <button onClick={() => toggleExpanded(key)} className="text-sm text-primary-600 dark:text-primary-400 ml-2">
+                                          {isExpanded ? 'Show less' : 'Show more'}
+                                        </button>
+                                      }
                                     </div>
                                   </div>
-                                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                                    <Badge className="text-gray-600 dark:text-gray-400 bg-transparent">CO: {q.co}</Badge>
-                                    <Badge className="text-gray-600 dark:text-gray-400 bg-transparent">{q.blooms_level}</Badge>
-                                    {(s.content || '').length > 160 &&
-                                 <button onClick={() => toggleExpanded(key)} className="text-sm text-primary-600 dark:text-primary-400 ml-2">
-                                         {isExpanded ? 'Show less' : 'Show more'}
-                                       </button>
-                                 }
-                                  </div>
                                 </div>
-                              </div>
-                            </div>);
+                              </div>);
 
-                    })}
+                          })}
+                        </div>
+                      )}
+                      <div className="font-semibold pt-2 border-t">
+                        Total Marks: {qpDetail.questions.reduce((total, q) =>
+                          total + q.subparts.reduce((subTotal, s) => subTotal + s.max_marks, 0), 0
+                        )}
                       </div>
-                  )}
-                    <div className="font-semibold pt-2 border-t">
-                      Total Marks: {qpDetail.questions.reduce((total, q) =>
-                    total + q.subparts.reduce((subTotal, s) => subTotal + s.max_marks, 0), 0
-                    )}
                     </div>
-                  </div>
-                </div> :
+                  </div> :
 
-              <div className="text-center py-4 text-muted-foreground">
-                  Failed to load QP details
-                </div>
+                  <div className="text-center py-4 text-muted-foreground">
+                    Failed to load QP details
+                  </div>
               }
 
               {!isHistoryView && (

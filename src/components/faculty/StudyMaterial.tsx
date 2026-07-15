@@ -363,24 +363,24 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   return (
     <div ref={ref} className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`} {...props}>
       <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-        <CardHeader id="study-materials-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+        <CardHeader id="study-materials-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b">
           <div className="flex flex-col gap-1.5 w-full">
             <div className="flex items-center justify-between gap-4 w-full">
               <h1 className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Study Materials</h1>
               <button 
                 onClick={() => setShowUploadModal(true)} 
-                className="flex items-center justify-center bg-primary text-white hover:bg-primary/90 transition-all duration-200 ease-in-out shadow-md h-9 px-3 sm:h-10 sm:px-4 rounded-lg font-semibold text-xs sm:text-sm whitespace-nowrap gap-1.5"
+                className="flex items-center justify-center bg-primary text-white hover:bg-primary/90 transition-all duration-200 ease-in-out shadow-md h-9 px-3 sm:h-10 sm:px-4 rounded-lg font-semibold text-xs sm:text-sm whitespace-nowrap "
               >
                 <UploadCloud size={16} />
                 <span>Upload</span>
               </button>
             </div>
-            <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            <p className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               View and upload course-related study materials for your assigned subjects.
             </p>
           </div>
         </CardHeader>
-        <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
+        <CardContent className="p-3 space-y-6">
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
               <Select value={selectedBranch} onValueChange={(value) => {

@@ -712,28 +712,26 @@ const StaffTaskTracker = () => {
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 pt-6">
+      <CardContent className="space-y-6 pt-4">
 
         {/* Tab Navigation if user can assign tasks */}
         {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && role !== 'org_admin' && (
           <div className="flex space-x-1 p-1 rounded-lg bg-muted border border-border overflow-x-auto mb-6 w-full">
             <button
               onClick={() => setActiveTaskTab('assigned_to_me')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                activeTaskTab === 'assigned_to_me'
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTaskTab === 'assigned_to_me'
                   ? 'bg-primary text-white shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
-              }`}
+                }`}
             >
               My Tasks
             </button>
             <button
               onClick={() => setActiveTaskTab('assigned_by_me')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                activeTaskTab === 'assigned_by_me'
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTaskTab === 'assigned_by_me'
                   ? 'bg-primary text-white shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
-              }`}
+                }`}
             >
               Assigned Tasks
             </button>

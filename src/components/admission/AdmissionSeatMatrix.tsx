@@ -48,7 +48,7 @@ export default function AdmissionSeatMatrix() {
           <Plus size={16} className="mr-2" /> Allocate Seats
         </Button>
       </CardHeader>
-      <CardContent className="pt-6 space-y-6">
+      <CardContent className="pt-4 space-y-6">
         {seatMatrix.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground flex flex-col items-center">
             <p className="mb-4">No seat matrix records found.</p>
@@ -63,7 +63,7 @@ export default function AdmissionSeatMatrix() {
                   <div className="flex flex-row items-center justify-between pb-4 border-b">
                     <h3 className="text-base font-semibold text-foreground">{matrix.branch_name}</h3>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="icon" disabled className="h-8 w-8"><Edit size={16}/></Button>
+                      <Button variant="ghost" size="icon" disabled className="h-8 w-8"><Edit size={16} /></Button>
                     </div>
                   </div>
                   <div className="pt-4">
@@ -85,7 +85,7 @@ export default function AdmissionSeatMatrix() {
                         <p className="text-xl font-bold text-foreground">{matrix.management_quota}</p>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm font-medium">
                         <span>Occupancy</span>

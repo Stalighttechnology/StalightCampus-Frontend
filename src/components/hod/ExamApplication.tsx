@@ -445,7 +445,7 @@ const ExamApplication: React.FC = () => {
           )}
         </Button>
       </CardHeader>
-      <CardContent className="space-y-4 pt-6">
+      <CardContent className="space-y-4 pt-3">
 
         <div id="exam-applications-filters" className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="space-y-2">

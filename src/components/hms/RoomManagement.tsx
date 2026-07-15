@@ -47,7 +47,7 @@ const RoomManagement: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [roomStudents, setRoomStudents] = useState<any[]>([]);
-  const [roomStudentCounts, setRoomStudentCounts] = useState<{[key: number]: number;}>({});
+  const [roomStudentCounts, setRoomStudentCounts] = useState<{ [key: number]: number; }>({});
   const [isLoadingRooms, setIsLoadingRooms] = useState(false);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [isLoadingFloors, setIsLoadingFloors] = useState(false);
@@ -69,7 +69,7 @@ const RoomManagement: React.FC = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const lastFetchRef = React.useRef<{hostel: number | null;floor: string;}>({ hostel: null, floor: "" });
+  const lastFetchRef = React.useRef<{ hostel: number | null; floor: string; }>({ hostel: null, floor: "" });
 
   useEffect(() => {
     if (location.state?.openAddRoom) {
@@ -107,8 +107,8 @@ const RoomManagement: React.FC = () => {
       // We can only do this accurately if we have all rooms for that floor
       // Since we now might be loading only one floor, it's safer.
       const floorRooms = rooms.filter((r) =>
-      r.hostel === formData.hostel && (
-      r.floor === selectedFloor || getFloorFromRoomNo(r.no) === selectedFloor)
+        r.hostel === formData.hostel && (
+          r.floor === selectedFloor || getFloorFromRoomNo(r.no) === selectedFloor)
       );
 
       let nextNo = selectedFloor * 100 + 1;
@@ -170,7 +170,7 @@ const RoomManagement: React.FC = () => {
       const results = await getCachedRooms(hostelId, floor);
       setRooms(results);
 
-      const countsMap: {[key: number]: number;} = {};
+      const countsMap: { [key: number]: number; } = {};
       results.forEach((room: any) => {
         countsMap[room.id] = room.student_count || 0;
       });
@@ -194,7 +194,7 @@ const RoomManagement: React.FC = () => {
     const duplicate = allRoomsInHostel.find((r) =>
       r.hostel === formData.hostel &&
       r.no === formData.no && (
-      !editingRoom || r.id !== editingRoom.id)
+        !editingRoom || r.id !== editingRoom.id)
     );
 
     if (duplicate) {
@@ -217,7 +217,7 @@ const RoomManagement: React.FC = () => {
     if (response.success) {
       // Invalidate context cache to ensure other pages fetch fresh data
       await refreshData(true);
-      
+
       // Refresh local room and floor data
       if (selectedHostel) {
         await fetchHostelFloors(selectedHostel);
@@ -225,7 +225,7 @@ const RoomManagement: React.FC = () => {
           await fetchRoomsByHostel(selectedHostel, selectedFloorFilter);
         }
       }
-      
+
       setIsDialogOpen(false);
       setEditingRoom(null);
       toast({
@@ -271,7 +271,7 @@ const RoomManagement: React.FC = () => {
       if (response.success) {
         // Invalidate context cache to ensure other pages fetch fresh data
         await refreshData(true);
-        
+
         // Refresh local room and floor data
         if (selectedHostel) {
           await fetchHostelFloors(selectedHostel);
@@ -279,7 +279,7 @@ const RoomManagement: React.FC = () => {
             await fetchRoomsByHostel(selectedHostel, selectedFloorFilter);
           }
         }
-        
+
         toast({
           title: "Success",
           description: "Room deleted successfully"
@@ -307,10 +307,10 @@ const RoomManagement: React.FC = () => {
 
   const getRoomColorClasses = (color: string) => {
     switch (color) {
-      case 'green':return 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-500/20';
-      case 'yellow':return 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20';
-      case 'red':return 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/20';
-      default:return 'bg-muted/50 border-border text-muted-foreground';
+      case 'green': return 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-500/20';
+      case 'yellow': return 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20';
+      case 'red': return 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/20';
+      default: return 'bg-muted/50 border-border text-muted-foreground';
     }
   };
 
@@ -320,10 +320,10 @@ const RoomManagement: React.FC = () => {
 
   // Calculate dynamic room counts for the legend based on selection
   const filteredRooms = selectedHostel
-    ? rooms.filter((r) => 
-        r.hostel === selectedHostel &&
-        (selectedFloorFilter === "all" || selectedFloorFilter === "" || (r.floor !== undefined ? r.floor : getFloorFromRoomNo(r.no)).toString() === selectedFloorFilter)
-      )
+    ? rooms.filter((r) =>
+      r.hostel === selectedHostel &&
+      (selectedFloorFilter === "all" || selectedFloorFilter === "" || (r.floor !== undefined ? r.floor : getFloorFromRoomNo(r.no)).toString() === selectedFloorFilter)
+    )
     : [];
 
   const emptyCount = filteredRooms.filter(r => {
@@ -354,13 +354,13 @@ const RoomManagement: React.FC = () => {
                   <div className="flex flex-col w-full">
                     <span className="text-[14px] font-semibold mb-2">Current Hostel</span>
                     {isLoadingHostels || skeletonMode ?
-                    <div className="w-full md:w-[200px] h-9 rounded-md bg-muted animate-pulse border" /> :
+                      <div className="w-full md:w-[200px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                     <Select value={selectedHostel?.toString() || ''} onValueChange={(v) => {
-                      setSelectedHostel(parseInt(v));
-                      setSelectedFloorFilter("");
-                      setIsFloorOpen(true);
-                    }}>
+                      <Select value={selectedHostel?.toString() || ''} onValueChange={(v) => {
+                        setSelectedHostel(parseInt(v));
+                        setSelectedFloorFilter("");
+                        setIsFloorOpen(true);
+                      }}>
                         <SelectTrigger className="w-full md:w-[200px] h-9 border bg-transparent p-2 focus:ring-1 font-normal text-md">
                           <SelectValue placeholder="Select Hostel" />
                         </SelectTrigger>
@@ -399,19 +399,19 @@ const RoomManagement: React.FC = () => {
                   <div className="flex flex-col w-full">
                     <span className="text-[14px] font-semibold mb-2">Current Floor</span>
                     {isLoadingHostels || skeletonMode ?
-                    <div className="w-full md:w-[160px] h-9 rounded-md bg-muted animate-pulse border" /> :
+                      <div className="w-full md:w-[160px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                    <Select
-                      disabled={!selectedHostel || isLoadingFloors}
-                      value={selectedFloorFilter}
-                      onValueChange={(v) => {
-                        setSelectedFloorFilter(v);
-                        if (v) {
-                          setIsLoadingRooms(true);
-                        }
-                      }}
-                      open={isFloorOpen}
-                      onOpenChange={setIsFloorOpen}>
+                      <Select
+                        disabled={!selectedHostel || isLoadingFloors}
+                        value={selectedFloorFilter}
+                        onValueChange={(v) => {
+                          setSelectedFloorFilter(v);
+                          if (v) {
+                            setIsLoadingRooms(true);
+                          }
+                        }}
+                        open={isFloorOpen}
+                        onOpenChange={setIsFloorOpen}>
                         <SelectTrigger className="w-full md:w-[160px] h-9 border bg-transparent p-2 focus:ring-1 font-normal text-md">
                           {isLoadingFloors ? (
                             <span className="text-muted-foreground text-sm animate-pulse">Loading floors...</span>
@@ -422,10 +422,10 @@ const RoomManagement: React.FC = () => {
                         <SelectContent>
                           <SelectItem value="all">All Floors</SelectItem>
                           {availableFloors.sort((a, b) => a - b).map((f) =>
-                        <SelectItem key={f} value={f.toString()}>
+                            <SelectItem key={f} value={f.toString()}>
                               {f === 0 ? 'Ground Floor' : `${f}${f === 1 ? 'st' : f === 2 ? 'nd' : f === 3 ? 'rd' : 'th'} Floor`}
                             </SelectItem>
-                        )}
+                          )}
                         </SelectContent>
                       </Select>
                     }
@@ -433,7 +433,7 @@ const RoomManagement: React.FC = () => {
                 </div>
               </div>
 
-               <div className="flex flex-row items-center gap-2 w-full md:w-auto">
+              <div className="flex flex-row items-center gap-2 w-full md:w-auto">
                 {isLoadingHostels || skeletonMode ? (
                   <div className="h-9 flex-1 md:w-[120px] rounded-md bg-muted animate-pulse border" />
                 ) : (
@@ -451,17 +451,17 @@ const RoomManagement: React.FC = () => {
                 )}
 
                 {isLoadingHostels || skeletonMode ?
-                <div className="h-9 flex-1 md:w-[120px] rounded-md bg-muted animate-pulse border" /> :
+                  <div className="h-9 flex-1 md:w-[120px] rounded-md bg-muted animate-pulse border" /> :
 
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                       <Button onClick={() => {
-                      setEditingRoom(null);
-                      setSelectedFloor(null);
-                      setFormData({ no: '', name: '', room_type: 'S', vacant: true, hostel: selectedHostel || 0 });
-                    }} 
-                    disabled={!selectedHostel || !selectedFloorFilter}
-                    className="bg-primary hover:bg-primary/90 h-9 px-2 sm:px-4 text-xs sm:text-sm font-semibold shadow-sm whitespace-nowrap flex-1 md:flex-initial flex items-center justify-center gap-1 sm:gap-2">
+                        setEditingRoom(null);
+                        setSelectedFloor(null);
+                        setFormData({ no: '', name: '', room_type: 'S', vacant: true, hostel: selectedHostel || 0 });
+                      }}
+                        disabled={!selectedHostel || !selectedFloorFilter}
+                        className="bg-primary hover:bg-primary/90 h-9 px-2 sm:px-4 text-xs sm:text-sm font-semibold shadow-sm whitespace-nowrap flex-1 md:flex-initial flex items-center justify-center gap-1 sm:gap-2">
                         <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Add Room
                       </Button>
                     </DialogTrigger>
@@ -485,8 +485,8 @@ const RoomManagement: React.FC = () => {
                             <SelectTrigger className="h-10"><SelectValue placeholder="Select floor" /></SelectTrigger>
                             <SelectContent>
                               {Array.from({ length: hostels.find((h) => h.id === formData.hostel)?.floor_count || 6 }, (_, i) => i).map((f) =>
-                            <SelectItem key={f} value={f.toString()}>{f === 0 ? 'Ground Floor' : `${f}${f === 1 ? 'st' : f === 2 ? 'nd' : f === 3 ? 'rd' : 'th'} Floor`}</SelectItem>
-                            )}
+                                <SelectItem key={f} value={f.toString()}>{f === 0 ? 'Ground Floor' : `${f}${f === 1 ? 'st' : f === 2 ? 'nd' : f === 3 ? 'rd' : 'th'} Floor`}</SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                         </div>
@@ -530,7 +530,7 @@ const RoomManagement: React.FC = () => {
                           </Select>
                         </div>
                         {editingRoom &&
-                      <div className="p-4 bg-muted/50 rounded-lg border border-dashed space-y-3">
+                          <div className="p-4 bg-muted/50 rounded-lg border border-dashed space-y-3">
                             <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                               <Info size={14} /> Capacity Info
                             </h4>
@@ -540,26 +540,26 @@ const RoomManagement: React.FC = () => {
                             </div>
                             <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
                               <div
-                            className="bg-primary h-full"
-                            style={{ width: `${roomStudents.length / getRoomCapacity(formData.room_type) * 100}%` }} />
-                          
+                                className="bg-primary h-full"
+                                style={{ width: `${roomStudents.length / getRoomCapacity(formData.room_type) * 100}%` }} />
+
                             </div>
                           </div>
-                      }
+                        }
                         <div className="flex gap-2 mt-2">
                           {editingRoom &&
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="h-10 px-4 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
-                          onClick={() => {
-                            handleDelete(editingRoom.id);
-                            setIsDialogOpen(false);
-                          }}>
-                          
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="h-10 px-4 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+                              onClick={() => {
+                                handleDelete(editingRoom.id);
+                                setIsDialogOpen(false);
+                              }}>
+
                               <Trash2 size={16} />
                             </Button>
-                        }
+                          }
                           <Button type="submit" className="flex-1 h-10 font-bold">{editingRoom ? 'Update Room' : 'Create Room'}</Button>
                         </div>
                       </form>
@@ -569,7 +569,7 @@ const RoomManagement: React.FC = () => {
               </div>
             </div>
           </CardHeader>
-          <div className="px-6 pt-6">
+          <div className="px-6 pt-4">
             {/* Legend */}
             <div className=" p-6 rounded-2xl bg-muted/30 border-2 border-dashed">
               <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">Room Occupancy Legend</h4>
@@ -605,7 +605,7 @@ const RoomManagement: React.FC = () => {
             </div>
           </div>
         </div>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4">
 
           {/* Room Matrix View */}
           {isLoadingRooms || skeletonMode ? (
@@ -718,12 +718,11 @@ const RoomManagement: React.FC = () => {
         <DialogContent className="max-w-[90%] sm:max-w-[400px] rounded-2xl max-h-[80vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${
-                viewingRoom ? (
-                  getRoomStatus(viewingRoom, roomStudentCounts[viewingRoom.id] || 0).color === 'green' ? 'bg-green-500' :
+              <div className={`w-3 h-3 rounded-full ${viewingRoom ? (
+                getRoomStatus(viewingRoom, roomStudentCounts[viewingRoom.id] || 0).color === 'green' ? 'bg-green-500' :
                   getRoomStatus(viewingRoom, roomStudentCounts[viewingRoom.id] || 0).color === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
-                ) : 'bg-muted'
-              }`} />
+              ) : 'bg-muted'
+                }`} />
               Room {viewingRoom?.name} Residents
             </DialogTitle>
             <span className="text-sm text-muted-foreground mt-1 block">
