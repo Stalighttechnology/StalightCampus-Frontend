@@ -555,7 +555,7 @@ const ProctorStudents = () => {
   }
 
   return (
-    <div id="hod-proctors-container" className={`sm: min-h-screen text-base sm:text-base max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+    <div id="hod-proctors-container" className={`w-full min-h-screen text-base mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       {/* Stats Cards */}
       <div id="proctors-stats-cards" className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div>

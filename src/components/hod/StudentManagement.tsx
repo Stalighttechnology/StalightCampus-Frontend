@@ -1494,18 +1494,17 @@ const StudentManagement = () => {
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <div id="student-list-header-section">
           <CardHeader className="border-b pb-2">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 md:gap-4">
+            <div className="flex flex-row items-center justify-between gap-3 md:gap-4">
               <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Student List</CardTitle>
-              <div className="flex w-full sm:w-auto gap-2">
+              <div className="flex w-auto gap-2">
                 {/* Bulk Upload Button */}
                 <Button
                   onClick={() => updateState({ addStudentModal: true })}
-                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap h-10"
+                  className="flex items-center justify-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap h-10 w-auto"
                   disabled={state.isLoading || !state.branchId}
                 >
                   <Upload className="w-4 h-4" />
-                  <span className="hidden sm:inline">Bulk Upload</span>
-                  <span className="sm:hidden">Upload</span>
+                  Bulk Upload
                 </Button>
                 {/* Desktop Download PDF Button */}
                 <Button
