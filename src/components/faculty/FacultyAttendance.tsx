@@ -19,7 +19,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 const FacultyAttendance = () => {
-  const [attendanceStatus, setAttendanceStatus] = useState<"present" | "absent" | null>(null);
+  const [attendanceStatus, setAttendanceStatus] = useState<"present" | "absent" | "holiday" | "weekly_off" | null>(null);
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [markingStatus, setMarkingStatus] = useState<"present" | "absent" | null>(null);
@@ -73,8 +73,10 @@ const FacultyAttendance = () => {
         const todayRec = response.data.find((r) => r.date === today) || null;
         setTodayRecord(todayRec);
         if (todayRec) {
-          setAttendanceStatus(todayRec.status as "present" | "absent");
+          setAttendanceStatus(todayRec.status as "present" | "absent" | "holiday" | "weekly_off");
           setNotes(todayRec.notes || "");
+        } else if ((response as any).is_today_holiday) {
+          setAttendanceStatus("holiday");
         }
       }
     } catch (error) {
@@ -106,8 +108,10 @@ const FacultyAttendance = () => {
           const todayRec = response.data.find((r: any) => r.date === today) || null;
           setTodayRecord(todayRec);
           if (todayRec) {
-            setAttendanceStatus(todayRec.status as "present" | "absent");
+            setAttendanceStatus(todayRec.status as "present" | "absent" | "holiday" | "weekly_off");
             setNotes(todayRec.notes || "");
+          } else if ((response as any).is_today_holiday) {
+            setAttendanceStatus("holiday");
           }
           setLoading(false);
         }
@@ -472,13 +476,18 @@ const FacultyAttendance = () => {
                     exit={{ opacity: 0, y: -10 }}
                     className="text-center mt-4">
 
-                    <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full ${attendanceStatus === 'present' ?
-                      theme === 'dark' ? 'bg-green-900/20 text-green-400' : 'bg-green-100 text-green-800' :
-                      theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-800'}`
-                    }>
+                    <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full ${
+                      attendanceStatus === 'present' ?
+                        (theme === 'dark' ? 'bg-green-900/20 text-green-400' : 'bg-green-100 text-green-800') :
+                      attendanceStatus === 'holiday' ?
+                        (theme === 'dark' ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-100 text-blue-800') :
+                      attendanceStatus === 'weekly_off' ?
+                        (theme === 'dark' ? 'bg-slate-900/20 text-slate-400' : 'bg-slate-100 text-slate-800') :
+                        (theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-800')
+                    }`}>
                       {getStatusIcon(attendanceStatus)}
                       <span className="font-medium capitalize">
-                        {attendanceStatus === 'present' ? 'Present' : 'Absent'}
+                        {attendanceStatus === 'weekly_off' ? 'Weekly Off' : attendanceStatus}
                       </span>
                     </div>
                   </motion.div>
