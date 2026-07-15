@@ -273,7 +273,7 @@ const DeanAttendanceFilters = () => {
               <div className="flex flex-wrap lg:flex-nowrap items-end justify-between gap-4">
                 {/* Left Side: Role & Select */}
                 <div className="flex gap-4 items-end flex-wrap w-full">
-                  <div className="w-full lg:w-auto">
+                  <div className="w-full sm:flex-1">
                     <label htmlFor="dean-filter-role" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
                       Role
                     </label>
@@ -284,7 +284,7 @@ const DeanAttendanceFilters = () => {
                       setStartDate(format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'));
                       setEndDate(format(new Date(), 'yyyy-MM-dd'));
                     }}>
-                      <SelectTrigger className={`w-full lg:w-[120px] ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
+                      <SelectTrigger className={`w-full ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
                         <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
@@ -294,12 +294,12 @@ const DeanAttendanceFilters = () => {
                     </Select>
                   </div>
 
-                  <div className="w-full lg:w-auto">
+                  <div className="w-full sm:flex-1">
                     <label htmlFor="dean-filter-person" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
                       Select
                     </label>
                     <Select disabled={!selectedRole} open={isPersonSelectOpen} onOpenChange={setIsPersonSelectOpen} value={selectedPersonId || ""} onValueChange={(value) => setSelectedPersonId(value)}>
-                      <SelectTrigger className={`w-full lg:w-[180px] ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
+                      <SelectTrigger className={`w-full ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
                         <SelectValue placeholder={!selectedRole ? "Select role first" : (selectedRole === "hod" ? "Select HOD" : "Select Admin")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -653,7 +653,7 @@ const DeanAttendanceFilters = () => {
       <Dialog open={!!viewingPerson} onOpenChange={(open) => !open && setViewingPerson(null)}>
         <DialogContent className={`max-w-xl max-h-[80vh] overflow-y-auto custom-scrollbar rounded-xl w-[90%] ${theme === 'dark' ? 'bg-slate-950 border-white/10' : 'bg-white'}`}>
           <DialogHeader className="pb-4 border-b border-border/50">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pr-8 sm:pr-10">
               <div>
                 <DialogTitle className="text-lg font-semibold">
                   {viewingPerson?.name}'s Attendance

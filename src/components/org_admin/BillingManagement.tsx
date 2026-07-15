@@ -971,7 +971,7 @@ export const BillingManagement: React.FC = () => {
 
       {/* Edit Organization Details Dialog */}
       <Dialog open={showEditOrg} onOpenChange={setShowEditOrg}>
-        <DialogContent className="w-[90%] sm:w-[95%] sm:max-w-[550px] max-h-[85vh] overflow-y-auto mx-auto rounded-xl flex flex-col gap-4">
+        <DialogContent className="w-[90%] sm:w-[95%] sm:max-w-[550px] max-h-[85vh] overflow-y-auto mx-auto rounded-xl flex flex-col gap-4 custom-scrollbar">
           <DialogHeader className="border-b pb-3">
             <DialogTitle className="text-xl font-semibold text-left">Edit Organization Details</DialogTitle>
           </DialogHeader>
