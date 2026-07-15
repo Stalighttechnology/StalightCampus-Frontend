@@ -323,7 +323,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
 
       <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="hod-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
-          <CardHeader id="hod-leaves-header-section" className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+          <CardHeader id="hod-leaves-header-section" className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
                 <CardTitle>Leave Requests</CardTitle>
@@ -337,7 +337,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                 Review and approve leave requests from Heads of Departments
               </CardDescription>
             </div>
-            <div className="leave-filter-container flex items-center justify-between sm:justify-start gap-3 w-auto">
+            <div className="leave-filter-container flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
                 <div className="leave-month-wrapper flex items-center gap-2">
                   <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Month:</label>
                   <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>

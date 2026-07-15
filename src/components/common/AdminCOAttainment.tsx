@@ -305,7 +305,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
   return (
     <div id="co-attainment-container">
       <Card>
-        <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+        <CardHeader className="border-b border-border/50 flex flex-row items-start justify-between space-y-0">
           <div>
             <CardTitle>CO Attainment</CardTitle>
             <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
@@ -331,7 +331,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
               disabled={downloadingPDF || !selected.subject_id || Object.keys(coAttainment).length === 0}
               variant="outline"
               size="icon"
-              className="flex md:hidden dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200 h-10 w-10"
+              className="flex md:hidden dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200 h-10 w-10 shrink-0"
             >
               {downloadingPDF ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

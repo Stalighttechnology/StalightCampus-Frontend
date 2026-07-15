@@ -456,7 +456,7 @@ export default function ScheduleMeeting() {
   return (
     <div className="space-y-6 animate-in fade-in">
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
-        <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+        <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle>Meetings &amp; Schedules</CardTitle>
             <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
@@ -467,7 +467,7 @@ export default function ScheduleMeeting() {
           {!['warden', 'library_admin', 'transport_admin'].includes(userRole || '') && (
             <Dialog open={showDialog} onOpenChange={setShowDialog}>
               <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white">
+                <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white shadow-sm h-9 font-semibold">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Meeting
                 </Button>

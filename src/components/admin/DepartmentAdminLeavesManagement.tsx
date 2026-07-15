@@ -316,7 +316,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
 
       <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="department-admin-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
-          <CardHeader id="dept-admin-leaves-header-section" className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+          <CardHeader id="dept-admin-leaves-header-section" className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
                 <CardTitle>Leave Requests</CardTitle>
@@ -330,7 +330,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                 Review and approve leave requests from Department Admins
               </CardDescription>
             </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                   <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} shrink-0`}>Month:</label>
                   <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>

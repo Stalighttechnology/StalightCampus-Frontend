@@ -333,17 +333,17 @@ const CampusLocationManager: React.FC = () => {
     <div id="dean-campus-locations-container" className={`flex flex-col h-[100dvh] overflow-hidden text-sm sm:text-base w-full max-w-[412px] sm:max-w-none sm:min-h-screen mx-auto`}>
       {/* Header area (fixed) */}
       <Card className={`shrink-0 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-        <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+        <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle>Campus Location Management</CardTitle>
             <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
               Set and manage campus boundaries for geolocation-based attendance
             </CardDescription>
           </div>
-          <div className="w-auto">
-            <Button onClick={() => setShowForm(true)} className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white h-9 px-3 font-semibold shadow-md">
+          <div className="w-full sm:w-auto">
+            <Button onClick={() => setShowForm(true)} className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white h-9 px-3 font-semibold shadow-md w-full sm:w-auto">
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Add Location</span>
+              Add Location
             </Button>
           </div>
         </CardHeader>
@@ -438,7 +438,7 @@ const CampusLocationManager: React.FC = () => {
 
         <Card className={theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}>
           <CardHeader>
-            <CardTitle className={`text-base sm:text-lg ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Campus Locations</CardTitle>
+            <CardTitle className={`text-xl sm:text-xl  ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Campus Locations</CardTitle>
           </CardHeader>
           <CardContent className="h-[50vh] sm:h-auto">{/* mobile: constrained height; desktop/tablet keep auto */}
             <div className="flex flex-col h-full w-full min-h-0">

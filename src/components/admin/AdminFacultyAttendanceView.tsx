@@ -625,16 +625,16 @@ const AdminFacultyAttendanceView: React.FC = () => {
       `}</style>
       <div id="faculty-attendance-dashboard-container" className={`space-y-6 animate-fade-in ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="faculty-attendance-card" className={theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}>
-          <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+          <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <CardTitle>Faculty Attendance Dashboard</CardTitle>
               <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
                 Track and manage faculty attendance across the institution
               </CardDescription>
             </div>
-            <div id="admin-faculty-attendance-branch-select" className="flex items-center gap-2 w-auto">
+            <div id="admin-faculty-attendance-branch-select" className="flex items-center gap-2 w-full sm:w-auto">
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="w-full md:w-[200px]">
+                <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue placeholder={translateTerminology("Select Branch")} />
                 </SelectTrigger>
                 <SelectContent>
