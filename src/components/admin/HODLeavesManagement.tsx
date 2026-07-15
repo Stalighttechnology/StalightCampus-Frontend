@@ -308,7 +308,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
       <style>{`
         @media (max-width: 480px) {
           .leave-card-header { padding: 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
-          .leave-card-title { font-size: 1.25rem !important; }
+          .leave-card-title { font-size: 1.125rem !important; }
           .leave-card-desc { font-size: 0.8125rem !important; margin-top: 4px !important; }
           .leave-filter-container { display: flex !important; flex-direction: row !important; justify-content: space-between !important; align-items: center !important; width: 100% !important; gap: 8px !important; }
           .leave-month-wrapper { display: flex !important; flex: 1 !important; min-width: 0 !important; align-items: center !important; gap: 6px !important; }

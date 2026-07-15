@@ -593,7 +593,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         @media (max-width: 480px) {
           .users-card { border-radius: 12px; }
           .users-card-header { padding: 16px; }
-          .users-card-title { font-size: 24px; font-weight: 600; line-height: 1.2; }
+          .users-card-title { font-size: 18px; font-weight: 600; line-height: 1.2; }
           .users-card-desc { font-size: 16px; margin-top: 4px; }
           .users-card-content { padding: 16px; }
           .users-card-content.pb-0 { padding-bottom: 0 !important; }

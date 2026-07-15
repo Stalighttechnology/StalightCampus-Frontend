@@ -305,7 +305,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
       <style>{`
         @media (max-width: 480px) {
           .leave-card-header { padding: 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
-          .leave-card-title { font-size: 1.25rem !important; }
+          .leave-card-title { font-size: 1.125rem !important; }
           .leave-card-desc { font-size: 0.8125rem !important; margin-top: 4px !important; }
           .leave-item-card { padding: 16px !important; border-radius: 12px !important; }
           .leave-actions-mobile { width: 100% !important; margin-top: 12px !important; gap: 8px !important; flex-direction: row !important; }
