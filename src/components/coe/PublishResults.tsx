@@ -156,7 +156,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
     }
   };
 
-  const handleInput = (studentId: number, usn: string, subjectId: number, field: 'cie' | 'see', value: string) => {
+  const handleInput = (studentId: number, usn: string, subjectId: number, field: 'cie' | 'see', value: string, maxVal: number) => {
     const sid = String(studentId);
     const subKey = String(subjectId);
     // sanitize input: allow empty string to clear, otherwise integer-like values only
@@ -174,9 +174,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
     const candidate = sanitize(value);
     // if input is non-numeric, ignore
     if (candidate === null) return;
-    // enforce bounds as-you-type: reject changes that go outside 0..50
-    if (typeof candidate === 'number' && (candidate > 50 || candidate < 0)) {
-      return; // do not update state, preventing typing >50 or <0
+    // enforce bounds as-you-type: reject changes that go outside 0..maxVal
+    if (typeof candidate === 'number' && (candidate > maxVal || candidate < 0)) {
+      return; // do not update state, preventing typing >maxVal or <0
     }
     const val = candidate;
     setAllMarks((prev) => {
@@ -679,20 +679,25 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                             const displayTotal = total;
                             const result = displayTotal === '' ? 'Incomplete' : meetsPassCriteria(cie, see, total) ? 'Pass' : 'Fail';
 
-                            // Calculate grade based on total marks (assuming 100 max)
+                            // Calculate grade based on percentage of total possible marks
                             let grade = '';
                             let gradePoints = '';
-                            if (typeof total === 'number') {
+                            const maxCie = subjectsMeta[sub.id]?.max_cie_marks ?? sub.max_cie_marks ?? 50;
+                            const maxSee = subjectsMeta[sub.id]?.max_see_marks ?? sub.max_see_marks ?? 50;
+                            const maxTotal = maxCie + maxSee;
+
+                            if (typeof total === 'number' && maxTotal > 0) {
+                              const percentage = (total / maxTotal) * 100;
                               if (result === 'Fail') {
                                 grade = 'F';
                                 gradePoints = '0';
                               } else {
-                                if (total >= 90) {grade = 'S';gradePoints = '10';} else
-                                if (total >= 80) {grade = 'A';gradePoints = '9';} else
-                                if (total >= 70) {grade = 'B';gradePoints = '8';} else
-                                if (total >= 60) {grade = 'C';gradePoints = '7';} else
-                                if (total >= 50) {grade = 'D';gradePoints = '6';} else
-                                if (total >= 40) {grade = 'E';gradePoints = '5';} else
+                                if (percentage >= 90) {grade = 'S';gradePoints = '10';} else
+                                if (percentage >= 80) {grade = 'A';gradePoints = '9';} else
+                                if (percentage >= 70) {grade = 'B';gradePoints = '8';} else
+                                if (percentage >= 60) {grade = 'C';gradePoints = '7';} else
+                                if (percentage >= 50) {grade = 'D';gradePoints = '6';} else
+                                if (percentage >= 40) {grade = 'E';gradePoints = '5';} else
                                 {grade = 'F';gradePoints = '0';}
                               }
                             }
@@ -701,8 +706,8 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                               <tr key={sub.id}>
                                 <td className="border px-2 py-1">{subjectsMeta[sub.id]?.code || sub.code}</td>
                                 <td className="border px-2 py-1">{subjectsMeta[sub.id]?.name || sub.name}</td>
-                                <td className="border px-2 py-1"><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={50} value={cie} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'cie', e.target.value)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
-                                <td className={`border px-2 py-1`}><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={50} value={see} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'see', e.target.value)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
+                                <td className="border px-2 py-1"><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={subjectsMeta[sub.id]?.max_cie_marks ?? sub.max_cie_marks ?? 50} value={cie} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'cie', e.target.value, subjectsMeta[sub.id]?.max_cie_marks ?? sub.max_cie_marks ?? 50)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
+                                <td className={`border px-2 py-1`}><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={subjectsMeta[sub.id]?.max_see_marks ?? sub.max_see_marks ?? 50} value={see} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'see', e.target.value, subjectsMeta[sub.id]?.max_see_marks ?? sub.max_see_marks ?? 50)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
                                 <td className="border px-2 py-1">{displayTotal}</td>
                                 <td className={`border px-2 py-1 ${result === 'Pass' ? 'text-green-600' : result === 'Fail' ? 'text-red-600' : 'text-yellow-600'}`}>{result}</td>
                                 <td className="border px-2 py-1">{grade}</td>

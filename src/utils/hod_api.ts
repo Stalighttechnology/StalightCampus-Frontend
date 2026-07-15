@@ -283,6 +283,8 @@ interface Subject {
   subject_code: string;
   semester_id: string;
   subject_type: string;
+  max_cie_marks?: number;
+  max_see_marks?: number;
 }
 
 interface GetSubjectsResponse {
@@ -304,6 +306,9 @@ interface ManageSubjectsRequest {
   semester_id: string;
   branch_id: string;
   subject_type?: string;
+  credits?: number;
+  max_cie_marks?: number;
+  max_see_marks?: number;
 }
 
 interface ManageSubjectsResponse {
@@ -505,6 +510,10 @@ interface SendNotificationRequest {
   section_id?: string;
   subject_id?: string;
   threshold?: number;
+  subject_type?: string;
+  credits?: number;
+  max_cie_marks?: number;
+  max_see_marks?: number;
 }
 
 interface SendNotificationResponse {

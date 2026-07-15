@@ -59,7 +59,7 @@ interface SubjectManagementState {
   semesters: Semester[];
   showModal: "add" | "edit" | null;
   currentSubject: Subject | null;
-  newSubject: { code: string; name: string; semester_id: string; subject_type: string; credits: number; };
+  newSubject: { code: string; name: string; semester_id: string; subject_type: string; credits: number; max_cie_marks: number; max_see_marks: number; };
   loading: boolean;
   branchId: string;
   currentPage: number;
@@ -79,7 +79,7 @@ const SubjectManagement = () => {
     semesters: [],
     showModal: null,
     currentSubject: null,
-    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50 },
     loading: false,
     branchId: "",
     currentPage: 1,
@@ -239,7 +239,9 @@ const SubjectManagement = () => {
         name: subject.name,
         semester_id: subject.semester_id,
         subject_type: subject.subject_type,
-        credits: subject.credits || 3
+        credits: subject.credits || 3,
+        max_cie_marks: subject.max_cie_marks ?? 50,
+        max_see_marks: subject.max_see_marks ?? 50
       },
       showModal: "edit"
     });
@@ -328,7 +330,7 @@ const SubjectManagement = () => {
                   onClick={() => {
                     updateState({
                       showModal: "add",
-                      newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                      newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50 },
                       currentSubject: null
                     });
                   }}
@@ -642,16 +644,58 @@ const SubjectManagement = () => {
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Credits</label>
               <Input
                 type="number"
-                min={0}
+                min={1}
                 value={state.newSubject.credits}
                 onChange={(e) =>
-                  updateState({ newSubject: { ...state.newSubject, credits: Number(e.target.value) } })
+                  updateState({
+                    newSubject: { ...state.newSubject, credits: parseInt(e.target.value) || 0 }
+                  })
                 }
-                placeholder="e.g., 3"
                 disabled={state.loading}
-                className={`${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'} px-3 py-2 rounded`} />
-
+                className={`${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 rounded`}
+              />
             </div>
+
+            {/* Max CIE Marks */}
+            <div className="mb-4">
+              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Max CIE Marks</label>
+              <Input
+                type="number"
+                min={0}
+                max={300}
+                value={state.newSubject.max_cie_marks}
+                onChange={(e) => {
+                  let val = parseInt(e.target.value) || 0;
+                  if (val > 300) val = 300;
+                  updateState({
+                    newSubject: { ...state.newSubject, max_cie_marks: val }
+                  });
+                }}
+                disabled={state.loading}
+                className={`${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 rounded`}
+              />
+            </div>
+
+            {/* Max SEE Marks */}
+            <div className="mb-6">
+              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Max SEE Marks</label>
+              <Input
+                type="number"
+                min={0}
+                max={300}
+                value={state.newSubject.max_see_marks}
+                onChange={(e) => {
+                  let val = parseInt(e.target.value) || 0;
+                  if (val > 300) val = 300;
+                  updateState({
+                    newSubject: { ...state.newSubject, max_see_marks: val }
+                  });
+                }}
+                disabled={state.loading}
+                className={`${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 rounded`}
+              />
+            </div>
+
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-4">
@@ -659,7 +703,7 @@ const SubjectManagement = () => {
                 onClick={() => {
                   updateState({
                     showModal: null,
-                    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50 },
                     currentSubject: null
                   });
                 }}
@@ -684,6 +728,8 @@ const SubjectManagement = () => {
                     semester_id: state.newSubject.semester_id,
                     subject_type: state.newSubject.subject_type,
                     credits: Number(state.newSubject.credits),
+                    max_cie_marks: Number(state.newSubject.max_cie_marks),
+                    max_see_marks: Number(state.newSubject.max_see_marks),
                     ...(state.showModal === "edit" && state.currentSubject ? { subject_id: state.currentSubject.id } : {})
                   };
 
@@ -699,7 +745,9 @@ const SubjectManagement = () => {
                         subject_code: state.newSubject.code,
                         semester_id: state.newSubject.semester_id,
                         subject_type: state.newSubject.subject_type,
-                        credits: state.newSubject.credits
+                        credits: state.newSubject.credits,
+                        max_cie_marks: state.newSubject.max_cie_marks,
+                        max_see_marks: state.newSubject.max_see_marks
                       };
 
                       if (isCreate) {
@@ -712,7 +760,7 @@ const SubjectManagement = () => {
                           totalCount: newTotalCount,
                           totalPages: newTotalPages,
                           showModal: null,
-                          newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                          newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50 },
                           currentSubject: null
                         });
                       } else {
