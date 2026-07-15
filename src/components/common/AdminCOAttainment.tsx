@@ -8,6 +8,7 @@ import { API_ENDPOINT } from "../../utils/config";
 import { useTheme } from '../../context/ThemeContext';
 import { translateTerminology } from "../../utils/institutionConfig";
 import { fetchWithTokenRefresh } from "../../utils/authService";
+import { Loader2, FileDown } from "lucide-react";
 
 interface AdminCOAttainmentProps {}
 
@@ -300,13 +301,47 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
   return (
     <div id="co-attainment-container">
       <Card>
-        <CardContent className="pt-4 space-y-4">
-          <div id="co-attainment-selectors" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50 items-end">
+        <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+          <CardTitle>CO Attainment</CardTitle>
+          <>
+            {/* Desktop Button */}
+            <Button
+              onClick={handleExportPDF}
+              disabled={downloadingPDF || !selected.subject_id || Object.keys(coAttainment).length === 0}
+              className="hidden md:flex h-10 bg-primary text-white hover:bg-primary/90 shadow-sm transition-all duration-200 items-center justify-center gap-2 disabled:opacity-50 text-sm px-4">
+              {downloadingPDF ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileDown className="w-4 h-4" />
+              )}
+              PDF
+            </Button>
+            {/* Mobile Button */}
+            <Button
+              onClick={handleExportPDF}
+              disabled={downloadingPDF || !selected.subject_id || Object.keys(coAttainment).length === 0}
+              variant="outline"
+              size="icon"
+              className="flex md:hidden dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200 h-10 w-10"
+            >
+              {downloadingPDF ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileDown className="w-4 h-4" />
+              )}
+            </Button>
+          </>
+        </CardHeader>
+        <CardContent className="pt-3 space-y-4">
+          <div id="co-attainment-selectors" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50 items-end">
             <div className="space-y-2">
               <label className="text-sm font-medium">Batch (Optional)</label>
               <Select
                 value={selected.batch_id?.toString() || ""}
-                onValueChange={(value) => handleSelectChange('batch_id', Number(value))}
+                onValueChange={(value) => {
+                  handleSelectChange('batch_id', Number(value));
+                  setTimeout(() => setIsBranchOpen(true), 150);
+                }}
                 disabled={dropdownData.batch.length === 0}>
                 <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`} disabled={dropdownData.batch.length === 0}>
                   <SelectValue placeholder={dropdownData.batch.length === 0 ? "No batch available" : "All Batches"} />
@@ -424,28 +459,17 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-nowrap">Target %</label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={targetThreshold}
-                    onChange={(e) => handleTargetThresholdChange(e.target.value)}
-                    className={`h-11 pr-8 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`} />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">%</span>
-                </div>
-              </div>
-              <div className="flex items-end h-full">
-                <Button
-                  onClick={handleExportPDF}
-                  disabled={downloadingPDF || !selected.subject_id || Object.keys(coAttainment).length === 0}
-                  className="w-full h-11 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50">
-                  {downloadingPDF && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                  PDF
-                </Button>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-nowrap">Target %</label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={targetThreshold}
+                  onChange={(e) => handleTargetThresholdChange(e.target.value)}
+                  className={`h-11 pr-8 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`} />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">%</span>
               </div>
             </div>
           </div>
