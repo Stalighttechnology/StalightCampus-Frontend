@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -401,14 +401,12 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
     <div id="feesmanager-payments-container">
       <Card>
         <div id="feesmanager-payments-header">
-          <CardHeader className="border-b bg-muted/20 pb-6 px-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <CardTitle>
-                  Payment Monitoring
-                </CardTitle>
-                <p className="text-muted-foreground mt-1 text-sm">Track and manage all fee payments and transactions</p>
-              </div>
+          <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+            <div>
+              <CardTitle>Payment Monitoring</CardTitle>
+              <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+                Track and manage all fee payments and transactions
+              </CardDescription>
             </div>
           </CardHeader>
 

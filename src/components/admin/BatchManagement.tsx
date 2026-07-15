@@ -3,7 +3,7 @@ import { manageBatches } from "../../utils/admin_api";
 import Swal from "sweetalert2";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Card, CardHeader, CardContent, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardContent, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { SkeletonTable } from "../ui/skeleton";
 import { useToast } from "../../hooks/use-toast";
 import {
@@ -405,22 +405,21 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
 
         {/* Existing Batches */}
         <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm flex flex-col h-auto md:h-[calc(100vh-320px)] md:min-h-[500px]' : 'bg-white border border-gray-200 shadow-sm flex flex-col h-auto md:h-[calc(100vh-320px)] md:min-h-[500px]'}>
-          <CardHeader id="existing-batches-header" className="batch-card-header pb-4 border-b">
-            <div className="flex items-center justify-between">
-              <CardTitle className="batch-title">Existing Batches</CardTitle>
-              <div className="flex items-center gap-2">
+          <CardHeader id="existing-batches-header" className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+            <div>
+              <div className="flex items-center gap-3">
+                <CardTitle>Existing Batches</CardTitle>
                 {totalCount > 0 && (
-                  <span className={`hidden md:inline-flex text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-800'}`}>
+                  <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-800'}`}>
                     Total: {totalCount}
                   </span>
                 )}
               </div>
-            </div>
-            <div className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <p className={`batch-desc text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
                 Manage, edit, or delete created batches
-              </p>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+              </CardDescription>
+            </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-auto">
                 <div className="relative flex-1 sm:flex-initial sm:w-64">
                   <Input
                     placeholder="Search batches..."
@@ -460,7 +459,6 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
                   {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
                 </Button>
               </div>
-            </div>
           </CardHeader>
           <CardContent className="batch-card-content flex-1 overflow-hidden flex flex-col pt-3">
             {loading ? (
