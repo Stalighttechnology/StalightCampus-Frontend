@@ -827,7 +827,7 @@ const AdminAnnouncementManagement = () => {
               onTabChange={setActiveTab}
               showExpired={showArchive}
               setShowExpired={setShowArchive}
-              hideReceivedTab={user?.role === 'org_admin'}
+              hideReceivedTab={false}
             />
           )}
         </Card>
