@@ -504,9 +504,9 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
-                              CIE: {request.previous_cie || 'N/A'}<br />
-                              SEE: {request.previous_see || 'N/A'}<br />
-                              Total: {request.previous_total || 'N/A'}
+                              CIE: {request.previous_cie ?? 'N/A'}<br />
+                              SEE: {request.previous_see ?? 'N/A'}<br />
+                              Total: {request.previous_total ?? 'N/A'}
                             </div>
                           </TableCell>
                           <TableCell>{getStatusBadge(request.status)}</TableCell>
