@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import {
@@ -537,46 +537,39 @@ const fetchData = async (page: number = 1, search: string = filter) => {
       <div className={`mx-auto w-full max-w-[400px] sm:max-w-full text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="branches-management-card" className={theme === 'dark' ? 'branches-card w-full bg-card border border-border flex flex-col h-[calc(100vh-240px)] min-h-[350px] md:h-[calc(100vh-280px)] md:min-h-[550px]' : 'branches-card w-full bg-white border border-gray-200 flex flex-col h-[calc(100vh-240px)] min-h-[350px] md:h-[calc(100vh-280px)] md:min-h-[550px]'}>
           <div id="branches-management-header-section" className="flex flex-col">
-            <CardHeader className="pb-2 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="w-full">
-                <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  Branch Management
-                </CardTitle>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-1">
-                  <p className={`block text-xs md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    Manage branches and assign department heads
-                  </p>
-
-                </div>
+            <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle>Branch Management</CardTitle>
+                <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+                  Manage branches and assign department heads
+                </CardDescription>
               </div>
 
-              <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+              <div className="flex flex-row gap-2 w-auto items-center">
                 {!isReadOnly && (
-                  <div className="flex flex-row gap-2 w-full md:w-auto branches-mobile-row">
+                  <div className="flex flex-row gap-2 w-auto branches-mobile-row">
                     <Button
                       size="sm"
-                      className="flex-1 flex items-center justify-center gap-1 md:w-auto"
+                      className="flex items-center justify-center gap-1 w-auto"
                       onClick={() => setIsAddDialogOpen(true)}
                       disabled={loading}>
-                      <PlusIcon className="w-4 h-4" /> Add Branch
+                      <PlusIcon className="w-4 h-4" /> <span className="hidden sm:inline">Add Branch</span>
                     </Button>
 
                     <Button
                       size="sm"
-                      className="flex-1 flex items-center justify-center gap-1 md:w-auto"
+                      className="flex items-center justify-center gap-1 w-auto"
                       onClick={() => { setIsAssignDialogOpen(true); fetchHODs(); }}
                       disabled={loading}>
-                      <UserPlus2Icon className="w-4 h-4" /> Assign HOD
+                      <UserPlus2Icon className="w-4 h-4" /> <span className="hidden sm:inline">Assign HOD</span>
                     </Button>
                   </div>
                 )}
-
                 <Button
                   size="sm"
-                  className="hidden md:flex items-center justify-center gap-1 w-full md:w-auto"
+                  className="hidden md:flex items-center justify-center gap-1 w-auto"
                   onClick={exportToPDF}
                   disabled={loading || downloadingPDF}>
-
                   {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
                   {downloadingPDF ? "Exporting..." : "Export PDF"}
                 </Button>

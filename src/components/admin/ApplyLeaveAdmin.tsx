@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -249,9 +249,13 @@ const ApplyLeaveAdmin = () => {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Leave Application Form - Left Side */}
           <Card id="apply-leave-form-card" className={`apply-leave-card ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-            <CardHeader className="border-b pb-4">
-              <CardTitle className={`apply-leave-title text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
-              <p className={`text-sm mt-1 font-normal ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Your leave request will be routed to the <span className="font-semibold text-primary">Dean</span> for approval.</p>
+            <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle>Leave Application Form</CardTitle>
+                <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+                  Your leave request will be routed to the <span className="font-semibold text-primary">Dean</span> for approval.
+                </CardDescription>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
               {/* Error Message */}
@@ -347,19 +351,20 @@ const ApplyLeaveAdmin = () => {
 
           {/* Recent Leave Applications - Right Side */}
           <Card id="recent-leaves-card" className={`apply-leave-card ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-            <CardHeader className="border-b pb-4">
-              <div className="flex flex-row items-center justify-between gap-4 w-full">
-                <div>
-                  <CardTitle className={`apply-leave-title text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
-                  <p className={`apply-leave-desc text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
-                </div>
-                <div className="relative flex-shrink-0 mt-2 sm:mt-0" ref={filterRef}>
-                  <Button
-                    onClick={() => setShowFilter((prev) => !prev)}
-                    className="h-10 w-10 sm:w-auto px-0 sm:px-4 text-sm font-medium flex items-center justify-center gap-0 sm:gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90 rounded-lg">
-                    <FilterIcon className="w-4 h-4" />
-                    <span className="hidden sm:inline">{statusFilter === "All" ? "Filter" : statusFilter}</span>
-                  </Button>
+            <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle>Recent Leave Applications</CardTitle>
+                <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+                  View and track your leave requests
+                </CardDescription>
+              </div>
+              <div className="relative flex-shrink-0 mt-2 sm:mt-0" ref={filterRef}>
+                <Button
+                  onClick={() => setShowFilter((prev) => !prev)}
+                  className="h-9 w-9 sm:w-auto px-0 sm:px-3 text-sm font-medium flex items-center justify-center gap-0 sm:gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90 rounded-lg">
+                  <FilterIcon className="w-4 h-4" />
+                  <span className="hidden sm:inline">{statusFilter === "All" ? "Filter" : statusFilter}</span>
+                </Button>
                   {showFilter &&
                     <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-20 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
                       <div className="py-1">
@@ -383,7 +388,6 @@ const ApplyLeaveAdmin = () => {
                     </div>
                   }
                 </div>
-              </div>
             </CardHeader>
             <CardContent className="flex-1 max-h-[500px] overflow-y-auto custom-scrollbar flex flex-col p-6 pt-6">
               {loading ? (

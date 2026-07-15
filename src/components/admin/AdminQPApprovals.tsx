@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -449,19 +449,17 @@ const AdminQPApprovals = () => {
       <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <Card id="qp-approvals-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
-            <CardHeader id="qp-approvals-header-section" className="border-b pb-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <CardTitle className={`text-2xl font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Approvals</CardTitle>
-                  <div className="flex items-center gap-3">
-                    <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and track question papers pending your oversight</p>
-                  </div>
-                </div>
-                <TabsList className="w-full sm:w-auto">
-                  <TabsTrigger value="pending" className="flex-1 px-4 data-[state=active]:bg-primary data-[state=active]:text-white">Pending Requests</TabsTrigger>
-                  <TabsTrigger value="history" className="flex-1 px-4 data-[state=active]:bg-primary data-[state=active]:text-white">History</TabsTrigger>
-                </TabsList>
+            <CardHeader id="qp-approvals-header-section" className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle>Question Paper Approvals</CardTitle>
+                <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+                  Review and track question papers pending your oversight
+                </CardDescription>
               </div>
+              <TabsList className="w-full sm:w-auto">
+                <TabsTrigger value="pending" className="flex-1 px-4 data-[state=active]:bg-primary data-[state=active]:text-white">Pending Requests</TabsTrigger>
+                <TabsTrigger value="history" className="flex-1 px-4 data-[state=active]:bg-primary data-[state=active]:text-white">History</TabsTrigger>
+              </TabsList>
             </CardHeader>
             <TabsContent value="pending" className="flex-1 mt-0">
               <CardContent className="px-4 sm:px-6 pt-3">

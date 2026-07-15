@@ -330,18 +330,19 @@ export default function PrincipalTimetableSettings() {
   return (
     <div className="space-y-6 w-full">
       <Card className={`border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-        <CardHeader className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center pb-6 border-b border-border/50 gap-4">
-          <div className="space-y-1">
-            <CardTitle className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              Timetable Timing Configuration
-            </CardTitle>
-            <CardDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
+        <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle>Timetable Timing Configuration</CardTitle>
+            <p className={`block text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>
               Configure the daily class periods and breaks for your institution.
-            </CardDescription>
+            </p>
           </div>
-          <Button onClick={() => handleOpen()} className="w-full sm:w-auto shadow-sm">
-            <Plus className="w-4 h-4 mr-2" /> Add Slot
-          </Button>
+          <div>
+            <Button onClick={() => handleOpen()} className="w-auto shadow-sm">
+              <Plus className="w-4 h-4 mr-2" /> Add Slot
+            </Button>
+          </div>
+        </CardHeader>
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className={`w-[90%] max-w-[90%] md:max-w-xl rounded-2xl ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}`}>
               <DialogHeader>
@@ -452,7 +453,6 @@ export default function PrincipalTimetableSettings() {
               </form>
             </DialogContent>
           </Dialog>
-        </CardHeader>
         <CardContent className="p-6">
           {loading ? (
             <div className="p-12 text-center text-muted-foreground flex justify-center items-center gap-2">

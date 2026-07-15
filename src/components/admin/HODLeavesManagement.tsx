@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
 import { CheckCircle, XCircle, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import {
@@ -323,22 +323,21 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
 
       <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="hod-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
-          <CardHeader id="hod-leaves-header-section" className="leave-card-header border-b pb-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
-              <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <CardTitle className={`leave-card-title text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</CardTitle>
-                  {totalCount > 0 &&
-                    <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
-                      {totalCount} Total
-                    </span>
-                  }
-                </div>
-                <p className={`leave-card-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Review and approve leave requests from Heads of Departments
-                </p>
+          <CardHeader id="hod-leaves-header-section" className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+            <div>
+              <div className="flex items-center gap-3">
+                <CardTitle>Leave Requests</CardTitle>
+                {totalCount > 0 &&
+                  <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
+                    {totalCount} Total
+                  </span>
+                }
               </div>
-              <div className="leave-filter-container flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
+              <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+                Review and approve leave requests from Heads of Departments
+              </CardDescription>
+            </div>
+            <div className="leave-filter-container flex items-center justify-between sm:justify-start gap-3 w-auto">
                 <div className="leave-month-wrapper flex items-center gap-2">
                   <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Month:</label>
                   <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>
@@ -441,7 +440,6 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
           </CardHeader>
           <CardContent className="flex-1 px-2 sm:px-6 pt-3">
             <div className="border rounded-xl overflow-hidden shadow-sm">

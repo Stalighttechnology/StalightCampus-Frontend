@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -197,14 +197,13 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
 
       <Card>
         <div id="feesmanager-reports-header">
-          <CardHeader className="border-b bg-muted/20 pb-6 px-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <CardTitle className="text-2xl sm:text-2xl font-semibold flex items-center gap-2 tracking-tight">
-                  Staff Attendance Audit
-                </CardTitle>
-                <p className="text-muted-foreground mt-1.5 text-sm sm:text-md">Monitor attendance across all institutional roles</p>
-              </div>
+          <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+            <div>
+              <CardTitle>Staff Attendance Audit</CardTitle>
+              <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+                Monitor attendance across all institutional roles
+              </CardDescription>
+            </div>
               <div className="flex items-center gap-2 flex-shrink-0 mt-1">
                 {/* Desktop/Tablet Export Button */}
                 <Button
@@ -235,7 +234,6 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                   )}
                 </Button>
               </div>
-            </div>
           </CardHeader>
 
           <CardContent className="p-6 pb-4">

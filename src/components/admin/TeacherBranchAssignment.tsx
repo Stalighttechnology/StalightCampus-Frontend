@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect, forwardRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import {
   Select,
   SelectContent,
@@ -345,25 +345,24 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
       <div className={`${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       <Card id="teacher-assignments-card" className={theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}>
         <div id="teacher-assignments-header-section" className="flex flex-col">
-          <CardHeader className="assignment-card-header border-b pb-4">
-            <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <CardTitle className={`assignment-title text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty-Branch Assignments</CardTitle>
-                <p className={`assignment-desc block text-xs md:text-base text-gray-500 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Assign primary branches to faculty members</p>
-              </div>
-              <div className="w-full sm:w-auto">
-                <Button
-                    onClick={() => {
-                      setSelectedTeacher(null);
-                      setSelectedBranch("");
-                      setShowBranchDialog(true);
-                    }}
-                    className="assign-btn-mobile w-full sm:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white">
-                    
-                  <Building className="h-4 w-4" />
-                  Assign Primary Branch
-                </Button>
-              </div>
+          <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+            <div>
+              <CardTitle>Faculty-Branch Assignments</CardTitle>
+              <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+                Assign primary branches to faculty members
+              </CardDescription>
+            </div>
+            <div className="w-auto">
+              <Button
+                onClick={() => {
+                  setSelectedTeacher(null);
+                  setSelectedBranch("");
+                  setShowBranchDialog(true);
+                }}
+                className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white h-9 px-3 font-semibold shadow-md">
+                <Building className="h-4 w-4" />
+                <span className="hidden sm:inline">Assign Primary Branch</span>
+              </Button>
             </div>
           </CardHeader>
           {/* Search and Filter Controls */}

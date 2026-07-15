@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format, isBefore, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -625,26 +625,24 @@ const AdminFacultyAttendanceView: React.FC = () => {
       `}</style>
       <div id="faculty-attendance-dashboard-container" className={`space-y-6 animate-fade-in ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="faculty-attendance-card" className={theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}>
-          <CardHeader className="border-b border-border/50 pb-2">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <CardTitle className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty Attendance Dashboard</CardTitle>
-                <p id="faculty-attendance-dashboard-subtitle" className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>
-                  Track and manage faculty attendance across the institution
-                </p>
-              </div>
-              <div id="admin-faculty-attendance-branch-select" className="flex items-center gap-2 w-full md:w-auto">
-                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                  <SelectTrigger className="w-full md:w-[200px]">
-                    <SelectValue placeholder={translateTerminology("Select Branch")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {branches.map(b => (
-                      <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+            <div>
+              <CardTitle>Faculty Attendance Dashboard</CardTitle>
+              <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+                Track and manage faculty attendance across the institution
+              </CardDescription>
+            </div>
+            <div id="admin-faculty-attendance-branch-select" className="flex items-center gap-2 w-auto">
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder={translateTerminology("Select Branch")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map(b => (
+                    <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
           <CardContent className="pt-2">
