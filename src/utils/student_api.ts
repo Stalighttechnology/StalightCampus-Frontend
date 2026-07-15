@@ -755,9 +755,22 @@ export const submitAssignment = async (assignmentId: number, file: File) => {
       },
       body: formData
     });
-    return await response.json();
+    
+    if (response.status === 413) {
+      return { success: false, message: "File size too large. Maximum 5MB allowed." };
+    }
+    
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+      return await response.json();
+    } else {
+      const text = await response.text();
+      if (!response.ok) {
+        return { success: false, message: response.status >= 500 ? "Server error occurred" : "Network error" };
+      }
+      return { success: false, message: "Invalid server response" };
+    }
   } catch (error) {
-
     return { success: false, message: "Network error" };
   }
 };
