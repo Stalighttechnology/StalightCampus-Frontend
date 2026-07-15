@@ -1,4 +1,5 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import Swal from "sweetalert2";
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -420,10 +421,11 @@ const FacultyAssignments = () => {
       const file = e.target.files[0];
 
       if (file.size > 5 * 1024 * 1024) {
-        toast({
+        Swal.fire({
           title: "File Too Large",
-          description: "Maximum file size allowed is 5MB.",
-          variant: "destructive"
+          text: "Maximum file size allowed is 5MB.",
+          icon: "error",
+          confirmButtonText: "OK"
         });
         e.target.value = '';
         return;
@@ -1135,10 +1137,17 @@ const FacultyAssignments = () => {
                   <Input
                     required
                     type="number"
+                    min="0"
+                    max="100"
                     placeholder="e.g. 10"
                     value={formData.weightage}
                     disabled={hasSubmissions}
-                    onChange={(e) => setFormData({ ...formData, weightage: e.target.value })} />
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || (Number(val) >= 0 && Number(val) <= 100)) {
+                        setFormData({ ...formData, weightage: val });
+                      }
+                    }} />
 
                 </div>
 

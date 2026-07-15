@@ -10,7 +10,7 @@ import { translateTerminology } from "../../utils/institutionConfig";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { Loader2, FileDown } from "lucide-react";
 
-interface AdminCOAttainmentProps {}
+interface AdminCOAttainmentProps { }
 
 const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
   const { theme } = useTheme();
@@ -34,13 +34,13 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
   const [targetThreshold, setTargetThreshold] = useState<number | "">(60);
   const [downloadingPDF, setDownloadingPDF] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  
+
   const [indirectAttainment, setIndirectAttainment] = useState<Record<string, number>>({});
   const [finalAttainment, setFinalAttainment] = useState<Record<string, any>>({});
-  
+
   const [copoMapping, setCopoMapping] = useState<Record<string, Record<string, number | null>>>({});
   const [poAttainment, setPoAttainment] = useState<Record<string, number>>({});
-  
+
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isSubjectOpen, setIsSubjectOpen] = useState(false);
   const [isBranchOpen, setIsBranchOpen] = useState(false);
@@ -70,18 +70,18 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
 
     // Reset downstream selections
     if (type === 'batch_id') {
-      // Re-fetch branches if batch is selected
-      if (value !== 0) {
-        try {
-          const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/co-attainment/branches/?batch_id=${value}`);
-          if (res.ok) {
-            const data = await res.json();
-            setDropdownData(prev => ({ ...prev, branch: data.data || [] }));
-          }
-        } catch (err) {}
-      } else {
-        setDropdownData(prev => ({ ...prev, branch: [] }));
-      }
+      // Re-fetch branches
+      try {
+        const url = value !== 0
+          ? `${API_ENDPOINT}/admin/co-attainment/branches/?batch_id=${value}`
+          : `${API_ENDPOINT}/admin/co-attainment/branches/`;
+        const res = await fetchWithTokenRefresh(url);
+        if (res.ok) {
+          const data = await res.json();
+          setDropdownData(prev => ({ ...prev, branch: data.data || [] }));
+        }
+      } catch (err) { }
+
       newSelected.branch_id = undefined;
       newSelected.semester_id = undefined;
       newSelected.subject_id = undefined;
@@ -102,7 +102,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
           const data = await res.json();
           setDropdownData(prev => ({ ...prev, semester: data.data || [] }));
         }
-      } catch (err) {}
+      } catch (err) { }
     } else if (type === 'semester_id') {
       newSelected.subject_id = undefined;
       newSelected.subject = undefined;
@@ -116,7 +116,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
           const data = await res.json();
           setDropdownData(prev => ({ ...prev, subject: data.data || [] }));
         }
-      } catch (err) {}
+      } catch (err) { }
     } else if (type === 'subject_id') {
       const subject = dropdownData.subject.find(s => s.id === value);
       if (subject) {
@@ -147,7 +147,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
         const attainmentData: Record<string, any> = {};
         const finalAttainmentData: Record<string, any> = {};
         const indirectData: Record<string, number> = {};
-        
+
         data.results.forEach((result: any) => {
           attainmentData[result.co] = {
             co: result.co,
@@ -161,9 +161,9 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
             method2Percentage: result.pct_students_above_target,
             method2Level: result.direct_attainment_level_by_students ?? result.direct_attainment_level
           };
-          
+
           indirectData[result.co] = result.indirect_attainment_level;
-          
+
           finalAttainmentData[result.co] = {
             direct: result.direct_attainment_level_by_avg ?? result.direct_attainment_level,
             indirect: result.indirect_attainment_level,
@@ -208,7 +208,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
         indirect_attainment: JSON.stringify(indirectAttainment)
       });
       if (selected.batch_id && selected.batch_id !== 0) params.append('batch_id', selected.batch_id.toString());
-      
+
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/co-attainment/?${params.toString()}`);
       const data = await response.json();
 
@@ -339,7 +339,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
         <CardContent className="pt-3 space-y-4">
           <div id="co-attainment-selectors" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50 items-end">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Batch (Optional)</label>
+              <label className="text-sm font-medium">Batch</label>
               <Select
                 value={selected.batch_id?.toString() || ""}
                 onValueChange={(value) => {
@@ -348,7 +348,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
                 }}
                 disabled={dropdownData.batch.length === 0}>
                 <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`} disabled={dropdownData.batch.length === 0}>
-                  <SelectValue placeholder={dropdownData.batch.length === 0 ? "No batch available" : "All Batches"} />
+                  <SelectValue placeholder={dropdownData.batch.length === 0 ? "No batch available" : "Select Batch"} />
                 </SelectTrigger>
                 <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                   {dropdownData.batch.length === 0 ? (
@@ -366,7 +366,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">{translateTerminology("Branch")}</label>
               <Select
@@ -408,10 +408,10 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
                 disabled={!selected.branch_id || dropdownData.semester.length === 0}>
                 <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`} disabled={!selected.branch_id || dropdownData.semester.length === 0}>
                   <SelectValue placeholder={
-                    !selected.branch_id ? 
-                    `Select ${translateTerminology("Branch")} First` :
-                    dropdownData.semester.length === 0 ? 
-                    "No semester available" : "Select Semester"
+                    !selected.branch_id ?
+                      `Select ${translateTerminology("Branch")} First` :
+                      dropdownData.semester.length === 0 ?
+                        "No semester available" : "Select Semester"
                   } />
                 </SelectTrigger>
                 <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
@@ -443,8 +443,8 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
                     !selected.semester_id ?
                       "Select Semester First" :
                       dropdownData.subject.length === 0 ?
-                      "No subject available" :
-                      "Select Subject"
+                        "No subject available" :
+                        "Select Subject"
                   } />
                 </SelectTrigger>
                 <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
@@ -479,14 +479,14 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
           </div>
 
           {errorMessage &&
-          <div className={`p-4 rounded-xl flex items-center gap-3 border ${theme === 'dark' ? 'bg-destructive/10 border-destructive/20 text-destructive-foreground' : 'bg-red-50 border-red-100 text-red-700'}`}>
+            <div className={`p-4 rounded-xl flex items-center gap-3 border ${theme === 'dark' ? 'bg-destructive/10 border-destructive/20 text-destructive-foreground' : 'bg-red-50 border-red-100 text-red-700'}`}>
               <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
               <p className="text-sm font-medium">{errorMessage}</p>
             </div>
           }
 
           {areAllDropdownsSelected() ?
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 {/* Statistics Overview Card */}
                 <Card className="xl:col-span-1 border border-border/50 shadow-sm overflow-hidden bg-muted/20">
@@ -525,8 +525,8 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
                     </div>
 
                     <Button
-                    onClick={handleCalculateFinalAttainment}
-                    className="w-full h-12 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 font-semibold tracking-wide">
+                      onClick={handleCalculateFinalAttainment}
+                      className="w-full h-12 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 font-semibold tracking-wide">
                       Recalculate Final Attainment
                     </Button>
                   </CardContent>
@@ -555,7 +555,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
                         </TableHeader>
                         <TableBody>
                           {Object.values(coAttainment).map((co) =>
-                        <TableRow key={co.co} className="hover:bg-muted/30 transition-colors">
+                            <TableRow key={co.co} className="hover:bg-muted/30 transition-colors">
                               <TableCell className="text-center font-semibold text-primary whitespace-nowrap">{co.co}</TableCell>
                               <TableCell className="font-medium whitespace-nowrap">{co.maxMarks}</TableCell>
                               <TableCell className="text-muted-foreground whitespace-nowrap">{co.targetMarks.toFixed(1)}</TableCell>
@@ -564,8 +564,8 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
                                 <div className="flex flex-col gap-1">
                                   <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
                                     <div
-                                  className={`h-full rounded-full ${co.totalStudents > 0 && co.studentsAboveTarget / co.totalStudents >= 0.6 ? 'bg-green-500' : 'bg-amber-500'}`}
-                                  style={{ width: `${co.totalStudents > 0 ? co.studentsAboveTarget / co.totalStudents * 100 : 0}%` }} />
+                                      className={`h-full rounded-full ${co.totalStudents > 0 && co.studentsAboveTarget / co.totalStudents >= 0.6 ? 'bg-green-500' : 'bg-amber-500'}`}
+                                      style={{ width: `${co.totalStudents > 0 ? co.studentsAboveTarget / co.totalStudents * 100 : 0}%` }} />
                                   </div>
                                   <span className="text-[10px] font-semibold text-muted-foreground">
                                     {co.totalStudents > 0 ? (co.studentsAboveTarget / co.totalStudents * 100).toFixed(0) : 0}%
@@ -599,8 +599,8 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
                                   <span className={`whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-tight ${finalAttainment[co.co]?.level === 3 ?
                                     'bg-green-500/10 text-green-600' :
                                     finalAttainment[co.co]?.level === 2 ?
-                                    'bg-amber-500/10 text-amber-600' :
-                                    'bg-red-500/10 text-red-600'}`
+                                      'bg-amber-500/10 text-amber-600' :
+                                      'bg-red-500/10 text-red-600'}`
                                   }>
                                     Level {finalAttainment[co.co]?.level ?? "N/A"}
                                   </span>
@@ -667,7 +667,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
 
             </div> :
 
-          <div className={`p-12 text-center rounded-3xl border-2 border-dashed ${theme === 'dark' ? 'bg-muted/10 border-border' : 'bg-gray-50 border-gray-200'}`}>
+            <div className={`p-12 text-center rounded-3xl border-2 border-dashed ${theme === 'dark' ? 'bg-muted/10 border-border' : 'bg-gray-50 border-gray-200'}`}>
               <div className="mx-auto w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-4 bg-primary/20">
                 <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />

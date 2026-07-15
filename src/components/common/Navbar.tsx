@@ -356,7 +356,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
             {theme === 'dark' ? <FiSun size={18} /> : <FiMoon size={18} />}
           </Button>
 
-          {['student', 'faculty', 'hod', 'admin', 'principal', 'coe', 'dean', 'hms', 'hms_admin', 'fees_manager', 'transport_admin', 'org_admin', 'warden'].includes(role || '') && (
+          {['student', 'parent', 'faculty', 'hod', 'admin', 'principal', 'coe', 'dean', 'hms', 'hms_admin', 'fees_manager', 'transport_admin', 'org_admin', 'warden'].includes(role || '') && (
             <Popover open={isNotificationsOpen} onOpenChange={(open) => { setIsNotificationsOpen(open); if (open) markNotificationsRead(); }}>
               <PopoverTrigger asChild>
                 <Button
@@ -455,6 +455,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                       onClick={() => {
                         const paths: Record<string, string> = {
                           'student': '/announcements',
+                          'parent': '/announcements',
                           'faculty': '/faculty/announcements',
                           'hod': '/hod/hod-announcement-management',
                           'admin': '/admin/announcement-management',

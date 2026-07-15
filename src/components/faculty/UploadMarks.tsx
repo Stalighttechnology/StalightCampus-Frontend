@@ -1264,8 +1264,8 @@ const UploadMarks = () => {
                                           max={question.maxMarks}
                                           onChange={(e) => {
                                             const value = e.target.value;
-                                            const maxMarks = parseInt(question.maxMarks);
-                                            const numValue = parseInt(value);
+                                            const maxMarks = parseFloat(question.maxMarks);
+                                            const numValue = parseFloat(value);
 
                                             // Validate that the entered value doesn't exceed max marks
                                             if (value !== "" && (isNaN(numValue) || numValue < 0 || numValue > maxMarks)) {
@@ -1325,13 +1325,20 @@ const UploadMarks = () => {
                                             value={displayTotal}
                                             onChange={(e) => {
                                               const v = e.target.value;
-                                              if (!/^\d*$/.test(v)) return;
-
-                                              // Cap total to 100
-                                              if (v !== "" && parseInt(v) > 100) return;
+                                              if (!/^\d*\.?\d*$/.test(v)) return;
 
                                               const studentQuestions = studentMarks[student.id] || {};
                                               const hasAnyQuestionMark = Object.values(studentQuestions).some(val => val !== undefined && val !== "");
+                                              
+                                              if (v !== "") {
+                                                const sumOfEnteredMarks = Object.values(studentQuestions).reduce((sum, val) => {
+                                                  const parsed = parseFloat(val as string);
+                                                  return sum + (isNaN(parsed) ? 0 : parsed);
+                                                }, 0);
+                                                
+                                                // Cap total to the sum of individually entered marks
+                                                if (parseFloat(v) > sumOfEnteredMarks) return;
+                                              }
                                               if (!hasAnyQuestionMark) {
                                                 MySwal.fire({
                                                   title: "Action Not Allowed",

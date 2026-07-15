@@ -74,9 +74,9 @@ const ProctorStudents = () => {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
-              {pagination?.paginationState?.totalItems !== undefined && (
+              {proctorData?.pagination?.total !== undefined && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-                  {pagination.paginationState.totalItems} Total
+                  {proctorData.pagination.total} Total
                 </span>
               )}
             </div>
@@ -199,17 +199,17 @@ const ProctorStudents = () => {
 
       </CardContent>
 
-      {pagination?.paginationState && pagination.paginationState.totalPages > 1 && (
+      {proctorData?.pagination && proctorData.pagination.total_pages > 1 && (
         <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
           <div>
-            Showing {Math.min((pagination.paginationState.page - 1) * pagination.paginationState.pageSize + 1, pagination.paginationState.totalItems)} to {Math.min(pagination.paginationState.page * pagination.paginationState.pageSize, pagination.paginationState.totalItems)} of {pagination.paginationState.totalItems} records
+            Showing {Math.min((proctorData.pagination.page - 1) * proctorData.pagination.page_size + 1, proctorData.pagination.total)} to {Math.min(proctorData.pagination.page * proctorData.pagination.page_size, proctorData.pagination.total)} of {proctorData.pagination.total} records
           </div>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => pagination.goToPage(Math.max(1, pagination.paginationState.page - 1))}
-              disabled={pagination.paginationState.page <= 1}
+              onClick={() => pagination.goToPage(Math.max(1, proctorData.pagination.page - 1))}
+              disabled={proctorData.pagination.page <= 1}
               className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
             >
               Previous
@@ -217,15 +217,15 @@ const ProctorStudents = () => {
 
             <div className="flex items-center justify-center min-w-[2rem]">
               <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                {pagination.paginationState.page}
+                {proctorData.pagination.page}
               </span>
             </div>
 
             <Button
               variant="outline"
               size="sm"
-              onClick={() => pagination.goToPage(Math.min(pagination.paginationState.totalPages, pagination.paginationState.page + 1))}
-              disabled={pagination.paginationState.page >= pagination.paginationState.totalPages}
+              onClick={() => pagination.goToPage(Math.min(proctorData.pagination.total_pages, proctorData.pagination.page + 1))}
+              disabled={proctorData.pagination.page >= proctorData.pagination.total_pages}
               className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
             >
               Next
