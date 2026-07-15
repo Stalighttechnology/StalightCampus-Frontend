@@ -132,7 +132,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
     }
   };
 
-  const handleInput = (studentId: number, usn: string, subjectId: number, field: 'cie' | 'see', value: string) => {
+  const handleInput = (studentId: number, usn: string, subjectId: number, field: 'cie' | 'see', value: string, maxVal: number) => {
     const sid = String(studentId);
     const subKey = String(subjectId);
     const sanitize = (v: string) => {
@@ -146,8 +146,9 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
     };
     const candidate = sanitize(value);
     if (candidate === null) return;
-    if (typeof candidate === 'number' && (candidate > 50 || candidate < 0)) {
-      return;
+    // enforce bounds as-you-type: reject changes that go outside 0..maxVal
+    if (typeof candidate === 'number' && (candidate > maxVal || candidate < 0)) {
+      return; // do not update state, preventing typing >maxVal or <0
     }
     const val = candidate;
     setAllMarks((prev) => {
@@ -630,17 +631,22 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
 
                           let grade = '';
                           let gradePoints = '';
-                          if (typeof total === 'number') {
+                          const maxCie = sub.max_cie_marks ?? 50;
+                          const maxSee = sub.max_see_marks ?? 50;
+                          const maxTotal = maxCie + maxSee;
+
+                          if (typeof total === 'number' && maxTotal > 0) {
+                            const percentage = (total / maxTotal) * 100;
                             if (result === 'Fail') {
                               grade = 'F';
                               gradePoints = '0';
                             } else {
-                              if (total >= 90) {grade = 'S';gradePoints = '10';} else
-                              if (total >= 80) {grade = 'A';gradePoints = '9';} else
-                              if (total >= 70) {grade = 'B';gradePoints = '8';} else
-                              if (total >= 60) {grade = 'C';gradePoints = '7';} else
-                              if (total >= 50) {grade = 'D';gradePoints = '6';} else
-                              if (total >= 40) {grade = 'E';gradePoints = '5';} else
+                              if (percentage >= 90) {grade = 'S';gradePoints = '10';} else
+                              if (percentage >= 80) {grade = 'A';gradePoints = '9';} else
+                              if (percentage >= 70) {grade = 'B';gradePoints = '8';} else
+                              if (percentage >= 60) {grade = 'C';gradePoints = '7';} else
+                              if (percentage >= 50) {grade = 'D';gradePoints = '6';} else
+                              if (percentage >= 40) {grade = 'E';gradePoints = '5';} else
                               {grade = 'F';gradePoints = '0';}
                             }
                           }
@@ -651,8 +657,8 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                             <td className="border px-1.5 py-1 align-top truncate" title={sub.name}>{sub.name}</td>
                             <td className="border px-1.5 py-1 align-top">{sub.request_details?.types?.join(', ') || 'N/A'}</td>
                             <td className="border px-1.5 py-1 align-top">{sub.request_details?.status || 'N/A'}</td>
-                            <td className={`border px-1.5 py-1 align-top`}><Input disabled={upload?.is_published} className="w-14 h-8 text-xs" type="number" min={0} max={50} value={cie} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'cie', e.target.value)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
-                            <td className={`border px-1.5 py-1 align-top`}><Input disabled={upload?.is_published} className="w-14 h-8 text-xs" type="number" min={0} max={50} value={see} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'see', e.target.value)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
+                            <td className={`border px-1.5 py-1 align-top`}><Input disabled={upload?.is_published} className="w-14 h-8 text-xs" type="number" min={0} max={sub.max_cie_marks ?? 50} value={cie} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'cie', e.target.value, sub.max_cie_marks ?? 50)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
+                            <td className={`border px-1.5 py-1 align-top`}><Input disabled={upload?.is_published} className="w-14 h-8 text-xs" type="number" min={0} max={sub.max_see_marks ?? 50} value={see} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'see', e.target.value, sub.max_see_marks ?? 50)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
                             <td className="border px-1.5 py-1 align-top">{displayTotal}</td>
                             <td className={`border px-1.5 py-1 align-top ${result === 'Pass' ? 'text-green-600' : result === 'Fail' ? 'text-red-600' : 'text-yellow-600'}`}>{result}</td>
                             <td className="border px-1.5 py-1 align-top">{grade}</td>
