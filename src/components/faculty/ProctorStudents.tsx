@@ -234,7 +234,14 @@ const ProctorStudents = () => {
         </CardFooter>
       )}
       <Dialog open={!!selectedStudentFace} onOpenChange={(open) => !open && setSelectedStudentFace(null)}>
-        <DialogContent className={`sm:max-w-[600px] w-[95vw] p-4 sm:p-6 max-h-[90vh] overflow-y-auto ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white'}`}>
+        <DialogContent 
+          onInteractOutside={(e) => { 
+            if (document.querySelector('.swal2-container')) {
+              e.preventDefault(); 
+            }
+          }}
+          className={`sm:max-w-[600px] w-[95vw] p-4 sm:p-6 max-h-[90vh] overflow-y-auto ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white'}`}
+        >
           <DialogHeader>
             <DialogTitle className="pr-8 text-base sm:text-lg leading-tight">Train Face: {selectedStudentFace?.name} <span className="block sm:inline text-sm sm:text-base font-normal text-muted-foreground">({selectedStudentFace?.usn})</span></DialogTitle>
           </DialogHeader>

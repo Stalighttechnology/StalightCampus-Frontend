@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { useTheme } from "@/context/ThemeContext";
 import { API_ENDPOINT } from "@/utils/config";
-import { CheckCircle, ShieldAlert } from "lucide-react";
+import { CheckCircle, ShieldAlert, X } from "lucide-react";
 
 interface FaceRecognitionUploaderProps {
   title?: string;
@@ -18,7 +19,7 @@ const FaceRecognitionUploader = ({
   statusEndpoint,
   trainEndpoint
 }: FaceRecognitionUploaderProps) => {
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
   const [hasFace, setHasFace] = useState(false);
@@ -52,22 +53,111 @@ const FaceRecognitionUploader = ({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const files = e.target.files;
-      setSelectedFiles(files);
+      const allFiles = Array.from(e.target.files);
+      const validFiles: File[] = [];
+      const invalidFiles: File[] = [];
 
-      // Create and display previews
-      const urls: string[] = [];
-      for (let i = 0; i < files.length; i++) {
-        const objectUrl = URL.createObjectURL(files[i]);
-        urls.push(objectUrl);
+      allFiles.forEach(file => {
+        if (file.size > 5 * 1024 * 1024) {
+          invalidFiles.push(file);
+        } else {
+          validFiles.push(file);
+        }
+      });
+
+      if (invalidFiles.length > 0) {
+        Swal.fire({
+          title: "File Too Large",
+          text: `Some files were skipped because they exceed the 5MB limit.`,
+          icon: "warning",
+          confirmButtonText: "OK"
+        });
       }
-      setPreviewUrls(urls);
+
+      if (validFiles.length > 0) {
+        setSelectedFiles(prev => {
+          const spaceLeft = 5 - prev.length;
+          if (spaceLeft <= 0) {
+            Swal.fire({
+              title: "Limit Reached",
+              text: "You can only select up to 5 images.",
+              icon: "warning",
+              confirmButtonText: "OK"
+            });
+            return prev;
+          }
+          
+          const filesToAdd = validFiles.slice(0, spaceLeft);
+          if (filesToAdd.length < validFiles.length) {
+            Swal.fire({
+              title: "Limit Reached",
+              text: `Only ${spaceLeft} images were added. You can only select up to 5 images in total.`,
+              icon: "warning",
+              confirmButtonText: "OK"
+            });
+          }
+
+          // Create and display previews for the actually added files
+          const newUrls = filesToAdd.map(file => URL.createObjectURL(file));
+          setPreviewUrls(prevUrls => [...prevUrls, ...newUrls]);
+
+          return [...prev, ...filesToAdd];
+        });
+      }
+      
+      // Reset input so the same file can be selected again
+      e.target.value = '';
     }
   };
 
+  const removeFile = (indexToRemove: number) => {
+    setSelectedFiles(prev => prev.filter((_, index) => index !== indexToRemove));
+    setPreviewUrls(prev => {
+      const newUrls = [...prev];
+      URL.revokeObjectURL(newUrls[indexToRemove]); // Clean up memory
+      newUrls.splice(indexToRemove, 1);
+      return newUrls;
+    });
+  };
+
   const handleUpload = async () => {
-    if (!selectedFiles || selectedFiles.length < 3 || selectedFiles.length > 5) {
+    if (selectedFiles.length < 3 || selectedFiles.length > 5) {
       setError("Please select between 3 and 5 images for best results");
+      return;
+    }
+
+    const hasLargeFiles = selectedFiles.some(file => file.size > 5 * 1024 * 1024);
+    if (hasLargeFiles) {
+      Swal.fire({
+        title: "Images Too Large",
+        text: "One or more of the selected images exceed the 5MB limit. Please remove them and select smaller photos.",
+        icon: "error",
+        confirmButtonText: "OK"
+      });
+      return;
+    }
+
+    const confirmation = await Swal.fire({
+      title: 'Confirm Guidelines',
+      html: `
+        <div class="text-left text-sm">
+          <p class="mb-2">Are you sure you have followed all the training guidelines?</p>
+          <ul class="list-disc pl-5 mb-2 text-red-500 font-medium">
+            <li>Solo photos only (no group photos).</li>
+            <li>No sunglasses or masks.</li>
+            <li>Clear visibility of ONLY your face.</li>
+          </ul>
+          <p class="text-xs font-semibold">Warning: If you violate these guidelines (e.g., upload someone else's photo), your face will not be registered correctly.</p>
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, proceed'
+    });
+
+    if (!confirmation.isConfirmed) {
       return;
     }
 
@@ -89,12 +179,23 @@ const FaceRecognitionUploader = ({
         body: formData,
       });
 
+      if (response.status === 413) {
+        Swal.fire({
+          title: "Images Too Large",
+          text: "The combined size of your selected images is too large for the server. Please compress them or select smaller photos.",
+          icon: "error",
+          confirmButtonText: "OK"
+        });
+        setLoading(false);
+        return;
+      }
+
       const data = await response.json();
 
       if (data.success) {
         setSuccess(data.message || "Face trained successfully");
         setHasFace(true);
-        setSelectedFiles(null);
+        setSelectedFiles([]);
         setPreviewUrls([]);
         // Reset file input
         const fileInput = document.getElementById("face-images") as HTMLInputElement;
@@ -105,7 +206,14 @@ const FaceRecognitionUploader = ({
         setError(data.message || "Failed to train face");
       }
     } catch (err) {
-      setError("Network error while training face");
+      console.error(err);
+      Swal.fire({
+        title: "Upload Failed",
+        text: "The images could not be uploaded. This usually happens if the combined file size is too large (Request Entity Too Large). Please try smaller images.",
+        icon: "error",
+        confirmButtonText: "OK"
+      });
+      setError("Network error while training face. Images might be too large.");
     } finally {
       setLoading(false);
     }
@@ -150,6 +258,17 @@ const FaceRecognitionUploader = ({
               </div>
             </div>
 
+            <div className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-primary/5 border-primary/20 text-primary-foreground/90' : 'bg-blue-50 border-blue-100 text-blue-800'}`}>
+              <h4 className="font-semibold text-sm mb-2">Face Training Guidelines</h4>
+              <ul className="text-xs sm:text-sm space-y-1 list-disc pl-5">
+                <li>Upload 3 to 5 clear solo photos of yourself only.</li>
+                <li>Ensure only one face is visible in each image.</li>
+                <li>Do not upload group photos or use another student's photos.</li>
+                <li>Use photos with different angles (front, left, right, slight up/down).</li>
+                <li>Ensure good lighting, avoid blurry images, and remove sunglasses or masks.</li>
+              </ul>
+            </div>
+
             <div className="space-y-2">
               <label htmlFor="face-images" className={`block text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Upload Face Images (Min: 3, Max: 5)
@@ -177,12 +296,20 @@ const FaceRecognitionUploader = ({
                 <h3 className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selected Images ({previewUrls.length}):</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   {previewUrls.map((url, index) => (
-                    <div key={index} className="relative">
+                    <div key={index} className="relative group">
                       <img
                         src={url}
                         alt={`Face ${index + 1}`}
                         className="w-full h-24 sm:h-32 object-cover rounded"
                       />
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+                        title="Remove image"
+                      >
+                        <X size={14} />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -191,7 +318,7 @@ const FaceRecognitionUploader = ({
 
             <Button
               onClick={handleUpload}
-              disabled={loading || !selectedFiles}
+              disabled={loading || selectedFiles.length === 0}
               className={`w-full ${theme === 'dark' ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
             >
               {loading ? "Training Model..." : "Enroll Face"}

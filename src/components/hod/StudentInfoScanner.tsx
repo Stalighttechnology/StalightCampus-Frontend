@@ -229,7 +229,6 @@ const StudentInfoScanner = () => {
 
       if (data.success) {
         setStudentData(data);
-        showSuccessAlert("Success", "Student data retrieved successfully");
       } else {
         setError(data.message || "Student not found");
         showErrorAlert("Error", data.message || "Student not found");
@@ -437,12 +436,13 @@ const StudentInfoScanner = () => {
               setDetectedStudents(data.students);
               setMultipleFacesResult({ total: data.total_faces_detected, unknown: data.unknown_faces_count });
               setStudentData(null); // Clear single student view
-              showSuccessAlert("Faces Recognized", `Found ${data.students.length} student(s)`);
-
-              // If only one student is found, automatically load their profile
+              // If only one student is found, show their info and automatically load their profile
               if (data.students.length === 1) {
+                showSuccessAlert("Face Recognized", `Found student: ${data.students[0].name} (${data.students[0].usn})`);
                 setUsn(data.students[0].usn);
                 await fetchStudentData(data.students[0].usn);
+              } else {
+                showSuccessAlert("Faces Recognized", `Found ${data.students.length} student(s)`);
               }
             } else {
               showErrorAlert("Face Not Recognized", "Student is not found in your organization.");
@@ -499,12 +499,13 @@ const StudentInfoScanner = () => {
             setDetectedStudents(data.students);
             setMultipleFacesResult({ total: data.total_faces_detected, unknown: data.unknown_faces_count });
             setStudentData(null); // Clear single student view
-            showSuccessAlert("Faces Recognized", `Found ${data.students.length} student(s)`);
-
-            // If only one student is found, automatically load their profile
+            // If only one student is found, show their info and automatically load their profile
             if (data.students.length === 1) {
+              showSuccessAlert("Face Recognized", `Found student: ${data.students[0].name} (${data.students[0].usn})`);
               setUsn(data.students[0].usn);
               await fetchStudentData(data.students[0].usn);
+            } else {
+              showSuccessAlert("Faces Recognized", `Found ${data.students.length} student(s)`);
             }
           } else {
             showErrorAlert("Face Not Recognized", "Face detected, but this student is not found in your organization.");
