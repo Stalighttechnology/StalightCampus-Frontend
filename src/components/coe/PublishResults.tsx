@@ -8,8 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { useTheme } from '@/context/ThemeContext';
 import { paginationToUI } from '@/utils/paginationToUI';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { AlertTriangle, Copy, ExternalLink, Search } from 'lucide-react';
-import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult, importCieMarks, importSeeMarks } from "../../utils/coe_api";
+import { AlertTriangle, Copy, ExternalLink, Search, Settings } from 'lucide-react';
+import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult, importCieMarks, importSeeMarks, updateOrgPassingCriteria } from "../../utils/coe_api";
 import { toast } from "sonner";
 import { SkeletonForm, SkeletonTable } from '@/components/ui/skeleton';
 
@@ -24,12 +24,15 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [studentsPage, setStudentsPage] = useState(1);
   const [studentsPageSize, setStudentsPageSize] = useState(25);
   const [studentsPagination, setStudentsPagination] = useState<any>(null);
-  const [subjectsMeta, setSubjectsMeta] = useState<Record<string, {name: string, code: string, credits: number}>>({});
+  const [subjectsMeta, setSubjectsMeta] = useState<Record<string, {name: string, code: string, credits: number, max_cie_marks: number, max_see_marks: number}>>({});
+  const [orgPassCriteria, setOrgPassCriteria] = useState<{pass_cie_percent: number, pass_see_percent: number, pass_total_percent: number}>({pass_cie_percent: 40, pass_see_percent: 36, pass_total_percent: 40});
   const [dirtyPages, setDirtyPages] = useState<Record<number, boolean>>({});
   const [navModalOpen, setNavModalOpen] = useState(false);
   const [pendingNav, setPendingNav] = useState<{page: number;pageSize?: number;} | null>(null);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [unpublishModalOpen, setUnpublishModalOpen] = useState(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
   const [importCieModalOpen, setImportCieModalOpen] = useState(false);
   const [cieCalculationRule, setCieCalculationRule] = useState('average');
   const [importingCie, setImportingCie] = useState(false);
@@ -67,6 +70,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       setFiltersLoading(true);
       const opts = await getFilterOptions();
       setFilters(opts);
+      if (opts.org_pass_criteria) {
+        setOrgPassCriteria(opts.org_pass_criteria);
+      }
       setFiltersLoading(false);
     })();
   }, []);
@@ -130,6 +136,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       setStudents(studentList);
       if (stu.data?.subjects_meta) {
         setSubjectsMeta(stu.data.subjects_meta);
+      }
+      if (stu.data?.org_pass_criteria) {
+        setOrgPassCriteria(stu.data.org_pass_criteria);
       }
       setStudentsPagination(stu.pagination || null);
       setStudentsPage(page || 1);
@@ -372,8 +381,12 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   return (
     <div ref={ref} id="coe-publish-results-container" className={` ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card id="coe-publish-results-filters" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
-        <CardHeader className="pb-4">
+        <CardHeader className="pb-4 flex flex-row items-center justify-between space-y-0">
           <CardTitle>Filter And Create Upload Batch</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => setSettingsModalOpen(true)} className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Passing Criteria
+          </Button>
         </CardHeader>
         <CardContent>
           {filtersLoading ?
@@ -551,6 +564,15 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg sm:text-xl">Student Marks Entry</CardTitle>
+            <div className="mt-2 text-sm bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200 p-3 rounded-md border border-blue-200 dark:border-blue-800/50 flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <div>
+                <strong>Standard Passing Criteria Applied:</strong> Students must secure at least <strong>{orgPassCriteria.pass_cie_percent}% in CIE</strong>, <strong>{orgPassCriteria.pass_see_percent}% in SEE</strong>, and <strong>{orgPassCriteria.pass_total_percent}% in Total Aggregate</strong> of the subject's maximum marks to pass. Grades are awarded based on total percentage.
+                <button onClick={() => setSettingsModalOpen(true)} className="ml-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline underline-offset-2 font-medium transition-colors cursor-pointer">
+                  Edit Criteria
+                </button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="mb-4 flex flex-col sm:flex-row gap-3">
@@ -601,13 +623,18 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                 {students.map((s) => {
                 const studentMarks = allMarks[String(s.student_id)]?.subs || marks[String(s.student_id)] || {};
                 // Consistent pass/fail rule used across this student row
-                const meetsPassCriteria = (c: any, se: any, t: any) => {
+                const meetsPassCriteria = (c: any, se: any, t: any, maxCie: number, maxSee: number) => {
                   const cieVal = c !== null && c !== undefined && c !== '' ? Number(c) : null;
                   const seeVal = se !== null && se !== undefined && se !== '' ? Number(se) : null;
                   const totalVal = t !== null && t !== undefined && t !== '' ? Number(t) : null;
+                  
+                  const minCie = maxCie * (orgPassCriteria.pass_cie_percent / 100);
+                  const minSee = maxSee * (orgPassCriteria.pass_see_percent / 100);
+                  const minTotal = (maxCie + maxSee) * (orgPassCriteria.pass_total_percent / 100);
+
                   return cieVal !== null && seeVal !== null && totalVal !== null &&
                          !isNaN(cieVal) && !isNaN(seeVal) && !isNaN(totalVal) &&
-                         cieVal >= 20 && seeVal >= 18 && totalVal >= 40;
+                         cieVal >= minCie && seeVal >= minSee && totalVal >= minTotal;
                 };
                 const incompleteCount = (s.subjects || []).reduce((acc: number, sub: any) => {
                   const e = studentMarks[String(sub.id)];
@@ -673,18 +700,19 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                             const entry = studentMarks[String(sub.id)];
                             const cie = entry?.cie ?? '';
                             const see = entry?.see ?? '';
+                            const maxCie = subjectsMeta[sub.id]?.max_cie_marks ?? sub.max_cie_marks ?? 50;
+                            const maxSee = subjectsMeta[sub.id]?.max_see_marks ?? sub.max_see_marks ?? 50;
+                            const maxTotal = maxCie + maxSee;
+
                             const cieVal = cie !== null && cie !== undefined && cie !== '' ? Number(cie) : null;
                             const seeVal = see !== null && see !== undefined && see !== '' ? Number(see) : null;
                             const total = cieVal !== null && seeVal !== null && !isNaN(cieVal) && !isNaN(seeVal) ? cieVal + seeVal : '';
                             const displayTotal = total;
-                            const result = displayTotal === '' ? 'Incomplete' : meetsPassCriteria(cie, see, total) ? 'Pass' : 'Fail';
+                            const result = displayTotal === '' ? 'Incomplete' : meetsPassCriteria(cie, see, total, maxCie, maxSee) ? 'Pass' : 'Fail';
 
                             // Calculate grade based on percentage of total possible marks
                             let grade = '';
                             let gradePoints = '';
-                            const maxCie = subjectsMeta[sub.id]?.max_cie_marks ?? sub.max_cie_marks ?? 50;
-                            const maxSee = subjectsMeta[sub.id]?.max_see_marks ?? sub.max_see_marks ?? 50;
-                            const maxTotal = maxCie + maxSee;
 
                             if (typeof total === 'number' && maxTotal > 0) {
                               const percentage = (total / maxTotal) * 100;
@@ -725,10 +753,13 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                                 const entry = studentMarks[String(sub.id)];
                                 const cie = entry?.cie;
                                 const see = entry?.see;
+                                const maxCie = subjectsMeta[sub.id]?.max_cie_marks ?? sub.max_cie_marks ?? 50;
+                                const maxSee = subjectsMeta[sub.id]?.max_see_marks ?? sub.max_see_marks ?? 50;
+                                
                                 const cieVal = cie !== null && cie !== undefined && cie !== '' ? Number(cie) : null;
                                 const seeVal = see !== null && see !== undefined && see !== '' ? Number(see) : null;
                                 const total = cieVal !== null && seeVal !== null && !isNaN(cieVal) && !isNaN(seeVal) ? cieVal + seeVal : null;
-                                const passed = meetsPassCriteria(cie, see, total);
+                                const passed = meetsPassCriteria(cie, see, total, maxCie, maxSee);
                                 const creditsToAdd = passed ? (subjectsMeta[sub.id]?.credits ?? sub.credits ?? 0) : 0;
                                 return acc + creditsToAdd;
                               }, 0)}
@@ -764,17 +795,21 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                                   const seeVal = see !== null && see !== undefined && see !== '' ? Number(see) : null;
                                   const total = cieVal !== null && seeVal !== null && !isNaN(cieVal) && !isNaN(seeVal) ? cieVal + seeVal : null;
                                   const credits = subjectsMeta[sub.id]?.credits ?? sub.credits ?? 0;
-                                  const passed = meetsPassCriteria(cie, see, total);
+                                  const maxCie = subjectsMeta[sub.id]?.max_cie_marks ?? sub.max_cie_marks ?? 50;
+                                  const maxSee = subjectsMeta[sub.id]?.max_see_marks ?? sub.max_see_marks ?? 50;
+                                  const maxTotal = maxCie + maxSee;
+                                  const passed = meetsPassCriteria(cie, see, total, maxCie, maxSee);
 
-                                  if (total !== null && credits > 0) {
+                                  if (typeof total === 'number' && credits > 0 && maxTotal > 0) {
+                                    const percentage = (total / maxTotal) * 100;
                                     let gradePoints = 0;
                                     if (passed) {
-                                      if (total >= 90) gradePoints = 10;else
-                                      if (total >= 80) gradePoints = 9;else
-                                      if (total >= 70) gradePoints = 8;else
-                                      if (total >= 60) gradePoints = 7;else
-                                      if (total >= 50) gradePoints = 6;else
-                                      if (total >= 40) gradePoints = 5;else
+                                      if (percentage >= 90) gradePoints = 10;else
+                                      if (percentage >= 80) gradePoints = 9;else
+                                      if (percentage >= 70) gradePoints = 8;else
+                                      if (percentage >= 60) gradePoints = 7;else
+                                      if (percentage >= 50) gradePoints = 6;else
+                                      if (percentage >= 40) gradePoints = 5;else
                                       gradePoints = 0;
                                     }
 
@@ -860,7 +895,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
             </CardFooter>
           )}
-          {/* Navigation confirmation modal */}
+        </Card>
+      }
+      {/* Navigation confirmation modal */}
           <Dialog open={navModalOpen} onOpenChange={setNavModalOpen}>
             <DialogContent className={`max-w-xl ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
                 <DialogHeader>
@@ -900,30 +937,119 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       </Dialog>
       {/* Unpublish confirmation modal (UI-only) */}
       <Dialog open={unpublishModalOpen} onOpenChange={setUnpublishModalOpen}>
-        <DialogContent className={`max-w-md ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <DialogHeader>
-            <div className="flex items-center gap-3">
-              <AlertTriangle className={`h-6 w-6 ${theme === 'dark' ? 'text-rose-300' : 'text-rose-500'} animate-pulse`} />
-              <DialogTitle className={theme === 'dark' ? 'text-foreground text-lg' : 'text-gray-900 text-lg'}>Confirm Unpublish</DialogTitle>
+            <DialogTitle className="text-red-600 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Unpublish Results
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="mb-4">Are you sure you want to unpublish these results? This will remove them from the student view.</p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setUnpublishModalOpen(false)}>Cancel</Button>
+              <Button variant="destructive" onClick={async () => {
+                const res = await unpublishUploadBatch(upload.id);
+                if (res.success) {
+                  toast.success('Unpublished successfully');
+                  setUpload({ ...upload, is_published: false });
+                  setUnpublishModalOpen(false);
+                } else {
+                  toast.error(res.message || 'Unpublish failed');
+                }
+              }}>Yes, Unpublish</Button>
             </div>
-            <DialogDescription className={`mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>
-              This will mark the upload as not published in the UI only. No backend changes will be made. The public link will still work until the backend `is_published` flag is changed.
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Settings Modal */}
+      <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Organization Passing Criteria
+            </DialogTitle>
+            <DialogDescription>
+              Set the standard passing percentages for all subjects across the institution.
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4 flex justify-end">
-            <Button variant="ghost" onClick={() => setUnpublishModalOpen(false)}>Cancel</Button>
-            <Button className="ml-3" onClick={async () => {
-                    setUnpublishModalOpen(false);
-                    if (!upload) return;
-                    const res = await unpublishUploadBatch(upload.id);
-                    if (res.success) {
-                      setUpload({ ...upload, is_published: false });
-                      toast.success('Public link is now inactive.');
-                    } else {
-                      toast.error(res.message || 'Failed to unpublish');
-                    }
-                  }}>Confirm Unpublish</Button>
+          <div className="py-4 space-y-4">
+            <div>
+              <label className="block text-sm mb-1 font-medium">Minimum CIE % to Pass</label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={orgPassCriteria.pass_cie_percent}
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value) || 0;
+                    if (val > 100) val = 100;
+                    setOrgPassCriteria(prev => ({ ...prev, pass_cie_percent: val }));
+                  }}
+                  className="pr-8"
+                />
+                <span className="absolute right-3 top-2.5 text-muted-foreground text-sm">%</span>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm mb-1 font-medium">Minimum SEE % to Pass</label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={orgPassCriteria.pass_see_percent}
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value) || 0;
+                    if (val > 100) val = 100;
+                    setOrgPassCriteria(prev => ({ ...prev, pass_see_percent: val }));
+                  }}
+                  className="pr-8"
+                />
+                <span className="absolute right-3 top-2.5 text-muted-foreground text-sm">%</span>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm mb-1 font-medium">Minimum Total % to Pass</label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={orgPassCriteria.pass_total_percent}
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value) || 0;
+                    if (val > 100) val = 100;
+                    setOrgPassCriteria(prev => ({ ...prev, pass_total_percent: val }));
+                  }}
+                  className="pr-8"
+                />
+                <span className="absolute right-3 top-2.5 text-muted-foreground text-sm">%</span>
+              </div>
+            </div>
           </div>
+          <CardFooter className="px-0 pt-2 pb-0 flex justify-end gap-2 border-t mt-4">
+            <Button variant="outline" onClick={() => setSettingsModalOpen(false)}>Cancel</Button>
+            <Button 
+              disabled={savingSettings}
+              onClick={async () => {
+                setSavingSettings(true);
+                const res = await updateOrgPassingCriteria(orgPassCriteria.pass_cie_percent, orgPassCriteria.pass_see_percent, orgPassCriteria.pass_total_percent);
+                setSavingSettings(false);
+                if (res.success) {
+                  toast.success('Passing criteria updated successfully');
+                  setSettingsModalOpen(false);
+                } else {
+                  toast.error(res.message || 'Failed to update criteria');
+                }
+              }}
+            >
+              {savingSettings ? 'Saving...' : 'Save Settings'}
+            </Button>
+          </CardFooter>
         </DialogContent>
       </Dialog>
       {/* Import CIE Marks Modal */}
@@ -978,8 +1104,6 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
           </div>
         </DialogContent>
       </Dialog>
-        </Card>
-      }
     </div>);
 
 });
