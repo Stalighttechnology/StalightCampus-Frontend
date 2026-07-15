@@ -25,8 +25,7 @@ import { Input } from "../ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { useTheme } from "../../context/ThemeContext";
@@ -51,7 +50,7 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
   const [submissionFile, setSubmissionFile] = useState<File | null>(null);
   // true when modal is opened from Details dialog for re-submit
   const [isResubmit, setIsResubmit] = useState(false);
-
+  const [isDragging, setIsDragging] = useState(false);
   const [downloadingIds, setDownloadingIds] = useState<Record<string, boolean>>({});
 
   const triggerDownload = async (id: string, url: string, filename: string) => {
@@ -133,6 +132,33 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
         return;
       }
 
+      setSubmissionFile(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Maximum file size allowed is 5MB.",
+          variant: "destructive"
+        });
+        return;
+      }
       setSubmissionFile(file);
     }
   };
@@ -314,13 +340,11 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
                     <span className="font-semibold text-sm hidden sm:inline">Filter</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuRadioGroup value={filterStatus} onValueChange={(val) => { setFilterStatus(val); setCurrentPage(1); }}>
-                    <DropdownMenuRadioItem value="all">All Assignments</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="submitted">Submitted</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="overdue">Overdue</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
+                <DropdownMenuContent align="end" className="w-48 p-2">
+                  <DropdownMenuItem onClick={() => { setFilterStatus("all"); setCurrentPage(1); }} className={`cursor-pointer ${filterStatus === "all" ? "bg-primary/10 font-medium text-primary" : ""}`}>All Assignments</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setFilterStatus("pending"); setCurrentPage(1); }} className={`cursor-pointer ${filterStatus === "pending" ? "bg-primary/10 font-medium text-primary" : ""}`}>Pending</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setFilterStatus("submitted"); setCurrentPage(1); }} className={`cursor-pointer ${filterStatus === "submitted" ? "bg-primary/10 font-medium text-primary" : ""}`}>Submitted</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setFilterStatus("overdue"); setCurrentPage(1); }} className={`cursor-pointer ${filterStatus === "overdue" ? "bg-primary/10 font-medium text-primary" : ""}`}>Overdue</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -791,7 +815,10 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
 
             <form onSubmit={handleSubmitAssignment} className="space-y-6">
               <div
-                className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center transition-colors ${submissionFile ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}>
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center transition-colors ${submissionFile ? 'border-primary bg-primary/5' : isDragging ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted/50'}`}>
 
                 <input
                   type="file"
@@ -799,7 +826,7 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
                   className="hidden"
                   accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   onChange={handleFileChange}
-                  required />
+                />
 
                 <label htmlFor="submit-file" className="cursor-pointer flex flex-col items-center">
                   <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 ${submissionFile ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
