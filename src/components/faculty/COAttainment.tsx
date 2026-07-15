@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, FileDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -49,6 +49,7 @@ const COAttainment = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const { theme } = useTheme();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [isSubjectOpen, setIsSubjectOpen] = useState(false);
 
   // CO Attainment calculation states
   const [coAttainment, setCoAttainment] = useState<Record<string, {
@@ -320,13 +321,49 @@ const COAttainment = () => {
   return (
     <div id="co-attainment-container">
       <Card>
-        <CardContent className="pt-4 space-y-4">
+        <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+          <CardTitle>CO Attainment</CardTitle>
+          {selected.subject_id && (
+            <>
+              {/* Desktop Button */}
+              <Button
+                onClick={handleExportPDF}
+                disabled={downloadingPDF}
+                className="hidden md:flex h-10 bg-primary text-white hover:bg-primary/90 shadow-sm transition-all duration-200 items-center justify-center gap-2 text-sm px-4">
+                {downloadingPDF ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FileDown className="w-4 h-4" />
+                )}
+                Export PDF
+              </Button>
+              {/* Mobile Button */}
+              <Button
+                onClick={handleExportPDF}
+                disabled={downloadingPDF}
+                variant="outline"
+                size="icon"
+                className="flex md:hidden dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200 h-10 w-10"
+              >
+                {downloadingPDF ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FileDown className="w-4 h-4" />
+                )}
+              </Button>
+            </>
+          )}
+        </CardHeader>
+        <CardContent className="pt-3 space-y-4">
           <div id="co-attainment-selectors" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50 items-end">
             <div className="space-y-2">
               <label className="text-sm font-medium">Batch (Optional)</label>
               <Select
                 value={selected.batch_id?.toString() || ""}
-                onValueChange={(value) => handleSelectChange('batch_id', Number(value))}
+                onValueChange={(value) => {
+                  handleSelectChange('batch_id', Number(value));
+                  setTimeout(() => setIsSubjectOpen(true), 150);
+                }}
                 disabled={dropdownData.batch.length === 0}>
                 <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`} disabled={dropdownData.batch.length === 0}>
                   <SelectValue placeholder={dropdownData.batch.length === 0 ? "No batch available" : "All Batches"} />
@@ -353,7 +390,11 @@ const COAttainment = () => {
                 {assignmentsLoading ?
                   <div className="h-11 bg-muted animate-pulse rounded-md" /> :
 
-                  <Select onValueChange={(value) => handleSelectChange('subject_id', Number(value))}>
+                  <Select
+                    open={isSubjectOpen}
+                    onOpenChange={setIsSubjectOpen}
+                    onValueChange={(value) => handleSelectChange('subject_id', Number(value))}
+                  >
                     <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}>
                       <SelectValue placeholder="Select Subject" />
                     </SelectTrigger>
@@ -389,18 +430,6 @@ const COAttainment = () => {
                 </div>
               </div>
             </div>
-
-            {selected.subject_id &&
-              <div className="col-span-1 md:col-span-2 lg:col-span-2 flex items-end h-full">
-                <Button
-                  onClick={handleExportPDF}
-                  disabled={downloadingPDF}
-                  className="w-full h-11 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200 flex items-center justify-center gap-2">
-                  {downloadingPDF && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                  Download PDF Report
-                </Button>
-              </div>
-            }
 
 
           {errorMessage &&
