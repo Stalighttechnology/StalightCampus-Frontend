@@ -480,7 +480,7 @@ const DeanFacultyProfile = ({
           .dean-profile h3 { font-size: 1.125rem !important; line-height: 1.5 !important; }
           .dean-profile, .dean-profile p, .dean-profile label, .dean-profile input, .dean-profile button { font-size: 0.875rem !important; }
           .dean-profile .card, .dean-profile .card-content { padding-left: 12px !important; padding-right: 12px !important; }
-          .dean-profile .button-group, .dean-profile .flex-row { flex-direction: column !important; gap: 8px !important; }
+          .dean-profile .button-group { flex-direction: column !important; gap: 8px !important; }
           .dean-profile button, .dean-profile .btn { width: 100% !important; padding: 10px 16px !important; min-height: 40px !important; }
           .dean-profile img, .dean-profile .responsive-img { max-width: 100% !important; height: auto !important; }
           .dean-profile table, .dean-profile .table-responsive { width: 100% !important; display: block !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
@@ -752,7 +752,7 @@ const DeanFacultyProfile = ({
                   <div className="p-0">
                     <div
                       id="dean-faculty-stats-grid"
-                      className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8"
+                      className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-8"
                     >
                       <DashboardCard
                         title="Weekly Hours"
