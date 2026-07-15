@@ -285,7 +285,7 @@ const HODAnnouncementManagement = () => {
     if (isCurrentlyActive) {
       const result = await MySwal.fire({
         title: "Deactivate Announcement?",
-        text: "Are you sure you want to deactivate this announcement? It will no longer be visible to students/faculty.",
+        text: "Are you sure you want to deactivate this announcement? It will no longer be visible to target audience.",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#d33",

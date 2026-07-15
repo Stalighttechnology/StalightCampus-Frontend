@@ -312,6 +312,18 @@ const FacultyAnnouncementManagement = () => {
         target: document.body
       });
       if (!result.isConfirmed) return;
+    } else {
+      const result = await MySwal.fire({
+        title: "Activate Announcement?",
+        text: "Are you sure you want to activate this announcement? It will become visible to students.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#28a745",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, activate it!",
+        target: document.body
+      });
+      if (!result.isConfirmed) return;
     }
 
     try {
