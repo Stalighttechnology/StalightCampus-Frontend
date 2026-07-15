@@ -365,7 +365,7 @@ const ApplyLeave = () => {
           <CardHeader className="border-b pb-4">
             <div className="flex flex-row items-center justify-between gap-3">
               <div>
-                <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+                <CardTitle className={`sm:text-2xl text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1 font-normal">Your leave request will be routed to the <span className="font-medium text-primary">Principal</span> for approval.</p>
               </div>
             </div>
@@ -470,7 +470,7 @@ const ApplyLeave = () => {
           <CardHeader className="border-b pb-4">
             <div className="flex flex-row items-center justify-between gap-3">
               <div>
-                <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
+                <CardTitle className={`sm:text-2xl text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
                 <p className={`text-sm mt-1 font-normal ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
               </div>
               <div className="relative flex-shrink-0" ref={filterRef}>
