@@ -542,7 +542,7 @@ const DeanFacultyProfile = ({
                     <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                       Faculty Profile
                     </CardTitle>
-                    <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-505'}`}>
+                    <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       View faculty attendance, schedule and assignments
                     </p>
                   </div>

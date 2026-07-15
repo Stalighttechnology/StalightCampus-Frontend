@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -325,7 +325,12 @@ const COAttainment = () => {
     <div id="co-attainment-container">
       <Card>
         <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
-          <CardTitle>CO Attainment</CardTitle>
+          <div>
+            <CardTitle>CO Attainment</CardTitle>
+            <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+              View Course Outcome (CO) attainment and PO mapping.
+            </CardDescription>
+          </div>
           {selected.subject_id && (
             <>
               {/* Desktop Button */}
