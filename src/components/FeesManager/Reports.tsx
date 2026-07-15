@@ -501,7 +501,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
 
       <Dialog open={isCalendarDialogOpen} onOpenChange={setIsCalendarDialogOpen}>
         <DialogContent className="w-[92%] sm:max-w-md max-h-[90vh] sm:max-h-[600px] h-auto bg-card rounded-2xl border-none shadow-2xl p-0 overflow-hidden mx-auto flex flex-col">
-          <DialogHeader className="p-5 sm:p-6 bg-muted/20 border-b shrink-0">
+          <DialogHeader className="p-5 sm:p-6 bg-muted/20 border-b shrink-0 text-left">
             <DialogTitle className="text-lg sm:text-xl font-semibold flex items-center gap-2">
               <CalendarIcon className="h-5 w-5 text-primary" />
               Attendance History

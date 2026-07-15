@@ -451,9 +451,9 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
             </div>
           </CardHeader>
 
-          <CardContent className="p-6 pb-0">
+          <CardContent className="p-4 sm:p-3 pb-0">
           {/* Stats Overview */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 min-[1250px]:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 min-[1250px]:grid-cols-4 gap-6 mb-4 sm:mb-0">
             <DashboardCard
               title="Total Invoices"
               value={statsData?.total_invoices || 0}
@@ -482,7 +482,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
           </CardContent>
         </div>
 
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6 pt-0 sm:pt-6">
           {/* Cascading Filters Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
             <div className="space-y-2">

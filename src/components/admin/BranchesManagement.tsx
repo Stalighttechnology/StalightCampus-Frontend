@@ -545,7 +545,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                 </CardDescription>
               </div>
 
-              <div className="flex flex-row gap-2 w-full sm:w-auto items-center">
+              <div className={`flex-row gap-2 w-full sm:w-auto items-center ${isReadOnly ? 'hidden md:flex' : 'flex'}`}>
                 {!isReadOnly && (
                   <div className="flex flex-row gap-2 w-full sm:w-auto branches-mobile-row">
                     <Button
