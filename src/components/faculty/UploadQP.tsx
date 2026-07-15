@@ -1,7 +1,7 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { Plus, Trash2, Layers, Loader2, FileDown, Image, Eraser, RotateCcw, Check, X, Undo, Redo } from "lucide-react";
+import { Plus, Trash2, Layers, Loader2, FileDown, Image, Eraser, RotateCcw, Check, X, Undo, Redo, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -132,6 +132,8 @@ const UploadQP = () => {
   const [loading, setLoading] = useState(false);
   const [rejectedQPs, setRejectedQPs] = useState<QuestionPaper[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [hasExamStarted, setHasExamStarted] = useState(false);
+  const [examStart, setExamStart] = useState<string | null>(null);
   const [isBatchOpen, setIsBatchOpen] = useState(false);
   const [isBranchOpen, setIsBranchOpen] = useState(false);
   const [isSubjectOpen, setIsSubjectOpen] = useState(false);
@@ -200,6 +202,15 @@ const UploadQP = () => {
       try {
         setLoading(true);
         const res = await getQuestionPapers({ batch_id: selected.batch_id?.toString(), branch_id: selected.branch_id?.toString(), semester_id: selected.semester_id?.toString(), section_id: selected.section_id?.toString(), subject_id: selected.subject_id?.toString(), test_type: selected.testType, set_number: selected.setNumber, detail: true });
+        
+        if (res?.has_exam_started !== undefined) {
+          setHasExamStarted(res.has_exam_started);
+          setExamStart(res.exam_start);
+        } else {
+          setHasExamStarted(false);
+          setExamStart(null);
+        }
+
         if (res?.success && Array.isArray(res?.data) && res.data.length > 0) {
           // prefer exact match on subject+test_type+set_number
           const qp = res.data.find((q: QuestionPaper) => q.subject === selected.subject_id && q.test_type === selected.testType && q.set_number === selected.setNumber);
@@ -916,7 +927,7 @@ const UploadQP = () => {
                         <div className="text-sm text-muted-foreground">
                           Branch: {typeof qp.branch === 'object' ? qp.branch?.name || 'N/A' : 'N/A'}
                         </div>
-                        <div className="text-sm text-muted-foreground">Last: {qp.last_action?.action || 'reject'} by {qp.last_action?.actor || 'N/A'} ({qp.last_action?.role || 'N/A'})</div>
+                        <div className="text-sm text-muted-foreground">Last: {qp.last_action?.action || 'reject'}{qp.last_action?.role !== 'system' && ` by ${qp.last_action?.actor || 'N/A'}`} ({qp.last_action?.role || 'N/A'})</div>
                         <div className="text-sm text-muted-foreground">Comment: {qp.last_action?.comment || 'No comment provided'}</div>
                       </div>
                       <div>
@@ -939,6 +950,17 @@ const UploadQP = () => {
                 </div>
               </div>
             }
+            
+            {hasExamStarted && (
+                <div className={`mb-6 p-4 rounded-lg flex items-start gap-3 ${theme === 'dark' ? 'bg-red-900/20 border-red-800 text-red-300' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold">⚠️ Exam Locked</h4>
+                    <p className="text-sm mt-1">This exam started on {examStart ? new Date(examStart).toLocaleString() : 'its scheduled time'}. Question paper uploads, generation, and modifications are now disabled.</p>
+                  </div>
+                </div>
+              )}
+
             {currentQPMeta?.status === 'rejected' &&
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
                 <div className="font-semibold text-sm text-red-700">Rejected</div>
@@ -965,7 +987,7 @@ const UploadQP = () => {
 
                     <>
                       {(() => {
-                        const isLocked = currentQPMeta?.status && !['draft', 'rejected'].includes(currentQPMeta.status);
+                        const isLocked = (currentQPMeta?.status && !['draft', 'rejected'].includes(currentQPMeta.status)) || hasExamStarted;
                         return (
                           <>
                             {isLocked && (
@@ -1204,6 +1226,7 @@ const UploadQP = () => {
                       </Button>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+
                       {/* Desktop Download PDF Button */}
                       <Button
                         onClick={downloadPDF}
@@ -1225,7 +1248,7 @@ const UploadQP = () => {
                             <Button
                               onClick={handleSubmitForApproval}
                               className="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700"
-                              disabled={isPendingOrApproved || submitting}>
+                              disabled={isPendingOrApproved || submitting || hasExamStarted}>
                               {buttonLabel}
                             </Button>);
                         })() :
@@ -1246,7 +1269,7 @@ const UploadQP = () => {
                       </div>
                       {currentQPMeta.last_action &&
                         <div className={`text-xs mt-1 ${currentQPMeta.status === 'rejected' ? 'text-red-600 dark:text-red-300' : 'text-blue-600 dark:text-blue-300'}`}>
-                          <div>Last: {currentQPMeta.last_action?.action || 'N/A'} by {currentQPMeta.last_action?.actor || 'N/A'} ({currentQPMeta.last_action?.role || 'N/A'})</div>
+                          <div>Last: {currentQPMeta.last_action?.action || 'N/A'}{currentQPMeta.last_action?.role !== 'system' && ` by ${currentQPMeta.last_action?.actor || 'N/A'}`} ({currentQPMeta.last_action?.role || 'N/A'})</div>
                           {currentQPMeta.last_action?.comment && <div>Comment: {currentQPMeta.last_action.comment}</div>}
                         </div>
                       }
