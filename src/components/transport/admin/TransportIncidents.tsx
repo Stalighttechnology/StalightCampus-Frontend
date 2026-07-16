@@ -26,11 +26,9 @@ const TransportIncidents: React.FC = () => {
   const loadIncidents = useCallback(async () => {
     setLoading(true);
     try {
-      const inc = await fetchIncidents();
+      const inc = await fetchIncidents(1, 'complaint');
       const rawIncidents = inc.results || inc || [];
-      // Exclude emergency tickets since they are displayed on the dashboard announcements banner
-      const nonEmergency = rawIncidents.filter((i: any) => i.type !== 'emergency');
-      setIncidents(nonEmergency);
+      setIncidents(rawIncidents);
     } finally {
       setLoading(false);
     }

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Swal from "sweetalert2";
 import { useTheme } from "../../../context/ThemeContext";
-import { fetchRoutes, createRoute, updateRoute, deleteRoute, updateRouteStops, fetchBuses, exportRoutesCSV } from "../../../utils/transport_api";
+import { fetchRoutes, createRoute, updateRoute, deleteRoute, updateRouteStops, fetchBuses, exportRoutesCSV, fetchRouteStops } from "../../../utils/transport_api";
 import { RouteT, StopT } from "./TransportCommon";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../ui/card";
 import { Button } from "../../ui/button";
@@ -108,8 +108,12 @@ const TransportRoutes: React.FC = () => {
   const [downloadingCSV, setDownloadingCSV] = useState(false);
 
   // Buses for dropdown
-  const [buses, setBuses] = useState<{ id: number; bus_number: string; registration_number: string }[]>([]);
+  const [buses, setBuses] = useState<any[]>([]);
   const [busesLoading, setBusesLoading] = useState(false);
+
+  const [expandedRoutes, setExpandedRoutes] = useState<Set<number>>(new Set());
+  const [routeStops, setRouteStops] = useState<Record<number, any[]>>({});
+  const [loadingStops, setLoadingStops] = useState<Set<number>>(new Set());
 
   // Stop editor states
   const [editingRouteStops, setEditingRouteStops] = useState<number | null>(null);
@@ -209,6 +213,36 @@ const TransportRoutes: React.FC = () => {
       document.body.classList.remove("overflow-hidden");
     };
   }, [showRouteForm, editingRouteStops, editingRoute]);
+
+  const toggleRouteTimeline = async (routeId: number) => {
+    setExpandedRoutes(prev => {
+      const next = new Set(prev);
+      if (next.has(routeId)) {
+        next.delete(routeId);
+      } else {
+        next.add(routeId);
+      }
+      return next;
+    });
+
+    if (!routeStops[routeId] && !loadingStops.has(routeId)) {
+      setLoadingStops(prev => new Set(prev).add(routeId));
+      try {
+        const res = await fetchRouteStops(routeId);
+        if (res.success) {
+          setRouteStops(prev => ({ ...prev, [routeId]: res.stops }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch route stops", err);
+      } finally {
+        setLoadingStops(prev => {
+          const next = new Set(prev);
+          next.delete(routeId);
+          return next;
+        });
+      }
+    }
+  };
 
   const handleSaveRoute = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -702,7 +736,7 @@ const TransportRoutes: React.FC = () => {
                               </div>
                             </div>
                             <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-bold shrink-0">
-                              {r.stops?.length || 0} stops
+                              {r.total_stops || 0} stops
                             </span>
                           </div>
 
@@ -725,7 +759,12 @@ const TransportRoutes: React.FC = () => {
                           </div>
 
                           <div className="pt-2 border-t border-border/25">
-                            <span className="text-xs uppercase font-bold opacity-60 block mb-1">Timings</span>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs uppercase font-bold opacity-60 block">Timings</span>
+                              <button onClick={() => toggleRouteTimeline(r.id)} className="text-xs font-semibold text-primary hover:underline focus:outline-none">
+                                {expandedRoutes.has(r.id) ? "Hide Timeline" : "View Timeline"}
+                              </button>
+                            </div>
                             <div className="flex flex-wrap gap-x-4 gap-y-1">
                               <div className="flex items-center gap-1 text-sm">
                                 <span className="opacity-50 font-bold">Morning:</span>
@@ -738,19 +777,25 @@ const TransportRoutes: React.FC = () => {
                             </div>
                           </div>
 
-                          {r.stops && r.stops.length > 0 && (
+                          {expandedRoutes.has(r.id) && (
                             <div className="pt-2 border-t border-border/25">
                               <span className="text-xs uppercase font-bold opacity-60 block mb-1">Route Timeline:</span>
                               <div className="max-h-[130px] overflow-y-auto custom-scrollbar pr-1 mt-1 space-y-1.5">
-                                {r.stops.map((s, i) => (
-                                  <div key={s.id} className="flex items-center gap-1.5 text-sm bg-white dark:bg-accent border dark:border-border px-3 py-1.5 rounded-lg shadow-sm">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                                    <span className="font-medium text-sm truncate pr-2">{s.stop_name}</span>
-                                    <span className="text-xs opacity-75 font-semibold text-primary ml-auto shrink-0">
-                                      ({formatTo12h(s.arrival_time_morning)} / {formatTo12h(s.arrival_time_evening)})
-                                    </span>
-                                  </div>
-                                ))}
+                                {loadingStops.has(r.id) ? (
+                                  <div className="text-xs text-muted-foreground italic text-center py-2">Loading timeline...</div>
+                                ) : routeStops[r.id] && routeStops[r.id].length > 0 ? (
+                                  routeStops[r.id].map((s: any) => (
+                                    <div key={s.id} className="flex items-center gap-1.5 text-sm bg-white dark:bg-accent border dark:border-border px-3 py-1.5 rounded-lg shadow-sm">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                                      <span className="font-medium text-sm truncate pr-2">{s.stop_name}</span>
+                                      <span className="text-xs opacity-75 font-semibold text-primary ml-auto shrink-0">
+                                        ({formatTo12h(s.arrival_time_morning)} / {formatTo12h(s.arrival_time_evening)})
+                                      </span>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="text-xs text-muted-foreground italic text-center py-2">No stops found</div>
+                                )}
                               </div>
                             </div>
                           )}
@@ -821,11 +866,14 @@ const TransportRoutes: React.FC = () => {
                                 </td>
                                 <td className="p-4 text-sm sm:text-xs">
                                   <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs sm:text-[10px] font-bold">
-                                    {r.stops?.length || 0} stops
+                                    {r.total_stops || 0} stops
                                   </span>
                                 </td>
                                 <td className="p-4 text-right">
                                   <div className="flex gap-2 justify-end items-center">
+                                    <Button size="icon" variant="ghost" onClick={() => toggleRouteTimeline(r.id)} className="h-8 w-8 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/20" title={expandedRoutes.has(r.id) ? "Hide Timeline" : "View Timeline"}>
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    </Button>
                                     <Button size="icon" variant="ghost" onClick={() => startEditRoute(r)} className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20">
                                       <Pencil size={14} />
                                     </Button>
@@ -838,21 +886,26 @@ const TransportRoutes: React.FC = () => {
                                   </div>
                                 </td>
                               </tr>
-                              {r.stops && r.stops.length > 0 && (
+                              {expandedRoutes.has(r.id) && (
                                 <tr className={theme === 'dark' ? 'bg-background/20' : 'bg-gray-50/40'}>
                                   <td colSpan={7} className="px-6 py-3">
                                     <div className="flex flex-wrap gap-3 items-center pl-4 border-l-2 border-primary/20">
                                       <span className="text-[10px] uppercase font-bold opacity-60 mr-2">Route Timeline:</span>
-                                      {r.stops.map((s, i) => (
-                                        <div key={s.id} className="flex items-center gap-1.5 text-xs bg-white dark:bg-accent border dark:border-border px-2.5 py-1 rounded-lg shadow-sm">
-                                          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                          <span className="font-medium">{s.stop_name}</span>
-                                          <span className="text-[10px] opacity-75 font-semibold text-primary">
-                                            ({formatTo12h(s.arrival_time_morning)} / {formatTo12h(s.arrival_time_evening)})
-                                          </span>
-                                          {i < r.stops.length - 1 && <span className="opacity-40 ml-1">→</span>}
-                                        </div>
-                                      ))}
+                                      {loadingStops.has(r.id) ? (
+                                        <div className="text-xs text-muted-foreground italic">Loading timeline...</div>
+                                      ) : routeStops[r.id] && routeStops[r.id].length > 0 ? (
+                                        routeStops[r.id].map((s: any) => (
+                                          <div key={s.id} className="flex items-center gap-1.5 text-xs bg-white dark:bg-accent border dark:border-border px-2.5 py-1 rounded-lg shadow-sm">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                            <span className="font-medium">{s.stop_name}</span>
+                                            <span className="text-[10px] opacity-75 font-semibold text-primary">
+                                              ({formatTo12h(s.arrival_time_morning)} / {formatTo12h(s.arrival_time_evening)})
+                                            </span>
+                                          </div>
+                                        ))
+                                      ) : (
+                                        <div className="text-xs text-muted-foreground italic">No stops found</div>
+                                      )}
                                     </div>
                                   </td>
                                 </tr>
