@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Phone, Mail, Clock, Calendar as CalendarIcon, CheckCircle2, User as UserIcon, AlertCircle, PhoneCall, MessageCircle, FileText, Edit2 } from 'lucide-react';
+import { Loader2, Phone, Mail, Clock, Calendar as CalendarIcon, CheckCircle2, User as UserIcon, AlertCircle, PhoneCall, MessageCircle, FileText, Edit2, Search, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -123,6 +123,10 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
   // Assignment
   const [counsellors, setCounsellors] = useState<any[]>([]);
   const [assigning, setAssigning] = useState(false);
+  const [counsellorPage, setCounsellorPage] = useState(1);
+  const [counsellorTotalPages, setCounsellorTotalPages] = useState(1);
+  const [counsellorSearch, setCounsellorSearch] = useState("");
+  const [isCounsellorOpen, setIsCounsellorOpen] = useState(false);
   const isManager = userRole === 'admission_manager' || userRole === 'org_admin' || userRole === 'superadmin' || userRole === 'principal';
 
   useEffect(() => {
@@ -131,9 +135,6 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
       if (courses.length === 0) {
         fetchCourses();
       }
-      if (isManager && counsellors.length === 0) {
-        fetchCounsellors();
-      }
     } else {
       setLead(null);
       setActivities([]);
@@ -141,6 +142,12 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
       setIsEditingCourse(false);
     }
   }, [leadId, isOpen, isManager]);
+
+  useEffect(() => {
+    if (isOpen && isManager) {
+      fetchCounsellors(counsellorPage, counsellorSearch);
+    }
+  }, [counsellorPage, counsellorSearch, isOpen, isManager]);
 
   const fetchCourses = async () => {
     try {
@@ -154,9 +161,9 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
     }
   };
 
-  const fetchCounsellors = async () => {
+  const fetchCounsellors = async (page = counsellorPage, search = counsellorSearch) => {
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/users/?role=counsellor`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/users/?role=counsellor&page=${page}&page_size=10&search=${encodeURIComponent(search)}`);
       const data = await response.json();
       if (response.ok) {
         setCounsellors(
@@ -165,6 +172,8 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
           : Array.isArray(data) ? data 
           : []
         );
+        setCounsellorTotalPages(data.total_pages || 1);
+        setCounsellorPage(data.current_page || page);
       } else {
         console.error("Failed to load counsellors", data);
         setCounsellors([]);
@@ -390,23 +399,68 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
                           <span>{lead.assigned_to_name}</span>
                         </div>
                       ) : isManager ? (
-                        <Select 
-                          value={lead.assigned_to?.toString() || ""} 
-                          onValueChange={handleAssignCounsellor}
-                          disabled={assigning}
-                        >
-                          <SelectTrigger className="w-full h-10 text-sm">
-                            <SelectValue placeholder="Assign Counsellor" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-popover text-popover-foreground border shadow-md">
-                            <SelectItem value="unassigned" disabled>Select Counsellor</SelectItem>
-                            {counsellors.map(c => (
-                              <SelectItem key={c.id} value={c.id.toString()}>
-                                {c.first_name} {c.last_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={isCounsellorOpen} onOpenChange={setIsCounsellorOpen}>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-between font-normal h-10 px-3 bg-background" disabled={assigning}>
+                              {lead.assigned_to_name || "Assign Counsellor"}
+                              <ChevronDown className="h-4 w-4 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[300px] p-0" align="start">
+                            <div className="flex items-center border-b px-3">
+                              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                              <input 
+                                className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                                placeholder="Search counsellor..."
+                                value={counsellorSearch}
+                                onChange={(e) => {
+                                  setCounsellorSearch(e.target.value);
+                                  setCounsellorPage(1);
+                                }}
+                              />
+                            </div>
+                            <div className="max-h-[250px] overflow-y-auto p-1 custom-scrollbar">
+                              {counsellors.length === 0 ? (
+                                <p className="p-4 text-center text-sm text-muted-foreground">No counsellors found.</p>
+                              ) : (
+                                counsellors.map(c => (
+                                  <div 
+                                    key={c.id}
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                                    onClick={() => {
+                                      handleAssignCounsellor(c.id.toString());
+                                      setIsCounsellorOpen(false);
+                                    }}
+                                  >
+                                    <CheckCircle2 className={cn("mr-2 h-4 w-4", lead.assigned_to?.toString() === c.id.toString() ? "opacity-100" : "opacity-0")} />
+                                    {c.first_name} {c.last_name}
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between border-t p-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => setCounsellorPage(p => Math.max(1, p - 1))}
+                                disabled={counsellorPage <= 1}
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                              </Button>
+                              <span className="text-xs text-muted-foreground">
+                                Page {counsellorPage} of {counsellorTotalPages}
+                              </span>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => setCounsellorPage(p => Math.min(counsellorTotalPages, p + 1))}
+                                disabled={counsellorPage >= counsellorTotalPages}
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       ) : null}
                     </CardContent>
                   </Card>
