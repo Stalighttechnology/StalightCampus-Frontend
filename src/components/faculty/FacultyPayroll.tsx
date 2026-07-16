@@ -129,7 +129,7 @@ const FacultyPayroll: React.FC<FacultyPayrollProps> = ({ user }) => {
           <div className="flex items-center gap-3">
 
             <div>
-              <CardTitle className="text-lg sm:text-2xl font-semibold">My Salary & Payroll</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl font-semibold">My Salary & Payroll</CardTitle>
               <CardDescription>View your payslips, statutory deductions, and salary history.</CardDescription>
             </div>
           </div>

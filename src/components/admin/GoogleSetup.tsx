@@ -147,8 +147,8 @@ const GoogleSetup: React.FC<GoogleSetupProps> = ({ setError, toast }) => {
         <CardHeader className="border-b border-border pb-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <CardTitle className={`text-lg sm:text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Google Workspace Integration</CardTitle>
-              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>
+              <CardTitle className={`text-xl sm:text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Google Workspace Integration</CardTitle>
+              <p className={`text-base sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>
                 Configure calendar events and automated Google Meet generation for online classes.
               </p>
             </div>

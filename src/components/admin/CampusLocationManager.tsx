@@ -310,8 +310,8 @@ const CampusLocationManager: React.FC = () => {
       <Card className={`shrink-0 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
         <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <CardTitle className={`text-lg sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Campus Location Management</CardTitle>
-            <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+            <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Campus Location Management</CardTitle>
+            <CardDescription className="text-base sm:text-sm text-muted-foreground mt-1">
               Set and manage campus boundaries for geolocation-based attendance
             </CardDescription>
           </div>
@@ -397,7 +397,7 @@ const CampusLocationManager: React.FC = () => {
 
         <Card className={theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}>
           <CardHeader>
-            <CardTitle className={`text-lg sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Campus Locations</CardTitle>
+            <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Campus Locations</CardTitle>
           </CardHeader>
           <CardContent className="h-[50vh] sm:h-auto">{/* mobile: constrained height; desktop/tablet keep auto */}
             <div className="flex flex-col h-full w-full min-h-0">
