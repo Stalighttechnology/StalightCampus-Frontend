@@ -382,12 +382,20 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
                   handleSelectChange('branch_id', Number(value));
                   setTimeout(() => setIsSemesterOpen(true), 150);
                 }}
-                disabled={dropdownData.branch.length === 0}>
-                <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`} disabled={dropdownData.branch.length === 0}>
-                  <SelectValue placeholder={dropdownData.branch.length === 0 ? "No branch available" : `Select ${translateTerminology("Branch")}`} />
+                disabled={!selected.batch_id || dropdownData.branch.length === 0}>
+                <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`} disabled={!selected.batch_id || dropdownData.branch.length === 0}>
+                  <SelectValue placeholder={
+                    !selected.batch_id ?
+                      "Select Batch First" :
+                      dropdownData.branch.length === 0 ?
+                        "No branch available" :
+                        `Select ${translateTerminology("Branch")}`
+                  } />
                 </SelectTrigger>
                 <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
-                  {dropdownData.branch.length === 0 ? (
+                  {!selected.batch_id ? (
+                    <SelectItem value="none" disabled>Select batch first</SelectItem>
+                  ) : dropdownData.branch.length === 0 ? (
                     <SelectItem value="none" disabled>No branch available</SelectItem>
                   ) : (
                     dropdownData.branch.map((item) =>

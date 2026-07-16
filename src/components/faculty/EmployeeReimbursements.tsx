@@ -79,6 +79,12 @@ const EmployeeReimbursements: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [statusCounts, setStatusCounts] = useState<{ pending: number; approved: number; rejected: number; processed: number }>({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    processed: 0,
+  });
   const [fetchLoading, setFetchLoading] = useState(false);
 
   // Form state
@@ -102,6 +108,9 @@ const EmployeeReimbursements: React.FC = () => {
       const count = res.count ?? 0;
       setTotalPages(Math.max(1, Math.ceil(count / 10)));
       setTotalCount(count);
+      if (res.status_counts) {
+        setStatusCounts(res.status_counts);
+      }
     }
     setFetchLoading(false);
   }, []);
@@ -173,7 +182,7 @@ const EmployeeReimbursements: React.FC = () => {
           {/* Summary cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {(['pending', 'approved', 'rejected', 'processed'] as const).map((s) => {
-              const count = claims.filter((c) => c.status === s).length;
+              const count = statusCounts[s];
               const meta = STATUS_META[s];
               return (
                 <Card key={s} className={`${isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50 border-slate-200'} border`}>
@@ -194,7 +203,7 @@ const EmployeeReimbursements: React.FC = () => {
           {/* Claims table (Visible only on desktop) */}
           <div className="border border-border rounded-lg overflow-hidden bg-background hidden md:block">
             <div className="px-4 py-3 border-b border-border flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-              <span className="font-semibold text-slate-950 dark:text-white flex items-center gap-2">
+              <span className="sm:text-xl text-xl font-semibold text-slate-950 dark:text-white flex items-center gap-2">
                 My Claims History
               </span>
             </div>
@@ -202,11 +211,11 @@ const EmployeeReimbursements: React.FC = () => {
               <table className="w-full text-sm text-left">
                 <thead className={`${isDark ? 'bg-slate-800/50 text-slate-300' : 'bg-slate-100 text-slate-600'} text-xs sm:text-sm`}>
                   <tr>
-                    <th className="px-3 py-3 sm:px-5 sm:py-3 font-semibold">Type</th>
-                    <th className="px-3 py-3 sm:px-5 sm:py-3 font-semibold">Description</th>
-                    <th className="px-3 py-3 sm:px-5 sm:py-3 font-semibold text-right">Amount</th>
-                    <th className="px-3 py-3 sm:px-5 sm:py-3 font-semibold">Status</th>
-                    <th className="px-3 py-3 sm:px-5 sm:py-3 font-semibold">Submitted On</th>
+                    <th className="px-3 py-3 sm:px-5 sm:py-3 font-semibold text-center">Type</th>
+                    <th className="px-3 py-3 sm:px-5 sm:py-3 font-semibold text-center">Description</th>
+                    <th className="px-3 py-3 sm:px-5 sm:py-3 font-semibold text-center">Amount</th>
+                    <th className="px-3 py-3 sm:px-5 sm:py-3 font-semibold text-center">Status</th>
+                    <th className="px-3 py-3 sm:px-5 sm:py-3 font-semibold text-center">Submitted On</th>
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-slate-100'} text-xs sm:text-sm`}>
@@ -228,13 +237,13 @@ const EmployeeReimbursements: React.FC = () => {
                       const typeLabel = CLAIM_TYPES.find((t) => t.value === claim.type)?.label ?? claim.type;
                       return (
                         <tr key={claim.id} className={`${isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50'} transition-colors`}>
-                          <td className="px-3 py-3 sm:px-5 sm:py-4 font-medium">
-                            <div className="flex items-center gap-1.5 min-w-max">
+                          <td className="px-3 py-3 sm:px-5 sm:py-4 font-medium text-center">
+                            <div className="inline-flex items-center gap-1.5 min-w-max">
                               <FileText size={14} className="text-blue-400 shrink-0" />
                               {typeLabel}
                             </div>
                           </td>
-                          <td className="px-3 py-3 sm:px-5 sm:py-4">
+                          <td className="px-3 py-3 sm:px-5 sm:py-4 text-center">
                             {claim.description ? (
                               <button
                                 onClick={() => setDescModal({ text: claim.description, type: typeLabel })}
@@ -250,17 +259,17 @@ const EmployeeReimbursements: React.FC = () => {
                               <span className={`text-xs italic ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>—</span>
                             )}
                           </td>
-                          <td className="px-3 py-3 sm:px-5 sm:py-4 text-right font-semibold text-blue-500">
-                            <span className="flex items-center justify-end gap-0.5 min-w-max">
+                          <td className="px-3 py-3 sm:px-5 sm:py-4 text-center font-semibold text-blue-500">
+                            <span className="flex items-center justify-center gap-0.5 min-w-max">
                               <IndianRupee size={13} />{Number(claim.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                             </span>
                           </td>
-                          <td className="px-3 py-3 sm:px-5 sm:py-4">
+                          <td className="px-3 py-3 sm:px-5 sm:py-4 text-center">
                             <Badge variant="outline" className={`capitalize text-[10px] sm:text-xs gap-1 border px-2 py-0.5 ${meta.color} min-w-max`}>
                               <meta.icon size={11} className="shrink-0" /> {meta.label}
                             </Badge>
                           </td>
-                          <td className={`px-3 py-3 sm:px-5 sm:py-4 ${isDark ? 'text-slate-400' : 'text-slate-505'} min-w-max`}>
+                          <td className={`px-3 py-3 sm:px-5 sm:py-4 text-center ${isDark ? 'text-slate-400' : 'text-slate-505'} min-w-max`}>
                             {formatDate(claim.created_at)}
                           </td>
                         </tr>
@@ -275,7 +284,7 @@ const EmployeeReimbursements: React.FC = () => {
           {/* Claims Mobile List (Visible only on mobile) */}
           <div className="space-y-3 md:hidden">
             <div className="px-1 pb-1 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-              <span className="font-semibold text-slate-950 dark:text-white">
+              <span className="font-semibold text-slate-950 dark:text-white text-xl sm:text-xl">
                 My Claims History
               </span>
             </div>
