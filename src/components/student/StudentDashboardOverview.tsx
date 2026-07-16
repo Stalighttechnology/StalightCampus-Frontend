@@ -499,7 +499,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
                         href={`tel:${dashboardData.student_profile.proctor.phone_number}`} 
                         className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium ${theme === 'dark' ? 'bg-blue-950/40 text-blue-400 hover:bg-blue-950/60 border border-blue-900/30' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100'}`}
                       >
-                        <FaPhone className="w-4 h-4" /> Call
+                        <FaPhone className="w-4 h-4 scale-x-[-1]" /> Call
                       </a>
                       <a
                         href={`https://wa.me/${dashboardData.student_profile.proctor.phone_number.length === 10 ? '91' + dashboardData.student_profile.proctor.phone_number : dashboardData.student_profile.proctor.phone_number.replace(/\D/g, '')}`}
@@ -516,7 +516,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
                         disabled 
                         className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed ${theme === 'dark' ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}
                       >
-                        <FaPhone className="w-4 h-4" /> None
+                        <FaPhone className="w-4 h-4 scale-x-[-1]" /> None
                       </button>
                       <button 
                         disabled 
