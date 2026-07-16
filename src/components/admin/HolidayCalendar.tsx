@@ -216,16 +216,26 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                     {/* Month Title & Navigation */}
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 w-full md:w-auto">
                         <div className="flex flex-row items-center justify-between w-full sm:w-auto gap-2">
-                            <h2 className={`text-2xl font-semibold tracking-tight min-w-[160px] ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            <h2 className={`text-2xl font-semibold tracking-tight sm:min-w-[160px] ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                                 {format(currentDate, 'MMMM')}
                             </h2>
-                            <div className="flex sm:hidden items-center gap-2.5 text-[10px] text-muted-foreground font-medium shrink-0">
+                            <div className="flex sm:hidden flex-wrap justify-end items-center gap-x-2.5 gap-y-1 text-[10px] text-muted-foreground font-medium shrink-0">
                                 <span className="flex items-center gap-1">
                                     <span className="w-2 h-2 rounded-full bg-rose-500"></span> Holiday
                                 </span>
                                 <span className="flex items-center gap-1">
                                     <span className="w-2 h-2 rounded-full bg-primary"></span> Event
                                 </span>
+                                {showExams && (
+                                    <span className="flex items-center gap-1">
+                                        <span className="w-2 h-2 rounded-full bg-amber-500"></span> Exam
+                                    </span>
+                                )}
+                                {showLeaves && (
+                                    <span className="flex items-center gap-1">
+                                        <span className="w-2 h-2 rounded-full bg-teal-500"></span> Leave
+                                    </span>
+                                )}
                             </div>
                         </div>
 
