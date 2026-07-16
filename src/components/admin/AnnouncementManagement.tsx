@@ -500,8 +500,8 @@ const AdminAnnouncementManagement = () => {
   const renderHeader = (
     <CardHeader className="announcements-card-header border-b pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div className="min-w-0">
-        <CardTitle className={`announcements-card-title text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Announcement Management</CardTitle>
-        <p className={`text-base sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Create and manage system announcements</p>
+        <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Announcement Management</CardTitle>
+        <p className={`text-sm sm:text-md mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Create and manage system announcements</p>
       </div>
       <div className="announce-actions">
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

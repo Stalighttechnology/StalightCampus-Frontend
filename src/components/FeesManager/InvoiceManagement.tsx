@@ -444,7 +444,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
         <div id="feesmanager-invoices-header">
           <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
             <div>
-              <CardTitle>Invoice Management</CardTitle>
+              <CardTitle className="text-xl sm:text-xl md:text-2xl font-semibold text-gray-900">Invoice Management</CardTitle>
               <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
                 Track and manage student fee payments and collections
               </CardDescription>

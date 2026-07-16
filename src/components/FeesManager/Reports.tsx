@@ -199,7 +199,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
         <div id="feesmanager-reports-header">
           <CardHeader className="border-b border-border/50 flex flex-row items-start sm:items-center justify-between space-y-0">
             <div>
-              <CardTitle>Staff Attendance Audit</CardTitle>
+              <CardTitle className="text-xl sm:text-xl md:text-2xl font-semibold text-gray-900">Staff Attendance Audit</CardTitle>
               <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
                 Monitor attendance across all institutional roles
               </CardDescription>
