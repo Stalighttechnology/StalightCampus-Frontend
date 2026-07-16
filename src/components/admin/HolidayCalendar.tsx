@@ -18,7 +18,7 @@ interface HolidayCalendarProps {
 
 export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = false, showExams = false, showLeaves = false, userRole }) => {
     const [holidays, setHolidays] = useState<Holiday[]>([]);
-    const [upcomingHolidays, setUpcomingHolidays] = useState<Holiday[]>([]);
+
     const [examEvents, setExamEvents] = useState<ExamEvent[]>([]);
     const [leaveEvents, setLeaveEvents] = useState<LeaveEvent[]>([]);
     const [loading, setLoading] = useState(true);
@@ -58,31 +58,13 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
         }
     };
 
-    const fetchUpcomingHolidays = async () => {
-        try {
-            const startDate = format(new Date(), 'yyyy-MM-dd');
-            const endDate = format(addMonths(new Date(), 12), 'yyyy-MM-dd');
-            const data = await getHolidays(startDate, endDate);
 
-            const today = startOfDay(new Date());
-            const filtered = data
-                .filter(h => parseISO(h.date) >= today)
-                .sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime())
-                .slice(0, 25);
-
-            setUpcomingHolidays(filtered);
-        } catch (err) {
-            console.error('Failed to fetch upcoming holidays');
-        }
-    };
 
     useEffect(() => {
         fetchHolidays(currentDate);
     }, [currentDate.getMonth(), currentDate.getFullYear()]);
 
-    useEffect(() => {
-        fetchUpcomingHolidays();
-    }, []);
+
 
     // Fetch student exams for the current month when showExams is enabled
     useEffect(() => {
@@ -197,7 +179,6 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
             });
             setIsModalOpen(false);
             fetchHolidays();
-            fetchUpcomingHolidays();
             await showSuccessAlert('Saved!', 'Event/Holiday has been saved successfully.');
         } catch (err) {
             await showErrorAlert('Error', 'Failed to save event/holiday.');
@@ -218,7 +199,6 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                 await deleteHoliday(existingHoliday.id);
                 setIsModalOpen(false);
                 fetchHolidays();
-                fetchUpcomingHolidays();
                 await showSuccessAlert('Deleted!', 'Event/Holiday has been deleted.');
             } catch (err) {
                 await showErrorAlert('Error', 'Failed to delete event/holiday.');
