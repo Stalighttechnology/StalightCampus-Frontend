@@ -307,13 +307,14 @@ const TransportAllocations: React.FC = () => {
   return (
     <div id="transport-allocations-header" className="space-y-6">
       {/* Allocation Setup form */}
-      <Card id="transport-allocation-form-card" className={`p-6 border shadow-sm backdrop-blur-sm ${cardBg}`}>
-        <div className="flex justify-between items-center mb-4 pb-2 border-b border-inherit">
-          <h3 className="text-xl font-semibold flex items-center gap-2">
+      <Card id="transport-allocation-form-card" className={`border shadow-sm backdrop-blur-sm overflow-hidden ${cardBg}`}>
+        <CardHeader className="pb-3 border-b border-inherit">
+          <CardTitle className="text-xl font-semibold flex items-center gap-2">
             Allocate Student to Stop
-          </h3>
-        </div>
-        <form onSubmit={handleAllocate} className="space-y-5">
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <form onSubmit={handleAllocate} className="space-y-5">
           {/* Eligible Student Filters */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
             <div>
@@ -522,6 +523,7 @@ const TransportAllocations: React.FC = () => {
             </Button>
           </div>
         </form>
+        </CardContent>
       </Card>
 
       {/* Allocations Table Card */}
@@ -532,7 +534,7 @@ const TransportAllocations: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
-                    <CardTitle className="sm:text-xl text-lg font-semibold flex items-center gap-2">
+                    <CardTitle className="sm:text-xl text-xl font-semibold flex items-center gap-2">
                       Active Transport Allocations
                     </CardTitle>
                     {allocCount > 0 && (
