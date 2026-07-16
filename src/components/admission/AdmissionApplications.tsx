@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
-import { Loader2, UserCheck, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, UserCheck, FileText, CheckCircle, XCircle, Search } from 'lucide-react';
 import { SkeletonTable } from '../ui/skeleton';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -16,15 +17,29 @@ export default function AdmissionApplications() {
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
 
   useEffect(() => {
     fetchApplications();
-  }, [currentPage]);
+  }, [currentPage, debouncedSearch]);
 
   const fetchApplications = async () => {
     setLoading(true);
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/?page=${currentPage}&page_size=20`);
+      const searchParam = debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : "";
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/?page=${currentPage}&page_size=20${searchParam}`);
       if (response.ok) {
         const data = await response.json();
         if (data && data.results) {
@@ -187,7 +202,7 @@ export default function AdmissionApplications() {
     }
   };
 
-  if (loading) {
+  if (loading && applications.length === 0) {
     return (
       <div className="space-y-6">
         <SkeletonTable rows={5} cols={5} />
@@ -201,8 +216,17 @@ export default function AdmissionApplications() {
   return (
     <div id="admission-applications-container" className="space-y-6 w-full max-w-full overflow-hidden">
       <Card className="flex flex-col w-full border-border shadow-sm">
-        <CardHeader id="admission-applications-header" className="border-b pb-4">
+        <CardHeader id="admission-applications-header" className="border-b pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <CardTitle className="text-lg font-semibold">Submitted Applications</CardTitle>
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search by name, email..." 
+              className="pl-9 h-9"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </CardHeader>
         <CardContent className="p-0 flex-grow">
           {paginatedApplications.length === 0 ? (

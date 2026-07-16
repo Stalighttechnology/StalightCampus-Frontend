@@ -127,14 +127,16 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
   const [counsellorTotalPages, setCounsellorTotalPages] = useState(1);
   const [counsellorSearch, setCounsellorSearch] = useState("");
   const [isCounsellorOpen, setIsCounsellorOpen] = useState(false);
+  
+  const [coursePage, setCoursePage] = useState(1);
+  const [courseTotalPages, setCourseTotalPages] = useState(1);
+  const [courseSearch, setCourseSearch] = useState("");
+  const [isCourseOpen, setIsCourseOpen] = useState(false);
   const isManager = userRole === 'admission_manager' || userRole === 'org_admin' || userRole === 'superadmin' || userRole === 'principal';
 
   useEffect(() => {
     if (leadId && isOpen) {
       fetchLeadData();
-      if (courses.length === 0) {
-        fetchCourses();
-      }
     } else {
       setLead(null);
       setActivities([]);
@@ -149,12 +151,24 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
     }
   }, [counsellorPage, counsellorSearch, isOpen, isManager]);
 
-  const fetchCourses = async () => {
+  useEffect(() => {
+    if (isOpen) {
+      fetchCourses(coursePage, courseSearch);
+    }
+  }, [coursePage, courseSearch, isOpen]);
+
+  const fetchCourses = async (page = coursePage, search = courseSearch) => {
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/courses/`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/courses/?page=${page}&page_size=10&search=${encodeURIComponent(search)}`);
       const data = await response.json();
       if (response.ok) {
-        setCourses(Array.isArray(data) ? data : []);
+        setCourses(
+          Array.isArray(data.results) ? data.results 
+          : Array.isArray(data) ? data 
+          : []
+        );
+        setCourseTotalPages(data.total_pages || 1);
+        setCoursePage(data.current_page || page);
       }
     } catch (err) {
       console.error("Failed to fetch courses", err);
@@ -352,23 +366,80 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
                     <div className="pt-3 border-t">
                       <p className="text-muted-foreground text-xs mb-1">Interested Course</p>
                       {isEditingCourse || !lead.course_name ? (
-                        <Select 
-                          value={courses.find(c => c.name === lead.course_name)?.id?.toString() || "none"} 
-                          onValueChange={handleUpdateCourse}
-                          disabled={updatingCourse}
-                        >
-                          <SelectTrigger className="w-full h-8 text-sm bg-muted/30">
-                            <SelectValue placeholder="Select Course" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-popover text-popover-foreground border shadow-md">
-                            <SelectItem value="none">No Course Selected</SelectItem>
-                            {courses.map(c => (
-                              <SelectItem key={c.id} value={c.id.toString()}>
-                                {c.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={isCourseOpen} onOpenChange={setIsCourseOpen} modal={true}>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-between font-normal h-8 text-sm px-3 bg-muted/30" disabled={updatingCourse}>
+                              <span className="truncate">
+                                {courses.find(c => c.id.toString() === lead.course_id?.toString())?.name || lead.course_name || "Select Course"}
+                              </span>
+                              <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[300px] p-0" align="start">
+                            <div className="flex items-center border-b px-3">
+                              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                              <input 
+                                className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                                placeholder="Search course..."
+                                value={courseSearch}
+                                onChange={(e) => {
+                                  setCourseSearch(e.target.value);
+                                  setCoursePage(1);
+                                }}
+                              />
+                            </div>
+                            <div className="max-h-[250px] overflow-y-auto p-1 custom-scrollbar">
+                              <div 
+                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                onClick={() => {
+                                  handleUpdateCourse("none");
+                                  setIsCourseOpen(false);
+                                }}
+                              >
+                                <CheckCircle2 className={cn("mr-2 h-4 w-4", !lead.course_id ? "opacity-100" : "opacity-0")} />
+                                No Course Selected
+                              </div>
+                              {courses.length === 0 ? (
+                                <p className="p-4 text-center text-sm text-muted-foreground">No courses found.</p>
+                              ) : (
+                                courses.map(c => (
+                                  <div 
+                                    key={c.id}
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                    onClick={() => {
+                                      handleUpdateCourse(c.id.toString());
+                                      setIsCourseOpen(false);
+                                    }}
+                                  >
+                                    <CheckCircle2 className={cn("mr-2 h-4 w-4", lead.course_id?.toString() === c.id.toString() ? "opacity-100" : "opacity-0")} />
+                                    {c.name}
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between border-t p-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => setCoursePage(p => Math.max(1, p - 1))}
+                                disabled={coursePage <= 1}
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                              </Button>
+                              <span className="text-xs text-muted-foreground">
+                                Page {coursePage} of {courseTotalPages}
+                              </span>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => setCoursePage(p => Math.min(courseTotalPages, p + 1))}
+                                disabled={coursePage >= courseTotalPages}
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       ) : (
                         <div className="flex items-center justify-between group">
                           <p className="font-medium text-sm">{lead.course_name}</p>
@@ -399,7 +470,7 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
                           <span>{lead.assigned_to_name}</span>
                         </div>
                       ) : isManager ? (
-                        <Popover open={isCounsellorOpen} onOpenChange={setIsCounsellorOpen}>
+                        <Popover open={isCounsellorOpen} onOpenChange={setIsCounsellorOpen} modal={true}>
                           <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full justify-between font-normal h-10 px-3 bg-background" disabled={assigning}>
                               {lead.assigned_to_name || "Assign Counsellor"}
