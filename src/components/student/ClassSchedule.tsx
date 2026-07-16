@@ -397,10 +397,12 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
             </div>
           ) : (
             /* Empty State */
-            <div className="flex flex-col items-center justify-center py-10 text-center space-y-2">
-              <Calendar className="w-10 h-10 text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground font-semibold">No Upcoming Classes</p>
-              <p className="text-xs text-muted-foreground/70 max-w-sm mx-auto">
+            <div className={`flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                <Calendar className="w-8 h-8" />
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Upcoming Classes</h3>
+              <p className={`text-sm max-w-md mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 There are no upcoming or live class schedules for your section at this time.
               </p>
             </div>

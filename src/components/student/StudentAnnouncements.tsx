@@ -455,7 +455,7 @@ const ExamAnnouncementCard = ({ exam, theme, handleMarkRead }: { exam: ExamAnnou
               <DialogContent className="w-[90%] sm:max-w-2xl rounded-lg max-h-[80vh] overflow-y-auto">
                 <DialogHeader className="flex flex-row items-center justify-between gap-4 border-b pb-3 pr-6 md:pr-0">
                   <div className="flex-1 min-w-0 pr-2">
-                    <DialogTitle className="text-xl font-semibold truncate">{exam.examName} Schedule</DialogTitle>
+                    <DialogTitle className="text-xl font-semibold break-all">{exam.examName} Schedule</DialogTitle>
                   </div>
 
                   {/* Mobile Export Button */}
@@ -567,6 +567,10 @@ const StudentAnnouncements = () => {
 
   useEffect(() => {
     loadAnnouncements(currentPage);
+    const element = document.getElementById("announcements-card");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }, [currentPage]);
 
   const handleMarkRead = async (announcementId: number) => {
