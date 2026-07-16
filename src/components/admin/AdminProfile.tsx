@@ -916,7 +916,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
         <CardHeader id="admin-profile-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
           <div className="flex-1 min-w-0">
             <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Profile Information</CardTitle>
-            <p className={`text-base sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>
+            <p className={`text-sm sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>
           </div>
 
           <div className="grid grid-cols-2 sm:flex sm:flex-row items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 sm:ml-auto">

@@ -415,7 +415,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
                   </span>
                 )}
               </div>
-              <CardDescription className="text-base sm:text-sm text-muted-foreground mt-1">
+              <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
                 Manage, edit, or delete created batches
               </CardDescription>
             </div>

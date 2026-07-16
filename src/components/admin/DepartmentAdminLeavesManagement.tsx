@@ -326,7 +326,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                   </span>
                 }
               </div>
-              <CardDescription className="text-base sm:text-sm text-muted-foreground mt-1">
+              <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
                 Review and approve leave requests from Department Admins
               </CardDescription>
             </div>

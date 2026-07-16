@@ -202,7 +202,7 @@ const BulkUpload = ({ setError, toast }: BulkUploadProps) => {
           <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
             <div>
               <CardTitle className="text-xl sm:text-2xl font-semibold">Bulk Upload Faculty</CardTitle>
-              <CardDescription className="text-base sm:text-sm text-muted-foreground mt-1">
+              <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
                 Upload CSV or Excel files to bulk enroll faculty members
               </CardDescription>
             </div>

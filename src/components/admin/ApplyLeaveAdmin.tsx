@@ -252,7 +252,7 @@ const ApplyLeaveAdmin = () => {
             <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
               <div>
                 <CardTitle className="text-xl sm:text-2xl font-semibold">Leave Application Form</CardTitle>
-                <CardDescription className="text-base sm:text-sm text-muted-foreground mt-1">
+                <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
                   Your leave request will be routed to the <span className="font-semibold text-primary">Dean</span> for approval.
                 </CardDescription>
               </div>
@@ -354,7 +354,7 @@ const ApplyLeaveAdmin = () => {
             <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
               <div>
                 <CardTitle className="text-xl sm:text-2xl font-semibold">Recent Leave Applications</CardTitle>
-                <CardDescription className="text-base sm:text-sm text-muted-foreground mt-1">
+                <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
                   View and track your leave requests
                 </CardDescription>
               </div>

@@ -628,7 +628,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
           <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <CardTitle>Faculty Attendance Dashboard</CardTitle>
-              <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+              <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
                 Track and manage faculty attendance across the institution
               </CardDescription>
             </div>

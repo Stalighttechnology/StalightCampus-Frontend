@@ -311,7 +311,7 @@ const CampusLocationManager: React.FC = () => {
         <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Campus Location Management</CardTitle>
-            <CardDescription className="text-base sm:text-sm text-muted-foreground mt-1">
+            <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
               Set and manage campus boundaries for geolocation-based attendance
             </CardDescription>
           </div>
