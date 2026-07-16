@@ -77,7 +77,7 @@ const ProctorStudentParentModal: React.FC<ProctorStudentParentModalProps> = ({ s
 
   return (
     <Dialog open={!!student} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={`sm:max-w-[600px] w-[95vw] p-4 sm:p-6 max-h-[90vh] overflow-y-auto ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white'}`}>
+      <DialogContent className={`sm:max-w-[600px] w-[90vw] h-[80vh] sm:h-auto rounded-xl p-4 sm:p-6 overflow-y-auto ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white'}`}>
         <DialogHeader>
           <DialogTitle className="pr-8 text-base sm:text-lg leading-tight">Parent Access: {student?.name} <span className="block sm:inline text-sm sm:text-base font-normal text-muted-foreground">({student?.usn})</span></DialogTitle>
         </DialogHeader>
