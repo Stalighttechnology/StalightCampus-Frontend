@@ -156,7 +156,7 @@ const EmployeeReimbursements: React.FC = () => {
         <CardHeader className="p-4 sm:p-6 pb-4 border-b border-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4 space-y-0">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <CardTitle className={`text-2xl font-semibold flex items-center gap-2 ${isDark ? 'text-foreground' : 'text-gray-900'}`}>
+              <CardTitle className={`sm:text-2xl text-xl font-semibold flex items-center gap-2 ${isDark ? 'text-foreground' : 'text-gray-900'}`}>
                 Reimbursements &amp; Claims
               </CardTitle>
             </div>
