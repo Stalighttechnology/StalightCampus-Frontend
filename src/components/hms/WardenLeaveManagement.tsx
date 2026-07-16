@@ -306,8 +306,8 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
       <style>{`
         @media (max-width: 480px) {
           .leave-card-header { padding: 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
-          .leave-card-title { font-size: 1.125rem !important; }
-          .leave-card-desc { font-size: 0.8125rem !important; margin-top: 4px !important; }
+          .leave-card-title { text-xl !important; }
+          .leave-card-desc { text-sm !important; margin-top: 4px !important; }
           .leave-item-card { padding: 16px !important; border-radius: 12px !important; }
           .leave-actions-mobile { width: 100% !important; margin-top: 12px !important; gap: 8px !important; flex-direction: row !important; }
           .leave-action-btn { flex: 1 !important; height: 38px !important; font-size: 12px !important; font-weight: 600 !important; }
@@ -321,7 +321,7 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
               <div>
                 <div className="flex items-center gap-3 mb-1">
-                  <CardTitle className={`leave-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</CardTitle>
+                  <CardTitle className={`leave-card-title sm:text-2xl  ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</CardTitle>
                   {totalCount > 0 &&
                     <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
                       {totalCount} Total
@@ -467,11 +467,10 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
 
                         <button
                           onClick={() => setViewLeave(leave)}
-                          className={`w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition border ${
-                            theme === 'dark'
-                              ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
-                              : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100'
-                          }`}
+                          className={`w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition border ${theme === 'dark'
+                            ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                            : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100'
+                            }`}
                         >
                           View Reason
                         </button>
@@ -481,8 +480,8 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
                             <Button
                               variant="outline"
                               className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
-                                  ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
-                                  : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                                ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
+                                : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
                                 }`}
                               onClick={() => handleApprove(leave.id)}
                               disabled={loading}
@@ -492,8 +491,8 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
                             <Button
                               variant="outline"
                               className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
-                                  ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
-                                  : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                                ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
+                                : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
                                 }`}
                               onClick={() => handleReject(leave.id)}
                               disabled={loading}
@@ -564,8 +563,8 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
                                 size="sm"
                                 variant="outline"
                                 className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
-                                    ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
-                                    : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                                  ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
+                                  : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
                                   }`}
                                 disabled={loading}
                               >
@@ -577,8 +576,8 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
                                 size="sm"
                                 variant="outline"
                                 className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
-                                    ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
-                                    : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                                  ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
+                                  : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
                                   }`}
                                 disabled={loading}
                               >
