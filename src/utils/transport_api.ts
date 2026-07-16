@@ -172,6 +172,9 @@ export const fetchMyTripHistory = () =>
 export const submitStudentComplaint = (title: string, description: string) =>
   fetchWithTokenRefresh(`${API_BASE}/student/complaint/`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ title, description }) }).then((r) => r.json());
 
+export const fetchStudentComplaints = () =>
+  fetchWithTokenRefresh(`${API_BASE}/student/complaints/`, { headers: authHeaders() }).then((r) => r.json());
+
 // ─── LEAVES ─────────────────────────────────────────────────────────────
 
 export const getApplyLeaveBootstrap = async (qs: string = '') => {

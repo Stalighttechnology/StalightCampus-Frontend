@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "../ui/button";
 import { SkeletonList } from "../ui/skeleton";
 import {
-  fetchMyBusDetails, fetchMyTripHistory, submitStudentComplaint
+  fetchMyBusDetails, fetchMyTripHistory, submitStudentComplaint, fetchStudentComplaints
 } from "../../utils/transport_api";
 import {
   Bus, MapPin, Clock, Calendar, CheckCircle, XCircle,
@@ -41,6 +41,8 @@ const StudentTransportPage: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
   const [complaintTitle, setComplaintTitle] = useState('');
   const [complaintDesc, setComplaintDesc] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [complaints, setComplaints] = useState<any[]>([]);
+  const [complaintsLoaded, setComplaintsLoaded] = useState(false);
 
   // View resolution modal state
   const [viewComplaint, setViewComplaint] = useState<any>(null);
@@ -71,6 +73,15 @@ const StudentTransportPage: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
         setHistoryLoading(false);
       })();
     }
+    if (tab === 'complaint' && !complaintsLoaded) {
+      (async () => {
+        const comp = await fetchStudentComplaints();
+        if (comp.success) {
+          setComplaints(comp.complaints || []);
+          setComplaintsLoaded(true);
+        }
+      })();
+    }
     setCurrentPage(1);
   }, [tab]);
 
@@ -87,10 +98,7 @@ const StudentTransportPage: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
       setComplaintTitle('');
       setComplaintDesc('');
       if (res.complaint) {
-        setBusData((prev: any) => ({
-          ...prev,
-          recent_complaints: [res.complaint, ...(prev?.recent_complaints || [])].slice(0, 5)
-        }));
+        setComplaints(prev => [res.complaint, ...prev].slice(0, 5));
       }
     } else {
       toast({ variant: 'destructive', title: 'Error', description: res.message || 'Submission failed.' });
@@ -370,11 +378,11 @@ const StudentTransportPage: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
           </div>
  
           {/* Recent Complaints */}
-          {busData?.recent_complaints?.length > 0 && (
+          {complaints.length > 0 && (
             <div className="mt-8 pt-6 border-t border-inherit">
               <h3 className="font-bold text-base sm:text-lg mb-4">Recent Complaints</h3>
               <div className="space-y-3">
-                {busData.recent_complaints.map((c: any) => (
+                {complaints.map((c: any) => (
                   <div key={c.id} className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
                     <div className="flex justify-between items-start mb-2">
                       <p className="font-semibold text-base sm:text-sm">{c.title}</p>
