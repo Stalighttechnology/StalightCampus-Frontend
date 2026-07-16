@@ -41,10 +41,10 @@ const CLAIM_TYPES = [
 ];
 
 const STATUS_META: Record<string, { label: string; color: string; icon: React.ComponentType<{ size?: number; className?: string }> }> = {
-  pending:  { label: 'Pending',  color: 'bg-amber-500/10 text-amber-500 border-amber-500/20',  icon: Clock },
+  pending: { label: 'Pending', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20', icon: Clock },
   approved: { label: 'Approved', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', icon: CheckCircle2 },
   rejected: { label: 'Rejected', color: 'bg-red-500/10 text-red-500 border-red-500/20', icon: XCircle },
-  processed:{ label: 'Processed',color: 'bg-blue-500/10 text-blue-500 border-blue-500/20',  icon: CheckCircle2 },
+  processed: { label: 'Processed', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', icon: CheckCircle2 },
 };
 
 interface Claim {
@@ -177,7 +177,7 @@ const EmployeeReimbursements: React.FC = () => {
             <PlusCircle size={16} /> New Claim
           </Button>
         </CardHeader>
-        
+
         <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
           {/* Summary cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
@@ -247,11 +247,10 @@ const EmployeeReimbursements: React.FC = () => {
                             {claim.description ? (
                               <button
                                 onClick={() => setDescModal({ text: claim.description, type: typeLabel })}
-                                className={`text-[10px] sm:text-xs font-medium px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md transition border ${
-                                  isDark
+                                className={`text-[10px] sm:text-xs font-medium px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md transition border ${isDark
                                     ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
                                     : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
-                                }`}
+                                  }`}
                               >
                                 View
                               </button>
@@ -324,11 +323,10 @@ const EmployeeReimbursements: React.FC = () => {
                         <span className="text-[11px] text-muted-foreground">Purpose provided</span>
                         <button
                           onClick={() => setDescModal({ text: claim.description, type: typeLabel })}
-                          className={`text-xs font-medium px-2.5 py-1 rounded-md transition border flex items-center gap-1.5 ${
-                            isDark
+                          className={`text-xs font-medium px-2.5 py-1 rounded-md transition border flex items-center gap-1.5 ${isDark
                               ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
                               : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
-                          }`}
+                            }`}
                         >
                           <Eye size={12} /> View Purpose
                         </button>
@@ -378,7 +376,7 @@ const EmployeeReimbursements: React.FC = () => {
 
       {/* New Claim Dialog */}
       <Dialog open={showForm} onOpenChange={(open) => { if (!open) setShowForm(false); }}>
-        <DialogContent 
+        <DialogContent
           onPointerDownOutside={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
           className={`w-[90vw] sm:max-w-lg rounded-xl p-0 shadow-2xl border max-h-[80vh] overflow-y-auto custom-scrollbar  ${isDark ? 'bg-[#0f172a] text-slate-100 border-slate-800' : 'bg-white text-slate-900 border-slate-200'}`}>

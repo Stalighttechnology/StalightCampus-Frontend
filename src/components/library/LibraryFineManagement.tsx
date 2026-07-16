@@ -177,7 +177,7 @@ const LibraryFineManagement = () => {
         <div className="flex justify-between items-center w-full gap-2">
           <div>
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <CardTitle className="sm:text-2xl text-lg font-semibold whitespace-nowrap">Fine Management</CardTitle>
+              <CardTitle className="sm:text-2xl text-xl font-semibold whitespace-nowrap">Fine Management</CardTitle>
               {finesCount > 0 && (
                 <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full mt-0.5 whitespace-nowrap shrink-0 ${theme === 'dark' ? 'bg-red-500/10 text-red-400' : 'bg-red-100 text-red-600'}`}>
                   {finesCount} Pending

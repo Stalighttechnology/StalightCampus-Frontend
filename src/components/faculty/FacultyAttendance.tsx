@@ -554,7 +554,7 @@ const FacultyAttendance = () => {
           </AnimatePresence>
         </CardContent>
       </Card>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Recent Attendance Records */}
         <Card className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2 h-[72px] sm:h-[80px]">
