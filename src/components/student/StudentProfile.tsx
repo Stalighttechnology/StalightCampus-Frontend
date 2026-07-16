@@ -588,29 +588,40 @@ const StudentProfile: React.FC = () => {
 
     const validatePhone = (phoneStr: string): boolean => {
       if (!phoneStr) return true;
-      const phoneRegex = /^\+?\d{9,15}$/;
-      return phoneRegex.test(phoneStr.replace(/\s+/g, ''));
+      const clean = phoneStr.replace(/[\s\-\+]/g, '');
+      return /^\d{10}$/.test(clean);
+    };
+
+    const validateAadhaar = (aadhaarStr: string): boolean => {
+      if (!aadhaarStr) return true;
+      const clean = aadhaarStr.replace(/\s+/g, '');
+      return /^\d{12}$/.test(clean);
     };
 
     // Client-side validations
     if (form.phone && !validatePhone(form.phone)) {
-      showErrorAlert('Invalid Input', 'Please enter a valid mobile number.');
+      showErrorAlert('Invalid Input', 'Please enter a valid 10-digit mobile number.');
       return;
     }
     if (form.alternate_mobile && !validatePhone(form.alternate_mobile)) {
-      showErrorAlert('Invalid Input', 'Please enter a valid alternate mobile number.');
+      showErrorAlert('Invalid Input', 'Please enter a valid 10-digit alternate mobile number.');
       return;
     }
     if (form.father_contact && !validatePhone(form.father_contact)) {
-      showErrorAlert('Invalid Input', "Please enter a valid mobile number for Father's Contact.");
+      showErrorAlert('Invalid Input', "Please enter a valid 10-digit mobile number for Father's Contact.");
       return;
     }
     if (form.mother_contact && !validatePhone(form.mother_contact)) {
-      showErrorAlert('Invalid Input', "Please enter a valid mobile number for Mother's Contact.");
+      showErrorAlert('Invalid Input', "Please enter a valid 10-digit mobile number for Mother's Contact.");
       return;
     }
     if (form.guardian_phone && !validatePhone(form.guardian_phone)) {
-      showErrorAlert('Invalid Input', "Please enter a valid mobile number for Guardian's Phone.");
+      showErrorAlert('Invalid Input', "Please enter a valid 10-digit mobile number for Guardian's Phone.");
+      return;
+    }
+
+    if (form.aadhaar_number && !validateAadhaar(form.aadhaar_number)) {
+      showErrorAlert('Invalid Input', 'Please enter a valid 12-digit Aadhaar Number.');
       return;
     }
 
@@ -1060,7 +1071,7 @@ const StudentProfile: React.FC = () => {
                       </div>
                       <div>
                         <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Phone</Label>
-                        <Input name="phone" value={form.phone} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                        <Input name="phone" maxLength={10} value={form.phone} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                       </div>
                     </div>
 
@@ -1193,17 +1204,14 @@ const StudentProfile: React.FC = () => {
                         />
                       )}
                     </div>
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Blood Group</Label>
-                      <Input name="blood_group" value={form.blood_group || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
-                    </div>
+                    {/* Blood Group moved to Medical Info */}
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Primary Language</Label>
                       <Input name="primary_language" value={form.primary_language || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Aadhaar Number</Label>
-                      <Input name="aadhaar_number" value={form.aadhaar_number || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                      <Input name="aadhaar_number" maxLength={12} value={form.aadhaar_number || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>PAN / Passport</Label>
@@ -1224,7 +1232,7 @@ const StudentProfile: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Alternate Mobile</Label>
-                      <Input name="alternate_mobile" value={form.alternate_mobile || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                      <Input name="alternate_mobile" maxLength={10} value={form.alternate_mobile || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Personal Email</Label>
@@ -1326,13 +1334,13 @@ const StudentProfile: React.FC = () => {
                           <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Father's Name</Label>
                           <Input name="father_name" value={form.father_name || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                           <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Father's Contact</Label>
-                          <Input name="father_contact" value={form.father_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                          <Input name="father_contact" maxLength={10} value={form.father_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                         </div>
                         <div>
                           <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Mother's Name</Label>
                           <Input name="mother_name" value={form.mother_name || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                           <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Mother's Contact</Label>
-                          <Input name="mother_contact" value={form.mother_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                          <Input name="mother_contact" maxLength={10} value={form.mother_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                         </div>
                       </div>
                     </div>
@@ -1373,7 +1381,7 @@ const StudentProfile: React.FC = () => {
                           </div>
                           <div>
                             <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Guardian Contact</Label>
-                            <Input name="guardian_phone" value={form.guardian_phone || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                            <Input name="guardian_phone" maxLength={10} value={form.guardian_phone || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                             <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Guardian Email</Label>
                             <Input name="guardian_email" value={form.guardian_email || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                           </div>
@@ -1389,7 +1397,20 @@ const StudentProfile: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Blood Group</Label>
-                        <Input name="blood_group" value={form.blood_group || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                        {editing ? (
+                          <Select value={form.blood_group || ''} onValueChange={(val) => setForm(p => ({ ...p, blood_group: val }))}>
+                            <SelectTrigger className={getInputClassName(true)}>
+                              <SelectValue placeholder="Select Blood Group" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
+                                <SelectItem key={bg} value={bg}>{bg}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input name="blood_group" value={form.blood_group || ''} readOnly className={getInputClassName(false)} />
+                        )}
                       </div>
                       <div>
                         <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Emergency Contact</Label>
