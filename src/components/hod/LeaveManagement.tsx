@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CheckCircle, XCircle, Filter } from "lucide-react";
 import { SkeletonTable, SkeletonCard } from "../ui/skeleton";
@@ -341,8 +341,9 @@ const LeaveManagement = () => {
     <div id="hod-leave-management-container" className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={`${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
         <div id="hod-leave-approvals-header-section">
-          <CardHeader className="border-b">
-            <CardTitle>Leave Approvals</CardTitle>
+          <CardHeader className="border-b pb-4">
+            <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Approvals</CardTitle>
+            <CardDescription className="text-sm text-muted-foreground mt-1">Review and manage department faculty leave requests.</CardDescription>
           </CardHeader>
           <CardContent className="p-2 sm:p-4">
             {/* Search Bar */}
