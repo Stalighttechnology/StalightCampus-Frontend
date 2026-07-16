@@ -401,7 +401,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
   }
 
   return (
-    <div className={`w-full space-y-5  ${theme === 'dark' ? 'bg-background text-gray-200' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`w-full max-w-full overflow-x-hidden space-y-5  ${theme === 'dark' ? 'bg-background text-gray-200' : 'bg-gray-50 text-gray-900'}`}>
       {/* Top Cards Row */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Today's Lectures Card */}
@@ -410,21 +410,21 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
           className={`group relative overflow-hidden transition-all duration-300 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm hover:shadow-md`}
         >
           <CardContent className="p-5">
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-4 min-w-0">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-inner ${theme === 'dark' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`
               }>
                 <FaCalendarAlt className="w-6 h-6" />
               </div>
-              <div className="flex-1 space-y-1">
+              <div className="flex-1 space-y-1 min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Today's Schedule</p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-semibold">{dashboardData.today_lectures.count}</span>
                   <span className="text-sm font-medium text-muted-foreground">Lectures</span>
                 </div>
-                <div className={`mt-2 flex items-center gap-2 text-xs p-2 rounded-lg ${theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}`
+                <div className={`mt-2 flex items-center gap-2 text-xs p-2 rounded-lg min-w-0 ${theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}`
                 }>
                   <div className={`w-1.5 h-1.5 rounded-full ${dashboardData.today_lectures.next_lecture ? 'bg-blue-500 animate-pulse' : 'bg-gray-400'}`}></div>
-                  <p className="font-medium truncate max-w-[200px]">
+                  <p className="font-medium truncate flex-1">
                     {dashboardData.today_lectures.next_lecture ?
                       `Next: ${dashboardData.today_lectures.next_lecture.subject}` :
                       "No more lectures today"
@@ -445,22 +445,22 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
           className={`group relative overflow-hidden transition-all duration-300 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm hover:shadow-md`}
         >
           <CardContent className="p-5">
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-4 min-w-0">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-inner ${dashboardData.attendance_status.percentage >= 75 ?
                 theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600' :
                 theme === 'dark' ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600'}`
               }>
                 <FaCheckCircle className="w-6 h-6" />
               </div>
-              <div className="flex-1 space-y-1">
+              <div className="flex-1 space-y-1 min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Attendance Rating</p>
                 <div className="flex items-baseline gap-2">
                   <span className={`text-2xl font-semibold ${dashboardData.attendance_status.percentage >= 75 ? 'text-emerald-500' : 'text-amber-500'}`}>{dashboardData.attendance_status.percentage}%</span>
                   <span className="text-sm font-medium text-muted-foreground">Overall</span>
                 </div>
-                <div className={`mt-2 flex items-center gap-2 text-xs p-2 rounded-lg ${theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}`
+                <div className={`mt-2 flex items-center gap-2 text-xs p-2 rounded-lg min-w-0 ${theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}`
                 }>
-                  <p className="font-medium truncate">
+                  <p className="font-medium truncate flex-1">
                     {dashboardData.attendance_status.warnings.length > 0 ?
                       `Action required: ${dashboardData.attendance_status.warnings[0].subject}` :
                       "Excellent consistency across all units"
@@ -492,7 +492,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
                   <h3 className="text-xl font-semibold">{dashboardData.student_profile.proctor.name || 'Not Assigned'}</h3>
                   <p className="text-sm text-muted-foreground">Academic Proctor</p>
                 </div>
-                <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:justify-end">
                   {dashboardData.student_profile.proctor.phone_number ? (
                     <>
                       <a 
@@ -684,7 +684,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
               </div>
             </CardHeader>
             <CardContent className="p-5 pt-4">
-              <div className="w-full h-[250px] md:h-[320px]">
+              <div className="w-full min-w-0 overflow-hidden h-[250px] md:h-[320px]">
                 {dashboardData.performance_overview.subject_performance.length > 0 ?
                   <Bar key={`chart-${viewportTrigger}`} data={generateChartData} options={chartOptions} /> :
 
