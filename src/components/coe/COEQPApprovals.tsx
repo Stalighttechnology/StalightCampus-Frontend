@@ -467,7 +467,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
           <CardHeader className="pb-2">
             <div id="qp-approvals-header-section" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <CardTitle className={`mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Final Approvals</CardTitle>
+                <CardTitle className={`text-xl sm:text-2xl font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Final Approvals</CardTitle>
                 <div className="flex items-center gap-3">
                   <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and finalize question papers</p>
                 </div>

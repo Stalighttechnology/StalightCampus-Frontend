@@ -342,7 +342,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
           </>
         </CardHeader>
         <CardContent className="pt-3 space-y-4">
-          <div id="co-attainment-selectors" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50 items-end">
+          <div id="co-attainment-selectors" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50 items-end">
             <div className="space-y-2">
               <label className="text-sm font-medium">Batch</label>
               <Select
