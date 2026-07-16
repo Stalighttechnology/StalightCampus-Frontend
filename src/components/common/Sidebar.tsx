@@ -8,6 +8,7 @@ import { Capacitor } from "@capacitor/core";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { isPageAllowed, PLAN_TIERS } from "../../utils/planGating";
+import { API_BASE_URL } from "../../utils/config";
 import {
   LayoutDashboard,
   Users,
@@ -52,6 +53,13 @@ import {
   DialogFooter,
 } from "../ui/dialog";
 import { useTheme } from "../../context/ThemeContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 interface SidebarProps {
   role: string;
@@ -72,6 +80,32 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   const initialUserStr = sessionStorage.getItem("user") || localStorage.getItem("user");
   const initialUser = initialUserStr ? JSON.parse(initialUserStr) : null;
   const [orgLogo, setOrgLogo] = useState(initialUser?.org_logo || "/logo.jpeg");
+
+  const [childrenList, setChildrenList] = useState<any[]>([]);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(localStorage.getItem('selectedStudentId'));
+
+  useEffect(() => {
+    if (role === 'parent') {
+      const fetchChildren = async () => {
+        try {
+          const { fetchWithTokenRefresh } = await import("../../utils/authService");
+          const response = await fetchWithTokenRefresh(`${API_BASE_URL}/api/student/parent-children/`);
+          const data = await response.json();
+          if (data.success && data.children) {
+            setChildrenList(data.children);
+            const currentSavedId = localStorage.getItem('selectedStudentId');
+            if (data.children.length > 0 && (!currentSavedId || currentSavedId === 'null' || currentSavedId === 'undefined')) {
+              localStorage.setItem('selectedStudentId', data.children[0].id.toString());
+              setSelectedChildId(data.children[0].id.toString());
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch children in sidebar", error);
+        }
+      };
+      fetchChildren();
+    }
+  }, [role]);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -719,6 +753,38 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           </AnimatePresence>
         </div>
       </motion.div>
+
+      {/* Child Switcher for Parents on Mobile */}
+      {role === "parent" && childrenList.length > 0 && isMobile && (
+        <div className={`px-4 py-3 border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+          <label className={`block text-[10px] font-semibold uppercase tracking-wider mb-2 px-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+            Select Student
+          </label>
+          <Select
+            value={selectedChildId || undefined}
+            onValueChange={(val) => {
+              localStorage.setItem('selectedStudentId', val);
+              setSelectedChildId(val);
+              window.location.reload();
+            }}
+          >
+            <SelectTrigger className={`w-full text-xs h-9 ${
+              theme === 'dark'
+                ? 'bg-zinc-800 border-zinc-700 text-gray-200 focus:ring-1 focus:ring-primary'
+                : 'bg-white border-gray-200 text-gray-700 focus:ring-1 focus:ring-primary'
+            }`}>
+              <SelectValue placeholder="Select Student" />
+            </SelectTrigger>
+            <SelectContent className={`${theme === 'dark' ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-200'}`}>
+              {childrenList.map((child: any) => (
+                <SelectItem key={child.id} value={child.id.toString()} className="text-xs">
+                  {child.name} ({child.usn || child.enrollment_number})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Menu Items */}
       <motion.div
