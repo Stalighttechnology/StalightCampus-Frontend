@@ -1237,7 +1237,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                   </Button>
                 )}
               </div>
-              <p className={`hidden sm:block text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 Select a subject to view scheduled classes history
               </p>
             </div>

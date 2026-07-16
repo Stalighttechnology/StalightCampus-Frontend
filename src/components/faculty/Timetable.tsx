@@ -202,8 +202,13 @@ const Timetable = ({ role }: TimetableProps) => {
     <Card id="timetable-card" className={`w-full border ${theme === 'dark' ? 'bg-card border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'} shadow-sm rounded-xl`}>
       <CardHeader className="border-b pb-4 mb-4 px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
-          <div className="flex flex-row justify-between items-center w-full md:w-auto gap-4">
-            <CardTitle className="text-xl sm:text-2xl font-semibold text-foreground">Faculty Timetable</CardTitle>
+          <div className="flex flex-row justify-between items-start w-full md:w-auto gap-4">
+            <div className="flex flex-col">
+              <CardTitle className="text-xl sm:text-2xl font-semibold text-foreground">Faculty Timetable</CardTitle>
+              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>
+                View your weekly teaching schedule and class timings.
+              </p>
+            </div>
             
             <Button
               variant="outline"

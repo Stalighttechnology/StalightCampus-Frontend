@@ -1015,6 +1015,9 @@ const UploadMarks = () => {
           <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b mb-3">
             <div className="flex-1 min-w-0">
               <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Upload Marks</CardTitle>
+              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>
+                Enter and publish exam marks and internal assessment scores for students.
+              </p>
             </div>
           </CardHeader>
           <CardContent className="pb-0 space-y-6">

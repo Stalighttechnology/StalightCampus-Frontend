@@ -81,8 +81,8 @@ export type { DashboardOverviewResponse, TimetableEntry };
 
 interface TimetableEntry {
   id: string;
-  faculty: {id: string;first_name: string;last_name: string;};
-  subject: {id: string;name: string;};
+  faculty: { id: string; first_name: string; last_name: string; };
+  subject: { id: string; name: string; };
   day: string;
   start_time: string;
   end_time: string;
@@ -97,13 +97,13 @@ interface GetTimetableResponse {
 
 interface AttendanceRecord {
   id: string;
-  subject: {id: string;name: string;};
+  subject: { id: string; name: string; };
   date: string;
   status: string;
 }
 
 interface SubjectAttendance {
-  records: {date: string;status: "Present" | "Absent";}[];
+  records: { date: string; status: "Present" | "Absent"; }[];
   present: number;
   total: number;
   percentage: number;
@@ -121,7 +121,7 @@ interface GetStudentAttendanceResponse {
 
 interface Mark {
   id: string;
-  subject: {id: string;name: string;};
+  subject: { id: string; name: string; };
   test_number: number;
   mark: number;
   max_mark: number;
@@ -296,8 +296,8 @@ interface GetAnnouncementsResponse {
 
 interface ChatMessage {
   id: string;
-  channel: {id: string;name: string;};
-  sender: {id: string;first_name: string;last_name: string;};
+  channel: { id: string; name: string; };
+  sender: { id: string; first_name: string; last_name: string; };
   content: string;
   sent_at: string;
 }
@@ -422,8 +422,8 @@ export const getInternalMarks = async (): Promise<GetInternalMarksResponse> => {
 };
 
 export const submitLeaveRequest = async (
-data: SubmitLeaveRequestRequest)
-: Promise<SubmitLeaveRequestResponse> => {
+  data: SubmitLeaveRequestRequest)
+  : Promise<SubmitLeaveRequestResponse> => {
   try {
     // Debug log
     // Debug log
@@ -560,8 +560,8 @@ export const getLeaveRequestsWithRetry = async (maxRetries = 3): Promise<GetLeav
 };
 
 export const uploadCertificate = async (
-data: UploadCertificateRequest)
-: Promise<UploadCertificateResponse> => {
+  data: UploadCertificateRequest)
+  : Promise<UploadCertificateResponse> => {
   try {
     const formData = new FormData();
     formData.append("file", data.file);
@@ -597,8 +597,8 @@ export const getCertificates = async (): Promise<GetCertificatesResponse> => {
 };
 
 export const deleteCertificate = async (
-data: DeleteCertificateRequest)
-: Promise<DeleteCertificateResponse> => {
+  data: DeleteCertificateRequest)
+  : Promise<DeleteCertificateResponse> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/delete-certificate/`, {
       method: "POST",
@@ -616,8 +616,8 @@ data: DeleteCertificateRequest)
 };
 
 export const updateProfile = async (
-data: UpdateProfileRequest)
-: Promise<UpdateProfileResponse> => {
+  data: UpdateProfileRequest)
+  : Promise<UpdateProfileResponse> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/update-profile/`, {
       method: "PATCH",
@@ -651,9 +651,9 @@ export const getAnnouncements = async (): Promise<GetAnnouncementsResponse> => {
 };
 
 export const manageChat = async (
-data: any,
-method: "GET" | "POST" = "GET")
-: Promise<ManageChatResponse> => {
+  data: any,
+  method: "GET" | "POST" = "GET")
+  : Promise<ManageChatResponse> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/chat/`, {
       method,
@@ -687,8 +687,8 @@ export const getNotifications = async (): Promise<GetNotificationsResponse> => {
 };
 
 export const uploadFaceEncodings = async (
-data: UploadFaceEncodingsRequest)
-: Promise<UploadFaceEncodingsResponse> => {
+  data: UploadFaceEncodingsRequest)
+  : Promise<UploadFaceEncodingsResponse> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/upload-face-encodings/`, {
       method: "POST",
@@ -721,7 +721,7 @@ export const getFullStudentProfile = async () => {
   }
 };
 
-export const getStudentAssignments = async (params?: {search?: string; page?: number; page_size?: number; status?: string;}) => {
+export const getStudentAssignments = async (params?: { search?: string; page?: number; page_size?: number; status?: string; }) => {
   try {
     const query = new URLSearchParams();
     if (params?.search) query.append('search', params.search);
@@ -755,11 +755,11 @@ export const submitAssignment = async (assignmentId: number, file: File) => {
       },
       body: formData
     });
-    
+
     if (response.status === 413) {
       return { success: false, message: "File size too large. Maximum 5MB allowed." };
     }
-    
+
     const contentType = response.headers.get("content-type");
     if (contentType && contentType.indexOf("application/json") !== -1) {
       return await response.json();
@@ -792,13 +792,12 @@ export const getStudentStudyMaterials = async () => {
 };
 
 export const getAllStudyMaterials = async (
-branchId?: string,
-semesterId?: string,
-sectionId?: string,
-search?: string,
-page = 1,
-pageSize = 50) =>
-{
+  branchId?: string,
+  semesterId?: string,
+  sectionId?: string,
+  search?: string,
+  page = 1,
+  pageSize = 50) => {
   try {
     const params = new URLSearchParams();
     if (branchId) params.append('branch_id', branchId);
@@ -899,4 +898,4 @@ export const getStudentAllSyllabusStatus = async (): Promise<any> => {
   } catch (error) {
     return { success: false, message: "Network error while fetching all syllabus status" };
   }
-};
+};

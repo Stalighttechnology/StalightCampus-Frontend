@@ -318,7 +318,7 @@ const SyllabusTracker = () => {
                 </div>
               )}
             </div>
-            <p className={`hidden sm:block text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Track weekly teaching progress based on department master templates.
             </p>
           </div>

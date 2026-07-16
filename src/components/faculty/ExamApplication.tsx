@@ -482,7 +482,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
           <div className="flex justify-between items-start w-full">
             <div className="flex-1 min-w-0">
               <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Exam Applications</CardTitle>
-              <p className={`text-[16px] sm:text-sm mt-1 hidden sm:block ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 Manage and approve exam registration requests for your proctored students
               </p>
             </div>

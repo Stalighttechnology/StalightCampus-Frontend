@@ -266,9 +266,12 @@ const AttendanceRecords = () => {
   return (
     <div className={`space-y-3 md:space-y-3 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card id="attendance-records-card" className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-        <CardHeader id="attendance-records-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-row items-center justify-between gap-3 sm:gap-4 border-b mb-3">
+        <CardHeader id="attendance-records-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-row items-start justify-between gap-3 sm:gap-4 border-b mb-3">
           <div className="flex-1 min-w-0">
             <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance Records</CardTitle>
+            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>
+              Track and manage history of all student attendance submissions.
+            </p>
           </div>
           <div className="flex-shrink-0">
             {selectedSubject ? (
@@ -399,13 +402,24 @@ const AttendanceRecords = () => {
                               </Button>
                             </DialogTrigger>
                             <DialogContent className={`w-[90%] md:w-[90vw] md:max-w-xl h-[80vh] md:h-[90vh] rounded-2xl p-0 overflow-hidden border-none shadow-2xl ${theme === 'dark' ? 'bg-[#0f172a] text-slate-100' : 'bg-white text-slate-900'}`}>
-                              <div className={`p-6 border-b ${theme === 'dark' ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
-                                <DialogHeader>
+                              <div className={`p-6 border-b ${theme === 'dark' ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'} flex justify-between items-start`}>
+                                <DialogHeader className="flex-1 min-w-0">
                                   <DialogTitle className="text-xl font-semibold tracking-tight">Attendance Details</DialogTitle>
                                   <DialogDescription className={theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}>
                                     Comprehensive record for this session
                                   </DialogDescription>
                                 </DialogHeader>
+                                {selectedRecord && selectedRecord.summary && selectedRecord.summary.total_count > 0 && (
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="flex dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200 h-9 w-9 items-center justify-center shrink-0 p-0 ml-4"
+                                    onClick={handleExportPdf}
+                                    disabled={exporting}
+                                  >
+                                    {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileDown className="w-3.5 h-3.5" />}
+                                  </Button>
+                                )}
                               </div>
 
                               <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-h-[60vh] md:max-h-[70vh] overflow-y-auto custom-scrollbar">
