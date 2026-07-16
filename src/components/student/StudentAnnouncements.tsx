@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -617,15 +617,15 @@ const StudentAnnouncements = () => {
       <div>
         <Card id="announcements-card" className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
           <div id="announcements-header-stats">
-            <CardHeader>
+            <CardHeader className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className={`text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                     Announcements
-                  </h2>
-                  <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                  </CardTitle>
+                  <CardDescription className="text-sm text-muted-foreground mt-1">
                     Stay updated with the latest news, notices, and alerts from the campus.
-                  </p>
+                  </CardDescription>
                 </div>
               </div>
             </CardHeader>

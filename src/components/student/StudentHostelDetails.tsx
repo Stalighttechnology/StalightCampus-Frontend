@@ -28,7 +28,7 @@ import {
   FaUtensils } from
 'react-icons/fa';
 import { SkeletonCard, SkeletonList } from '../ui/skeleton';
-import { Card, CardHeader, CardContent } from '../ui/card';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 
@@ -433,17 +433,17 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
     return (
       <div className={`w-full space-y-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
         <Card id="hostel-details-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-          <CardHeader id="hostel-details-header" className="p-3 sm:p-4 lg:p-6 border-b flex flex-row items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+          <CardHeader id="hostel-details-header" className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b flex flex-row items-center gap-3">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
               <FaHotel className="w-4 h-4" />
             </div>
-            <div>
-              <h1 className={`text-base sm:text-lg md:text-xl font-semibold leading-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+            <div className="flex-1 min-w-0">
+              <CardTitle className={`text-xl sm:text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 My Hostel Details
-              </h1>
-              <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              </CardTitle>
+              <CardDescription className="text-sm text-muted-foreground mt-1">
                 Your hostel accommodation information
-              </p>
+              </CardDescription>
             </div>
           </CardHeader>
           <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
@@ -466,18 +466,18 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
 
   return (
     <div className={`w-full space-y-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
-      <Card id="hostel-details-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-        <CardHeader id="hostel-details-header" className="p-3 sm:p-4 lg:p-6 border-b flex flex-row items-center gap-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+      <Card id="hostel-details-card" className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
+        <CardHeader id="hostel-details-header" className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b flex flex-row items-center gap-3">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
             <FaHotel className="w-4 h-4" />
           </div>
-          <div>
-            <h1 className={`text-base sm:text-lg md:text-xl font-semibold leading-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+          <div className="flex-1 min-w-0">
+            <CardTitle className={`text-xl sm:text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               My Hostel Details
-            </h1>
-            <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            </CardTitle>
+            <CardDescription className="text-sm text-muted-foreground mt-1">
               Your hostel accommodation information
-            </p>
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">

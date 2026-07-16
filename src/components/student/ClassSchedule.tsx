@@ -189,16 +189,11 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
     >
       <Card id="class-schedule-card" className={cardCls}>
         {/* ── Card Header ──────────────────────────────────────────────── */}
-        <CardHeader id="class-schedule-header" className="border-b border-border/50 pb-4">
+        <CardHeader id="class-schedule-header" className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b border-border/50 mb-3">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <CalendarDays className="w-5 h-5 text-primary" />
-            </div>
             <div>
-              <CardTitle>Class Schedules</CardTitle>
-              <CardDescription
-                className={`hidden sm:block ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}
-              >
+              <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Class Schedules</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground mt-1">
                 Your upcoming and live sessions. Join Meet sessions directly when available.
               </CardDescription>
             </div>

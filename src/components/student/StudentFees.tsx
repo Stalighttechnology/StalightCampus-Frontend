@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from "@/components/ui/button";
 import { Loader2, CreditCard, Receipt, AlertCircle, CheckCircle, Calendar, IndianRupee, Download, TrendingUp, TrendingDown, FileDown } from 'lucide-react';
@@ -447,15 +447,15 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
       transition={{ duration: 0.4 }}>
 
       <Card className={`overflow-hidden ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader className="border-b">
+        <CardHeader className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b mb-3">
           <div className="flex flex-row justify-between items-center sm:items-start md:items-center gap-4">
             <div>
-              <CardTitle className={`text-2xl sm:text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+              <CardTitle className={`text-xl sm:text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                 Fee Information
               </CardTitle>
-              <p className={`text-sm mt-1 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              <CardDescription className="text-sm text-muted-foreground mt-1">
                 View and manage your fee payments
-              </p>
+              </CardDescription>
             </div>
             
             {/* Desktop Button */}

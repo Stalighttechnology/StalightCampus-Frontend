@@ -290,11 +290,11 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
     <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       <Card id="student-assignments-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <div id="student-assignments-header-stats">
-          <CardHeader className="p-3 sm:p-4 lg:p-6 border-b">
-            <h1 className={`text-2xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Assignments</h1>
-            <p className={`text-sm sm:text-base mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+          <CardHeader className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b">
+            <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Assignments</CardTitle>
+            <CardDescription className="text-sm text-muted-foreground mt-1">
               Track, view, and submit your academic assignments and projects.
-            </p>
+            </CardDescription>
           </CardHeader>
           <div className="p-3 sm:p-4 lg:p-6 pb-0">
             {/* Stats row */}
@@ -322,7 +322,7 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
 
           {/* Search & Filter Toolbar */}
           <div className={`mt-4 md:mt-0 p-4 rounded-xl border border-border/50 flex flex-col md:flex-row md:items-center justify-between gap-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50/50'}`}>
-            <h2 className="text-base sm:text-lg font-semibold">Assignment List</h2>
+            <h2 className="text-xl sm:text-xl font-semibold">Assignment List</h2>
             <div className="flex items-center gap-3">
               <div className="relative flex-1 md:flex-none">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
