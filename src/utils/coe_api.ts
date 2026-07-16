@@ -176,6 +176,7 @@ export const getStudentApplicationStatus = async (filters: {
   exam_period: string;
   branch: string;
   semester: string;
+  search?: string;
   page?: string | number;
   page_size?: string | number;
 }): Promise<StudentApplicationStatusResponse> => {

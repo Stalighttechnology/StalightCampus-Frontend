@@ -45,6 +45,8 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
   const [isExamPeriodOpen, setIsExamPeriodOpen] = useState(false);
   const [isBranchOpen, setIsBranchOpen] = useState(false);
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
   useEffect(() => {
     fetchFilterOptions();
@@ -59,7 +61,21 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
     if (filters.batch && filters.exam_period && filters.branch && filters.semester) {
       fetchStudentStatus();
     }
+  }, [filters, debouncedSearchQuery]);
+
+  useEffect(() => {
+    if (filters.batch && filters.exam_period && filters.branch && filters.semester) {
+      fetchStudentStatus();
+    }
   }, [page, pageSize]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setPage(1); // reset to page 1 on new search
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const fetchFilterOptions = async () => {
     try {
@@ -87,7 +103,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
   const fetchStudentStatus = async () => {
     setLoading(true);
     try {
-      const result = await getStudentApplicationStatus({ ...filters, page: String(page), page_size: String(pageSize) } as any);
+      const result = await getStudentApplicationStatus({ ...filters, search: debouncedSearchQuery, page: String(page), page_size: String(pageSize) } as any);
       if (result.success) {
         setData(result.data);
         // Pagination info is now at the response root level
@@ -326,35 +342,44 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
         {data &&
           <Card>
             <CardHeader className="p-4 sm:p-6">
-              <div className="flex flex-row items-center justify-between gap-4 w-full">
-                <CardTitle className="text-lg sm:text-xl font-semibold">
-                  Student Application Status ({totalCount !== null ? totalCount : data.students.length})
-                </CardTitle>
-                
-                {/* Desktop Export Button */}
-                <div className="hidden sm:block">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h3 className="text-[18px] sm:text-lg font-semibold flex items-center gap-2">
+                  Student Application Status
+                  <Badge variant="outline" className="ml-2 font-mono">{totalCount !== null ? totalCount : 0}</Badge>
+                </h3>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Search by USN or Name..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 pr-4 py-2 w-full text-sm rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
                   <Button
-                    variant="default"
+                    variant="outline"
                     size="sm"
                     onClick={handleExport}
                     disabled={exporting || !(filters.batch && filters.exam_period && filters.branch && filters.semester) || !data || data.students.length === 0}
-                    className="h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 export-button text-sm font-normal"
+                    className="h-9 px-4 gap-2 whitespace-nowrap hidden sm:flex"
                   >
-                    <Download className="mr-2 h-4 w-4" />
-                    {exporting ? 'Exporting...' : 'Export'}
+                    {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
+                    Export
+                  </Button>
+
+                  {/* Mobile Export Button (same line, icon-only) */}
+                  <Button
+                    onClick={handleExport}
+                    disabled={exporting || !(filters.batch && filters.exam_period && filters.branch && filters.semester) || !data || data.students.length === 0}
+                    size="icon"
+                    variant="outline"
+                    className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                  >
+                    {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
                   </Button>
                 </div>
-
-                {/* Mobile Export Button (same line, icon-only) */}
-                <Button
-                  onClick={handleExport}
-                  disabled={exporting || !(filters.batch && filters.exam_period && filters.branch && filters.semester) || !data || data.students.length === 0}
-                  size="icon"
-                  variant="outline"
-                  className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
-                >
-                  {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
-                </Button>
               </div>
             </CardHeader>
             <CardContent className="p-3 sm:p-6">
@@ -375,7 +400,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                   <Table className="min-w-full">
                     <TableHeader>
                       <TableRow className="sm:table-row">
-                        <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Roll Number</TableHead>
+                        <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">USN</TableHead>
                         <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Student Name</TableHead>
                         <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Status</TableHead>
                         <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Applied Subjects</TableHead>
@@ -385,7 +410,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                     <TableBody>
                       {data.students.map((student: any) =>
                         <TableRow key={student.student_id} className="sm:table-row">
-                          <TableCell className="font-semibold sm:font-medium text-[16px] sm:text-sm py-4 sm:py-2" data-label="Roll Number">{student.roll_number}</TableCell>
+                          <TableCell className="font-semibold sm:font-medium text-[16px] sm:text-sm py-4 sm:py-2 uppercase" data-label="USN">{student.usn || student.roll_number}</TableCell>
                           <TableCell className="text-[16px] sm:text-sm py-4 sm:py-2" data-label="Student Name">{student.student_name}</TableCell>
                           <TableCell className="text-[16px] sm:text-sm py-4 sm:py-2" data-label="Status">{getStatusBadge(student.status)}</TableCell>
                           <TableCell className="text-[16px] sm:text-sm py-4 sm:py-2" data-label="Applied Subjects">
