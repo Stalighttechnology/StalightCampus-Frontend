@@ -118,6 +118,18 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   const handleUpdateProfile = async () => {
+    if (formData.phone_number) {
+      const phoneDigits = formData.phone_number.replace(/\D/g, '');
+      if (phoneDigits.length !== 10) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Phone Number',
+          text: 'Please enter a valid 10-digit phone number.'
+        });
+        return;
+      }
+    }
+
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/update/`, {
         method: 'PUT',
@@ -131,9 +143,24 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
       if (result.success) {
         setEditing(false);
         await fetchProfile();
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Profile updated successfully!',
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: result.message || 'Failed to update profile',
+        });
       }
     } catch (error) {
-
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while updating profile',
+      });
     }
   };
 
@@ -493,8 +520,8 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
               <div className={`border rounded-lg p-2.5 sm:p-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
                   <div className="flex flex-col justify-start">
-                    <span className={`text-[16px] sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Role</span>
-                    <span className={`text-[18px] sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.role || '—'}</span>
+                    <span className={`text-[16px] sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</span>
+                    <span className={`text-[18px] sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.email || '—'}</span>
                   </div>
                   <div className="flex flex-col justify-start">
                     <span className={`text-[16px] sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</span>
@@ -566,7 +593,11 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                     id="phone_number"
                     value={formData.phone_number}
                     disabled={!editing}
-                    onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                    maxLength={10}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      setFormData({ ...formData, phone_number: val });
+                    }}
                     className="text-[18px] sm:text-sm h-12 sm:h-10" />
                   
                   </div>
