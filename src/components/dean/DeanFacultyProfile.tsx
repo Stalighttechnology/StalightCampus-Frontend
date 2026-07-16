@@ -538,7 +538,7 @@ const DeanFacultyProfile = ({
               <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
                 <div>
                   <CardTitle className="text-xl sm:text-xl md:text-2xl font-semibold text-gray-900">Faculty Profile</CardTitle>
-                  <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+                  <CardDescription className="text-base sm:text-sm text-muted-foreground mt-1">
                     View faculty attendance, schedule and assignments
                   </CardDescription>
                 </div>
