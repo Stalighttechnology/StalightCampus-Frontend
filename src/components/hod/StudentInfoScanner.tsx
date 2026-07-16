@@ -27,6 +27,16 @@ interface StudentInfo {
   parent_name: string;
   parent_contact: string;
   emergency_contact: string;
+  father_name?: string | null;
+  father_contact?: string | null;
+  mother_name?: string | null;
+  mother_contact?: string | null;
+  guardian_details?: {
+    name?: string;
+    relationship?: string;
+    phone?: string;
+    email?: string;
+  } | null;
   blood_group: string;
   email: string;
   mobile_number: string;
@@ -1003,13 +1013,7 @@ const StudentInfoScanner = () => {
                       <div className="text-sm font-medium">{studentData.student_info.batch}</div>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <BookOpen className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
-                      <div className="text-xs font-semibold text-muted-foreground">Course</div>
-                      <div className="text-sm font-medium">{studentData.student_info.course || '—'}</div>
-                    </div>
-                  </div>
+
                   <div className="flex items-start gap-3">
                     <TrendingUp className="h-4 w-4 text-muted-foreground mt-0.5" />
                     <div>
@@ -1047,6 +1051,85 @@ const StudentInfoScanner = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Parent & Guardian Details */}
+          {studentData && studentData.student_info && (
+            <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl font-semibold">
+                  <Users className="h-5 w-5 text-primary" />
+                  Parent Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="flex items-start gap-3">
+                    <User className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">Father's Name</div>
+                      <div className="text-sm font-medium">{studentData.student_info.father_name || studentData.student_info.parent_name || '—'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">Father's Contact</div>
+                      <div className="text-sm font-medium">
+                        {(studentData.student_info.father_contact || studentData.student_info.parent_contact) ? (
+                          <a href={`tel:${studentData.student_info.father_contact || studentData.student_info.parent_contact}`} className="text-primary hover:underline">
+                            {studentData.student_info.father_contact || studentData.student_info.parent_contact}
+                          </a>
+                        ) : '—'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <User className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">Mother's Name</div>
+                      <div className="text-sm font-medium">{studentData.student_info.mother_name || '—'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">Mother's Contact</div>
+                      <div className="text-sm font-medium">
+                        {studentData.student_info.mother_contact ? (
+                          <a href={`tel:${studentData.student_info.mother_contact}`} className="text-primary hover:underline">
+                            {studentData.student_info.mother_contact}
+                          </a>
+                        ) : '—'}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {studentData.student_info.guardian_details && (
+                    <div className="flex items-start gap-3 sm:col-span-2">
+                      <Users className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <div className="text-xs font-semibold text-muted-foreground">Guardian Details</div>
+                        <div className="text-sm font-medium">
+                          {studentData.student_info.guardian_details.name || '—'} 
+                          {studentData.student_info.guardian_details.relationship ? ` (${studentData.student_info.guardian_details.relationship})` : ''}
+                        </div>
+                        {(studentData.student_info.guardian_details.phone || studentData.student_info.guardian_details.email) && (
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {studentData.student_info.guardian_details.phone && (
+                              <>📞 <a href={`tel:${studentData.student_info.guardian_details.phone}`} className="text-primary hover:underline">{studentData.student_info.guardian_details.phone}</a></>
+                            )}
+                            {studentData.student_info.guardian_details.email && (
+                              <> ✉️ <a href={`mailto:${studentData.student_info.guardian_details.email}`} className="text-primary hover:underline">{studentData.student_info.guardian_details.email}</a></>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Personal Information (from UserProfile) */}
           {studentData && studentData.personal_info &&
