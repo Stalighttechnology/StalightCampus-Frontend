@@ -454,7 +454,7 @@ const StaffTaskTracker = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <CardTitle className="text-xl sm:text-2xl font-semibold tracking-tight">Task Tracker</CardTitle>
-            <p className="text-muted-foreground text-base sm:text-sm">Manage and track internal faculty and academic tasks.</p>
+            <p className="text-muted-foreground text-sm sm:text-sm">Manage and track internal faculty and academic tasks.</p>
           </div>
 
           {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && (

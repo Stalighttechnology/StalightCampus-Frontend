@@ -458,8 +458,8 @@ export default function ScheduleMeeting() {
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
         <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <CardTitle>Meetings &amp; Schedules</CardTitle>
-            <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+            <CardTitle className='text-xl sm:text-2xl font-semibold' >Meetings &amp; Schedules</CardTitle>
+            <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
               Schedule and manage online meetings across staff roles.
             </CardDescription>
           </div>
