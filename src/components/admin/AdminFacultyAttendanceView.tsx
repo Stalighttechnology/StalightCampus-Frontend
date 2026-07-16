@@ -756,7 +756,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                     <div className="mt-4 sm:mt-6">
                       <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
                         <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b border-border flex flex-row justify-between items-center gap-4">
-                          <CardTitle className={`text-sm sm:text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          <CardTitle className={`text-xl sm:text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                             Faculty Attendance <span className="inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
                           </CardTitle>
                           {/* Desktop Export PDF Button */}
@@ -1012,7 +1012,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                     ) : facultySummary.length > 0 ? (
                       <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
                         <CardHeader className="px-6 py-4 border-b border-border flex flex-row justify-between items-center gap-4">
-                          <CardTitle className={`text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          <CardTitle className={`text-xl sm:text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                             Faculty Attendance Summary
                           </CardTitle>
 

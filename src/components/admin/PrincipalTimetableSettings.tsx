@@ -332,8 +332,8 @@ export default function PrincipalTimetableSettings() {
       <Card className={`border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <CardTitle>Timetable Configuration</CardTitle>
-            <p className={`block text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>
+            <CardTitle className="text-xl sm:text-2xl font-semibold">Timetable Configuration</CardTitle>
+            <p className={`block text-base md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>
               Configure the daily class periods and breaks for your institution.
             </p>
           </div>

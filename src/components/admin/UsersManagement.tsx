@@ -594,7 +594,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         @media (max-width: 480px) {
           .users-card { border-radius: 12px; }
           .users-card-header { padding: 16px; }
-          .users-card-title { font-size: 1.125rem; font-weight: 600; line-height: 1.2; }
+          .users-card-title { line-height: 1.2; }
           .users-card-desc { font-size: 16px; margin-top: 4px; }
           .users-card-content { padding: 16px; }
           .users-card-content.pb-0 { padding-bottom: 0 !important; }
@@ -630,8 +630,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           <div id="users-management-header-filters">
             <CardHeader className="users-card-header border-b pb-4 flex flex-row items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <CardTitle className={`users-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>User Management</CardTitle>
-                <p className={`users-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage all users in the system</p>
+                <CardTitle className={`users-card-title text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>User Management</CardTitle>
+                <p className={`users-card-desc text-base sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage all users in the system</p>
               </div>
 
               {/* Desktop Download CSV Button */}

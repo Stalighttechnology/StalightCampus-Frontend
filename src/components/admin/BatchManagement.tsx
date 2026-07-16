@@ -365,10 +365,10 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
           <Card id="add-new-batch-card" className={theme === 'dark' ? 'bg-card border border-border shadow-sm mb-6' : 'bg-white border border-gray-200 shadow-sm mb-6'}>
             <CardHeader className="batch-card-header pb-4 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="w-full">
-                <CardTitle className="batch-title">
+                <CardTitle className="batch-title text-xl sm:text-2xl font-semibold">
                   Add New Batch
                 </CardTitle>
-                <p className={`batch-desc block text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                <p className={`batch-desc block text-base md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                   Create a batch with start and end years
                 </p>
               </div>
@@ -408,14 +408,14 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
           <CardHeader id="existing-batches-header" className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
-                <CardTitle>Existing Batches</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl font-semibold">Existing Batches</CardTitle>
                 {totalCount > 0 && (
                   <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-800'}`}>
                     Total: {totalCount}
                   </span>
                 )}
               </div>
-              <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+              <CardDescription className="text-base sm:text-sm text-muted-foreground mt-1">
                 Manage, edit, or delete created batches
               </CardDescription>
             </div>

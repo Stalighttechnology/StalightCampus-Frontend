@@ -319,14 +319,14 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
           <CardHeader id="dept-admin-leaves-header-section" className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
-                <CardTitle>Leave Requests</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl font-semibold">Leave Requests</CardTitle>
                 {totalCount > 0 &&
                   <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
                     {totalCount} Total
                   </span>
                 }
               </div>
-              <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+              <CardDescription className="text-base sm:text-sm text-muted-foreground mt-1">
                 Review and approve leave requests from Department Admins
               </CardDescription>
             </div>

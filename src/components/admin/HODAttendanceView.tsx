@@ -408,7 +408,7 @@ const AdminHODAttendance: React.FC = () => {
             </div>
             <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
               <CardHeader className="px-6 py-4 border-b border-border flex flex-row justify-between items-center gap-4">
-                <CardTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                <CardTitle className={`text-xl sm:text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   Today's HOD Attendance <span className="block sm:inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
                 </CardTitle>
                 {/* Desktop Export PDF Button */}

@@ -251,8 +251,8 @@ const ApplyLeaveAdmin = () => {
           <Card id="apply-leave-form-card" className={`apply-leave-card ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
             <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle>Leave Application Form</CardTitle>
-                <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+                <CardTitle className="text-xl sm:text-2xl font-semibold">Leave Application Form</CardTitle>
+                <CardDescription className="text-base sm:text-sm text-muted-foreground mt-1">
                   Your leave request will be routed to the <span className="font-semibold text-primary">Dean</span> for approval.
                 </CardDescription>
               </div>
@@ -353,8 +353,8 @@ const ApplyLeaveAdmin = () => {
           <Card id="recent-leaves-card" className={`apply-leave-card ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
             <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle>Recent Leave Applications</CardTitle>
-                <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+                <CardTitle className="text-xl sm:text-2xl font-semibold">Recent Leave Applications</CardTitle>
+                <CardDescription className="text-base sm:text-sm text-muted-foreground mt-1">
                   View and track your leave requests
                 </CardDescription>
               </div>

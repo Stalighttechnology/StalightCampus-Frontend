@@ -126,7 +126,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card className={`flex flex-col shadow ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-semibold">HODs — {isMonthly ? 'Monthly Report' : 'Today'}</CardTitle>
+                <CardTitle className="text-xl sm:text-lg font-semibold">HODs — {isMonthly ? 'Monthly Report' : 'Today'}</CardTitle>
               </CardHeader>
               <CardContent className="flex-1">
                 <div className="grid grid-cols-1 gap-3">
@@ -216,7 +216,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
 
             <Card className={`flex flex-col shadow ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-semibold">Admins — {isMonthly ? 'In Period' : 'Today'}</CardTitle>
+                <CardTitle className="text-xl sm:text-lg font-semibold">Admins — {isMonthly ? 'In Period' : 'Today'}</CardTitle>
               </CardHeader>
               <CardContent className="flex-1">
                 <div className="grid grid-cols-1 gap-3">
