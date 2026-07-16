@@ -79,6 +79,12 @@ const EmployeeReimbursements: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [statusCounts, setStatusCounts] = useState<{ pending: number; approved: number; rejected: number; processed: number }>({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    processed: 0,
+  });
   const [fetchLoading, setFetchLoading] = useState(false);
 
   // Form state
@@ -102,6 +108,9 @@ const EmployeeReimbursements: React.FC = () => {
       const count = res.count ?? 0;
       setTotalPages(Math.max(1, Math.ceil(count / 10)));
       setTotalCount(count);
+      if (res.status_counts) {
+        setStatusCounts(res.status_counts);
+      }
     }
     setFetchLoading(false);
   }, []);
@@ -173,7 +182,7 @@ const EmployeeReimbursements: React.FC = () => {
           {/* Summary cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {(['pending', 'approved', 'rejected', 'processed'] as const).map((s) => {
-              const count = claims.filter((c) => c.status === s).length;
+              const count = statusCounts[s];
               const meta = STATUS_META[s];
               return (
                 <Card key={s} className={`${isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50 border-slate-200'} border`}>
@@ -194,7 +203,7 @@ const EmployeeReimbursements: React.FC = () => {
           {/* Claims table (Visible only on desktop) */}
           <div className="border border-border rounded-lg overflow-hidden bg-background hidden md:block">
             <div className="px-4 py-3 border-b border-border flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-              <span className="font-semibold text-slate-950 dark:text-white flex items-center gap-2">
+              <span className="sm:text-xl text-xl font-semibold text-slate-950 dark:text-white flex items-center gap-2">
                 My Claims History
               </span>
             </div>
@@ -275,7 +284,7 @@ const EmployeeReimbursements: React.FC = () => {
           {/* Claims Mobile List (Visible only on mobile) */}
           <div className="space-y-3 md:hidden">
             <div className="px-1 pb-1 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-              <span className="font-semibold text-slate-950 dark:text-white">
+              <span className="font-semibold text-slate-950 dark:text-white text-xl sm:text-xl">
                 My Claims History
               </span>
             </div>
