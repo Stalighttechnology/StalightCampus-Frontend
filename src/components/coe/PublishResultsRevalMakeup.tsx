@@ -502,7 +502,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
               </p>
             </CardContent>
          </Card> :
-      students.length > 0 &&
+      upload &&
       <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg sm:text-xl">Student Marks Entry</CardTitle>
@@ -533,6 +533,11 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
             <div className="flex gap-3 items-center pr-1">
             </div>
           </div>
+          {students.length === 0 && (
+            <div className="py-8 text-center text-muted-foreground">
+              No students found for this selection or search query.
+            </div>
+          )}
           <div className="space-y-4">
             {students.map((s) => {
               const studentMarks = allMarks[String(s.student_id)]?.subs || marks[String(s.student_id)] || {};
