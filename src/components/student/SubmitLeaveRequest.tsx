@@ -167,15 +167,29 @@ const SubmitLeaveRequest = () => {
       const el = document.getElementById('leave-status-list');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (error) {
-
-      setError(error instanceof Error ? error.message : "Something went wrong. Please try again.");
-
-      toast({ variant: 'destructive', title: 'Failed to submit', description: error instanceof Error ? error.message : 'Please try again.' });
+      let errorMessage = "Something went wrong. Please try again.";
+      if (error instanceof Error) {
+        try {
+          if (error.message.includes('body: {')) {
+            const bodyString = error.message.split('body: ')[1];
+            const bodyJson = JSON.parse(bodyString);
+            if (bodyJson && bodyJson.message) {
+              errorMessage = bodyJson.message;
+            } else {
+              errorMessage = error.message;
+            }
+          } else {
+            errorMessage = error.message;
+          }
+        } catch (e) {
+          errorMessage = error.message;
+        }
+      }
 
       const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
       await MySwal.fire({
         title: 'Error!',
-        text: error instanceof Error ? error.message : 'Something went wrong. Please try again.',
+        text: errorMessage,
         icon: 'error',
         confirmButtonText: 'OK',
         confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
