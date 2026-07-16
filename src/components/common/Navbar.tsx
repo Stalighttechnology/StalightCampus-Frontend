@@ -287,7 +287,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
         </div>
 
         {/* Custom Desktop Switcher for Parents */}
-        {role === "parent" && childrenList.length > 0 && (
+        {role === "parent" && childrenList.length > 1 && (
           <div className="hidden sm:block relative mr-2">
             <button
               onClick={() => setShowDesktopSwitcher(!showDesktopSwitcher)}
@@ -516,7 +516,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
             </div>
 
             {/* Custom Dropdown for Parents (Mobile Only) */}
-            {showParentDropdown && role === "parent" && childrenList.length > 0 && window.innerWidth < 640 && (
+            {showParentDropdown && role === "parent" && childrenList.length > 1 && window.innerWidth < 640 && (
               <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 z-50 border ${theme === 'dark' ? 'bg-gray-800 border-gray-700 shadow-black/50' : 'bg-white border-gray-200 shadow-gray-200/50'}`}>
                 <div className={`px-4 py-2 text-[10px] font-semibold uppercase tracking-wider border-b ${theme === 'dark' ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-100'}`}>
                   Switch Child

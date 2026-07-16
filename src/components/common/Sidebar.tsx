@@ -755,7 +755,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       </motion.div>
 
       {/* Child Switcher for Parents on Mobile */}
-      {role === "parent" && childrenList.length > 0 && isMobile && (
+      {role === "parent" && childrenList.length > 1 && isMobile && (
         <div className={`px-4 py-3 border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
           <label className={`block text-[10px] font-semibold uppercase tracking-wider mb-2 px-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
             Select Student
