@@ -78,15 +78,17 @@ const ResultsView: React.FC = () => {
         passed = cie !== null && see !== null && cie >= 20 && see >= 18 && totalNum >= 40;
       }
 
-      // convert marks (out of 100) to discrete grade point
+      // convert marks to discrete grade point based on percentage
       let gp = 0;
       if (passed) {
-        if (totalNum >= 90) gp = 10;
-        else if (totalNum >= 80) gp = 9;
-        else if (totalNum >= 70) gp = 8;
-        else if (totalNum >= 60) gp = 7;
-        else if (totalNum >= 50) gp = 6;
-        else if (totalNum >= 40) gp = 5;
+        const maxTotal = m?.max_total ? Number(m.max_total) : 100;
+        const percentage = maxTotal > 0 ? (totalNum / maxTotal) * 100 : totalNum;
+        if (percentage >= 90) gp = 10;
+        else if (percentage >= 80) gp = 9;
+        else if (percentage >= 70) gp = 8;
+        else if (percentage >= 60) gp = 7;
+        else if (percentage >= 50) gp = 6;
+        else if (percentage >= 40) gp = 5;
       }
 
       weightedGP += gp * credits;
@@ -349,12 +351,14 @@ const ResultsView: React.FC = () => {
                                 grade = 'F';
                                 gradePoints = '0';
                               } else {
-                                if (total >= 90) { grade = 'S'; gradePoints = '10'; }
-                                else if (total >= 80) { grade = 'A'; gradePoints = '9'; }
-                                else if (total >= 70) { grade = 'B'; gradePoints = '8'; }
-                                else if (total >= 60) { grade = 'C'; gradePoints = '7'; }
-                                else if (total >= 50) { grade = 'D'; gradePoints = '6'; }
-                                else if (total >= 40) { grade = 'E'; gradePoints = '5'; }
+                                const maxTotal = m.max_total ? Number(m.max_total) : 100;
+                                const percentage = maxTotal > 0 ? (total / maxTotal) * 100 : total;
+                                if (percentage >= 90) { grade = 'S'; gradePoints = '10'; }
+                                else if (percentage >= 80) { grade = 'A'; gradePoints = '9'; }
+                                else if (percentage >= 70) { grade = 'B'; gradePoints = '8'; }
+                                else if (percentage >= 60) { grade = 'C'; gradePoints = '7'; }
+                                else if (percentage >= 50) { grade = 'D'; gradePoints = '6'; }
+                                else if (percentage >= 40) { grade = 'E'; gradePoints = '5'; }
                                 else { grade = 'F'; gradePoints = '0'; }
                               }
                             }
