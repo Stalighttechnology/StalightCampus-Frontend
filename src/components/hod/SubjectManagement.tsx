@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Pencil, Trash2, BookOpen, FileDown, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { SkeletonTable } from "../ui/skeleton";
@@ -322,8 +322,9 @@ const SubjectManagement = () => {
         <div id="courses-header-filters-section">
           <CardHeader className="border-b pb-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-2 sm:gap-4">
-              <div className="flex items-start justify-between w-full sm:w-auto">
-                <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Manage Courses</CardTitle>
+              <div className="flex flex-col items-start w-full sm:w-auto">
+                <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Manage Courses</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground mt-1">Configure and manage courses, credits, and syllabus structure.</CardDescription>
               </div>
               <div className="flex flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 <Button

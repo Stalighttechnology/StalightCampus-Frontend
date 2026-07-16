@@ -692,7 +692,7 @@ const StudentInfoScanner = () => {
         <div className="space-y-6">
           <Card className={`${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
             <CardHeader className="pb-4">
-              <CardTitle className="text-xl flex items-center gap-2">
+              <CardTitle className="text-xl sm:text-2xl font-semibold flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
                 Detected Students
               </CardTitle>
@@ -910,7 +910,7 @@ const StudentInfoScanner = () => {
         <div className="space-y-6">          {/* Basic Information */}
           <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-xl">
+              <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl font-semibold">
                 <User className="h-5 w-5 text-primary" />
                 Basic Information
               </CardTitle>
@@ -1052,7 +1052,7 @@ const StudentInfoScanner = () => {
           {studentData && studentData.personal_info &&
             <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-xl">
+                <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl font-semibold">
                   <Calendar className="h-5 w-5 text-primary" />
                   Personal Information
                 </CardTitle>

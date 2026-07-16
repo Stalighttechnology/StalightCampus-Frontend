@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle
 } from
@@ -273,7 +274,7 @@ const PromotionOverview = ({ onTabChange, theme, stats }: { onTabChange: (tab: "
                 <UserCheck className="h-6 w-6 text-white" />
               </div>
               <div>
-                <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Student Promotion</CardTitle>
+                <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Student Promotion</CardTitle>
                 <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Promote eligible students to next semester</p>
               </div>
             </div>
@@ -304,7 +305,7 @@ const PromotionOverview = ({ onTabChange, theme, stats }: { onTabChange: (tab: "
                 <UserX className="h-6 w-6 text-white" />
               </div>
               <div>
-                <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Student Demotion</CardTitle>
+                <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Student Demotion</CardTitle>
                 <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Demote students to previous semester</p>
               </div>
             </div>
@@ -331,10 +332,11 @@ const PromotionOverview = ({ onTabChange, theme, stats }: { onTabChange: (tab: "
       {/* Quick Stats */}
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader>
-          <CardTitle className={`flex items-center gap-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-            <Users className="h-5 w-5" />
+          <CardTitle className={`flex items-center gap-2 text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            
             Quick Statistics
           </CardTitle>
+          <CardDescription className="text-sm text-muted-foreground mt-1">Review key promotion and demotion metrics for the month.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -941,7 +943,8 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
       {/* Promotion Controls */}
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader>
-          <CardTitle className={`text-lg ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Promote Students to Next Semester</CardTitle>
+          <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Promote Students to Next Semester</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground mt-1">Configure rules and select students to promote to the next semester.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
@@ -1006,7 +1009,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
       {state.students.length > 0 ?
         <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
-            <CardTitle className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            <CardTitle className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               <span className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-blue-400" />
                 <span className="text-xl sm:text-semibold md:text-lg">Students in {state.selectedSemester} - {state.selectedSection}</span>
@@ -1535,7 +1538,8 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
       {/* Demotion Controls */}
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader>
-          <CardTitle className={`text-lg ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Demote Students to Previous Semester</CardTitle>
+          <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Demote Students to Previous Semester</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground mt-1">Select students to demote to the previous semester.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">

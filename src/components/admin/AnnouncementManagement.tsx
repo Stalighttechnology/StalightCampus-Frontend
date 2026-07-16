@@ -750,7 +750,7 @@ const AdminAnnouncementManagement = () => {
         @media (max-width: 768px) {
           .announcements-card { border-radius: 12px !important; }
           .announcements-card-header { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
-          .announcements-card-title { font-size: 1.125rem !important; line-height: 1.2 !important; }
+          .announcements-card-title { text-xl !important; line-height: 1.2 !important; }
           .announcements-card-desc { font-size: 0.8125rem !important; margin-top: 6px !important; }
           .announcements-card-content { padding: 12px !important; }
           .announce-actions { width: 100% !important; }

@@ -729,7 +729,10 @@ const StudyMaterials = () => {
         <div id="hod-study-materials-header-section" className="space-y-4">
           <CardHeader className="pb-4 border-b">
             <div className="flex justify-between items-center gap-2">
-              <CardTitle className="text-2xl font-semibold leading-none tracking-tight">Study Materials</CardTitle>
+              <div>
+                <CardTitle className="text-xl sm:text-2xl font-semibold leading-none tracking-tight">Study Materials</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground mt-1">Upload and distribute lecture notes, syllabus, and study resources.</CardDescription>
+              </div>
               <Button
                 onClick={() => setShowUploadModal(true)}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1 transition-all duration-200 ease-in-out transform hover:scale-105 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white ${theme === 'dark' ? 'shadow-lg shadow-primary/20' : 'shadow-md'}`}
@@ -740,7 +743,7 @@ const StudyMaterials = () => {
               </Button>
             </div>
           </CardHeader>
-          <div className="px-6 pb-2 pt-3">
+          <div className="px-6 pb-2 ">
             {/* Filters Grid */}
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

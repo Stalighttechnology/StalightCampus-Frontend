@@ -1,7 +1,7 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/select";
 import { Checkbox } from "../ui/checkbox";
@@ -508,7 +508,10 @@ const StudentEnrollment = () => {
       <Card className="shadow-lg">
         <div id="elective-enrollment-filters-section">
           <CardHeader className="pb-4 md:pb-2 lg:pb-4 flex flex-row items-start justify-between border-b pb-4">
-            <CardTitle className="text-2xl font-semibold">Student Enrollment <span className="block sm:inline">(Elective / Open Elective)</span></CardTitle>
+            <div>
+              <CardTitle className="text-xl sm:text-2xl font-semibold">Student Enrollment <span className="block sm:inline">(Elective / Open Elective)</span></CardTitle>
+              <CardDescription className="text-sm text-muted-foreground mt-1">Manage student course enrollments for elective and open elective subjects.</CardDescription>
+            </div>
             <Button
               onClick={handleExportPDF}
               disabled={!selectedSubjectId || isLoading || saving || downloadingPDF}

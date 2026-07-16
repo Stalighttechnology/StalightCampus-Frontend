@@ -595,7 +595,7 @@ const ProctorStudents = () => {
           <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
             <div className="flex items-start justify-between w-full sm:w-auto">
               <div className="flex-1">
-                <CardTitle className={`text-lg sm:text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                <CardTitle className={`text-lg sm:text-2xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   Proctor Assignment - {state.branchName}
                 </CardTitle>
                 <p className={`text-sm sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>

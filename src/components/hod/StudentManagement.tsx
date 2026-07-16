@@ -3,6 +3,7 @@ import { useRef, useState, useEffect } from "react";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
   CardFooter
@@ -1190,7 +1191,8 @@ const StudentManagement = () => {
       {/* Add Student Manually Form */}
       <Card id="add-student-manually-card" className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader className="border-b pb-2">
-          <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Add Student Manually</CardTitle>
+          <CardTitle className={`text-xl sm:text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Add Student Manually</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground mt-1">Enroll a new student into the department manually.</CardDescription>
         </CardHeader>
         <CardContent className="overflow-visible custom-scrollbar pt-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-3">
@@ -1494,8 +1496,11 @@ const StudentManagement = () => {
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <div id="student-list-header-section">
           <CardHeader className="border-b pb-2">
-            <div className="flex flex-row items-center justify-between gap-3 md:gap-4">
-              <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Student List</CardTitle>
+            <div className="flex flex-row items-center justify-between gap-3 md:gap-4 w-full">
+              <div>
+                <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Student List</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground mt-1">View, search, and manage enrolled students in your department.</CardDescription>
+              </div>
               <div className="flex w-auto gap-2">
                 {/* Bulk Upload Button */}
                 <Button

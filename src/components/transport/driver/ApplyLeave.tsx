@@ -326,7 +326,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Leave Requests
               </CardTitle>
-              <p className={`hidden sm:block text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your submitted requests</p>
+              <p className={`hidden sm:block text-sm sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your submitted requests</p>
             </div>
             <div className="flex-shrink-0 mt-2 sm:mt-0">
               <Popover open={filterOpen} onOpenChange={setFilterOpen}>

@@ -380,7 +380,7 @@ const HODAnnouncementManagement = () => {
         @media (max-width: 639px) {
           .announcements-card { border-radius: 8px; }
           .announcements-card-header { padding: 12px; }
-          .announcements-card-title { font-size: 1.125rem; line-height: 1.3; }
+          .announcements-card-title { text-xl; line-height: 1.3; }
           .announcements-card-desc { font-size: 0.75rem; margin-top: 4px; }
           .mobile-modal { width: 90% !important; height: 80vh !important; max-width: none !important; padding: 12px !important; border-radius: 12px !important; }
           .delete-modal { width: 90vw !important; max-width: 320px !important; padding: 16px !important; border-radius: 12px !important; }
@@ -402,8 +402,8 @@ const HODAnnouncementManagement = () => {
               header={
                 <CardHeader className="announcements-card-header flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 gap-4 border-b ">
                   <div className="space-y-1">
-                    <CardTitle className="announcements-card-title text-2xl font-semibold">Branch Announcements</CardTitle>
-                    <CardDescription className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    <CardTitle className="announcements-card-title text-xl sm:text-2xl font-semibold">Branch Announcements</CardTitle>
+                    <CardDescription className={`text-sm sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       Create and manage announcements for your branch
                     </CardDescription>
                   </div>

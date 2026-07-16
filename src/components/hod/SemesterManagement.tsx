@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect, forwardRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
@@ -426,7 +426,10 @@ const SemesterManagement = () => {
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader className="border-b pb-4">
           <div id="semester-list-header" className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3">
-            <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester List</CardTitle>
+            <div>
+              <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester List</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground mt-1">Define academic semesters, tracks, and active periods.</CardDescription>
+            </div>
             <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
               <Button
                 onClick={() => openModal()}

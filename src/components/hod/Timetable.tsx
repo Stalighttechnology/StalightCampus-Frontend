@@ -1213,10 +1213,11 @@ const Timetable = () => {
     <div>
       <Card id="timetable-card" className={`w-full border ${theme === 'dark' ? 'bg-card border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'} shadow-sm rounded-xl`}>
         <div id="timetable-header-filters-section">
-          <CardHeader id="timetable-card-header" className="border-b pb-4 mb-4 px-4 sm:px-6 py-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
+          <CardHeader id="timetable-card-header" className="border-b">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center  w-full">
               <div className="flex-1 min-w-0">
                 <CardTitle className="text-xl sm:text-2xl font-semibold text-foreground">Academic Timetable</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground mt-1">Manage weekly class schedules, periods, and room assignments.</CardDescription>
               </div>
               
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">

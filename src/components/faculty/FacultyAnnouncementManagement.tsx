@@ -393,7 +393,7 @@ const FacultyAnnouncementManagement = () => {
         @media (max-width: 480px) {
           .announcements-card { border-radius: 8px; }
           .announcements-card-header { padding: 12px; }
-          .announcements-card-title { font-size: 1.125rem; line-height: 1.3; }
+          .announcements-card-title { text-xl; line-height: 1.3; }
           .announcements-card-desc { font-size: 0.75rem; margin-top: 4px; }
           .mobile-modal { width: 90vw !important; max-width: 360px !important; padding: 12px !important; border-radius: 12px !important; }
           .delete-modal { width: 90vw !important; max-width: 320px !important; padding: 16px !important; border-radius: 12px !important; }
@@ -418,10 +418,10 @@ const FacultyAnnouncementManagement = () => {
                 <CardHeader className="announcements-card-header px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
                     <div className="flex-1 min-w-0">
-                      <CardTitle className={`tracking-tight text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                         Announcements for Students
                       </CardTitle>
-                      <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      <p className={`text-sm sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                         Create and manage announcements for your Students
                       </p>
                     </div>
