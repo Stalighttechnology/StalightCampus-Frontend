@@ -489,40 +489,55 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
             <CardContent className="p-5">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-xl font-bold">{dashboardData.student_profile.proctor.name || 'Not Assigned'}</h3>
+                  <h3 className="text-xl font-semibold">{dashboardData.student_profile.proctor.name || 'Not Assigned'}</h3>
                   <p className="text-sm text-muted-foreground">Academic Proctor</p>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                   {dashboardData.student_profile.proctor.phone_number ? (
                     <>
-                      <a href={`tel:${dashboardData.student_profile.proctor.phone_number}`} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+                      <a 
+                        href={`tel:${dashboardData.student_profile.proctor.phone_number}`} 
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium ${theme === 'dark' ? 'bg-blue-950/40 text-blue-400 hover:bg-blue-950/60 border border-blue-900/30' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100'}`}
+                      >
                         <FaPhone className="w-4 h-4" /> Call
                       </a>
                       <a
                         href={`https://wa.me/${dashboardData.student_profile.proctor.phone_number.length === 10 ? '91' + dashboardData.student_profile.proctor.phone_number : dashboardData.student_profile.proctor.phone_number.replace(/\D/g, '')}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b858] text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium ${theme === 'dark' ? 'bg-emerald-950/40 text-emerald-400 hover:bg-emerald-950/60 border border-emerald-900/30' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100'}`}
                       >
                         <FaWhatsapp className="w-4 h-4" /> WhatsApp
                       </a>
                     </>
                   ) : (
-                    <div className="flex gap-3 w-full sm:w-auto opacity-50 cursor-not-allowed">
-                      <button disabled className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                    <div className="flex gap-3 w-full sm:w-auto">
+                      <button 
+                        disabled 
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed ${theme === 'dark' ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}
+                      >
                         <FaPhone className="w-4 h-4" /> None
                       </button>
-                      <button disabled className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#25D366] text-white px-4 py-2 rounded-lg text-sm font-medium">
+                      <button 
+                        disabled 
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed ${theme === 'dark' ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}
+                      >
                         <FaWhatsapp className="w-4 h-4" /> None
                       </button>
                     </div>
                   )}
                   {dashboardData.student_profile.proctor.email ? (
-                    <a href={`mailto:${dashboardData.student_profile.proctor.email}`} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+                    <a 
+                      href={`mailto:${dashboardData.student_profile.proctor.email}`} 
+                      className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium ${theme === 'dark' ? 'bg-red-950/40 text-red-400 hover:bg-red-950/60 border border-red-900/30' : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-100'}`}
+                    >
                       <FaEnvelope className="w-4 h-4" /> Email
                     </a>
                   ) : (
-                    <button disabled className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium opacity-50 cursor-not-allowed">
+                    <button 
+                      disabled 
+                      className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed ${theme === 'dark' ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}
+                    >
                       <FaEnvelope className="w-4 h-4" /> None
                     </button>
                   )}
