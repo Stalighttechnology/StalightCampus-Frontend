@@ -217,6 +217,12 @@ const LeadDetailsView: React.FC<LeadDetailsViewProps> = ({ leadId, isOpen, onClo
     e.preventDefault();
     if (!leadId || !newTaskDesc || !newTaskDate) return;
     
+    const taskDate = new Date(newTaskDate);
+    if (taskDate < new Date()) {
+      toast.error('Due time cannot be in the past');
+      return;
+    }
+    
     setSubmittingTask(true);
     try {
       await crmApi.createTask({
