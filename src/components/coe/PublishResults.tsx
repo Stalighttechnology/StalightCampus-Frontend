@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge'; // Trigger reload
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { useTheme } from '@/context/ThemeContext';
 import { paginationToUI } from '@/utils/paginationToUI';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -381,14 +381,17 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   return (
     <div ref={ref} id="coe-publish-results-container" className={` ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card id="coe-publish-results-filters" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
-        <CardHeader className="pb-4 flex flex-row items-center justify-between space-y-0">
-          <CardTitle>Filter And Create Upload Batch</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => setSettingsModalOpen(true)} className="flex items-center gap-2">
+        <CardHeader className="border-b pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-3 sm:gap-4 space-y-0">
+          <div className="flex flex-col">
+            <CardTitle className="text-xl sm:text-2xl font-semibold">Filter And Create Upload Batch</CardTitle>
+            <CardDescription className="text-sm text-muted-foreground mt-1">Filter students and create exam result upload batches.</CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setSettingsModalOpen(true)} className="flex items-center gap-2 w-full sm:w-auto justify-center">
             <Settings className="w-4 h-4" />
             Passing Criteria
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4 sm:pt-2">
           {filtersLoading ?
           <SkeletonForm fields={4} /> :
 
@@ -965,7 +968,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
 
       {/* Settings Modal */}
       <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+        <DialogContent className={`max-w-md w-[90vw] sm:w-full rounded-xl ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
