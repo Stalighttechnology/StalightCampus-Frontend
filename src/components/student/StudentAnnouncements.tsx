@@ -567,6 +567,10 @@ const StudentAnnouncements = () => {
 
   useEffect(() => {
     loadAnnouncements(currentPage);
+    const element = document.getElementById("announcements-card");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }, [currentPage]);
 
   const handleMarkRead = async (announcementId: number) => {
