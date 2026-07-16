@@ -790,6 +790,9 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                       <tr>
                         <th className="py-2 px-4 sm:w-[200px]">Full Name</th>
                         <th className="py-2 px-1 md:w-[200px]">Email</th>
+                        {roleFilter === "Student" && (
+                          <th className="py-2 px-1 md:w-[150px]">USN</th>
+                        )}
                         <th className="py-2 px-1 md:w-[120px]">Role</th>
                         {(roleFilter === "" || rolesNeedingDept.includes(roleFilter)) && (
                           <th className="py-2 px-1 md:w-[250px]">Department</th>
@@ -813,6 +816,11 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                           <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[200px]">
                             {user.email}
                           </td>
+                          {roleFilter === "Student" && (
+                            <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[150px]">
+                              {user.extra?.usn || "-"}
+                            </td>
+                          )}
                           <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getRoleBadge(user.role, theme)}</td>
                           {(roleFilter === "" || rolesNeedingDept.includes(roleFilter)) && (
                             <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[250px]">
