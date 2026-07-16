@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { FiBell, FiMoon, FiSun, FiMenu, FiBellOff, FiUserCheck } from "react-icons/fi";
+import { FiBell, FiMoon, FiSun, FiMenu, FiBellOff } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
@@ -234,7 +234,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
 
   return (
     <motion.div
-      className={`w-full flex items-center justify-between px-3 sm:px-4 pb-3 lg:pb-0 relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
+      className={`w-full flex items-center justify-between px-4 pb-3 lg:pb-0 relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
       style={{
         height: window.innerWidth >= 1024 ? '5rem' : undefined,
         paddingTop: Capacitor.isNativePlatform()
@@ -246,7 +246,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
       transition={{ duration: 0.3 }}
     >
       {/* Left section: Hamburger + Brand */}
-      <div className="flex items-center gap-2 sm:gap-4 z-10">
+      <div className="flex items-center gap-4 z-10">
         {/* Hamburger Menu Button */}
         {showHamburger && (
           <Button
@@ -275,7 +275,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
       </div>
 
       {/* Right section */}
-      <div className="flex items-center gap-1.5 sm:gap-4 z-10">
+      <div className="flex items-center gap-4 z-10">
         {/* Date & Time */}
         <div className={`text-right hidden xl:block ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
           <div className="text-xs font-medium">
@@ -285,21 +285,21 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
             {currentTime.toLocaleTimeString('en-US', { hour: "2-digit", minute: "2-digit", hour12: true })}
           </div>
         </div>
-        {/* Custom Switcher for Parents */}
+
+        {/* Custom Desktop Switcher for Parents */}
         {role === "parent" && childrenList.length > 0 && (
-          <div className="relative mr-2">
+          <div className="hidden sm:block relative mr-2">
             <button
               onClick={() => setShowDesktopSwitcher(!showDesktopSwitcher)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border font-medium transition-colors ${theme === 'dark'
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium transition-colors ${theme === 'dark'
                   ? 'bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700'
                   : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                 }`}
             >
-              <FiUserCheck size={16} className="text-primary" />
-              <div className="text-xs truncate max-w-[140px] hidden sm:block">
-                {childrenList.find((c: any) => c.id.toString() === selectedChildId)?.name || 'Switch Student'}
+              <div className="text-xs truncate max-w-[140px]">
+                {childrenList.find((c: any) => c.id.toString() === selectedChildId)?.name || 'Switch Child'}
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}><polyline points="6 9 12 15 18 9"></polyline></svg>
             </button>
 
             {showDesktopSwitcher && (
@@ -346,7 +346,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           </span>
         </motion.div>
 
-        <div className="flex items-center gap-1 sm:gap-2 ">
+        <div className="flex items-center gap-2 ">
           <Button
             variant="ghost"
             size="icon"
