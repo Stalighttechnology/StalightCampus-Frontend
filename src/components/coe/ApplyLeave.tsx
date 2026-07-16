@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
@@ -269,13 +269,15 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
         {/* Leave Application Form - Left Side */}
         <Card id="coe-leave-application-form" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
-            <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+          <CardHeader className="border-b flex flex-row items-center justify-between p-3 sm:p-4 lg:p-6">
+            <div>
+              <CardTitle className={`tracking-tight text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground mt-1">
+                Your leave request will be routed to the <span className="font-semibold text-primary">Dean</span> for approval.
+              </CardDescription>
+            </div>
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
-            <div className={`p-3 rounded-lg border text-sm sm:text-sm ${theme === 'dark' ? 'bg-blue-900/10 border-blue-800/50 text-blue-300' : 'bg-blue-50/50 border-blue-200 text-blue-800'}`}>
-              Your leave request will be routed to the <span className="font-semibold text-primary">Dean</span> for approval.
-            </div>
             {/* Title */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
               <Label htmlFor="title" className={`text-base sm:text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title <span className="text-red-500">*</span></Label>
@@ -360,10 +362,10 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
 
         {/* Leave Requests List - Right Side */}
         <Card id="coe-recent-leave-applications" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4 lg:p-6 border-b h-14 sm:h-16 lg:h-20">
+          <CardHeader className="border-b flex flex-row items-center justify-between p-3 sm:p-4 lg:p-6">
             <div>
               <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
-              <p className={`text-sm hidden sm:block ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
+              <CardDescription className="text-sm text-muted-foreground mt-1 hidden sm:block">View and track your leave requests</CardDescription>
             </div>
 
             {/* Filter Button */}

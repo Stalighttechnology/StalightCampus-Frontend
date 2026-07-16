@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -186,8 +186,11 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
       <div className="space-y-4 sm:space-y-6">
         {/* Filters */}
         <Card id="coe-student-status-filters">
-          <CardHeader className="pb-2">
-            <CardTitle>Student Exam Application Status</CardTitle>
+          <CardHeader className="border-b pb-4">
+            <div className="flex flex-col">
+              <CardTitle className="text-xl sm:text-2xl font-semibold">Student Exam Application Status</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground mt-1">Monitor and track student exam application submissions.</CardDescription>
+            </div>
           </CardHeader>
           <CardContent className="p-6 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

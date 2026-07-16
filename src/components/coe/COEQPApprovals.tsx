@@ -473,8 +473,8 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </div>
               </div>
               <TabsList className="grid grid-cols-2 w-full sm:w-auto">
-                <TabsTrigger value="pending" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">Pending Approvals</TabsTrigger>
-                <TabsTrigger value="finalized" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">Finalized Papers</TabsTrigger>
+                <TabsTrigger value="pending" className="px-1 sm:px-4 text-xs sm:text-sm whitespace-normal h-auto py-1.5 data-[state=active]:bg-primary data-[state=active]:text-white">Pending Approvals</TabsTrigger>
+                <TabsTrigger value="finalized" className="px-1 sm:px-4 text-xs sm:text-sm whitespace-normal h-auto py-1.5 data-[state=active]:bg-primary data-[state=active]:text-white">Finalized Papers</TabsTrigger>
               </TabsList>
             </div>
           </CardHeader>

@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -252,10 +252,13 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
       `}</style>
       <div ref={ref} id="coe-revaluation-requests-container" className="space-y-6">
         <Card id="coe-revaluation-requests-filters">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2">
-              Revaluation Requests
-            </CardTitle>
+          <CardHeader className="border-b pb-4">
+            <div className="flex flex-col">
+              <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl font-semibold">
+                Revaluation Requests
+              </CardTitle>
+              <CardDescription className="text-sm text-muted-foreground mt-1">Review and process student applications for paper revaluation.</CardDescription>
+            </div>
           </CardHeader>
           <CardContent className="p-6 pt-2">
             {/* Filters */}

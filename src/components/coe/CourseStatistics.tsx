@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -171,8 +171,11 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
     <div ref={ref} id="coe-course-statistics-container" className="course-statistics-main space-y-6">
       {/* Filters */}
       <Card id="coe-course-statistics-filters" className="course-statistics-filters">
-        <CardHeader className="pb-2">
-          <CardTitle>Course Statistics</CardTitle>
+        <CardHeader className="border-b pb-4">
+          <div className="flex flex-col">
+            <CardTitle className="text-xl sm:text-2xl font-semibold">Course Statistics</CardTitle>
+            <CardDescription className="text-sm text-muted-foreground mt-1">Analyze exam performance and registration statistics by course.</CardDescription>
+          </div>
         </CardHeader>
         <CardContent className="p-6 pt-2 course-statistics-filters-content">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 course-statistics-filter-grid">

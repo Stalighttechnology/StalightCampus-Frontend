@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -304,11 +304,12 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
       `}</style>
       <div ref={ref} id="coe-makeup-requests-container" className="space-y-6">
       <Card id="coe-makeup-requests-filters">
-        <CardHeader className="pb-2">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <CardTitle>
+        <CardHeader className="border-b pb-4">
+          <div className="flex flex-col gap-1">
+            <CardTitle className="text-xl sm:text-2xl font-semibold">
               Makeup Exam Requests
             </CardTitle>
+            <CardDescription className="text-sm text-muted-foreground">Manage and approve student requests for makeup examinations.</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="p-6 pt-2">
