@@ -474,8 +474,8 @@ const AdminAnnouncementManagement = () => {
     });
   };
 
-  const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager"];
-  const BASIC_ROLES = ["student", "hod", "faculty", "principal", "org_admin", "dean"];
+  const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "driver"];
+  const BASIC_ROLES = ["student", "hod", "faculty", "principal", "org_admin", "dean", "driver"];
 
   const getTargetRolesForUser = (userRole: string) => {
     switch (userRole) {
@@ -489,9 +489,10 @@ const AdminAnnouncementManagement = () => {
       case "fees_manager":
       case "hms":
       case "hms_admin":
-      case "transport_admin":
       case "warden":
         return ["student"];
+      case "transport_admin":
+        return ["student", "driver"];
       default:
         return ["student", "hod", "faculty", "principal", "placement_officer"];
     }

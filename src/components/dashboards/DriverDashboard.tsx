@@ -11,6 +11,7 @@ import Profile from "../common/Profile";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
+import StudentAnnouncements from "../student/StudentAnnouncements";
 
 interface DashboardProps {
   user: any;
@@ -44,6 +45,8 @@ const DriverDashboard = ({ user }: DashboardProps) => {
         return <DriverComplaints />;
       case "apply-leave":
         return <ApplyLeaveDriver />;
+      case "announcements":
+        return <StudentAnnouncements />;
       case "reimbursements":
         return <EmployeeReimbursements />;
       case "my-attendance":
