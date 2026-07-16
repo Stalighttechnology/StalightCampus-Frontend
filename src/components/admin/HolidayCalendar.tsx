@@ -137,6 +137,9 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
 
     const handleDayClick = (day: Date) => {
         const dayHolidays = getHolidaysForDay(day);
+        const dayExams = getExamsForDay(day);
+        const dayLeaves = getLeavesForDay(day);
+
         if (dayHolidays.length > 0) {
             setExistingHoliday(dayHolidays[0]);
             setDescription(dayHolidays[0].description);
@@ -144,6 +147,12 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
             setSelectedDate(day);
             setIsDialogReadOnly(readOnly || !isEditModeActive);
             setIsModalOpen(true);
+        } else if (dayExams.length > 0) {
+            setSelectedExam(dayExams[0]);
+            setIsExamModalOpen(true);
+        } else if (dayLeaves.length > 0) {
+            setSelectedLeave(dayLeaves[0]);
+            setIsLeaveModalOpen(true);
         } else {
             if (readOnly || !isEditModeActive) return;
             setExistingHoliday(null);
@@ -340,21 +349,11 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                             } ${!isCurrentMonth ? (theme === 'dark' ? 'bg-muted/10 text-muted-foreground/30' : 'bg-gray-50/50 text-gray-400') : (
                                                 hasHoliday ? (
                                                     dayHolidays[0].holiday_type === 'event'
-                                                        ? (theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5')
-                                                        : (theme === 'dark' ? 'bg-rose-500/10' : 'bg-rose-50/50')
-                                                ) : hasExam ? (theme === 'dark' ? 'bg-amber-500/10' : 'bg-amber-50/60') : hasLeave ? (theme === 'dark' ? 'bg-teal-500/10' : 'bg-teal-50/60') : (theme === 'dark' ? 'bg-card' : 'bg-white')
-                                            )} ${isToday ? 'ring-1 ring-primary/30' : ''}`}
+                                                        ? (theme === 'dark' ? 'bg-primary/20' : 'bg-primary/10')
+                                                        : (theme === 'dark' ? 'bg-rose-500/20' : 'bg-rose-100/40')
+                                                ) : hasExam ? (theme === 'dark' ? 'bg-amber-500/20' : 'bg-amber-100/45') : hasLeave ? (theme === 'dark' ? 'bg-teal-500/20' : 'bg-teal-100/40') : (theme === 'dark' ? 'bg-card' : 'bg-white')
+                                            )} ${isToday ? 'ring-1 ring-primary/30' : ''} ${isCurrentMonth && (hasHoliday || hasExam || hasLeave) ? 'rounded-xl m-1 border border-border/40 shadow-sm' : ''}`}
                                     >
-                                        {/* Left border strip */}
-                                        {hasHoliday && (
-                                            <span className={`absolute left-0 top-0 bottom-0 w-1 ${dayHolidays[0].holiday_type === 'event' ? 'bg-primary' : 'bg-rose-500'}`} />
-                                        )}
-                                        {!hasHoliday && hasExam && (
-                                            <span className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500" />
-                                        )}
-                                        {!hasHoliday && !hasExam && hasLeave && (
-                                            <span className="absolute left-0 top-0 bottom-0 w-1 bg-teal-500" />
-                                        )}
 
                                         {/* Day header: number and star */}
                                         <div className="flex justify-between items-center w-full">
@@ -367,10 +366,10 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                         </div>
 
                                         {/* Holiday details text & Pill */}
-                                        <div className="mt-1 flex-1 flex-col gap-1 hidden sm:flex overflow-y-auto overflow-x-hidden custom-scrollbar">
+                                        <div className="mt-1 px-1.5 flex-1 flex-col gap-1 hidden sm:flex overflow-y-auto overflow-x-hidden custom-scrollbar">
                                             {isCurrentMonth && hasHoliday && (
-                                                <div className="flex flex-col gap-1 items-start w-full">
-                                                    <span className={`text-[10px] md:text-xs font-medium leading-tight line-clamp-1 break-all w-full ${dayHolidays[0].holiday_type === 'event' ? 'text-primary' : 'text-rose-500'}`} title={dayHolidays[0].description}>
+                                                <div className="flex flex-col gap-1 items-center w-full text-center">
+                                                    <span className={`text-[10px] md:text-xs font-medium leading-tight line-clamp-1 break-all w-full text-center ${theme === 'dark' ? 'text-primary' : 'text-rose-500'}`} title={dayHolidays[0].description}>
                                                         {dayHolidays[0].description}
                                                     </span>
                                                     <span
@@ -384,8 +383,8 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
 
                                             {/* Exam chips */}
                                             {isCurrentMonth && !hasLeave && dayExams.slice(0, 2).map(exam => (
-                                                <div key={exam.id} className="flex flex-col gap-0.5 items-start w-full">
-                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 break-all w-full text-amber-600 dark:text-amber-400" title={exam.subject}>
+                                                <div key={exam.id} className="flex flex-col gap-0.5 items-center w-full text-center">
+                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 break-all w-full text-center text-amber-600 dark:text-amber-400" title={exam.subject}>
                                                         {exam.subject}
                                                     </span>
                                                     <span
@@ -397,13 +396,13 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                                 </div>
                                             ))}
                                             {isCurrentMonth && !hasLeave && dayExams.length > 2 && (
-                                                <span className="text-[9px] font-medium text-amber-600">+{dayExams.length - 2} more</span>
+                                                <span className="text-[9px] font-medium text-amber-600 w-full text-center">+{dayExams.length - 2} more</span>
                                             )}
 
                                             {/* Leave chips */}
                                             {isCurrentMonth && dayLeaves.slice(0, 1).map(leave => (
-                                                <div key={leave.id} className="flex flex-col gap-0.5 items-start w-full">
-                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 break-all w-full text-teal-600 dark:text-teal-400" title={leave.leave_type}>
+                                                <div key={leave.id} className="flex flex-col gap-0.5 items-center w-full text-center">
+                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 break-all w-full text-center text-teal-600 dark:text-teal-400" title={leave.leave_type}>
                                                         {leave.leave_type?.replace(/_/g, ' ')}
                                                     </span>
                                                     <span
@@ -415,7 +414,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                                 </div>
                                             ))}
                                             {isCurrentMonth && dayLeaves.length > 1 && (
-                                                <span className="text-[9px] font-medium text-teal-600">+{dayLeaves.length - 1} more</span>
+                                                <span className="text-[9px] font-medium text-teal-600 w-full text-center">+{dayLeaves.length - 1} more</span>
                                             )}
 
                                             {isCurrentMonth && !hasHoliday && !hasExam && !hasLeave && !readOnly && isEditModeActive && (
@@ -486,7 +485,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                     <DialogFooter className="flex flex-row justify-between w-full gap-2 pt-2 border-t border-border/20">
                         {isDialogReadOnly ? (
                             <div className="flex justify-end w-full">
-                                <Button variant="outline" onClick={() => setIsModalOpen(false)}>Close</Button>
+                                <Button className="bg-primary hover:bg-primary/90 text-white font-semibold" onClick={() => setIsModalOpen(false)}>Close</Button>
                             </div>
                         ) : (
                             <>
@@ -551,7 +550,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                         </div>
                     )}
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsExamModalOpen(false)}>Close</Button>
+                        <Button className="bg-primary hover:bg-primary/90 text-white font-semibold" onClick={() => setIsExamModalOpen(false)}>Close</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -595,7 +594,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                         </div>
                     )}
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsLeaveModalOpen(false)}>Close</Button>
+                        <Button className="bg-primary hover:bg-primary/90 text-white font-semibold" onClick={() => setIsLeaveModalOpen(false)}>Close</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
