@@ -415,7 +415,7 @@ const FacultyAnnouncementManagement = () => {
           {!error &&
             <AnnouncementSections
               header={
-                <CardHeader className="announcements-card-header px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+                <CardHeader className="announcements-card-header px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b mb-3">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
                     <div className="flex-1 min-w-0">
                       <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>

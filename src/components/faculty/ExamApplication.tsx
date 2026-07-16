@@ -477,7 +477,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
-      <CardHeader id="exam-applications-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+      <CardHeader id="exam-applications-header" className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b mb-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
           <div className="flex justify-between items-start w-full">
             <div className="flex-1 min-w-0">

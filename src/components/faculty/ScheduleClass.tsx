@@ -1220,7 +1220,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
       {/* ── Section 2: Class History ─────────────────────────────────────── */}
       <Card className={selectorCardCls}>
-        <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+        <CardHeader className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b mb-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between w-full">
