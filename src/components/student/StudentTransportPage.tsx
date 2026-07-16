@@ -360,15 +360,13 @@ const StudentTransportPage: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
                 onChange={e => setComplaintDesc(e.target.value)}
               />
             </div>
-            {!readOnly && (
-              <button
-                disabled={submitting}
-                onClick={handleComplaint}
-                className="flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-xl font-semibold text-sm sm:text-base hover:bg-primary/90 transition-all disabled:opacity-60 shadow-sm"
-              >
-                <Send size={16} /> {submitting ? 'Submitting...' : 'Submit Complaint'}
-              </button>
-            )}
+            <button
+              disabled={submitting}
+              onClick={handleComplaint}
+              className="flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-xl font-semibold text-sm sm:text-base hover:bg-primary/90 transition-all disabled:opacity-60 shadow-sm"
+            >
+              <Send size={16} /> {submitting ? 'Submitting...' : 'Submit Complaint'}
+            </button>
           </div>
  
           {/* Recent Complaints */}
