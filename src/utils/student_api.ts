@@ -226,6 +226,23 @@ export const getUnreadNotificationCount = async (): Promise<GetUnreadCountRespon
   }
 };
 
+// Cached parent children fetch to avoid duplicate calls on dashboard load
+let parentChildrenCache: Promise<any> | null = null;
+export const fetchParentChildrenCached = async (fetchWithTokenRefresh: any, API_BASE_URL: string) => {
+  if (parentChildrenCache) return parentChildrenCache;
+  parentChildrenCache = (async () => {
+    try {
+      const response = await fetchWithTokenRefresh(`${API_BASE_URL}/api/student/parent-children/`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      parentChildrenCache = null;
+      throw error;
+    }
+  })();
+  return parentChildrenCache;
+};
+
 interface UploadCertificateRequest {
   file: File;
   description: string;

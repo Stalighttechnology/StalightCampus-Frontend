@@ -109,8 +109,8 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
       const fetchChildren = async () => {
         try {
           const { fetchWithTokenRefresh } = await import("../../utils/authService");
-          const response = await fetchWithTokenRefresh(`${API_BASE_URL}/api/student/parent-children/`);
-          const data = await response.json();
+          const { fetchParentChildrenCached } = await import("../../utils/student_api");
+          const data = await fetchParentChildrenCached(fetchWithTokenRefresh, API_BASE_URL);
           if (data.success && data.children) {
             setChildrenList(data.children);
             const currentSavedId = localStorage.getItem('selectedStudentId');
