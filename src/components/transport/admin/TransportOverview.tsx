@@ -4,7 +4,7 @@ import { fetchTransportDashboardStats, fetchLiveTracking } from "../../../utils/
 import { Badge, Stats } from "./TransportCommon";
 import DashboardCard from "../../common/DashboardCard";
 import { Card, CardHeader, CardTitle, CardContent } from "../../ui/card";
-import { Radio } from "lucide-react";
+import { Radio, Sun, Moon } from "lucide-react";
 import { Bus, Navigation, UserCheck, Users, Activity, AlertTriangle } from "lucide-react";
 
 import { SkeletonStatsGrid, SkeletonCard } from "../../ui/skeleton";
@@ -98,7 +98,17 @@ const TransportOverview: React.FC = () => {
                           Bus {t.bus_details?.bus_number} · Driver: {t.driver_details?.first_name}
                         </p>
                       </div>
-                      <Badge label={t.trip_type === 'morning' ? 'Morning 🌅' : 'Evening 🌇'} color="running" />
+                      <Badge color="running">
+                        {t.trip_type === 'morning' ? (
+                          <>
+                            <Sun className="w-3.5 h-3.5 shrink-0" /> Morning
+                          </>
+                        ) : (
+                          <>
+                            <Moon className="w-3.5 h-3.5 shrink-0" /> Evening
+                          </>
+                        )}
+                      </Badge>
                     </div>
                   ))}
                 </div>
