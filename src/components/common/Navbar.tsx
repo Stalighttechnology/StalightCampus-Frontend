@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { FiBell, FiMoon, FiSun, FiMenu, FiBellOff } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { Button } from "../ui/button";
 import { API_BASE_URL } from "../../utils/config";
@@ -87,6 +87,19 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
   const [showParentDropdown, setShowParentDropdown] = useState(false);
   const [showDesktopSwitcher, setShowDesktopSwitcher] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const desktopSwitcherRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (desktopSwitcherRef.current && !desktopSwitcherRef.current.contains(event.target as Node)) {
+        setShowDesktopSwitcher(false);
+      }
+    };
+    if (showDesktopSwitcher) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showDesktopSwitcher]);
 
   const markNotificationsRead = async () => {
     if (personalNotificationCount === 0) return;
@@ -288,7 +301,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
 
         {/* Custom Desktop Switcher for Parents */}
         {role === "parent" && childrenList.length > 1 && (
-          <div className="hidden sm:block relative mr-2">
+          <div className="hidden sm:block relative mr-2" ref={desktopSwitcherRef}>
             <button
               onClick={() => setShowDesktopSwitcher(!showDesktopSwitcher)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium transition-colors ${theme === 'dark'
