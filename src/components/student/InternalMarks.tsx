@@ -4,6 +4,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -354,9 +355,14 @@ const InternalMarks = () => {
   return (
     <div className={`min-h-screen w-full overflow-x-hidden space-y-4`}>
       {/* Chart Section */}
-      <Card id="marks-overview-card" className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-        <CardHeader id="marks-overview-card-header" className={theme === 'dark' ? 'bg-card text-card-foreground border-b border-border' : 'bg-white text-gray-900 border-b border-gray-200'}>
-          <CardTitle className={`text-2xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}> Performance Overview</CardTitle>
+      <Card id="marks-overview-card" className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+        <CardHeader id="marks-overview-card-header" className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b border-border/50">
+          <div className="flex flex-col">
+            <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Performance Overview</CardTitle>
+            <CardDescription className="text-sm text-muted-foreground mt-1">
+              Track your academic progress and internal marks distribution across subjects.
+            </CardDescription>
+          </div>
         </CardHeader>
         <CardContent className={`p-0 sm:p-6 ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
           {error ? (

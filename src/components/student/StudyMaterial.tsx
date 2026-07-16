@@ -7,6 +7,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
   CardFooter
 } from "@/components/ui/card";
 import {
@@ -288,11 +289,11 @@ const StudyMaterialsStudent = () => {
   return (
     <div className={`w-full max-w-full overflow-hidden ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       <Card id="study-materials-card" className={`w-full max-w-full overflow-hidden ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-        <CardHeader id="study-materials-header" className="p-3 sm:p-4 lg:p-6 border-b">
-          <h1 className={`text-2xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Study Materials</h1>
-          <p className={`text-sm sm:text-base mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+        <CardHeader id="study-materials-header" className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b">
+          <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Study Materials</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground mt-1">
             Access and download study materials shared by your professors.
-          </p>
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
           {/* Filters & Search */}

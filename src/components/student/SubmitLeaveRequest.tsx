@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
@@ -205,9 +205,9 @@ const SubmitLeaveRequest = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leave Application Form - Left Side */}
         <Card id="leave-form-card" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-          <CardHeader>
-            <CardTitle className={`text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">Your leave request will be routed to your <span className="font-medium text-primary">Faculty (Proctor)</span> for approval.</p>
+          <CardHeader className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b mb-3 lg:min-h-[115px] flex flex-col justify-center">
+            <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+            <CardDescription className="text-sm text-muted-foreground mt-1">Your leave request will be routed to your <span className="font-medium text-primary">Faculty (Proctor)</span> for approval.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -293,10 +293,13 @@ const SubmitLeaveRequest = () => {
 
         {/* Your Leave Requests - Right Side */}
         <Card id="leave-status-list" className={theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className={`text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Your Leave Requests</CardTitle>
-              <div className="relative" ref={filterRef}>
+          <CardHeader className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b mb-3 lg:min-h-[115px] flex flex-col justify-center">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col">
+                <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Your Leave Requests</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground mt-1">Track and manage your submitted leave requests and their approval status.</CardDescription>
+              </div>
+              <div className="relative mt-1" ref={filterRef}>
                 <Button
                   size="sm"
                   onClick={() => setShowFilter(!showFilter)}

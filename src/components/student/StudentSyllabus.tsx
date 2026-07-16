@@ -87,13 +87,13 @@ const StudentSyllabus = () => {
   return (
     <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       <Card id="student-syllabus-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-        <CardHeader id="student-syllabus-header" className="p-3 sm:p-4 lg:p-6 border-b">
-          <h1 className={`text-2xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+        <CardHeader id="student-syllabus-header" className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b">
+          <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
             My Syllabus Tracker
-          </h1>
-          <p className={`text-sm sm:text-base mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+          </CardTitle>
+          <CardDescription className="text-sm text-muted-foreground mt-1">
             Track the week-by-week syllabus completion status of all your enrolled courses.
-          </p>
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
           {loading ? (
@@ -210,7 +210,6 @@ const StudentSyllabus = () => {
             <DialogContent className={`max-w-2xl w-[calc(100vw-1.5rem)] max-h-[85vh] flex flex-col rounded-xl ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900 border-gray-200'}`}>
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-primary" />
                   Syllabus Status Timeline
                 </DialogTitle>
                 <DialogDescription className="text-sm opacity-75">

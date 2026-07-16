@@ -224,7 +224,7 @@ const StudentAttendance = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <Card className={theme === 'dark' ? 'col-span-2 bg-card text-card-foreground border-border' : 'col-span-2 bg-white text-gray-900 border-gray-200'}>
             <CardHeader>
-              <CardTitle className={theme === 'dark' ? 'text-base text-card-foreground' : 'text-base text-gray-900'}>Attendance Trends</CardTitle>
+              <CardTitle className={`text-2xl ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>Attendance Trends</CardTitle>
             </CardHeader>
             <CardContent className={`h-[300px] ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
               <SkeletonChart />
@@ -233,7 +233,7 @@ const StudentAttendance = () => {
 
           <Card className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
             <CardHeader>
-              <CardTitle className={theme === 'dark' ? 'text-base text-card-foreground' : 'text-base text-gray-900'}>Overview</CardTitle>
+              <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>Overview</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -264,7 +264,7 @@ const StudentAttendance = () => {
 
         <Card className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
-            <CardTitle className={theme === 'dark' ? 'text-base text-card-foreground' : 'text-base text-gray-900'}>Subject-wise Attendance</CardTitle>
+            <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>Subject-wise Attendance</CardTitle>
           </CardHeader>
           <CardContent>
             <SkeletonTable rows={8} cols={5} />
@@ -287,7 +287,7 @@ const StudentAttendance = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card id="attendance-trends-card" className={theme === 'dark' ? 'col-span-2 bg-card text-card-foreground border-border' : 'col-span-2 bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
-            <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance Trends</CardTitle>
+            <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance Trends</CardTitle>
           </CardHeader>
           <CardContent className={`h-[300px] ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
             <MemoizedWavyChart data={generateTrendData} theme={theme} />
@@ -296,7 +296,7 @@ const StudentAttendance = () => {
 
         <Card id="attendance-overview-card" className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader className="pb-2">
-            <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Overview</CardTitle>
+            <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Overview</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className={`flex flex-col items-center justify-center p-3 mb-3 rounded-xl border ${theme === 'dark' ? 'bg-gradient-to-br from-primary/20 to-primary/5 border-primary/20' : 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20'}`}>
@@ -351,7 +351,7 @@ const StudentAttendance = () => {
 
       <Card id="attendance-subject-card" className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader id="attendance-subject-card-header">
-          <CardTitle className={theme === 'dark' ? 'text-base text-card-foreground' : 'text-base text-gray-900'}>Subject-wise Attendance</CardTitle>
+          <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Subject-wise Attendance</CardTitle>
         </CardHeader>
         <CardContent>
           <VirtualizedAttendanceTable attendanceData={attendanceData} theme={theme} />

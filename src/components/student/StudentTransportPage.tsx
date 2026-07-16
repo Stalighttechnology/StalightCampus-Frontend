@@ -113,11 +113,11 @@ const StudentTransportPage: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
   return (
     <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       <Card id="transport-card" className={`${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
-        <CardHeader id="transport-header" className="p-3 sm:p-4 lg:p-6 border-b">
+        <CardHeader id="transport-header" className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b">
           <div className="flex items-center gap-3">
             <div>
-              <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>My Transport</CardTitle>
-              <CardDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
+              <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>My Transport</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground mt-1">
                 Bus details, trip history, and support
               </CardDescription>
             </div>
@@ -164,7 +164,6 @@ const StudentTransportPage: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
                 <div className={`rounded-2xl border-2 border-emerald-400 overflow-hidden ${theme === 'dark' ? 'bg-emerald-900/20' : 'bg-emerald-50'}`}>
                   <div className="p-4 border-b border-emerald-200 dark:border-emerald-800">
                     <div className="flex items-center gap-2">
-                      <Radio size={16} className="text-emerald-500 animate-pulse" />
                       <p className="font-semibold text-emerald-700 dark:text-emerald-400">Your bus is currently running!</p>
                     </div>
                     <p className={`text-xs mt-1 flex items-center gap-1.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
@@ -291,7 +290,7 @@ const StudentTransportPage: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
       ) : tab === 'history' ? (
         <div className={`rounded-2xl border shadow-sm ${card}`}>
           <div className="p-5 border-b border-inherit">
-            <h2 className="font-semibold text-base flex items-center gap-2"><Calendar size={16} /> Trip Attendance History</h2>
+            <h2 className="font-semibold text-xl flex items-center gap-2"> Trip Attendance History</h2>
           </div>
           {historyLoading ? (
             <div className="p-4">

@@ -267,12 +267,12 @@ const StudentLibraryPage: React.FC = () => {
 
       <div className={`w-full max-w-full overflow-hidden ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
         <Card id="library-card" className={`w-full max-w-full overflow-hidden ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
-          <CardHeader id="library-header" className="library-card-header p-3 sm:p-4 lg:p-6 border-b w-full overflow-hidden">
+          <CardHeader id="library-header" className="library-card-header px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b w-full overflow-hidden">
             <div>
-              <CardTitle className={`library-card-title text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              <CardTitle className={`library-card-title text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 My Library
               </CardTitle>
-              <CardDescription className={`library-card-desc whitespace-normal break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              <CardDescription className="library-card-desc text-sm text-muted-foreground mt-1 whitespace-normal break-words">
                 Track your borrowed books, returns, and search the catalog
               </CardDescription>
             </div>
@@ -501,10 +501,10 @@ const StudentLibraryPage: React.FC = () => {
             {tab !== 'catalog' && (
               <div className={`rounded-2xl border shadow-sm ${card}`}>
                 <div className="p-5 border-b border-inherit">
-                  <h2 className="font-semibold text-base flex items-center gap-2">
-                    {tab === 'taken' && <><BookMarked size={16} className="text-primary" /> Currently Borrowed</>}
-                    {tab === 'overdue' && <><AlertTriangle size={16} className="text-red-500" /> Overdue Books</>}
-                    {tab === 'returned' && <><CheckCircle size={16} className="text-emerald-500" /> Return History</>}
+                  <h2 className="font-semibold text-xl flex items-center gap-2">
+                    {tab === 'taken' && <> Currently Borrowed</>}
+                    {tab === 'overdue' && <> Overdue Books</>}
+                    {tab === 'returned' && <> Return History</>}
                   </h2>
                 </div>
 

@@ -249,8 +249,8 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                     <Button
                                         size="sm"
                                         className={`sm:hidden flex-1 h-8 px-3 text-xs font-semibold flex justify-center items-center gap-1.5 shadow-sm rounded-lg ${isEditModeActive
-                                                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                                                : "bg-primary hover:bg-primary/90 text-white"
+                                            ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                                            : "bg-primary hover:bg-primary/90 text-white"
                                             }`}
                                         onClick={() => setIsEditModeActive(!isEditModeActive)}
                                     >
@@ -286,8 +286,8 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                             <Button
                                 size="sm"
                                 className={`hidden sm:flex h-8 px-3 text-xs font-semibold items-center gap-1.5 shadow-sm rounded-lg ${isEditModeActive
-                                        ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                                        : "bg-primary hover:bg-primary/90 text-white"
+                                    ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                                    : "bg-primary hover:bg-primary/90 text-white"
                                     }`}
                                 onClick={() => setIsEditModeActive(!isEditModeActive)}
                             >

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/context/ThemeContext";
@@ -289,17 +289,17 @@ const MakeupExam = () => {
           </div>
         )}
         <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-          <CardHeader id="makeupexam-header" className="p-3 sm:p-4 lg:p-6 border-b">
-            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Makeup Exam Requests</CardTitle>
-            <p className={`text-xs sm:text-sm mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+          <CardHeader id="makeupexam-header" className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b">
+            <CardTitle className={`text-xl sm:text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Makeup Exam Requests</CardTitle>
+            <CardDescription className="text-sm text-muted-foreground mt-1">
               Submit makeup exam requests for students — search by USN or select batch/branch and exam period.
-            </p>
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
             {/* Filter Section */}
             <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4 items-end">
               <div className="sm:col-span-1">
-                <label htmlFor="usn-input" className="text-xs sm:text-sm block mb-1 font-medium">USN</label>
+                <label htmlFor="usn-input" className="text-xs sm:text-sm block mb-2 font-medium">USN</label>
                 <input
                   id="usn-input"
                   value={usn}
@@ -314,7 +314,7 @@ const MakeupExam = () => {
               </div>
 
               <div className="sm:col-span-1">
-                <label className="text-xs sm:text-sm block mb-1 font-medium">Exam Period</label>
+                <label className="text-xs sm:text-sm block mb-2 font-medium">Exam Period</label>
                 <Select
                   value={filters.exam_period}
                   onValueChange={(value) => setFilters({ ...filters, exam_period: value })}>

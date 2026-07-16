@@ -503,12 +503,12 @@ const StudentNotifications = () => {
     return (
       <div className="space-y-6">
         <Card className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-          <CardHeader>
+          <CardHeader className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b mb-3">
             <div className="flex items-center gap-2">
-              <Megaphone className="h-5 w-5" />
-              <CardTitle className={theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}>Notifications</CardTitle>
+              <Megaphone className="h-5 w-5 text-primary" />
+              <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Notifications</CardTitle>
             </div>
-            <CardDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
+            <CardDescription className="text-sm text-muted-foreground mt-1">
               View all recent updates from your institution
             </CardDescription>
           </CardHeader>
@@ -543,14 +543,14 @@ const StudentNotifications = () => {
 
       {(regular.length > 0 || examGroups.length === 0) && (
         <Card className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-          <CardHeader>
+          <CardHeader className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b mb-3">
             <div className="flex items-center gap-2">
-              <Megaphone className="h-5 w-5" />
-              <CardTitle className={theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}>
+              <Megaphone className="h-5 w-5 text-primary" />
+              <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 {examGroups.length > 0 ? 'Other Notifications' : 'Notifications'}
               </CardTitle>
             </div>
-            <CardDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
+            <CardDescription className="text-sm text-muted-foreground mt-1">
               View all recent updates from your institution
             </CardDescription>
           </CardHeader>
