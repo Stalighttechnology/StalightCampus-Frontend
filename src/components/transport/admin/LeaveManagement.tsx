@@ -314,7 +314,7 @@ const DriverLeavesManagement = () => {
 
       <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card id="hod-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
-        <CardHeader id="hod-leaves-header-section" className="leave-card-header pb-2">
+        <CardHeader id="hod-leaves-header-section" className="leave-card-header pb-3 md:pb-4 border-b border-inherit">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
             <div>
               <div className="flex items-center gap-3 mb-1">

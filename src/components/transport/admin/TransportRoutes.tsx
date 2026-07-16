@@ -624,9 +624,7 @@ const TransportRoutes: React.FC = () => {
             <CardHeader className="pb-3 border-b border-inherit space-y-4">
               <div id="transport-routes-action-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <CardTitle className="sm:text-2xl text-xl font-semibold flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
-                  <span className="flex items-center gap-2">
-                      Active Route Register
-                  </span>
+                  Active Route Register
                   {/* Mobile Download CSV Icon Button */}
                   <Button
                     onClick={handleDownloadCSV}

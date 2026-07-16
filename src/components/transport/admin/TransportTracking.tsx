@@ -33,12 +33,12 @@ const TransportTracking: React.FC = () => {
     <div id="transport-tracking-header" className="space-y-6">
 
       <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
-        <CardHeader className="p-4 md:p-6 pb-3 md:pb-4 border-b border-inherit">
-          <CardTitle id="transport-tracking-title-row" className="text-lg font-semibold flex items-center gap-2">
+        <CardHeader className="p-2 md:p-4 pb-3 md:pb-4 border-b border-inherit">
+          <CardTitle id="transport-tracking-title-row" className="text-lg font-semibold flex items-center">
             Running Fleet
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 md:p-6">
+        <CardContent className="p-2 md:p-4">
           {loading ? (
             <SkeletonCard className="w-full h-80" />
           ) : liveTrips.length === 0 ? (

@@ -217,9 +217,7 @@ const TransportBuses: React.FC = () => {
               <CardHeader className="pb-3 border-b border-inherit">
                 <div id="transport-buses-action-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <CardTitle className="sm:text-2xl text-xl font-semibold flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
-                    <span className="flex items-center gap-2">
-                      <Bus size={20} className="text-primary" /> Active Fleet Register
-                    </span>
+                      Active Fleet Register
                     {/* Mobile Download PDF Icon Button */}
                     <Button
                       onClick={handleDownloadCSV}

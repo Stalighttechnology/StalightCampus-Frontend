@@ -437,13 +437,13 @@ export const AnnouncementSections = ({
                               <div className="flex flex-col gap-1">
                                 <div className="font-semibold text-foreground text-sm sm:text-base leading-tight whitespace-normal break-words">{announcement.title}</div>
                                 <div className="flex flex-col gap-0.5 mt-1">
-                                  <span className="text-xs font-semibold text-primary/80 flex items-center gap-1">
-                                    <User className="w-3 h-3" />
-                                    From: {announcement.created_by_name}
+                                  <span className="text-xs font-semibold text-primary/80 flex items-start gap-1">
+                                    <User className="w-4 h-4 shrink-0 mt-0.5" />
+                                    <span>From: {announcement.created_by_name}</span>
                                   </span>
-                                  <span className="text-[10px] flex items-center gap-1 text-muted-foreground font-medium">
-                                    <Clock className="w-3 h-3" />
-                                    {formatDate(announcement.created_at)}
+                                  <span className="text-xs flex items-start gap-1 text-muted-foreground font-medium">
+                                    <Clock className="w-4 h-4 shrink-0 mt-0.5" />
+                                    <span>{formatDate(announcement.created_at)}</span>
                                   </span>
                                 </div>
                               </div>
@@ -690,13 +690,13 @@ export const AnnouncementSections = ({
                                   <div className="text-foreground text-sm sm:text-base font-semibold leading-tight whitespace-normal break-words">{announcement.title}</div>
                                 </div>
                                 <div className="flex flex-col gap-0.5 mt-0.5 ml-4.5">
-                                  <span className="text-xs font-semibold text-primary/80 flex items-center gap-1">
-                                    <User className="w-3 h-3" />
-                                    From: {announcement.created_by_name}
+                                  <span className="text-xs font-semibold text-primary/80 flex items-start gap-1">
+                                    <User className="w-3 h-3 shrink-0 mt-0.5" />
+                                    <span>From: {announcement.created_by_name}</span>
                                   </span>
-                                  <span className="text-[10px] flex items-center gap-1 text-muted-foreground font-medium">
-                                    <Clock className="w-3 h-3" />
-                                    {format(new Date(announcement.created_at), 'dd MMM, HH:mm')}
+                                  <span className="text-[10px] flex items-start gap-1 text-muted-foreground font-medium">
+                                    <Clock className="w-3 h-3 shrink-0 mt-0.5" />
+                                    <span>{format(new Date(announcement.created_at), 'dd MMM, HH:mm')}</span>
                                   </span>
                                   {isEmergency && hasCoords && (
                                     <div className="flex items-center gap-2 mt-1">

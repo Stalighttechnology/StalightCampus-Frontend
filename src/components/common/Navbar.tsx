@@ -247,7 +247,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
 
   return (
     <motion.div
-      className={`w-full flex items-center justify-between px-4 pb-3 lg:pb-0 relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
+      className={`w-full flex items-center justify-between px-2 sm:px-4 pb-3 lg:pb-0 relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
       style={{
         height: window.innerWidth >= 1024 ? '5rem' : undefined,
         paddingTop: Capacitor.isNativePlatform()
@@ -259,7 +259,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
       transition={{ duration: 0.3 }}
     >
       {/* Left section: Hamburger + Brand */}
-      <div className="flex items-center gap-4 z-10">
+      <div className="flex items-center gap-1.5 sm:gap-4 z-10 min-w-0">
         {/* Hamburger Menu Button */}
         {showHamburger && (
           <Button
@@ -272,23 +272,23 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           </Button>
         )}
 
-        <div className="flex flex-col">
+        <div className="flex flex-col min-w-0">
           <motion.div
-            className={`font-semibold text-base leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}
+            className={`font-semibold text-xs sm:text-base leading-tight flex flex-col sm:flex-row sm:items-center sm:gap-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}
           >
-            Welcome,{" "}
-            <span className={`text-primary`}>
+            <span className="shrink-0">Welcome,</span>
+            <span className="text-primary truncate max-w-[130px] sm:max-w-none">
               {user?.first_name || user?.username || "User"}
             </span>
           </motion.div>
-          <p className={`text-[9px] uppercase tracking-wider font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+          <p className={`text-[9px] uppercase tracking-wider font-medium truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
             {role === "admin" || role === "principal" ? "Principal" : role.replace('_', ' ')} Portal
           </p>
         </div>
       </div>
 
       {/* Right section */}
-      <div className="flex items-center gap-4 z-10">
+      <div className="flex items-center gap-1.5 sm:gap-4 z-10 shrink-0">
         {/* Date & Time */}
         <div className={`text-right hidden xl:block ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
           <div className="text-xs font-medium">
@@ -359,7 +359,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           </span>
         </motion.div>
 
-        <div className="flex items-center gap-2 ">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Button
             variant="ghost"
             size="icon"

@@ -189,7 +189,7 @@ const TransportIncidents: React.FC = () => {
                 Active Incident Tickets
               </CardTitle>
             </CardHeader>
-            <div className="divide-y divide-inherit">
+            <div>
               {loading ? (
                 <div className="p-5">
                   <SkeletonList items={3} />
@@ -228,7 +228,7 @@ const TransportIncidents: React.FC = () => {
                             </div>
                           </div>
                           <div className="space-y-1">
-                            <h4 className="font-bold text-base leading-tight">{i.title}</h4>
+                            <h4 className="font-semibold text-base leading-tight">{i.title}</h4>
                             <p className={`text-sm mt-1.5 opacity-80 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{i.description}</p>
                           </div>
                           <div className="pt-2 border-t border-border/25 flex flex-col gap-3">
