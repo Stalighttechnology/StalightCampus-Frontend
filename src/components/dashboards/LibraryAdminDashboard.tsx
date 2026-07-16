@@ -13,6 +13,7 @@ import FacultyAttendance from "../faculty/FacultyAttendance";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 import ScheduleMeeting from "../common/ScheduleMeeting";
+import StudentAnnouncements from "../student/StudentAnnouncements";
 
 interface DashboardProps {
   user: any;
@@ -40,6 +41,8 @@ const LibraryAdminDashboard = ({ user }: DashboardProps) => {
       case "dashboard":
       case "":
         return <LibraryOverview />;
+      case "announcements":
+        return <StudentAnnouncements />;
       case "library-books":
         return <LibraryBooksCatalog />;
       case "library-circulation":

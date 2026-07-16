@@ -620,6 +620,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     driver: [
       { name: "Dashboard", page: "dashboard" },
       { name: "Trip History", page: "driver-history" },
+      { name: "Announcements", page: "announcements" },
       { name: "Complaints", page: "driver-complaints" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
@@ -630,6 +631,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
     library_admin: [
       { name: "Overview", page: "dashboard" },
+      { name: "Announcements", page: "announcements" },
       { name: "Books Catalog", page: "library-books" },
       { name: "Circulation", page: "library-circulation" },
       { name: "Fine Management", page: "library-fines" },
