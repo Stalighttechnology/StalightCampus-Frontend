@@ -344,8 +344,8 @@ const COAttainment = () => {
       <Card>
         <CardHeader className="border-b border-border/50 flex flex-row items-start justify-between space-y-0">
           <div>
-            <CardTitle>CO Attainment</CardTitle>
-            <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">
+            <CardTitle className="text-xl sm:text-2xl font-semibold">CO Attainment</CardTitle>
+            <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
               Analyze Course Outcome (CO) attainment levels and PO mapping.
             </CardDescription>
           </div>
