@@ -98,6 +98,9 @@ const AdminAnnouncementManagement = () => {
   const [branches, setBranches] = useState<Array<{ id: number; name: string }>>([]);
 
   useEffect(() => {
+    if (!showCreateDialog) return;
+    if (branches.length > 0) return;
+
     const loadBranches = async () => {
       try {
         const resp = await manageBranches({ compact: true }, undefined, "GET");
@@ -109,7 +112,7 @@ const AdminAnnouncementManagement = () => {
       }
     };
     loadBranches();
-  }, []);
+  }, [showCreateDialog, branches.length]);
 
   const loadAnnouncements = async () => {
     setLoading(true);
