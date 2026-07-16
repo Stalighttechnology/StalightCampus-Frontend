@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertTriangle, Copy, ExternalLink, Search, Settings } from 'lucide-react';
 import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult, importCieMarks, importSeeMarks, updateOrgPassingCriteria } from "../../utils/coe_api";
 import { toast } from "sonner";
+import { showWarningAlert } from "../../utils/sweetalert";
 import { SkeletonForm, SkeletonTable } from '@/components/ui/skeleton';
 
 const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
@@ -216,6 +217,8 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
     }
     // Build payload from all persisted marks across pages so multi-page edits are preserved
     const payload: any[] = [];
+    const missingUsns = new Set<string>();
+
     Object.entries(allMarks).forEach(([sid, data]) => {
       const usn = data.usn;
       const subs = data.subs || {};
@@ -224,9 +227,23 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
         const rawSee = (marksObj as any).see;
         const cieVal = rawCie === null || rawCie === undefined || typeof rawCie === 'string' && String(rawCie).trim() === '' ? null : Number(rawCie);
         const seeVal = rawSee === null || rawSee === undefined || typeof rawSee === 'string' && String(rawSee).trim() === '' ? null : Number(rawSee);
-        payload.push({ usn: usn, subject_id: Number(subId), cie_marks: Number.isNaN(cieVal) ? null : cieVal, see_marks: Number.isNaN(seeVal) ? null : seeVal });
+        
+        const parsedCie = Number.isNaN(cieVal) ? null : cieVal;
+        const parsedSee = Number.isNaN(seeVal) ? null : seeVal;
+
+        if ((parsedCie !== null && parsedSee === null) || (parsedCie === null && parsedSee !== null)) {
+          missingUsns.add(usn);
+        }
+
+        payload.push({ usn: usn, subject_id: Number(subId), cie_marks: parsedCie, see_marks: parsedSee });
       });
     });
+
+    if (missingUsns.size > 0) {
+      const usnList = Array.from(missingUsns).join(', ');
+      await showWarningAlert("Incomplete Marks", `Please ensure both CIE and SEE marks are entered for the following students before saving: ${usnList}`);
+      return false;
+    }
     setSaving(true);
     const res = await saveMarksForUpload(upload.id, payload);
     setSaving(false);

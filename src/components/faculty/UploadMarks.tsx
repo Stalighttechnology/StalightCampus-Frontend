@@ -725,6 +725,25 @@ const UploadMarks = () => {
       return;
     }
 
+    const studentsMissingTotal = students.filter((s) => {
+      const studentIdStr = s.id.toString();
+      const studentQuestions = studentMarks[studentIdStr] || {};
+      const hasAnyQuestionMark = Object.values(studentQuestions).some(val => val !== undefined && val !== "");
+      return hasAnyQuestionMark && (!s.total || s.total === "");
+    });
+
+    if (studentsMissingTotal.length > 0) {
+      const usnList = studentsMissingTotal.map(s => s.usn).join(", ");
+      MySwal.fire({
+        title: "Missing Total Marks",
+        text: `Please enter the total marks for the following students before submitting: ${usnList}`,
+        icon: "warning",
+        confirmButtonText: "OK"
+      });
+      setSavingMarks(false);
+      return;
+    }
+
     const confirmSubmit = await MySwal.fire({
       title: "Are you sure?",
       text: "Do you want to upload and submit these marks to the database?",
@@ -1362,6 +1381,19 @@ const UploadMarks = () => {
                                               }`}
                                             disabled={isSaved}
                                             onClick={() => {
+                                              const studentQuestions = studentMarks[student.id] || {};
+                                              const hasAnyQuestionMark = Object.values(studentQuestions).some(val => val !== undefined && val !== "");
+                                              
+                                              if (hasAnyQuestionMark && (!displayTotal || displayTotal === "")) {
+                                                MySwal.fire({
+                                                  title: "Missing Total",
+                                                  text: "Please enter the total marks before saving.",
+                                                  icon: "warning",
+                                                  confirmButtonText: "OK"
+                                                });
+                                                return;
+                                              }
+
                                               const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${student.id}`;
                                               const marksData = {
                                                 questionMarks: studentMarks[student.id] || {},
