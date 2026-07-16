@@ -574,7 +574,7 @@ const Profile = ({ role, user }: ProfileProps) => {
               <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{getRoleDisplayName()}</div>
 
               <div className="w-full mt-4 sm:mt-6 flex flex-col">
-                <h4 className={`text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
+                <h4 className={`text-sm font-semibold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
                 <div className={`border rounded-lg p-2.5 sm:p-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
                     <div className="flex flex-col justify-start">
