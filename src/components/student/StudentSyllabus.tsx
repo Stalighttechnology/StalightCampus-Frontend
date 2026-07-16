@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { getStudentAllSyllabusStatus } from "@/utils/student_api";
+import { getStudentAllSyllabusStatus, getStudentSyllabusStatus } from "@/utils/student_api";
 import { useTheme } from "@/context/ThemeContext";
 import { BookOpen, CheckCircle, Clock, Calendar, AlertCircle, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +23,33 @@ const StudentSyllabus = () => {
   const [syllabusDataMap, setSyllabusDataMap] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [selectedSubject, setSelectedSubject] = useState<any | null>(null);
+  const [loadingSubjectId, setLoadingSubjectId] = useState<string | null>(null);
+
+  // Fetch subject syllabus timeline data dynamically on click
+  const handleViewTimeline = async (subject: any) => {
+    const subjectIdStr = subject.id.toString();
+    setSelectedSubject(subject);
+
+    // If weeks are not loaded yet, fetch details from backend
+    if (!syllabusDataMap[subjectIdStr]?.weeks || syllabusDataMap[subjectIdStr].weeks.length === 0) {
+      setLoadingSubjectId(subjectIdStr);
+      try {
+        const res = await getStudentSyllabusStatus(subjectIdStr);
+        if (res?.success && res.data) {
+          setSyllabusDataMap(prev => ({
+            ...prev,
+            [subjectIdStr]: res.data
+          }));
+        } else {
+          toast({ title: "Error", description: res?.message || "Failed to load syllabus timeline", variant: "destructive" });
+        }
+      } catch (e) {
+        toast({ title: "Error", description: "Network error loading syllabus details", variant: "destructive" });
+      } finally {
+        setLoadingSubjectId(null);
+      }
+    }
+  };
 
   // Fetch student syllabus details in a single call
   const initializeStudentSyllabus = async () => {
@@ -162,7 +189,7 @@ const StudentSyllabus = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setSelectedSubject(subject)}
+                          onClick={() => handleViewTimeline(subject)}
                           className={`w-full sm:w-auto h-9 text-sm font-semibold flex items-center justify-center gap-2 rounded-lg shadow-sm transition-all duration-200 shrink-0
                           ${theme === 'dark' ?
                               'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' :
@@ -192,9 +219,20 @@ const StudentSyllabus = () => {
               </DialogHeader>
 
               <div className="flex-1 overflow-y-auto py-4 space-y-4 custom-scrollbar pr-1">
-                <div className="relative border-l border-gray-200 dark:border-gray-800 ml-3 space-y-6">
-                  {(() => {
-                    const syllabusData = syllabusDataMap[selectedSubject?.id.toString() || ""];
+                {loadingSubjectId === selectedSubject?.id.toString() ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((w) => (
+                      <div key={w} className="p-4 rounded-xl border border-border bg-card space-y-2">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-3 w-40" />
+                        <Skeleton className="h-3 w-full" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="relative border-l border-gray-200 dark:border-gray-800 ml-3 space-y-6">
+                    {(() => {
+                      const syllabusData = syllabusDataMap[selectedSubject?.id.toString() || ""];
                     const weeks = Array.from({ length: 16 }, (_, i) => {
                       const weekNum = i + 1;
                       const existingWeek = syllabusData?.weeks?.find((w: any) => w.week === weekNum);
@@ -258,6 +296,7 @@ const StudentSyllabus = () => {
                     ));
                   })()}
                 </div>
+                )}
               </div>
 
               <DialogFooter>
