@@ -135,13 +135,7 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
     });
   };
 
-  const refreshData = async (force = false) => {
-    if (force) {
-      cachedInitData = null;
-    }
-    if (!force && cachedInitData) {
-      return;
-    }
+  const refreshData = async () => {
     setLoading(true);
     // Clear cache on full refresh
     floorCache.current = {};
@@ -187,9 +181,9 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
         const response = await getDashboardStats();
         if (response.success) {
           const rawData = response.data || response;
-          setHostels(rawData.hostels || []);
-          setWardens(rawData.wardens || []);
-          setCaretakers(rawData.caretakers || []);
+          if (rawData.hostels) {
+            setHostels(rawData.hostels);
+          }
           if (rawData.statistics) {
             setStatistics(rawData.statistics);
           }

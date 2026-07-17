@@ -8,6 +8,7 @@ export interface WardenStats {
   total_issues: number;
   pending_issues: number;
   occupancy_rate: number;
+  total_capacity?: number;
 }
 
 export interface WardenDashboardData {

@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { manageOutsideStudents, getCachedRooms, getOutsideStudentFilterOptions } from '../../utils/hms_api';
+import { manageOutsideStudents, getOutsideStudentFilterOptions, getFloorsByHostel, getRoomsByHostelId } from '../../utils/hms_api';
 import { useToast } from '../../hooks/use-toast';
 import { Search, Edit2, CheckCircle2, XCircle, UserCircle2, Building2, Loader2, Plus } from 'lucide-react';
 import { AdminPagination } from '../common/AdminPagination';
@@ -57,7 +57,7 @@ const getFloorFromRoomNumber = (roomNo: string): number => {
 };
 
 const OutsideStudentManagement: React.FC = () => {
-  const { hostels, getCachedRooms: contextGetCachedRooms, refreshData, updateRoomStudentCount } = useHMSContext();
+  const { hostels, fetchHostelsOnly, updateRoomStudentCount, refreshData } = useHMSContext();
   const { toast } = useToast();
 
   const [students, setStudents] = useState<OutsideStudent[]>([]);
@@ -143,6 +143,12 @@ const OutsideStudentManagement: React.FC = () => {
   };
 
 
+
+  useEffect(() => {
+    fetchCourses();
+    fetchYears();
+    fetchHostelsOnly();
+  }, []);
 
   // Debounce search
   useEffect(() => {
@@ -271,7 +277,8 @@ const OutsideStudentManagement: React.FC = () => {
         });
         setFormErrors({});
         fetchStudents();
-        fetchFilterOptions();
+        fetchCourses();
+        fetchYears();
       } else {
         if (typeof response.message === 'string' && (response.message.toLowerCase().includes('email') || response.message.toLowerCase().includes('already exists'))) {
           setFormErrors(prev => ({ ...prev, email: response.message || 'Email already registered' }));
@@ -288,10 +295,20 @@ const OutsideStudentManagement: React.FC = () => {
 
   const getFloorsForHostel = async (hostelId: number) => {
     setIsLoadingFloors(true);
-    const hostel = hostels.find((h) => h.id === hostelId);
-    const floors = hostel ? Array.from({ length: hostel.floor_count || 1 }, (_, i) => i) : [];
-    setFloorsForHostel(floors);
-    setIsLoadingFloors(false);
+    try {
+      const response = await getFloorsByHostel(hostelId);
+      if (response.success) {
+        const rawFloors = response.results || response.data?.results || response.data || [];
+        setFloorsForHostel(Array.isArray(rawFloors) ? rawFloors : []);
+      } else {
+        setFloorsForHostel([]);
+      }
+    } catch (error) {
+      console.error("Error getting floors for hostel:", error);
+      setFloorsForHostel([]);
+    } finally {
+      setIsLoadingFloors(false);
+    }
   };
 
   const getRoomsForHostel = async (hostelId: number, floor?: number) => {
@@ -302,10 +319,16 @@ const OutsideStudentManagement: React.FC = () => {
 
     setIsLoadingRooms(true);
     try {
-      const results = await contextGetCachedRooms(hostelId, floor.toString());
-      setRoomsForHostel(results || []);
+      const response = await getRoomsByHostelId(hostelId, floor.toString());
+      if (response.success) {
+        const roomsList = response.data?.rooms || response.rooms || response.results || [];
+        setRoomsForHostel(Array.isArray(roomsList) ? roomsList : []);
+      } else {
+        setRoomsForHostel([]);
+      }
     } catch (error) {
       console.error("Error getting rooms for hostel:", error);
+      setRoomsForHostel([]);
     } finally {
       setIsLoadingRooms(false);
     }
@@ -381,9 +404,11 @@ const OutsideStudentManagement: React.FC = () => {
         updatedStudent.room_hostel_name = undefined;
       }
 
-      await refreshData(true);
+      if (refreshData) {
+        await refreshData(true);
+      }
       setStudents((prev) => prev.map((s) => s.id === editingStudent.id ? updatedStudent : s));
-      fetchStudents(true);
+      fetchStudents();
       setIsDialogOpen(false);
       showSuccessAlert("Success", "Student details updated successfully");
     } else {
@@ -846,7 +871,7 @@ const OutsideStudentManagement: React.FC = () => {
                     <div className="space-y-2">
                       <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Select Floor</Label>
                       <Select
-                        value={selectedFloorInDialog?.toString() || ''}
+                        value={selectedFloorInDialog !== null ? selectedFloorInDialog.toString() : (editingStudent?.room_floor !== undefined && editingStudent?.room_floor !== null ? editingStudent.room_floor.toString() : '')}
                         onValueChange={(v) => {
                           const floor = parseInt(v);
                           setSelectedFloorInDialog(floor);
@@ -860,7 +885,18 @@ const OutsideStudentManagement: React.FC = () => {
                         disabled={!selectedHostelInDialog || hostels.length === 0 || isLoadingFloors}>
 
                         <SelectTrigger>
-                          {isLoadingFloors ? <span className="animate-pulse">Loading Floors...</span> : <SelectValue placeholder="Select Floor" />}
+                          <span className={(selectedHostelInDialog !== null || selectedFloorInDialog !== null || (editingStudent?.room_floor !== undefined && editingStudent?.room_floor !== null)) ? 'text-foreground text-sm' : 'text-muted-foreground text-sm'}>
+                            {isLoadingFloors ? (
+                              <span className="animate-pulse">Loading Floors...</span>
+                            ) : (selectedFloorInDialog !== null || (editingStudent?.room_floor !== undefined && editingStudent?.room_floor !== null)) ? (
+                              (() => {
+                                const fl = selectedFloorInDialog !== null ? selectedFloorInDialog : editingStudent!.room_floor;
+                                return fl === 0 ? 'Ground Floor' : `${fl}${fl === 1 ? 'st' : fl === 2 ? 'nd' : fl === 3 ? 'rd' : 'th'} Floor`;
+                              })()
+                            ) : (
+                              'Choose Floor'
+                            )}
+                          </span>
                         </SelectTrigger>
                         <SelectContent>
                           {floorsForHostel.length > 0 ?
@@ -877,12 +913,26 @@ const OutsideStudentManagement: React.FC = () => {
 
                     <div className="space-y-2">
                       <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Assign Room</Label>
-                      <Select value={formData.room?.toString() || ''} onValueChange={(v) => {
+                      <Select value={formData.room !== null ? formData.room.toString() : (editingStudent?.room !== undefined && editingStudent?.room !== null ? editingStudent.room.toString() : '')} onValueChange={(v) => {
                         const newRoom = v === '' ? null : parseInt(v);
                         setFormData((prev) => ({ ...prev, room: newRoom, room_allotted: !!newRoom }));
                       }} disabled={!selectedHostelInDialog || selectedFloorInDialog === null || hostels.length === 0 || isLoadingRooms}>
                         <SelectTrigger>
-                          {isLoadingRooms ? <span className="animate-pulse">Loading Rooms...</span> : <SelectValue placeholder="Choose Room" />}
+                          <span className={(selectedFloorInDialog !== null || formData.room || (formData.room == editingStudent?.room && editingStudent?.room_name)) ? 'text-foreground text-sm' : 'text-muted-foreground text-sm'}>
+                            {isLoadingRooms ? (
+                              <span className="animate-pulse">Loading Rooms...</span>
+                            ) : (formData.room || (formData.room == editingStudent?.room && editingStudent?.room_name)) ? (
+                              (() => {
+                                const selectedRoomObj = roomsForHostel.find((r) => r.id == formData.room);
+                                if (selectedRoomObj) {
+                                  return `${selectedRoomObj.room_number || selectedRoomObj.name} (${selectedRoomObj.student_count}/${selectedRoomObj.capacity})`;
+                                }
+                                return (formData.room == editingStudent?.room ? editingStudent?.room_name : '') || 'Choose Room';
+                              })()
+                            ) : (
+                              'Choose Room'
+                            )}
+                          </span>
                         </SelectTrigger>
                         <SelectContent className="max-h-[250px]">
                           <div className="p-2 border-b border-muted/50" onPointerDown={(e) => e.stopPropagation()}>
