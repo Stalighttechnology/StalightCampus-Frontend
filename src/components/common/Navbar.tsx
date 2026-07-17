@@ -6,6 +6,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { Button } from "../ui/button";
 import { API_BASE_URL } from "../../utils/config";
 import { Capacitor } from "@capacitor/core";
+import { fetchParentChildrenCached } from "../../utils/student_api";
 import { Popover, PopoverContent, PopoverTrigger, PopoverArrow } from "../ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 
@@ -122,7 +123,6 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
       const fetchChildren = async () => {
         try {
           const { fetchWithTokenRefresh } = await import("../../utils/authService");
-          const { fetchParentChildrenCached } = await import("../../utils/student_api");
           const data = await fetchParentChildrenCached(fetchWithTokenRefresh, API_BASE_URL);
           if (data.success && data.children) {
             setChildrenList(data.children);

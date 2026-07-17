@@ -1678,7 +1678,8 @@ export const getProctorStudentLeaves = async (params?: {
 
 // Faculty Attendance API functions
 export interface MarkFacultyAttendanceRequest {
-  status: "present" | "absent";
+  status?: "present" | "absent";
+  action?: "check_in" | "check_out";
   notes?: string;
 }
 
@@ -1700,6 +1701,9 @@ export interface FacultyAttendanceRecord {
   date: string;
   status: string;
   marked_at: string;
+  check_in_time?: string | null;
+  check_out_time?: string | null;
+  total_hours?: string | null;
   notes: string;
   location?: AttendanceLocation | null;
 }

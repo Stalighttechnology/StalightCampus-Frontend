@@ -140,7 +140,16 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                           </div>
                         ) : (
                           <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            {h.status === 'present' ? 'Present' : h.status === 'absent' ? 'Absent' : h.status === 'holiday' ? 'Holiday' : 'Not Marked'}{h.marked_at ? ` • ${new Date(h.marked_at).toLocaleTimeString()}` : ''}
+                            <div className="mb-1">{h.status === 'present' ? 'Present' : h.status === 'absent' ? 'Absent' : h.status === 'holiday' ? 'Holiday' : 'Not Marked'}</div>
+                            {h.check_in_time || h.check_out_time ? (
+                              <div className="flex flex-col gap-0.5 mt-1">
+                                {h.check_in_time && <div><span className="font-semibold">In:</span> {new Date(h.check_in_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>}
+                                {h.check_out_time && <div><span className="font-semibold">Out:</span> {new Date(h.check_out_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>}
+                                {h.total_hours && <div className="text-[10px] mt-0.5 py-0.5 px-1 bg-gray-200/50 rounded-sm inline-block w-fit dark:bg-gray-700/50">Total: {h.total_hours} hrs</div>}
+                              </div>
+                            ) : h.marked_at ? (
+                              `Marked: ${new Date(h.marked_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
+                            ) : null}
                           </div>
                         )}
                       </div>
@@ -227,6 +236,18 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                         <div className="min-w-0 flex-1 mr-2">
                           <div className="font-medium break-words">{a.name}</div>
                           <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{a.email || a.mobile || ''}</div>
+                          {!isMonthly && (a.check_in_time || a.check_out_time) && (
+                            <div className={`text-xs mt-1.5 flex flex-col gap-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              {a.check_in_time && <div><span className="font-semibold">In:</span> {new Date(a.check_in_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>}
+                              {a.check_out_time && <div><span className="font-semibold">Out:</span> {new Date(a.check_out_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>}
+                              {a.total_hours && <div className="text-[10px] mt-0.5 py-0.5 px-1 bg-gray-200/50 rounded-sm inline-block w-fit dark:bg-gray-700/50">Total: {a.total_hours} hrs</div>}
+                            </div>
+                          )}
+                          {!isMonthly && !a.check_in_time && !a.check_out_time && a.marked_at && (
+                             <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                                Marked: {new Date(a.marked_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                             </div>
+                          )}
                         </div>
                         <div className="flex-shrink-0">
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${isPresent

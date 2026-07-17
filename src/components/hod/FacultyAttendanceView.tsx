@@ -628,7 +628,7 @@ const FacultyAttendanceView: React.FC = () => {
                       <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                         <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
                         <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Status</th>
-                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Marked At</th>
+                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Time Details</th>
                         <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} min-w-[200px]`}>Notes</th>
                       </tr>
                     </thead>
@@ -657,7 +657,20 @@ const FacultyAttendanceView: React.FC = () => {
                               <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status === 'not_marked' ? 'Not Marked' : record.status.charAt(0).toUpperCase() + record.status.slice(1)}</span>
                             </td>
                             <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                              {record.marked_at ? new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not marked'}
+                              {record.check_in_time && (
+                                <div className="text-xs mb-0.5">In: {new Date(record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
+                              )}
+                              {record.check_out_time && (
+                                <div className="text-xs mb-0.5">Out: {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
+                              )}
+                              {record.total_hours && (
+                                <div className="text-xs font-semibold text-primary mb-1">Total: {record.total_hours} hrs</div>
+                              )}
+                              {!record.check_in_time && record.marked_at ? (
+                                <div className="mb-1">{new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</div>
+                              ) : !record.check_in_time && !record.marked_at ? (
+                                <div className="mb-1">Not marked</div>
+                              ) : null}
                               {record.location ?
                                 <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                                   {record.location.inside ?
@@ -1082,9 +1095,21 @@ const FacultyAttendanceView: React.FC = () => {
 
                         }
 
-                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-slate-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/10 scale-90 group-hover:scale-100">
+                        <div className="absolute -top-14 left-1/2 -translate-x-1/2 px-3 py-2 bg-slate-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/10 scale-90 group-hover:scale-100">
                           <div className="font-bold">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
-                          {record && <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>{isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status === 'not_marked' ? 'Not Marked' : record.status.charAt(0).toUpperCase() + record.status.slice(1)}</div>}
+                          {record && (
+                            <>
+                              <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>
+                                {isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status === 'not_marked' ? 'Not Marked' : record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                              </div>
+                              {(record.check_in_time || record.check_out_time) && (
+                                <div className="mt-1 text-gray-300">
+                                  {record.check_in_time && <div>In: {new Date(record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>}
+                                  {record.check_out_time && <div>Out: {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>}
+                                </div>
+                              )}
+                            </>
+                          )}
                         </div>
                       </div>);
 
