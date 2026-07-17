@@ -272,7 +272,12 @@ const WardenVisitorLogs = () => {
 
   useEffect(() => {
     if (isModalOpen) {
-      fetchStudents(studentPage, selectedBatch, selectedBranch, selectedSemester, formData.hostel, debouncedStudentSearch);
+      if (selectedBatch && selectedBranch && selectedSemester) {
+        fetchStudents(studentPage, selectedBatch, selectedBranch, selectedSemester, formData.hostel, debouncedStudentSearch);
+      } else {
+        setStudents([]);
+        setStudentCount(0);
+      }
     }
   }, [isModalOpen, selectedBatch, selectedBranch, selectedSemester, formData.hostel, studentPage, debouncedStudentSearch]);
 
