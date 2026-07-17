@@ -69,8 +69,8 @@ export const updateAssignment = (id: number, data: any) =>
 // Student Allocations
 export const fetchAllocations = (page = 1, route = "", status = "", search = "") => {
   const query = new URLSearchParams({ page: String(page) });
-  if (route) query.append("route", route);
-  if (status) query.append("status", status);
+  if (route && route !== 'none_all') query.append("route", route);
+  if (status && status !== 'none_all') query.append("status", status);
   if (search) query.append("search", search);
   return fetchWithTokenRefresh(`${API_BASE}/allocations/?${query.toString()}`, { headers: authHeaders() }).then((r) => r.json());
 };
@@ -123,8 +123,11 @@ export const fetchRouteStops = (routeId: number) =>
   fetchWithTokenRefresh(`${API_BASE}/admin/route-stops/?route_id=${routeId}`, { headers: authHeaders() }).then((r) => r.json());
 
 // Incidents
-export const fetchIncidents = (page = 1) =>
-  fetchWithTokenRefresh(`${API_BASE}/incidents/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
+export const fetchIncidents = (page = 1, type?: 'emergency' | 'complaint') => {
+  let url = `${API_BASE}/incidents/?page=${page}`;
+  if (type) url += `&type=${type}`;
+  return fetchWithTokenRefresh(url, { headers: authHeaders() }).then((r) => r.json());
+}
 
 export const resolveIncident = (id: number, action_taken: string) =>
   fetchWithTokenRefresh(`${API_BASE}/incidents/${id}/resolve/`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ action_taken }) }).then((r) => r.json());

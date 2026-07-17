@@ -58,11 +58,17 @@ const TransportAllocations: React.FC = () => {
   const [editAllocOptions, setEditAllocOptions] = useState({ stops: [] as any[] });
 
   const loadData = useCallback(async () => {
+    // Only fetch allocations if a specific route is selected
+    if (!allocFilters.route || allocFilters.route === 'none_all') {
+      setAllocations([]);
+      setAllocCount(0);
+      setAllocTotalPages(1);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      const r = await fetchRoutes();
-      if (r.results || Array.isArray(r)) setRoutes(r.results || r);
-
       const al = await fetchAllocations(allocPage, allocFilters.route, allocFilters.status, allocFilters.search);
       if (al.results || Array.isArray(al)) {
         setAllocations(al.results || al);
@@ -74,38 +80,40 @@ const TransportAllocations: React.FC = () => {
     }
   }, [allocPage, allocFilters]);
 
-  const loadFormOptions = useCallback(async () => {
-    if (filterOptions.branches.length === 0) {
-      const filters = await fetchTransportFilters();
-      if (filters.success) {
-        setFilterOptions({ branches: filters.branches || [], batches: filters.batches || [], semesters: [] });
+  // Load filters once
+  useEffect(() => {
+    const fetchFilters = async () => {
+      try {
+        const filters = await fetchTransportFilters();
+        if (filters.success) {
+          setFilterOptions(prev => ({ ...prev, branches: filters.branches || [], batches: filters.batches || [] }));
+        }
+      } catch (e) {
+        console.error("Failed to load filters", e);
       }
-    }
-    if (allocOptions.routes.length === 0) {
-      const routeOps = await fetchRouteOptions();
-      if (routeOps.success) {
-        setAllocOptions(prev => ({ ...prev, routes: routeOps.routes || [] }));
-      }
-    }
-  }, [filterOptions.branches.length, allocOptions.routes.length]);
+    };
+    
+    fetchFilters();
+  }, []);
 
-  const loadAllocations = async () => {
-    setLoading(true);
-    try {
-      const a = await fetchAllocations(allocPage, allocFilters.route, allocFilters.status, allocFilters.search);
-      if (a.results) {
-        setAllocations(a.results);
-        setAllocCount(a.count || a.results.length);
-        setAllocTotalPages(Math.ceil((a.count || 1) / 20));
-      } else if (Array.isArray(a)) {
-        setAllocations(a);
-        setAllocCount(a.length);
-        setAllocTotalPages(1);
-      }
-    } finally {
-      setLoading(false);
+  // Load routes once
+  useEffect(() => {
+    fetchRoutes().then((r: any) => {
+      if (r.results || Array.isArray(r)) setRoutes(r.results || r);
+    }).catch(e => console.error("Failed to fetch routes", e));
+  }, []);
+  // Load route options only when needed (student selected or editing)
+  useEffect(() => {
+    if ((allocationForm.student || editingAllocation) && allocOptions.routes.length === 0) {
+      fetchRouteOptions().then((routeOps: any) => {
+        if (routeOps.success) {
+          setAllocOptions(prev => ({ ...prev, routes: routeOps.routes || [] }));
+        }
+      }).catch(e => console.error("Failed to load route options", e));
     }
-  };
+  }, [allocationForm.student, editingAllocation, allocOptions.routes.length]);
+
+  const loadAllocations = loadData; // Alias to reuse loadData instead of duplicating logic
   
   const loadEligibleStudents = async () => {
     if (!eligibleFilters.branch || !eligibleFilters.batch || !eligibleFilters.semester || !eligibleFilters.section) {
@@ -122,8 +130,7 @@ const TransportAllocations: React.FC = () => {
 
   useEffect(() => {
     loadData();
-    loadFormOptions();
-  }, [allocPage, allocFilters, loadFormOptions]);
+  }, [loadData]);
   
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -609,7 +616,21 @@ const TransportAllocations: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-inherit">
-                  {allocations.length === 0 ? (
+                  {(!allocFilters.route || allocFilters.route === 'none_all') ? (
+                    <tr>
+                      <td colSpan={6} className="p-6">
+                        <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                          <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                            <Navigation size={32} className="opacity-80" />
+                          </div>
+                          <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Select a Route</h3>
+                          <p className="max-w-xs text-xs leading-relaxed opacity-80">
+                            Please select a route from the filters above to view its active allocations.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : allocations.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="p-6">
                         <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>

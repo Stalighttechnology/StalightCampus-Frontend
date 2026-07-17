@@ -77,6 +77,20 @@ const DriverDashboard: React.FC = () => {
       err("Geolocation is not supported by your browser.");
       return;
     }
+
+    const currentHour = new Date().getHours();
+    
+    // Morning trips must be started before 1:00 PM (13:00)
+    if (type === 'morning' && currentHour >= 13) {
+      err("Morning trips can only be started before 1:00 PM.");
+      return;
+    }
+    
+    // Evening trips must be started after 12:00 PM (Noon)
+    if (type === 'evening' && currentHour < 12) {
+      err("Evening trips can only be started after 12:00 PM.");
+      return;
+    }
     
     setIsStartingTrip(type);
     

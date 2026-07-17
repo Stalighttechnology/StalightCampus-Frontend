@@ -141,10 +141,10 @@ const AdminAnnouncementManagement = () => {
 
     if (user?.role === "transport_admin") {
       try {
-        const inc = await fetchIncidents();
+        const inc = await fetchIncidents(1, 'emergency');
         const rawIncidents = inc.results || inc || [];
         const activeEmergencies = rawIncidents.filter(
-          (i: any) => i.type === "emergency" && i.status === "pending"
+          (i: any) => i.status === "pending"
         );
         setEmergencies(activeEmergencies);
       } catch (e) {
