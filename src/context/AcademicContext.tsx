@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { getAcademicInit } from '../utils/hms_api';
+import { getBatches, getBranches } from '../utils/hms_api';
 import { getSemesters as getSemestersApi } from '../utils/student_api';
 
 export interface Batch {
@@ -21,7 +21,8 @@ interface AcademicContextType {
   batches: Batch[];
   branches: Branch[];
   loading: boolean;
-  refreshAcademicData: () => Promise<void>;
+  fetchBatches: () => Promise<void>;
+  fetchBranches: () => Promise<void>;
   getSemestersForBranch: (branchId: number) => Promise<Semester[]>;
 }
 
@@ -39,34 +40,39 @@ export const AcademicProvider: React.FC<{children: React.ReactNode;}> = ({ child
   const fetchRef = useRef(false);
   const semesterCache = useRef<Record<number, Semester[]>>({});
 
-  const refreshAcademicData = async () => {
-    if (cachedBatches && cachedBranches) {
+  const fetchBatches = async () => {
+    if (cachedBatches && cachedBatches.length > 0) {
       return;
     }
     try {
       setLoading(true);
-      const response = await getAcademicInit();
-
-
-      if (response.success && response.data) {
-        const rawData = response.data.data || response.data;
-        const batchesData = rawData.batches || response.data.batches || [];
-        const branchesData = rawData.branches || response.data.branches || [];
-        const semsMap = rawData.semesters_by_branch || response.data.semesters_by_branch || {};
-
+      const response = await getBatches();
+      if (response.success && response.results) {
+        const batchesData = response.results;
         setBatches(batchesData);
-        setBranches(branchesData);
-        setSemestersMap(semsMap);
-
         cachedBatches = batchesData;
-        cachedBranches = branchesData;
-        cachedSemestersMap = semsMap;
-
-        // Clear semester cache on full refresh to avoid stale data
-        semesterCache.current = {};
       }
     } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const fetchBranches = async () => {
+    if (cachedBranches && cachedBranches.length > 0) {
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await getBranches();
+      if (response.success && response.results) {
+        const branchesData = response.results;
+        setBranches(branchesData);
+        cachedBranches = branchesData;
+      }
+    } catch (error) {
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -110,7 +116,7 @@ export const AcademicProvider: React.FC<{children: React.ReactNode;}> = ({ child
   // Left empty so data fetching is triggered lazily by consumer components when they mount.
 
   return (
-    <AcademicContext.Provider value={{ batches, branches, loading, refreshAcademicData, getSemestersForBranch }}>
+    <AcademicContext.Provider value={{ batches, branches, loading, fetchBatches, fetchBranches, getSemestersForBranch }}>
       {children}
     </AcademicContext.Provider>);
 

@@ -118,23 +118,31 @@ const OutsideStudentManagement: React.FC = () => {
   const [isLoadingFloors, setIsLoadingFloors] = useState(false);
   const [isLoadingRooms, setIsLoadingRooms] = useState(false);
 
-  const fetchFilterOptions = async () => {
+  const fetchCourses = async () => {
     try {
-      const res = await getOutsideStudentFilterOptions();
-      console.log("OutsideStudentManagement - Filter options response:", res);
+      const res = await getOutsideStudentFilterOptions('courses');
       if (res.success && res.data) {
-        setAvailableCourses(res.data.courses || []);
-        setAvailableYears(res.data.years || []);
+        const rawData = res.data.data || res.data;
+        setAvailableCourses(rawData.courses || []);
       }
     } catch (err) {
-      console.error("OutsideStudentManagement - Error fetching filter options:", err);
+      console.error("OutsideStudentManagement - Error fetching courses:", err);
     }
   };
 
-  // Fetch dynamic filter options on mount
-  useEffect(() => {
-    fetchFilterOptions();
-  }, []);
+  const fetchYears = async () => {
+    try {
+      const res = await getOutsideStudentFilterOptions('years');
+      if (res.success && res.data) {
+        const rawData = res.data.data || res.data;
+        setAvailableYears(rawData.years || []);
+      }
+    } catch (err) {
+      console.error("OutsideStudentManagement - Error fetching years:", err);
+    }
+  };
+
+
 
   // Debounce search
   useEffect(() => {
@@ -151,7 +159,7 @@ const OutsideStudentManagement: React.FC = () => {
   }, [courseFilter, yearFilter]);
 
   const fetchStudents = async () => {
-    if (!courseFilter || !yearFilter) {
+    if (!appliedSearch.trim() && (!courseFilter || !yearFilter)) {
       setStudents([]);
       setTotalCount(0);
       return;
@@ -162,9 +170,13 @@ const OutsideStudentManagement: React.FC = () => {
         page: currentPage,
         page_size: pageSize,
         search: appliedSearch,
-        outside_course_name: courseFilter,
-        outside_year: yearFilter
       };
+      if (courseFilter) {
+        params.outside_course_name = courseFilter;
+      }
+      if (yearFilter) {
+        params.outside_year = yearFilter;
+      }
       console.log("OutsideStudentManagement - Fetching students with params:", params);
       const response = await manageOutsideStudents(undefined, undefined, 'GET', params);
       console.log("OutsideStudentManagement - Fetch students response:", response);
@@ -536,13 +548,19 @@ const OutsideStudentManagement: React.FC = () => {
             {/* Course Filter */}
             <div className="flex flex-col gap-1.5 w-full md:w-48">
               <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">Course</span>
-              <Select value={courseFilter} onValueChange={setCourseFilter} disabled={availableCourses.length === 0}>
+              <Select
+                value={courseFilter}
+                onValueChange={setCourseFilter}
+                onOpenChange={(open) => {
+                  if (open) fetchCourses();
+                }}
+              >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={availableCourses.length === 0 ? "No courses available" : "Choose Course"} />
+                  <SelectValue placeholder="Choose Course" />
                 </SelectTrigger>
                 <SelectContent>
                   {availableCourses.length === 0 ? (
-                    <div className="p-2 text-xs text-muted-foreground text-center font-medium">No courses available</div>
+                    <div className="p-2 text-xs text-muted-foreground text-center font-medium">Loading courses...</div>
                   ) : (
                     availableCourses.map((c) => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
@@ -555,13 +573,19 @@ const OutsideStudentManagement: React.FC = () => {
             {/* Year Filter */}
             <div className="flex flex-col gap-1.5 w-full md:w-48">
               <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">Year</span>
-              <Select value={yearFilter} onValueChange={setYearFilter} disabled={availableYears.length === 0}>
+              <Select
+                value={yearFilter}
+                onValueChange={setYearFilter}
+                onOpenChange={(open) => {
+                  if (open) fetchYears();
+                }}
+              >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={availableYears.length === 0 ? "No years available" : "Choose Year"} />
+                  <SelectValue placeholder="Choose Year" />
                 </SelectTrigger>
                 <SelectContent>
                   {availableYears.length === 0 ? (
-                    <div className="p-2 text-xs text-muted-foreground text-center font-medium">No years available</div>
+                    <div className="p-2 text-xs text-muted-foreground text-center font-medium">Loading years...</div>
                   ) : (
                     availableYears.map((y) => (
                       <SelectItem key={y} value={y}>{y}</SelectItem>

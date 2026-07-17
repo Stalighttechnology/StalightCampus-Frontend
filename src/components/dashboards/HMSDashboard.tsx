@@ -96,7 +96,7 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
       case "student-meals":
         return <StudentMealManagement hostelId={selectedHostelId} />;
       case "issues":
-        return <IssueTracking hostelId={selectedHostelId} />;
+        return <IssueTracking hostelId={null} />;
       case "visitor_logs":
         return <HmsVisitorLogs />;
       case "manage-warden-leaves":

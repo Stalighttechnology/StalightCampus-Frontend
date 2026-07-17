@@ -68,7 +68,7 @@ interface Stats {
 
 const HMSOverview = () => {
   const { theme } = useTheme();
-  const { hostels, statistics, loading, getCachedFloors, getCachedRooms, skeletonMode } = useHMSContext();
+  const { hostels, statistics, fetchDashboardStats, loading, getCachedFloors, getCachedRooms, skeletonMode } = useHMSContext();
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedHostel, setSelectedHostel] = useState<number | null>(null);
@@ -80,6 +80,10 @@ const HMSOverview = () => {
   const [isFloorOpen, setIsFloorOpen] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetchDashboardStats();
+  }, [fetchDashboardStats]);
+
   // Map backend stats to component stats
   const stats = {
     totalHostels: statistics.total_hostels,
@@ -87,7 +91,8 @@ const HMSOverview = () => {
     totalStudents: statistics.total_students,
     totalWardens: statistics.total_wardens,
     totalCaretakers: statistics.total_caretakers,
-    occupancyRate: statistics.occupancy_rate
+    occupancyRate: statistics.occupancy_rate,
+    totalCapacity: statistics.total_capacity || 0
   };
 
   // Fetch floors when hostel is selected
@@ -240,7 +245,7 @@ const HMSOverview = () => {
               <span className="text-xl font-bold text-muted-foreground">%</span>
             </div> :
             `${stats.occupancyRate}%`}
-          description="Current utilization"
+          description={isSkeleton ? "Current utilization" : `Total: ${stats.totalCapacity} | Avail: ${Math.max(0, stats.totalCapacity - stats.totalStudents)}`}
           icon={<AlertCircle size={20} />} />
 
       </div>

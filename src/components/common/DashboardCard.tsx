@@ -5,7 +5,7 @@ import { useTheme } from "../../context/ThemeContext";
 interface DashboardCardProps {
   title: string;
   description?: string;
-  value?: string | number;
+  value?: React.ReactNode;
   icon?: React.ReactNode;
   trend?: {
     value: number;

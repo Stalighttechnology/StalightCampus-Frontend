@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { getHostelManagementInit, getFloorsByHostel, getRoomsByHostelId } from '../utils/hms_api';
+import { getHostelManagementInit, getFloorsByHostel, getRoomsByHostelId, getDashboardStats, getHostelNames } from '../utils/hms_api';
 import { useToast } from '../hooks/use-toast';
 import { useAuth } from './AuthContext';
 
@@ -42,6 +42,8 @@ interface HMSContextType {
   skeletonMode: boolean;
   setSkeletonMode: (val: boolean) => void;
   refreshData: (force?: boolean) => Promise<void>;
+  fetchDashboardStats: (force?: boolean) => Promise<void>;
+  fetchHostelsOnly: () => Promise<void>;
   setHostels: React.Dispatch<React.SetStateAction<Hostel[]>>;
   setWardens: React.Dispatch<React.SetStateAction<Warden[]>>;
   setCaretakers: React.Dispatch<React.SetStateAction<Caretaker[]>>;
@@ -68,7 +70,7 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
     total_caretakers: 0,
     occupancy_rate: 0
   });
-  const [loading, setLoading] = useState(!cachedInitData);
+  const [loading, setLoading] = useState(false);
   const [skeletonMode, setSkeletonMode] = useState(false);
   const floorCache = useRef<Record<number, number[]>>({});
   const roomCache = useRef<Record<string, any[]>>({});
@@ -147,9 +149,6 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
         setHostels(rawData.hostels || []);
         setWardens(rawData.wardens || []);
         setCaretakers(rawData.caretakers || []);
-        if (rawData.statistics) {
-          setStatistics(rawData.statistics);
-        }
         cachedInitData = rawData;
       }
     } catch (error) {
@@ -164,10 +163,49 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
     }
   };
 
+  const fetchDashboardStats = async (force = false) => {
+    if (force) {
+      cachedInitData = null;
+    }
+    if (!force && cachedInitData && cachedInitData.statistics && cachedInitData.statistics.total_hostels > 0) {
+      return;
+    }
+    setLoading(true);
+    // Clear cache on full refresh
+    floorCache.current = {};
+    roomCache.current = {};
+    try {
+      const response = await getDashboardStats();
+      if (response.success) {
+        const rawData = response.data || response;
+        setHostels(rawData.hostels || []);
+        setWardens(rawData.wardens || []);
+        setCaretakers(rawData.caretakers || []);
+        if (rawData.statistics) {
+          setStatistics(rawData.statistics);
+        }
+        cachedInitData = rawData;
+      }
+    } catch (error) {
+      console.error("HMSContext - Error fetching dashboard statistics:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchHostelsOnly = async () => {
+    try {
+      const response = await getHostelNames();
+      if (response.success && response.results) {
+        setHostels(response.results);
+      }
+    } catch (error) {
+      console.error("HMSContext - Error fetching hostel names:", error);
+    }
+  };
+
   useEffect(() => {
-    if (role === 'hms_admin') {
-      refreshData();
-    } else if (!role) {
+    if (!role) {
       // Clear data on logout
       setHostels([]);
       setWardens([]);
@@ -207,6 +245,8 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
       skeletonMode,
       setSkeletonMode,
       refreshData,
+      fetchDashboardStats,
+      fetchHostelsOnly,
       setHostels,
       setWardens,
       setCaretakers,

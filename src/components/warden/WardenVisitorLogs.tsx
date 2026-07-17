@@ -34,7 +34,8 @@ import {
   checkoutWardenVisitorLog,
   sendWardenVisitorReminder
 } from '../../utils/warden_api';
-import { getAcademicInit, getHostels } from '../../utils/hms_api';
+import { getBatches, getBranches, getHostels } from '../../utils/hms_api';
+import { getSemesters as getSemestersApi } from '../../utils/student_api';
 
 interface VisitorLog {
   id: number;
@@ -253,7 +254,6 @@ const WardenVisitorLogs = () => {
   });
 
   useEffect(() => {
-    fetchAcademicInit();
     fetchHostels();
   }, []);
 
@@ -276,16 +276,48 @@ const WardenVisitorLogs = () => {
     }
   }, [isModalOpen, selectedBatch, selectedBranch, selectedSemester, formData.hostel, studentPage, debouncedStudentSearch]);
 
-  const fetchAcademicInit = async () => {
+  const fetchBatchesList = async () => {
+    if (batches.length > 0) return;
     try {
-      const response = await getAcademicInit();
-      if (response.success || response.batches) {
-        setBatches(response.batches || response.data?.batches || []);
-        setBranches(response.branches || response.data?.branches || []);
-        setSemestersByBranch(response.semesters_by_branch || response.data?.semesters_by_branch || {});
+      const response = await getBatches();
+      if (response.success && response.results) {
+        setBatches(response.results);
       }
     } catch (error) {
-      console.error("Failed to load academic data", error);
+      console.error("Failed to load batches", error);
+    }
+  };
+
+  const fetchBranchesList = async () => {
+    if (branches.length > 0) return;
+    try {
+      const response = await getBranches();
+      if (response.success && response.results) {
+        setBranches(response.results);
+      }
+    } catch (error) {
+      console.error("Failed to load branches", error);
+    }
+  };
+
+  const fetchSemestersForBranch = async (branchId: string) => {
+    if (!branchId || semestersByBranch[branchId]) return;
+    try {
+      const response = await getSemestersApi(branchId);
+      let results: any[] = [];
+      if (response && response.success && response.data) {
+        results = Array.isArray(response.data) ? response.data : response.data.results || [];
+      } else if (Array.isArray(response)) {
+        results = response;
+      } else if (response && response.results) {
+        results = response.results;
+      }
+      setSemestersByBranch((prev: any) => ({
+        ...prev,
+        [branchId]: results
+      }));
+    } catch (error) {
+      console.error("Failed to load semesters", error);
     }
   };
 
@@ -600,12 +632,17 @@ const WardenVisitorLogs = () => {
                                 <Select
                                   value={selectedBatch}
                                   open={isBatchSelectOpen}
-                                  onOpenChange={setIsBatchSelectOpen}
+                                  onOpenChange={(open) => {
+                                    setIsBatchSelectOpen(open);
+                                    if (open) fetchBatchesList();
+                                  }}
                                   onValueChange={(val) => {
                                     setSelectedBatch(val);
                                     setFormData({ ...formData, student: '' });
                                     setSelectedStudentName('');
-                                    setTimeout(() => setIsBranchSelectOpen(true), 150);
+                                    fetchBranchesList().then(() => {
+                                      setIsBranchSelectOpen(true);
+                                    });
                                   }}
                                 >
                                   <SelectTrigger className="w-full h-9 text-xs bg-background">
@@ -630,13 +667,18 @@ const WardenVisitorLogs = () => {
                                 <Select
                                   value={selectedBranch}
                                   open={isBranchSelectOpen}
-                                  onOpenChange={setIsBranchSelectOpen}
+                                  onOpenChange={(open) => {
+                                    setIsBranchSelectOpen(open);
+                                    if (open) fetchBranchesList();
+                                  }}
                                   onValueChange={(val) => {
                                     setSelectedBranch(val);
                                     setSelectedSemester('');
                                     setFormData({ ...formData, student: '' });
                                     setSelectedStudentName('');
-                                    setTimeout(() => setIsSemesterSelectOpen(true), 150);
+                                    fetchSemestersForBranch(val).then(() => {
+                                      setIsSemesterSelectOpen(true);
+                                    });
                                   }}
                                 >
                                   <SelectTrigger className="w-full h-9 text-xs bg-background">
@@ -661,7 +703,10 @@ const WardenVisitorLogs = () => {
                                 <Select
                                   value={selectedSemester}
                                   open={isSemesterSelectOpen}
-                                  onOpenChange={setIsSemesterSelectOpen}
+                                  onOpenChange={(open) => {
+                                    setIsSemesterSelectOpen(open);
+                                    if (open && selectedBranch) fetchSemestersForBranch(selectedBranch);
+                                  }}
                                   onValueChange={(val) => {
                                     setSelectedSemester(val);
                                     setFormData({ ...formData, student: '' });

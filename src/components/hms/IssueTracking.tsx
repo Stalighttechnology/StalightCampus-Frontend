@@ -91,7 +91,7 @@ const STATUS_CONFIG = {
 const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { hostels, skeletonMode } = useHMSContext();
+  const { hostels, fetchHostelsOnly, skeletonMode } = useHMSContext();
 
   const [issues, setIssues] = useState<Issue[]>([]);
   const [stats, setStats] = useState<{
@@ -102,8 +102,9 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
     completed: number;
   } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
-  const [selectedHostelId, setSelectedHostelId] = useState<string>(hostelId?.toString() || '');
+  const [selectedHostelId, setSelectedHostelId] = useState<string>(hostelId?.toString() || 'all');
   const [loading, setLoading] = useState(true);
+  const [isFetchingHostels, setIsFetchingHostels] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<DetailedIssue | null>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -115,29 +116,18 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
   const [exporting, setExporting] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  const fetchStats = async () => {
-    setStatsLoading(true);
-    try {
-      const response = await getIssueStats(selectedHostelId ? Number(selectedHostelId) : undefined);
-      if (response.success && response.data?.stats) {
-        setStats(response.data.stats);
-      }
-    } catch (error) {
-      console.error("Error fetching stats:", error);
-    } finally {
-      setStatsLoading(false);
-    }
-  };
+
 
   const handleExportPDF = async () => {
     if (!selectedHostelId) return;
     setExporting(true);
     try {
-      const blob = await exportHostelIssuesPdf(Number(selectedHostelId), statusFilter !== 'all' ? statusFilter : undefined);
+      const paramHostelId = selectedHostelId === 'all' ? 'all' : Number(selectedHostelId);
+      const blob = await exportHostelIssuesPdf(paramHostelId, statusFilter !== 'all' ? statusFilter : undefined);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      const hostelName = hostels.find(h => h.id.toString() === selectedHostelId)?.name || 'Hostel';
+      const hostelName = selectedHostelId === 'all' ? 'All Hostels' : hostels.find(h => h.id.toString() === selectedHostelId)?.name || 'Hostel';
       link.setAttribute('download', `Hostel_Issues_${hostelName.replace(/\s+/g, '_')}.pdf`);
       document.body.appendChild(link);
       link.click();
@@ -190,30 +180,27 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
     }
   };
 
-  // Sync selectedHostelId when hostelId prop changes or becomes invalid
+
+  // Sync selectedHostelId when hostelId prop is explicitly provided
   useEffect(() => {
     if (hostelId) {
       const isValid = hostels.some(h => h.id === hostelId);
       if (isValid) {
         setSelectedHostelId(hostelId.toString());
-      } else {
-        setSelectedHostelId('');
       }
-    } else {
-      setSelectedHostelId('');
     }
   }, [hostelId, hostels]);
   useEffect(() => {
-    fetchStats();
-  }, [selectedHostelId]);
-
-  useEffect(() => {
     if (selectedHostelId) {
+      setStatsLoading(true);
       fetchIssues();
     } else {
       setIssues([]);
       setTotalCount(0);
       setTotalPages(1);
+      setLoading(false);
+      setStats(null);
+      setStatsLoading(false);
     }
   }, [selectedHostelId, statusFilter, currentPage]);
 
@@ -224,28 +211,37 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
     setLoading(true);
     setPermissionError(null);
     try {
-      const response = await getHostelIssues(Number(selectedHostelId), statusFilter !== 'all' ? statusFilter : undefined, currentPage);
+      const hostelParam = selectedHostelId === 'all' ? 'all' : Number(selectedHostelId);
+      const response = await getHostelIssues(hostelParam, statusFilter !== 'all' ? statusFilter : undefined, currentPage);
 
       if (!response.success && (response.message?.includes('You do not have permission') || response.message?.includes('Only wardens'))) {
         setPermissionError(response.message || 'Access Denied. Only wardens and admins can access this page.');
         setIssues([]);
-      } else if (response.success) {
-        if (response.results) {
-          setIssues(response.results);
-          const count = response.count || response.results.length;
-          setTotalCount(count);
-          setTotalPages(Math.max(1, Math.ceil(count / 10)));
-        } else if (Array.isArray(response.data)) {
-          setIssues(response.data);
-          setTotalCount(response.data.length);
-          setTotalPages(1);
+        setStats(null);
+        setStatsLoading(false);
+      } else if (response.success || response.results) {
+        const dataResults = response.results || response.data || [];
+        setIssues(dataResults);
+        const count = response.count || dataResults.length;
+        setTotalCount(count);
+        setTotalPages(Math.max(1, Math.ceil(count / 10)));
+        
+        // Extract stats from the unified response
+        const statsData = response.stats || response.data?.stats;
+        if (statsData) {
+          setStats(statsData);
+        } else {
+          setStats(null);
         }
+        setStatsLoading(false);
       } else {
         toast({
           title: 'Error',
           description: response.message || 'Failed to load issues',
           variant: 'destructive'
         });
+        setStats(null);
+        setStatsLoading(false);
       }
     } catch (error) {
       toast({
@@ -253,6 +249,8 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
         description: 'Connection error while loading issues',
         variant: 'destructive'
       });
+      setStats(null);
+      setStatsLoading(false);
     } finally {
       setLoading(false);
     }
@@ -405,39 +403,58 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   <div className="space-y-1">
                     <p className="text-[14px] sm:text-[14px] uppercase font-semibold text-muted-foreground px-1 mb-2 block">Hostel</p>
-                    {loading || skeletonMode ?
+                    {skeletonMode ?
                       <div className="h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
-                      <Select value={selectedHostelId} onValueChange={setSelectedHostelId}>
+                      <Select
+                        value={selectedHostelId}
+                        onOpenChange={async (open) => {
+                          if (open) {
+                            setIsFetchingHostels(true);
+                            await fetchHostelsOnly();
+                            setIsFetchingHostels(false);
+                          }
+                        }}
+                        onValueChange={setSelectedHostelId}
+                      >
                         <SelectTrigger className="bg-background border-primary/10 hover:border-primary/30 transition-colors h-10 max-w-full overflow-hidden">
                           <div className="flex items-center gap-2 min-w-0 w-full">
                             <Home className="w-3.5 h-3.5 text-primary/70 shrink-0" />
                             <span className="truncate text-sm text-left block w-full">
-                              {selectedHostelId 
-                                ? (hostels.find(h => h.id.toString() === selectedHostelId)?.name || 'Select Hostel').replace(/\s*\(.*?\)\s*/g, '')
-                                : 'Select Hostel'}
+                              {selectedHostelId === 'all'
+                                ? 'All Hostels'
+                                : selectedHostelId 
+                                  ? (hostels.find(h => h.id.toString() === selectedHostelId)?.name || 'Select Hostel').replace(/\s*\(.*?\)\s*/g, '')
+                                  : 'Select Hostel'}
                             </span>
                           </div>
                         </SelectTrigger>
                         <SelectContent>
-                          {hostels.length > 0 ? (
-                            hostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
+                          {isFetchingHostels ? (
+                            <div className="p-3 text-center text-xs text-muted-foreground animate-pulse">Loading hostels...</div>
                           ) : (
-                            <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
-                              <p className="text-xs text-muted-foreground">No hostels found</p>
-                              <Button
-                                type="button"
-                                size="sm"
-                                className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
-                                onPointerDown={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  navigate('/hms/hostels', { state: { openAddHostel: true } });
-                                }}
-                              >
-                                Add Hostel
-                              </Button>
-                            </div>
+                            <>
+                              <SelectItem value="all" className="font-semibold text-primary">All Hostels</SelectItem>
+                              {hostels.length > 0 ? (
+                                hostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
+                              ) : (
+                                <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+                                  <p className="text-xs text-muted-foreground">No hostels found</p>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
+                                    onPointerDown={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      navigate('/hms/hostels', { state: { openAddHostel: true } });
+                                    }}
+                                  >
+                                    Add Hostel
+                                  </Button>
+                                </div>
+                              )}
+                            </>
                           )}
                         </SelectContent>
                       </Select>

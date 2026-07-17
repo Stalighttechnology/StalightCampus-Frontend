@@ -59,11 +59,8 @@ const getInitials = (name: string) => {
 const StudentManagement: React.FC = () => {
   const navigate = useNavigate();
   const { hostels, getCachedFloors, getCachedRooms, refreshData, updateRoomStudentCount, skeletonMode } = useHMSContext();
-  const { batches, branches, getSemestersForBranch, loading: academicLoading, refreshAcademicData } = useAcademicContext();
+  const { batches, branches, getSemestersForBranch, loading: academicLoading, fetchBatches, fetchBranches } = useAcademicContext();
 
-  useEffect(() => {
-    refreshAcademicData();
-  }, []);
   const [students, setStudents] = useState<HostelStudent[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [floorsForHostel, setFloorsForHostel] = useState<number[]>([]);
@@ -255,7 +252,9 @@ const StudentManagement: React.FC = () => {
     } else if (key === 'batch') {
       setFilters((prev) => ({ ...prev, branch: '', semester: '' }));
       if (value) {
-        setIsBranchOpen(true);
+        fetchBranches().then(() => {
+          setIsBranchOpen(true);
+        });
       }
     }
   };
@@ -398,7 +397,13 @@ const StudentManagement: React.FC = () => {
                 {skeletonMode ?
                   <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                  <Select value={filters.batch} onValueChange={(v) => handleFilterChange('batch', v)}>
+                  <Select
+                    value={filters.batch}
+                    onValueChange={(v) => handleFilterChange('batch', v)}
+                    onOpenChange={(open) => {
+                      if (open) fetchBatches();
+                    }}
+                  >
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
                       <SelectValue placeholder="Select Batch" />
                     </SelectTrigger>
@@ -416,7 +421,10 @@ const StudentManagement: React.FC = () => {
                   <Select
                     disabled={!filters.batch}
                     open={isBranchOpen}
-                    onOpenChange={setIsBranchOpen}
+                    onOpenChange={(open) => {
+                      setIsBranchOpen(open);
+                      if (open) fetchBranches();
+                    }}
                     value={filters.branch}
                     onValueChange={(v) => handleFilterChange('branch', v)}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">

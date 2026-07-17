@@ -74,6 +74,13 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
   const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
   const [googleConnectLoading, setGoogleConnectLoading] = useState(false);
 
+  const getRoleDisplayName = (r: string) => {
+    if (!r) return "—";
+    if (r === 'warden') return 'Warden';
+    if (r === 'hms_admin') return 'HMS Admin';
+    return r.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
+
   useEffect(() => {
     checkNotificationPermission(setNotificationsEnabled);
   }, []);
@@ -136,6 +143,13 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    if (name === "mobile_number") {
+      const cleaned = value.replace(/\D/g, "");
+      if (cleaned.length <= 10) {
+        setProfile((prev) => ({ ...prev, [name]: cleaned }));
+      }
+      return;
+    }
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -144,6 +158,9 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
     try {
       if (!profile.first_name.trim()) throw new Error("First name is required");
       if (!profile.email.trim()) throw new Error("Email is required");
+      if (profile.mobile_number && profile.mobile_number.length !== 10) {
+        throw new Error("Mobile number must be exactly 10 digits");
+      }
 
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/update/`, {
         method: "PATCH",
@@ -323,7 +340,7 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
               {isSkeleton ?
                 <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
-                <Input name="designation" value={profile.designation} onChange={handleChange} disabled={!editing} placeholder="Designation" className="text-sm h-9 sm:h-10 w-full" />
+                <Input name="designation" value={profile.designation} onChange={handleChange} disabled={true} placeholder="Designation" className="text-sm h-9 sm:h-10 w-full" />
               }
             </div>
           </div>);
@@ -532,6 +549,10 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
                 <h4 className="text-sm font-semibold mb-2">Quick Info</h4>
                 <div className={`border rounded-lg p-3 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="space-y-3">
+                    <div className="flex flex-col">
+                      <span className="text-[14px] font-semibold text-muted-foreground mb-1">Role</span>
+                      <span className={`text-base p-1.5 rounded-lg ${theme === 'dark' ? 'bg-accent' : 'bg-purple-100 text-purple-700'}`}>{getRoleDisplayName(propUser?.role || JSON.parse(sessionStorage.getItem("user") || "{}").role || "")}</span>
+                    </div>
                     <div className="flex flex-col">
                       <span className="text-[14px] font-semibold text-muted-foreground mb-1">Email</span>
                       <span className={`text-base break-all p-1.5 rounded-lg ${theme === 'dark' ? 'bg-accent' : 'bg-purple-100 text-purple-700'}`}>{profile.email || '—'}</span>

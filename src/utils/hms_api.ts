@@ -54,6 +54,7 @@ interface HMSResponse<T> {
   total_pages?: number;
   next?: string | null;
   previous?: string | null;
+  stats?: any;
 }
 
 // Generic HMS API function
@@ -64,9 +65,6 @@ data?: any)
 : Promise<HMSResponse<T>> => {
   try {
     let url = `${API_ENDPOINT}/hms/${endpoint}`;
-    if (method === "GET") {
-      url = `${url}${url.includes('?') ? '&' : '?'}_t=${Date.now()}`;
-    }
 
     const response = await fetchWithTokenRefresh(url, {
       method,
@@ -156,7 +154,8 @@ data?: any)
         count: result.count,
         total_pages: computedTotalPages,
         next: result.next,
-        previous: result.previous
+        previous: result.previous,
+        ...(result.stats !== undefined && { stats: result.stats })
       };
     } else {
       // Single object response
@@ -283,8 +282,16 @@ export const exportHostelStudentsPdf = async (params: {
   return response.blob();
 };
 
-export const getAcademicInit = async (): Promise<HMSResponse<any>> => {
-  return hmsApiCall<any>("students/get_academic_init/", "GET");
+export const getBatches = async (): Promise<HMSResponse<any>> => {
+  return hmsApiCall<any>("students/get_batches/", "GET");
+};
+
+export const getBranches = async (): Promise<HMSResponse<any>> => {
+  return hmsApiCall<any>("students/get_branches/", "GET");
+};
+
+export const getHostelNames = async (): Promise<HMSResponse<any>> => {
+  return hmsApiCall<any>("hostels/names/", "GET");
 };
 
 // Warden Management
@@ -532,9 +539,9 @@ data: {
 };
 
 export const getHostelIssues = async (
-hostelId: number,
-status?: string,
-page: number = 1)
+  hostelId: number | string,
+  status?: string,
+  page: number = 1)
 : Promise<HMSResponse<any>> => {
   let endpoint = `issues/hostel_issues/?hostel_id=${hostelId}&page=${page}`;
   if (status) {
@@ -699,11 +706,12 @@ export const manageOutsideStudents = async (
   return hmsApiCall<any>(endpoint, method, data);
 };
 
-export const getOutsideStudentFilterOptions = async (): Promise<HMSResponse<{
+export const getOutsideStudentFilterOptions = async (type?: 'courses' | 'years'): Promise<HMSResponse<{
   courses: string[];
   years: string[];
 }>> => {
-  return hmsApiCall<any>("outside-students/get_filter_options/", "GET");
+  const endpoint = type ? `outside-students/get_filter_options/?type=${type}` : "outside-students/get_filter_options/";
+  return hmsApiCall<any>(endpoint, "GET");
 };
 
 export const exportGatePassesPdf = async (status?: string): Promise<Blob> => {

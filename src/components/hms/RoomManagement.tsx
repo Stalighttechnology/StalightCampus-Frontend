@@ -41,7 +41,7 @@ interface Room {
 import { useHMSContext } from "../../context/HMSContext";
 
 const RoomManagement: React.FC = () => {
-  const { hostels, loading: isLoadingHostels, getCachedFloors, getCachedRooms, refreshData, setStatistics, skeletonMode } = useHMSContext();
+  const { hostels, loading: isLoadingHostels, getCachedFloors, getCachedRooms, fetchHostelsOnly, setStatistics, skeletonMode } = useHMSContext();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedHostel, setSelectedHostel] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -65,6 +65,7 @@ const RoomManagement: React.FC = () => {
   const [isFloorOpen, setIsFloorOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [viewingRoom, setViewingRoom] = useState<Room | null>(null);
+  const [isFetchingHostels, setIsFetchingHostels] = useState(false);
   const { toast } = useToast();
   const { theme } = useTheme();
   const navigate = useNavigate();
@@ -353,19 +354,33 @@ const RoomManagement: React.FC = () => {
                 <div className="flex items-center gap-3 flex-1 md:w-auto">
                   <div className="flex flex-col w-full">
                     <span className="text-[14px] font-semibold mb-2">Current Hostel</span>
-                    {isLoadingHostels || skeletonMode ?
+                    {skeletonMode ?
                       <div className="w-full md:w-[200px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                      <Select value={selectedHostel?.toString() || ''} onValueChange={(v) => {
-                        setSelectedHostel(parseInt(v));
-                        setSelectedFloorFilter("");
-                        setIsFloorOpen(true);
-                      }}>
+                      <Select
+                        value={selectedHostel?.toString() || ''}
+                        onOpenChange={async (open) => {
+                          if (open) {
+                            setIsFetchingHostels(true);
+                            await fetchHostelsOnly();
+                            setIsFetchingHostels(false);
+                          }
+                        }}
+                        onValueChange={async (v) => {
+                          const hId = parseInt(v);
+                          setSelectedHostel(hId);
+                          setSelectedFloorFilter("");
+                          await fetchHostelFloors(hId);
+                          setIsFloorOpen(true);
+                        }}
+                      >
                         <SelectTrigger className="w-full md:w-[200px] h-9 border bg-transparent p-2 focus:ring-1 font-normal text-md">
                           <SelectValue placeholder="Select Hostel" />
                         </SelectTrigger>
                         <SelectContent>
-                          {hostels.length > 0 ? (
+                          {isFetchingHostels ? (
+                            <div className="p-3 text-center text-xs text-muted-foreground animate-pulse">Loading hostels...</div>
+                          ) : hostels.length > 0 ? (
                             hostels.map((hostel) =>
                               <SelectItem key={hostel.id} value={hostel.id.toString()} className="font-normal">
                                 {hostel.name}
