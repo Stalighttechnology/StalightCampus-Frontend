@@ -173,7 +173,9 @@ const WardenDashboard = () => {
       variants={containerVariants}>
       
       {/* Overview & Hostels Grid */}
-      <div id="warden-stats-grid" className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="space-y-6">
+        {/* Hostel Selection Cards */}
+        <div id="warden-hostels-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Hostel Selection Cards */}
         {hostels.map((hostel) =>
         <motion.div
@@ -205,19 +207,22 @@ const WardenDashboard = () => {
             </div>
           </motion.div>
         )}
+        </div>
+        
         {/* Global Stats Cards */}
-        <DashboardCard
-          title="Pending Issues"
-          value={stats?.pending_issues || 0}
-          description="Awaiting resolution"
-          icon={<AlertCircle size={20} className="text-amber-500" />} />
-        
-        <DashboardCard
-          title="Occupancy Rate"
-          value={`${stats?.occupancy_rate || 0}%`}
-          description={`Total: ${stats?.total_capacity || 0} | Avail: ${Math.max(0, (stats?.total_capacity || 0) - (stats?.total_students || 0))}`}
-          icon={<ClipboardList size={20} className="text-green-500" />} />
-        
+        <div id="warden-stats-grid" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <DashboardCard
+            title="Pending Issues"
+            value={stats?.pending_issues || 0}
+            description="Awaiting resolution"
+            icon={<AlertCircle size={20} className="text-amber-500" />} />
+          
+          <DashboardCard
+            title="Occupancy Rate"
+            value={`${stats?.occupancy_rate || 0}%`}
+            description={`Total: ${stats?.total_capacity || 0} | Avail: ${Math.max(0, (stats?.total_capacity || 0) - (stats?.total_students || 0))}`}
+            icon={<ClipboardList size={20} className="text-green-500" />} />
+        </div>
       </div>
 
       {/* Room Matrix Visualization (Mirroring HMS Admin) */}

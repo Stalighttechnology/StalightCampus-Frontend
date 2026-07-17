@@ -320,6 +320,9 @@ const BulkAssignment: React.FC = () => {
                 onOpenChange={(open) => setOpenSelect(open ? 'batch' : null)}
                 onValueChange={(val) => {
                   setSelectedFilters((p) => ({ ...p, batchId: val }));
+                  // Auto-derive academic year from selected batch name
+                  const selectedBatch = filterData.batches.find(b => b.id.toString() === val);
+                  if (selectedBatch) setAcademicYear(selectedBatch.name);
                   setTimeout(() => setOpenSelect('branch'), 100);
                 }}>
                 <SelectTrigger className="bg-background">
@@ -568,10 +571,10 @@ const BulkAssignment: React.FC = () => {
                       Academic Year
                     </Label>
                     <Input
-                      value={academicYear}
-                      onChange={(e) => setAcademicYear(e.target.value)}
-                      className="h-12 bg-background border-border/50 text-lg font-semibold"
-                      placeholder="e.g., 2024-25" />
+                      value={academicYear || (selectedFilters.batchId ? filterData.batches.find(b => b.id.toString() === selectedFilters.batchId)?.name || '' : '')}
+                      readOnly
+                      className="h-12 bg-muted/40 border-border/50 text-lg font-semibold cursor-not-allowed text-muted-foreground"
+                      placeholder="Select a batch first" />
 
                     <p className="text-[13px] text-muted-foreground px-1">Specify the billing period for these assignments.</p>
                   </div>
