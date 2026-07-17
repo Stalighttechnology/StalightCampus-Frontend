@@ -117,6 +117,7 @@ const TransportRoutes: React.FC = () => {
 
   // Stop editor states
   const [editingRouteStops, setEditingRouteStops] = useState<number | null>(null);
+  const [viewingRouteStops, setViewingRouteStops] = useState<RouteT | null>(null);
   const [stopDraft, setStopDraft] = useState<StopT[]>([]);
   const stopsContainerRef = React.useRef<HTMLDivElement>(null);
 
@@ -204,7 +205,7 @@ const TransportRoutes: React.FC = () => {
   }, [showRouteForm]);
 
   useEffect(() => {
-    if (showRouteForm || editingRouteStops || editingRoute) {
+    if (showRouteForm || editingRouteStops || editingRoute || viewingRouteStops) {
       document.body.classList.add("overflow-hidden");
     } else {
       document.body.classList.remove("overflow-hidden");
@@ -212,7 +213,7 @@ const TransportRoutes: React.FC = () => {
     return () => {
       document.body.classList.remove("overflow-hidden");
     };
-  }, [showRouteForm, editingRouteStops, editingRoute]);
+  }, [showRouteForm, editingRouteStops, editingRoute, viewingRouteStops]);
 
   const toggleRouteTimeline = async (routeId: number) => {
     setExpandedRoutes(prev => {
@@ -225,6 +226,28 @@ const TransportRoutes: React.FC = () => {
       return next;
     });
 
+    if (!routeStops[routeId] && !loadingStops.has(routeId)) {
+      setLoadingStops(prev => new Set(prev).add(routeId));
+      try {
+        const res = await fetchRouteStops(routeId);
+        if (res.success) {
+          setRouteStops(prev => ({ ...prev, [routeId]: res.stops }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch route stops", err);
+      } finally {
+        setLoadingStops(prev => {
+          const next = new Set(prev);
+          next.delete(routeId);
+          return next;
+        });
+      }
+    }
+  };
+
+  const openRouteStopsView = async (route: RouteT) => {
+    setViewingRouteStops(route);
+    const routeId = route.id;
     if (!routeStops[routeId] && !loadingStops.has(routeId)) {
       setLoadingStops(prev => new Set(prev).add(routeId));
       try {
@@ -733,9 +756,17 @@ const TransportRoutes: React.FC = () => {
                                 <span className="text-purple-500 font-semibold">{r.end_location}</span>
                               </div>
                             </div>
-                            <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-bold shrink-0">
-                              {r.total_stops || 0} stops
-                            </span>
+                            <div className="flex flex-col items-end gap-1.5 shrink-0">
+                              <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-bold">
+                                {r.total_stops || 0} stops
+                              </span>
+                              <button 
+                                onClick={() => openRouteStopsView(r)}
+                                className="text-xs font-semibold text-primary hover:underline focus:outline-none"
+                              >
+                                View
+                              </button>
+                            </div>
                           </div>
 
                           <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/25">
@@ -863,15 +894,20 @@ const TransportRoutes: React.FC = () => {
                                   </div>
                                 </td>
                                 <td className="p-4 text-sm sm:text-xs">
-                                  <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs sm:text-[10px] font-bold">
-                                    {r.total_stops || 0} stops
-                                  </span>
+                                  <div className="flex flex-col items-start gap-1">
+                                    <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs sm:text-[10px] font-bold">
+                                      {r.total_stops || 0} stops
+                                    </span>
+                                    <button 
+                                      onClick={() => openRouteStopsView(r)}
+                                      className="text-xs font-semibold text-primary hover:underline focus:outline-none"
+                                    >
+                                      View
+                                    </button>
+                                  </div>
                                 </td>
                                 <td className="p-4 text-right">
                                   <div className="flex gap-2 justify-end items-center">
-                                    <Button size="icon" variant="ghost" onClick={() => toggleRouteTimeline(r.id)} className="h-8 w-8 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/20" title={expandedRoutes.has(r.id) ? "Hide Timeline" : "View Timeline"}>
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                    </Button>
                                     <Button size="icon" variant="ghost" onClick={() => startEditRoute(r)} className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20">
                                       <Pencil size={14} />
                                     </Button>
@@ -1068,6 +1104,81 @@ const TransportRoutes: React.FC = () => {
                   <Button size="sm" onClick={handleSaveStops} className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-gradient-to-r from-primary to-purple-600 text-white font-semibold shadow-md h-9">
                     <Save size={14} /> Save Stops
                   </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Route Timeline View Modal */}
+      {viewingRouteStops && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setViewingRouteStops(null)}
+          />
+          <div className="relative w-[95%] sm:w-[90%] max-w-lg z-50 max-h-[80vh] flex flex-col">
+            <Card className={`border shadow-2xl p-6 flex flex-col overflow-hidden max-h-[80vh] ${cardBg}`}>
+              {/* Header Info with integrated Close Button */}
+              <div className="flex justify-between items-start mb-4 gap-4">
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-bold text-lg sm:text-xl text-gray-900 dark:text-white flex items-center gap-1.5 flex-wrap">
+                    <span className="text-primary break-word">{viewingRouteStops.route_name}</span>
+                  </h3>
+                  <div className="text-sm opacity-75 mt-2 space-y-1">
+                    <div><strong>Path:</strong> {viewingRouteStops.start_location} → {viewingRouteStops.end_location}</div>
+                    <div><strong>Distance & Duration:</strong> {viewingRouteStops.distance} km / {viewingRouteStops.duration_minutes} mins</div>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setViewingRouteStops(null)} 
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 shrink-0"
+                  title="Close"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-4 overflow-y-auto custom-scrollbar pr-2 flex-1">
+
+                <div className="pt-3 border-t border-border/20">
+                  <span className="text-xs uppercase font-bold opacity-60 block mb-3">Route Timeline Stops:</span>
+                  {loadingStops.has(viewingRouteStops.id) ? (
+                    <div className="text-sm text-muted-foreground italic text-center py-8 flex flex-col items-center gap-2">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <span>Loading route timeline...</span>
+                    </div>
+                  ) : routeStops[viewingRouteStops.id] && routeStops[viewingRouteStops.id].length > 0 ? (
+                    <div className="relative pl-6 border-l-2 border-primary/20 ml-2 space-y-4 py-1">
+                      {routeStops[viewingRouteStops.id].map((s: any, idx: number) => (
+                        <div key={s.id} className="relative flex flex-col gap-2 p-3 rounded-lg border bg-white dark:bg-accent/40 shadow-sm">
+                          {/* Dot indicator on the left line */}
+                          <div className="absolute -left-[31px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-primary border-4 border-background flex items-center justify-center" />
+                          
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">#{idx + 1}</span>
+                            <span className="font-semibold text-sm truncate max-w-[200px] sm:max-w-xs">{s.stop_name}</span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium text-muted-foreground">
+                            <div className="flex items-center gap-1.5 whitespace-nowrap">
+                              <span className="opacity-60">Morning:</span>
+                              <span className="font-semibold text-primary whitespace-nowrap">{formatTo12h(s.arrival_time_morning)}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 whitespace-nowrap">
+                              <span className="opacity-60">Evening:</span>
+                              <span className="font-semibold text-purple-600 dark:text-purple-400 whitespace-nowrap">{formatTo12h(s.arrival_time_evening)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground italic text-center py-8">
+                      No stops configured for this route.
+                    </div>
+                  )}
                 </div>
               </div>
             </Card>
