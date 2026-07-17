@@ -487,6 +487,11 @@ const WardenVisitorLogs = () => {
       return;
     }
 
+    if (formData.mobile_number.length !== 10) {
+      toast({ title: 'Error', description: 'Mobile number must be exactly 10 digits', variant: 'destructive' });
+      return;
+    }
+
     const now = new Date();
     const checkIn = new Date(formData.check_in_time);
 
@@ -505,6 +510,14 @@ const WardenVisitorLogs = () => {
         toast({
           title: 'Validation Error',
           description: 'Check-Out time cannot be before Check-In time',
+          variant: 'destructive'
+        });
+        return;
+      }
+      if (checkOut > now) {
+        toast({
+          title: 'Validation Error',
+          description: 'Check-Out time cannot be in the future',
           variant: 'destructive'
         });
         return;
@@ -572,7 +585,7 @@ const WardenVisitorLogs = () => {
                         <div className="space-y-3 p-3.5 rounded-xl border border-border/80 bg-muted/10">
                           <div className="text-xs font-bold text-primary uppercase tracking-wider">Visitor Details</div>
                           <div className="space-y-2">
-                            <Label className="text-xs">Visitor Name *</Label>
+                            <Label className="text-xs">Visitor Name <span className="text-red-500">*</span></Label>
                             <Input
                               value={formData.visitor_name}
                               onChange={(e) => setFormData({ ...formData, visitor_name: e.target.value })}
@@ -582,10 +595,10 @@ const WardenVisitorLogs = () => {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-xs">Visitor Mobile Number *</Label>
+                            <Label className="text-xs">Visitor Mobile Number <span className="text-red-500">*</span></Label>
                             <Input
                               value={formData.mobile_number}
-                              onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value })}
+                              onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                               placeholder="E.g., +91 98765 43210"
                               className="h-9 text-xs bg-background"
                               required
@@ -602,7 +615,7 @@ const WardenVisitorLogs = () => {
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <div className="space-y-2 flex flex-col">
-                              <Label className="text-xs">Check-In Time *</Label>
+                              <Label className="text-xs">Check-In Time <span className="text-red-500">*</span></Label>
                               <DateTimePicker
                                 value={formData.check_in_time}
                                 onChange={(val) => setFormData({ ...formData, check_in_time: val })}
@@ -615,10 +628,10 @@ const WardenVisitorLogs = () => {
                                 value={formData.check_out_time}
                                 onChange={(val) => setFormData({ ...formData, check_out_time: val })}
                                 disabled={(date) => {
-                                  if (!formData.check_in_time) return false;
+                                  if (!formData.check_in_time) return date > new Date();
                                   const checkInDate = new Date(formData.check_in_time);
                                   const checkInStartOfDay = new Date(checkInDate.getFullYear(), checkInDate.getMonth(), checkInDate.getDate());
-                                  return date < checkInStartOfDay;
+                                  return date < checkInStartOfDay || date > new Date();
                                 }}
                               />
                             </div>
@@ -736,7 +749,7 @@ const WardenVisitorLogs = () => {
                           </div>
 
                           <div className="space-y-2 pt-2 border-t border-border/40">
-                            <Label className="text-xs">Student *</Label>
+                            <Label className="text-xs">Student <span className="text-red-500">*</span></Label>
                             <Popover open={isStudentSelectOpen} onOpenChange={setIsStudentSelectOpen}>
                               <PopoverTrigger asChild>
                                 <Button
@@ -1091,7 +1104,7 @@ const WardenVisitorLogs = () => {
 
               {/* Desktop View: Table */}
               <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-sm text-left border-collapse">
+                <table className="w-full text-sm text-left border-collapse whitespace-nowrap">
                   <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
                     <tr>
                       <th className="py-3.5 px-4 font-semibold text-muted-foreground">Visitor</th>
@@ -1110,9 +1123,9 @@ const WardenVisitorLogs = () => {
                         <td className="py-3 px-4 font-semibold text-md">{log.visitor_name}</td>
                         <td className="py-3 px-4 text-muted-foreground">{log.mobile_number}</td>
                         <td className="py-3 px-4">
-                          <Badge variant="outline" className="bg-primary/5 font-semibold text-xs border-none text-primary">
+                          <span className="font-medium text-sm text-foreground">
                             {log.hostel_name || '-'}
-                          </Badge>
+                          </span>
                         </td>
                         <td className="py-3 px-4">
                           <div className="font-semibold">{log.student_name || '-'}</div>
