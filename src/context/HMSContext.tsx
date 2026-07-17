@@ -43,7 +43,7 @@ interface HMSContextType {
   setSkeletonMode: (val: boolean) => void;
   refreshData: (force?: boolean) => Promise<void>;
   fetchDashboardStats: (force?: boolean) => Promise<void>;
-  fetchHostelsOnly: () => Promise<void>;
+  fetchHostelsOnly: () => Promise<any[]>;
   setHostels: React.Dispatch<React.SetStateAction<Hostel[]>>;
   setWardens: React.Dispatch<React.SetStateAction<Warden[]>>;
   setCaretakers: React.Dispatch<React.SetStateAction<Caretaker[]>>;
@@ -76,6 +76,7 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
   const roomCache = useRef<Record<string, any[]>>({});
   const pendingFloorRequests = useRef<Record<number, Promise<number[]>>>({});
   const pendingRoomRequests = useRef<Record<string, Promise<any[]>>>({});
+  const pendingStatsRequest = useRef<Promise<void> | null>(null);
   const { toast } = useToast();
 
   const getCachedFloors = async (hostelId: number) => {
@@ -104,7 +105,10 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
 
     const promise = (async () => {
       const response = await getRoomsByHostelId(hostelId, floor);
-      if (response.success && response.data?.rooms) {
+      if (response.success && response.rooms) {
+        roomCache.current[cacheKey] = response.rooms;
+        return response.rooms;
+      } else if (response.success && response.data?.rooms) {
         roomCache.current[cacheKey] = response.data.rooms;
         return response.data.rooms;
       } else if (response.success && response.results) {
@@ -170,38 +174,50 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
     if (!force && cachedInitData && cachedInitData.statistics && cachedInitData.statistics.total_hostels > 0) {
       return;
     }
-    setLoading(true);
-    // Clear cache on full refresh
-    floorCache.current = {};
-    roomCache.current = {};
-    try {
-      const response = await getDashboardStats();
-      if (response.success) {
-        const rawData = response.data || response;
-        setHostels(rawData.hostels || []);
-        setWardens(rawData.wardens || []);
-        setCaretakers(rawData.caretakers || []);
-        if (rawData.statistics) {
-          setStatistics(rawData.statistics);
-        }
-        cachedInitData = rawData;
-      }
-    } catch (error) {
-      console.error("HMSContext - Error fetching dashboard statistics:", error);
-    } finally {
-      setLoading(false);
+    if (pendingStatsRequest.current) {
+      return pendingStatsRequest.current;
     }
+
+    const promise = (async () => {
+      setLoading(true);
+      // Clear cache on full refresh
+      floorCache.current = {};
+      roomCache.current = {};
+      try {
+        const response = await getDashboardStats();
+        if (response.success) {
+          const rawData = response.data || response;
+          setHostels(rawData.hostels || []);
+          setWardens(rawData.wardens || []);
+          setCaretakers(rawData.caretakers || []);
+          if (rawData.statistics) {
+            setStatistics(rawData.statistics);
+          }
+          cachedInitData = rawData;
+        }
+      } catch (error) {
+        console.error("HMSContext - Error fetching dashboard statistics:", error);
+      } finally {
+        setLoading(false);
+        pendingStatsRequest.current = null;
+      }
+    })();
+
+    pendingStatsRequest.current = promise;
+    return promise;
   };
 
-  const fetchHostelsOnly = async () => {
+  const fetchHostelsOnly = async (): Promise<any[]> => {
     try {
       const response = await getHostelNames();
       if (response.success && response.results) {
         setHostels(response.results);
+        return response.results;
       }
     } catch (error) {
       console.error("HMSContext - Error fetching hostel names:", error);
     }
+    return [];
   };
 
   useEffect(() => {

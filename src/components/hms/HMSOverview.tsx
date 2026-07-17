@@ -183,9 +183,9 @@ const HMSOverview = () => {
     return acc;
   }, {} as Record<number, Room[]>);
 
-  // Ensure rooms in each floor are sorted by room_number
+  // Ensure rooms in each floor are sorted by room_number safely
   Object.keys(roomsByFloor).forEach((f) => {
-    roomsByFloor[Number(f)].sort((a, b) => a.room_number.localeCompare(b.room_number, undefined, { numeric: true }));
+    roomsByFloor[Number(f)].sort((a, b) => (a.room_number || '').localeCompare(b.room_number || '', undefined, { numeric: true }));
   });
 
   const containerVariants = {

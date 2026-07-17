@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { manageHostelStudents, manageRooms, exportHostelStudentsPdf } from '../../utils/hms_api';
+import { manageHostelStudents, manageRooms, exportHostelStudentsPdf, getHostelNames, getRoomsByHostelId } from '../../utils/hms_api';
 import { useToast } from '../../hooks/use-toast';
 import { Search, Filter, Edit2, CheckCircle2, XCircle, UserCircle2, Building2, Download, Loader2, Plus } from 'lucide-react';
 import { AdminPagination } from '../common/AdminPagination';
@@ -30,6 +30,7 @@ interface HostelStudent {
   room: number | null;
   room_name?: string;
   room_hostel_name?: string;
+  room_floor?: number;
   room_allotted: boolean;
   no_dues: boolean;
   profile_picture?: string;
@@ -58,7 +59,7 @@ const getInitials = (name: string) => {
 
 const StudentManagement: React.FC = () => {
   const navigate = useNavigate();
-  const { hostels, getCachedFloors, getCachedRooms, refreshData, updateRoomStudentCount, skeletonMode } = useHMSContext();
+  const { hostels, getCachedFloors, getCachedRooms, updateRoomStudentCount, skeletonMode, fetchHostelsOnly } = useHMSContext();
   const { batches, branches, getSemestersForBranch, loading: academicLoading, fetchBatches, fetchBranches } = useAcademicContext();
 
   const [students, setStudents] = useState<HostelStudent[]>([]);
@@ -79,16 +80,17 @@ const StudentManagement: React.FC = () => {
   const [selectedFloorInDialog, setSelectedFloorInDialog] = useState<number | null>(null);
   const [isBranchOpen, setIsBranchOpen] = useState(false);
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isFetchingHostels, setIsFetchingHostels] = useState(false);
+  const [selectedHostelName, setSelectedHostelName] = useState<string>('');
 
   const getFloorFromRoomNumber = (roomNo: string): number => {
     if (!roomNo) return 0;
-    // Extract the numeric part. We prioritize the last numeric sequence 
-    // because room numbers like "BH1-101" often have the floor info in the last part.
     const matches = roomNo.match(/\d+/g);
     if (matches && matches.length > 0) {
       const lastMatch = matches[matches.length - 1];
       const num = parseInt(lastMatch);
-      // Logic: Room 101 -> Floor 1, Room 1001 -> Floor 10, Room 21 -> Floor 0
+      // Room 101/201 -> 1/2, Room 1-99 -> Ground Floor (0)
+      if (num < 100) return 0;
       return Math.floor(num / 100);
     }
     return 0;
@@ -173,9 +175,10 @@ const StudentManagement: React.FC = () => {
 
 
 
-  const getFloorsForHostel = async (hostelId: number) => {
+  const getFloorsForHostel = async (hostelId: number, hostelsList?: typeof hostels) => {
     setIsLoadingFloors(true);
-    const hostel = hostels.find((h) => h.id === hostelId);
+    const list = hostelsList && hostelsList.length > 0 ? hostelsList : hostels;
+    const hostel = list.find((h) => h.id === hostelId);
     const floors = hostel ? Array.from({ length: hostel.floor_count || 1 }, (_, i) => i) : [];
     setFloorsForHostel(floors);
     setIsLoadingFloors(false);
@@ -190,9 +193,10 @@ const StudentManagement: React.FC = () => {
     setIsLoadingRooms(true);
     try {
       const results = await getCachedRooms(hostelId, floor.toString());
-      setRoomsForHostel(results);
+      setRoomsForHostel(results || []);
     } catch (error) {
       console.error("Error getting rooms for hostel:", error);
+      setRoomsForHostel([]);
     } finally {
       setIsLoadingRooms(false);
     }
@@ -308,14 +312,8 @@ const StudentManagement: React.FC = () => {
         updatedStudent.room_hostel_name = undefined;
       }
 
-      // Invalidate context cache to ensure other pages fetch fresh data and statistics (like occupancy rate)
-      await refreshData(true);
-
       // Update local state optimistically/instantly for real-time response
       setStudents((prev) => prev.map((s) => s.id === editingStudent.id ? updatedStudent : s));
-
-      // Fetch fresh data silently in the background
-      fetchStudents(true);
 
       setIsDialogOpen(false);
       showSuccessAlert("Success", "Student details updated successfully");
@@ -324,7 +322,7 @@ const StudentManagement: React.FC = () => {
     }
   };
 
-  const handleEdit = (student: HostelStudent) => {
+  const handleEdit = async (student: HostelStudent) => {
     setEditingStudent(student);
     setFormData({
       room: student.room,
@@ -332,27 +330,56 @@ const StudentManagement: React.FC = () => {
       no_dues: student.no_dues
     });
 
-    if (student.room && student.room_hostel_name) {
-      const hostel = hostels.find((h) => h.name === student.room_hostel_name);
-      if (hostel) {
-        setSelectedHostelInDialog(hostel.id);
-        getFloorsForHostel(hostel.id);
+    // Reset all dropdowns before populating
+    setFloorsForHostel([]);
+    setRoomsForHostel([]);
+    setSelectedFloorInDialog(null);
+    setSelectedHostelInDialog(null);
+    setSelectedHostelName('');
+    setIsDialogOpen(true);
 
-        // If we have floor info, fetch rooms for that floor
-        // Since we don't have explicit floor in student object yet, we extract it from room name
-        if (student.room_name) {
-          const floor = getFloorFromRoomNumber(student.room_name);
-          setSelectedFloorInDialog(floor);
-          getRoomsForHostel(hostel.id, floor);
+    if (student.room_hostel_name) {
+      setIsFetchingHostels(true);
+
+      // Resolve floor: use room_floor from API, or extract from room_name as fallback
+      let floorNum = student.room_floor;
+      if (typeof floorNum !== 'number' || isNaN(floorNum)) {
+        floorNum = student.room_name ? getFloorFromRoomNumber(student.room_name) : 0;
+      }
+
+      // Pre-populate floor and hostel immediately using cached list if available
+      const cachedHostel = hostels.find((h: any) => h.name === student.room_hostel_name);
+      if (cachedHostel) {
+        setSelectedHostelInDialog(cachedHostel.id);
+        setSelectedHostelName(cachedHostel.name);
+        const floors = Array.from({ length: cachedHostel.floor_count || 1 }, (_, i) => i);
+        setFloorsForHostel(floors);
+        if (student.room && typeof floorNum === 'number' && !isNaN(floorNum)) {
+          setSelectedFloorInDialog(floorNum);
         }
       }
-    } else {
-      setSelectedHostelInDialog(null);
-      setSelectedFloorInDialog(null);
-      setFloorsForHostel([]);
-      setRoomsForHostel([]);
+
+      const promises: Promise<any>[] = [
+        fetchHostelsOnly().then((freshHostels) => {
+          setIsFetchingHostels(false);
+          const hostel = freshHostels.find((h: any) => h.name === student.room_hostel_name);
+          if (hostel) {
+            setSelectedHostelInDialog(hostel.id);
+            setSelectedHostelName(hostel.name);
+            const floors = Array.from({ length: hostel.floor_count || 1 }, (_, i) => i);
+            setFloorsForHostel(floors);
+          }
+          return freshHostels;
+        })
+      ];
+
+      const resolvedHostelId = cachedHostel?.id;
+      if (resolvedHostelId && student.room && typeof floorNum === 'number' && !isNaN(floorNum)) {
+        promises.push(getRoomsForHostel(resolvedHostelId, floorNum));
+      }
+
+      await Promise.all(promises);
     }
-    setIsDialogOpen(true);
   };
 
   return (
@@ -635,17 +662,38 @@ const StudentManagement: React.FC = () => {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Assign Hostel</Label>
-                    <Select value={selectedHostelInDialog?.toString() || ''} onValueChange={(v) => {
-                      const id = parseInt(v);
-                      setSelectedHostelInDialog(id);
-                      setSelectedFloorInDialog(null);
-                      setRoomsForHostel([]);
-                      getFloorsForHostel(id);
-                      setFormData((prev) => ({ ...prev, room: null, room_allotted: false }));
-                    }}>
-                      <SelectTrigger><SelectValue placeholder="Select hostel" /></SelectTrigger>
+                    <Select
+                      value={selectedHostelInDialog?.toString() || ''}
+                      onOpenChange={async (open) => {
+                        if (open) {
+                          setIsFetchingHostels(true);
+                          await fetchHostelsOnly();
+                          setIsFetchingHostels(false);
+                        }
+                      }}
+                      onValueChange={(v) => {
+                        const id = parseInt(v);
+                        setSelectedHostelInDialog(id);
+                        setSelectedHostelName(hostels.find(h => h.id === id)?.name || '');
+                        setSelectedFloorInDialog(null);
+                        setRoomsForHostel([]);
+                        getFloorsForHostel(id);
+                        setFormData((prev) => ({ ...prev, room: null, room_allotted: false }));
+                      }}
+                    >
+                      <SelectTrigger>
+                        <span className={
+                          (selectedHostelInDialog || editingStudent?.room_hostel_name)
+                            ? 'text-foreground text-sm'
+                            : 'text-muted-foreground text-sm'
+                        }>
+                          {selectedHostelName || editingStudent?.room_hostel_name || 'Select hostel'}
+                        </span>
+                      </SelectTrigger>
                       <SelectContent>
-                        {hostels.length > 0 ? (
+                        {isFetchingHostels ? (
+                          <div className="p-3 text-center text-xs text-muted-foreground animate-pulse">Loading hostels...</div>
+                        ) : hostels.length > 0 ? (
                           hostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
                         ) : (
                           <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
@@ -673,21 +721,33 @@ const StudentManagement: React.FC = () => {
                     <div className="space-y-2">
                       <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Select Floor</Label>
                       <Select
-                        value={selectedFloorInDialog?.toString() || ''}
+                        value={selectedFloorInDialog !== null ? selectedFloorInDialog.toString() : (editingStudent?.room_floor !== undefined && editingStudent?.room_floor !== null ? editingStudent.room_floor.toString() : '')}
                         onValueChange={(v) => {
                           const floor = parseInt(v);
+                          if (isNaN(floor)) return;
                           setSelectedFloorInDialog(floor);
-                          if (selectedHostelInDialog) {
+                          const hostelId = selectedHostelInDialog || (editingStudent?.room_hostel_name ? hostels.find(h => h.name === editingStudent.room_hostel_name)?.id : null);
+                          if (hostelId) {
                             setRoomsForHostel([]);
-                            setIsLoadingRooms(true);
-                            getRoomsForHostel(selectedHostelInDialog, floor);
+                            getRoomsForHostel(hostelId, floor);
                           }
                           setFormData((prev) => ({ ...prev, room: null, room_allotted: false }));
                         }}
-                        disabled={!selectedHostelInDialog || hostels.length === 0 || isLoadingFloors}>
-
+                        disabled={!selectedHostelInDialog || isLoadingFloors}
+                      >
                         <SelectTrigger>
-                          {isLoadingFloors ? <span className="animate-pulse">Loading Floors...</span> : <SelectValue placeholder="Select Floor" />}
+                          <span className={(selectedFloorInDialog !== null || editingStudent?.room_floor !== undefined) ? 'text-foreground text-sm' : 'text-muted-foreground text-sm'}>
+                            {isLoadingFloors ? (
+                              <span className="animate-pulse">Loading Floors...</span>
+                            ) : (selectedFloorInDialog !== null || (editingStudent?.room_floor !== undefined && editingStudent?.room_floor !== null)) ? (
+                              (() => {
+                                const fl = selectedFloorInDialog !== null ? selectedFloorInDialog : editingStudent!.room_floor;
+                                return fl === 0 ? 'Ground Floor' : `${fl}${fl === 1 ? 'st' : fl === 2 ? 'nd' : fl === 3 ? 'rd' : 'th'} Floor`;
+                              })()
+                            ) : (
+                              'Choose Floor'
+                            )}
+                          </span>
                         </SelectTrigger>
                         <SelectContent>
                           {floorsForHostel.length > 0 ?
@@ -704,40 +764,59 @@ const StudentManagement: React.FC = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Assign Room</Label>
-                      <Select value={formData.room?.toString() || ''} onValueChange={(v) => {
+                      <div className="flex justify-between items-center mb-2">
+                        <Label className="text-[18px] sm:text-[16px] font-semibold block">Assign Room</Label>
+                        {!!(selectedHostelInDialog && selectedFloorInDialog !== null && !isNaN(selectedFloorInDialog)) && (
+                          <Button
+                            type="button"
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-xs text-primary font-semibold hover:underline"
+                            onClick={() => {
+                              setIsDialogOpen(false);
+                              navigate('/hms/rooms', {
+                                state: {
+                                  openAddRoom: true,
+                                  hostelId: selectedHostelInDialog,
+                                  floor: selectedFloorInDialog
+                                }
+                              });
+                            }}
+                          >
+                            <Plus className="w-3 h-3 mr-1 inline" /> Add Room
+                          </Button>
+                        )}
+                      </div>
+                        <Select value={formData.room?.toString() || ''} onValueChange={(v) => {
                         const newRoom = v === '' ? null : parseInt(v);
                         setFormData((prev) => ({ ...prev, room: newRoom, room_allotted: !!newRoom }));
-                      }} disabled={!selectedHostelInDialog || selectedFloorInDialog === null || hostels.length === 0 || isLoadingRooms}>
+                      }} disabled={(!selectedHostelInDialog && !editingStudent?.room_hostel_name) || (selectedFloorInDialog === null && editingStudent?.room_floor === undefined) || isLoadingRooms}>
                         <SelectTrigger>
-                          {isLoadingRooms ? <span className="animate-pulse">Loading Rooms...</span> : <SelectValue placeholder="Choose Room" />}
+                          <span className={(formData.room || (formData.room == editingStudent?.room && editingStudent?.room_name)) ? 'text-foreground text-sm' : 'text-muted-foreground text-sm'}>
+                            {isLoadingRooms ? (
+                              <span className="animate-pulse">Loading Rooms...</span>
+                            ) : (formData.room || (formData.room == editingStudent?.room && editingStudent?.room_name)) ? (
+                              (() => {
+                                const selectedRoomObj = roomsForHostel.find((r) => r.id == formData.room);
+                                if (selectedRoomObj) {
+                                  return `${selectedRoomObj.name} (${selectedRoomObj.student_count}/${selectedRoomObj.capacity})`;
+                                }
+                                return (formData.room == editingStudent?.room ? editingStudent?.room_name : '') || 'Choose Room';
+                              })()
+                            ) : (
+                              'Choose Room'
+                            )}
+                          </span>
                         </SelectTrigger>
                         <SelectContent className="max-h-[250px]">
-                          <div className="p-2 border-b border-muted/50" onPointerDown={(e) => e.stopPropagation()}>
-                            <Button
-                              type="button"
-                              size="sm"
-                              className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white flex items-center justify-center gap-1"
-                              onPointerDown={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setIsDialogOpen(false);
-                                navigate('/hms/rooms', {
-                                  state: {
-                                    openAddRoom: true,
-                                    hostelId: selectedHostelInDialog,
-                                    floor: selectedFloorInDialog
-                                  }
-                                });
-                              }}
-                            >
-                              <Plus className="w-3.5 h-3.5 mr-1" /> Add Room
-                            </Button>
-                          </div>
-                          {roomsForHostel.map((r) =>
-                            <SelectItem key={r.id} value={r.id.toString()} disabled={r.student_count >= r.capacity && editingStudent.room !== r.id}>
-                              {r.name} ({r.student_count}/{r.capacity})
-                            </SelectItem>
+                          {roomsForHostel.length > 0 ? (
+                            roomsForHostel.map((r) =>
+                              <SelectItem key={r.id} value={r.id.toString()} disabled={r.student_count >= r.capacity && editingStudent?.room !== r.id}>
+                                {r.name} ({r.student_count}/{r.capacity})
+                              </SelectItem>
+                            )
+                          ) : (
+                            <SelectItem value="none" disabled>No rooms found</SelectItem>
                           )}
                         </SelectContent>
                       </Select>
