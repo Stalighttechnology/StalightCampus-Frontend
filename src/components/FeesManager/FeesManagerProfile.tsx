@@ -392,6 +392,10 @@ const FeesManagerProfile: React.FC = () => {
                       <span className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</span>
                       <span className={`text-sm sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{formData.phone || '—'}</span>
                     </div>
+                    <div className="flex flex-col justify-start">
+                      <span className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Role</span>
+                      <span className={`text-sm sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>Fees Manager</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -427,7 +431,16 @@ const FeesManagerProfile: React.FC = () => {
                       </div>
                       <div>
                         <Label htmlFor="phone" className="text-md sm:text-sm">Mobile</Label>
-                        <Input id="phone" value={formData.phone} disabled={!editing} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="text-md sm:text-sm h-10 w-full" />
+                        <Input 
+                          id="phone" 
+                          value={formData.phone} 
+                          disabled={!editing} 
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            setFormData({ ...formData, phone: val });
+                          }} 
+                          className="text-md sm:text-sm h-10 w-full" 
+                        />
                       </div>
                     </div>
 
