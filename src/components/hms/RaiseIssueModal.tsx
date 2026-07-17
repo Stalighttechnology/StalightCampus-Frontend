@@ -154,11 +154,16 @@ const RaiseIssueModal = ({
             </Button>
             <Button type="submit" disabled={loading} className="flex-1 font-semibold group shadow-md shadow-primary/20">
               {loading ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Submitting...
+                </>
               ) : (
-                <Send className="w-4 h-4 mr-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                <>
+                  <Send className="w-4 h-4 mr-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                  Submit Request
+                </>
               )}
-              Submit Request
             </Button>
           </DialogFooter>
         </form>
