@@ -762,7 +762,7 @@ const TransportRoutes: React.FC = () => {
                               </span>
                               <button 
                                 onClick={() => openRouteStopsView(r)}
-                                className="text-xs font-semibold text-primary hover:underline focus:outline-none"
+                                className="text-[11px] font-semibold text-primary border border-primary/20 hover:border-primary/40 rounded px-2.5 py-0.5 hover:bg-primary/5 transition-colors focus:outline-none"
                               >
                                 View
                               </button>
