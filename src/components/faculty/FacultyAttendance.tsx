@@ -202,14 +202,15 @@ const FacultyAttendance = () => {
     }
   };
 
-  const handleToggleAttendance = async (status: "present" | "absent") => {
-    const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1);
+  const handleToggleAttendance = async (status: "present" | "absent", action?: "check_in" | "check_out") => {
+    const capitalizedStatus = action ? (action === "check_in" ? "Check In" : "Check Out") : (status.charAt(0).toUpperCase() + status.slice(1));
+    const actionText = action ? (action === "check_in" ? "check in" : "check out") : `mark today's attendance as ${status}`;
     const confirmResult = await Swal.fire({
-      title: `Mark ${capitalizedStatus}?`,
-      text: `Are you sure you want to mark today's attendance as ${status}?`,
+      title: `Confirm ${capitalizedStatus}?`,
+      text: `Are you sure you want to ${actionText}?`,
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: `Yes, Mark ${capitalizedStatus}`,
+      confirmButtonText: action ? `Yes, ${capitalizedStatus}` : `Yes, Mark ${capitalizedStatus}`,
       cancelButtonText: "Cancel",
       confirmButtonColor: status === "present" ? "#22c55e" : "#ef4444",
       cancelButtonColor: theme === "dark" ? "#3f3f46" : "#d1d5db",
@@ -222,14 +223,14 @@ const FacultyAttendance = () => {
     setIsSubmitting(true);
     setMarkingStatus(status);
     setIsAnimating(true);
-    setLoadingMessage(status === 'present' ? "Initializing location..." : "Preparing request...");
+    setLoadingMessage((status === 'present' && action !== 'check_out') ? "Initializing location..." : "Preparing request...");
 
     try {
       let latitude: number | undefined = undefined;
       let longitude: number | undefined = undefined;
       let device_info: any = undefined;
 
-      if (status === 'present') {
+      if (status === 'present' && action !== 'check_out') {
         setLoadingMessage("Detecting your location...");
         // Require geolocation for marking present
         if (!navigator.geolocation) {
@@ -287,6 +288,7 @@ const FacultyAttendance = () => {
       setLoadingMessage("Syncing with server...");
       const requestData: MarkFacultyAttendanceRequest & any = {
         status,
+        action,
         notes: notes.trim() || undefined
       };
       if (latitude !== undefined && longitude !== undefined) {
@@ -377,80 +379,90 @@ const FacultyAttendance = () => {
             {/* Animated Toggle Buttons */}
             <div className="flex flex-col items-center space-y-4">
               <div className="flex items-center space-x-4">
-                {/* Present Button */}
-                <motion.button
-                  onClick={() => handleToggleAttendance("present")}
-                  disabled={isSubmitting || !!attendanceStatus}
-                  className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'present' ?
-                    'bg-blue-500 text-white animate-pulse' :
-                    attendanceStatus === 'present' ?
-                      'bg-green-500 text-white scale-110' :
-                      theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
-                  }
-                  whileHover={{ scale: attendanceStatus === 'present' || markingStatus === 'present' ? 1.1 : 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  animate={{
-                    rotate: attendanceStatus === 'present' && !markingStatus ? [0, -10, 10, 0] : 0
-                  }}
-                  transition={{
-                    rotate: { duration: 0.5, ease: "easeInOut" }
-                  }}>
+                
+                {/* Check In / Check Out Button */}
+                {(!todayRecord?.check_in_time || !todayRecord?.check_out_time) && attendanceStatus !== "absent" && (
+                  <motion.button
+                    onClick={() => handleToggleAttendance("present", todayRecord?.check_in_time ? "check_out" : "check_in")}
+                    disabled={isSubmitting || !!(todayRecord?.check_in_time && todayRecord?.check_out_time)}
+                    className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'present' ?
+                      'bg-blue-500 text-white animate-pulse' :
+                      (todayRecord?.check_in_time && !todayRecord?.check_out_time) ?
+                        'bg-orange-500 text-white scale-110' :
+                        theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
+                    }
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {markingStatus === 'present' ?
+                      <Loader2 className="w-8 h-8 animate-spin" /> :
+                      todayRecord?.check_in_time ? <Clock className="w-8 h-8" /> : <CheckCircle className="w-8 h-8" />
+                    }
+                  </motion.button>
+                )}
 
-                  {markingStatus === 'present' ?
-                    <Loader2 className="w-8 h-8 animate-spin" /> :
-
-                    <CheckCircle className="w-8 h-8" />
-                  }
-                </motion.button>
-
-                {/* Absent Button */}
-                <motion.button
-                  onClick={() => handleToggleAttendance("absent")}
-                  disabled={isSubmitting || !!attendanceStatus}
-                  className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'absent' ?
-                    'bg-blue-500 text-white animate-pulse' :
-                    attendanceStatus === 'absent' ?
-                      'bg-red-500 text-white scale-110' :
-                      theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
-                  }
-                  whileHover={{ scale: attendanceStatus === 'absent' || markingStatus === 'absent' ? 1.1 : 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  animate={{
-                    rotate: attendanceStatus === 'absent' && !markingStatus ? [0, -10, 10, 0] : 0
-                  }}
-                  transition={{
-                    rotate: { duration: 0.5, ease: "easeInOut" }
-                  }}>
-
-                  {markingStatus === 'absent' ?
-                    <Loader2 className="w-8 h-8 animate-spin" /> :
-
-                    <XCircle className="w-8 h-8" />
-                  }
-                </motion.button>
+                {/* Absent Button (only if not checked in) */}
+                {!todayRecord?.check_in_time && (
+                  <motion.button
+                    onClick={() => handleToggleAttendance("absent")}
+                    disabled={isSubmitting || !!attendanceStatus}
+                    className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'absent' ?
+                      'bg-blue-500 text-white animate-pulse' :
+                      attendanceStatus === 'absent' ?
+                        'bg-red-500 text-white scale-110' :
+                        theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
+                    }
+                    whileHover={{ scale: attendanceStatus === 'absent' || markingStatus === 'absent' ? 1.1 : 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {markingStatus === 'absent' ?
+                      <Loader2 className="w-8 h-8 animate-spin" /> :
+                      <XCircle className="w-8 h-8" />
+                    }
+                  </motion.button>
+                )}
               </div>
 
               {/* Button Labels */}
               <div className="flex items-center space-x-8 text-sm font-medium">
-                <motion.span
-                  className={markingStatus === 'present' ? 'text-blue-500' : attendanceStatus === 'present' ? 'text-green-600' : 'text-gray-500'}
-                  animate={{
-                    scale: attendanceStatus === 'present' || markingStatus === 'present' ? 1.1 : 1
-                  }}
-                  transition={{ duration: 0.3 }}>
-
-                  {markingStatus === 'present' ? 'Marking...' : 'Present'}
-                </motion.span>
-                <motion.span
-                  className={markingStatus === 'absent' ? 'text-blue-500' : attendanceStatus === 'absent' ? 'text-red-600' : 'text-gray-500'}
-                  animate={{
-                    scale: attendanceStatus === 'absent' || markingStatus === 'absent' ? 1.1 : 1
-                  }}
-                  transition={{ duration: 0.3 }}>
-
-                  {markingStatus === 'absent' ? 'Marking...' : 'Absent'}
-                </motion.span>
+                {(!todayRecord?.check_in_time || !todayRecord?.check_out_time) && attendanceStatus !== "absent" && (
+                  <motion.span
+                    className={markingStatus === 'present' ? 'text-blue-500' : todayRecord?.check_in_time ? 'text-orange-600' : 'text-gray-500'}
+                  >
+                    {markingStatus === 'present' ? 'Processing...' : todayRecord?.check_in_time ? 'Check Out' : 'Check In'}
+                  </motion.span>
+                )}
+                {!todayRecord?.check_in_time && (
+                  <motion.span
+                    className={markingStatus === 'absent' ? 'text-blue-500' : attendanceStatus === 'absent' ? 'text-red-600' : 'text-gray-500'}
+                  >
+                    {markingStatus === 'absent' ? 'Marking...' : 'Absent'}
+                  </motion.span>
+                )}
               </div>
+
+              {/* Attendance Details (Times & Hours) */}
+              {todayRecord?.check_in_time && (
+                <div className={`mt-4 p-4 rounded-lg w-full max-w-sm text-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-500">Check In:</span>
+                    <span className="font-semibold">{format(new Date(todayRecord.check_in_time), 'hh:mm a')}</span>
+                  </div>
+                  {todayRecord?.check_out_time && (
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-gray-500">Check Out:</span>
+                      <span className="font-semibold">{format(new Date(todayRecord.check_out_time), 'hh:mm a')}</span>
+                    </div>
+                  )}
+                  {todayRecord?.total_hours && (
+                    <div className="flex justify-between text-sm font-bold border-t border-gray-300 pt-2 mt-2">
+                      <span>Total Hours:</span>
+                      <span className="text-primary">{todayRecord.total_hours} hrs</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
 
               {/* Progress Message */}
               <AnimatePresence>
@@ -583,8 +595,16 @@ const FacultyAttendance = () => {
                           </p>
                         </div>
                       </div>
-                      <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {new Date(record.marked_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                      <div className={`text-sm text-right ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        {record.check_in_time && (
+                          <div className="text-xs">In: {format(new Date(record.check_in_time), 'hh:mm a')}</div>
+                        )}
+                        {record.check_out_time && (
+                          <div className="text-xs">Out: {format(new Date(record.check_out_time), 'hh:mm a')}</div>
+                        )}
+                        {!record.check_in_time && record.marked_at && (
+                          <div>{new Date(record.marked_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
+                        )}
                       </div>
                     </div>
                     {record.notes &&
@@ -595,7 +615,11 @@ const FacultyAttendance = () => {
                         </p>
                       </div>
                     }
-                    {/* Location removed from UI */}
+                    {record.total_hours && (
+                      <div className="mt-2 text-xs font-semibold text-right text-primary">
+                        Total: {record.total_hours} hrs
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </div>
@@ -820,10 +844,23 @@ const FacultyAttendance = () => {
                           </p>
                         </div>
                       </div>
-                      <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {new Date(record.marked_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                      <div className={`text-sm text-right ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        {record.check_in_time && (
+                          <div className="text-xs">In: {format(new Date(record.check_in_time), 'hh:mm a')}</div>
+                        )}
+                        {record.check_out_time && (
+                          <div className="text-xs">Out: {format(new Date(record.check_out_time), 'hh:mm a')}</div>
+                        )}
+                        {!record.check_in_time && record.marked_at && (
+                          <div>{new Date(record.marked_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
+                        )}
                       </div>
                     </div>
+                    {record.total_hours && (
+                      <div className="mt-2 text-xs font-semibold text-right text-primary">
+                        Total: {record.total_hours} hrs
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

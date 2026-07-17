@@ -23,6 +23,16 @@ const TransportIncidents: React.FC = () => {
   // View resolution log modal state
   const [viewIncident, setViewIncident] = useState<IncidentT | null>(null);
 
+  // Expanded descriptions ("View More" toggle)
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+  const DESCRIPTION_LIMIT = 120;
+  const toggleExpanded = (id: number) =>
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
   const loadIncidents = useCallback(async () => {
     setLoading(true);
     try {
@@ -229,7 +239,21 @@ const TransportIncidents: React.FC = () => {
                           </div>
                           <div className="space-y-1">
                             <h4 className="font-semibold text-base leading-tight">{i.title}</h4>
-                            <p className={`text-sm mt-1.5 opacity-80 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{i.description}</p>
+                            <p className={`text-sm mt-1.5 opacity-80 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                              {i.description && i.description.length > DESCRIPTION_LIMIT && !expandedIds.has(i.id)
+                                ? i.description.slice(0, DESCRIPTION_LIMIT) + '…'
+                                : i.description}
+                            </p>
+                            {i.description && i.description.length > DESCRIPTION_LIMIT && (
+                              <button
+                                onClick={() => toggleExpanded(i.id)}
+                                className={`text-xs font-semibold mt-0.5 transition-colors ${
+                                  theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-primary hover:text-primary/70'
+                                }`}
+                              >
+                                {expandedIds.has(i.id) ? 'View Less ▲' : 'View More ▼'}
+                              </button>
+                            )}
                           </div>
                           <div className="pt-2 border-t border-border/25 flex flex-col gap-3">
                             <div className="text-xs opacity-60">
@@ -275,7 +299,21 @@ const TransportIncidents: React.FC = () => {
                                 <Badge label={i.status} color={i.status} />
                               </div>
                               <p className="font-semibold text-base">{i.title}</p>
-                              <p className={`text-sm mt-1 opacity-80 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{i.description}</p>
+                              <p className={`text-sm mt-1 opacity-80 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                {i.description && i.description.length > DESCRIPTION_LIMIT && !expandedIds.has(i.id)
+                                  ? i.description.slice(0, DESCRIPTION_LIMIT) + '…'
+                                  : i.description}
+                              </p>
+                              {i.description && i.description.length > DESCRIPTION_LIMIT && (
+                                <button
+                                  onClick={() => toggleExpanded(i.id)}
+                                  className={`text-xs font-semibold mt-0.5 transition-colors ${
+                                    theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-primary hover:text-primary/70'
+                                  }`}
+                                >
+                                  {expandedIds.has(i.id) ? 'View Less ▲' : 'View More ▼'}
+                                </button>
+                              )}
                               <p className={`text-xs mt-2 opacity-60`}>Reported by <b>{i.reported_by_details?.first_name || "Driver"}</b> · {new Date(i.created_at).toLocaleDateString()} {new Date(i.created_at).toLocaleTimeString()}</p>
                             </div>
                             {i.status === 'resolved' ? (

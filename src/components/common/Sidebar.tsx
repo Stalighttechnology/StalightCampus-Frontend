@@ -9,6 +9,7 @@ import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { isPageAllowed, PLAN_TIERS } from "../../utils/planGating";
 import { API_BASE_URL } from "../../utils/config";
+import { fetchParentChildrenCached } from "../../utils/student_api";
 import {
   LayoutDashboard,
   Users,
@@ -89,7 +90,6 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       const fetchChildren = async () => {
         try {
           const { fetchWithTokenRefresh } = await import("../../utils/authService");
-          const { fetchParentChildrenCached } = await import("../../utils/student_api");
           const data = await fetchParentChildrenCached(fetchWithTokenRefresh, API_BASE_URL);
           if (data.success && data.children) {
             setChildrenList(data.children);

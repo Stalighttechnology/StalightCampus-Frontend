@@ -40,6 +40,9 @@ interface TodayRow {
   contact: string;
   status: string;
   marked_at: string | null;
+  check_in_time?: string | null;
+  check_out_time?: string | null;
+  total_hours?: string | null;
   notes: string | null;
   location?: {
     inside: boolean;
@@ -67,6 +70,9 @@ interface RecordRow {
   date: string;
   status: string;
   marked_at: string | null;
+  check_in_time?: string | null;
+  check_out_time?: string | null;
+  total_hours?: string | null;
   notes: string | null;
   location?: {
     inside: boolean;
@@ -466,7 +472,7 @@ const AdminHODAttendance: React.FC = () => {
                           <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hidden lg:table-cell">Contact</th>
                           <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
                           <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Location</th>
-                          <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Marked At</th>
+                          <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Time Details</th>
                           <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hidden lg:table-cell">Notes</th>
                         </tr>
                       </thead>
@@ -490,7 +496,19 @@ const AdminHODAttendance: React.FC = () => {
                                 </> :
                                 '-'}
                             </td>
-                            <td className="px-3 py-4 text-sm text-gray-600 whitespace-normal break-words">{r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</td>
+                            <td className="px-3 py-4 text-sm text-gray-600 whitespace-normal break-words">
+                              {r.check_in_time || r.check_out_time ? (
+                                <div className="space-y-1">
+                                  {r.check_in_time && <div><span className="font-semibold">In:</span> {formatTime(r.check_in_time)}</div>}
+                                  {r.check_out_time && <div><span className="font-semibold">Out:</span> {formatTime(r.check_out_time)}</div>}
+                                  {r.total_hours && <div className="text-xs mt-1 py-0.5 px-1.5 bg-gray-100 rounded-md inline-block dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium">Total: {r.total_hours} hrs</div>}
+                                </div>
+                              ) : r.marked_at ? (
+                                formatTime(r.marked_at)
+                              ) : (
+                                'Not marked'
+                              )}
+                            </td>
                             <td className="px-3 py-4 hidden lg:table-cell text-sm text-gray-600 whitespace-normal break-words">{r.notes || '-'}</td>
                           </tr>
                         )}
@@ -516,7 +534,17 @@ const AdminHODAttendance: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="mt-2 text-sm text-gray-600 whitespace-normal break-words">Marked: {r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</div>
+                        <div className="mt-2 text-sm text-gray-600 whitespace-normal break-words">
+                          {r.check_in_time || r.check_out_time ? (
+                            <div className="flex flex-col gap-1">
+                              {r.check_in_time && <div><span className="font-semibold">In:</span> {formatTime(r.check_in_time)}</div>}
+                              {r.check_out_time && <div><span className="font-semibold">Out:</span> {formatTime(r.check_out_time)}</div>}
+                              {r.total_hours && <div className="text-xs mt-1 py-0.5 px-1.5 bg-gray-100 rounded-md inline-block w-fit dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium">Total: {r.total_hours} hrs</div>}
+                            </div>
+                          ) : (
+                            `Marked: ${r.marked_at ? formatTime(r.marked_at) : 'Not marked'}`
+                          )}
+                        </div>
                         {r.notes && <div className="mt-1 text-xs text-muted-foreground italic whitespace-normal break-words">Note: {r.notes}</div>}
                       </div>
                     )
@@ -844,6 +872,9 @@ const AdminHODAttendance: React.FC = () => {
                               {!record && !isFuture && !isNonWorkingDay && <div className="text-red-300 mt-1 flex items-center gap-1"><XCircle className="w-3 h-3" /> Auto-marked Absent</div>}
                               {isNonWorkingDay && <div className="text-slate-300 mt-1">{isHoliday ? 'Holiday' : 'Sunday'}</div>}
                               {record && <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>{isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status}</div>}
+                              {record?.check_in_time && <div className="text-slate-300 mt-1">In: {formatTime(record.check_in_time)}</div>}
+                              {record?.check_out_time && <div className="text-slate-300 mt-0.5">Out: {formatTime(record.check_out_time)}</div>}
+                              {record?.total_hours && <div className="text-slate-400 mt-0.5">Total: {record.total_hours} hrs</div>}
                             </div>
                           </div>);
 
