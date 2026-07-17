@@ -55,12 +55,8 @@ const TransportDrivers: React.FC = () => {
   const loadAssignments = useCallback(async () => {
     setLoading(true);
     try {
-      const [a, d] = await Promise.all([
-        fetchAssignments(),
-        fetchDrivers()
-      ]);
+      const a = await fetchAssignments();
       if (a.results || Array.isArray(a)) setAssignments(a.results || a);
-      if (d.success && Array.isArray(d.drivers)) setDrivers(d.drivers);
     } catch (e) {
       console.error(e);
     } finally {
@@ -301,28 +297,28 @@ const TransportDrivers: React.FC = () => {
             <div>
               {loading ? (
                 <div className="p-4"><SkeletonTable rows={5} cols={6} /></div>
-              ) : drivers.length === 0 ? (
+              ) : assignments.length === 0 ? (
                 <div className="p-6">
                   <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                     <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                       <UserCheck size={32} className="opacity-80" />
                     </div>
-                    <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Drivers Enrolled</h3>
+                    <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Assignments Found</h3>
                     <p className="max-w-xs text-xs leading-relaxed opacity-80">
-                      No driver assignments configured yet. Add and enroll campus drivers to assign them.
+                      No driver assignments configured yet. Assign a route to a driver to get started.
                     </p>
                   </div>
                 </div>
               ) : (() => {
-                const totalPages = Math.ceil(drivers.length / ROWS_PER_PAGE);
+                const totalPages = Math.ceil(assignments.length / ROWS_PER_PAGE);
                 const safePage = Math.min(currentPage, totalPages);
-                const pageDrivers = drivers.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
+                const pageAssignments = assignments.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
                 return (
                   <>
                     {/* Mobile View: Stacked Cards */}
                     <div className="md:hidden space-y-4 p-4">
-                      {pageDrivers.map(d => {
-                        const a = assignments.find(item => item.driver_details?.id === d.id || item.driver === d.id);
+                      {pageAssignments.map(a => {
+                        const d = a.driver_details || { id: a.driver, first_name: 'Unknown', last_name: 'Driver', email: '', mobile_number: '', designation: 'Driver' };
                         return (
                           <div
                             key={d.id}
@@ -384,17 +380,11 @@ const TransportDrivers: React.FC = () => {
                             </div>
 
                             <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border/25 mt-1 w-full">
-                              {a ? (
                                 <Button size="sm" variant="outline" onClick={() => startEditAssignment(a)} className="h-9 text-sm flex items-center justify-center gap-1.5 w-full font-medium">
                                   <Pencil size={14} /> Edit Route
                                 </Button>
-                              ) : (
-                                <Button size="sm" variant="outline" onClick={() => handleOpenAssignForm(d.id.toString())} className="h-9 text-sm flex items-center justify-center gap-1.5 w-full font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-                                  <CheckCircle size={14} /> Assign Route
-                                </Button>
-                              )}
                               <Button size="sm" variant="ghost" onClick={() => handleDeleteDriver(d.id)} className="h-9 text-sm flex items-center justify-center gap-1.5 w-full text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-lg">
-                                <Trash2 size={14} /> Delete
+                                <Trash2 size={14} /> Delete Driver
                               </Button>
                             </div>
                           </div>
@@ -416,10 +406,10 @@ const TransportDrivers: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {pageDrivers.map(d => {
-                            const a = assignments.find(item => item.driver_details?.id === d.id || item.driver === d.id);
+                          {pageAssignments.map(a => {
+                            const d = a.driver_details || { id: a.driver, first_name: 'Unknown', last_name: 'Driver', email: '', mobile_number: '', designation: 'Driver' };
                             return (
-                              <tr key={d.id} className={`border-b text-sm transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}>
+                              <tr key={a.id} className={`border-b text-sm transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}>
                                 <td className="p-4">
                                   <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center font-bold text-emerald-600 text-xs">
@@ -464,15 +454,9 @@ const TransportDrivers: React.FC = () => {
                                 </td>
                                 <td className="p-4 text-right">
                                   <div className="flex justify-end gap-1.5">
-                                    {a ? (
                                       <Button size="icon" variant="ghost" onClick={() => startEditAssignment(a)} className="h-8 w-8 text-primary" title="Edit Assignment">
                                         <Pencil size={15} />
                                       </Button>
-                                    ) : (
-                                      <Button size="sm" variant="outline" onClick={() => handleOpenAssignForm(d.id.toString())} className="h-8 flex items-center gap-1">
-                                        <CheckCircle size={13} /> Assign Route
-                                      </Button>
-                                    )}
                                     <Button size="icon" variant="ghost" onClick={() => handleDeleteDriver(d.id)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20" title="Delete Driver">
                                       <Trash2 size={15} />
                                     </Button>
@@ -488,14 +472,14 @@ const TransportDrivers: React.FC = () => {
                 );
               })()}
             </div>
-            {drivers.length > ROWS_PER_PAGE && (
+            {assignments.length > ROWS_PER_PAGE && (
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                 <div>
-                  {drivers.length > 0 && (() => {
-                    const safePage2 = Math.min(currentPage, Math.ceil(drivers.length / ROWS_PER_PAGE));
-                    const start2 = Math.min((safePage2 - 1) * ROWS_PER_PAGE + 1, drivers.length);
-                    const end2 = Math.min(safePage2 * ROWS_PER_PAGE, drivers.length);
-                    return <>Showing {start2} to {end2} of {drivers.length} drivers</>;
+                  {assignments.length > 0 && (() => {
+                    const safePage2 = Math.min(currentPage, Math.ceil(assignments.length / ROWS_PER_PAGE));
+                    const start2 = Math.min((safePage2 - 1) * ROWS_PER_PAGE + 1, assignments.length);
+                    const end2 = Math.min(safePage2 * ROWS_PER_PAGE, assignments.length);
+                    return <>Showing {start2} to {end2} of {assignments.length} assignments</>;
                   })()}
                 </div>
                 <div className="flex items-center gap-2">
@@ -510,14 +494,14 @@ const TransportDrivers: React.FC = () => {
                   </Button>
                   <div className="flex items-center justify-center min-w-[2rem]">
                     <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      {Math.min(currentPage, Math.max(1, Math.ceil(drivers.length / ROWS_PER_PAGE)))}
+                      {Math.min(currentPage, Math.max(1, Math.ceil(assignments.length / ROWS_PER_PAGE)))}
                     </span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(drivers.length / ROWS_PER_PAGE), p + 1))}
-                    disabled={currentPage === Math.ceil(drivers.length / ROWS_PER_PAGE) || loading}
+                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(assignments.length / ROWS_PER_PAGE), p + 1))}
+                    disabled={currentPage === Math.ceil(assignments.length / ROWS_PER_PAGE) || loading}
                     className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
                   >
                     Next
@@ -546,25 +530,25 @@ const TransportDrivers: React.FC = () => {
               <form onSubmit={handleEnrollDriver} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold uppercase opacity-70 mb-2">First Name</label>
-                    <input className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 ${input}`} placeholder="e.g. John" value={driverForm.first_name} onChange={e => setDriverForm(f => ({ ...f, first_name: e.target.value }))} />
+                    <label className="block text-xs font-semibold uppercase opacity-70 mb-2">First Name <span className="text-red-500">*</span></label>
+                    <input className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 ${input}`} placeholder="e.g. John" value={driverForm.first_name} onChange={e => setDriverForm(f => ({ ...f, first_name: e.target.value }))} required />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Last Name</label>
-                    <input className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 ${input}`} placeholder="e.g. Doe" value={driverForm.last_name} onChange={e => setDriverForm(f => ({ ...f, last_name: e.target.value }))} />
+                    <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Last Name <span className="text-red-500">*</span></label>
+                    <input className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 ${input}`} placeholder="e.g. Doe" value={driverForm.last_name} onChange={e => setDriverForm(f => ({ ...f, last_name: e.target.value }))} required />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Email Address</label>
-                  <input className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 ${input}`} placeholder="e.g. john.doe@example.com" value={driverForm.email} onChange={e => setDriverForm(f => ({ ...f, email: e.target.value }))} />
+                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Email Address <span className="text-red-500">*</span></label>
+                  <input className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 ${input}`} placeholder="e.g. john.doe@example.com" value={driverForm.email} onChange={e => setDriverForm(f => ({ ...f, email: e.target.value }))} required />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Phone Number</label>
-                  <input className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 ${input}`} placeholder="e.g. 9876543210" value={driverForm.phone} onChange={e => setDriverForm(f => ({ ...f, phone: e.target.value }))} />
+                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Phone Number <span className="text-red-500">*</span></label>
+                  <input className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 ${input}`} placeholder="e.g. 9876543210" value={driverForm.phone} onChange={e => setDriverForm(f => ({ ...f, phone: e.target.value }))} required />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Designation</label>
-                  <input className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 ${input}`} placeholder="e.g. Driver" value={driverForm.designation} onChange={e => setDriverForm(f => ({ ...f, designation: e.target.value }))} />
+                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Designation <span className="text-red-500">*</span></label>
+                  <input className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 ${input}`} placeholder="e.g. Driver" value={driverForm.designation} onChange={e => setDriverForm(f => ({ ...f, designation: e.target.value }))} required />
                 </div>
                 <div className="pt-2">
                   <Button type="submit" className="w-full bg-gradient-to-r from-primary to-purple-600 text-white font-semibold rounded-lg flex items-center justify-center gap-1.5 h-10">
@@ -593,7 +577,7 @@ const TransportDrivers: React.FC = () => {
               </div>
               <form onSubmit={handleAssignDriver} className="space-y-4">
                 <div>
-                   <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Driver</label>
+                   <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Driver <span className="text-red-500">*</span></label>
                    <Select
                      value={assignForm.driver_id || undefined}
                      onValueChange={(val) => setAssignForm(f => ({ ...f, driver_id: val }))}
@@ -609,7 +593,7 @@ const TransportDrivers: React.FC = () => {
                    </Select>
                  </div>
                  <div>
-                   <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Route</label>
+                   <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Route <span className="text-red-500">*</span></label>
                    <Select
                      value={assignForm.route_id || undefined}
                      onValueChange={(val) => setAssignForm(f => ({ ...f, route_id: val }))}
@@ -625,7 +609,7 @@ const TransportDrivers: React.FC = () => {
                    </Select>
                  </div>
                  <div>
-                   <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Bus</label>
+                   <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Bus <span className="text-red-500">*</span></label>
                    <Select
                      value={assignForm.bus_id || undefined}
                      onValueChange={(val) => setAssignForm(f => ({ ...f, bus_id: val }))}
@@ -671,7 +655,7 @@ const TransportDrivers: React.FC = () => {
               </div>
               <form onSubmit={handleUpdateAssignment} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Driver</label>
+                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Driver <span className="text-red-500">*</span></label>
                   <Select
                     value={editAssignForm.driver_id}
                     onValueChange={(val) => setEditAssignForm(f => ({ ...f, driver_id: val }))}
@@ -688,7 +672,7 @@ const TransportDrivers: React.FC = () => {
                   </Select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Route</label>
+                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Route <span className="text-red-500">*</span></label>
                   <Select
                     value={editAssignForm.route_id}
                     onValueChange={(val) => setEditAssignForm(f => ({ ...f, route_id: val }))}
@@ -704,7 +688,7 @@ const TransportDrivers: React.FC = () => {
                   </Select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Bus</label>
+                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Bus <span className="text-red-500">*</span></label>
                   <Select
                     value={editAssignForm.bus_id}
                     onValueChange={(val) => setEditAssignForm(f => ({ ...f, bus_id: val }))}
