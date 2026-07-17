@@ -59,7 +59,7 @@ const getInitials = (name: string) => {
 
 const StudentManagement: React.FC = () => {
   const navigate = useNavigate();
-  const { hostels, getCachedFloors, getCachedRooms, updateRoomStudentCount, skeletonMode, fetchHostelsOnly } = useHMSContext();
+  const { hostels, skeletonMode, fetchHostelsOnly } = useHMSContext();
   const { batches, branches, getSemestersForBranch, loading: academicLoading, fetchBatches, fetchBranches } = useAcademicContext();
 
   const [students, setStudents] = useState<HostelStudent[]>([]);
@@ -175,12 +175,11 @@ const StudentManagement: React.FC = () => {
 
 
 
-  const getFloorsForHostel = async (hostelId: number, hostelsList?: typeof hostels) => {
+  const getFloorsForHostel = async (hostelId: number) => {
     setIsLoadingFloors(true);
-    const list = hostelsList && hostelsList.length > 0 ? hostelsList : hostels;
-    const hostel = list.find((h) => h.id === hostelId);
-    const floors = hostel ? Array.from({ length: hostel.floor_count || 1 }, (_, i) => i) : [];
-    setFloorsForHostel(floors);
+    const hostel = hostels.find(h => h.id === hostelId);
+    const floorCount = hostel?.floor_count || 1;
+    setFloorsForHostel(Array.from({ length: floorCount }, (_, i) => i));
     setIsLoadingFloors(false);
   };
 
@@ -189,13 +188,17 @@ const StudentManagement: React.FC = () => {
       setRoomsForHostel([]);
       return;
     }
-
     setIsLoadingRooms(true);
     try {
-      const results = await getCachedRooms(hostelId, floor.toString());
-      setRoomsForHostel(results || []);
+      const response = await getRoomsByHostelId(hostelId, floor.toString());
+      if (response.success) {
+        const rooms = response.data?.rooms || response.rooms || response.results || [];
+        setRoomsForHostel(Array.isArray(rooms) ? rooms : []);
+      } else {
+        setRoomsForHostel([]);
+      }
     } catch (error) {
-      console.error("Error getting rooms for hostel:", error);
+      console.error('Error getting rooms for hostel:', error);
       setRoomsForHostel([]);
     } finally {
       setIsLoadingRooms(false);

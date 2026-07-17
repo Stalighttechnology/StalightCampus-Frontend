@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { manageRooms, manageHostels, manageHostelStudents, getFloorsByHostel } from '../../utils/hms_api';
+import { manageRooms, manageHostels, manageHostelStudents, getFloorsByHostel, getRoomsByHostelId } from '../../utils/hms_api';
 import { useToast } from '../../hooks/use-toast';
-import { Edit2, Trash2, Plus, LayoutGrid, Users as UsersIcon, Info, Eye } from 'lucide-react';
+import { Edit2, Trash2, Plus, LayoutGrid, Users as UsersIcon, Info, Eye, Loader2 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { SkeletonCard } from '../ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,7 +41,7 @@ interface Room {
 import { useHMSContext } from "../../context/HMSContext";
 
 const RoomManagement: React.FC = () => {
-  const { hostels, loading: isLoadingHostels, getCachedFloors, getCachedRooms, fetchHostelsOnly, setStatistics, skeletonMode } = useHMSContext();
+  const { hostels, loading: isLoadingHostels, fetchHostelsOnly, setStatistics, skeletonMode, refreshData } = useHMSContext();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedHostel, setSelectedHostel] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -150,34 +150,28 @@ const RoomManagement: React.FC = () => {
   };
 
   const fetchHostelFloors = async (hostelId: number) => {
-    setIsLoadingFloors(true);
-    try {
-      const floors = await getCachedFloors(hostelId);
-      const hostel = hostels.find(h => h.id === hostelId);
-      const floorCount = hostel ? hostel.floor_count || 1 : 1;
-      const generatedFloors = Array.from({ length: floorCount }, (_, i) => i);
-      const allFloors = Array.from(new Set([...floors, ...generatedFloors]));
-      setAvailableFloors(allFloors);
-    } catch (error) {
-      console.error("Error fetching floors:", error);
-    } finally {
-      setIsLoadingFloors(false);
-    }
+    const hostel = hostels.find(h => h.id === hostelId);
+    const floorCount = hostel?.floor_count || 1;
+    setAvailableFloors(Array.from({ length: floorCount }, (_, i) => i));
   };
 
   const fetchRoomsByHostel = async (hostelId: number, floor?: string) => {
     setIsLoadingRooms(true);
     try {
-      const results = await getCachedRooms(hostelId, floor);
-      setRooms(results);
-
-      const countsMap: { [key: number]: number; } = {};
-      results.forEach((room: any) => {
-        countsMap[room.id] = room.student_count || 0;
-      });
-      setRoomStudentCounts(countsMap);
+      const response = await getRoomsByHostelId(hostelId, floor);
+      if (response.success) {
+        const results = response.data?.rooms || response.rooms || response.results || [];
+        const roomList = Array.isArray(results) ? results : [];
+        setRooms(roomList);
+        const countsMap: { [key: number]: number } = {};
+        roomList.forEach((room: any) => { countsMap[room.id] = room.student_count || 0; });
+        setRoomStudentCounts(countsMap);
+      } else {
+        setRooms([]);
+      }
     } catch (error) {
       console.error("Error fetching rooms:", error);
+      setRooms([]);
     } finally {
       setIsLoadingRooms(false);
     }
@@ -185,60 +179,75 @@ const RoomManagement: React.FC = () => {
 
 
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
+    try {
+      // Fetch all rooms for this hostel to check duplication
+      const allRoomsResponse = await getRoomsByHostelId(formData.hostel, "all");
+      const allRoomsInHostel = allRoomsResponse.success
+        ? (allRoomsResponse.data?.rooms || allRoomsResponse.rooms || allRoomsResponse.results || [])
+        : [];
 
-    // Fetch all rooms for this hostel to check duplication
-    const allRoomsInHostel = await getCachedRooms(formData.hostel, "all");
+      // Check for duplicate room entry in the same hostel
+      const duplicate = allRoomsInHostel.find((r) =>
+        r.hostel === formData.hostel &&
+        r.no === formData.no && (
+          !editingRoom || r.id !== editingRoom.id)
+      );
 
-    // Check for duplicate room entry in the same hostel
-    const duplicate = allRoomsInHostel.find((r) =>
-      r.hostel === formData.hostel &&
-      r.no === formData.no && (
-        !editingRoom || r.id !== editingRoom.id)
-    );
-
-    if (duplicate) {
-      const currentTheme = theme === 'dark' ? 'dark' : 'light';
-      Swal.fire({
-        title: 'Duplicate Room',
-        text: `Room number ${formData.no} already exists in this hostel.`,
-        icon: 'error',
-        confirmButtonColor: '#ef4444',
-        background: currentTheme === 'dark' ? '#1f2937' : '#fff',
-        color: currentTheme === 'dark' ? '#fff' : '#000'
-      });
-      return;
-    }
-
-    const payload = { ...formData, floor: selectedFloor !== null ? selectedFloor : 0 };
-    const method = editingRoom ? 'PUT' : 'POST';
-    const response = await manageRooms(payload, editingRoom?.id, method);
-
-    if (response.success) {
-      // Invalidate context cache to ensure other pages fetch fresh data
-      await refreshData(true);
-
-      // Refresh local room and floor data
-      if (selectedHostel) {
-        await fetchHostelFloors(selectedHostel);
-        if (selectedFloorFilter) {
-          await fetchRoomsByHostel(selectedHostel, selectedFloorFilter);
-        }
+      if (duplicate) {
+        const currentTheme = theme === 'dark' ? 'dark' : 'light';
+        Swal.fire({
+          title: 'Duplicate Room',
+          text: `Room number ${formData.no} already exists in this hostel.`,
+          icon: 'error',
+          confirmButtonColor: '#ef4444',
+          background: currentTheme === 'dark' ? '#1f2937' : '#fff',
+          color: currentTheme === 'dark' ? '#fff' : '#000'
+        });
+        setIsSaving(false);
+        return;
       }
 
-      setIsDialogOpen(false);
-      setEditingRoom(null);
-      toast({
-        title: "Success",
-        description: `Room ${editingRoom ? 'updated' : 'created'} successfully`
-      });
-    } else {
+      const payload = { ...formData, floor: selectedFloor !== null ? selectedFloor : 0 };
+      const method = editingRoom ? 'PUT' : 'POST';
+      const response = await manageRooms(payload, editingRoom?.id, method);
+
+      if (response.success) {
+        // Invalidate context cache to ensure other pages fetch fresh data
+        await refreshData(true);
+
+        // Refresh local room and floor data
+        if (selectedHostel) {
+          await fetchHostelFloors(selectedHostel);
+          await fetchRoomsByHostel(selectedHostel, selectedFloorFilter || "all");
+        }
+
+        setIsDialogOpen(false);
+        setEditingRoom(null);
+        toast({
+          title: "Success",
+          description: `Room ${editingRoom ? 'updated' : 'created'} successfully`
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: response.message || "Failed to save room"
+        });
+      }
+    } catch (err) {
+      console.error(err);
       toast({
         variant: "destructive",
         title: "Error",
-        description: response.message || "Failed to save room"
+        description: "An unexpected error occurred while saving the room."
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -575,7 +584,16 @@ const RoomManagement: React.FC = () => {
                               <Trash2 size={16} />
                             </Button>
                           }
-                          <Button type="submit" className="flex-1 h-10 font-bold">{editingRoom ? 'Update Room' : 'Create Room'}</Button>
+                          <Button type="submit" disabled={isSaving} className="flex-1 h-10 font-bold flex items-center justify-center gap-2">
+                            {isSaving ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                {editingRoom ? 'Updating...' : 'Creating...'}
+                              </>
+                            ) : (
+                              editingRoom ? 'Update Room' : 'Create Room'
+                            )}
+                          </Button>
                         </div>
                       </form>
                     </DialogContent>

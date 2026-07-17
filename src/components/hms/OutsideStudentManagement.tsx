@@ -383,7 +383,7 @@ const OutsideStudentManagement: React.FC = () => {
       const updatedStudent: OutsideStudent = {
         ...editingStudent,
         ...response.data,
-        room_name: selectedRoom?.room_number || (formData.room ? editingStudent.room_name : undefined),
+        room_name: selectedRoom?.name || (formData.room ? editingStudent.room_name : undefined),
         room_hostel_name: selectedHostel?.name || (formData.room ? editingStudent.room_hostel_name : undefined)
       };
 
@@ -925,7 +925,7 @@ const OutsideStudentManagement: React.FC = () => {
                               (() => {
                                 const selectedRoomObj = roomsForHostel.find((r) => r.id == formData.room);
                                 if (selectedRoomObj) {
-                                  return `${selectedRoomObj.room_number || selectedRoomObj.name} (${selectedRoomObj.student_count}/${selectedRoomObj.capacity})`;
+                                  return `${selectedRoomObj.name} (${selectedRoomObj.student_count}/${selectedRoomObj.capacity})`;
                                 }
                                 return (formData.room == editingStudent?.room ? editingStudent?.room_name : '') || 'Choose Room';
                               })()
@@ -958,7 +958,7 @@ const OutsideStudentManagement: React.FC = () => {
                           </div>
                           {roomsForHostel.map((r) =>
                             <SelectItem key={r.id} value={r.id.toString()} disabled={r.student_count >= r.capacity && editingStudent.room !== r.id}>
-                              Room {r.room_number} ({r.student_count}/{r.capacity} occupied)
+                              Room {r.name} ({r.student_count}/{r.capacity} occupied)
                             </SelectItem>
                           )}
                         </SelectContent>

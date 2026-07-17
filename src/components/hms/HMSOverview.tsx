@@ -22,7 +22,7 @@ import {
   DialogDescription
 } from
   "@/components/ui/dialog";
-import { getRoomDetail } from "../../utils/hms_api";
+import { getFloorsByHostel, getRoomsByHostelId, getRoomDetail } from '../../utils/hms_api';
 import { Button } from "@/components/ui/button";
 import DashboardCard from "../common/DashboardCard";
 import {
@@ -44,7 +44,7 @@ interface Room {
   id: number;
   hostel: number;
   hostel_name?: string;
-  room_number: string;
+  name: string;
   room_type: 'S' | 'D' | 'P' | 'B';
   capacity: number;
   student_count: number;
@@ -68,7 +68,7 @@ interface Stats {
 
 const HMSOverview = () => {
   const { theme } = useTheme();
-  const { hostels, statistics, fetchDashboardStats, loading, getCachedFloors, getCachedRooms, skeletonMode } = useHMSContext();
+  const { hostels, statistics, fetchDashboardStats, loading, skeletonMode } = useHMSContext();
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedHostel, setSelectedHostel] = useState<number | null>(null);
@@ -115,21 +115,42 @@ const HMSOverview = () => {
   }, [selectedHostel, selectedFloor]);
 
   const fetchHostelFloors = async (hostelId: number) => {
-    const floors = await getCachedFloors(hostelId);
-    const hostel = hostels.find(h => h.id === hostelId);
-    const floorCount = hostel ? hostel.floor_count || 1 : 1;
-    const generatedFloors = Array.from({ length: floorCount }, (_, i) => i);
-    const allFloors = Array.from(new Set([...floors, ...generatedFloors]));
-    setAvailableFloors(allFloors);
+    try {
+      const response = await getRoomsByHostelId(hostelId, 'all');
+      const hostel = hostels.find(h => h.id === hostelId);
+      const floorCount = hostel?.floor_count || 1;
+      const generatedFloors = Array.from({ length: floorCount }, (_, i) => i);
+      
+      if (response.success) {
+        const allRooms = response.data?.rooms || response.rooms || response.results || [];
+        const roomFloors = (Array.isArray(allRooms) ? allRooms : [])
+          .map((r: any) => r.floor)
+          .filter((f: any) => typeof f === 'number');
+        const combined = Array.from(new Set([...generatedFloors, ...roomFloors])).sort((a, b) => a - b);
+        setAvailableFloors(combined);
+      } else {
+        setAvailableFloors(generatedFloors);
+      }
+    } catch (error) {
+      console.error('Error fetching floors:', error);
+      const hostel = hostels.find(h => h.id === hostelId);
+      setAvailableFloors(Array.from({ length: hostel?.floor_count || 1 }, (_, i) => i));
+    }
   };
 
   const fetchHostelRooms = async (hostelId: number, floor?: string) => {
     setLoadingRooms(true);
     try {
-      const results = await getCachedRooms(hostelId, floor);
-      setRooms(results);
+      const response = await getRoomsByHostelId(hostelId, floor);
+      if (response.success) {
+        const rooms = response.data?.rooms || response.rooms || response.results || [];
+        setRooms(Array.isArray(rooms) ? rooms : []);
+      } else {
+        setRooms([]);
+      }
     } catch (error) {
       console.error("Error fetching rooms:", error);
+      setRooms([]);
     } finally {
       setLoadingRooms(false);
     }
@@ -177,7 +198,7 @@ const HMSOverview = () => {
 
   // Group rooms by floor for display and sort within floors
   const roomsByFloor = rooms.reduce((acc, room) => {
-    const floor = room.floor !== undefined ? room.floor : getFloorFromRoomNumber(room.room_number || '');
+    const floor = room.floor !== undefined ? room.floor : getFloorFromRoomNumber(room.name || '');
     if (!acc[floor]) acc[floor] = [];
     acc[floor].push(room);
     return acc;
@@ -185,7 +206,7 @@ const HMSOverview = () => {
 
   // Ensure rooms in each floor are sorted by room_number safely
   Object.keys(roomsByFloor).forEach((f) => {
-    roomsByFloor[Number(f)].sort((a, b) => (a.room_number || '').localeCompare(b.room_number || '', undefined, { numeric: true }));
+    roomsByFloor[Number(f)].sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { numeric: true }));
   });
 
   const containerVariants = {
@@ -377,53 +398,70 @@ const HMSOverview = () => {
                   <p className="text-muted-foreground font-medium text-lg text-center px-4">Select a floor to view room occupancy</p>
                   <p className="text-muted-foreground/70 text-sm text-center px-4 mt-1">Choose a floor from the dropdown above to see the room matrix</p>
                 </motion.div> :
-                Object.keys(roomsByFloor).length > 0 ?
-                  <div className="space-y-8">
-                    {Object.keys(roomsByFloor).
-                      map((k) => Number(k)).
-                      sort((a, b) => a - b).
-                      filter((f) => selectedFloor === "all" || f.toString() === selectedFloor).
-                      map((floorNum) =>
-                        <div key={floorNum}>
-                          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                            Floor {floorNum === 0 ? 'Ground' : floorNum}
-                          </h3>
-                          <motion.div
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                            className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                            {roomsByFloor[floorNum].map((room) =>
+                (() => {
+                  const floorsToRender = selectedFloor === "all" 
+                    ? availableFloors.sort((a, b) => a - b)
+                    : selectedFloor !== "" 
+                      ? [Number(selectedFloor)] 
+                      : [];
+
+                  if (floorsToRender.length === 0) {
+                    return (
+                      <div className="text-center py-12 text-muted-foreground">
+                        No rooms available for this hostel.
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-8">
+                      {floorsToRender.map((floorNum) => {
+                        const floorRooms = roomsByFloor[floorNum] || [];
+                        return (
+                          <div key={floorNum} className="border-b pb-6 last:border-b-0 last:pb-0">
+                            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+                              Floor {floorNum === 0 ? 'Ground' : floorNum}
+                            </h3>
+                            {floorRooms.length > 0 ? (
                               <motion.div
-                                key={room.id}
-                                variants={itemVariants}
-                                whileHover={{ scale: 1.05 }}
-                                onClick={() => handleRoomClick(room)}
-                                className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${getRoomColor(
-                                  room.student_count,
-                                  room.capacity
-                                )} font-medium shadow-sm hover:shadow-md`}
-                                title={`${room.room_number}: ${room.student_count}/${room.capacity} students. Click to view.`}>
-
-                                <div className="text-[10px] opacity-70 mb-1">ROOM</div>
-                                <div className="text-sm font-bold">{room.room_number}</div>
-                                <div className="text-[10px] mt-1 font-bold">
-                                  {room.student_count}/{room.capacity}
-                                </div>
-                                <div className="mt-2 pt-2 border-t border-current/10 flex items-center justify-center gap-1 text-[12px] uppercase tracking-wider font-bold opacity-60 group-hover:opacity-100 transition-all">
-                                  <Eye size={15} />
-                                  <span>View</span>
-                                </div>
+                                variants={containerVariants}
+                                initial="hidden"
+                                animate="visible"
+                                className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                                {floorRooms.map((room) =>
+                                  <motion.div
+                                    key={room.id}
+                                    variants={itemVariants}
+                                    whileHover={{ scale: 1.05 }}
+                                    onClick={() => handleRoomClick(room)}
+                                    className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${getRoomColor(
+                                      room.student_count,
+                                      room.capacity
+                                    )} font-medium shadow-sm hover:shadow-md`}
+                                    title={`${room.name}: ${room.student_count}/${room.capacity} students. Click to view.`}>
+                                    <div className="text-[10px] opacity-70 mb-1">ROOM</div>
+                                    <div className="text-sm font-bold">{room.name}</div>
+                                    <div className="text-[10px] mt-1 font-bold">
+                                      {room.student_count}/{room.capacity}
+                                    </div>
+                                    <div className="mt-2 pt-2 border-t border-current/10 flex items-center justify-center gap-1 text-[12px] uppercase tracking-wider font-bold opacity-60 group-hover:opacity-100 transition-all">
+                                      <Eye size={15} />
+                                      <span>View</span>
+                                    </div>
+                                  </motion.div>
+                                )}
                               </motion.div>
+                            ) : (
+                              <div className="text-xs text-muted-foreground/60 italic py-2 pl-2">
+                                No rooms allotted or available on this floor.
+                              </div>
                             )}
-                          </motion.div>
-                        </div>
-                      )}
-                  </div> :
-
-                  <div className="text-center py-12 text-muted-foreground">
-                    No rooms available for this hostel.
-                  </div> :
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })() :
 
 
               <motion.div
@@ -444,7 +482,7 @@ const HMSOverview = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full ${selectedRoom ? getRoomColor(selectedRoom.student_count, selectedRoom.capacity).split(' ')[0].replace('/10', '') : ''}`} />
-              Room {selectedRoom?.room_number} Residents
+              Room {selectedRoom?.name} Residents
             </DialogTitle>
             <DialogDescription>
               {selectedRoom?.student_count} of {selectedRoom?.capacity} beds occupied.

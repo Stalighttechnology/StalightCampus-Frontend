@@ -46,7 +46,7 @@ interface Room {
   id: number;
   hostel: number;
   name: string;
-  room_number: string;
+
   room_type: 'S' | 'D' | 'P' | 'B';
   capacity: number;
   student_count: number;
@@ -327,10 +327,10 @@ const WardenDashboard = () => {
                     room.student_count,
                     room.capacity
                   )} font-medium shadow-sm hover:shadow-md`}
-                  title={`${room.room_number}: ${room.student_count}/${room.capacity} students. Click to view.`}>
+                  title={`${room.name}: ${room.student_count}/${room.capacity} students. Click to view.`}>
                   
                             <div className="text-[12px] sm:text-[10px] opacity-70 mb-1">ROOM</div>
-                            <div className="text-base sm:text-sm font-bold">{room.room_number}</div>
+                            <div className="text-base sm:text-sm font-bold">{room.name}</div>
                             <div className="text-[12px] sm:text-[10px] mt-1 font-bold">
                               {room.student_count}/{room.capacity}
                             </div>
@@ -367,7 +367,7 @@ const WardenDashboard = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full ${selectedRoom ? getRoomColor(selectedRoom.student_count, selectedRoom.capacity).split(' ')[0].replace('/10', '') : ''}`} />
-              Room {selectedRoom?.room_number} Residents
+              Room {selectedRoom?.name} Residents
             </DialogTitle>
             <DialogDescription>
               {selectedRoom?.student_count} of {selectedRoom?.capacity} beds occupied.

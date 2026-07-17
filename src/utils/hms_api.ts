@@ -12,7 +12,7 @@ interface Hostel {
 interface HostelRoom {
   id: number;
   hostel: number;
-  room_number: string;
+  name: string;
   capacity: number;
   occupied: number;
   room_type: 'S' | 'D' | 'P' | 'B';
