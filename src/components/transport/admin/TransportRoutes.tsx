@@ -894,18 +894,18 @@ const TransportRoutes: React.FC = () => {
                                   </div>
                                 </td>
                                 <td className="p-4 text-sm sm:text-xs">
-                                  <div className="flex flex-col items-start gap-1">
-                                    <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs sm:text-[10px] font-bold">
-                                      {r.total_stops || 0} stops
-                                    </span>
-                                    <button 
-                                      onClick={() => openRouteStopsView(r)}
-                                      className="text-xs font-semibold text-primary hover:underline focus:outline-none"
-                                    >
-                                      View
-                                    </button>
-                                  </div>
-                                </td>
+                                   <div className="flex flex-col items-center gap-1.5 w-fit">
+                                     <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs sm:text-[10px] font-bold">
+                                       {r.total_stops || 0} stops
+                                     </span>
+                                     <button 
+                                       onClick={() => openRouteStopsView(r)}
+                                       className="text-[11px] font-semibold text-primary border border-primary/20 hover:border-primary/40 rounded px-2.5 py-0.5 hover:bg-primary/5 transition-colors focus:outline-none"
+                                     >
+                                       View
+                                     </button>
+                                   </div>
+                                 </td>
                                 <td className="p-4 text-right">
                                   <div className="flex gap-2 justify-end items-center">
                                     <Button size="icon" variant="ghost" onClick={() => startEditRoute(r)} className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20">
