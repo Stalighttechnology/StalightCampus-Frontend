@@ -182,7 +182,7 @@ export const getHostels = async (): Promise<HMSResponse<any>> => {
 };
 
 export const getHostelManagementInit = async (): Promise<HMSResponse<any>> => {
-  return hmsApiCall<any>("hostel-init/", "GET");
+  return hmsApiCall<any>("hostels/details/", "GET");
 };
 
 // Fetch room details (including residents)

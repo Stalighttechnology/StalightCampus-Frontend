@@ -81,8 +81,8 @@ const HMSOverview = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchDashboardStats();
-  }, [fetchDashboardStats]);
+    fetchDashboardStats(true);
+  }, []);
 
   // Map backend stats to component stats
   const stats = {

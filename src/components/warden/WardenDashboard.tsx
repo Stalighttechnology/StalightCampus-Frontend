@@ -215,7 +215,7 @@ const WardenDashboard = () => {
         <DashboardCard
           title="Occupancy Rate"
           value={`${stats?.occupancy_rate || 0}%`}
-          description="Room utilization"
+          description={`Total: ${stats?.total_capacity || 0} | Avail: ${Math.max(0, (stats?.total_capacity || 0) - (stats?.total_students || 0))}`}
           icon={<ClipboardList size={20} className="text-green-500" />} />
         
       </div>

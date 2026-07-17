@@ -84,6 +84,10 @@ const HostelManagement: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    refreshData();
+  }, []);
+
+  useEffect(() => {
     if (location.state?.openAddHostel) {
       setEditingHostel(null);
       setFormData({
