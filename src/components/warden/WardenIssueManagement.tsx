@@ -401,7 +401,7 @@ const WardenIssueManagement = () => {
                             </div>
 
                           {/* Mobile View Details Button */}
-                          <div className="mt-3 pt-3 border-t border-border/50 flex sm:hidden">
+                          <div className="mt-3 pt-3 border-t border-border/50 flex lg:hidden">
                             <Button
                               variant="outline"
                               size="sm"
@@ -612,7 +612,7 @@ const WardenIssueManagement = () => {
 
       {/* Mobile Details Dialog */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-        <DialogContent className="w-[90%] max-w-[90vw] h-[80vh] sm:hidden rounded-xl overflow-y-auto custom-scrollbar p-0">
+        <DialogContent className="w-[90%] max-w-[90vw] h-[80vh] lg:hidden rounded-xl overflow-y-auto custom-scrollbar p-0">
           {selectedIssue && (
             <div className="flex flex-col h-full bg-background">
               {/* Header with Title and Status */}

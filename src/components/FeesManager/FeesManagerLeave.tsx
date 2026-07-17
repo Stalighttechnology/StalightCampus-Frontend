@@ -214,7 +214,7 @@ const FeesManagerLeave = () => {
 
             {/* Leave Title */}
             <div className="space-y-2">
-              <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Title for Leave *</Label>
+              <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Title for Leave <span className="text-red-500">*</span></Label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -227,7 +227,7 @@ const FeesManagerLeave = () => {
 
             {/* Date Range */}
             <div className="space-y-2">
-              <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Date Range *</Label>
+              <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Date Range <span className="text-red-500">*</span></Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -265,7 +265,7 @@ const FeesManagerLeave = () => {
 
             {/* Reason for Leave */}
             <div className="space-y-2">
-              <Label htmlFor="reason" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Reason for Leave *</Label>
+              <Label htmlFor="reason" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Reason for Leave <span className="text-red-500">*</span></Label>
               <Textarea
                 id="reason"
                 value={reason}
