@@ -219,7 +219,7 @@ const SubmitLeaveRequest = () => {
               }
 
               <div className="space-y-2">
-                <Label htmlFor="title" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Title</Label>
+                <Label htmlFor="title" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Title <span className="text-red-500">*</span></Label>
                 <input
                   id="title"
                   type="text"
@@ -232,7 +232,7 @@ const SubmitLeaveRequest = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Date Range</Label>
+                <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Date Range <span className="text-red-500">*</span></Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -269,7 +269,7 @@ const SubmitLeaveRequest = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="reason" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Reason</Label>
+                <Label htmlFor="reason" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Reason <span className="text-red-500">*</span></Label>
                 <Textarea
                   id="reason"
                   value={reason}

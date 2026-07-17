@@ -600,7 +600,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Profile", page: "profile" },
     ],
     transport_admin: [
-      { name: "Overview", page: "dashboard" },
+      { name: "Dashboard", page: "dashboard" },
       { name: "Buses", page: "transport-buses" },
       { name: "Drivers", page: "transport-drivers" },
       { name: "Routes & Stops", page: "transport-routes" },
@@ -630,7 +630,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Profile", page: "profile" },
     ],
     library_admin: [
-      { name: "Overview", page: "dashboard" },
+      { name: "Dashboard", page: "dashboard" },
       { name: "Announcements", page: "announcements" },
       { name: "Books Catalog", page: "library-books" },
       { name: "Circulation", page: "library-circulation" },
@@ -770,11 +770,10 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
               window.location.reload();
             }}
           >
-            <SelectTrigger className={`w-full text-xs h-9 ${
-              theme === 'dark'
-                ? 'bg-zinc-800 border-zinc-700 text-gray-200 focus:ring-1 focus:ring-primary'
-                : 'bg-white border-gray-200 text-gray-700 focus:ring-1 focus:ring-primary'
-            }`}>
+            <SelectTrigger className={`w-full text-xs h-9 ${theme === 'dark'
+              ? 'bg-zinc-800 border-zinc-700 text-gray-200 focus:ring-1 focus:ring-primary'
+              : 'bg-white border-gray-200 text-gray-700 focus:ring-1 focus:ring-primary'
+              }`}>
               <SelectValue placeholder="Select Student" />
             </SelectTrigger>
             <SelectContent className={`${theme === 'dark' ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-200'}`}>

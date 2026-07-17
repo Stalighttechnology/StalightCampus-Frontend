@@ -293,7 +293,7 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
 
             {/* Date Range */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
-              <Label className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range</Label>
+              <Label className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range <span className="text-red-500">*</span></Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -336,7 +336,7 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
 
             {/* Reason */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
-              <Label htmlFor="reason" className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</Label>
+              <Label htmlFor="reason" className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason <span className="text-red-500">*</span></Label>
               <Textarea
                 id="reason"
                 value={reason}
