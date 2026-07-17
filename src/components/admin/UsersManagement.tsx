@@ -39,6 +39,7 @@ interface User {
   username?: string; // Added to store original username
   department?: string;
   extra?: { usn?: string; branch?: string; branches?: string[]; };
+  mobile?: string;
 }
 
 interface UsersManagementProps {
@@ -327,7 +328,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
             status: user.is_active ? "Active" : "Inactive",
             username: user.username || "",
             department: user.department || "N/A",
-            extra: user.extra || {}
+            extra: user.extra || {},
+            mobile: user.mobile_number || "",
           })) : [];
 
           setUsers(transformedUsers);
@@ -797,6 +799,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                         {(roleFilter === "" || rolesNeedingDept.includes(roleFilter)) && (
                           <th className="py-2 px-1 md:w-[250px]">Department</th>
                         )}
+                        <th className="py-2 px-1 md:w-[140px]">Mobile</th>
                         <th className="py-2 px-1 md:w-[120px]">Status</th>
                         <th className="py-2 px-1 text-right md:w-[120px]">Actions</th>
                       </tr>
@@ -829,6 +832,9 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                               </span>
                             </td>
                           )}
+                          <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[140px] text-sm font-medium">
+                            {user.mobile ? user.mobile : <span className="text-muted-foreground">—</span>}
+                          </td>
                           <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getStatusBadge(user.status, theme)}</td>
                           <td className="table-cell py-2 px-1 text-right">
                             <div className="action-buttons whitespace-nowrap justify-end gap-2">
