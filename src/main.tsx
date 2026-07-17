@@ -126,7 +126,7 @@ if (typeof window !== 'undefined') {
 
         const file = new File([fileBlob], downloadAttr, { type: mimeType });
 
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        if (event.isTrusted && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
             title: downloadAttr,

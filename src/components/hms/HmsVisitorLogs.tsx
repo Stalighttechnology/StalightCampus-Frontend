@@ -291,9 +291,9 @@ const HmsVisitorLogs = () => {
                         <p className="text-sm text-muted-foreground mt-0.5">{log.mobile_number}</p>
                       </div>
                       <div className="flex flex-col items-end gap-1.5 shrink-0">
-                        <Badge variant="secondary" className="text-[11px] font-semibold bg-primary/5 text-primary border-none">
+                        <span className="text-[11px] font-semibold text-muted-foreground">
                           {log.hostel_name || '-'}
-                        </Badge>
+                        </span>
                         {log.check_out_time ? (
                           <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-none font-semibold text-[11px]">
                             Checked Out
@@ -377,9 +377,9 @@ const HmsVisitorLogs = () => {
                         <td className="py-3 px-4 font-semibold text-md">{log.visitor_name}</td>
                         <td className="py-3 px-4 text-muted-foreground">{log.mobile_number}</td>
                         <td className="py-3 px-4">
-                          <Badge variant="outline" className="bg-primary/5 font-semibold text-xs border-none text-primary">
+                          <span className="font-medium text-sm text-foreground">
                             {log.hostel_name || '-'}
-                          </Badge>
+                          </span>
                         </td>
                         <td className="py-3 px-4">
                           <div className="font-semibold">{log.student_name || '-'}</div>

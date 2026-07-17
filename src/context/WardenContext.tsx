@@ -19,7 +19,7 @@ interface WardenContextType {
   refreshWardenData: () => Promise<void>;
 }
 
-const WardenContext = createContext<WardenContextType | undefined>(undefined);
+export const WardenContext = createContext<WardenContextType | undefined>(undefined);
 
 export const WardenProvider: React.FC<{children: React.ReactNode;}> = ({ children }) => {
   const { role } = useAuth();

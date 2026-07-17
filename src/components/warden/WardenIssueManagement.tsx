@@ -211,6 +211,12 @@ const WardenIssueManagement = () => {
   };
 
   const handleIssueClick = async (issue: Issue) => {
+    if (selectedIssue?.id === issue.id) {
+      if (window.innerWidth < 1024) {
+        setIsDetailsModalOpen(true);
+      }
+      return;
+    }
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/warden/issues/${issue.id}/`);
       const data = await response.json();
@@ -245,6 +251,7 @@ const WardenIssueManagement = () => {
 
       fetchStats();
     } catch (error) {
+      console.error('Failed to update issue status:', error);
       toast({ title: 'Error', description: 'Failed to update issue', variant: 'destructive' });
     } finally {
       setUpdatingIssueId(null);
@@ -339,6 +346,7 @@ const WardenIssueManagement = () => {
                       <SelectItem value="all">All Status</SelectItem>
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="waiting_for_workers">Waiting for Workers</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
                     </SelectContent>
                   </Select>

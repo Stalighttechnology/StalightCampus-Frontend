@@ -147,7 +147,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
     options.credentials = 'include'; // Include cookies
 
     // Add a default timeout of 10 seconds for standard requests, or 60 seconds for file exports and Google Meet API calls
-    const isExportRequest = url.includes('export-pdf') || url.includes('export-csv') || url.includes('/receipt/') || url.includes('/download/') || url.includes('export-payments-pdf');
+    const isExportRequest = url.includes('export-pdf') || url.includes('export_pdf') || url.includes('export-csv') || url.includes('/receipt/') || url.includes('/download/') || url.includes('export-payments-pdf');
     const isMeetingCreate = url.includes('/meetings/') && options.method === 'POST';
     if (!options.signal && typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal) {
       options.signal = (isExportRequest || isMeetingCreate) ? AbortSignal.timeout(60000) : AbortSignal.timeout(10000);
@@ -240,7 +240,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
     }
 
     // Intercept PDF/file downloads that return HTML (indicates redirect or server template issue)
-    const isFileExport = url.includes('export-pdf') || url.includes('export-csv') || url.includes('/receipt/') || url.includes('/download/') || url.includes('export-payments-pdf');
+    const isFileExport = url.includes('export-pdf') || url.includes('export_pdf') || url.includes('export-csv') || url.includes('/receipt/') || url.includes('/download/') || url.includes('export-payments-pdf');
     if (isFileExport && response.ok) {
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('text/html')) {
