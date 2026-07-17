@@ -54,31 +54,38 @@ const WardenHostelOverview = () => {
   const [selectedFloor, setSelectedFloor] = useState<string>("");
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { wardenFloorsMap, loading: contextLoading } = useWardenContext();
+  const { wardenFloorsMap, managedHostels, loading: contextLoading } = useWardenContext();
+  const [selectedHostel, setSelectedHostel] = useState<string>("");
   const [hostelFloors, setHostelFloors] = useState<number[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
-    // Consolidate floors from all managed hostels in the map
-    const allFloors = Object.values(wardenFloorsMap).flat() as number[];
-    const uniqueFloors = Array.from(new Set(allFloors)).sort((a, b) => a - b);
-    setHostelFloors(uniqueFloors);
-  }, [wardenFloorsMap]);
+    if (selectedHostel && selectedHostel !== "all") {
+      const floors = wardenFloorsMap[Number(selectedHostel)] || [];
+      const uniqueFloors = Array.from(new Set(floors)).sort((a, b) => a - b);
+      setHostelFloors(uniqueFloors);
+    } else {
+      const allFloors = Object.values(wardenFloorsMap).flat() as number[];
+      const uniqueFloors = Array.from(new Set(allFloors)).sort((a, b) => a - b);
+      setHostelFloors(uniqueFloors);
+    }
+  }, [wardenFloorsMap, selectedHostel]);
 
   useEffect(() => {
     if (selectedFloor) {
-      fetchStudents(selectedFloor, page);
+      fetchStudents(selectedHostel, selectedFloor, page);
     } else {
       setStudents([]);
     }
-  }, [selectedFloor, page]);
+  }, [selectedHostel, selectedFloor, page]);
 
-  const fetchStudents = async (floor: string, pageNum: number = 1) => {
+  const fetchStudents = async (hostel: string, floor: string, pageNum: number = 1) => {
     setLoading(true);
     try {
-      const result = await getWardenStudents(undefined, floor, undefined, undefined, undefined, pageNum);
+      const hostelParam = hostel && hostel !== "all" ? Number(hostel) : undefined;
+      const result = await getWardenStudents(hostelParam, floor, undefined, undefined, undefined, pageNum);
       const studentList = result.results || result.students || [];
       setStudents(studentList);
       const count = result.count || studentList.length;
@@ -117,14 +124,14 @@ const WardenHostelOverview = () => {
     <>
       <Card className={`border-primary/10 shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
         <CardHeader id="warden-residents-container" className="pb-4 border-b bg-muted/30">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <div className="space-y-1">
               <CardTitle className="text-2xl font-semibold">Resident Management</CardTitle>
               <CardDescription>Manage and track student occupancy, profiles, and contact details by floor.</CardDescription>
             </div>
 
-            <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-              <div className="relative w-full md:w-64">
+            <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full xl:w-auto">
+              <div className="relative w-full sm:flex-1 xl:w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search residents..."
@@ -142,8 +149,22 @@ const WardenHostelOverview = () => {
                 )}
               </div>
 
-              <Select value={selectedFloor} onValueChange={(val) => { setSelectedFloor(val); setPage(1); }}>
-                <SelectTrigger className="w-full md:w-[220px] h-10 rounded-xl">
+              <Select value={selectedHostel} onValueChange={(val) => { setSelectedHostel(val); setSelectedFloor(""); setPage(1); }}>
+                <SelectTrigger className="w-full sm:w-[180px] md:w-[220px] h-10 rounded-xl">
+                  <SelectValue placeholder="Select Hostel" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Hostels</SelectItem>
+                  {managedHostels?.map((hostel: any) => (
+                    <SelectItem key={hostel.id} value={hostel.id.toString()}>
+                      {hostel.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedFloor} onValueChange={(val) => { setSelectedFloor(val); setPage(1); }} disabled={!selectedHostel}>
+                <SelectTrigger className="w-full sm:w-[180px] md:w-[220px] h-10 rounded-xl">
                   <SelectValue placeholder="Select Floor to View" />
                 </SelectTrigger>
                 <SelectContent>
@@ -196,11 +217,11 @@ const WardenHostelOverview = () => {
                             student.name.charAt(0)
                           )}
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-semibold text-sm break-words group-hover:text-primary transition-colors">
+                        <div className="min-w-0 flex-1 overflow-hidden">
+                          <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
                             {student.name}
                           </h3>
-                          <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider break-words">
+                          <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider truncate">
                             {student.usn}
                           </p>
                         </div>

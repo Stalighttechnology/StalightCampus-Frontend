@@ -179,10 +179,7 @@ const WardenDashboard = () => {
         <motion.div
           key={hostel.id}
           whileHover={{ y: -5 }}
-          onClick={() => setSelectedHostel(hostel.id)}
-          className={`p-4 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all cursor-pointer ${
-          selectedHostel === hostel.id ? "border-primary ring-1 ring-primary/20" : "border-border/40"}`
-          }>
+          className={`flex flex-col h-full p-4 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm transition-all border-border/40`}>
           
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
@@ -196,7 +193,7 @@ const WardenDashboard = () => {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-3 mt-3">
+            <div className="grid grid-cols-2 gap-3 mt-auto pt-3">
               <div className="text-center p-2 rounded-lg bg-muted/20">
                 <div className="text-2xl sm:text-xl font-bold text-primary">{hostel.room_count}</div>
                 <div className="text-[12px] sm:text-[10px] text-muted-foreground uppercase font-semibold">Rooms</div>
@@ -233,11 +230,30 @@ const WardenDashboard = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              {/* Hostel Filter */}
+              <div className="w-full sm:w-40 md:w-48">
+                <Select
+                  value={selectedHostel?.toString() || ""}
+                  onValueChange={(val) => setSelectedHostel(Number(val))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose Hostel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {hostels.map((hostel) => (
+                      <SelectItem key={hostel.id} value={hostel.id.toString()}>
+                        {hostel.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Floor Filter */}
               <div className="w-full sm:w-40 md:w-48">
                 <Select
                   value={selectedFloor}
-                  onValueChange={setSelectedFloor}>
+                  onValueChange={setSelectedFloor}
+                  disabled={!selectedHostel}>
                   
                   <SelectTrigger>
                     <SelectValue placeholder="Choose Floor" />
@@ -301,13 +317,13 @@ const WardenDashboard = () => {
                       <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
                         Floor {floorNum === 0 ? 'Ground' : floorNum}
                       </h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                      <div className="flex overflow-x-auto gap-4 pb-4 custom-scrollbar snap-x">
                         {roomsByFloor[floorNum].map((room) =>
                 <motion.div
                   key={room.id}
                   whileHover={{ scale: 1.05 }}
                   onClick={() => handleRoomClick(room)}
-                  className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${getRoomColor(
+                  className={`min-w-[140px] flex-shrink-0 snap-start p-3 rounded-lg border text-center transition-all cursor-pointer ${getRoomColor(
                     room.student_count,
                     room.capacity
                   )} font-medium shadow-sm hover:shadow-md`}
@@ -339,7 +355,7 @@ const WardenDashboard = () => {
                 <Building2 size={40} className="text-primary/50" />
               </div>
               <p className="text-xl font-bold text-primary/80">Select a Hostel</p>
-              <p className="text-base text-muted-foreground mt-2 max-w-sm mx-auto">Choose a hostel card from above to view the detailed room occupancy matrix.</p>
+              <p className="text-base text-muted-foreground mt-2 max-w-sm mx-auto">Choose a hostel from the filter above to view the detailed room occupancy matrix.</p>
             </div>
           }
         </div>

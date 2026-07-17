@@ -610,6 +610,10 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
                       <span className={`text-[14px] font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</span>
                       <span className={`text-base break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.mobile_number || '—'}</span>
                     </div>
+                    <div className="flex flex-col justify-start">
+                      <span className={`text-[14px] font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Role</span>
+                      <span className={`text-base break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>Warden</span>
+                    </div>
                   </div>
                 </div>
               </div>
