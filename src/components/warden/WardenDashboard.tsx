@@ -172,59 +172,116 @@ const WardenDashboard = () => {
       animate="visible"
       variants={containerVariants}>
       
-      {/* Overview & Hostels Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Hostel Selection Cards */}
-        <div id="warden-hostels-grid" className="md:col-span-1 flex flex-col gap-6">
-          {hostels.map((hostel) => (
-            <motion.div
-              key={hostel.id}
-              whileHover={{ y: -5 }}
-              className="flex flex-col h-full p-4 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm transition-all border-border/40"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
-                  <Building2 size={20} />
+      {hostels.length >= 2 ? (
+        <>
+          {/* Global Stats Cards */}
+          <div id="warden-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <DashboardCard
+              title="Pending Issues"
+              value={stats?.pending_issues || 0}
+              description="Awaiting resolution"
+              icon={<AlertCircle size={20} className="text-amber-500" />}
+            />
+            
+            <DashboardCard
+              title="Occupancy Rate"
+              value={`${stats?.occupancy_rate || 0}%`}
+              description={`Total: ${stats?.total_capacity || 0} | Avail: ${Math.max(0, (stats?.total_capacity || 0) - (stats?.total_students || 0))}`}
+              icon={<ClipboardList size={20} className="text-green-500" />}
+            />
+          </div>
+
+          {/* Hostel Selection Cards */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Managed Hostels</h3>
+            <div id="warden-hostels-grid" className="flex flex-wrap gap-6">
+              {hostels.map((hostel) => (
+                <motion.div
+                  key={hostel.id}
+                  whileHover={{ y: -5 }}
+                  className="flex-1 min-w-[280px] max-w-full sm:max-w-[350px] flex flex-col p-4 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm transition-all border-border/40 cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
+                      <Building2 size={20} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-xl sm:text-base leading-tight mb-1">{hostel.name}</h3>
+                      <p className="text-[14px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                        {hostel.gender === 'M' ? 'Boys Hostel' : 'Girls Hostel'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 mt-auto pt-3">
+                    <div className="text-center p-2 rounded-lg bg-muted/20">
+                      <div className="text-2xl sm:text-xl font-bold text-primary">{hostel.room_count}</div>
+                      <div className="text-[12px] sm:text-[10px] text-muted-foreground uppercase font-semibold">Rooms</div>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-muted/20">
+                      <div className="text-2xl sm:text-xl font-bold text-primary">{hostel.student_count}</div>
+                      <div className="text-[12px] sm:text-[10px] text-muted-foreground uppercase font-semibold">Students</div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Hostel Selection Cards */}
+          <div id="warden-hostels-grid" className="md:col-span-1 flex flex-col gap-6">
+            {hostels.map((hostel) => (
+              <motion.div
+                key={hostel.id}
+                whileHover={{ y: -5 }}
+                className="flex flex-col h-full p-4 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm transition-all border-border/40 cursor-pointer"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
+                    <Building2 size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xl sm:text-base leading-tight mb-1">{hostel.name}</h3>
+                    <p className="text-[14px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                      {hostel.gender === 'M' ? 'Boys Hostel' : 'Girls Hostel'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-xl sm:text-base leading-tight mb-1">{hostel.name}</h3>
-                  <p className="text-[14px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                    {hostel.gender === 'M' ? 'Boys Hostel' : 'Girls Hostel'}
-                  </p>
+                
+                <div className="grid grid-cols-2 gap-3 mt-auto pt-3">
+                  <div className="text-center p-2 rounded-lg bg-muted/20">
+                    <div className="text-2xl sm:text-xl font-bold text-primary">{hostel.room_count}</div>
+                    <div className="text-[12px] sm:text-[10px] text-muted-foreground uppercase font-semibold">Rooms</div>
+                  </div>
+                  <div className="text-center p-2 rounded-lg bg-muted/20">
+                    <div className="text-2xl sm:text-xl font-bold text-primary">{hostel.student_count}</div>
+                    <div className="text-[12px] sm:text-[10px] text-muted-foreground uppercase font-semibold">Students</div>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3 mt-auto pt-3">
-                <div className="text-center p-2 rounded-lg bg-muted/20">
-                  <div className="text-2xl sm:text-xl font-bold text-primary">{hostel.room_count}</div>
-                  <div className="text-[12px] sm:text-[10px] text-muted-foreground uppercase font-semibold">Rooms</div>
-                </div>
-                <div className="text-center p-2 rounded-lg bg-muted/20">
-                  <div className="text-2xl sm:text-xl font-bold text-primary">{hostel.student_count}</div>
-                  <div className="text-[12px] sm:text-[10px] text-muted-foreground uppercase font-semibold">Students</div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-        
-        {/* Global Stats Cards */}
-        <div id="warden-stats-grid" className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <DashboardCard
-            title="Pending Issues"
-            value={stats?.pending_issues || 0}
-            description="Awaiting resolution"
-            icon={<AlertCircle size={20} className="text-amber-500" />}
-          />
+              </motion.div>
+            ))}
+          </div>
           
-          <DashboardCard
-            title="Occupancy Rate"
-            value={`${stats?.occupancy_rate || 0}%`}
-            description={`Total: ${stats?.total_capacity || 0} | Avail: ${Math.max(0, (stats?.total_capacity || 0) - (stats?.total_students || 0))}`}
-            icon={<ClipboardList size={20} className="text-green-500" />}
-          />
+          {/* Global Stats Cards */}
+          <div id="warden-stats-grid" className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <DashboardCard
+              title="Pending Issues"
+              value={stats?.pending_issues || 0}
+              description="Awaiting resolution"
+              icon={<AlertCircle size={20} className="text-amber-500" />}
+            />
+            
+            <DashboardCard
+              title="Occupancy Rate"
+              value={`${stats?.occupancy_rate || 0}%`}
+              description={`Total: ${stats?.total_capacity || 0} | Avail: ${Math.max(0, (stats?.total_capacity || 0) - (stats?.total_students || 0))}`}
+              icon={<ClipboardList size={20} className="text-green-500" />}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Room Matrix Visualization (Mirroring HMS Admin) */}
       <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
