@@ -33,7 +33,8 @@ import {
   UserCheck,
   AlertTriangle,
   AlertCircle,
-  ClipboardCheck
+  ClipboardCheck,
+  Loader2
 } from 'lucide-react';
 import {
   getPayrollSettings,
@@ -218,6 +219,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
   const [reportYear, setReportYear] = useState(new Date().getFullYear());
   const [reportDownloading, setReportDownloading] = useState<string | null>(null);
+  const [downloadingPayslipId, setDownloadingPayslipId] = useState<number | null>(null);
   
   // Modal / Slide-over state for Editing Structure
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
@@ -1743,15 +1745,25 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                     <td className="px-6 py-4 text-right font-medium">
                       <button
                         onClick={async () => {
-                          const filename = `payslip_${det.employee_name.replace(/\s+/g, '_')}_${selectedRun.month}_${selectedRun.year}.pdf`;
-                          const res = await downloadPayslipPDF(det.id, filename);
-                          if (!res.success) {
-                            alert(res.message || "Failed to download PDF");
+                          setDownloadingPayslipId(det.id);
+                          try {
+                            const filename = `payslip_${det.employee_name.replace(/\s+/g, '_')}_${selectedRun.month}_${selectedRun.year}.pdf`;
+                            const res = await downloadPayslipPDF(det.id, filename);
+                            if (!res.success) {
+                              alert(res.message || "Failed to download PDF");
+                            }
+                          } finally {
+                            setDownloadingPayslipId(null);
                           }
                         }}
-                        className="text-blue-500 hover:text-blue-600 inline-flex items-center gap-1 hover:underline font-semibold bg-transparent border-none cursor-pointer"
+                        disabled={downloadingPayslipId === det.id}
+                        className="text-blue-500 hover:text-blue-600 inline-flex items-center gap-1 hover:underline font-semibold bg-transparent border-none cursor-pointer disabled:opacity-50 disabled:no-underline"
                       >
-                        <Download size={14} /> PDF
+                        {downloadingPayslipId === det.id ? (
+                          <><Loader2 className="animate-spin" size={14} /> PDF</>
+                        ) : (
+                          <><Download size={14} /> PDF</>
+                        )}
                       </button>
                     </td>
                   </tr>
