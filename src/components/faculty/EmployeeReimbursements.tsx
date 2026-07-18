@@ -162,7 +162,7 @@ const EmployeeReimbursements: React.FC = () => {
   return (
     <div className={`w-full min-h-full ${isDark ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'} pb-10`}>
       <Card className={isDark ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
-        <CardHeader className="p-4 sm:p-6 pb-4 border-b border-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4 space-y-0">
+        <CardHeader className="p-4 sm:p-4 pb-4 border-b border-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4 space-y-0">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <CardTitle className={`sm:text-2xl text-xl font-semibold flex items-center gap-2 ${isDark ? 'text-foreground' : 'text-gray-900'}`}>

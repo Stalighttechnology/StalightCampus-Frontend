@@ -53,8 +53,8 @@ const DriverTripHistory: React.FC = () => {
     <div>
       <Card id="driver-trip-history-card" className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
         <CardHeader id="driver-trip-history-header" className="pb-3 border-b border-inherit">
-          <CardTitle className="text-xl font-semibold flex items-center gap-2">
-            <Bus className="text-primary" size={22} /> Trip History
+          <CardTitle className="sm:text-2xl text-xl font-semibold flex items-center gap-2">
+             Trip History
           </CardTitle>
           <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
             Track and view records of your past trips

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -539,6 +539,7 @@ const StudentAnnouncements = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+  const isFirstRender = useRef(true);
   const pageSize = 10;
   const { theme } = useTheme();
 
@@ -569,6 +570,10 @@ const StudentAnnouncements = () => {
 
   useEffect(() => {
     loadAnnouncements(currentPage);
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const element = document.getElementById("announcements-card");
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -623,7 +628,7 @@ const StudentAnnouncements = () => {
       <div>
         <Card id="announcements-card" className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
           <div id="announcements-header-stats">
-            <CardHeader className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5">
+            <CardHeader className={`px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-2 border-b ${theme === 'dark' ? 'border-border bg-muted/30' : 'border-gray-200 bg-muted/10'}`}>
               <div className="flex justify-between items-center">
                 <div>
                   <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -636,7 +641,7 @@ const StudentAnnouncements = () => {
               </div>
             </CardHeader>
 
-            <div className="px-6 pb-0">
+            <div className="px-6 pt-3">
               {/* Summary Stats */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
