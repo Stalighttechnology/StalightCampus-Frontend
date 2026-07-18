@@ -53,6 +53,7 @@ import {
 import { manageBranches } from "@/utils/admin_api";
 import { fetchIncidents, resolveIncident } from "@/utils/transport_api";
 import AnnouncementSections from "@/components/common/AnnouncementSections";
+import { useHMSContext } from "@/context/HMSContext";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
@@ -78,11 +79,13 @@ const AdminAnnouncementManagement = () => {
   const pageSize = 10;
 
   const { theme } = useTheme();
+  const { hostels, fetchHostelsOnly } = useHMSContext();
 
   const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
   const orgPlan = user?.org_plan || "basic";
   const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
+  const isHMSUser = user?.role === 'hms_admin' || user?.role === 'warden';
 
   // Form state
   const [formData, setFormData] = useState<CreateAnnouncementRequest>({
@@ -96,23 +99,31 @@ const AdminAnnouncementManagement = () => {
   });
   const [expiresOpen, setExpiresOpen] = useState(false);
   const [branches, setBranches] = useState<Array<{ id: number; name: string }>>([]);
+  const [selectedHostelId, setSelectedHostelId] = useState<string>("all");
 
   useEffect(() => {
     if (!showCreateDialog) return;
-    if (branches.length > 0) return;
 
-    const loadBranches = async () => {
-      try {
-        const resp = await manageBranches({ compact: true }, undefined, "GET");
-        if (resp.success && resp.branches) {
-          setBranches(resp.branches);
-        }
-      } catch (e) {
-        console.error("Error loading branches", e);
+    if (isHMSUser) {
+      // For HMS users, load hostels instead of branches
+      if (hostels.length === 0) {
+        fetchHostelsOnly();
       }
-    };
-    loadBranches();
-  }, [showCreateDialog, branches.length]);
+    } else {
+      if (branches.length > 0) return;
+      const loadBranches = async () => {
+        try {
+          const resp = await manageBranches({ compact: true }, undefined, "GET");
+          if (resp.success && resp.branches) {
+            setBranches(resp.branches);
+          }
+        } catch (e) {
+          console.error("Error loading branches", e);
+        }
+      };
+      loadBranches();
+    }
+  }, [showCreateDialog, branches.length, isHMSUser, hostels.length]);
 
   const loadAnnouncements = async () => {
     setLoading(true);
@@ -472,6 +483,7 @@ const AdminAnnouncementManagement = () => {
       expires_at: "",
       priority: "normal"
     });
+    setSelectedHostelId("all");
   };
 
   const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "driver", "warden"];
@@ -627,39 +639,62 @@ const AdminAnnouncementManagement = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Scope / Department</Label>
-                <Select
-                  value={formData.is_global ? "all" : String(formData.branch || "")}
-                  onValueChange={(val) => {
-                    if (val === "all") {
-                      setFormData({
-                        ...formData,
-                        is_global: true,
-                        branch: null
-                      });
-                    } else {
-                      setFormData({
-                        ...formData,
-                        is_global: false,
-                        branch: Number(val)
-                      });
-                    }
-                  }}
-                >
-                  <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
-                    <SelectValue placeholder="Select Department Scope" />
-                  </SelectTrigger>
-                  <SelectContent className={`max-h-[200px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}`}>
-                    <SelectItem value="all">All Departments (Global)</SelectItem>
-                    {branches.map((b) => (
-                      <SelectItem key={b.id} value={String(b.id)}>
-                        {b.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {isHMSUser ? (
+                <div className="space-y-2">
+                  <Label>Scope / Hostel</Label>
+                  <Select
+                    value={selectedHostelId}
+                    onValueChange={(val) => {
+                      setSelectedHostelId(val);
+                      // Always keep is_global=true for HMS users — the DB constraint
+                      // requires branch when is_global=false, but the model has no hostel FK.
+                      // Backend already restricts delivery to hosteler students/wardens only.
+                      setFormData({ ...formData, is_global: true, branch: null });
+                    }}
+                  >
+                    <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
+                      <SelectValue placeholder="Select Hostel" />
+                    </SelectTrigger>
+                    <SelectContent className={`max-h-[200px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}`}>
+                      <SelectItem value="all">All Hostels</SelectItem>
+                      {hostels.map((h: any) => (
+                        <SelectItem key={h.id} value={String(h.id)}>
+                          {h.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-muted-foreground">
+                    Announcements are delivered to hostel students &amp; wardens only.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label>Scope / Department</Label>
+                  <Select
+                    value={formData.is_global ? "all" : String(formData.branch || "")}
+                    onValueChange={(val) => {
+                      if (val === "all") {
+                        setFormData({ ...formData, is_global: true, branch: null });
+                      } else {
+                        setFormData({ ...formData, is_global: false, branch: Number(val) });
+                      }
+                    }}
+                  >
+                    <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
+                      <SelectValue placeholder="Select Department Scope" />
+                    </SelectTrigger>
+                    <SelectContent className={`max-h-[200px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}`}>
+                      <SelectItem value="all">All Departments (Global)</SelectItem>
+                      {branches.map((b) => (
+                        <SelectItem key={b.id} value={String(b.id)}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
