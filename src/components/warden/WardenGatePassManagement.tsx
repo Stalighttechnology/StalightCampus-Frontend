@@ -25,11 +25,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import DashboardCard from '../common/DashboardCard';
 import { actionGatePass, exportGatePassesPdf } from '../../utils/hms_api';
 import { useWardenContext } from '../../context/WardenContext';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { Calendar as CalendarIcon } from 'lucide-react';
 
 interface GatePass {
   id: number;
@@ -154,8 +149,6 @@ const WardenGatePassManagement = () => {
   const [historyTotalCount, setHistoryTotalCount] = useState(0);
   const [historyDateFrom, setHistoryDateFrom] = useState('');
   const [historyDateTo, setHistoryDateTo] = useState('');
-  const [fromCalendarOpen, setFromCalendarOpen] = useState(false);
-  const [toCalendarOpen, setToCalendarOpen] = useState(false);
   const [historyStatusFilter, setHistoryStatusFilter] = useState('all');
   const [historyHostelFilter, setHistoryHostelFilter] = useState('all');
   const [historyLoaded, setHistoryLoaded] = useState(false); // lazy — only fetch when tab opened
@@ -230,7 +223,7 @@ const WardenGatePassManagement = () => {
     try {
       let url = `${API_ENDPOINT}/hms/student/gate-pass/?history=true&page=${historyPage}`;
       if (historyDateFrom) url += `&date_from=${historyDateFrom}`;
-      if (historyDateTo)   url += `&date_to=${historyDateTo}`;
+      if (historyDateTo) url += `&date_to=${historyDateTo}`;
       if (historyStatusFilter !== 'all') url += `&status=${historyStatusFilter}`;
       if (historyHostelFilter !== 'all') url += `&hostel_id=${historyHostelFilter}`;
 
@@ -301,10 +294,10 @@ const WardenGatePassManagement = () => {
       {/* Stats grid — only shown on active tab */}
       {activeTab === 'active' && (
         <div id="warden-gatepass-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <DashboardCard title="Total Requests"   value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats.total}   description="All time requests"    icon={<FileText className="w-5 h-5 text-purple-500" />} />
+          <DashboardCard title="Total Requests" value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats.total} description="All time requests" icon={<FileText className="w-5 h-5 text-purple-500" />} />
           <DashboardCard title="Pending Approval" value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats.pending} description="Awaiting your review" icon={<Clock className="w-5 h-5 text-amber-500" />} />
-          <DashboardCard title="Approved"         value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats.approved} description="Granted permission"   icon={<CheckCircle2 className="w-5 h-5 text-green-500" />} />
-          <DashboardCard title="Rejected"         value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats.rejected} description="Declined requests"    icon={<XCircle className="w-5 h-5 text-red-500" />} />
+          <DashboardCard title="Approved" value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats.approved} description="Granted permission" icon={<CheckCircle2 className="w-5 h-5 text-green-500" />} />
+          <DashboardCard title="Rejected" value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats.rejected} description="Declined requests" icon={<XCircle className="w-5 h-5 text-red-500" />} />
         </div>
       )}
 
@@ -314,29 +307,27 @@ const WardenGatePassManagement = () => {
         <CardHeader className="pb-0 border-b bg-muted/30">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4">
             <div>
-              <CardTitle className="text-xl">Gate Pass Requests</CardTitle>
-              <CardDescription>Review and action leaves and off-campus gate pass requests.</CardDescription>
+              <CardTitle className="text-xl sm:text-2xl">Gate Pass Requests</CardTitle>
+              <CardDescription className='text-sm'>Review and action leaves and off-campus gate pass requests.</CardDescription>
             </div>
 
             {/* Tabs */}
             <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-xl border border-border/60 self-center sm:self-start">
               <button
                 onClick={() => setActiveTab('active')}
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  activeTab === 'active'
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'active'
                     ? 'bg-primary text-white shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
-                }`}
+                  }`}
               >
                 <FileText className="w-3.5 h-3.5" /> Active
               </button>
               <button
                 onClick={() => { setActiveTab('history'); }}
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  activeTab === 'history'
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'history'
                     ? 'bg-primary text-white shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
-                }`}
+                  }`}
               >
                 <History className="w-3.5 h-3.5" /> History
               </button>
@@ -345,167 +336,67 @@ const WardenGatePassManagement = () => {
 
           {/* ── Active tab toolbar ── */}
           {activeTab === 'active' && (
-            <div className="flex flex-wrap items-end gap-2 pb-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-4">
               {managedHostels && managedHostels.length > 0 && (
-                <div className="flex flex-col gap-1.5 w-full sm:w-[160px]">
-                  <span className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">Select Hostel</span>
-                  <Select value={hostelFilter} onValueChange={(v) => { setHostelFilter(v); setCurrentPage(1); }}>
-                    <SelectTrigger className="h-9 w-full rounded-xl text-xs font-semibold">
-                      <SelectValue placeholder="All Hostels" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Hostels</SelectItem>
-                      {managedHostels.map((h: any) => (
-                        <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={hostelFilter} onValueChange={(v) => { setHostelFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger className="h-9 w-full sm:w-[160px] rounded-xl text-xs font-semibold">
+                    <SelectValue placeholder="All Hostels" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Hostels</SelectItem>
+                    {managedHostels.map((h: any) => (
+                      <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
 
-              <div className="relative" ref={filterRef}>
-                <Button size="sm" onClick={() => setShowFilter(!showFilter)}
-                  className="bg-primary hover:bg-primary/90 text-white h-9 px-3.5 rounded-xl font-semibold text-xs gap-1.5">
-                  <Filter className="w-3.5 h-3.5" /> Filter
-                </Button>
-                {showFilter && (
-                  <div className={`absolute left-0 mt-2 w-44 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-xl shadow-xl z-50 p-1`}>
-                    {[
-                      { label: 'All Status', value: 'all' },
-                      { label: 'Pending', value: 'pending' },
-                      { label: 'Approved', value: 'approved' },
-                      { label: 'Rejected', value: 'rejected' },
-                    ].map((item) => (
-                      <button key={item.value}
-                        className={`block w-full text-left px-3 py-2 text-xs rounded-lg font-medium transition-colors ${
-                          statusFilter === item.value
-                            ? 'bg-primary/10 text-primary font-semibold'
-                            : theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                        onClick={() => { setStatusFilter(item.value); setCurrentPage(1); setShowFilter(false); }}
-                      >{item.label}</button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <div className="flex items-center gap-3 w-full sm:w-auto sm:ml-auto">
+                <div className="relative flex-1 sm:flex-none" ref={filterRef}>
+                  <Button size="sm" onClick={() => setShowFilter(!showFilter)}
+                    className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white h-9 px-3.5 rounded-xl font-semibold text-xs gap-1.5">
+                    <Filter className="w-3.5 h-3.5" /> Filter
+                  </Button>
+                  {showFilter && (
+                    <div className={`absolute right-0 mt-2 w-44 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-xl shadow-xl z-50 p-1`}>
+                      {[
+                        { label: 'All Status', value: 'all' },
+                        { label: 'Pending', value: 'pending' },
+                        { label: 'Approved', value: 'approved' },
+                        { label: 'Rejected', value: 'rejected' },
+                      ].map((item) => (
+                        <button key={item.value}
+                          className={`block w-full text-left px-3 py-2 text-xs rounded-lg font-medium transition-colors ${statusFilter === item.value
+                              ? 'bg-primary/10 text-primary font-semibold'
+                              : theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          onClick={() => { setStatusFilter(item.value); setCurrentPage(1); setShowFilter(false); }}
+                        >{item.label}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-              <Button onClick={handleExportPDF} size="sm" disabled={exportingPdf}
-                className="hidden sm:flex items-center gap-1.5 text-xs font-semibold rounded-xl h-9 px-3 bg-primary hover:bg-primary/90 text-white shadow-sm ml-auto">
-                {exportingPdf ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-                Export PDF
-              </Button>
-              <Button onClick={handleExportPDF} variant="outline" size="icon" disabled={exportingPdf}
-                className="flex sm:hidden h-9 w-9 rounded-xl ml-auto">
-                {exportingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-              </Button>
+                <Button onClick={handleExportPDF} size="sm" disabled={exportingPdf}
+                  className="hidden sm:flex items-center gap-1.5 text-xs font-semibold rounded-xl h-9 px-3 bg-primary hover:bg-primary/90 text-white shadow-sm">
+                  {exportingPdf ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                  Export PDF
+                </Button>
+                <Button onClick={handleExportPDF} variant="outline" size="icon" disabled={exportingPdf}
+                  className="flex sm:hidden h-9 w-9 rounded-xl shrink-0">
+                  {exportingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
           )}
 
           {activeTab === 'history' && (
-            <div className="flex flex-wrap items-end justify-between gap-4 pb-4 w-full">
-              {/* Date range */}
-              <div className="flex items-end gap-2 flex-wrap w-full sm:w-auto">
-                <div className="flex flex-col gap-1.5 flex-1 sm:flex-initial">
-                  <span className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">From Date</span>
-                  <Popover open={fromCalendarOpen} onOpenChange={setFromCalendarOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        type="button"
-                        className={cn(
-                          "h-9 w-full sm:w-[130px] justify-start text-left font-normal text-xs rounded-xl border border-border bg-background px-3 hover:bg-accent hover:text-accent-foreground",
-                          !historyDateFrom && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-3.5 w-3.5 opacity-70 shrink-0" />
-                        <span className="truncate">
-                          {historyDateFrom ? format(new Date(historyDateFrom + 'T00:00:00'), 'dd-MM-yyyy') : 'Select Date'}
-                        </span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-50 bg-popover border border-border rounded-md shadow-md" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={historyDateFrom ? new Date(historyDateFrom + 'T00:00:00') : undefined}
-                        onSelect={(date) => {
-                          setHistoryDateFrom(date ? format(date, 'yyyy-MM-dd') : '');
-                          setHistoryPage(1);
-                          setFromCalendarOpen(false);
-                        }}
-                        disabled={(date) => {
-                          if (date > new Date()) return true;
-                          if (historyDateTo) {
-                            const endDate = new Date(historyDateTo + 'T00:00:00');
-                            const compareDate = new Date(date);
-                            compareDate.setHours(0, 0, 0, 0);
-                            endDate.setHours(0, 0, 0, 0);
-                            return compareDate > endDate;
-                          }
-                          return false;
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <span className="text-muted-foreground text-xs shrink-0 mb-3">–</span>
-
-                <div className="flex flex-col gap-1.5 flex-1 sm:flex-initial">
-                  <span className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">To Date</span>
-                  <Popover open={toCalendarOpen} onOpenChange={setToCalendarOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        type="button"
-                        className={cn(
-                          "h-9 w-full sm:w-[130px] justify-start text-left font-normal text-xs rounded-xl border border-border bg-background px-3 hover:bg-accent hover:text-accent-foreground",
-                          !historyDateTo && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-3.5 w-3.5 opacity-70 shrink-0" />
-                        <span className="truncate">
-                          {historyDateTo ? format(new Date(historyDateTo + 'T00:00:00'), 'dd-MM-yyyy') : 'Select Date'}
-                        </span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-50 bg-popover border border-border rounded-md shadow-md" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={historyDateTo ? new Date(historyDateTo + 'T00:00:00') : undefined}
-                        onSelect={(date) => {
-                          setHistoryDateTo(date ? format(date, 'yyyy-MM-dd') : '');
-                          setHistoryPage(1);
-                          setToCalendarOpen(false);
-                        }}
-                        disabled={(date) => {
-                          if (date > new Date()) return true;
-                          if (historyDateFrom) {
-                            const startDate = new Date(historyDateFrom + 'T00:00:00');
-                            const compareDate = new Date(date);
-                            compareDate.setHours(0, 0, 0, 0);
-                            startDate.setHours(0, 0, 0, 0);
-                            return compareDate < startDate;
-                          }
-                          return false;
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                {(historyDateFrom || historyDateTo) && (
-                  <button onClick={() => { setHistoryDateFrom(''); setHistoryDateTo(''); setHistoryPage(1); }}
-                    className="text-xs text-primary font-semibold hover:underline shrink-0 mb-3">Clear</button>
-                )}
-              </div>
-
-              {/* Filter Dropdowns (aligned to the right) */}
-              <div className="flex items-end gap-2 w-full sm:w-auto sm:ml-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pb-4">
+              {/* Dropdowns row */}
+              <div className="flex items-center gap-3 w-full sm:w-auto">
                 {/* Hostel filter (only if warden manages multiple hostels) */}
                 {managedHostels && managedHostels.length > 0 && (
-                  <div className="flex-1 sm:flex-initial flex flex-col gap-1.5">
-                    <span className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">Select Hostel</span>
+                  <div className="flex-1 sm:flex-none">
                     <Select value={historyHostelFilter} onValueChange={(v) => { setHistoryHostelFilter(v); setHistoryPage(1); }}>
                       <SelectTrigger className="h-9 w-full sm:w-[150px] rounded-xl text-xs font-semibold">
                         <SelectValue placeholder="All Hostels" />
@@ -521,8 +412,7 @@ const WardenGatePassManagement = () => {
                 )}
 
                 {/* Status filter */}
-                <div className="flex-1 sm:flex-initial flex flex-col gap-1.5">
-                  <span className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">Select Status</span>
+                <div className="flex-1 sm:flex-none">
                   <Select value={historyStatusFilter} onValueChange={(v) => { setHistoryStatusFilter(v); setHistoryPage(1); }}>
                     <SelectTrigger className="h-9 w-full sm:w-[140px] rounded-xl text-xs font-semibold">
                       <SelectValue placeholder="All Status" />
@@ -535,6 +425,33 @@ const WardenGatePassManagement = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              {/* Date range */}
+              <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
+                <div className="flex items-center gap-1.5 flex-1">
+                  <input
+                    type="date"
+                    value={historyDateFrom}
+                    max={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => { setHistoryDateFrom(e.target.value); setHistoryPage(1); }}
+                    className="h-9 px-3 text-xs rounded-xl border border-border bg-background font-medium focus:outline-none focus:ring-2 focus:ring-primary flex-1 min-w-0"
+                    placeholder="From"
+                  />
+                  <span className="text-muted-foreground text-xs shrink-0">–</span>
+                  <input
+                    type="date"
+                    value={historyDateTo}
+                    max={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => { setHistoryDateTo(e.target.value); setHistoryPage(1); }}
+                    className="h-9 px-3 text-xs rounded-xl border border-border bg-background font-medium focus:outline-none focus:ring-2 focus:ring-primary flex-1 min-w-0"
+                    placeholder="To"
+                  />
+                </div>
+                {(historyDateFrom || historyDateTo) && (
+                  <button onClick={() => { setHistoryDateFrom(''); setHistoryDateTo(''); setHistoryPage(1); }}
+                    className="text-xs text-primary font-semibold hover:underline shrink-0 ml-1">Clear</button>
+                )}
               </div>
             </div>
           )}
@@ -833,9 +750,8 @@ const WardenGatePassManagement = () => {
             </div>
 
             {selectedRequest?.status !== 'pending' ? (
-              <div className={`border p-4 rounded-xl text-xs sm:text-sm space-y-3 ${
-                selectedRequest?.status === 'approved' ? 'bg-green-500/5 border-green-200' : 'bg-red-500/5 border-red-200'
-              }`}>
+              <div className={`border p-4 rounded-xl text-xs sm:text-sm space-y-3 ${selectedRequest?.status === 'approved' ? 'bg-green-500/5 border-green-200' : 'bg-red-500/5 border-red-200'
+                }`}>
                 <div className="flex justify-between"><span className="text-muted-foreground font-semibold">Status:</span>{getStatusBadge(selectedRequest?.status || 'pending')}</div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground font-semibold">Action Date:</span>

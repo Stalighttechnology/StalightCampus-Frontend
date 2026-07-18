@@ -307,7 +307,7 @@ const WardenIssueManagement = () => {
             <CardHeader id="warden-issues-list-header" className="pb-4 border bg-muted/30">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <CardTitle className="text-xl">Recent Issues</CardTitle>
+                  <CardTitle className="sm:text-2xl text-xl">Recent Issues</CardTitle>
                   <CardDescription>Manage and view student complaints.</CardDescription>
                 </div>
                 

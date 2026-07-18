@@ -215,7 +215,7 @@ const StaffManagementOverview: React.FC = () => {
         <Card className="shadow-sm">
           <CardHeader className="pb-3 border-b">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
-              <CardTitle className="text-xl font-semibold flex items-center gap-2">
+              <CardTitle className="text-xl sm:text-2xl font-semibold flex items-center gap-2">
                 <UserCheck className="w-6 h-6 sm:w-5 sm:h-5 text-primary" />
                 Wardens
               </CardTitle>
@@ -392,7 +392,7 @@ const StaffManagementOverview: React.FC = () => {
         <Card className="shadow-sm">
           <CardHeader className="pb-3 border-b">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
-              <CardTitle className="text-xl font-semibold flex items-center gap-2 pr-2">
+              <CardTitle className="text-xl sm:text-2xl font-semibold flex items-center gap-2 pr-2">
                 <Users className="w-6 h-6 sm:w-5 sm:h-5 text-blue-500" />
                 Caretakers
               </CardTitle>

@@ -166,10 +166,10 @@ const Enrollment: React.FC = () => {
         <CardHeader id="hms-enrollment-card" className="bg-muted/30">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
-              <CardTitle>
+              <CardTitle className='text-xl sm:text-2xl font-semibold'>
                 Enrollment Form
               </CardTitle>
-              <CardDescription>Fill in the professional details of the staff member.</CardDescription>
+              <CardDescription className='text-sm'>Fill in the professional details of the staff member.</CardDescription>
             </div>
             <div className="flex w-full md:w-auto bg-background p-1 rounded-lg border shadow-sm">
               <button

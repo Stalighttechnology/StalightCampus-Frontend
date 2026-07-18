@@ -359,7 +359,7 @@ const RoomManagement: React.FC = () => {
         <div id="hms-rooms-header">
           <CardHeader className="bg-muted/30 pb-4 border-b">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-              <div className="flex flex-row items-center gap-2 sm:gap-4 w-full md:w-auto">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                 <div className="flex items-center gap-3 flex-1 md:w-auto">
                   <div className="flex flex-col w-full">
                     <span className="text-[14px] font-semibold mb-2">Current Hostel</span>
