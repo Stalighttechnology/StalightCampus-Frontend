@@ -533,7 +533,7 @@ const AdminAnnouncementManagement = () => {
           </DialogTrigger>
           <DialogContent
             onPointerDownOutside={(e) => e.preventDefault()}
-            className="mobile-modal max-w-xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+            className="mobile-modal max-w-xl max-h-[80vh] overflow-y-auto custom-scrollbar [&>button]:border-none [&>button]:outline-none [&>button]:focus:ring-0">
 
             <DialogHeader>
               <DialogTitle>
