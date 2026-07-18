@@ -568,17 +568,19 @@ const WardenIssueManagement = () => {
             <div className="space-y-6">
               {/* Header with Title, Status, Timeline & Export Actions */}
               <div className="border-b border-border/40 pb-4 space-y-3 pr-10 sm:pr-0">
-                <div className="flex flex-wrap items-center gap-2.5 min-w-0">
-                  <DialogTitle className="text-xl font-bold text-foreground leading-snug break-words break-all flex-1">{selectedIssue.title}</DialogTitle>
-                  <Badge className={cn(
-                    STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.color || '',
-                    "text-[10px] py-0.5 font-semibold"
-                  )}>
-                    {selectedIssue.status_display}
-                  </Badge>
-                  <span className="text-[10px] font-mono text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded border border-border/40 font-semibold">
-                    ID: #{selectedIssue.id}
-                  </span>
+                <div className="flex flex-col gap-2 min-w-0">
+                  <DialogTitle className="text-xl font-bold text-foreground leading-snug break-words break-all">{selectedIssue.title}</DialogTitle>
+                  <div className="flex items-center gap-2">
+                    <Badge className={cn(
+                      STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.color || '',
+                      "text-[10px] py-0.5 font-semibold"
+                    )}>
+                      {selectedIssue.status_display}
+                    </Badge>
+                    <span className="text-[10px] font-mono text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded border border-border/40 font-semibold">
+                      ID: #{selectedIssue.id}
+                    </span>
+                  </div>
                 </div>
                 
                 <div className="flex items-center gap-2 w-full shrink-0">
