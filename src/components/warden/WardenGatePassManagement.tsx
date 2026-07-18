@@ -96,7 +96,7 @@ const EmptyState = ({ label }: { label: string }) => (
         <div className="bg-muted p-4 rounded-full">
           <FileText className="w-8 h-8 text-muted-foreground/60" />
         </div>
-        <p className="font-bold text-muted-foreground text-lg">{label}</p>
+        <p className="font-semibold text-muted-foreground text-lg">{label}</p>
         <p className="text-xs text-muted-foreground max-w-xs">No records match your current filters.</p>
       </div>
     </td>
@@ -474,7 +474,7 @@ const WardenGatePassManagement = () => {
                 ) : requests.length === 0 ? (
                   <div className="py-12 text-center space-y-3">
                     <div className="bg-muted p-3 rounded-full w-fit mx-auto"><FileText className="w-6 h-6 text-muted-foreground/60" /></div>
-                    <p className="font-bold text-muted-foreground text-sm">No {statusFilter !== 'all' ? statusFilter : ''} requests found</p>
+                    <p className="font-semibold text-muted-foreground text-sm">No {statusFilter !== 'all' ? statusFilter : ''} requests found</p>
                   </div>
                 ) : requests.map((gp) => (
                   <div key={gp.id} className="p-4 rounded-xl border border-border/80 bg-card/60 space-y-3 shadow-sm hover:border-primary/40 transition-all">
@@ -605,7 +605,7 @@ const WardenGatePassManagement = () => {
                 ) : historyRequests.length === 0 ? (
                   <div className="py-12 text-center space-y-3">
                     <div className="bg-muted p-3 rounded-full w-fit mx-auto"><History className="w-6 h-6 text-muted-foreground/60" /></div>
-                    <p className="font-bold text-muted-foreground text-sm">No historical records found</p>
+                    <p className="font-semibold text-muted-foreground text-sm">No historical records found</p>
                   </div>
                 ) : historyRequests.map((gp) => (
                   <div key={gp.id} className="p-4 rounded-xl border border-border/60 bg-card/50 space-y-3">
