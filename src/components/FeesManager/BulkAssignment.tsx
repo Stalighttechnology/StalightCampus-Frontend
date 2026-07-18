@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -613,23 +614,46 @@ const BulkAssignment: React.FC = () => {
 
                 {/* Action Section */}
                 <div className="space-y-4">
-                  <Button
-                    className="w-full h-14 text-md font-semibold shadow-lg hover:shadow-primary/20 transition-all group relative overflow-hidden"
-                    disabled={!selectedTemplate || !dueDate || loading || studentCount === 0}
-                    onClick={handleBulkAssign}>
-
-                    {loading ?
-                      <div className="flex items-center gap-3">
-                        <Zap className="h-6 w-6 animate-pulse text-yellow-400" />
-                        <span>Executing Mass Assignment...</span>
-                      </div> :
-
-                      <div className="flex items-center gap-3">
-                        <Play className="h-6 w-6 group-hover:scale-110 transition-transform fill-current" />
-                        <span>Start Bulk Assignment</span>
-                      </div>
-                    }
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        className="w-full h-14 text-md font-semibold shadow-lg hover:shadow-primary/20 transition-all group relative overflow-hidden"
+                        disabled={!selectedTemplate || !dueDate || loading || studentCount === 0}>
+    
+                        {loading ?
+                          <div className="flex items-center gap-3">
+                            <Zap className="h-6 w-6 animate-pulse text-yellow-400" />
+                            <span>Executing Mass Assignment...</span>
+                          </div> :
+    
+                          <div className="flex items-center gap-3">
+                            <Play className="h-6 w-6 group-hover:scale-110 transition-transform fill-current" />
+                            <span>Start Bulk Assignment</span>
+                          </div>
+                        }
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Bulk Assignment</AlertDialogTitle>
+                        <AlertDialogDescription className="leading-relaxed flex flex-col gap-4 mt-2">
+                          <span className="text-sm">Are you sure you want to assign this fee template to {studentCount} students?</span>
+                          <div className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-900/50 rounded-lg text-sm text-left">
+                            <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+                            <div>
+                              <strong className="font-semibold text-red-900 dark:text-red-200">Warning:</strong> This is a bulk operation. If you want to change or delete this assignment later, you must visit each individual student's fees page and delete the invoice <strong>before</strong> the student makes a payment.
+                            </div>
+                          </div>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleBulkAssign} className="bg-red-600 hover:bg-red-700 text-white border-none">
+                          Confirm Bulk Assignment
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
 
                   <div className="flex items-center justify-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest bg-muted/20 py-3 rounded-lg border border-dashed border-border/50">
                     <ShieldCheck className="h-4 w-4 text-primary" />

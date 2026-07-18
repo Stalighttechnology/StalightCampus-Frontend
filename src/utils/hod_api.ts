@@ -1694,6 +1694,7 @@ method: "GET" | "POST" = "GET")
       if ((data as any).section_id) params.append("section_id", (data as any).section_id);
       if ((data as any).search) params.append("search", (data as any).search);
       if ((data as any).subject_id) params.append("subject_id", (data as any).subject_id);
+      if ((data as any).cycle) params.append("cycle", (data as any).cycle);
       if ((data as any).page) params.append("page", (data as any).page.toString());
       if ((data as any).page_size) params.append("page_size", (data as any).page_size.toString());
       url = `${API_ENDPOINT}/hod/students/?${params.toString()}`;

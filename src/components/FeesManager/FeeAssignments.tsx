@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -833,13 +834,35 @@ const FeeAssignments: React.FC = () => {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>Cancel</Button>
-            <Button
-              disabled={!selectedTemplateId || !dueDate || isConfirming}
-              onClick={handleAssign}
-              className="bg-primary text-white">
-
-              {isConfirming ? "Processing..." : "Confirm & Assign"}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  disabled={!selectedTemplateId || !dueDate || isConfirming}
+                  className="bg-primary text-white">
+                  {isConfirming ? "Processing..." : "Confirm & Assign"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Assignment</AlertDialogTitle>
+                  <AlertDialogDescription className="leading-relaxed flex flex-col gap-4 mt-2">
+                    <span className="text-sm">Are you sure you want to assign this fee template?</span>
+                    <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50 rounded-lg text-sm text-left">
+                      <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+                      <div>
+                        <strong className="font-semibold text-amber-900 dark:text-amber-200">Note:</strong> If you want to change or delete this assignment later, you must visit the individual student's fees page and delete the invoice <strong>before</strong> the student makes a payment.
+                      </div>
+                    </div>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleAssign} className="bg-primary text-white">
+                    Confirm Assignment
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </DialogFooter>
         </DialogContent>
       </Dialog>

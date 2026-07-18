@@ -783,12 +783,13 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                           {!isReadOnly && inv.pending_amount > 0 &&
                       <Button
                         variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-full transition-all active:scale-95"
+                        size="sm"
+                        className="h-9 px-3 flex items-center gap-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-full transition-all active:scale-95 font-medium"
                         onClick={() => openPaymentDialog(inv)}
                         title="Record Payment">
                         
-                              <IndianRupee className="h-4.5 w-4.5" />
+                              <IndianRupee className="h-4 w-4" />
+                              <span className="text-sm">Collect Fees</span>
                             </Button>
                       }
                           <Button

@@ -12,8 +12,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription } from
-"@/components/ui/dialog";
+  DialogDescription
+} from
+  "@/components/ui/dialog";
 import {
   Download,
   Calendar as CalendarIcon,
@@ -24,8 +25,9 @@ import {
   ChevronRight,
   AlertCircle,
   FileText,
-  Loader2 } from
-'lucide-react';
+  Loader2
+} from
+  'lucide-react';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -39,8 +41,9 @@ import {
   SkeletonTable,
   SkeletonList,
   SkeletonPageHeader,
-  SkeletonCard } from
-"@/components/ui/skeleton";
+  SkeletonCard
+} from
+  "@/components/ui/skeleton";
 
 
 interface AttendanceSummary {
@@ -70,7 +73,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
   const orgPlan = user?.org_plan || "basic";
   const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
 
-  const filteredRoles = (userTier <= 2 
+  const filteredRoles = (userTier <= 2
     ? STAFF_ROLES.filter(r => ['principal', 'hod', 'teacher', 'coe', 'fees_manager'].includes(r.value))
     : STAFF_ROLES);
 
@@ -189,7 +192,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
   return (
     <div id="feesmanager-reports-container" className="space-y-6 animate-in fade-in duration-500">
       {error &&
-      <Alert variant="destructive" className="rounded-xl border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-900/20">
+        <Alert variant="destructive" className="rounded-xl border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-900/20">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="font-medium">{error}</AlertDescription>
         </Alert>
@@ -204,148 +207,148 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                 Monitor attendance across all institutional roles
               </CardDescription>
             </div>
-              <div className="flex items-center gap-2 flex-shrink-0 mt-1">
-                {/* Desktop/Tablet Export Button */}
-                <Button
-                  size="sm"
-                  onClick={() => downloadReport('pdf')}
-                  disabled={loading || downloading || selectedRole === '' || startDate === '' || endDate === ''}
-                  className="hidden sm:flex justify-center bg-primary text-white hover:bg-primary/90 transition-all shadow-md text-sm font-medium px-4 py-2 rounded-md items-center gap-2 h-9 disabled:opacity-50">
-                  {downloading ? (
-                    <Loader2 className="h-4.5 w-4.5 animate-spin flex-shrink-0" />
-                  ) : (
-                    <Download className="h-4 w-4 flex-shrink-0" />
-                  )}
-                  <span>{downloading ? 'Exporting...' : 'Export PDF'}</span>
-                </Button>
-                {/* Mobile Export Icon Button */}
-                <Button
-                  onClick={() => downloadReport('pdf')}
-                  disabled={loading || downloading || selectedRole === '' || startDate === '' || endDate === ''}
-                  size="icon"
-                  variant="outline"
-                  className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
-                  title="Export PDF"
-                >
-                  {downloading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Download className="w-4 h-4" />
-                  )}
-                </Button>
-              </div>
+            <div className="flex items-center gap-2 flex-shrink-0 mt-1">
+              {/* Desktop/Tablet Export Button */}
+              <Button
+                size="sm"
+                onClick={() => downloadReport('pdf')}
+                disabled={loading || downloading || selectedRole === '' || startDate === '' || endDate === ''}
+                className="hidden sm:flex justify-center bg-primary text-white hover:bg-primary/90 transition-all shadow-md text-sm font-medium px-4 py-2 rounded-md items-center gap-2 h-9 disabled:opacity-50">
+                {downloading ? (
+                  <Loader2 className="h-4.5 w-4.5 animate-spin flex-shrink-0" />
+                ) : (
+                  <Download className="h-4 w-4 flex-shrink-0" />
+                )}
+                <span>{downloading ? 'Exporting...' : 'Export PDF'}</span>
+              </Button>
+              {/* Mobile Export Icon Button */}
+              <Button
+                onClick={() => downloadReport('pdf')}
+                disabled={loading || downloading || selectedRole === '' || startDate === '' || endDate === ''}
+                size="icon"
+                variant="outline"
+                className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                title="Export PDF"
+              >
+                {downloading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
           </CardHeader>
 
           <CardContent className="p-6 pb-4">
-          {/* Filters Section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-muted/10 p-2 rounded-2xl border border-border/50">
-            <div className="space-y-2">
-              <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Role Type <span className="text-red-500">*</span></Label>
-              <Select value={selectedRole} onValueChange={(val) => {
-                const isFirstSelection = selectedRole === '';
-                setSelectedRole(val);
-                if (isFirstSelection) {
-                  setTimeout(() => setIsStartPopoverOpen(true), 100);
-                }
-              }}>
-                <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
-                  <SelectValue placeholder="Select Role" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl shadow-xl">
-                  {filteredRoles.map((role) =>
-                  <SelectItem key={role.value} value={role.value} className="rounded-lg">
-                      {role.label}
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Filters Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-muted/10 p-2 rounded-2xl border border-border/50">
+              <div className="space-y-2">
+                <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Role Type <span className="text-red-500">*</span></Label>
+                <Select value={selectedRole} onValueChange={(val) => {
+                  const isFirstSelection = selectedRole === '';
+                  setSelectedRole(val);
+                  if (isFirstSelection) {
+                    setTimeout(() => setIsStartPopoverOpen(true), 100);
+                  }
+                }}>
+                  <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
+                    <SelectValue placeholder="Select Role" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl shadow-xl">
+                    {filteredRoles.map((role) =>
+                      <SelectItem key={role.value} value={role.value} className="rounded-lg">
+                        {role.label}
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-2">
-              <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Start Date <span className="text-red-500">*</span></Label>
-              <Popover open={isStartPopoverOpen} onOpenChange={setIsStartPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal bg-background rounded-xl border-border/50 h-11",
-                      !startDate && "text-muted-foreground"
-                    )}>
-                    
-                    <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
-                    {startDate ? format(new Date(startDate), "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 rounded-2xl shadow-2xl border-none" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate ? new Date(startDate) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        setStartDate(date.toLocaleDateString('sv-SE'));
-                        setIsStartPopoverOpen(false);
-                        setTimeout(() => setIsEndPopoverOpen(true), 100);
-                      }
-                    }}
-                    disabled={(date) => {
-                      const today = new Date();
-                      today.setHours(23, 59, 59, 999);
-                      if (date > today) return true;
-                      if (endDate) {
-                        const end = new Date(endDate + 'T00:00:00');
-                        return date > end;
-                      }
-                      return false;
-                    }}
-                    initialFocus
-                    className="rounded-2xl" />
-                  
-                </PopoverContent>
-              </Popover>
+              <div className="space-y-2">
+                <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Start Date <span className="text-red-500">*</span></Label>
+                <Popover open={isStartPopoverOpen} onOpenChange={setIsStartPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal bg-background rounded-xl border-border/50 h-11",
+                        !startDate && "text-muted-foreground"
+                      )}>
+
+                      <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+                      {startDate ? format(new Date(startDate), "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 rounded-2xl shadow-2xl border-none" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate ? new Date(startDate) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setStartDate(date.toLocaleDateString('sv-SE'));
+                          setIsStartPopoverOpen(false);
+                          setTimeout(() => setIsEndPopoverOpen(true), 100);
+                        }
+                      }}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(23, 59, 59, 999);
+                        if (date > today) return true;
+                        if (endDate) {
+                          const end = new Date(endDate + 'T00:00:00');
+                          return date > end;
+                        }
+                        return false;
+                      }}
+                      initialFocus
+                      className="rounded-2xl" />
+
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">End Date <span className="text-red-500">*</span></Label>
+                <Popover open={isEndPopoverOpen} onOpenChange={setIsEndPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal bg-background rounded-xl border-border/50 h-11",
+                        !endDate && "text-muted-foreground"
+                      )}>
+
+                      <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+                      {endDate ? format(new Date(endDate), "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 rounded-2xl shadow-2xl border-none" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate ? new Date(endDate) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setEndDate(date.toLocaleDateString('sv-SE'));
+                          setIsEndPopoverOpen(false);
+                        }
+                      }}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(23, 59, 59, 999);
+                        if (date > today) return true;
+                        if (startDate) {
+                          const start = new Date(startDate + 'T00:00:00');
+                          return date < start;
+                        }
+                        return false;
+                      }}
+                      initialFocus
+                      className="rounded-2xl" />
+
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
- 
-            <div className="space-y-2">
-              <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">End Date <span className="text-red-500">*</span></Label>
-              <Popover open={isEndPopoverOpen} onOpenChange={setIsEndPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal bg-background rounded-xl border-border/50 h-11",
-                      !endDate && "text-muted-foreground"
-                    )}>
-                    
-                    <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
-                    {endDate ? format(new Date(endDate), "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 rounded-2xl shadow-2xl border-none" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate ? new Date(endDate) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        setEndDate(date.toLocaleDateString('sv-SE'));
-                        setIsEndPopoverOpen(false);
-                      }
-                    }}
-                    disabled={(date) => {
-                      const today = new Date();
-                      today.setHours(23, 59, 59, 999);
-                      if (date > today) return true;
-                      if (startDate) {
-                        const start = new Date(startDate + 'T00:00:00');
-                        return date < start;
-                      }
-                      return false;
-                    }}
-                    initialFocus
-                    className="rounded-2xl" />
-                  
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
           </CardContent>
         </div>
 
@@ -361,95 +364,95 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Total Days</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-green-600">Present</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-red-600">Absent</TableHead>
-                  <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Performance</TableHead>
+                  <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Percentage</TableHead>
                   <TableHead className="px-6 py-4 text-right pr-6 text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ?
-                <TableRow>
+                  <TableRow>
                     <TableCell colSpan={8} className="p-0">
                       <SkeletonTable rows={10} cols={8} />
                     </TableCell>
                   </TableRow> :
-                attendanceData.length > 0 ?
+                  attendanceData.length > 0 ?
 
-                attendanceData.map((item) =>
-                <TableRow key={item.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
-                      <TableCell className="py-5 px-6 font-semibold text-sm sm:text-base text-foreground">{item.name}</TableCell>
-                      <TableCell className="px-6">
-                        <Badge variant="outline" className="bg-muted/30 text-[10px] font-semibold uppercase tracking-widest border-border/50 px-2 py-0.5 rounded-md">
-                          {item.role}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="px-6 text-sm text-muted-foreground font-medium">{item.branch_dept}</TableCell>
-                      <TableCell className="text-center font-mono font-semibold text-sm">{item.total_days}</TableCell>
-                      <TableCell className="text-center">
-                        <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 font-semibold text-sm">
-                          {item.present}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 font-semibold text-sm">
-                          {item.absent}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex flex-col items-center gap-1">
-                          <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">{item.attendance_percentage}%</div>
-                          <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
-                            <div
-                          className={cn(
-                            "h-full rounded-full transition-all duration-1000",
-                            item.attendance_percentage >= 75 ? "bg-green-500" :
-                            item.attendance_percentage >= 50 ? "bg-yellow-500" : "bg-red-500"
-                          )}
-                          style={{ width: `${item.attendance_percentage}%` }} />
-                        
+                    attendanceData.map((item) =>
+                      <TableRow key={item.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
+                        <TableCell className="py-5 px-6 font-semibold text-sm sm:text-base text-foreground">{item.name}</TableCell>
+                        <TableCell className="px-6">
+                          <Badge variant="outline" className="bg-muted/30 text-[10px] font-semibold uppercase tracking-widest border-border/50 px-2 py-0.5 rounded-md">
+                            {item.role}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="px-6 text-sm text-muted-foreground font-medium">{item.branch_dept}</TableCell>
+                        <TableCell className="text-center font-mono font-semibold text-sm">{item.total_days}</TableCell>
+                        <TableCell className="text-center">
+                          <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 font-semibold text-sm">
+                            {item.present}
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right pr-6">
-                        <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary transition-all active:scale-95"
-                      title="View Full Report"
-                      onClick={() => handleViewAttendance(item)}>
-                      
-                          <Eye className="h-4.5 w-4.5" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                ) :
-                !selectedRole || !startDate || !endDate ?
-                <TableRow>
-                    <TableCell colSpan={8} className="h-72 text-center">
-                      <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
-                        <div className="bg-primary/10 p-4 rounded-full">
-                          <Filter className="h-8 w-8 text-primary" />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-semibold uppercase tracking-widest">Filters Required</p>
-                          <p className="text-xs text-muted-foreground">Please select a Role and Date Range to generate the audit report</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow> :
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 font-semibold text-sm">
+                            {item.absent}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">{item.attendance_percentage}%</div>
+                            <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all duration-1000",
+                                  item.attendance_percentage >= 75 ? "bg-green-500" :
+                                    item.attendance_percentage >= 50 ? "bg-yellow-500" : "bg-red-500"
+                                )}
+                                style={{ width: `${item.attendance_percentage}%` }} />
 
-                <TableRow>
-                    <TableCell colSpan={8} className="h-72 text-center">
-                      <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
-                        <div className="bg-muted p-4 rounded-full">
-                          <Users className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-semibold uppercase tracking-widest">No Records Found</p>
-                          <p className="text-xs text-muted-foreground">Try adjusting your filters or date range</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary transition-all active:scale-95"
+                            title="View Full Report"
+                            onClick={() => handleViewAttendance(item)}>
+
+                            <Eye className="h-4.5 w-4.5" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ) :
+                    !selectedRole || !startDate || !endDate ?
+                      <TableRow>
+                        <TableCell colSpan={8} className="h-72 text-center">
+                          <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
+                            <div className="bg-primary/10 p-4 rounded-full">
+                              <Filter className="h-8 w-8 text-primary" />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm font-semibold uppercase tracking-widest">Filters Required</p>
+                              <p className="text-xs text-muted-foreground">Please select a Role and Date Range to generate the audit report</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow> :
+
+                      <TableRow>
+                        <TableCell colSpan={8} className="h-72 text-center">
+                          <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
+                            <div className="bg-muted p-4 rounded-full">
+                              <Users className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm font-semibold uppercase tracking-widest">No Records Found</p>
+                              <p className="text-xs text-muted-foreground">Try adjusting your filters or date range</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
                 }
               </TableBody>
             </Table>
@@ -510,7 +513,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
               Visual audit for <span className="text-foreground font-semibold">{selectedStaff?.name}</span>
             </DialogDescription>
           </DialogHeader>
- 
+
           <div className="p-5 sm:p-6 pt-4 space-y-4 flex-1 flex flex-col overflow-y-auto custom-scrollbar">
             {loadingDetails ? (
               <div className="space-y-4 flex-1 justify-center flex flex-col">
@@ -535,23 +538,23 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                           const rDate = typeof r.date === 'string' ? r.date : format(new Date(r.date), "yyyy-MM-dd");
                           return rDate === dateStr;
                         });
- 
+
                         const isSunday = date.getDay() === 0;
                         const isHoliday = holidayDates.includes(dateStr);
                         const isNonWorkingDay = isSunday || isHoliday;
-                        
+
                         const isPresent = record?.status === 'present';
                         const isAbsent = !isNonWorkingDay && (record?.status === 'absent' || (!record && !isPresent));
- 
+
                         return (
                           <div
                             key={idx}
                             className={cn(
                               "flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-xl border transition-all duration-300 shadow-sm",
                               isPresent ? "bg-green-500/10 border-green-500/30 text-green-700 shadow-green-500/5" :
-                              isAbsent ? "bg-red-500/10 border-red-500/30 text-red-700 shadow-red-500/5" :
-                              isNonWorkingDay ? "bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-400" :
-                              "bg-muted/30 border-border/50 text-muted-foreground opacity-30"
+                                isAbsent ? "bg-red-500/10 border-red-500/30 text-red-700 shadow-red-500/5" :
+                                  isNonWorkingDay ? "bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-400" :
+                                    "bg-muted/30 border-border/50 text-muted-foreground opacity-30"
                             )}
                           >
                             <span className={cn(
@@ -572,7 +575,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                       })}
                   </div>
                 </div>
- 
+
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 shrink-0">
                   <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-green-500/10 border border-green-500/20">
                     <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500 shrink-0" />
@@ -591,7 +594,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                 </div>
               </>
             )}
- 
+
             <Button
               className="w-full h-11 sm:h-12 rounded-xl sm:rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all font-semibold uppercase text-[11px] sm:text-[12px] tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98] shrink-0"
               onClick={() => setIsCalendarDialogOpen(false)}

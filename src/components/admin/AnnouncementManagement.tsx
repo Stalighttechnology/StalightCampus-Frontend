@@ -499,7 +499,7 @@ const AdminAnnouncementManagement = () => {
       case "coe":
         return ["student", "faculty", "hod", "principal"];
       case "fees_manager":
-        return ["student"];
+        return ["student", "hod"];
       case "hms":
       case "hms_admin":
       case "warden":

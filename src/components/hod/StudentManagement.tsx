@@ -82,6 +82,7 @@ const StudentManagement = () => {
     appliedSearch: "",
     sectionFilter: "",
     semesterFilter: "",
+    cycleFilter: "",
     selectedStudent: null as Student | null,
     confirmDelete: false,
     editDialog: false,
@@ -269,6 +270,7 @@ const StudentManagement = () => {
       if (search) params.search = search;
       if (sectionId) params.section_id = sectionId;
       if (forceRefresh) params.force_refresh = true;
+      if (state.cycleFilter) params.cycle = state.cycleFilter;
       const studentRes = await manageStudents(params, "GET");
       // Normalize different possible response shapes from backend
       // 1) { success: true, results: [...], count }
@@ -406,7 +408,7 @@ const StudentManagement = () => {
         updateState({ students: [], totalStudents: 0, totalPages: 0, isLoading: false });
       }
     }
-  }, [state.branchId, state.currentPage, state.appliedSearch, state.semesterFilter, state.sectionFilter]);
+  }, [state.branchId, state.currentPage, state.appliedSearch, state.semesterFilter, state.sectionFilter, state.cycleFilter]);
 
   const forceCloseDropdowns = () => {
     const escEvent = new KeyboardEvent('keydown', {
@@ -1565,6 +1567,7 @@ const StudentManagement = () => {
                     updateState({
                       semesterFilter: value,
                       sectionFilter: "",
+                      cycleFilter: "",
                       currentPage: 1,
                       listSections: []
                     })
@@ -1633,6 +1636,29 @@ const StudentManagement = () => {
                     )}
                   </SelectContent>
                 </Select>
+
+                {/* Cycle dropdown — only for Semester 1 */}
+                {state.semesterFilter !== "" &&
+                  state.semesters.find(s => s.id === state.semesterFilter)?.number === 1 && (
+                  <Select
+                    value={state.cycleFilter || "all"}
+                    onValueChange={(value) =>
+                      updateState({ cycleFilter: value === "all" ? "" : value, currentPage: 1 })
+                    }
+                    disabled={state.isLoading}>
+                    <SelectTrigger
+                      id="list-cycle-select-trigger"
+                      className={`w-full sm:w-40 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
+                    >
+                      <SelectValue placeholder="All Cycles" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
+                      <SelectItem value="all" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>All Cycles</SelectItem>
+                      <SelectItem value="P" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>P Cycle</SelectItem>
+                      <SelectItem value="C" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>C Cycle</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
           </CardContent>
