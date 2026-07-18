@@ -105,6 +105,18 @@ const WardenIssueManagement = () => {
   const [exportingSingle, setExportingSingle] = useState(false);
   const detailsRef = useRef<HTMLDivElement>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+  const [showFilter, setShowFilter] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setShowFilter(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fetchStats = async () => {
     setStatsLoading(true);
@@ -211,22 +223,13 @@ const WardenIssueManagement = () => {
   };
 
   const handleIssueClick = async (issue: Issue) => {
-    if (selectedIssue?.id === issue.id) {
-      if (window.innerWidth < 1024) {
-        setIsDetailsModalOpen(true);
-      }
-      return;
-    }
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/warden/issues/${issue.id}/`);
       const data = await response.json();
       setSelectedIssue(data);
-      // Open details modal on mobile
-      if (window.innerWidth < 1024) {
-        setIsDetailsModalOpen(true);
-      }
+      setIsDetailsModalOpen(true);
     } catch (error) {
-
+      console.error('Error fetching issue details:', error);
     }
   };
 
@@ -295,20 +298,63 @@ const WardenIssueManagement = () => {
           value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats?.completed ?? 0}
           description="Resolved cases"
           icon={<CheckCircle className="w-5 h-5 text-green-500" />} />
-        
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6">
+      <div className="mt-6">
         {/* Issues List */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="space-y-4">
           <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
             <CardHeader id="warden-issues-list-header" className="pb-4 border bg-muted/30">
-              <div className="flex flex-col space-y-4">
-                <div className="flex justify-between items-start w-full">
-                  <div className="space-y-1">
-                    <CardTitle className="text-xl">Recent Issues</CardTitle>
-                    <CardDescription>Manage and view student complaints.</CardDescription>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <CardTitle className="text-xl">Recent Issues</CardTitle>
+                  <CardDescription>Manage and view student complaints.</CardDescription>
+                </div>
+                
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end sm:justify-start">
+                  <div className="relative flex-1 sm:flex-none" ref={filterRef}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowFilter(!showFilter)}
+                      className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white h-9 px-3.5 rounded-xl font-semibold text-xs gap-1.5"
+                    >
+                      <Filter className="w-3.5 h-3.5" /> Filter
+                    </Button>
+                    
+                    {showFilter && (
+                      <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-xl shadow-xl z-50 p-1`}>
+                        {[
+                          { label: 'All Status', value: 'all' },
+                          { label: 'Pending', value: 'pending' },
+                          { label: 'In Progress', value: 'in_progress' },
+                          { label: 'Waiting for Workers', value: 'waiting_for_workers' },
+                          { label: 'Completed', value: 'completed' },
+                        ].map((item) => (
+                          <button
+                            key={item.value}
+                            onClick={() => {
+                              setStatusFilter(item.value);
+                              setCurrentPage(1);
+                              setShowFilter(false);
+                            }}
+                            className={`block w-full text-left px-3 py-2 text-xs rounded-lg font-medium transition-colors ${
+                              statusFilter === item.value
+                                ? theme === 'dark'
+                                  ? 'bg-primary/20 text-primary font-bold'
+                                  : 'bg-primary/10 text-primary font-bold'
+                                : theme === 'dark'
+                                  ? 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            }`}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
+
                   {totalCount > 0 && (
                     <>
                       {/* Desktop Button */}
@@ -329,27 +375,12 @@ const WardenIssueManagement = () => {
                         disabled={exporting}
                         size="icon"
                         variant="outline"
-                        className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                        className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background rounded-xl"
                       >
                         {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                       </Button>
                     </>
                   )}
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Filter Status</span>
-                  <Select value={statusFilter} onValueChange={(val) => { setStatusFilter(val); setCurrentPage(1); }}>
-                    <SelectTrigger className="w-[140px] h-8 text-xs border-primary/10">
-                      <SelectValue placeholder="All Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="waiting_for_workers">Waiting for Workers</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             </CardHeader>
@@ -360,56 +391,119 @@ const WardenIssueManagement = () => {
                     {[1, 2, 3].map((i) => <div key={i} className="h-20 bg-muted/40 animate-pulse rounded-lg" />)}
                   </div> :
                 issues.length === 0 ?
-                <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
-                    <CheckCircle className="w-12 h-12 mb-4" />
-                    <p className="font-semibold">No issues found</p>
-                  </div> :
+                <div className={`flex flex-col items-center justify-center py-12 px-4 m-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
+                  <CheckCircle className="w-10 h-10 text-primary opacity-30 mb-3" />
+                  <h3 className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No issues found</h3>
+                  <p className={`text-xs text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>There are currently no complaints or issues matching this status.</p>
+                </div> :
 
-                <div className="divide-y-0 sm:divide-y divide-border/30 p-3 sm:p-0 space-y-3 sm:space-y-0">
-                    {issues.map((issue) => {
-                    const config = STATUS_CONFIG[issue.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
-                    const isSelected = selectedIssue?.id === issue.id;
-                    return (
-                      <div
-                        key={issue.id}
-                        onClick={() => handleIssueClick(issue)}
-                        className={cn(
-                          "p-4 transition-all cursor-pointer hover:bg-muted/70 relative",
-                          // Mobile card style
-                          "border rounded-xl shadow-sm bg-card sm:border-0 sm:rounded-none sm:shadow-none sm:bg-transparent",
-                          isSelected ? "bg-primary/10" : ""
-                        )}>
-                        
-                            <div className="flex flex-wrap sm:flex-nowrap items-start justify-between gap-2 mb-2">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">#{issue.id}</span>
-                                <h4 className="font-semibold text-sm sm:text-base break-words break-all">{issue.title}</h4>
-                              </div>
-                              <Badge variant="outline" className={`text-[10px] sm:text-xs h-5 whitespace-nowrap flex-shrink-0 ${config.color}`}>
-                                {issue.status_display}
-                              </Badge>
-                            </div>
-                            <div className="flex flex-wrap items-center justify-between gap-y-1 gap-x-2 text-xs sm:text-sm text-muted-foreground">
-                              <div className="flex items-center gap-1 min-w-0">
-                                <User className="w-3 h-3 flex-shrink-0" /> <span className="truncate">{issue.student_name}</span>
-                              </div>
-                              <div className="flex items-center gap-1 flex-shrink-0">
-                                <Home className="w-3 h-3 mt-0.5" /> Room {issue.room_name}
-                              </div>
-                            </div>
-                            <div className="mt-2 flex items-center justify-between text-[10px] sm:text-xs">
-                              <span className="flex items-center gap-1 text-muted-foreground/70">
-                                <Calendar className="w-3.5 h-3.5" /> {formatDate(issue.created_at)}
-                              </span>
-                              {issue.update_count > 0 &&
-                                <Badge variant="secondary" className="h-4 px-1.5 text-[10px] sm:text-xs font-normal">
-                                  {issue.update_count} updates
+                <div>
+                  {/* Desktop View Table */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-sm text-left border-collapse whitespace-nowrap">
+                      <thead className={`border-b ${theme === 'dark' ? 'border-border bg-muted/20' : 'border-gray-200 bg-gray-50'}`}>
+                        <tr>
+                          <th className="py-3.5 px-4 font-semibold text-muted-foreground">ID</th>
+                          <th className="py-3.5 px-4 font-semibold text-muted-foreground">Title</th>
+                          <th className="py-3.5 px-4 font-semibold text-muted-foreground">Status</th>
+                          <th className="py-3.5 px-4 font-semibold text-muted-foreground">Student</th>
+                          <th className="py-3.5 px-4 font-semibold text-muted-foreground">Room</th>
+                          <th className="py-3.5 px-4 font-semibold text-muted-foreground">Date Raised</th>
+                          <th className="py-3.5 px-4 font-semibold text-muted-foreground">Updates</th>
+                          <th className="py-3.5 px-4 font-semibold text-muted-foreground text-center">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {issues.map((issue) => {
+                          const config = STATUS_CONFIG[issue.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
+                          return (
+                            <tr key={issue.id} className="hover:bg-muted/30 transition-colors">
+                              <td className="py-3 px-4 font-mono text-xs text-muted-foreground bg-muted/20">#{issue.id}</td>
+                              <td className="py-3 px-4 font-semibold max-w-[200px] truncate">{issue.title}</td>
+                              <td className="py-3 px-4">
+                                <Badge variant="outline" className={`text-[10px] sm:text-xs h-5 whitespace-nowrap ${config.color}`}>
+                                  {issue.status_display}
                                 </Badge>
-                              }
-                            </div>
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="font-semibold text-sm">{issue.student_name}</div>
+                                <div className="text-[10px] text-muted-foreground">{issue.enrollment_no}</div>
+                              </td>
+                              <td className="py-3 px-4 text-sm font-medium">Room {issue.room_name}</td>
+                              <td className="py-3 px-4 text-xs text-muted-foreground">{formatDate(issue.created_at)}</td>
+                              <td className="py-3 px-4">
+                                {issue.update_count > 0 ? (
+                                  <Badge variant="secondary" className="h-4 px-1.5 text-[10px] sm:text-xs font-normal">
+                                    {issue.update_count} updates
+                                  </Badge>
+                                ) : (
+                                  <span className="text-muted-foreground text-xs">-</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs font-semibold px-3 py-1 rounded-xl h-8 text-primary hover:bg-primary/5 border-primary/10"
+                                  onClick={() => {
+                                    handleIssueClick(issue);
+                                    setIsDetailsModalOpen(true);
+                                  }}
+                                >
+                                  View Details
+                                </Button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
 
-                          {/* Mobile View Details Button */}
-                          <div className="mt-3 pt-3 border-t border-border/50 flex lg:hidden">
+                  {/* Mobile View Cards */}
+                  <div className="md:hidden divide-y-0 sm:divide-y divide-border/30 p-3 sm:p-0 space-y-3 sm:space-y-0">
+                    {issues.map((issue) => {
+                      const config = STATUS_CONFIG[issue.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
+                      const isSelected = selectedIssue?.id === issue.id;
+                      return (
+                        <div
+                          key={issue.id}
+                          onClick={() => handleIssueClick(issue)}
+                          className={cn(
+                            "p-4 transition-all cursor-pointer hover:bg-muted/70 relative",
+                            "border rounded-xl shadow-sm bg-card sm:border-0 sm:rounded-none sm:shadow-none sm:bg-transparent",
+                            isSelected ? "bg-primary/10" : ""
+                          )}>
+                          
+                          <div className="flex flex-wrap sm:flex-nowrap items-start justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">#{issue.id}</span>
+                              <h4 className="font-semibold text-sm sm:text-base break-words break-all">{issue.title}</h4>
+                            </div>
+                            <Badge variant="outline" className={`text-[10px] sm:text-xs h-5 whitespace-nowrap flex-shrink-0 ${config.color}`}>
+                              {issue.status_display}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap items-center justify-between gap-y-1 gap-x-2 text-xs sm:text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1 min-w-0">
+                              <User className="w-3 h-3 flex-shrink-0" /> <span className="truncate">{issue.student_name}</span>
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <Home className="w-3 h-3 mt-0.5" /> Room {issue.room_name}
+                            </div>
+                          </div>
+                          <div className="mt-2 flex items-center justify-between text-[10px] sm:text-xs">
+                            <span className="flex items-center gap-1 text-muted-foreground/70">
+                              <Calendar className="w-3.5 h-3.5" /> {formatDate(issue.created_at)}
+                            </span>
+                            {issue.update_count > 0 &&
+                              <Badge variant="secondary" className="h-4 px-1.5 text-[10px] sm:text-xs font-normal">
+                                {issue.update_count} updates
+                              </Badge>
+                            }
+                          </div>
+
+                          <div className="mt-3 pt-3 border-t border-border/50 flex">
                             <Button
                               variant="outline"
                               size="sm"
@@ -423,37 +517,40 @@ const WardenIssueManagement = () => {
                               View Details
                             </Button>
                           </div>
-                        </div>);
-
-                  })}
+                        </div>
+                      );
+                    })}
                   </div>
-                }
+                </div>
+              }
               </div>
             </CardContent>
             {totalPages > 1 && (
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                 <div>
-                  Showing {totalCount === 0 ? 0 : Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} issues
+                  Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} issues
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1 || loading}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
                   >
                     Previous
                   </Button>
                   <div className="flex items-center justify-center min-w-[2rem]">
-                    <span className="text-sm font-semibold">{currentPage}</span>
+                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {currentPage}
+                    </span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage === totalPages || loading}
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
                   >
                     Next
                   </Button>
@@ -462,191 +559,38 @@ const WardenIssueManagement = () => {
             )}
           </Card>
         </div>
-
-        {/* Issue Details */}
-        <div className="hidden lg:block lg:col-span-7" ref={detailsRef}>
-          <AnimatePresence mode="wait">
-            {selectedIssue ?
-            <motion.div
-              key={selectedIssue.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-6">
-              
-                <Card className="border-border/40 shadow-md h-[calc(100vh-28rem)] min-h-[400px] flex flex-col overflow-hidden">
-                  <CardHeader className="pb-4 border-b bg-muted/10">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <CardTitle className="text-2xl sm:text-xl font-semibold">{selectedIssue.title}</CardTitle>
-                        <Badge className={`${STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.color} px-3 py-1`}>
-                          {selectedIssue.status_display}
-                        </Badge>
-                        <span className="text-xs font-mono text-muted-foreground bg-muted/50 px-2 py-1 rounded border border-border/40">
-                          ID: #{selectedIssue.id}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 ml-auto">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-8 gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all shadow-sm rounded-xl">
-                              <History className="w-4 h-4 text-primary" />
-                              <span className="text-xs font-semibold">Resolution Timeline</span>
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="w-[90vw] sm:max-w-[500px] max-h-[80vh] flex flex-col p-0 overflow-hidden shadow-2xl border-primary/10 custom-scrollbar rounded-xl">
-                            <DialogHeader className="p-6 border-b bg-muted/30 shrink-0">
-                              <DialogTitle className="flex items-center gap-2">
-                                <History className="w-5 h-5 text-primary" />
-                                Resolution Timeline
-                              </DialogTitle>
-                            </DialogHeader>
-                            <ScrollArea className="flex-1 p-6">
-                              {selectedIssue.updates && selectedIssue.updates.length > 0 ?
-                                <div className="space-y-6 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-muted">
-                                  {selectedIssue.updates.map((update: any, idx: number) =>
-                                    <div key={idx} className="relative pl-8">
-                                      <div className="absolute left-0 top-1.5 w-5 h-5 rounded-full border-2 border-background bg-muted flex items-center justify-center">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                      </div>
-                                      <div className="p-3 rounded-lg bg-muted/30 border border-muted/50">
-                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
-                                          <p className="text-sm font-semibold leading-tight">
-                                            {update.old_status_display} → {update.new_status_display}
-                                          </p>
-                                          <span className="text-[10px] font-mono text-muted-foreground shrink-0">{formatDate(update.created_at)}</span>
-                                        </div>
-                                        {update.note && <p className="text-xs text-muted-foreground mt-1 bg-background/50 p-2 rounded">{update.note}</p>}
-                                        <p className="text-[10px] mt-2 text-primary/70 flex items-center gap-1 font-medium">
-                                          <User className="w-3 h-3" /> {update.updated_by_name || 'System'}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div> :
-
-                                <div className="py-20 text-center opacity-50">
-                                  <History className="w-12 h-12 mx-auto mb-4" />
-                                  <p className="text-sm">No history available for this issue.</p>
-                                </div>
-                              }
-                            </ScrollArea>
-                          </DialogContent>
-                        </Dialog>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleExportSingleIssuePDF}
-                          disabled={exportingSingle}
-                          className="h-8 gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all shadow-sm bg-primary hover:bg-primary/90 text-white border-primary rounded-xl"
-                        >
-                          {exportingSingle ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-4 h-4" />}
-                          <span className="text-xs font-semibold">Export PDF</span>
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <div className="flex-1 overflow-y-auto custom-scrollbar">
-                    <CardContent className="pt-6 space-y-6">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-xl bg-muted/20">
-                        <div>
-                          <p className="text-[14px] uppercase font-semibold text-muted-foreground mb-1 tracking-wider">Student</p>
-                          <p className="text-base font-semibold">{selectedIssue.student_name}</p>
-                        </div>
-                        <div>
-                          <p className="text-[14px] uppercase font-semibold text-muted-foreground mb-1 tracking-wider">Room</p>
-                          <p className="text-base font-semibold">{selectedIssue.room_name}</p>
-                        </div>
-                        <div>
-                          <p className="text-[14px] uppercase font-semibold text-muted-foreground mb-1 tracking-wider">Hostel</p>
-                          <p className="text-base font-semibold">{selectedIssue.hostel_name}</p>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <h4 className="text-base font-semibold flex items-center gap-2 uppercase tracking-wide text-muted-foreground/80">
-                          Description
-                        </h4>
-                        <p className="text-base leading-relaxed bg-background p-4 rounded-lg border border-dashed border-border/60">
-                          {selectedIssue.description}
-                        </p>
-                      </div>
-
-                      <Separator className="bg-border/40" />
-
-                      <div className="space-y-4">
-                        <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground/80">Update Status</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {Object.keys(STATUS_CONFIG).map((status) => {
-                          const currentOrder = STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.order ?? 0;
-                          const targetOrder = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.order ?? 0;
-                          const isCurrent = selectedIssue.status === status;
-                          const isPast = targetOrder < currentOrder;
-
-                          return (
-                            <Button
-                              key={status}
-                              size="sm"
-                              variant={isCurrent ? "default" : "outline"}
-                              onClick={() => handleStatusChange(selectedIssue.id, status)}
-                              disabled={updatingIssueId === selectedIssue.id || isPast || isCurrent}
-                              className={`h-10 px-4 text-sm font-semibold transition-all ${isCurrent ?
-                              "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20 scale-105" :
-                              isPast ?
-                              "opacity-50 grayscale-[0.5] cursor-not-allowed bg-muted/20" :
-                              "hover:border-primary/60 opacity-100"}`
-                              }>
-                              
-                                {STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.label}
-                              </Button>);
-
-                        })}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </div>
-                </Card>
-              </motion.div> :
-
-            <div className="hidden lg:flex flex-col items-center justify-center h-[calc(100vh-28rem)] min-h-[400px] border-2 border-dashed border-border/40 rounded-2xl bg-muted/5 opacity-50">
-                 <div className="bg-muted p-6 rounded-full mb-4">
-                   <ChevronRight className="w-10 h-10 text-muted-foreground" />
-                 </div>
-                 <h3 className="text-lg font-semibold">Select an issue to resolve</h3>
-               </div>
-            }
-          </AnimatePresence>
-        </div>
       </div>
 
-      {/* Mobile Details Dialog */}
+      {/* Details Dialog */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-        <DialogContent className="w-[90%] max-w-[90vw] h-[80vh] lg:hidden rounded-xl overflow-y-auto custom-scrollbar p-0">
+        <DialogContent className="w-[90%] sm:w-full sm:max-w-2xl max-h-[80vh] sm:max-h-[85vh] rounded-xl sm:rounded-2xl overflow-y-auto custom-scrollbar p-6">
           {selectedIssue && (
-            <div className="flex flex-col h-full bg-background">
-              {/* Header with Title and Status */}
-              <div className="p-4 border-b bg-muted/10 shrink-0 space-y-3">
-                <div className="flex flex-wrap items-center gap-2 pr-6">
-                  <DialogTitle className="text-lg font-semibold text-foreground leading-snug">{selectedIssue.title}</DialogTitle>
+            <div className="space-y-6">
+              {/* Header with Title, Status, Timeline & Export Actions */}
+              <div className="border-b border-border/40 pb-4 space-y-3 pr-10 sm:pr-0">
+                <div className="flex flex-wrap items-center gap-2.5 min-w-0">
+                  <DialogTitle className="text-xl font-bold text-foreground leading-snug">{selectedIssue.title}</DialogTitle>
                   <Badge className={cn(
                     STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.color || '',
-                    "text-[10px] py-0.5"
+                    "text-[10px] py-0.5 font-semibold"
                   )}>
                     {selectedIssue.status_display}
                   </Badge>
-                  <span className="text-[10px] font-mono text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded border border-border/40">
+                  <span className="text-[10px] font-mono text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded border border-border/40 font-semibold">
                     ID: #{selectedIssue.id}
                   </span>
                 </div>
-                 <div className="flex items-center gap-2">
-                  {/* Resolution Timeline Button (inside mobile modal) */}
+                
+                <div className="flex items-center gap-2 w-full shrink-0">
+                  {/* Resolution Timeline Button */}
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-primary/20 hover:bg-primary/5 hover:text-primary rounded-xl">
+                      <Button variant="outline" size="sm" className="flex-1 h-9 gap-1.5 text-xs border-primary/20 hover:bg-primary/5 hover:text-primary rounded-xl">
                         <History className="w-3.5 h-3.5 text-primary" />
                         <span>Timeline</span>
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="w-[90%] max-w-[90vw] h-[70vh] rounded-xl overflow-y-auto custom-scrollbar p-0">
+                    <DialogContent className="w-[95%] max-w-[95vw] sm:max-w-[480px] max-h-[80vh] rounded-xl overflow-y-auto custom-scrollbar p-0 z-[200] [&>button]:border-none [&>button]:outline-none [&>button]:focus:ring-0">
                       <DialogHeader className="p-4 border-b bg-muted/30">
                         <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
                           <History className="w-4 h-4 text-primary" />
@@ -681,13 +625,13 @@ const WardenIssueManagement = () => {
                     </DialogContent>
                   </Dialog>
                   
-                  {/* Export PDF Button (inside mobile modal) */}
+                  {/* Export PDF Button */}
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleExportSingleIssuePDF}
                     disabled={exportingSingle}
-                    className="h-8 gap-1.5 text-xs bg-primary text-white border-primary hover:bg-primary/90 hover:text-white rounded-xl"
+                    className="flex-1 h-9 gap-1.5 text-xs bg-primary text-white border-primary hover:bg-primary/90 hover:text-white rounded-xl"
                   >
                     {exportingSingle ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
                     <span>Export PDF</span>
@@ -695,68 +639,67 @@ const WardenIssueManagement = () => {
                 </div>
               </div>
 
-              {/* Scrollable details */}
-              <div className="flex-1 p-4 space-y-5 overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-2 gap-3 p-4 rounded-xl bg-muted/20 text-xs">
-                  <div>
-                    <span className="text-muted-foreground uppercase font-semibold block mb-0.5 tracking-wider">Student</span>
-                    <p className="font-semibold text-sm">{selectedIssue.student_name}</p>
-                    <p className="text-muted-foreground">{selectedIssue.enrollment_no}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground uppercase font-semibold block mb-0.5 tracking-wider">Location</span>
-                    <p className="font-semibold text-sm">Room {selectedIssue.room_name}</p>
-                    <p className="text-muted-foreground truncate">{selectedIssue.hostel_name}</p>
-                  </div>
-                  <div className="col-span-2 border-t pt-2 border-border/40">
-                    <span className="text-muted-foreground uppercase font-semibold block mb-0.5 tracking-wider">Date Raised</span>
-                    <p className="font-semibold text-sm">{formatDate(selectedIssue.created_at)}</p>
-                  </div>
+              {/* Student & Location Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-xl bg-muted/20 text-xs">
+                <div>
+                  <span className="text-muted-foreground uppercase font-semibold block mb-0.5 tracking-wider">Student</span>
+                  <p className="font-semibold text-sm">{selectedIssue.student_name}</p>
+                  <p className="text-muted-foreground">{selectedIssue.enrollment_no}</p>
                 </div>
-
-                <div className="space-y-2">
-                  <h4 className="text-sm font-semibold flex items-center gap-1.5">
-                    <MessageSquare className="w-4 h-4 text-primary" /> Description
-                  </h4>
-                  <p className="text-sm text-muted-foreground bg-background p-4 rounded-lg border border-dashed leading-relaxed whitespace-pre-wrap">
-                    {selectedIssue.description}
-                  </p>
+                <div>
+                  <span className="text-muted-foreground uppercase font-semibold block mb-0.5 tracking-wider">Location</span>
+                  <p className="font-semibold text-sm">Room {selectedIssue.room_name}</p>
+                  <p className="text-muted-foreground truncate">{selectedIssue.hostel_name}</p>
                 </div>
-
-                <Separator />
-
-                <div className="space-y-3 pb-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/85">Update Status</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.keys(STATUS_CONFIG).map((status) => {
-                      const currentOrder = STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.order ?? 0;
-                      const targetOrder = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.order ?? 0;
-                      const isCurrent = selectedIssue.status === status;
-                      const isPast = targetOrder < currentOrder;
-
-                      return (
-                        <Button
-                          key={status}
-                          size="sm"
-                          variant={isCurrent ? "default" : "outline"}
-                          onClick={() => handleStatusChange(selectedIssue.id, status)}
-                          disabled={updatingIssueId === selectedIssue.id || isPast || isCurrent}
-                          className={`h-9 px-3 text-xs font-semibold transition-all ${isCurrent ?
-                            "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20 scale-105" :
-                            isPast ?
-                              "opacity-50 cursor-not-allowed bg-muted/20" :
-                              "hover:border-primary/60 opacity-100"}`
-                          }>
-                          {STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.label}
-                        </Button>
-                      );
-                    })}
-                  </div>
+                <div className="col-span-1 sm:col-span-2 border-t pt-2 border-border/40">
+                  <span className="text-muted-foreground uppercase font-semibold block mb-0.5 tracking-wider">Date Raised</span>
+                  <p className="font-semibold text-sm">{formatDate(selectedIssue.created_at)}</p>
                 </div>
               </div>
-              
-              <div className="p-3 border-t bg-muted/10 shrink-0 text-right">
-                <Button size="sm" variant="ghost" onClick={() => setIsDetailsModalOpen(false)} className="font-semibold">Close</Button>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold flex items-center gap-1.5 text-muted-foreground">
+                  <MessageSquare className="w-4 h-4 text-primary" /> Description
+                </h4>
+                <p className="text-sm text-foreground bg-background p-4 rounded-lg border border-dashed leading-relaxed whitespace-pre-wrap">
+                  {selectedIssue.description}
+                </p>
+              </div>
+
+              {/* Update Status Actions */}
+              <div className="space-y-3 pt-2">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">Update Status</h4>
+                <div className="flex flex-wrap gap-2">
+                  {Object.keys(STATUS_CONFIG).map((status) => {
+                    const currentOrder = STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.order ?? 0;
+                    const targetOrder = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.order ?? 0;
+                    const isCurrent = selectedIssue.status === status;
+                    const isPast = targetOrder < currentOrder;
+
+                    return (
+                      <Button
+                        key={status}
+                        size="sm"
+                        variant={isCurrent ? "default" : "outline"}
+                        onClick={() => handleStatusChange(selectedIssue.id, status)}
+                        disabled={updatingIssueId === selectedIssue.id || isPast || isCurrent}
+                        className={`h-9 px-3 text-xs font-semibold transition-all ${isCurrent ?
+                          "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20 scale-105" :
+                          isPast ?
+                            "opacity-50 cursor-not-allowed bg-muted/20" :
+                            "hover:border-primary/60 opacity-100"}`
+                        }>
+                        {STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.label}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Footer Close Button */}
+              <div className="pt-4 border-t border-border/40 flex justify-end">
+                <Button size="sm" variant="outline" onClick={() => setIsDetailsModalOpen(false)} className="font-semibold h-9 px-4 rounded-xl">Close</Button>
               </div>
             </div>
           )}
