@@ -547,7 +547,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
                             <div className="flex flex-wrap sm:flex-nowrap items-start justify-between gap-2 mb-2">
                               <div className="flex items-center gap-2 min-w-0">
                                 <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">#{issue.id}</span>
-                                <h4 className="font-semibold text-sm sm:text-base truncate">{issue.title}</h4>
+                                <h4 className="font-semibold text-sm sm:text-base break-words break-all">{issue.title}</h4>
                               </div>
                               <Badge variant="outline" className={`text-[10px] sm:text-xs h-5 whitespace-nowrap flex-shrink-0 ${config.color}`}>
                                 {issue.status_display}

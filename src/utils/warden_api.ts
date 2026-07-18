@@ -58,6 +58,14 @@ export const getWardenStudents = async (
   return response.json();
 };
 
+export const getWardenStudentDetail = async (studentId: number) => {
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/warden/students/${studentId}/`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch warden student details");
+  }
+  return response.json();
+};
+
 export const getWardenRooms = async (hostelId?: number, floor?: string) => {
   let url = `${API_ENDPOINT}/warden/rooms/`;
   const params = new URLSearchParams();
