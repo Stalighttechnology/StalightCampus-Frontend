@@ -707,7 +707,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
               {/* Header with Title, Status, Timeline & Export Actions */}
               <div className="border-b border-border/40 pb-4 space-y-3 pr-10 sm:pr-0">
                 <div className="flex flex-wrap items-center gap-2.5 min-w-0">
-                  <DialogTitle className="text-xl font-bold text-foreground leading-snug">{selectedIssue.title}</DialogTitle>
+                  <DialogTitle className="text-xl font-bold text-foreground leading-snug break-words break-all flex-1">{selectedIssue.title}</DialogTitle>
                   <Badge className={cn(
                     STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.color || '',
                     "text-[10px] py-0.5 font-semibold"
