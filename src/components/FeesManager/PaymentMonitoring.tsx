@@ -30,8 +30,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  Mail } from
-'lucide-react';
+  Mail
+} from
+  'lucide-react';
 import DashboardCard from '@/components/common/DashboardCard';
 import { useTheme } from '@/context/ThemeContext';
 import { showConfirmAlert, showSuccessAlert } from '../../utils/sweetalert';
@@ -41,16 +42,18 @@ import {
   getPaymentDetails as getPaymentDetailsApi,
   processRefund as processRefundApi,
   downloadReceipt as downloadReceiptApi,
-  bulkSendReminders } from
-"../../utils/fees_manager_api";
+  bulkSendReminders
+} from
+  "../../utils/fees_manager_api";
 import {
   Skeleton,
   SkeletonStatsGrid,
   SkeletonTable,
   SkeletonList,
   SkeletonPageHeader,
-  SkeletonCard } from
-"@/components/ui/skeleton";
+  SkeletonCard
+} from
+  "@/components/ui/skeleton";
 
 
 interface Payment {
@@ -411,35 +414,35 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
           </CardHeader>
 
           <CardContent className="p-3 pb-0">
-          {/* Stats Overview */}
-          {stats &&
-          <div className="grid grid-cols-1 sm:grid-cols-2 min-[1250px]:grid-cols-4 gap-6 mb-4">
-              <DashboardCard
-              title="Total Revenue"
-              value={formatCurrency(stats.total_amount)}
-              description={`${stats.total_payments} total transactions`}
-              icon={<DollarSign className="h-5 w-5" />} />
-            
-              <DashboardCard
-              title="Successful"
-              value={stats.successful_payments}
-              description="Completed payments"
-              icon={<CheckCircle className="h-5 w-5" />} />
-            
-              <DashboardCard
-              title="Today's Collection"
-              value={formatCurrency(stats.today_amount)}
-              description={`${stats.today_payments} payments today`}
-              icon={<TrendingUp className="h-5 w-5" />} />
-            
-              <DashboardCard
-              title="Outstanding"
-              value={formatCurrency(stats.outstanding_amount)}
-              description={`${stats.pending_invoice_count} unpaid invoices`}
-              icon={<AlertTriangle className="h-5 w-5 text-amber-500" />} />
-            
-            </div>
-          }
+            {/* Stats Overview */}
+            {stats &&
+              <div className="grid grid-cols-1 sm:grid-cols-2 min-[1250px]:grid-cols-4 gap-6 mb-4">
+                <DashboardCard
+                  title="Total Revenue"
+                  value={formatCurrency(stats.total_amount)}
+                  description={`${stats.total_payments} total transactions`}
+                  icon={<IndianRupee className="h-5 w-5" />} />
+
+                <DashboardCard
+                  title="Successful"
+                  value={stats.successful_payments}
+                  description="Completed payments"
+                  icon={<CheckCircle className="h-5 w-5" />} />
+
+                <DashboardCard
+                  title="Today's Collection"
+                  value={formatCurrency(stats.today_amount)}
+                  description={`${stats.today_payments} payments today`}
+                  icon={<TrendingUp className="h-5 w-5" />} />
+
+                <DashboardCard
+                  title="Outstanding"
+                  value={formatCurrency(stats.outstanding_amount)}
+                  description={`${stats.pending_invoice_count} unpaid invoices`}
+                  icon={<AlertTriangle className="h-5 w-5 text-amber-500" />} />
+
+              </div>
+            }
           </CardContent>
         </div>
 
@@ -537,33 +540,32 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   </button>
                 )}
               </div>
-              
+
               {statusFilter === 'pending' &&
-              <Button
-                onClick={handleBulkNotify}
-                disabled={notifying || hasNotified}
-                className={`h-11 px-6 shadow-lg rounded-xl transition-all active:scale-95 flex items-center gap-2 font-semibold ${
-                hasNotified ?
-                "bg-green-600 hover:bg-green-700 text-white shadow-green-200/50" :
-                "bg-primary hover:bg-primary/90 text-white shadow-primary/50"}`
-                }>
-                
+                <Button
+                  onClick={handleBulkNotify}
+                  disabled={notifying || hasNotified}
+                  className={`h-11 px-6 shadow-lg rounded-xl transition-all active:scale-95 flex items-center gap-2 font-semibold ${hasNotified ?
+                    "bg-green-600 hover:bg-green-700 text-white shadow-green-200/50" :
+                    "bg-primary hover:bg-primary/90 text-white shadow-primary/50"}`
+                  }>
+
                   {notifying ?
-                <>
+                    <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
                       Sending...
                     </> :
-                hasNotified ?
-                <>
-                      <CheckCircle className="w-4 h-4" />
-                      Reminders Sent
-                    </> :
+                    hasNotified ?
+                      <>
+                        <CheckCircle className="w-4 h-4" />
+                        Reminders Sent
+                      </> :
 
-                <>
-                      <Mail className="w-4 h-4" />
-                      Notify All Pending
-                    </>
-                }
+                      <>
+                        <Mail className="w-4 h-4" />
+                        Notify All Pending
+                      </>
+                  }
                 </Button>
               }
             </div>
@@ -584,7 +586,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
               </TableHeader>
               <TableBody className={loading ? "opacity-50 pointer-events-none transition-opacity duration-200" : "transition-opacity duration-200"}>
                 {payments.length === 0 ?
-                <TableRow>
+                  <TableRow>
                     <TableCell colSpan={6} className="h-72 text-center">
                       <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
                         <div className="bg-muted p-4 rounded-full">
@@ -598,132 +600,131 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                     </TableCell>
                   </TableRow> :
 
-                Object.values(
-                  payments.reduce((acc, p) => {
-                    const invNum = p.invoice.invoice_number;
-                    if (!acc[invNum]) acc[invNum] = [];
-                    acc[invNum].push(p);
-                    return acc;
-                  }, {} as Record<string, Payment[]>)
-                ).map((group) => {
-                  const invNum = group[0].invoice.invoice_number;
-                  const isExpanded = expandedInvoice === invNum;
-                  const latestPayment = group.reduce((latest, current) => 
-                     new Date(current.payment_date) > new Date(latest.payment_date) ? current : latest
-                  );
-                  const totalAmount = group.reduce((sum, p) => sum + Number(p.amount), 0);
-                  const p = latestPayment; 
+                  Object.values(
+                    payments.reduce((acc, p) => {
+                      const invNum = p.invoice.invoice_number;
+                      if (!acc[invNum]) acc[invNum] = [];
+                      acc[invNum].push(p);
+                      return acc;
+                    }, {} as Record<string, Payment[]>)
+                  ).map((group) => {
+                    const invNum = group[0].invoice.invoice_number;
+                    const isExpanded = expandedInvoice === invNum;
+                    const latestPayment = group.reduce((latest, current) =>
+                      new Date(current.payment_date) > new Date(latest.payment_date) ? current : latest
+                    );
+                    const totalAmount = group.reduce((sum, p) => sum + Number(p.amount), 0);
+                    const p = latestPayment;
 
-                  return (
-                    <React.Fragment key={invNum}>
-                      <TableRow className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
-                        <TableCell className="py-5 px-6 align-middle">
-                          <div className="font-mono font-semibold text-primary tracking-tighter text-sm uppercase">{p.invoice.invoice_number}</div>
-                          <div className="mt-1 flex flex-wrap items-center gap-2">
-                            <span className="text-[13px] font-semibold text-muted-foreground uppercase tracking-widest">
+                    return (
+                      <React.Fragment key={invNum}>
+                        <TableRow className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
+                          <TableCell className="py-5 px-6 align-middle">
+                            <div className="font-mono font-semibold text-primary tracking-tighter text-sm uppercase">{p.invoice.invoice_number}</div>
+                            <div className="mt-1 flex flex-wrap items-center gap-2">
+                              <span className="text-[13px] font-semibold text-muted-foreground uppercase tracking-widest">
                                 {new Date(p.payment_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
-                            </span>
-                            {group.length > 1 && <Badge variant="secondary" className="text-[10px] py-0.5 px-1.5 whitespace-nowrap tracking-normal normal-case">{group.length} Payments</Badge>}
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-6 align-middle">
-                          <div className="font-semibold text-foreground leading-tight">{p.invoice.student.name}</div>
-                          <div className="text-[13px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">
-                            {p.invoice.student.usn} • Sem {p.invoice.semester && p.invoice.semester !== 'N/A' ? p.invoice.semester : p.invoice.student.semester || 'N/A'}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right align-middle">
-                          <div className="font-semibold text-green-600">{formatCurrency(totalAmount)}</div>
-                        </TableCell>
-                        <TableCell className="text-center align-middle">
-                          {group.length > 1 ? <Badge variant="outline" className="text-muted-foreground">Multiple</Badge> : getMethodBadge(p.payment_method)}
-                        </TableCell>
-                        <TableCell className="text-center align-middle">
-                          {group.length > 1 ? <Badge variant="outline" className="text-muted-foreground">Multiple</Badge> : getStatusBadge(p.status)}
-                        </TableCell>
-                        <TableCell className="text-right pr-6 align-middle">
-                          <div className="flex justify-end gap-2">
-                            {group.length > 1 ? (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 px-3 text-xs font-semibold rounded-lg hover:bg-primary/10 hover:text-primary transition-colors border border-border/50 shadow-sm"
-                                onClick={() => setExpandedInvoice(isExpanded ? null : invNum)}
-                              >
-                                {isExpanded ? 'Hide' : 'View All'}
-                              </Button>
-                            ) : (
-                              <div className="flex gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className={`h-9 w-9 rounded-full transition-all active:scale-95 ${theme === 'dark' ? 'text-blue-400 hover:bg-blue-950/30' : 'text-blue-600 hover:bg-blue-50'}`}
-                                  onClick={() => fetchPaymentDetails(p.id)}
-                                  title="View Details">
-                                  <Eye className="h-4.5 w-4.5" />
-                                </Button>
-                                {(p.status === 'completed' || p.status === 'success' || p.status === 'pending') &&
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={`h-9 w-9 rounded-full transition-all active:scale-95 ${
-                                      p.status === 'pending'
-                                        ? 'text-gray-400 dark:text-gray-600 opacity-50 cursor-not-allowed'
-                                        : (theme === 'dark' ? 'text-green-400 hover:bg-green-950/30' : 'text-green-600 hover:bg-green-50')
-                                    }`}
-                                    onClick={() => p.status !== 'pending' && downloadReceipt(p.id)}
-                                    disabled={downloadingReceiptId !== null || p.status === 'pending'}
-                                    title={p.status === 'pending' ? "Cannot Download Receipt for Pending Payment" : "Download Receipt"}>
-                                    {downloadingReceiptId === p.id ? (
-                                      <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                                    ) : (
-                                      <Download className="h-4.5 w-4.5" />
-                                    )}
-                                  </Button>
-                                }
-                                {!isReadOnly && p.status === 'successful' && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={() => confirmRefund(p.id)}
-                                    className={`h-8 w-8 transition-all active:scale-95 ${theme === 'dark' ? 'text-amber-400 hover:bg-amber-950/30' : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50'}`}
-                                    title="Process Refund"
-                                    disabled={refundLoading === p.id}
-                                  >
-                                    <RotateCcw className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      
-                      {/* Expanded Sub-rows for Multiple Payments */}
-                      {isExpanded && group.length > 1 && group.map((subPayment, idx) => (
-                        <TableRow key={subPayment.id} className="bg-muted/30 border-b border-border/50">
-                          <TableCell className="py-3 px-6 align-middle pl-10 border-l-2 border-l-primary/30">
-                            <div className="text-[12px] font-semibold text-muted-foreground flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-primary/40"></div>
-                              {new Date(subPayment.payment_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                              </span>
+                              {group.length > 1 && <Badge variant="secondary" className="text-[10px] py-0.5 px-1.5 whitespace-nowrap tracking-normal normal-case">{group.length} Payments</Badge>}
                             </div>
                           </TableCell>
                           <TableCell className="px-6 align-middle">
-                            <div className="text-[12px] font-medium text-muted-foreground italic">
-                              {subPayment.transaction_id ? `Txn: ${subPayment.transaction_id}` : `Payment ${idx + 1}`}
+                            <div className="font-semibold text-foreground leading-tight">{p.invoice.student.name}</div>
+                            <div className="text-[13px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">
+                              {p.invoice.student.usn} • Sem {p.invoice.semester && p.invoice.semester !== 'N/A' ? p.invoice.semester : p.invoice.student.semester || 'N/A'}
                             </div>
                           </TableCell>
                           <TableCell className="text-right align-middle">
-                            <div className="font-semibold text-[13px] text-green-600/80">{formatCurrency(subPayment.amount)}</div>
+                            <div className="font-semibold text-green-600">{formatCurrency(totalAmount)}</div>
                           </TableCell>
-                          <TableCell className="text-center align-middle scale-90 origin-center">
-                            {getMethodBadge(subPayment.payment_method)}
+                          <TableCell className="text-center align-middle">
+                            {group.length > 1 ? <Badge variant="outline" className="text-muted-foreground">Multiple</Badge> : getMethodBadge(p.payment_method)}
                           </TableCell>
-                          <TableCell className="text-center align-middle scale-90 origin-center">
-                            {getStatusBadge(subPayment.status)}
+                          <TableCell className="text-center align-middle">
+                            {group.length > 1 ? <Badge variant="outline" className="text-muted-foreground">Multiple</Badge> : getStatusBadge(p.status)}
                           </TableCell>
                           <TableCell className="text-right pr-6 align-middle">
-                            <div className="flex justify-end gap-1">
+                            <div className="flex justify-end gap-2">
+                              {group.length > 1 ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 px-3 text-xs font-semibold rounded-lg hover:bg-primary/10 hover:text-primary transition-colors border border-border/50 shadow-sm"
+                                  onClick={() => setExpandedInvoice(isExpanded ? null : invNum)}
+                                >
+                                  {isExpanded ? 'Hide' : 'View All'}
+                                </Button>
+                              ) : (
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={`h-9 w-9 rounded-full transition-all active:scale-95 ${theme === 'dark' ? 'text-blue-400 hover:bg-blue-950/30' : 'text-blue-600 hover:bg-blue-50'}`}
+                                    onClick={() => fetchPaymentDetails(p.id)}
+                                    title="View Details">
+                                    <Eye className="h-4.5 w-4.5" />
+                                  </Button>
+                                  {(p.status === 'completed' || p.status === 'success' || p.status === 'pending') &&
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className={`h-9 w-9 rounded-full transition-all active:scale-95 ${p.status === 'pending'
+                                        ? 'text-gray-400 dark:text-gray-600 opacity-50 cursor-not-allowed'
+                                        : (theme === 'dark' ? 'text-green-400 hover:bg-green-950/30' : 'text-green-600 hover:bg-green-50')
+                                        }`}
+                                      onClick={() => p.status !== 'pending' && downloadReceipt(p.id)}
+                                      disabled={downloadingReceiptId !== null || p.status === 'pending'}
+                                      title={p.status === 'pending' ? "Cannot Download Receipt for Pending Payment" : "Download Receipt"}>
+                                      {downloadingReceiptId === p.id ? (
+                                        <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                                      ) : (
+                                        <Download className="h-4.5 w-4.5" />
+                                      )}
+                                    </Button>
+                                  }
+                                  {!isReadOnly && p.status === 'successful' && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => confirmRefund(p.id)}
+                                      className={`h-8 w-8 transition-all active:scale-95 ${theme === 'dark' ? 'text-amber-400 hover:bg-amber-950/30' : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50'}`}
+                                      title="Process Refund"
+                                      disabled={refundLoading === p.id}
+                                    >
+                                      <RotateCcw className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Expanded Sub-rows for Multiple Payments */}
+                        {isExpanded && group.length > 1 && group.map((subPayment, idx) => (
+                          <TableRow key={subPayment.id} className="bg-muted/30 border-b border-border/50">
+                            <TableCell className="py-3 px-6 align-middle pl-10 border-l-2 border-l-primary/30">
+                              <div className="text-[12px] font-semibold text-muted-foreground flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary/40"></div>
+                                {new Date(subPayment.payment_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                              </div>
+                            </TableCell>
+                            <TableCell className="px-6 align-middle">
+                              <div className="text-[12px] font-medium text-muted-foreground italic">
+                                {subPayment.transaction_id ? `Txn: ${subPayment.transaction_id}` : `Payment ${idx + 1}`}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right align-middle">
+                              <div className="font-semibold text-[13px] text-green-600/80">{formatCurrency(subPayment.amount)}</div>
+                            </TableCell>
+                            <TableCell className="text-center align-middle scale-90 origin-center">
+                              {getMethodBadge(subPayment.payment_method)}
+                            </TableCell>
+                            <TableCell className="text-center align-middle scale-90 origin-center">
+                              {getStatusBadge(subPayment.status)}
+                            </TableCell>
+                            <TableCell className="text-right pr-6 align-middle">
+                              <div className="flex justify-end gap-1">
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -736,11 +737,10 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className={`h-8 w-8 rounded-full transition-all active:scale-95 ${
-                                      subPayment.status === 'pending'
-                                        ? 'text-gray-400 dark:text-gray-600 opacity-50 cursor-not-allowed'
-                                        : (theme === 'dark' ? 'text-green-400 hover:bg-green-950/30' : 'text-green-600 hover:bg-green-50')
-                                    }`}
+                                    className={`h-8 w-8 rounded-full transition-all active:scale-95 ${subPayment.status === 'pending'
+                                      ? 'text-gray-400 dark:text-gray-600 opacity-50 cursor-not-allowed'
+                                      : (theme === 'dark' ? 'text-green-400 hover:bg-green-950/30' : 'text-green-600 hover:bg-green-50')
+                                      }`}
                                     onClick={() => subPayment.status !== 'pending' && downloadReceipt(subPayment.id)}
                                     disabled={downloadingReceiptId !== null || subPayment.status === 'pending'}
                                     title={subPayment.status === 'pending' ? "Cannot Download Receipt for Pending Payment" : "Download Receipt"}>
@@ -751,54 +751,54 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                                     )}
                                   </Button>
                                 }
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </React.Fragment>
-                  );
-                })
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </React.Fragment>
+                    );
+                  })
                 }
               </TableBody>
             </Table>
 
           </div>
         </CardContent>        {/* Pagination Footer */}
-        {meta && meta.total_pages > 1  && (
+        {meta && meta.total_pages > 1 && (
           <CardFooter className={`flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto`}>
             <div className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Showing Page {currentPage} of {meta.total_pages}
             </div>
             <div className="flex items-center space-x-2">
-              <Button 
+              <Button
                 variant="outline"
-                size="sm" 
-                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 px-4 h-9 shadow-sm shadow-primary/10" 
+                size="sm"
+                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 px-4 h-9 shadow-sm shadow-primary/10"
                 onClick={() => {
                   if (currentPage > 1) {
                     const next = currentPage - 1;
                     setCurrentPage(next);
                   }
-                }} 
+                }}
                 disabled={currentPage === 1}
               >
                 Previous
               </Button>
-              
+
               <div className={`min-w-10 h-9 flex items-center justify-center rounded-md border text-sm font-semibold ${theme === 'dark' ? 'bg-muted/50 border-border text-foreground' : 'bg-gray-50 border-gray-200 text-gray-900'}`}>
                 {currentPage}
               </div>
-              
-              <Button 
+
+              <Button
                 variant="outline"
-                size="sm" 
-                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 px-4 h-9 shadow-sm shadow-primary/10" 
+                size="sm"
+                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 px-4 h-9 shadow-sm shadow-primary/10"
                 onClick={() => {
                   if (currentPage < meta.total_pages) {
                     const next = currentPage + 1;
                     setCurrentPage(next);
                   }
-                }} 
+                }}
                 disabled={currentPage === meta.total_pages}
               >
                 Next
@@ -872,8 +872,8 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                         {selectedPayment.invoice.semester && selectedPayment.invoice.semester !== 'N/A'
                           ? `Semester ${selectedPayment.invoice.semester}`
                           : selectedPayment.invoice.student.semester && selectedPayment.invoice.student.semester !== 'N/A'
-                          ? `Semester ${selectedPayment.invoice.student.semester}`
-                          : 'N/A'}
+                            ? `Semester ${selectedPayment.invoice.student.semester}`
+                            : 'N/A'}
                       </p>
                     </div>
                   </div>
@@ -889,8 +889,8 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                     <div>
                       <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Fee Type / Semester</p>
                       <p className={`text-sm font-medium mt-1 capitalize ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
-                        {selectedPayment.invoice?.fee_assignment?.template?.fee_type || 
-                         (selectedPayment.invoice?.invoice_type ? selectedPayment.invoice.invoice_type.replace('_', ' ') : 'N/A')}
+                        {selectedPayment.invoice?.fee_assignment?.template?.fee_type ||
+                          (selectedPayment.invoice?.invoice_type ? selectedPayment.invoice.invoice_type.replace('_', ' ') : 'N/A')}
                         {selectedPayment.invoice?.academic_year ? ` (${selectedPayment.invoice.academic_year})` : ''}
                       </p>
                     </div>
@@ -979,7 +979,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
 
           {/* Footer Actions */}
           <div className={`p-6 border-t flex flex-col sm:flex-row gap-3 flex-shrink-0 ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
-             {selectedPayment && (selectedPayment.status === 'completed' || selectedPayment.status === 'success' || selectedPayment.status === 'pending') && (
+            {selectedPayment && (selectedPayment.status === 'completed' || selectedPayment.status === 'success' || selectedPayment.status === 'pending') && (
               <button
                 onClick={() => selectedPayment.status !== 'pending' && downloadReceipt(selectedPayment.id)}
                 disabled={downloadingReceiptId !== null || selectedPayment.status === 'pending'}
