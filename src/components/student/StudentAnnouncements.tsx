@@ -15,6 +15,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -537,6 +538,7 @@ const StudentAnnouncements = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
   const pageSize = 10;
   const { theme } = useTheme();
 
@@ -788,9 +790,6 @@ const StudentAnnouncements = () => {
                                   <h3 className={`text-lg sm:text-md font-semibold leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                                     {announcement.title}
                                   </h3>
-                                  <p className={`text-sm mt-2 leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                                    {announcement.message}
-                                  </p>
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-y-2 gap-x-4 pt-2">
@@ -823,6 +822,18 @@ const StudentAnnouncements = () => {
                                     <span className="text-xs font-semibold">Mark as read</span>
                                   </Button>
                                 )}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedAnnouncement(announcement);
+                                    if (!announcement.is_read) handleMarkRead(announcement.id);
+                                  }}
+                                  className="h-9 px-3 gap-2 bg-primary text-white hover:bg-primary/90 border-primary"
+                                >
+                                  <Eye size={16} />
+                                  <span className="text-xs font-semibold">View</span>
+                                </Button>
                                 <Badge
                                   variant="outline"
                                   className={`text-[10px] px-2.5 py-1 font-medium ${theme === 'dark' ? 'bg-primary/10 border-primary/20 text-primary-foreground' : 'bg-primary/5 border-primary/20 text-primary'}`}
@@ -877,6 +888,52 @@ const StudentAnnouncements = () => {
           )}
         </Card>
       </div>
+
+      {/* Announcement View Dialog */}
+      <Dialog open={!!selectedAnnouncement} onOpenChange={(open) => { if (!open) setSelectedAnnouncement(null); }}>
+        <DialogContent className="w-[92%] max-w-lg max-h-[80vh] overflow-y-auto rounded-xl p-0">
+          {selectedAnnouncement && (
+            <>
+              <DialogHeader className="p-5 border-b">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${getPriorityColor(selectedAnnouncement.priority, theme)}`}>
+                    {selectedAnnouncement.priority}
+                  </span>
+                  <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-medium">
+                    {formatRoleLabel(selectedAnnouncement.created_by_role)}
+                  </Badge>
+                </div>
+                <DialogTitle className="text-lg font-semibold leading-snug mt-1">
+                  {selectedAnnouncement.title}
+                </DialogTitle>
+                <DialogDescription asChild>
+                  <div className="flex flex-col gap-1 mt-2">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <User size={12} className="opacity-70" />
+                      From: {selectedAnnouncement.created_by_name || 'Administrator'}
+                    </span>
+                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <Clock size={12} className="opacity-70" />
+                      {formatDate(selectedAnnouncement.created_at)}
+                    </span>
+                    {selectedAnnouncement.expires_at && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <Calendar size={12} className="opacity-70" />
+                        Expires: {selectedAnnouncement.expires_at.split('T')[0]}
+                      </span>
+                    )}
+                  </div>
+                </DialogDescription>
+              </DialogHeader>
+              <div className="p-5">
+                <p className={`text-sm leading-relaxed whitespace-pre-wrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>
+                  {selectedAnnouncement.message}
+                </p>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

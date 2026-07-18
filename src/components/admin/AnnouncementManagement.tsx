@@ -548,10 +548,16 @@ const AdminAnnouncementManagement = () => {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
+                  <span className={`text-[10px] ${formData.title.length >= 150 ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+                    {formData.title.length}/150
+                  </span>
+                </div>
                 <Input
                   id="title"
                   placeholder="Announcement title"
+                  maxLength={150}
                   value={formData.title}
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
@@ -560,10 +566,16 @@ const AdminAnnouncementManagement = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="message">Message <span className="text-red-500">*</span></Label>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="message">Message <span className="text-red-500">*</span></Label>
+                  <span className={`text-[10px] ${formData.message.length >= 1000 ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+                    {formData.message.length}/1000
+                  </span>
+                </div>
                 <Textarea
                   id="message"
                   placeholder="Announcement message"
+                  maxLength={1000}
                   value={formData.message}
                   onChange={(e) =>
                     setFormData({ ...formData, message: e.target.value })

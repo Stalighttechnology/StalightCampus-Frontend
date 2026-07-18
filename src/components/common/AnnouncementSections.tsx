@@ -304,7 +304,10 @@ export const AnnouncementSections = ({
     ? myAnnouncements.filter(a => isExpired(a.expires_at) || !a.is_active)
     : myAnnouncements.filter(a => !isExpired(a.expires_at) && a.is_active);
 
-  const filteredReceivedAnnouncements = receivedAnnouncements.filter(a => !isExpired(a.expires_at));
+  const filteredReceivedAnnouncements = receivedAnnouncements
+    .filter(a => !isExpired(a.expires_at))
+    .slice()
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const totalUnread = receivedAnnouncements.filter(
     (a) => !a.is_read && !isExpired(a.expires_at)
