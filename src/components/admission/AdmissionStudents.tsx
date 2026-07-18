@@ -78,8 +78,8 @@ export default function AdmissionStudents() {
       <Card className="overflow-hidden w-full border-border">
         <CardHeader id="admission-students-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
           <div>
-            <CardTitle className="text-lg font-semibold">Enrolled Students</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">View and export institution enrollments.</p>
+            <CardTitle className="text-2xl text-xl font-semibold">Enrolled Students</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">View and export institution enrollments.</p>
           </div>
           <Button 
             onClick={handleExportHOD} 

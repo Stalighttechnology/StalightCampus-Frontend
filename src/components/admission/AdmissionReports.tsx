@@ -140,8 +140,8 @@ export default function AdmissionReports() {
 
       <Card>
         <CardHeader id="admission-reports-header" className="border-b pb-4">
-          <CardTitle className="text-lg font-semibold">Admission Reports & Analytics</CardTitle>
-          <p className="text-xs text-muted-foreground mt-1">Generate custom csv reports and view metrics visualization.</p>
+          <CardTitle className="sm:text-2xl text-xl font-semibold">Admission Reports & Analytics</CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">Generate custom csv reports and view metrics visualization.</p>
         </CardHeader>
         <CardContent className="pt-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-8">

@@ -217,7 +217,10 @@ export default function AdmissionApplications() {
     <div id="admission-applications-container" className="space-y-6 w-full max-w-full overflow-hidden">
       <Card className="flex flex-col w-full border-border shadow-sm">
         <CardHeader id="admission-applications-header" className="border-b pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <CardTitle className="text-lg font-semibold">Submitted Applications</CardTitle>
+          <div>
+            <CardTitle className="sm:text-2xl text-xl font-semibold">Submitted Applications</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Review and manage student admission applications.</p>
+          </div>
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 

@@ -149,8 +149,8 @@ export default function CounsellorManagement() {
       <Card className="overflow-hidden w-full border-border">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
           <div>
-            <CardTitle className="text-lg font-semibold">Counsellors</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">Manage admission counsellors and their accounts.</p>
+            <CardTitle className="sm:text-2xl text-xl font-semibold">Counsellors</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Manage admission counsellors and their accounts.</p>
           </div>
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
