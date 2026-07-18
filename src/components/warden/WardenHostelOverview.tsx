@@ -15,7 +15,7 @@ import {
   ChevronLeft,
   GraduationCap
 } from "lucide-react";
-import { getWardenStudents } from "../../utils/warden_api";
+import { getWardenStudents, getWardenStudentDetail } from "../../utils/warden_api";
 import { useWardenContext } from "../../context/WardenContext";
 import { API_BASE_URL } from "../../utils/config";
 import { useToast } from "../../hooks/use-toast";
@@ -54,6 +54,34 @@ const WardenHostelOverview = () => {
   const [selectedFloor, setSelectedFloor] = useState<string>("");
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const handleViewStudent = async (studentId: number) => {
+    setDetailLoading(true);
+    setIsDialogOpen(true);
+    try {
+      const data = await getWardenStudentDetail(studentId);
+      if (data.success && data.student) {
+        setSelectedStudent(data.student);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch resident details.",
+          variant: "destructive",
+        });
+        setIsDialogOpen(false);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch resident details.",
+        variant: "destructive",
+      });
+      setIsDialogOpen(false);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
   const { wardenFloorsMap, managedHostels, loading: contextLoading } = useWardenContext();
   const [selectedHostel, setSelectedHostel] = useState<string>("");
   const [hostelFloors, setHostelFloors] = useState<number[]>([]);
@@ -130,52 +158,58 @@ const WardenHostelOverview = () => {
               <CardDescription>Manage and track student occupancy, profiles, and contact details by floor.</CardDescription>
             </div>
 
-            <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full xl:w-auto">
+            <div className="flex flex-col sm:flex-row flex-wrap items-end gap-3 w-full xl:w-auto">
               <div className="relative w-full sm:flex-1 xl:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search residents..."
-                  className="pl-10 pr-12 h-10 rounded-xl"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-                  >
-                    Clear
-                  </button>
-                )}
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search residents..."
+                    className="pl-10 pr-12 h-10 rounded-xl"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
               </div>
 
-              <Select value={selectedHostel} onValueChange={(val) => { setSelectedHostel(val); setSelectedFloor(""); setPage(1); }}>
-                <SelectTrigger className="w-full sm:w-[180px] md:w-[220px] h-10 rounded-xl">
-                  <SelectValue placeholder="Select Hostel" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Hostels</SelectItem>
-                  {managedHostels?.map((hostel: any) => (
-                    <SelectItem key={hostel.id} value={hostel.id.toString()}>
-                      {hostel.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col gap-1.5 w-full sm:w-[180px] md:w-[220px]">
+                <span className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">Select Hostel</span>
+                <Select value={selectedHostel} onValueChange={(val) => { setSelectedHostel(val); setSelectedFloor(""); setPage(1); }}>
+                  <SelectTrigger className="w-full h-10 rounded-xl">
+                    <SelectValue placeholder="Select Hostel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Hostels</SelectItem>
+                    {managedHostels?.map((hostel: any) => (
+                      <SelectItem key={hostel.id} value={hostel.id.toString()}>
+                        {hostel.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <Select value={selectedFloor} onValueChange={(val) => { setSelectedFloor(val); setPage(1); }} disabled={!selectedHostel}>
-                <SelectTrigger className="w-full sm:w-[180px] md:w-[220px] h-10 rounded-xl">
-                  <SelectValue placeholder="Select Floor to View" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Floors</SelectItem>
-                  {hostelFloors.map(floor => (
-                    <SelectItem key={floor} value={floor.toString()}>
-                      Floor {floor}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col gap-1.5 w-full sm:w-[180px] md:w-[220px]">
+                <span className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">Select Floor</span>
+                <Select value={selectedFloor} onValueChange={(val) => { setSelectedFloor(val); setPage(1); }} disabled={!selectedHostel}>
+                  <SelectTrigger className="w-full h-10 rounded-xl">
+                    <SelectValue placeholder="Select Floor to View" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Floors</SelectItem>
+                    {hostelFloors.map(floor => (
+                      <SelectItem key={floor} value={floor.toString()}>
+                        Floor {floor}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -189,37 +223,18 @@ const WardenHostelOverview = () => {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   whileHover={{ scale: 1.02 }}
-                  onClick={() => {
-                    setSelectedStudent(student);
-                    setIsDialogOpen(true);
-                  }}
+                  onClick={() => handleViewStudent(student.id)}
                   className="group p-4 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all border-border/40 flex flex-col justify-between cursor-pointer min-w-0"
                 >
                   <div className="min-w-0 w-full">
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-base overflow-hidden shrink-0 relative">
-                          {student.profile_picture ? (
-                            <>
-                              <img
-                                src={getPhotoUrl(student.profile_picture) || undefined}
-                                alt={student.name}
-                                className="w-full h-full object-cover absolute inset-0 z-10"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                }}
-                              />
-                              <span className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-semibold text-base">
-                                {student.name.charAt(0)}
-                              </span>
-                            </>
-                          ) : (
-                            student.name.charAt(0)
-                          )}
+                          {student.name.charAt(0)}
                         </div>
                         <div className="min-w-0 flex-1 overflow-hidden">
                           <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
-                            {student.name}
+                            {student.name} {student.batch_name ? (student.batch_name.toLowerCase().startsWith("batch") ? student.batch_name : `Batch ${student.batch_name}`) : ""}
                           </h3>
                           <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider truncate">
                             {student.usn}
@@ -332,97 +347,104 @@ const WardenHostelOverview = () => {
             <DialogTitle className="text-xl font-semibold">Resident Profile</DialogTitle>
           </DialogHeader>
 
-          <div className="flex items-center gap-4 py-4">
-            <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center text-2xl font-semibold text-primary overflow-hidden shrink-0 relative border border-primary/20">
-              {selectedStudent?.profile_picture ? (
-                <>
-                  <img
-                    src={getPhotoUrl(selectedStudent.profile_picture) || undefined}
-                    alt={selectedStudent.name}
-                    className="w-full h-full object-cover absolute inset-0 z-10"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                  <span className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-semibold text-2xl">
-                    {selectedStudent?.name?.charAt(0)}
-                  </span>
-                </>
-              ) : (
-                selectedStudent?.name?.charAt(0)
-              )}
+          {detailLoading ? (
+            <div className="py-12 flex flex-col items-center justify-center gap-3">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm text-muted-foreground font-medium">Loading resident details...</p>
             </div>
-            <div>
-              <h2 className="text-lg font-semibold leading-snug">{selectedStudent?.name}</h2>
-              <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider mt-0.5">
-                {selectedStudent?.usn}
-              </p>
-              <div className="mt-1.5">
-                <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none text-[10px] py-0.5 px-2 font-medium">
-                  {selectedStudent?.branch_name}
-                </Badge>
+          ) : (
+            <>
+              <div className="flex items-center gap-4 py-4">
+                <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center text-2xl font-semibold text-primary overflow-hidden shrink-0 relative border border-primary/20">
+                  {selectedStudent?.profile_picture ? (
+                    <>
+                      <img
+                        src={getPhotoUrl(selectedStudent.profile_picture) || undefined}
+                        alt={selectedStudent.name}
+                        className="w-full h-full object-cover absolute inset-0 z-10"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                      <span className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-semibold text-2xl">
+                        {selectedStudent?.name?.charAt(0)}
+                      </span>
+                    </>
+                  ) : selectedStudent?.name?.charAt(0)}
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold leading-snug">{selectedStudent?.name}</h2>
+                  <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider mt-0.5">
+                    {selectedStudent?.usn}
+                  </p>
+                  <div className="mt-1.5">
+                    <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none text-[10px] py-0.5 px-2 font-medium">
+                      {selectedStudent?.branch_name}
+                    </Badge>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div className="space-y-6 pt-4 border-t border-border/40">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <p className="text-[12px] text-muted-foreground uppercase font-semibold tracking-wider">Hostel Location</p>
-                <div className="flex items-start gap-2 text-sm font-semibold">
-                  <MapPin size={14} className="text-primary shrink-0 mt-0.5" />
-                  <span className="break-words">
-                    {selectedStudent?.room_hostel_name}, {selectedStudent?.room_name?.toLowerCase().startsWith('room') ? selectedStudent.room_name : `Room ${selectedStudent?.room_name}`}
-                  </span>
+              <div className="space-y-6 pt-4 border-t border-border/40">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[12px] text-muted-foreground uppercase font-semibold tracking-wider">Hostel Location</p>
+                    <div className="flex items-start gap-2 text-sm font-semibold">
+                      <MapPin size={14} className="text-primary shrink-0 mt-0.5" />
+                      <span className="break-words">
+                        {selectedStudent?.room_hostel_name}, {selectedStudent?.room_name?.toLowerCase().startsWith('room') ? selectedStudent.room_name : `Room ${selectedStudent?.room_name}`}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground ml-6">Floor {selectedStudent?.room_floor ?? 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[12px] text-muted-foreground uppercase font-semibold tracking-wider">Personal Contact</p>
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <Phone size={14} className="text-primary shrink-0" />
+                      <span>{selectedStudent?.phone || "N/A"}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground ml-6 break-all">{selectedStudent?.user_email}</p>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground ml-6">Floor {selectedStudent?.room_floor ?? 'N/A'}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-[12px] text-muted-foreground uppercase font-semibold tracking-wider">Personal Contact</p>
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <Phone size={14} className="text-primary shrink-0" />
-                  <span>{selectedStudent?.phone || "N/A"}</span>
-                </div>
-                <p className="text-xs text-muted-foreground ml-6 break-all">{selectedStudent?.user_email}</p>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/40">
-              <div className="space-y-1">
-                <p className="text-[12px] text-muted-foreground uppercase font-semibold tracking-wider">Guardian Info</p>
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <UserIcon size={14} className="text-primary shrink-0" />
-                  <span>{selectedStudent?.parent_name || "N/A"}</span>
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/40">
+                  <div className="space-y-1">
+                    <p className="text-[12px] text-muted-foreground uppercase font-semibold tracking-wider">Guardian Info</p>
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <UserIcon size={14} className="text-primary shrink-0" />
+                      <span>{selectedStudent?.parent_name || "N/A"}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground ml-6">
+                      {selectedStudent?.parent_contact ? `Ph: ${selectedStudent.parent_contact}` : 'No contact'}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[12px] text-muted-foreground uppercase font-semibold tracking-wider">Medical Status</p>
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <HeartPulse size={14} className="text-primary shrink-0" />
+                      <span>Blood: {selectedStudent?.blood_group || "N/A"}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 ml-6 mt-0.5">
+                      <div className={`w-1.5 h-1.5 rounded-full ${selectedStudent?.no_dues ? 'bg-green-500' : 'bg-red-500'}`} />
+                      <span className="text-xs text-muted-foreground">
+                        {selectedStudent?.no_dues ? 'Dues Cleared' : 'Fees Pending'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground ml-6">
-                  {selectedStudent?.parent_contact ? `Ph: ${selectedStudent.parent_contact}` : 'No contact'}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-[12px] text-muted-foreground uppercase font-semibold tracking-wider">Medical Status</p>
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <HeartPulse size={14} className="text-primary shrink-0" />
-                  <span>Blood: {selectedStudent?.blood_group || "N/A"}</span>
-                </div>
-                <div className="flex items-center gap-1.5 ml-6 mt-0.5">
-                  <div className={`w-1.5 h-1.5 rounded-full ${selectedStudent?.no_dues ? 'bg-green-500' : 'bg-red-500'}`} />
-                  <span className="text-xs text-muted-foreground">
-                    {selectedStudent?.no_dues ? 'Dues Cleared' : 'Fees Pending'}
-                  </span>
-                </div>
-              </div>
-            </div>
 
-            <div className="pt-2">
-              <Button
-                variant="outline"
-                className="w-full bg-primary hover:bg-primary/90 text-white hover:text-white rounded-xl gap-2 text-xs h-9 font-semibold"
-                onClick={() => setIsDialogOpen(false)}
-              >
-                Close Profile
-              </Button>
-            </div>
-          </div>
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    className="w-full bg-primary hover:bg-primary/90 text-white hover:text-white rounded-xl gap-2 text-xs h-9 font-semibold"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
+                    Close Profile
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </>

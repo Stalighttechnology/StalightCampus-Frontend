@@ -570,60 +570,66 @@ const MenuManagement: React.FC = () => {
                 {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
               </Button>
             </div>
-            <div className="flex flex-col xl:flex-row xl:items-center gap-3 w-full xl:w-auto xl:justify-end">
-              <div className="grid grid-cols-2 gap-2 w-full xl:flex xl:items-center xl:gap-2 xl:w-auto">
-                {initialLoading || skeletonMode ?
-                  <div className="w-full xl:w-[180px] h-9 rounded-md bg-muted animate-pulse border" /> :
+            <div className="flex flex-col xl:flex-row xl:items-end gap-3 w-full xl:w-auto xl:justify-end">
+              <div className="grid grid-cols-2 gap-2 w-full xl:flex xl:items-end xl:gap-2 xl:w-auto">
+                <div className="flex flex-col gap-1.5 w-full">
+                  <span className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">Select Hostel</span>
+                  {initialLoading || skeletonMode ?
+                    <div className="w-full xl:w-[180px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                  <Select value={selectedHostel} onValueChange={(val) => {
-                    setSelectedHostel(val);
-                    setDayFilter("all");
-                  }}>
-                    <SelectTrigger className="w-full xl:w-[180px] bg-background">
-                      <SelectValue placeholder="Select Hostel" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {displayedHostels.length > 0 ? (
-                        displayedHostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
-                      ) : (
-                        <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
-                          <p className="text-xs text-muted-foreground">No hostels found</p>
-                          <Button
-                            type="button"
-                            size="sm"
-                            className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
-                            onPointerDown={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              navigate('/hms/hostels', { state: { openAddHostel: true } });
-                            }}
-                          >
-                            Add Hostel
-                          </Button>
-                        </div>
-                      )}
-                    </SelectContent>
-                  </Select>
-                }
+                    <Select value={selectedHostel} onValueChange={(val) => {
+                      setSelectedHostel(val);
+                      setDayFilter("all");
+                    }}>
+                      <SelectTrigger className="w-full xl:w-[180px] bg-background">
+                        <SelectValue placeholder="Select Hostel" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {displayedHostels.length > 0 ? (
+                          displayedHostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
+                        ) : (
+                          <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+                            <p className="text-xs text-muted-foreground">No hostels found</p>
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
+                              onPointerDown={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                navigate('/hms/hostels', { state: { openAddHostel: true } });
+                              }}
+                            >
+                              Add Hostel
+                            </Button>
+                          </div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  }
+                </div>
 
-                {initialLoading || skeletonMode ?
-                  <div className="w-full xl:w-[150px] h-9 rounded-md bg-muted animate-pulse border" /> :
+                <div className="flex flex-col gap-1.5 w-full">
+                  <span className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">Select Day</span>
+                  {initialLoading || skeletonMode ?
+                    <div className="w-full xl:w-[150px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                  <Select
-                    disabled={!selectedHostel}
-                    value={dayFilter}
-                    onValueChange={setDayFilter}>
-                    <SelectTrigger className="w-full xl:w-[150px] bg-background">
-                      <SelectValue placeholder="All Days" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Days</SelectItem>
-                      {DAY_OPTIONS.map((d) =>
-                        <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                }
+                    <Select
+                      disabled={!selectedHostel}
+                      value={dayFilter}
+                      onValueChange={setDayFilter}>
+                      <SelectTrigger className="w-full xl:w-[150px] bg-background">
+                        <SelectValue placeholder="All Days" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Days</SelectItem>
+                        {DAY_OPTIONS.map((d) =>
+                          <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  }
+                </div>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full xl:flex xl:items-center xl:gap-2 xl:w-auto">
