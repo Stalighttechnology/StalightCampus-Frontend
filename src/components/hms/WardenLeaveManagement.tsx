@@ -317,11 +317,11 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
 
       <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="Warden-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
-          <CardHeader id="Warden-leaves-header-section" className="leave-card-header pb-2">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+          <CardHeader id="Warden-leaves-header-section" className={`leave-card-header pb-2 border-b ${theme === 'dark' ? 'border-border bg-muted/30' : 'border-gray-200 bg-muted/10'}`}>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 w-full">
               <div>
                 <div className="flex items-center gap-3 mb-1">
-                  <CardTitle className={`leave-card-title sm:text-2xl  ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</CardTitle>
+                  <CardTitle className={`leave-card-title sm:text-2xl text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</CardTitle>
                   {totalCount > 0 &&
                     <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
                       {totalCount} Total

@@ -145,7 +145,7 @@ const HmsVisitorLogs = () => {
           <div className="flex flex-col space-y-3 sm:space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <CardTitle className="text-xl">Visitor Logs</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl">Visitor Logs</CardTitle>
                 <Badge className="bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 font-semibold text-xs py-1 px-2.5 rounded-lg border-none shadow-none hover:bg-blue-50">
                   Total: {totalCount}
                 </Badge>

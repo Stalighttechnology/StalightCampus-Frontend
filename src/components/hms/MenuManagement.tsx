@@ -556,8 +556,8 @@ const MenuManagement: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-center justify-between w-full lg:w-auto">
               <div className="space-y-1">
-                <CardTitle className="text-2xl font-semibold tracking-tight">Menu Management</CardTitle>
-                <CardDescription>Manage daily mess menus and food items.</CardDescription>
+                <CardTitle className="text-xl sm:text-2xl font-semibold tracking-tight">Menu Management</CardTitle>
+                <CardDescription className='text-sm'>Manage daily mess menus and food items.</CardDescription>
               </div>
               {/* Mobile Download PDF Icon Button */}
               <Button

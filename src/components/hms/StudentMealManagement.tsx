@@ -150,8 +150,8 @@ const StudentMealManagement: React.FC<StudentMealManagementProps> = ({ hostelId 
                 <ChefHat className="w-6 h-6 text-orange-600" />
               </div>
               <div>
-                <CardTitle className="text-xl">Today's Menu</CardTitle>
-                <CardDescription>Scheduled meals and nutrition info</CardDescription>
+                <CardTitle className="text-xl sm:text-2xl">Today's Menu</CardTitle>
+                <CardDescription className='text-sm'>Scheduled meals and nutrition info</CardDescription>
               </div>
             </div>
             {displayedHostels.length > 0 && (

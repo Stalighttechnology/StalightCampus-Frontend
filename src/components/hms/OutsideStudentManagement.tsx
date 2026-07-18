@@ -451,13 +451,13 @@ const OutsideStudentManagement: React.FC = () => {
         <CardHeader id="hms-outside-students-card" className="bg-muted/30 pb-4 border-b">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex flex-col space-y-1">
-              <h2 className="text-2xl font-semibold leading-none tracking-tight">Outside Student Management</h2>
-              <p className="text-md text-muted-foreground">Register and manage hostel allocations for non-institutional residents.</p>
+              <h2 className="text-xl sm:text-2xl font-semibold leading-none tracking-tight">Outside Student Management</h2>
+              <p className="text-sm text-muted-foreground">Register and manage hostel allocations for non-institutional residents.</p>
             </div>
 
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="flex items-center gap-2">
+                <Button className="w-full md:w-auto flex items-center justify-center gap-2">
                   <Plus className="w-4 h-4" />
                   Register Outside Student
                 </Button>

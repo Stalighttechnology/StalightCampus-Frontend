@@ -392,8 +392,8 @@ const StudentManagement: React.FC = () => {
           <div className="flex flex-col space-y-6">
             <div className="flex justify-between items-start gap-4">
               <div className="flex flex-col space-y-1">
-                <h2 className="text-2xl font-semibold leading-none tracking-tight">Student Management</h2>
-                <p className="text-md text-muted-foreground">Monitor and manage hostel student allocations and dues.</p>
+                <h2 className="text-xl sm:text-2xl font-semibold leading-none tracking-tight">Student Management</h2>
+                <p className="text-sm text-muted-foreground">Monitor and manage hostel student allocations and dues.</p>
               </div>
 
               {/* Desktop Export PDF Button */}

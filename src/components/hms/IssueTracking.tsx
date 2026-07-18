@@ -381,7 +381,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
             <CardHeader id="hms-issues-card" className="pb-4 border bg-muted/30">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <CardTitle className="text-xl">Issue Tracking</CardTitle>
+                  <CardTitle className="text-xl sm:text-2xl">Issue Tracking</CardTitle>
                   <CardDescription>Manage student complaints and maintenance requests.</CardDescription>
                 </div>
                 
