@@ -271,7 +271,7 @@ const WardenVisitorLogs = () => {
   }, [selectedBatch, selectedBranch, selectedSemester, formData.hostel, debouncedStudentSearch]);
 
   useEffect(() => {
-    if (isModalOpen) {
+    if (isModalOpen && isStudentSelectOpen) {
       if (selectedBatch && selectedBranch && selectedSemester) {
         fetchStudents(studentPage, selectedBatch, selectedBranch, selectedSemester, formData.hostel, debouncedStudentSearch);
       } else {
@@ -279,7 +279,7 @@ const WardenVisitorLogs = () => {
         setStudentCount(0);
       }
     }
-  }, [isModalOpen, selectedBatch, selectedBranch, selectedSemester, formData.hostel, studentPage, debouncedStudentSearch]);
+  }, [isModalOpen, isStudentSelectOpen, selectedBatch, selectedBranch, selectedSemester, formData.hostel, studentPage, debouncedStudentSearch]);
 
   const fetchBatchesList = async () => {
     if (batches.length > 0) return;
@@ -531,7 +531,7 @@ const WardenVisitorLogs = () => {
 
     setIsSubmitting(true);
     try {
-      await createWardenVisitorLog({
+      const response = await createWardenVisitorLog({
         student: parseInt(formData.student),
         hostel: parseInt(formData.hostel),
         visitor_name: formData.visitor_name,
@@ -540,6 +540,26 @@ const WardenVisitorLogs = () => {
         check_in_time: formData.check_in_time ? new Date(formData.check_in_time).toISOString() : undefined,
         check_out_time: formData.check_out_time ? new Date(formData.check_out_time).toISOString() : null,
       });
+
+      const matchedStudent = students.find(s => s.id.toString() === formData.student);
+      const matchedHostel = hostels.find(h => h.id.toString() === formData.hostel);
+
+      const newLogItem: VisitorLog = {
+        id: response?.id || Date.now(),
+        student: parseInt(formData.student),
+        student_name: selectedStudentName || matchedStudent?.name || '-',
+        student_usn: matchedStudent?.usn || '-',
+        visitor_name: formData.visitor_name,
+        mobile_number: formData.mobile_number,
+        purpose: formData.purpose,
+        check_in_time: response?.check_in_time || (formData.check_in_time ? new Date(formData.check_in_time).toISOString() : new Date().toISOString()),
+        check_out_time: response?.check_out_time || (formData.check_out_time ? new Date(formData.check_out_time).toISOString() : null),
+        hostel: parseInt(formData.hostel),
+        hostel_name: matchedHostel?.name || '-'
+      };
+
+      setLogs(prev => [newLogItem, ...prev]);
+      setTotalCount(prev => prev + 1);
       toast({ title: 'Success', description: 'Visitor log added successfully' });
       setIsModalOpen(false);
       setFormData({
@@ -552,7 +572,6 @@ const WardenVisitorLogs = () => {
         check_out_time: '',
       });
       setSelectedStudentName('');
-      fetchLogs();
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to add visitor log', variant: 'destructive' });
     } finally {
@@ -789,11 +808,16 @@ const WardenVisitorLogs = () => {
                                         key={s.id}
                                         type="button"
                                         onClick={() => {
-                                          const matchedHostel = hostels.find(h => h.name === s.room_hostel_name);
+                                          const matchedHostel = hostels.find(h => h.name?.trim().toLowerCase() === s.room_hostel_name?.trim().toLowerCase());
+                                          const hostelId = matchedHostel 
+                                            ? matchedHostel.id.toString() 
+                                            : hostels.length > 0 
+                                              ? hostels[0].id.toString() 
+                                              : formData.hostel;
                                           setFormData({
                                             ...formData,
                                             student: s.id.toString(),
-                                            hostel: matchedHostel ? matchedHostel.id.toString() : formData.hostel
+                                            hostel: hostelId
                                           });
                                           setSelectedStudentName(s.name);
                                           if (s.batch) setSelectedBatch(s.batch.toString());
