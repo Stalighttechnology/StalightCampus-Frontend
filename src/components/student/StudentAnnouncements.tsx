@@ -812,16 +812,22 @@ const StudentAnnouncements = () => {
                                       <span>Expires: {announcement.expires_at.split('T')[0]}</span>
                                     </div>
                                   )}
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-[10px] px-2 py-0.5 font-medium shrink-0 ${theme === 'dark' ? 'bg-primary/10 border-primary/20 text-primary-foreground' : 'bg-primary/5 border-primary/20 text-primary'}`}
+                                  >
+                                    {formatRoleLabel(announcement.created_by_role)}
+                                  </Badge>
                                 </div>
                               </div>
 
-                              <div className="flex md:flex-col items-center md:items-end justify-between gap-3 min-w-fit">
+                              <div className="flex flex-row md:flex-col items-center md:items-end gap-2 w-full md:w-auto">
                                 {!announcement.is_read && (
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleMarkRead(announcement.id)}
-                                    className={`h-9 px-3 gap-2 ${theme === 'dark' ? 'text-primary hover:bg-primary/10' : 'text-blue-600 hover:bg-blue-50'}`}
+                                    className={`flex-1 md:flex-none w-full md:w-auto h-9 px-3 gap-2 justify-center ${theme === 'dark' ? 'text-primary hover:bg-primary/10' : 'text-blue-600 hover:bg-blue-50'}`}
                                   >
                                     <Eye size={16} />
                                     <span className="text-xs font-semibold">Mark as read</span>
@@ -834,17 +840,11 @@ const StudentAnnouncements = () => {
                                     setSelectedAnnouncement(announcement);
                                     if (!announcement.is_read) handleMarkRead(announcement.id);
                                   }}
-                                  className="h-9 px-3 gap-2 bg-primary text-white hover:bg-primary/90 border-primary"
+                                  className="flex-1 md:flex-none w-full md:w-auto h-9 px-3 gap-2 bg-primary text-white hover:bg-primary/90 border-primary justify-center"
                                 >
                                   <Eye size={16} />
                                   <span className="text-xs font-semibold">View</span>
                                 </Button>
-                                <Badge
-                                  variant="outline"
-                                  className={`text-[10px] px-2.5 py-1 font-medium ${theme === 'dark' ? 'bg-primary/10 border-primary/20 text-primary-foreground' : 'bg-primary/5 border-primary/20 text-primary'}`}
-                                >
-                                  {formatRoleLabel(announcement.created_by_role)}
-                                </Badge>
                               </div>
                             </div>
                           </motion.div>
