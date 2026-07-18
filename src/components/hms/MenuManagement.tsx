@@ -554,10 +554,10 @@ const MenuManagement: React.FC = () => {
       <Card className="border-primary/10 shadow-sm overflow-hidden">
         <CardHeader id="hms-menu-card" className="pb-6 border-b bg-muted/30">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="flex items-start justify-between w-full lg:w-auto">
+            <div className="flex items-center justify-between w-full lg:w-auto">
               <div className="space-y-1">
                 <CardTitle className="text-2xl font-semibold tracking-tight">Menu Management</CardTitle>
-                <CardDescription>Plan and manage daily mess menus and food items.</CardDescription>
+                <CardDescription>Manage daily mess menus and food items.</CardDescription>
               </div>
               {/* Mobile Download PDF Icon Button */}
               <Button
@@ -650,8 +650,8 @@ const MenuManagement: React.FC = () => {
                         setFoodFormData({ name: '', description: '', vegetarian: true });
                         loadMenuItems();
                       }}
-                      className="border-primary/20 hover:bg-primary/5 bg-background w-full">
-
+                      className="border-primary/20 hover:bg-primary/5 bg-background w-full disabled:text-muted-foreground"
+                    >
                       <UtensilsCrossed className="w-4 h-4 mr-2" /> Food Items
                     </Button>
                     <Button

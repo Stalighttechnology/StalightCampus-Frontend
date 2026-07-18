@@ -385,7 +385,7 @@ const WardenIssueManagement = () => {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="h-auto max-h-[calc(100vh-12rem)] sm:h-[calc(100vh-28rem)] min-h-[50px] overflow-y-auto custom-scrollbar">
+              <div>
                 {loading && issues.length === 0 ?
                 <div className="p-4 space-y-4">
                     {[1, 2, 3].map((i) => <div key={i} className="h-20 bg-muted/40 animate-pulse rounded-lg" />)}
