@@ -618,7 +618,7 @@ const WardenVisitorLogs = () => {
                               className="h-9 text-xs bg-background"
                             />
                           </div>
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div className="space-y-2 flex flex-col">
                               <Label className="text-xs">Check-In Time <span className="text-red-500">*</span></Label>
                               <DateTimePicker
