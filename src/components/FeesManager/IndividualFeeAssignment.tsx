@@ -17,8 +17,9 @@ import {
   Filter,
   Users,
   Calendar,
-  Trash2 } from
-'lucide-react';
+  Trash2
+} from
+  'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/context/ThemeContext";
 import {
@@ -26,8 +27,9 @@ import {
   getFeesManagerSemesters,
   getFeesManagerSections,
   getFeesManagerAssignments,
-  deleteFeeAssignment } from
-"../../utils/fees_manager_api";
+  deleteFeeAssignment
+} from
+  "../../utils/fees_manager_api";
 import { showConfirmAlert, showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import {
   Skeleton,
@@ -35,8 +37,9 @@ import {
   SkeletonTable,
   SkeletonList,
   SkeletonPageHeader,
-  SkeletonCard } from
-"@/components/ui/skeleton";
+  SkeletonCard
+} from
+  "@/components/ui/skeleton";
 
 
 interface Assignment {
@@ -64,8 +67,8 @@ interface Assignment {
 }
 
 interface FilterData {
-  batches: {id: number;name: string;}[];
-  branches: {id: number;name: string;code: string;}[];
+  batches: { id: number; name: string; }[];
+  branches: { id: number; name: string; code: string; }[];
   admission_modes: string[];
 }
 
@@ -76,8 +79,8 @@ const IndividualFeeAssignment: React.FC = () => {
 
   // Data States
   const [filterData, setFilterData] = useState<FilterData>({ batches: [], branches: [], admission_modes: [] });
-  const [semesters, setSemesters] = useState<{id: number;number: number;name: string;}[]>([]);
-  const [sections, setSections] = useState<{id: number;name: string;}[]>([]);
+  const [semesters, setSemesters] = useState<{ id: number; number: number; name: string; }[]>([]);
+  const [sections, setSections] = useState<{ id: number; name: string; }[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
 
   // Loading states for cascading filters
@@ -227,11 +230,11 @@ const IndividualFeeAssignment: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       const allFiltersSelected =
-      selectedFilters.batchId &&
-      selectedFilters.branchId &&
-      selectedFilters.semesterId &&
-      selectedFilters.sectionId &&
-      selectedFilters.admissionMode;
+        selectedFilters.batchId &&
+        selectedFilters.branchId &&
+        selectedFilters.semesterId &&
+        selectedFilters.sectionId &&
+        selectedFilters.admissionMode;
 
       if (allFiltersSelected || appliedSearch.trim().length > 0) {
         fetchAssignments(1);
@@ -253,11 +256,11 @@ const IndividualFeeAssignment: React.FC = () => {
   ]);
 
   const allFiltersSelected =
-  selectedFilters.batchId &&
-  selectedFilters.branchId &&
-  selectedFilters.semesterId &&
-  selectedFilters.sectionId &&
-  selectedFilters.admissionMode;
+    selectedFilters.batchId &&
+    selectedFilters.branchId &&
+    selectedFilters.semesterId &&
+    selectedFilters.sectionId &&
+    selectedFilters.admissionMode;
 
   const handleDelete = async (id: number) => {
     const confirmed = await showConfirmAlert(
@@ -324,181 +327,181 @@ const IndividualFeeAssignment: React.FC = () => {
           </CardHeader>
 
           <CardContent className="p-6">
-          {/* Filters Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-            <div className="space-y-2">
-              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Batch</Label>
-              <Select
-                value={selectedFilters.batchId}
-                open={openSelect === 'batch'}
-                onOpenChange={(open) => setOpenSelect(open ? 'batch' : null)}
-                onValueChange={(val) => {
-                  setSelectedFilters((p) => ({ ...p, batchId: val }));
-                  setTimeout(() => setOpenSelect('branch'), 100);
-                }}>
-                <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Select Batch" />
-                </SelectTrigger>
-                <SelectContent>
-                  {loadingInitialFilters ? (
-                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
-                      Loading batches...
-                    </SelectItem>
-                  ) : filterData.batches.length > 0 ? (
-                    filterData.batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
-                  ) : (
-                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
-                      No batches found
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+            {/* Filters Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+              <div className="space-y-2">
+                <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Batch</Label>
+                <Select
+                  value={selectedFilters.batchId}
+                  open={openSelect === 'batch'}
+                  onOpenChange={(open) => setOpenSelect(open ? 'batch' : null)}
+                  onValueChange={(val) => {
+                    setSelectedFilters((p) => ({ ...p, batchId: val }));
+                    setTimeout(() => setOpenSelect('branch'), 100);
+                  }}>
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Select Batch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {loadingInitialFilters ? (
+                      <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                        Loading batches...
+                      </SelectItem>
+                    ) : filterData.batches.length > 0 ? (
+                      filterData.batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
+                    ) : (
+                      <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                        No batches found
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">{translateTerminology("Branch")}</Label>
+                <Select
+                  value={selectedFilters.branchId}
+                  open={openSelect === 'branch'}
+                  onOpenChange={(open) => setOpenSelect(open ? 'branch' : null)}
+                  onValueChange={(val) => {
+                    setSelectedFilters((p) => ({ ...p, branchId: val }));
+                    setTimeout(() => setOpenSelect('semester'), 100);
+                  }}
+                  disabled={!selectedFilters.batchId}>
+
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder={translateTerminology("Select Branch")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {loadingInitialFilters ? (
+                      <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                        Loading branches...
+                      </SelectItem>
+                    ) : filterData.branches.length > 0 ? (
+                      filterData.branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
+                    ) : (
+                      <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                        No branches found
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">{translateTerminology("Semester")}</Label>
+                <Select
+                  value={selectedFilters.semesterId}
+                  open={openSelect === 'semester'}
+                  onOpenChange={(open) => setOpenSelect(open ? 'semester' : null)}
+                  onValueChange={(val) => {
+                    setSelectedFilters((p) => ({ ...p, semesterId: val }));
+                    setTimeout(() => setOpenSelect('section'), 100);
+                  }}
+                  disabled={!selectedFilters.branchId}>
+
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder={translateTerminology("Select Semester")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {loadingSemesters ? (
+                      <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                        Loading semesters...
+                      </SelectItem>
+                    ) : semesters.length > 0 ? (
+                      semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
+                    ) : (
+                      <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                        No semesters found
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Section</Label>
+                <Select
+                  value={selectedFilters.sectionId}
+                  open={openSelect === 'section'}
+                  onOpenChange={(open) => setOpenSelect(open ? 'section' : null)}
+                  onValueChange={(val) => {
+                    setSelectedFilters((p) => ({ ...p, sectionId: val }));
+                    setTimeout(() => setOpenSelect('admission'), 100);
+                  }}
+                  disabled={!selectedFilters.semesterId}>
+
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Select Section" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    {loadingSections ? (
+                      <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                        Loading sections...
+                      </SelectItem>
+                    ) : sections.length > 0 ? (
+                      sections.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
+                    ) : (
+                      <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                        No sections found
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Admission Mode</Label>
+                <Select
+                  value={selectedFilters.admissionMode}
+                  open={openSelect === 'admission'}
+                  onOpenChange={(open) => setOpenSelect(open ? 'admission' : null)}
+                  onValueChange={(val) => {
+                    setSelectedFilters((p) => ({ ...p, admissionMode: val }));
+                    setOpenSelect(null);
+                  }}
+                  disabled={!selectedFilters.sectionId}>
+
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Select Admission Mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {loadingInitialFilters ? (
+                      <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                        Loading admission modes...
+                      </SelectItem>
+                    ) : filterData.admission_modes.length > 0 ? (
+                      filterData.admission_modes.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)
+                    ) : (
+                      <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                        No admission modes found
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">{translateTerminology("Branch")}</Label>
-              <Select
-                value={selectedFilters.branchId}
-                open={openSelect === 'branch'}
-                onOpenChange={(open) => setOpenSelect(open ? 'branch' : null)}
-                onValueChange={(val) => {
-                  setSelectedFilters((p) => ({ ...p, branchId: val }));
-                  setTimeout(() => setOpenSelect('semester'), 100);
-                }}
-                disabled={!selectedFilters.batchId}>
-                
-                <SelectTrigger className="bg-background">
-                  <SelectValue placeholder={translateTerminology("Select Branch")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {loadingInitialFilters ? (
-                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
-                      Loading branches...
-                    </SelectItem>
-                  ) : filterData.branches.length > 0 ? (
-                    filterData.branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
-                  ) : (
-                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
-                      No branches found
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+            {/* Search Row */}
+            <div className="mb-6">
+              <div className="relative max-w-md w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by student or USN..."
+                  className="pl-9 pr-12 bg-muted/20 border-border h-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)} />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">{translateTerminology("Semester")}</Label>
-              <Select
-                value={selectedFilters.semesterId}
-                open={openSelect === 'semester'}
-                onOpenChange={(open) => setOpenSelect(open ? 'semester' : null)}
-                onValueChange={(val) => {
-                  setSelectedFilters((p) => ({ ...p, semesterId: val }));
-                  setTimeout(() => setOpenSelect('section'), 100);
-                }}
-                disabled={!selectedFilters.branchId}>
-                
-                <SelectTrigger className="bg-background">
-                  <SelectValue placeholder={translateTerminology("Select Semester")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {loadingSemesters ? (
-                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
-                      Loading semesters...
-                    </SelectItem>
-                  ) : semesters.length > 0 ? (
-                    semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
-                  ) : (
-                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
-                      No semesters found
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Section</Label>
-              <Select
-                value={selectedFilters.sectionId}
-                open={openSelect === 'section'}
-                onOpenChange={(open) => setOpenSelect(open ? 'section' : null)}
-                onValueChange={(val) => {
-                  setSelectedFilters((p) => ({ ...p, sectionId: val }));
-                  setTimeout(() => setOpenSelect('admission'), 100);
-                }}
-                disabled={!selectedFilters.semesterId}>
-                
-                <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Select Section" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {loadingSections ? (
-                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
-                      Loading sections...
-                    </SelectItem>
-                  ) : sections.length > 0 ? (
-                    sections.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
-                  ) : (
-                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
-                      No sections found
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Admission Mode</Label>
-              <Select
-                value={selectedFilters.admissionMode}
-                open={openSelect === 'admission'}
-                onOpenChange={(open) => setOpenSelect(open ? 'admission' : null)}
-                onValueChange={(val) => {
-                  setSelectedFilters((p) => ({ ...p, admissionMode: val }));
-                  setOpenSelect(null);
-                }}
-                disabled={!selectedFilters.sectionId}>
-                
-                <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Select Admission Mode" />
-                </SelectTrigger>
-                <SelectContent>
-                  {loadingInitialFilters ? (
-                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
-                      Loading admission modes...
-                    </SelectItem>
-                  ) : filterData.admission_modes.length > 0 ? (
-                    filterData.admission_modes.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)
-                  ) : (
-                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
-                      No admission modes found
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Search Row */}
-          <div className="mb-6">
-            <div className="relative max-w-md w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by student or USN..."
-                className="pl-9 pr-12 bg-muted/20 border-border h-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)} />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </div>
           </CardContent>
         </div>
 
@@ -527,16 +530,14 @@ const IndividualFeeAssignment: React.FC = () => {
                     { label: 'Admission', active: !!selectedFilters.admissionMode }
                   ].map((step, i) => (
                     <div key={step.label} className="flex flex-col items-center gap-2 min-w-[60px] sm:min-w-[80px]">
-                      <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border-2 transition-all duration-300 ${
-                        step.active 
-                          ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25 scale-110' 
+                      <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border-2 transition-all duration-300 ${step.active
+                          ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25 scale-110'
                           : 'bg-background border-muted text-muted-foreground opacity-60'
-                      }`}>
+                        }`}>
                         {step.active ? <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6" /> : i + 1}
                       </div>
-                      <span className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-colors duration-300 ${
-                        step.active ? 'text-primary' : 'text-muted-foreground opacity-60'
-                      }`}>
+                      <span className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-colors duration-300 ${step.active ? 'text-primary' : 'text-muted-foreground opacity-60'
+                        }`}>
                         {step.label}
                       </span>
                     </div>
@@ -556,12 +557,12 @@ const IndividualFeeAssignment: React.FC = () => {
             ) : (
 
 
-            <div className="overflow-x-auto">
+              <div className="overflow-x-auto">
                 <Table>
                   <TableHeader className="bg-muted/30">
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="font-semibold py-4 px-6 text-foreground h-12">Student Details</TableHead>
-                      <TableHead className="font-semibold text-foreground h-12 text-center">Placement</TableHead>
+                      <TableHead className="font-semibold text-foreground h-12 text-center">Department</TableHead>
                       <TableHead className="font-semibold text-foreground h-12 text-center">Template Assigned</TableHead>
                       <TableHead className="font-semibold text-foreground h-12 text-center">Total Amount</TableHead>
                       <TableHead className="font-semibold text-foreground h-12 text-center">Assigned On</TableHead>
@@ -571,7 +572,7 @@ const IndividualFeeAssignment: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     {assignments.map((assignment) =>
-                  <TableRow key={assignment.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
+                      <TableRow key={assignment.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
                         <TableCell className="py-5 px-6 align-middle">
                           <div className="font-semibold text-foreground leading-tight">{assignment.student.name}</div>
                           <div className="text-[10px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">{assignment.student.usn}</div>
@@ -611,16 +612,16 @@ const IndividualFeeAssignment: React.FC = () => {
                         </TableCell>
                         <TableCell className="text-right pr-6 align-middle">
                           <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-all active:scale-95"
-                        onClick={() => handleDelete(assignment.id)}>
-                        
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-all active:scale-95"
+                            onClick={() => handleDelete(assignment.id)}>
+
                             <Trash2 className="h-4.5 w-4.5" />
                           </Button>
                         </TableCell>
                       </TableRow>
-                  )}
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -639,7 +640,7 @@ const IndividualFeeAssignment: React.FC = () => {
               onClick={() => fetchAssignments(pagination.page - 1)}
               disabled={pagination.page === 1 || loading}
               className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-3 py-1 h-9">
-              
+
               Previous
             </Button>
 
@@ -649,7 +650,7 @@ const IndividualFeeAssignment: React.FC = () => {
                 size="sm"
                 disabled
                 className={`${theme === 'dark' ? 'text-muted-foreground bg-card border border-border' : 'text-gray-700 bg-white border border-gray-300'} px-3 py-1 h-9 min-w-[36px]`}>
-                
+
                 {pagination.page}
               </Button>
             </div>
@@ -660,7 +661,7 @@ const IndividualFeeAssignment: React.FC = () => {
               onClick={() => fetchAssignments(pagination.page + 1)}
               disabled={pagination.page === pagination.totalPages || loading}
               className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-3 py-1 h-9">
-              
+
               Next
             </Button>
           </div>
