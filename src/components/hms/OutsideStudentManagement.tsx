@@ -231,8 +231,8 @@ const OutsideStudentManagement: React.FC = () => {
     const cleanPhone = addFormData.phone.replace(/[\s\-\(\)]/g, '');
     if (!addFormData.phone.trim()) {
       errors.phone = "Phone Number is required.";
-    } else if (!/^\+?[0-9]{10,15}$/.test(cleanPhone)) {
-      errors.phone = "Enter a valid phone number (10-15 digits).";
+    } else if (!/^\d{10}$/.test(cleanPhone)) {
+      errors.phone = "Enter exactly 10 digits.";
     }
 
     if (!addFormData.outside_course_name.trim()) {
@@ -508,7 +508,8 @@ const OutsideStudentManagement: React.FC = () => {
                       <Input
                         id="phone"
                         value={addFormData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        onChange={(e) => handleInputChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        maxLength={10}
                         className={formErrors.phone ? "border-red-500 focus-visible:ring-red-500" : ""}
                       />
                       {formErrors.phone && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.phone}</p>}

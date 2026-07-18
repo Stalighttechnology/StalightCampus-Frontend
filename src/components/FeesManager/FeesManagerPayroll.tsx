@@ -1760,7 +1760,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                         className="text-blue-500 hover:text-blue-600 inline-flex items-center gap-1 hover:underline font-semibold bg-transparent border-none cursor-pointer disabled:opacity-50 disabled:no-underline"
                       >
                         {downloadingPayslipId === det.id ? (
-                          <><Loader2 className="animate-spin" size={14} /> PDF</>
+                          <><Loader2 className="animate-spin" size={14} /> Downloading...</>
                         ) : (
                           <><Download size={14} /> PDF</>
                         )}

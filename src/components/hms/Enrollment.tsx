@@ -248,8 +248,9 @@ const Enrollment: React.FC = () => {
                       id="phone"
                       name="phone"
                       value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="+91 XXXXX XXXXX"
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                      maxLength={10}
+                      placeholder="e.g. 9876543210"
                       className="pl-10 h-11"
                       required />
 
