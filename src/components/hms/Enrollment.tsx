@@ -43,11 +43,39 @@ const Enrollment: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
+    if (name === 'phone') {
+      const onlyDigits = value.replace(/\D/g, '');
+      if (onlyDigits.length > 10) return;
+      setFormData((prev) => ({ ...prev, [name]: onlyDigits }));
+      return;
+    }
+    
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.phone.length !== 10) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Contact number must be exactly 10 digits"
+      });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please enter a valid email address"
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
