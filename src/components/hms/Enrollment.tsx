@@ -134,7 +134,7 @@ const Enrollment: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <Card className="border-primary/10 shadow-xl overflow-hidden">
+      <Card className="border-primary/10 overflow-hidden">
         <CardHeader id="hms-enrollment-card" className="bg-muted/30">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
@@ -169,7 +169,7 @@ const Enrollment: React.FC = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
+                  <Label htmlFor="name">Full Name <span className="text-red-500">*</span></Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     {isSkeleton ?
@@ -189,7 +189,7 @@ const Enrollment: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email">Email Address <span className="text-red-500">*</span></Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     {isSkeleton ?
@@ -202,14 +202,15 @@ const Enrollment: React.FC = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="john@university.edu"
-                      className="pl-10 h-11" />
+                      className="pl-10 h-11"
+                      required />
 
                     }
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Contact Number</Label>
+                  <Label htmlFor="phone">Contact Number <span className="text-red-500">*</span></Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     {isSkeleton ?
@@ -221,7 +222,8 @@ const Enrollment: React.FC = () => {
                       value={formData.phone}
                       onChange={handleInputChange}
                       placeholder="+91 XXXXX XXXXX"
-                      className="pl-10 h-11" />
+                      className="pl-10 h-11"
+                      required />
 
                     }
                   </div>
@@ -235,7 +237,7 @@ const Enrollment: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="experience">Years of Experience</Label>
+                  <Label htmlFor="experience">Years of Experience <span className="text-red-500">*</span></Label>
                   <div className="relative">
                     <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     {isSkeleton ?
@@ -249,7 +251,8 @@ const Enrollment: React.FC = () => {
                       onChange={handleInputChange}
                       placeholder="0"
                       min="0"
-                      className="pl-10 h-11" />
+                      className="pl-10 h-11"
+                      required />
 
                     }
                   </div>
@@ -258,7 +261,7 @@ const Enrollment: React.FC = () => {
                 {enrollmentType === 'warden' ?
                 <>
                     <div className="space-y-2">
-                      <Label htmlFor="designation">Designation</Label>
+                      <Label htmlFor="designation">Designation <span className="text-red-500">*</span></Label>
                       <div className="relative">
                         <Badge className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px]" variant="secondary">Warden</Badge>
                         {isSkeleton ?
@@ -270,13 +273,14 @@ const Enrollment: React.FC = () => {
                         value={formData.designation}
                         onChange={handleInputChange}
                         placeholder="e.g. Senior Warden"
-                        className="h-11" />
+                        className="h-11"
+                        required />
 
                       }
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="address">Permanent Address</Label>
+                      <Label htmlFor="address">Permanent Address <span className="text-red-500">*</span></Label>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         {isSkeleton ?
@@ -288,7 +292,8 @@ const Enrollment: React.FC = () => {
                         value={formData.address}
                         onChange={handleInputChange}
                         placeholder="Complete residential address..."
-                        className="w-full pl-10 pr-3 py-2 text-sm border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:ring-1 focus:ring-primary outline-none min-h-[60px] resize-none custom-scrollbar" />
+                        className="w-full pl-10 pr-3 py-2 text-sm border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:ring-1 focus:ring-primary outline-none min-h-[60px] resize-none custom-scrollbar"
+                        required />
 
                       }
                       </div>
@@ -296,7 +301,7 @@ const Enrollment: React.FC = () => {
                   </> :
 
                 <div className="space-y-2">
-                    <Label htmlFor="address">Permanent Address</Label>
+                    <Label htmlFor="address">Permanent Address <span className="text-red-500">*</span></Label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       {isSkeleton ?
@@ -308,7 +313,8 @@ const Enrollment: React.FC = () => {
                       value={formData.address}
                       onChange={handleInputChange}
                       placeholder="Complete residential address..."
-                      className="w-full pl-10 pr-3 py-2 text-sm border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:ring-1 focus:ring-primary outline-none min-h-[108px] resize-none custom-scrollbar" />
+                      className="w-full pl-10 pr-3 py-2 text-sm border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:ring-1 focus:ring-primary outline-none min-h-[108px] resize-none custom-scrollbar"
+                      required />
 
                     }
                     </div>

@@ -257,6 +257,12 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
   };
 
   const handleIssueClick = async (issue: Issue) => {
+    if (selectedIssue?.id === issue.id) {
+      if (window.innerWidth < 1024) {
+        setIsDetailsModalOpen(true);
+      }
+      return;
+    }
     try {
       const response = await getIssueDetail(issue.id);
       if (response.success && response.data) {
@@ -285,7 +291,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
           description: 'Issue status updated'
         });
         
-        fetchStats();
+        fetchIssues();
 
         setIssues((prev) => prev.map((i) => i.id === issueId ? { ...i, status: newStatus, status_display: STATUS_CONFIG[newStatus as keyof typeof STATUS_CONFIG]?.label || newStatus, updated_at: new Date().toISOString(), update_count: (i.update_count || 0) + 1 } : i));
 
@@ -303,6 +309,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
         toast({ title: 'Error', description: response.message || 'Update failed', variant: 'destructive' });
       }
     } catch (error) {
+      console.error('Failed to update issue status:', error);
       toast({ title: 'Error', description: 'Failed to update issue', variant: 'destructive' });
     } finally {
       setUpdatingIssueId(null);
@@ -477,6 +484,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
                           <SelectItem value="all">All Status</SelectItem>
                           <SelectItem value="pending">Pending</SelectItem>
                           <SelectItem value="in_progress">In Progress</SelectItem>
+                          <SelectItem value="waiting_for_workers">Waiting for Workers</SelectItem>
                           <SelectItem value="completed">Completed</SelectItem>
                         </SelectContent>
                       </Select>

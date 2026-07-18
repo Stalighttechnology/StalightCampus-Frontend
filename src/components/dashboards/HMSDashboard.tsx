@@ -45,6 +45,11 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
   const { theme } = useTheme();
   const [selectedHostelId, setSelectedHostelId] = useState<number | null>(null);
 
+  // Load initial hostel data when dashboard mounts
+  useEffect(() => {
+    refreshData();
+  }, []);
+
   // Set initial selected hostel if not set or if current selection is invalid
   useEffect(() => {
     if (hostels.length > 0) {

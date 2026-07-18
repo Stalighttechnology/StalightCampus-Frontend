@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { getTodayMenu } from '../../utils/hms_api';
 import { useToast } from '../../hooks/use-toast';
 import {
@@ -9,13 +9,17 @@ import {
   Coffee,
   Sun,
   Moon,
-  Info
+  Info,
+  Home
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { motion } from 'framer-motion';
 import { useHMSContext } from '../../context/HMSContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '../../context/AuthContext';
+import { WardenContext } from '../../context/WardenContext';
 
 interface MenuItem {
   id: number;
@@ -66,19 +70,36 @@ const formatTimeToAmPm = (timeStr: string) => {
 
 const StudentMealManagement: React.FC<StudentMealManagementProps> = ({ hostelId }) => {
   const { toast } = useToast();
-  const { skeletonMode } = useHMSContext();
+  const { role } = useAuth();
+  const { hostels, skeletonMode } = useHMSContext();
+  const wardenContext = useContext(WardenContext);
+
+  const displayedHostels = role === 'warden' && wardenContext?.managedHostels
+    ? wardenContext.managedHostels
+    : hostels;
 
   const [todayMenu, setTodayMenu] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedHostelId, setSelectedHostelId] = useState<string>('');
 
   useEffect(() => {
-    loadTodayMenu();
-  }, [hostelId]);
+    if (hostelId) {
+      setSelectedHostelId(hostelId.toString());
+    } else if (displayedHostels && displayedHostels.length > 0 && !selectedHostelId) {
+      setSelectedHostelId(displayedHostels[0].id.toString());
+    }
+  }, [hostelId, displayedHostels]);
 
-  const loadTodayMenu = async () => {
+  useEffect(() => {
+    if (selectedHostelId) {
+      loadTodayMenu(Number(selectedHostelId));
+    }
+  }, [selectedHostelId]);
+
+  const loadTodayMenu = async (hid: number) => {
     setLoading(true);
     try {
-      const todayRes = await getTodayMenu(hostelId || undefined);
+      const todayRes = await getTodayMenu(hid);
       if (todayRes.success && todayRes.results) {
         setTodayMenu(todayRes.results);
       } else {
@@ -123,14 +144,33 @@ const StudentMealManagement: React.FC<StudentMealManagementProps> = ({ hostelId 
     <Card className="border-primary/10 shadow-sm overflow-hidden">
       <CardHeader id="hms-meals-card" className="pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="bg-orange-500/10 p-2 rounded-lg flex-shrink-0">
-              <ChefHat className="w-6 h-6 text-orange-600" />
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
+            <div className="flex items-center gap-3">
+              <div className="bg-orange-500/10 p-2 rounded-lg flex-shrink-0">
+                <ChefHat className="w-6 h-6 text-orange-600" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">Today's Menu</CardTitle>
+                <CardDescription>Scheduled meals and nutrition info</CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-xl">Today's Menu</CardTitle>
-              <CardDescription>Scheduled meals and nutrition info</CardDescription>
-            </div>
+            {displayedHostels.length > 0 && (
+              <div className="w-full sm:w-[260px] sm:ml-4">
+                <Select value={selectedHostelId} onValueChange={setSelectedHostelId}>
+                  <SelectTrigger className="w-full bg-background border-primary/10 hover:border-primary/30 transition-colors h-9 flex items-center gap-2 pl-3">
+                    <Home className="w-3.5 h-3.5 text-primary/70 shrink-0" />
+                    <SelectValue placeholder="Select Hostel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {displayedHostels.map((h) => (
+                      <SelectItem key={h.id} value={h.id.toString()}>
+                        {h.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-none self-start sm:self-auto text-xs whitespace-nowrap">
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
@@ -179,15 +219,15 @@ const StudentMealManagement: React.FC<StudentMealManagementProps> = ({ hostelId 
                   animate={{ opacity: 1, y: 0 }}
                   className={`group relative rounded-2xl border p-5 ${getMealGradient(fullName)} transition-all hover:shadow-md`}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 mb-4">
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-xl bg-background/80 shadow-sm ${getMealAccentColor(fullName)} flex-shrink-0`}>
                         {getMealIcon(fullName)}
                       </div>
                       <h3 className="font-semibold text-lg">{fullName}</h3>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[12px] sm:text-[14px] font-semibold uppercase tracking-wider bg-background/50 px-2 py-1 rounded-md border self-start sm:self-auto whitespace-nowrap">
-                      <Clock className="w-3 h-3" />
+                    <div className="flex items-center gap-1.5 text-[12px] sm:text-[14px] font-semibold uppercase tracking-wider bg-background/50 px-2 py-1 rounded-md border self-start xl:self-auto whitespace-nowrap w-fit">
+                      <Clock className="w-3.5 h-3.5 text-muted-foreground" />
                       {formatTimeToAmPm(meal.meal_type_detail.time_from)} - {formatTimeToAmPm(meal.meal_type_detail.time_to)}
                     </div>
                   </div>

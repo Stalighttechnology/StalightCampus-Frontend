@@ -587,6 +587,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     warden: [
       { name: "Dashboard", page: "dashboard" },
       { name: "Resident Management", page: "residents" },
+      { name: "Today's Menu", page: "student-meals" },
+      { name: "Menu Management", page: "menu-management" },
       { name: "Gate Pass Requests", page: "gate-passes" },
       { name: "Issue Tracking", page: "issues" },
       { name: "Visitor Logs", page: "visitor_logs" },

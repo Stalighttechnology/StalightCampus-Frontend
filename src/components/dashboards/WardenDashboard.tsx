@@ -1,4 +1,5 @@
 import FacultyPayroll from "../faculty/FacultyPayroll";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
@@ -12,11 +13,13 @@ import WardenGatePassManagement from "../warden/WardenGatePassManagement";
 import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
 import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import FacultyAttendance from "../faculty/FacultyAttendance";
-import { HMSProvider } from "../../context/HMSContext";
+import { HMSProvider, useHMSContext } from "../../context/HMSContext";
 import { AcademicProvider } from "../../context/AcademicContext";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
 import ScheduleMeeting from "../common/ScheduleMeeting";
+import MenuManagement from "../hms/MenuManagement";
+import StudentMealManagement from "../hms/StudentMealManagement";
 
 interface WardenDashboardProps {
   user: any;
@@ -26,6 +29,25 @@ interface WardenDashboardProps {
 const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { hostels, refreshData } = useHMSContext();
+  const [selectedHostelId, setSelectedHostelId] = useState<number | null>(null);
+
+  // Load initial hostel data when dashboard mounts
+  useEffect(() => {
+    refreshData();
+  }, []);
+
+  // Set initial selected hostel if not set or if current selection is invalid
+  useEffect(() => {
+    if (hostels.length > 0) {
+      const isValid = hostels.some(h => h.id === selectedHostelId);
+      if (!isValid) {
+        setSelectedHostelId(hostels[0].id);
+      }
+    } else {
+      setSelectedHostelId(null);
+    }
+  }, [hostels, selectedHostelId]);
 
   const getActivePageFromPath = (pathname: string) => {
     const parts = pathname.split('/').filter(Boolean);
@@ -53,6 +75,10 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
       case "rooms":
       case "residents":
         return <WardenHostelOverview />;
+      case "menu-management":
+        return <MenuManagement />;
+      case "student-meals":
+        return <StudentMealManagement hostelId={selectedHostelId} />;
       case "apply-leave":
         return <ApplyLeaveDepartmentAdmin routedTo="Hostel Administrator" />;
       case "reimbursements":
@@ -103,9 +129,11 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
 };
 
 const WardenDashboard = (props: WardenDashboardProps) => (
-  <AcademicProvider>
-    <WardenDashboardContent {...props} />
-  </AcademicProvider>
+  <HMSProvider>
+    <AcademicProvider>
+      <WardenDashboardContent {...props} />
+    </AcademicProvider>
+  </HMSProvider>
 );
 
 export default WardenDashboard;

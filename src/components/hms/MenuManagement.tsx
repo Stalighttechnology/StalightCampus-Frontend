@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   getMenus,
   manageMenu,
@@ -8,6 +8,8 @@ import {
 } from
   '../../utils/hms_api';
 import { useHMSContext } from '../../context/HMSContext';
+import { useAuth } from '../../context/AuthContext';
+import { WardenContext } from '../../context/WardenContext';
 
 import { useToast } from '../../hooks/use-toast';
 import {
@@ -107,7 +109,13 @@ const getMealTypeLabel = (code: string) => {
 
 const MenuManagement: React.FC = () => {
   const { toast } = useToast();
+  const { role } = useAuth();
   const { hostels, skeletonMode } = useHMSContext();
+  const wardenContext = useContext(WardenContext);
+
+  const displayedHostels = role === 'warden' && wardenContext?.managedHostels
+    ? wardenContext.managedHostels
+    : hostels;
 
   const [menus, setMenus] = useState<Menu[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -131,7 +139,7 @@ const MenuManagement: React.FC = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      const hostelName = hostels.find(h => h.id.toString() === selectedHostel)?.name || 'Hostel';
+      const hostelName = displayedHostels.find(h => h.id.toString() === selectedHostel)?.name || 'Hostel';
       link.setAttribute('download', `Mess_Menu_${hostelName.replace(/\s+/g, '_')}.pdf`);
       document.body.appendChild(link);
       link.click();
@@ -181,7 +189,7 @@ const MenuManagement: React.FC = () => {
 
     // If we have only one hostel, we could potentially auto-select it, 
     // but the user requested "do not auto select".
-  }, [hostels]); // Reactive menu loading
+  }, [displayedHostels]); // Reactive menu loading
   useEffect(() => {
     if (selectedHostel) {
       loadMenusForHostel(selectedHostel);
@@ -240,10 +248,19 @@ const MenuManagement: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.hostel || !formData.meal_type) {
+    if (!formData.hostel || !formData.day_of_week || !formData.meal_type) {
       toast({
         title: 'Validation Error',
         description: 'Please fill in all required fields',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!formData.items || formData.items.length === 0) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please select at least one food item',
         variant: 'destructive'
       });
       return;
@@ -553,21 +570,21 @@ const MenuManagement: React.FC = () => {
                 {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
               </Button>
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto lg:justify-end">
-              <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:gap-2 sm:w-auto">
+            <div className="flex flex-col xl:flex-row xl:items-center gap-3 w-full xl:w-auto xl:justify-end">
+              <div className="grid grid-cols-2 gap-2 w-full xl:flex xl:items-center xl:gap-2 xl:w-auto">
                 {initialLoading || skeletonMode ?
-                  <div className="w-full sm:w-[180px] h-9 rounded-md bg-muted animate-pulse border" /> :
+                  <div className="w-full xl:w-[180px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
                   <Select value={selectedHostel} onValueChange={(val) => {
                     setSelectedHostel(val);
                     setDayFilter("all");
                   }}>
-                    <SelectTrigger className="w-full sm:w-[180px] bg-background">
+                    <SelectTrigger className="w-full xl:w-[180px] bg-background">
                       <SelectValue placeholder="Select Hostel" />
                     </SelectTrigger>
                     <SelectContent>
-                      {hostels.length > 0 ? (
-                        hostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
+                      {displayedHostels.length > 0 ? (
+                        displayedHostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
                       ) : (
                         <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
                           <p className="text-xs text-muted-foreground">No hostels found</p>
@@ -590,13 +607,13 @@ const MenuManagement: React.FC = () => {
                 }
 
                 {initialLoading || skeletonMode ?
-                  <div className="w-full sm:w-[150px] h-9 rounded-md bg-muted animate-pulse border" /> :
+                  <div className="w-full xl:w-[150px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
                   <Select
                     disabled={!selectedHostel}
                     value={dayFilter}
                     onValueChange={setDayFilter}>
-                    <SelectTrigger className="w-full sm:w-[150px] bg-background">
+                    <SelectTrigger className="w-full xl:w-[150px] bg-background">
                       <SelectValue placeholder="All Days" />
                     </SelectTrigger>
                     <SelectContent>
@@ -609,9 +626,10 @@ const MenuManagement: React.FC = () => {
                 }
               </div>
 
-              <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:gap-2 sm:w-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full xl:flex xl:items-center xl:gap-2 xl:w-auto">
                 {initialLoading || skeletonMode ?
                   <>
+                    <div className="w-full h-9 rounded-md bg-muted animate-pulse border" />
                     <div className="w-full h-9 rounded-md bg-muted animate-pulse border" />
                     <div className="w-full h-9 rounded-md bg-muted animate-pulse border" />
                   </> :
@@ -646,7 +664,7 @@ const MenuManagement: React.FC = () => {
                       variant="outline"
                       onClick={handleExportPDF}
                       disabled={exporting || !selectedHostel}
-                      className="hidden sm:flex bg-primary hover:bg-primary/90 text-white border-primary h-10 px-4 text-xs font-semibold items-center justify-center gap-1.5 transition-all shadow-sm w-auto"
+                      className="hidden sm:flex bg-primary hover:bg-primary/90 text-white border-primary h-10 px-4 text-xs font-semibold items-center justify-center gap-1.5 transition-all shadow-sm w-full xl:w-auto"
                     >
                       {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-4 h-4" />}
                       Export PDF
@@ -788,7 +806,7 @@ const MenuManagement: React.FC = () => {
                     <SelectValue placeholder="Select Hostel" />
                   </SelectTrigger>
                   <SelectContent>
-                    {hostels.map((h) =>
+                    {displayedHostels.map((h) =>
                       <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>
                     )}
                   </SelectContent>

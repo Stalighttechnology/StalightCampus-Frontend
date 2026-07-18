@@ -104,6 +104,7 @@ const OutsideStudentManagement: React.FC = () => {
   const [yearFilter, setYearFilter] = useState('');
   const [availableCourses, setAvailableCourses] = useState<string[]>([]);
   const [availableYears, setAvailableYears] = useState<string[]>([]);
+  const [isYearSelectOpen, setIsYearSelectOpen] = useState(false);
 
   // Room Allocation States
   const [formData, setFormData] = useState({
@@ -575,7 +576,11 @@ const OutsideStudentManagement: React.FC = () => {
               <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">Course</span>
               <Select
                 value={courseFilter}
-                onValueChange={setCourseFilter}
+                onValueChange={(val) => {
+                  setCourseFilter(val);
+                  // Auto trigger Year select content dropdown open when course is selected
+                  setTimeout(() => setIsYearSelectOpen(true), 150);
+                }}
                 onOpenChange={(open) => {
                   if (open) fetchCourses();
                 }}
@@ -600,8 +605,10 @@ const OutsideStudentManagement: React.FC = () => {
               <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">Year</span>
               <Select
                 value={yearFilter}
+                open={isYearSelectOpen}
                 onValueChange={setYearFilter}
                 onOpenChange={(open) => {
+                  setIsYearSelectOpen(open);
                   if (open) fetchYears();
                 }}
               >
@@ -670,7 +677,7 @@ const OutsideStudentManagement: React.FC = () => {
               <div className="border rounded-md overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
+                    <TableRow className="whitespace-nowrap">
                       <TableHead>Student</TableHead>
                       <TableHead>ID / USN</TableHead>
                       <TableHead>Contact</TableHead>
@@ -682,7 +689,7 @@ const OutsideStudentManagement: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     {students.map((student) => (
-                      <TableRow key={student.id}>
+                      <TableRow key={student.id} className="whitespace-nowrap">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-9 h-9">
@@ -717,7 +724,7 @@ const OutsideStudentManagement: React.FC = () => {
                               <Building2 className="w-4 h-4 text-primary" />
                               <div className="text-xs">
                                 <p className="font-semibold text-slate-800">{student.room_hostel_name}</p>
-                                <p className="text-muted-foreground">Room {student.room_name} (Floor {student.room_floor})</p>
+                                <p className="text-muted-foreground">{(student.room_name || '').toLowerCase().startsWith('room') ? '' : 'Room '}{student.room_name} (Floor {student.room_floor})</p>
                               </div>
                             </div>
                           ) : (

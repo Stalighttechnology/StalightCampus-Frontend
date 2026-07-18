@@ -233,7 +233,7 @@ const HMSOverview = () => {
   return (
     <div className="space-y-8">
       {/* Statistics Cards */}
-      <div id="hms-stats-grid" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div id="hms-stats-grid" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         <DashboardCard
           title="Total Hostels"
           value={isSkeleton ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : stats.totalHostels}
