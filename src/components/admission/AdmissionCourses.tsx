@@ -168,8 +168,8 @@ const AdmissionCourses: React.FC = () => {
       <Card className="overflow-hidden w-full border-border">
         <CardHeader id="admission-courses-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
           <div>
-            <CardTitle className="text-lg font-semibold">Manage Courses</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">Create and modify courses offered by your institution.</p>
+            <CardTitle className="sm:text-2xl text-xl font-semibold">Manage Courses</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Create and modify courses offered by your institution.</p>
           </div>
           <Button onClick={() => {
             setIsEditing(true);

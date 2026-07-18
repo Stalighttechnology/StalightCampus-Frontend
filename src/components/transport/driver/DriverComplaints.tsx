@@ -37,10 +37,10 @@ const DriverComplaints: React.FC = () => {
     <div>
       <Card id="driver-complaints-card" className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
         <CardHeader id="driver-complaints-header" className="pb-3 border-b border-inherit">
-          <CardTitle className="text-xl font-semibold flex items-center gap-2">
-            <Bus className="text-primary" size={22} /> Complaints & Incidents
+          <CardTitle className="sm:text-2xl text-xl font-semibold flex items-center gap-2">
+            Complaints & Incidents
           </CardTitle>
-          <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
             Track incidents and emergencies reported by you
           </p>
         </CardHeader>

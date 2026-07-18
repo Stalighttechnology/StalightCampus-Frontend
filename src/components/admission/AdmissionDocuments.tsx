@@ -175,8 +175,8 @@ export default function AdmissionDocuments() {
     <div id="admission-documents-container" className="space-y-6">
       <Card className="flex flex-col w-full shadow-sm">
         <CardHeader id="admission-documents-header" className="border-b pb-4">
-          <CardTitle className="text-lg font-semibold">Document Verification</CardTitle>
-          <p className="text-xs text-muted-foreground mt-1">Review and verify documents uploaded by applicants.</p>
+          <CardTitle className="text-xl sm:text-2xl font-semibold">Document Verification</CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">Review and verify documents uploaded by applicants.</p>
         </CardHeader>
         <CardContent className="pt-4 flex-grow">
           <div className="flex border-b border-border mb-6">

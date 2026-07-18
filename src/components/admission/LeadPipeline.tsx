@@ -194,8 +194,8 @@ const LeadPipeline: React.FC = () => {
     <Card id="lead-pipeline-container" className="flex flex-col h-[calc(100vh-140px)] overflow-hidden">
       <CardHeader id="lead-pipeline-header" className="border-b pb-4 flex flex-row justify-between items-center">
         <div>
-          <CardTitle className="text-lg md:text-xl font-semibold">Lead Pipeline</CardTitle>
-          <p className="text-xs md:text-sm text-muted-foreground mt-1">Manage and track your applicant pipelines by dragging stages.</p>
+          <CardTitle className="text-xl sm:text-2xl font-semibold">Lead Pipeline</CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">Manage and track your applicant pipelines by dragging stages.</p>
         </div>
         <Button onClick={() => setShowAddModal(true)} size="sm" className="shadow-sm bg-primary hover:bg-primary/90 text-white">
           <Plus size={16} className="mr-2" /> Add Lead

@@ -51,8 +51,8 @@ export default function AdmissionCommunication() {
       <Card>
         <CardHeader id="admission-communication-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
           <div>
-            <CardTitle className="text-lg font-semibold">Applicant Communication</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">Connect with your applicants via phone or email.</p>
+            <CardTitle className="sm:text-2xl text:xl font-semibold">Applicant Communication</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Connect with your applicants via phone or email.</p>
           </div>
         </CardHeader>
         <CardContent className="p-0">

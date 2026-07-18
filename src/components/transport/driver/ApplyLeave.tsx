@@ -247,13 +247,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           <CardHeader className="p-4 sm:p-6 border-b bg-muted/30 flex flex-row items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
-              <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Submit a new leave application request</p>
+              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Your leave request will be routed to the <span className="font-medium text-primary">Transport Admin</span> for approval.
+              </p>
             </div>
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
-            <div className={`p-3 rounded-lg border text-xs sm:text-sm ${theme === 'dark' ? 'bg-blue-900/10 border-blue-800/50 text-blue-300' : 'bg-blue-50/50 border-blue-200 text-blue-800'}`}>
-              Your leave request will be routed to the <span className="font-semibold text-primary">{props.routedTo || "Transport Admin"}</span> for approval.
-            </div>
 
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
               <Label htmlFor="title" className={`text-md sm:text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title <span className="text-red-500">*</span></Label>
@@ -406,7 +405,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 )}
               </div>
 
-              <table className="hidden md:table w-full text-sm text-left border-collapse">
+              <table className="hidden md:table w-full text-sm text-left border-collapse mt-2">
                 <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
                   <tr>
                     <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</th>
