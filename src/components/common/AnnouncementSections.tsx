@@ -297,6 +297,9 @@ export const AnnouncementSections = ({
     }
   };
 
+  const cleanName = (name?: string | null) =>
+    name ? name.replace(/\bNone\b/g, '').replace(/\s{2,}/g, ' ').trim() : '';
+
   const filteredMyAnnouncements = showExpired
     ? myAnnouncements.filter(a => isExpired(a.expires_at) || !a.is_active)
     : myAnnouncements.filter(a => !isExpired(a.expires_at) && a.is_active);
@@ -439,7 +442,7 @@ export const AnnouncementSections = ({
                                 <div className="flex flex-col gap-0.5 mt-1">
                                   <span className="text-xs font-semibold text-primary/80 flex items-start gap-1">
                                     <User className="w-4 h-4 shrink-0 mt-0.5" />
-                                    <span>From: {announcement.created_by_name}</span>
+                                    <span>From: {cleanName(announcement.created_by_name)}</span>
                                   </span>
                                   <span className="text-xs flex items-start gap-1 text-muted-foreground font-medium">
                                     <Clock className="w-4 h-4 shrink-0 mt-0.5" />
@@ -500,14 +503,14 @@ export const AnnouncementSections = ({
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    disabled={!announcement.is_active && expired}
+                                    disabled={expired}
                                     className={`h-8 text-xs gap-1.5 border ${(announcement.is_active && !isExpired(announcement.expires_at))
                                       ? theme === 'dark' ? 'text-orange-400 border-orange-950/40 hover:bg-orange-950/20 hover:text-orange-300' : 'text-orange-500 border-orange-100 hover:text-orange-600 hover:bg-orange-50'
-                                      : (!announcement.is_active && expired) 
-                                        ? 'text-muted-foreground border-border opacity-50 cursor-not-allowed'
+                                      : expired
+                                        ? 'text-muted-foreground border-border opacity-50 cursor-not-allowed pointer-events-none'
                                         : theme === 'dark' ? 'text-green-400 border-green-950/40 hover:bg-green-950/20 hover:text-green-300' : 'text-green-500 border-green-100 hover:text-green-600 hover:bg-green-50'
                                       }`}
-                                    onClick={() => onToggleActive(announcement.id)}
+                                    onClick={() => { if (expired) return; onToggleActive(announcement.id); }}
                                   >
                                     {(announcement.is_active && !isExpired(announcement.expires_at)) ? (
                                       <>
@@ -569,7 +572,7 @@ export const AnnouncementSections = ({
                           <div className="ann-card-title text-foreground">{announcement.title}</div>
                           <div className="ann-card-meta">
                             <span className="text-xs text-primary/80 font-semibold flex items-center gap-1.5">
-                              <User className="w-3.5 h-3.5" /> From: {announcement.created_by_name}
+                              <User className="w-3.5 h-3.5" /> From: {cleanName(announcement.created_by_name)}
                             </span>
                             <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
                               <Clock className="w-3.5 h-3.5" /> {formatDate(announcement.created_at)}
@@ -601,14 +604,14 @@ export const AnnouncementSections = ({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                disabled={!announcement.is_active && expired}
+                                disabled={expired}
                                 className={`w-full h-9 text-xs font-semibold border flex items-center justify-center gap-1.5 rounded-xl ${(announcement.is_active && !isExpired(announcement.expires_at))
                                   ? theme === 'dark' ? 'text-orange-400 border-orange-900/30 bg-orange-950/20 hover:bg-orange-950/40' : 'text-orange-500 border-orange-100 bg-orange-50/30 hover:bg-orange-50/50'
-                                  : (!announcement.is_active && expired)
-                                    ? 'text-muted-foreground border-border opacity-50 cursor-not-allowed'
+                                  : expired
+                                    ? 'text-muted-foreground border-border opacity-50 cursor-not-allowed pointer-events-none'
                                     : theme === 'dark' ? 'text-green-400 border-green-900/30 bg-green-950/20 hover:bg-green-950/40' : 'text-green-500 border-green-100 bg-green-50/30 hover:bg-green-50/50'
                                   }`}
-                                onClick={() => onToggleActive(announcement.id)}
+                                onClick={() => { if (expired) return; onToggleActive(announcement.id); }}
                               >
                                 {(announcement.is_active && !isExpired(announcement.expires_at)) ? (
                                   <><XCircle className="h-4 w-4 shrink-0" /> Deactivate</>
@@ -692,7 +695,7 @@ export const AnnouncementSections = ({
                                 <div className="flex flex-col gap-0.5 mt-0.5 ml-4.5">
                                   <span className="text-xs font-semibold text-primary/80 flex items-start gap-1">
                                     <User className="w-3 h-3 shrink-0 mt-0.5" />
-                                    <span>From: {announcement.created_by_name}</span>
+                                    <span>From: {cleanName(announcement.created_by_name)}</span>
                                   </span>
                                   <span className="text-[10px] flex items-start gap-1 text-muted-foreground font-medium">
                                     <Clock className="w-3 h-3 shrink-0 mt-0.5" />
@@ -806,7 +809,7 @@ export const AnnouncementSections = ({
                           </div>
                           <div className="ann-card-meta">
                             <span className="text-xs text-primary/80 font-semibold flex items-center gap-1.5">
-                              <User className="w-3.5 h-3.5" /> From: {announcement.created_by_name}
+                              <User className="w-3.5 h-3.5" /> From: {cleanName(announcement.created_by_name)}
                             </span>
                             <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
                               <Clock className="w-3.5 h-3.5" /> {format(new Date(announcement.created_at), 'dd MMM, HH:mm')}
@@ -1003,10 +1006,10 @@ export const AnnouncementSections = ({
                 <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground pb-4 border-b border-border/50">
                   <div className="flex items-center gap-2 bg-muted/50 px-2 py-1 rounded-full">
                     <div className="w-6 h-6 rounded-full bg-primary text-[12px] text-white flex items-center justify-center font-semibold shadow-sm">
-                      {viewingAnnouncement?.created_by_name?.charAt(0).toUpperCase()}
+                      {cleanName(viewingAnnouncement?.created_by_name)?.charAt(0).toUpperCase()}
                     </div>
                     <span className="font-semibold text-foreground/80">
-                      From: {viewingAnnouncement?.created_by_name}
+                      From: {cleanName(viewingAnnouncement?.created_by_name)}
                       {viewingAnnouncement?.created_by_role && ` (${formatRoleName(viewingAnnouncement.created_by_role)})`}
                     </span>
                   </div>
@@ -1124,7 +1127,7 @@ export const AnnouncementSections = ({
               )}
 
               <div className="pt-4 flex flex-col gap-3 border-t border-border/30">
-                {viewingAnnouncement?.target_roles && viewingAnnouncement.target_roles.length > 0 && (
+                {viewingAnnouncement?.target_roles && viewingAnnouncement.target_roles.length > 0 && !receivedAnnouncements.some(a => a.id === viewingAnnouncement?.id) && (
                   <div className="flex flex-col gap-1.5">
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">To:</span>
                     <div className="flex flex-wrap gap-1.5">
