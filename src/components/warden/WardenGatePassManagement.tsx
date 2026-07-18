@@ -307,8 +307,8 @@ const WardenGatePassManagement = () => {
         <CardHeader className="pb-0 border-b bg-muted/30">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4">
             <div>
-              <CardTitle className="text-xl">Gate Pass Requests</CardTitle>
-              <CardDescription>Review and action leaves and off-campus gate pass requests.</CardDescription>
+              <CardTitle className="text-xl sm:text-2xl">Gate Pass Requests</CardTitle>
+              <CardDescription className='text-sm'>Review and action leaves and off-campus gate pass requests.</CardDescription>
             </div>
 
             {/* Tabs */}

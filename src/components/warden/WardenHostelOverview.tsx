@@ -154,8 +154,8 @@ const WardenHostelOverview = () => {
         <CardHeader id="warden-residents-container" className="pb-4 border-b bg-muted/30">
           <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <div className="space-y-1">
-              <CardTitle className="text-2xl font-semibold">Resident Management</CardTitle>
-              <CardDescription>Manage and track student occupancy, profiles, and contact details by floor.</CardDescription>
+              <CardTitle className="text-xl sm:text-2xl font-semibold">Resident Management</CardTitle>
+              <CardDescription className='text-sm'>Manage student occupancy and profiles by floor.</CardDescription>
             </div>
 
             <div className="flex flex-col sm:flex-row flex-wrap items-end gap-3 w-full xl:w-auto">
