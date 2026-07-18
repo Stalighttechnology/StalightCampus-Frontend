@@ -150,7 +150,22 @@ export const createAnnouncement = async (payload: CreateAnnouncementRequest) => 
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || error.message || error.detail || "Failed to create announcement");
+      // Handle flat error fields first
+      if (error.error || error.message || error.detail) {
+        throw new Error(error.error || error.message || error.detail);
+      }
+      // Handle DRF field-level validation errors: { title: ["Too long."], message: ["..."] }
+      if (typeof error === 'object' && error !== null) {
+        const fieldErrors = Object.entries(error)
+          .map(([field, msgs]) => {
+            const label = field.charAt(0).toUpperCase() + field.slice(1).replace(/_/g, ' ');
+            const msg = Array.isArray(msgs) ? msgs.join(', ') : String(msgs);
+            return `${label}: ${msg}`;
+          })
+          .join('\n');
+        if (fieldErrors) throw new Error(fieldErrors);
+      }
+      throw new Error("Failed to create announcement");
     }
 
     const data: Announcement = await response.json();
