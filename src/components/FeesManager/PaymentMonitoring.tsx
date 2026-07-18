@@ -29,6 +29,7 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Loader2,
   Mail
 } from
@@ -116,6 +117,30 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
   const [hasNotified, setHasNotified] = useState(false);
   const [downloadingReceiptId, setDownloadingReceiptId] = useState<number | null>(null);
   const [expandedInvoice, setExpandedInvoice] = useState<string | null>(null);
+
+  // Group by Student toggle state
+  const [groupByStudent, setGroupByStudent] = useState(false);
+  const [expandedStudentIds, setExpandedStudentIds] = useState<Set<number>>(new Set());
+
+  const toggleStudentExpand = (studentId: number) => {
+    setExpandedStudentIds(prev => {
+      const next = new Set(prev);
+      if (next.has(studentId)) next.delete(studentId);
+      else next.add(studentId);
+      return next;
+    });
+  };
+
+  // Build grouped map: studentId -> { student, payments[] }
+  const groupedPayments = React.useMemo(() => {
+    const map = new Map<number, { student: any; payments: Payment[] }>();
+    payments.forEach(p => {
+      const sid = p.invoice.student.id;
+      if (!map.has(sid)) map.set(sid, { student: p.invoice.student, payments: [] });
+      map.get(sid)!.payments.push(p);
+    });
+    return Array.from(map.values());
+  }, [payments]);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -541,6 +566,20 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 )}
               </div>
 
+              {/* Group by Student toggle */}
+              <button
+                onClick={() => { setGroupByStudent(v => !v); setExpandedStudentIds(new Set()); }}
+                className={`flex items-center gap-2 h-11 px-4 rounded-xl border font-semibold text-sm transition-all whitespace-nowrap ml-auto ${
+                  groupByStudent
+                    ? 'bg-primary text-primary-foreground border-primary shadow-md'
+                    : 'bg-background border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                }`}
+                title="Toggle Group by Student"
+              >
+                <Users className="h-4 w-4" />
+                Group by Student
+              </button>
+
               {statusFilter === 'pending' &&
                 <Button
                   onClick={handleBulkNotify}
@@ -576,12 +615,25 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
             <Table>
               <TableHeader className="bg-muted/40">
                 <TableRow className="hover:bg-transparent border-b border-border/50">
-                  <TableHead className="w-[140px] px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Invoice #</TableHead>
-                  <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Student Details</TableHead>
-                  <TableHead className="px-6 py-4 text-right text-[13px] font-semibold uppercase tracking-wider">Amount</TableHead>
-                  <TableHead className="px-6 py-4 text-center text-[13px] font-semibold uppercase tracking-wider">Mode</TableHead>
-                  <TableHead className="px-6 py-4 text-center text-[13px] font-semibold uppercase tracking-wider">Status</TableHead>
-                  <TableHead className="px-6 py-4 text-right pr-6 text-[13px] font-semibold uppercase tracking-wider">Actions</TableHead>
+                  {groupByStudent ? (
+                    <>
+                      <TableHead className="w-8"></TableHead>
+                      <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Student Details</TableHead>
+                      <TableHead className="px-6 py-4 text-right text-[13px] font-semibold uppercase tracking-wider">Amount</TableHead>
+                      <TableHead className="px-6 py-4 text-center text-[13px] font-semibold uppercase tracking-wider">Mode</TableHead>
+                      <TableHead className="px-6 py-4 text-center text-[13px] font-semibold uppercase tracking-wider">Status</TableHead>
+                      <TableHead className="px-6 py-4 text-right pr-6 text-[13px] font-semibold uppercase tracking-wider"></TableHead>
+                    </>
+                  ) : (
+                    <>
+                      <TableHead className="w-[140px] px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Invoice #</TableHead>
+                      <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Student Details</TableHead>
+                      <TableHead className="px-6 py-4 text-right text-[13px] font-semibold uppercase tracking-wider">Amount</TableHead>
+                      <TableHead className="px-6 py-4 text-center text-[13px] font-semibold uppercase tracking-wider">Mode</TableHead>
+                      <TableHead className="px-6 py-4 text-center text-[13px] font-semibold uppercase tracking-wider">Status</TableHead>
+                      <TableHead className="px-6 py-4 text-right pr-6 text-[13px] font-semibold uppercase tracking-wider">Actions</TableHead>
+                    </>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody className={loading ? "opacity-50 pointer-events-none transition-opacity duration-200" : "transition-opacity duration-200"}>
@@ -599,6 +651,111 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                       </div>
                     </TableCell>
                   </TableRow> :
+
+                  groupByStudent ? (
+                    groupedPayments.map(({ student, payments: studentPayments }) => {
+                      const totalAmt = studentPayments.reduce((s, p) => s + Number(p.amount), 0);
+                      const isExpanded = expandedStudentIds.has(student.id);
+
+                      // Determine worst case status
+                      const allSuccess = studentPayments.every(p => p.status === 'success' || p.status === 'completed');
+                      const hasFailed = studentPayments.some(p => p.status === 'failed');
+                      const hasPending = studentPayments.some(p => p.status === 'pending');
+                      const groupStatus = hasFailed ? 'failed' : hasPending ? 'pending' : allSuccess ? 'completed' : 'pending';
+
+                      return (
+                        <React.Fragment key={student.id}>
+                          <TableRow
+                            className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50 cursor-pointer"
+                            onClick={() => toggleStudentExpand(student.id)}
+                          >
+                            <TableCell className="px-4 py-4 w-8">
+                              <ChevronDown
+                                className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+                                  isExpanded ? 'rotate-0' : '-rotate-90'
+                                }`}
+                              />
+                            </TableCell>
+                            <TableCell className="px-6 py-4 align-middle">
+                              <div className="font-semibold text-foreground leading-tight">{student.name}</div>
+                              <div className="text-[13px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">
+                                {student.usn} • Sem {student.semester || 'N/A'}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right py-4 align-middle">
+                              <div className="font-semibold text-foreground">{formatCurrency(totalAmt)}</div>
+                              <Badge variant="outline" className="mt-1 text-[11px]">
+                                {studentPayments.length} Payment{studentPayments.length !== 1 ? 's' : ''}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-center py-4 align-middle">
+                              <Badge variant="outline" className="text-muted-foreground">Multiple</Badge>
+                            </TableCell>
+                            <TableCell className="text-center py-4 align-middle">
+                              {getStatusBadge(groupStatus as any)}
+                            </TableCell>
+                            <TableCell className="text-right pr-6 py-4 align-middle">
+                            </TableCell>
+                          </TableRow>
+
+                          {/* Expanded individual payments */}
+                          <AnimatePresence>
+                            {isExpanded && studentPayments.map(p => (
+                              <TableRow
+                                key={p.id}
+                                className="bg-muted/10 hover:bg-primary/5 border-b border-border/30 transition-all"
+                              >
+                                <TableCell className="py-3 px-6 align-middle pl-12">
+                                  <div className="font-mono font-semibold text-primary tracking-tighter text-xs uppercase">{p.invoice.invoice_number}</div>
+                                  <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mt-0.5">
+                                    {new Date(p.payment_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-6 py-3 align-middle text-sm font-medium">
+                                  {p.invoice.fee_assignment?.template?.name || 'Manual Entry'}
+                                </TableCell>
+                                <TableCell className="text-right py-3 align-middle">
+                                  <div className="font-semibold text-sm">{formatCurrency(p.amount)}</div>
+                                </TableCell>
+                                <TableCell className="text-center py-3 align-middle">
+                                  {getMethodBadge(p.payment_method)}
+                                </TableCell>
+                                <TableCell className="text-center py-3 align-middle">
+                                  {getStatusBadge(p.status)}
+                                </TableCell>
+                                <TableCell className="text-right pr-6 py-3 align-middle">
+                                  <div className="flex justify-end gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className={`h-7 w-7 rounded-full transition-all ${theme === 'dark' ? 'text-blue-400 hover:bg-blue-950/30' : 'text-blue-600 hover:bg-blue-50'}`}
+                                      onClick={(e) => { e.stopPropagation(); fetchPaymentDetails(p.id); }}
+                                    >
+                                      <Eye className="h-3.5 w-3.5" />
+                                    </Button>
+                                    {(p.status === 'completed' || p.status === 'success' || p.status === 'pending') &&
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className={`h-7 w-7 rounded-full transition-all ${p.status === 'pending'
+                                          ? 'text-gray-400 opacity-50 cursor-not-allowed'
+                                          : (theme === 'dark' ? 'text-green-400 hover:bg-green-950/30' : 'text-green-600 hover:bg-green-50')
+                                          }`}
+                                        onClick={(e) => { e.stopPropagation(); p.status !== 'pending' && downloadReceipt(p.id); }}
+                                        disabled={downloadingReceiptId !== null || p.status === 'pending'}
+                                      >
+                                        {downloadingReceiptId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                                      </Button>
+                                    }
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </AnimatePresence>
+                        </React.Fragment>
+                      );
+                    })
+                  ) :
 
                   Object.values(
                     payments.reduce((acc, p) => {

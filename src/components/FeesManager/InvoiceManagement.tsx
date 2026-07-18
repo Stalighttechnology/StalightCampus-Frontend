@@ -22,6 +22,7 @@ import {
   Filter,
   Users,
   ChevronRight,
+  ChevronDown,
   TrendingUp,
   CreditCard,
   LayoutGrid,
@@ -122,6 +123,30 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
     mode: 'cash',
     transactionId: ''
   });
+
+  // Group by Student toggle state
+  const [groupByStudent, setGroupByStudent] = useState(false);
+  const [expandedStudentIds, setExpandedStudentIds] = useState<Set<number>>(new Set());
+
+  const toggleStudentExpand = (studentId: number) => {
+    setExpandedStudentIds(prev => {
+      const next = new Set(prev);
+      if (next.has(studentId)) next.delete(studentId);
+      else next.add(studentId);
+      return next;
+    });
+  };
+
+  // Build grouped map: studentId -> { student, invoices[] }
+  const groupedInvoices = React.useMemo(() => {
+    const map = new Map<number, { student: Invoice['student']; invoices: Invoice[] }>();
+    invoices.forEach(inv => {
+      const sid = inv.student.id;
+      if (!map.has(sid)) map.set(sid, { student: inv.student, invoices: [] });
+      map.get(sid)!.invoices.push(inv);
+    });
+    return Array.from(map.values());
+  }, [invoices]);
 
   // Cascading Filter states
   const [selectedFilters, setSelectedFilters] = useState({
@@ -671,6 +696,19 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 </SelectContent>
               </Select>
             </div>
+            {/* Group by Student toggle */}
+            <button
+              onClick={() => { setGroupByStudent(v => !v); setExpandedStudentIds(new Set()); }}
+              className={`flex items-center gap-2 h-12 px-4 rounded-xl border font-semibold text-sm transition-all whitespace-nowrap ${
+                groupByStudent
+                  ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20'
+                  : 'bg-background border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+              }`}
+              title="Toggle Group by Student"
+            >
+              <Users className="h-4 w-4" />
+              Group by Student
+            </button>
           </div>
 
           {/* Table Area */}
@@ -678,13 +716,26 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
             <Table>
               <TableHeader className="bg-muted/40">
                 <TableRow className="hover:bg-transparent border-b border-border/50">
-                  <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Invoice Info</TableHead>
-                  <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Student Details</TableHead>
-                  <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Template Details</TableHead>
-                  <TableHead className="px-6 py-4 text-right text-[13px] font-semibold uppercase tracking-wider">Total</TableHead>
-                  <TableHead className="px-6 py-4 text-right text-[13px] font-semibold uppercase tracking-wider">Pending</TableHead>
-                  <TableHead className="px-6 py-4 text-center text-[13px] font-semibold uppercase tracking-wider">Status</TableHead>
-                  <TableHead className="px-6 py-4 text-right pr-6 text-[13px] font-semibold uppercase tracking-wider">Actions</TableHead>
+                  {groupByStudent ? (
+                    <>
+                      <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider w-8"></TableHead>
+                      <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Student</TableHead>
+                      <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Invoices</TableHead>
+                      <TableHead className="px-6 py-4 text-right text-[13px] font-semibold uppercase tracking-wider">Total</TableHead>
+                      <TableHead className="px-6 py-4 text-right text-[13px] font-semibold uppercase tracking-wider">Outstanding</TableHead>
+                      <TableHead className="px-6 py-4 text-center text-[13px] font-semibold uppercase tracking-wider">Status</TableHead>
+                    </>
+                  ) : (
+                    <>
+                      <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Invoice Info</TableHead>
+                      <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Student Details</TableHead>
+                      <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Template Details</TableHead>
+                      <TableHead className="px-6 py-4 text-right text-[13px] font-semibold uppercase tracking-wider">Total</TableHead>
+                      <TableHead className="px-6 py-4 text-right text-[13px] font-semibold uppercase tracking-wider">Pending</TableHead>
+                      <TableHead className="px-6 py-4 text-center text-[13px] font-semibold uppercase tracking-wider">Status</TableHead>
+                      <TableHead className="px-6 py-4 text-right pr-6 text-[13px] font-semibold uppercase tracking-wider">Actions</TableHead>
+                    </>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -744,81 +795,205 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                     </TableCell>
                   </TableRow> :
 
-                invoices.map((inv) =>
-                <TableRow key={inv.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
-                      <TableCell className="py-5 px-6 align-middle">
-                        <div className="font-mono font-semibold text-primary tracking-tighter text-sm uppercase">{inv.invoice_number}</div>
-                        <div className="text-[13px] font-semibold text-muted-foreground uppercase tracking-widest mt-1">
-                          {new Date(inv.created_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </div>
-                      </TableCell>
-                      <TableCell className="align-middle">
-                        <div className="font-semibold text-foreground leading-tight text-sm sm:text-md">{inv.student.name}</div>
-                        <div className="text-[13px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">
-                          {inv.student.usn} • Sem {inv.semester && inv.semester !== 'N/A' ? inv.semester : inv.student.semester || 'N/A'}
-                        </div>
-                      </TableCell>
-                      <TableCell className="align-middle">
-                        <div className="font-medium text-sm leading-tight">{inv.fee_assignment?.template?.name || 'Manual Entry'}</div>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <Badge variant="outline" className="text-[14px] uppercase font-semibold tracking-widest h-4 px-1.5 border-border/50">
-                            {inv.fee_assignment?.template?.fee_type || 'Custom'}
-                          </Badge>
-                          <span className="text-[13px] font-semibold text-muted-foreground uppercase">{inv.academic_year || inv.fee_assignment?.academic_year || 'N/A'}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right align-middle">
-                        <div className="font-semibold text-foreground">{formatCurrency(inv.total_amount)}</div>
-                      </TableCell>
-                      <TableCell className="text-right align-middle">
-                        <div className={`font-semibold ${inv.pending_amount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                          {formatCurrency(inv.pending_amount)}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center align-middle">
-                        {getStatusBadge(inv.status)}
-                      </TableCell>
-                      <TableCell className="text-right pr-6 align-middle">
-                        <div className="flex justify-end gap-1">
-                          {!isReadOnly && inv.pending_amount > 0 &&
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-9 px-3 flex items-center gap-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-full transition-all active:scale-95 font-medium"
-                        onClick={() => openPaymentDialog(inv)}
-                        title="Record Payment">
-                        
-                              <IndianRupee className="h-4 w-4" />
-                              <span className="text-sm">Collect Fees</span>
+                groupByStudent ? (
+                  // ── GROUPED VIEW ──────────────────────────────────────────
+                  groupedInvoices.map(({ student, invoices: studentInvs }) => {
+                    const totalAmt = studentInvs.reduce((s, i) => s + i.total_amount, 0);
+                    const pendingAmt = studentInvs.reduce((s, i) => s + i.pending_amount, 0);
+                    const isExpanded = expandedStudentIds.has(student.id);
+                    const allPaid = studentInvs.every(i => i.status === 'paid');
+                    const hasOverdue = studentInvs.some(i => i.status === 'overdue');
+                    const hasPartial = studentInvs.some(i => i.status === 'partially_paid');
+                    const groupStatus = allPaid ? 'paid' : hasOverdue ? 'overdue' : hasPartial ? 'partially_paid' : 'unpaid';
+
+                    return (
+                      <React.Fragment key={student.id}>
+                        {/* Student summary row */}
+                        <TableRow
+                          className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50 cursor-pointer"
+                          onClick={() => toggleStudentExpand(student.id)}
+                        >
+                          <TableCell className="px-4 py-4 w-8">
+                            <ChevronDown
+                              className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+                                isExpanded ? 'rotate-0' : '-rotate-90'
+                              }`}
+                            />
+                          </TableCell>
+                          <TableCell className="py-4 align-middle">
+                            <div className="font-semibold text-foreground text-sm">{student.name}</div>
+                            <div className="text-[13px] font-mono text-muted-foreground uppercase tracking-tight mt-0.5">
+                              {student.usn}
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-4 align-middle">
+                            <div className="flex flex-wrap gap-1">
+                              <Badge variant="outline" className="text-[12px] font-semibold">
+                                {studentInvs.length} Invoice{studentInvs.length !== 1 ? 's' : ''}
+                              </Badge>
+                              {studentInvs.filter(i => i.status === 'paid').length > 0 && (
+                                <Badge className="text-[12px] bg-green-100 text-green-700 hover:bg-green-100">
+                                  {studentInvs.filter(i => i.status === 'paid').length} Paid
+                                </Badge>
+                              )}
+                              {studentInvs.filter(i => i.status !== 'paid').length > 0 && (
+                                <Badge className="text-[12px] bg-red-100 text-red-700 hover:bg-red-100">
+                                  {studentInvs.filter(i => i.status !== 'paid').length} Pending
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right py-4 align-middle">
+                            <div className="font-semibold text-foreground">{formatCurrency(totalAmt)}</div>
+                          </TableCell>
+                          <TableCell className="text-right py-4 align-middle">
+                            <div className={`font-semibold ${pendingAmt > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                              {formatCurrency(pendingAmt)}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center py-4 align-middle">
+                            {getStatusBadge(groupStatus as any)}
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Expanded individual invoices */}
+                        <AnimatePresence>
+                          {isExpanded && studentInvs.map(inv => (
+                            <TableRow
+                              key={inv.id}
+                              className="bg-muted/20 hover:bg-primary/5 border-b border-border/30 transition-all"
+                            >
+                              <TableCell className="px-4 py-3"></TableCell>
+                              <TableCell className="py-3 pl-6 align-middle">
+                                <div className="font-mono font-semibold text-primary text-xs uppercase tracking-tight">{inv.invoice_number}</div>
+                                <div className="text-[12px] text-muted-foreground mt-0.5">
+                                  {new Date(inv.created_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-3 align-middle">
+                                <div className="font-medium text-sm">{inv.fee_assignment?.template?.name || 'Manual Entry'}</div>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <Badge variant="outline" className="text-[11px] uppercase font-semibold tracking-widest h-4 px-1.5">
+                                    {inv.fee_assignment?.template?.fee_type || 'Custom'}
+                                  </Badge>
+                                  <span className="text-[12px] text-muted-foreground uppercase">{inv.academic_year || inv.fee_assignment?.academic_year || 'N/A'}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right py-3 align-middle">
+                                <div className="font-semibold text-sm">{formatCurrency(inv.total_amount)}</div>
+                              </TableCell>
+                              <TableCell className="text-right py-3 align-middle">
+                                <div className={`font-semibold text-sm ${inv.pending_amount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                  {formatCurrency(inv.pending_amount)}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-center py-3 align-middle" colSpan={1}>
+                                <div className="flex items-center justify-center gap-1">
+                                  {getStatusBadge(inv.status)}
+                                  {!isReadOnly && inv.pending_amount > 0 && (
+                                    <Button variant="ghost" size="sm"
+                                      className="h-7 px-2 text-xs text-green-600 hover:bg-green-50 rounded-full"
+                                      onClick={(e) => { e.stopPropagation(); openPaymentDialog(inv); }}
+                                    >
+                                      <IndianRupee className="h-3 w-3 mr-1" />Collect
+                                    </Button>
+                                  )}
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-blue-600 hover:bg-blue-50 rounded-full"
+                                    onClick={(e) => { e.stopPropagation(); fetchInvoiceDetails(inv.id); }}
+                                  >
+                                    <Eye className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-amber-600 hover:bg-amber-50 rounded-full"
+                                    onClick={(e) => { e.stopPropagation(); downloadInvoice(inv.id); }}
+                                    disabled={downloadingInvoiceId !== null}
+                                  >
+                                    {downloadingInvoiceId === inv.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </AnimatePresence>
+                      </React.Fragment>
+                    );
+                  })
+                ) : (
+                  // ── FLAT VIEW (default) ───────────────────────────────────
+                  invoices.map((inv) =>
+                  <TableRow key={inv.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
+                        <TableCell className="py-5 px-6 align-middle">
+                          <div className="font-mono font-semibold text-primary tracking-tighter text-sm uppercase">{inv.invoice_number}</div>
+                          <div className="text-[13px] font-semibold text-muted-foreground uppercase tracking-widest mt-1">
+                            {new Date(inv.created_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                          </div>
+                        </TableCell>
+                        <TableCell className="align-middle">
+                          <div className="font-semibold text-foreground leading-tight text-sm sm:text-md">{inv.student.name}</div>
+                          <div className="text-[13px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">
+                            {inv.student.usn} • Sem {inv.semester && inv.semester !== 'N/A' ? inv.semester : inv.student.semester || 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell className="align-middle">
+                          <div className="font-medium text-sm leading-tight">{inv.fee_assignment?.template?.name || 'Manual Entry'}</div>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <Badge variant="outline" className="text-[14px] uppercase font-semibold tracking-widest h-4 px-1.5 border-border/50">
+                              {inv.fee_assignment?.template?.fee_type || 'Custom'}
+                            </Badge>
+                            <span className="text-[13px] font-semibold text-muted-foreground uppercase">{inv.academic_year || inv.fee_assignment?.academic_year || 'N/A'}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right align-middle">
+                          <div className="font-semibold text-foreground">{formatCurrency(inv.total_amount)}</div>
+                        </TableCell>
+                        <TableCell className="text-right align-middle">
+                          <div className={`font-semibold ${inv.pending_amount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                            {formatCurrency(inv.pending_amount)}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center align-middle">
+                          {getStatusBadge(inv.status)}
+                        </TableCell>
+                        <TableCell className="text-right pr-6 align-middle">
+                          <div className="flex justify-end gap-1">
+                            {!isReadOnly && inv.pending_amount > 0 &&
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 px-3 flex items-center gap-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-full transition-all active:scale-95 font-medium"
+                          onClick={() => openPaymentDialog(inv)}
+                          title="Record Payment">
+                          
+                                <IndianRupee className="h-4 w-4" />
+                                <span className="text-sm">Collect Fees</span>
+                              </Button>
+                        }
+                            <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-full transition-all active:scale-95"
+                          onClick={() => fetchInvoiceDetails(inv.id)}
+                          title="View Details">
+                          
+                              <Eye className="h-4.5 w-4.5" />
                             </Button>
-                      }
-                          <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-full transition-all active:scale-95"
-                        onClick={() => fetchInvoiceDetails(inv.id)}
-                        title="View Details">
-                        
-                            <Eye className="h-4.5 w-4.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-full transition-all active:scale-95"
-                            onClick={() => downloadInvoice(inv.id)}
-                            disabled={downloadingInvoiceId !== null}
-                            title="Download PDF">
-                            {downloadingInvoiceId === inv.id ? (
-                              <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                            ) : (
-                              <Download className="h-4.5 w-4.5" />
-                            )}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                )
-                }
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-full transition-all active:scale-95"
+                              onClick={() => downloadInvoice(inv.id)}
+                              disabled={downloadingInvoiceId !== null}
+                              title="Download PDF">
+                              {downloadingInvoiceId === inv.id ? (
+                                <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                              ) : (
+                                <Download className="h-4.5 w-4.5" />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                  )
+                )}
               </TableBody>
             </Table>
 

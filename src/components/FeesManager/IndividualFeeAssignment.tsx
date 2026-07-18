@@ -17,7 +17,9 @@ import {
   Filter,
   Users,
   Calendar,
-  Trash2
+  Trash2,
+  ChevronDown,
+  ChevronRight
 } from
   'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
@@ -99,7 +101,6 @@ const IndividualFeeAssignment: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
 
-  // UI States
   const [openSelect, setOpenSelect] = useState<'batch' | 'branch' | 'semester' | 'section' | 'admission' | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -107,6 +108,30 @@ const IndividualFeeAssignment: React.FC = () => {
     totalCount: 0,
     pageSize: 20
   });
+
+  // Group by Student toggle state
+  const [groupByStudent, setGroupByStudent] = useState(false);
+  const [expandedStudentIds, setExpandedStudentIds] = useState<Set<number>>(new Set());
+
+  const toggleStudentExpand = (studentId: number) => {
+    setExpandedStudentIds(prev => {
+      const next = new Set(prev);
+      if (next.has(studentId)) next.delete(studentId);
+      else next.add(studentId);
+      return next;
+    });
+  };
+
+  // Build grouped map: studentId -> { student, assignments[] }
+  const groupedAssignments = React.useMemo(() => {
+    const map = new Map<number, { student: Assignment['student']; assignments: Assignment[] }>();
+    assignments.forEach(assign => {
+      const sid = assign.student.id;
+      if (!map.has(sid)) map.set(sid, { student: assign.student, assignments: [] });
+      map.get(sid)!.assignments.push(assign);
+    });
+    return Array.from(map.values());
+  }, [assignments]);
 
   // Fetch initial filters
   const fetchInitialFilters = useCallback(async () => {
@@ -484,7 +509,7 @@ const IndividualFeeAssignment: React.FC = () => {
             </div>
 
             {/* Search Row */}
-            <div className="mb-6">
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="relative max-w-md w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -501,6 +526,20 @@ const IndividualFeeAssignment: React.FC = () => {
                   </button>
                 )}
               </div>
+
+              {/* Group by Student toggle */}
+              <button
+                onClick={() => { setGroupByStudent(v => !v); setExpandedStudentIds(new Set()); }}
+                className={`flex items-center gap-2 h-10 px-4 rounded-md border font-semibold text-sm transition-all whitespace-nowrap ml-auto ${
+                  groupByStudent
+                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                    : 'bg-background border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                }`}
+                title="Toggle Group by Student"
+              >
+                <Users className="h-4 w-4" />
+                Group by Student
+              </button>
             </div>
           </CardContent>
         </div>
@@ -561,66 +600,167 @@ const IndividualFeeAssignment: React.FC = () => {
                 <Table>
                   <TableHeader className="bg-muted/30">
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="font-semibold py-4 px-6 text-foreground h-12">Student Details</TableHead>
-                      <TableHead className="font-semibold text-foreground h-12 text-center">Department</TableHead>
-                      <TableHead className="font-semibold text-foreground h-12 text-center">Template Assigned</TableHead>
-                      <TableHead className="font-semibold text-foreground h-12 text-center">Total Amount</TableHead>
-                      <TableHead className="font-semibold text-foreground h-12 text-center">Assigned On</TableHead>
-                      <TableHead className="font-semibold text-foreground h-12 text-center">Due Date</TableHead>
-                      <TableHead className="text-right font-semibold pr-6 text-foreground h-12">Action</TableHead>
+                      {groupByStudent ? (
+                        <>
+                          <TableHead className="w-8"></TableHead>
+                          <TableHead className="font-semibold py-4 px-6 text-foreground h-12">Student Details</TableHead>
+                          <TableHead className="font-semibold text-foreground h-12 text-center">Department</TableHead>
+                          <TableHead className="font-semibold text-foreground h-12 text-center">Assignments Summary</TableHead>
+                          <TableHead className="font-semibold text-foreground h-12 text-center">Total Assigned</TableHead>
+                        </>
+                      ) : (
+                        <>
+                          <TableHead className="font-semibold py-4 px-6 text-foreground h-12">Student Details</TableHead>
+                          <TableHead className="font-semibold text-foreground h-12 text-center">Department</TableHead>
+                          <TableHead className="font-semibold text-foreground h-12 text-center">Template Assigned</TableHead>
+                          <TableHead className="font-semibold text-foreground h-12 text-center">Total Amount</TableHead>
+                          <TableHead className="font-semibold text-foreground h-12 text-center">Assigned On</TableHead>
+                          <TableHead className="font-semibold text-foreground h-12 text-center">Due Date</TableHead>
+                          <TableHead className="text-right font-semibold pr-6 text-foreground h-12">Action</TableHead>
+                        </>
+                      )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {assignments.map((assignment) =>
-                      <TableRow key={assignment.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
-                        <TableCell className="py-5 px-6 align-middle">
-                          <div className="font-semibold text-foreground leading-tight">{assignment.student.name}</div>
-                          <div className="text-[10px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">{assignment.student.usn}</div>
-                        </TableCell>
-                        <TableCell className="align-middle text-center">
-                          <div className="flex flex-col items-center justify-center">
-                            <div className="text-sm font-medium leading-tight">{assignment.student.department}</div>
-                            <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-tight mt-1">Sem {assignment.student.semester} • Sec {assignment.student.section}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="align-middle text-center">
-                          <div className="flex flex-col items-center gap-1">
-                            <span className="font-semibold text-sm leading-tight">{assignment.template.name}</span>
-                            <Badge variant="outline" className="w-fit text-[10px] uppercase font-semibold tracking-widest px-2 border-border/50 h-5">
-                              {assignment.template.fee_type}
-                            </Badge>
-                          </div>
-                        </TableCell>
-                        <TableCell className="align-middle text-center">
-                          <div className="inline-flex items-center justify-center">
-                            <span className="font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded text-sm">
-                              {formatCurrency(assignment.template.total_amount)}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="align-middle text-center">
-                          <div className="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-tight">
-                            <Calendar className="h-3.5 w-3.5 text-muted-foreground/50" />
-                            {formatDate(assignment.assigned_at)}
-                          </div>
-                        </TableCell>
-                        <TableCell className="align-middle text-center">
-                          <div className="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-tight">
-                            <Calendar className="h-3.5 w-3.5 text-muted-foreground/50" />
-                            {assignment.due_date ? formatDate(assignment.due_date) : '-'}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right pr-6 align-middle">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-all active:scale-95"
-                            onClick={() => handleDelete(assignment.id)}>
+                    {groupByStudent ? (
+                      groupedAssignments.map(({ student, assignments: studentAssigns }) => {
+                        const totalAmt = studentAssigns.reduce((s, i) => s + (i.template.total_amount || 0), 0);
+                        const isExpanded = expandedStudentIds.has(student.id);
 
-                            <Trash2 className="h-4.5 w-4.5" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
+                        return (
+                          <React.Fragment key={student.id}>
+                            {/* Group Header Row */}
+                            <TableRow
+                              className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50 cursor-pointer"
+                              onClick={() => toggleStudentExpand(student.id)}
+                            >
+                              <TableCell className="px-4 py-4 w-8">
+                                <ChevronDown
+                                  className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+                                    isExpanded ? 'rotate-0' : '-rotate-90'
+                                  }`}
+                                />
+                              </TableCell>
+                              <TableCell className="py-4 px-6 align-middle">
+                                <div className="font-semibold text-foreground leading-tight">{student.name}</div>
+                                <div className="text-[10px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">{student.usn}</div>
+                              </TableCell>
+                              <TableCell className="align-middle text-center">
+                                <div className="flex flex-col items-center justify-center">
+                                  <div className="text-sm font-medium leading-tight">{student.department}</div>
+                                  <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-tight mt-1">Sem {student.semester} • Sec {student.section}</div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="align-middle text-center">
+                                <Badge variant="outline" className="text-[12px] font-semibold">
+                                  {studentAssigns.length} Assignment{studentAssigns.length !== 1 ? 's' : ''}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="align-middle text-center">
+                                <span className="font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded text-sm">
+                                  {formatCurrency(totalAmt)}
+                                </span>
+                              </TableCell>
+                            </TableRow>
+
+                            {/* Expanded Assignments */}
+                            <AnimatePresence>
+                              {isExpanded && studentAssigns.map(assignment => (
+                                <TableRow
+                                  key={assignment.id}
+                                  className="bg-muted/10 hover:bg-primary/5 transition-all border-b border-border/30"
+                                >
+                                  <TableCell className="px-4 py-3"></TableCell>
+                                  <TableCell className="py-3 px-6 align-middle" colSpan={2}>
+                                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-tight">
+                                      <Calendar className="h-3.5 w-3.5 text-muted-foreground/50" />
+                                      Assigned: {formatDate(assignment.assigned_at)}
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-tight mt-1">
+                                      <Calendar className="h-3.5 w-3.5 text-muted-foreground/50" />
+                                      Due: {assignment.due_date ? formatDate(assignment.due_date) : '-'}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="align-middle text-center">
+                                    <div className="flex flex-col items-center gap-1">
+                                      <span className="font-semibold text-sm leading-tight">{assignment.template.name}</span>
+                                      <Badge variant="outline" className="w-fit text-[10px] uppercase font-semibold tracking-widest px-2 border-border/50 h-5">
+                                        {assignment.template.fee_type}
+                                      </Badge>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="align-middle text-center">
+                                    <span className="font-semibold text-foreground">
+                                      {formatCurrency(assignment.template.total_amount)}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell className="text-right pr-6 align-middle">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-all active:scale-95"
+                                      onClick={(e) => { e.stopPropagation(); handleDelete(assignment.id); }}>
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </AnimatePresence>
+                          </React.Fragment>
+                        );
+                      })
+                    ) : (
+                      assignments.map((assignment) =>
+                        <TableRow key={assignment.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
+                          <TableCell className="py-5 px-6 align-middle">
+                            <div className="font-semibold text-foreground leading-tight">{assignment.student.name}</div>
+                            <div className="text-[10px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">{assignment.student.usn}</div>
+                          </TableCell>
+                          <TableCell className="align-middle text-center">
+                            <div className="flex flex-col items-center justify-center">
+                              <div className="text-sm font-medium leading-tight">{assignment.student.department}</div>
+                              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-tight mt-1">Sem {assignment.student.semester} • Sec {assignment.student.section}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-middle text-center">
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="font-semibold text-sm leading-tight">{assignment.template.name}</span>
+                              <Badge variant="outline" className="w-fit text-[10px] uppercase font-semibold tracking-widest px-2 border-border/50 h-5">
+                                {assignment.template.fee_type}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-middle text-center">
+                            <div className="inline-flex items-center justify-center">
+                              <span className="font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded text-sm">
+                                {formatCurrency(assignment.template.total_amount)}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-middle text-center">
+                            <div className="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-tight">
+                              <Calendar className="h-3.5 w-3.5 text-muted-foreground/50" />
+                              {formatDate(assignment.assigned_at)}
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-middle text-center">
+                            <div className="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-tight">
+                              <Calendar className="h-3.5 w-3.5 text-muted-foreground/50" />
+                              {assignment.due_date ? formatDate(assignment.due_date) : '-'}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right pr-6 align-middle">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-all active:scale-95"
+                              onClick={() => handleDelete(assignment.id)}>
+  
+                              <Trash2 className="h-4.5 w-4.5" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
                     )}
                   </TableBody>
                 </Table>
