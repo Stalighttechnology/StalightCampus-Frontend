@@ -102,8 +102,7 @@ const StudentFeeReports: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [hasPrevious, setHasPrevious] = useState(false);
-  const [pageSize] = useState(10); // Default page size
-
+  const [pageSize] = useState(50);
   // UI state
   const [activeTab, setActiveTab] = useState('individual');
   const [sendingReminder, setSendingReminder] = useState(false);

@@ -821,43 +821,50 @@ const IndividualFeeAssignment: React.FC = () => {
           </div>
         </CardContent>
 
-        <CardFooter className="py-4 bg-muted/5 flex flex-col sm:flex-row items-center justify-between border-t px-6 gap-4">
-          <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-            Showing {pagination.totalCount > 0 ? (pagination.page - 1) * pagination.pageSize + 1 : 0} to {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of {pagination.totalCount} assignments
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchAssignments(pagination.page - 1)}
-              disabled={pagination.page === 1 || loading}
-              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-3 py-1 h-9">
+        {pagination.totalPages > 1 && (
+          <CardFooter className="py-4 bg-muted/5 flex flex-col sm:flex-row items-center justify-between border-t px-6 gap-4">
+            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Showing {pagination.totalCount > 0 ? (pagination.page - 1) * pagination.pageSize + 1 : 0}
+              {" "}to{" "}
+              {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)}
+              {" "}of {pagination.totalCount} assignments
+            </div>
 
-              Previous
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchAssignments(pagination.page - 1)}
+                disabled={pagination.page === 1 || loading}
+                className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-3 py-1 h-9"
+              >
+                Previous
+              </Button>
 
-            <div className="flex items-center">
               <Button
                 variant="outline"
                 size="sm"
                 disabled
-                className={`${theme === 'dark' ? 'text-muted-foreground bg-card border border-border' : 'text-gray-700 bg-white border border-gray-300'} px-3 py-1 h-9 min-w-[36px]`}>
-
+                className={`${theme === 'dark'
+                  ? 'text-muted-foreground bg-card border border-border'
+                  : 'text-gray-700 bg-white border border-gray-300'
+                } px-3 py-1 h-9 min-w-[36px]`}
+              >
                 {pagination.page}
               </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchAssignments(pagination.page + 1)}
+                disabled={pagination.page === pagination.totalPages || loading}
+                className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-3 py-1 h-9"
+              >
+                Next
+              </Button>
             </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchAssignments(pagination.page + 1)}
-              disabled={pagination.page === pagination.totalPages || loading}
-              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-3 py-1 h-9">
-
-              Next
-            </Button>
-          </div>
-        </CardFooter>
+          </CardFooter>
+        )}
       </Card>
     </div>);
 
