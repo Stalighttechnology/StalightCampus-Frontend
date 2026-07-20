@@ -390,7 +390,7 @@ const COAttainment = () => {
                 }}
                 disabled={dropdownData.batch.length === 0}>
                 <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`} disabled={dropdownData.batch.length === 0}>
-                  <SelectValue placeholder={dropdownData.batch.length === 0 ? "No batch available" : "All Batches"} />
+                  <SelectValue placeholder={dropdownData.batch.length === 0 ? "No batch available" : "Select Batch"} />
                 </SelectTrigger>
                 <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                   {dropdownData.batch.length === 0 ? (
