@@ -462,7 +462,7 @@ const OutsideStudentManagement: React.FC = () => {
                   Register Outside Student
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]" onInteractOutside={(e) => e.preventDefault()}>
+              <DialogContent className="w-[90%] max-w-[90%] sm:max-w-[500px] rounded-xl" onInteractOutside={(e) => e.preventDefault()}>
                 <DialogHeader>
                   <DialogTitle>Register Outside Student</DialogTitle>
                 </DialogHeader>

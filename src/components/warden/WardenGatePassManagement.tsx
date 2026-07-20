@@ -25,6 +25,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import DashboardCard from '../common/DashboardCard';
 import { actionGatePass, exportGatePassesPdf } from '../../utils/hms_api';
 import { useWardenContext } from '../../context/WardenContext';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface GatePass {
   id: number;
@@ -152,6 +157,8 @@ const WardenGatePassManagement = () => {
   const [historyStatusFilter, setHistoryStatusFilter] = useState('all');
   const [historyHostelFilter, setHistoryHostelFilter] = useState('all');
   const [historyLoaded, setHistoryLoaded] = useState(false); // lazy — only fetch when tab opened
+  const [fromCalendarOpen, setFromCalendarOpen] = useState(false);
+  const [toCalendarOpen, setToCalendarOpen] = useState(false);
 
   /* ── Dialog / Action ── */
   const [selectedRequest, setSelectedRequest] = useState<GatePass | null>(null);
@@ -430,23 +437,65 @@ const WardenGatePassManagement = () => {
               {/* Date range */}
               <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
                 <div className="flex items-center gap-1.5 flex-1">
-                  <input
-                    type="date"
-                    value={historyDateFrom}
-                    max={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => { setHistoryDateFrom(e.target.value); setHistoryPage(1); }}
-                    className="h-9 px-3 text-xs rounded-xl border border-border bg-background font-medium focus:outline-none focus:ring-2 focus:ring-primary flex-1 min-w-0"
-                    placeholder="From"
-                  />
+                  {/* From Date Picker */}
+                  <Popover open={fromCalendarOpen} onOpenChange={setFromCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "h-9 px-3 text-xs rounded-xl border border-border bg-background font-medium focus:outline-none focus:ring-2 focus:ring-primary w-full sm:w-[130px] justify-start text-left sm:shrink-0",
+                          !historyDateFrom && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-1.5 h-3.5 w-3.5 text-muted-foreground" />
+                        {historyDateFrom ? format(parseISO(historyDateFrom), 'dd-MM-yyyy') : <span>From</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 border border-border z-[100]" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={historyDateFrom ? parseISO(historyDateFrom) : undefined}
+                        onSelect={(date) => {
+                          setHistoryDateFrom(date ? format(date, 'yyyy-MM-dd') : '');
+                          setHistoryPage(1);
+                          setFromCalendarOpen(false);
+                        }}
+                        disabled={(date) => date > new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+
                   <span className="text-muted-foreground text-xs shrink-0">–</span>
-                  <input
-                    type="date"
-                    value={historyDateTo}
-                    max={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => { setHistoryDateTo(e.target.value); setHistoryPage(1); }}
-                    className="h-9 px-3 text-xs rounded-xl border border-border bg-background font-medium focus:outline-none focus:ring-2 focus:ring-primary flex-1 min-w-0"
-                    placeholder="To"
-                  />
+
+                  {/* To Date Picker */}
+                  <Popover open={toCalendarOpen} onOpenChange={setToCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "h-9 px-3 text-xs rounded-xl border border-border bg-background font-medium focus:outline-none focus:ring-2 focus:ring-primary w-full sm:w-[130px] justify-start text-left sm:shrink-0",
+                          !historyDateTo && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-1.5 h-3.5 w-3.5 text-muted-foreground" />
+                        {historyDateTo ? format(parseISO(historyDateTo), 'dd-MM-yyyy') : <span>To</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 border border-border z-[100]" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={historyDateTo ? parseISO(historyDateTo) : undefined}
+                        onSelect={(date) => {
+                          setHistoryDateTo(date ? format(date, 'yyyy-MM-dd') : '');
+                          setHistoryPage(1);
+                          setToCalendarOpen(false);
+                        }}
+                        disabled={(date) => date > new Date() || (historyDateFrom ? date < parseISO(historyDateFrom) : false)}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 {(historyDateFrom || historyDateTo) && (
                   <button onClick={() => { setHistoryDateFrom(''); setHistoryDateTo(''); setHistoryPage(1); }}

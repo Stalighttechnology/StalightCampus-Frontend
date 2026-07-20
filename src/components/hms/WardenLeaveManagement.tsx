@@ -652,7 +652,7 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
 
         {/* View Reason Dialog */}
         <Dialog open={!!viewLeave} onOpenChange={() => setViewLeave(null)}>
-          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}>
+          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border w-[90%] max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 w-[90%] max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}>
             <DialogHeader>
               <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Reason</DialogTitle>
             </DialogHeader>

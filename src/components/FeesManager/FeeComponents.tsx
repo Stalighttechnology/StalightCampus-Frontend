@@ -281,7 +281,7 @@ const FeeComponents: React.FC = () => {
                 Create Component
               </Button>
             </DialogTrigger>
-            <DialogContent className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'} p-6 max-w-md max-[480px]:w-[90vw] max-[480px]:max-w-[340px] max-[480px]:rounded-xl max-[480px]:p-4 shadow-2xl`}>
+            <DialogContent className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'} w-[90%] max-w-[90%] sm:max-w-md p-6 max-[480px]:p-4 rounded-xl shadow-2xl mx-auto`}>
               <DialogHeader className="mb-4">
                 <DialogTitle className="max-[480px]:text-[20px]">
                   {editingComponent ? 'Edit Fee Component' : 'Create New Fee Component'}
