@@ -443,10 +443,6 @@ export const AnnouncementSections = ({
                               <div className="flex flex-col gap-1">
                                 <div className="font-semibold text-foreground text-sm sm:text-base leading-tight whitespace-normal break-words">{announcement.title}</div>
                                 <div className="flex flex-col gap-0.5 mt-1">
-                                  <span className="text-xs font-semibold text-primary/80 flex items-start gap-1">
-                                    <User className="w-4 h-4 shrink-0 mt-0.5" />
-                                    <span>From: {cleanName(announcement.created_by_name)}</span>
-                                  </span>
                                   <span className="text-xs flex items-start gap-1 text-muted-foreground font-medium">
                                     <Clock className="w-4 h-4 shrink-0 mt-0.5" />
                                     <span>{formatDate(announcement.created_at)}</span>
@@ -574,9 +570,6 @@ export const AnnouncementSections = ({
                           </div>
                           <div className="ann-card-title text-foreground">{announcement.title}</div>
                           <div className="ann-card-meta">
-                            <span className="text-xs text-primary/80 font-semibold flex items-center gap-1.5">
-                              <User className="w-3.5 h-3.5" /> From: {cleanName(announcement.created_by_name)}
-                            </span>
                             <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
                               <Clock className="w-3.5 h-3.5" /> {formatDate(announcement.created_at)}
                             </span>

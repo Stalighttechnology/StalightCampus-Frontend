@@ -60,6 +60,22 @@ import {
   toggleAttendanceLock,
   downloadPayrollReport
 } from "../../utils/fees_manager_api";
+import { format } from 'date-fns';
+
+const formatClaimStatus = (status: string) => {
+  if (status === 'approved_for_month') return 'Approved for Month';
+  if (status === 'approved_pending_payroll') return 'Approved - Awaiting Payroll';
+  if (status === 'deferred') return 'Deferred to Next Month';
+  return status.replace(/_/g, ' ');
+};
+
+const getStatusColor = (status: string) => {
+  if (status.includes('approved')) return 'bg-emerald-500/10 text-emerald-500';
+  if (status === 'rejected') return 'bg-red-500/10 text-red-500';
+  if (status === 'deferred') return 'bg-slate-500/10 text-slate-500';
+  if (status === 'processed' || status === 'paid') return 'bg-blue-500/10 text-blue-500';
+  return 'bg-amber-500/10 text-amber-500';
+};
 
 const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   const { theme } = useTheme();
@@ -811,7 +827,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
             key={tab.id}
             onClick={() => { setActiveTab(tab.id as any); setSelectedRun(null); }}
             className={`pb-3 text-sm font-semibold whitespace-nowrap transition-all border-b-2 ${
-              activeTab === tab.id && !selectedRun
+              activeTab === tab.id
                 ? 'border-primary text-primary'
                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
@@ -1037,11 +1053,8 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                     <div className="font-semibold text-slate-900 dark:text-white text-base">{claim.employee_name}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 capitalize">{claim.type} Claim</div>
                   </div>
-                  <Badge variant="outline" className={`capitalize border-none ${
-                    claim.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
-                    claim.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'
-                  }`}>
-                    {claim.status}
+                  <Badge variant="outline" className={`capitalize border-none ${getStatusColor(claim.status)}`}>
+                    {formatClaimStatus(claim.status)}
                   </Badge>
                 </div>
                 
@@ -1169,11 +1182,8 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <Badge variant="outline" className={`capitalize border-none ${
-                        claim.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
-                        claim.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'
-                      }`}>
-                        {claim.status}
+                      <Badge variant="outline" className={`capitalize border-none ${getStatusColor(claim.status)}`}>
+                        {formatClaimStatus(claim.status)}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-right flex justify-end gap-2">
