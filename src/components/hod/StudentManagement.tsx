@@ -1166,7 +1166,16 @@ const StudentManagement = () => {
 
   // Open edit dialog
   const openEdit = (student: Student) => {
-    const semesterId = getSemesterId(student.semester);
+    let formattedSemester = student.semester;
+    
+    // Always extract the digit to match the `${s.number}th Semester` format required by Select
+    if (formattedSemester && formattedSemester !== 'Unknown') {
+      const match = String(formattedSemester).match(/\d+/);
+      if (match) {
+        formattedSemester = `${match[0]}th Semester`;
+      }
+    }
+
     updateState({
       selectedStudent: student,
       editForm: {
@@ -1174,7 +1183,7 @@ const StudentManagement = () => {
         name: student.name,
         email: student.email,
         section: student.section,
-        semester: student.semester,
+        semester: formattedSemester,
         cycle: student.cycle || "",
         phone: student.phone || "",
         mode_of_admission: student.mode_of_admission || "KCET"
