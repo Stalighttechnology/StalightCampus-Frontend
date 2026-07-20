@@ -63,6 +63,19 @@ import {
 
 const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   const { theme } = useTheme();
+
+  const formatDateDDMMYYYY = (value: string | Date | null | undefined) => {
+    if (!value) return 'N/A';
+
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return 'N/A';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${day}-${month}-${year}`;
+  };
   
   // Tab states: 'overview', 'structures', 'settings', 'reimbursements', 'loans', 'runs'
   const [activeTab, setActiveTab] = useState<'overview' | 'structures' | 'settings' | 'reimbursements' | 'loans' | 'runs' | 'adjustments' | 'attendance-lock' | 'reports'>('overview');
@@ -813,7 +826,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
       {/* TAB CONTENT: Overview */}
       {activeTab === 'overview' && !selectedRun && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             <DashboardCard
               title="Active Salary Structures"
               value={configuredStructuresCount !== null ? configuredStructuresCount.toString() : "Checking..."}
@@ -950,7 +963,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto rounded-lg border border-slate-300 dark:border-slate-850">
+              <div className="overflow-x-auto overflow-y-auto custom-scrollbar max-h-[70vh] rounded-lg border border-slate-300 dark:border-slate-850">
                 <table className="w-full text-sm text-left whitespace-nowrap">
                   <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
                     <tr>
@@ -1111,7 +1124,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
           </div>
 
           {/* Desktop View: Table */}
-          <div className="hidden md:block overflow-x-auto rounded-lg border border-slate-350 dark:border-slate-800">
+          <div className="hidden md:block overflow-x-auto overflow-y-auto custom-scrollbar max-h-[70vh] rounded-lg border border-slate-350 dark:border-slate-800">
             <table className="w-full text-sm text-left whitespace-nowrap">
               <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
                 <tr>
@@ -1215,7 +1228,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         <div className="space-y-4">
           {runs.length > 0 ? (
             <>
-              <div className="overflow-x-auto rounded-lg border border-slate-350 dark:border-slate-800">
+              <div className="overflow-x-auto overflow-y-auto custom-scrollbar max-h-[70vh] rounded-lg border border-slate-350 dark:border-slate-800">
                 <table className="w-full text-sm text-left whitespace-nowrap">
                   <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
                     <tr>
@@ -1233,7 +1246,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                         <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
                           {new Date(0, run.month - 1).toLocaleString('en-US', { month: 'long' })} {run.year}
                         </td>
-                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{run.created_at}</td>
+                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{formatDateDDMMYYYY(run.created_at)}</td>
                         <td className="px-6 py-4 text-right font-medium text-slate-750 dark:text-slate-250">{run.employee_count} staff</td>
                         <td className="px-6 py-4 text-right font-semibold text-blue-600 dark:text-blue-400">
                           {formatCurrency(run.total_net_payout)}
@@ -1335,7 +1348,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto rounded-lg border border-slate-300 dark:border-slate-800">
+              <div className="overflow-x-auto overflow-y-auto custom-scrollbar max-h-[70vh] rounded-lg border border-slate-300 dark:border-slate-800">
                 <table className="w-full text-sm text-left whitespace-nowrap">
                   <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
                     <tr>
@@ -1681,7 +1694,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-slate-350 dark:border-slate-800">
+          <div className="overflow-x-auto overflow-y-auto custom-scrollbar max-h-[70vh] rounded-lg border border-slate-350 dark:border-slate-800">
             <table className="w-full text-sm text-left whitespace-nowrap">
               <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
                 <tr>
@@ -1793,7 +1806,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
           </DialogHeader>
           <div className="space-y-4 my-2">
             <div>
-              <label className="text-xs font-semibold text-slate-400 block mb-1">Employee *</label>
+              <label className="text-xs font-semibold text-slate-400 block mb-1">Employee <span className="text-red-500">*</span></label>
               <select
                 value={newAdjustment.employee_id}
                 onChange={(e) => setNewAdjustment({ ...newAdjustment, employee_id: e.target.value })}
@@ -1807,7 +1820,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Type *</label>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Type <span className="text-red-500">*</span></label>
                 <select
                   value={newAdjustment.type}
                   onChange={(e) => setNewAdjustment({ ...newAdjustment, type: e.target.value })}
@@ -1820,7 +1833,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Amount (₹) *</label>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Amount (₹) <span className="text-red-500">*</span></label>
                 <input
                   type="number"
                   min="0"
@@ -1858,7 +1871,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-400 block mb-1">Reason *</label>
+              <label className="text-xs font-semibold text-slate-400 block mb-1">Reason <span className="text-red-500">*</span></label>
               <textarea
                 rows={3}
                 placeholder="Describe the reason for this adjustment..."

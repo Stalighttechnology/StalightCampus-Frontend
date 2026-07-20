@@ -767,12 +767,11 @@ const StudentFeeReports: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Filter className="w-5 h-5" />
                 Filter Students
               </CardTitle>
             </CardHeader>
             <CardContent className="p-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[16px] sm:text-[14px] font-semibold uppercase tracking-[0.1em] ml-1">Batch <span className="text-red-500">*</span></Label>
                   <Select
