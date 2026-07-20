@@ -887,7 +887,7 @@ const FeeAssignments: React.FC = () => {
               Fees assigned to {studentToView?.name} ({studentToView?.usn}).
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-3 overflow-y-auto py-2 my-2 scrollbar-thin">
+          <div className="flex flex-col gap-3 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] py-2 my-2 scrollbar-thin pr-1">
             {studentToView?.assigned_templates && studentToView.assigned_templates.length > 0 ? (
               studentToView.assigned_templates.map((at: any) => (
                 <div key={at.id} className="flex justify-between items-center p-3 sm:p-4 border border-border/60 rounded-xl bg-card shadow-sm">
