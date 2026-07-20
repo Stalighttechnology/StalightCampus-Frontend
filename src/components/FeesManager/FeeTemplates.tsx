@@ -509,14 +509,14 @@ const FeeTemplates: React.FC = () => {
              <DialogContent
                onPointerDownOutside={(e) => e.preventDefault()}
                onEscapeKeyDown={(e) => e.preventDefault()}
-               className={`w-[90vw] sm:w-[92vw] md:max-w-xl lg:max-w-2xl h-[80vh] sm:h-auto max-h-[80vh] sm:max-h-[90vh] overflow-hidden rounded-xl sm:rounded-2xl ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'} p-0 shadow-2xl`}
+               className={`flex flex-col w-[90vw] sm:w-[92vw] md:max-w-xl lg:max-w-2xl h-[80vh] sm:h-auto max-h-[80vh] sm:max-h-[90vh] overflow-hidden rounded-xl sm:rounded-2xl ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'} p-0 shadow-2xl`}
              >
-              <DialogHeader className="px-6 pt-6 pb-3 border-b">
+              <DialogHeader className="px-6 pt-6 pb-3 border-b shrink-0">
                 <DialogTitle>
                   {editingTemplate ? 'Edit Fee Template' : 'Create New Fee Template'}
                 </DialogTitle>
               </DialogHeader>
-               <div className="space-y-6 overflow-y-auto custom-scrollbar px-6 pb-4 pt-4 h-[calc(80vh-140px)] sm:h-auto sm:max-h-[calc(90vh-160px)]">
+               <div className="space-y-6 flex-1 overflow-y-auto custom-scrollbar px-6 pb-4 pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                   <div>
                     <Label htmlFor="templateName">Template Name</Label>
@@ -647,7 +647,7 @@ const FeeTemplates: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2 pb-4 px-6 border-t bg-card">
+              <div className="flex justify-end gap-3 pt-2 pb-4 px-6 border-t bg-card shrink-0">
                   <Button
                     variant="outline"
                     onClick={() => setIsCreateDialogOpen(false)}

@@ -880,14 +880,14 @@ const FeeAssignments: React.FC = () => {
 
       {/* View Assigned Templates Modal */}
       <Dialog open={viewTemplatesModalOpen} onOpenChange={setViewTemplatesModalOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-md rounded-2xl p-4 sm:p-6 max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
+        <DialogContent className="w-[90%] max-w-[90%] sm:max-w-md rounded-2xl p-4 sm:p-6 h-[80vh] sm:h-auto max-h-[80vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="text-xl">Assigned Fees</DialogTitle>
             <DialogDescription className="text-sm">
               Fees assigned to {studentToView?.name} ({studentToView?.usn}).
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-3 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] py-2 my-2 scrollbar-thin pr-1">
+          <div className="flex flex-col gap-3 overflow-y-auto flex-1 py-2 my-2 scrollbar-thin pr-1">
             {studentToView?.assigned_templates && studentToView.assigned_templates.length > 0 ? (
               studentToView.assigned_templates.map((at: any) => (
                 <div key={at.id} className="flex justify-between items-center p-3 sm:p-4 border border-border/60 rounded-xl bg-card shadow-sm">
@@ -898,8 +898,8 @@ const FeeAssignments: React.FC = () => {
               <div className="text-center text-muted-foreground p-6 bg-muted/10 rounded-xl border border-dashed">No fees assigned.</div>
             )}
           </div>
-          <DialogFooter className="mt-2 sm:mt-0">
-            <Button variant="outline" className="w-full sm:w-auto font-medium" onClick={() => setViewTemplatesModalOpen(false)}>Close</Button>
+          <DialogFooter className="mt-2 sm:mt-0 shrink-0">
+            <Button className="w-full sm:w-auto font-medium bg-primary hover:bg-primary/90 text-white" onClick={() => setViewTemplatesModalOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
