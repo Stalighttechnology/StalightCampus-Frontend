@@ -1609,8 +1609,8 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
       {/* SUB-VIEW: Payroll Run Detailed Lines / Disbursal Panel */}
       {selectedRun && (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <div>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="min-w-0">
               <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                 Payroll Details: {new Date(0, selectedRun.month - 1).toLocaleString('en-US', { month: 'long' })} {selectedRun.year}
               </h2>
@@ -1636,15 +1636,15 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                 )}
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setSelectedRun(null)}>Back to batches</Button>
+            <div className="flex w-full flex-col sm:flex-row gap-2 md:w-auto md:flex-shrink-0">
+              <Button variant="outline" className="w-full sm:w-auto" onClick={() => setSelectedRun(null)}>Back to batches</Button>
               {selectedRun.status === 'calculated' && (
-                <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => handleApproveRun(selectedRun.id)}>
+                <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700" onClick={() => handleApproveRun(selectedRun.id)}>
                   Approve Payroll Run
                 </Button>
               )}
               {selectedRun.status === 'approved' && (
-                <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => handlePayoutRun(selectedRun.id)}>
+                <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700" onClick={() => handlePayoutRun(selectedRun.id)}>
                   Disburse via RazorpayX
                 </Button>
               )}
