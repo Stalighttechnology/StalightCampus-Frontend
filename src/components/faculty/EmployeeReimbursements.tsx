@@ -43,8 +43,11 @@ const CLAIM_TYPES = [
 const STATUS_META: Record<string, { label: string; color: string; icon: React.ComponentType<{ size?: number; className?: string }> }> = {
   pending: { label: 'Pending', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20', icon: Clock },
   approved: { label: 'Approved', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', icon: CheckCircle2 },
+  approved_pending_payroll: { label: 'Approved - Awaiting Payroll', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', icon: CheckCircle2 },
+  approved_for_month: { label: 'Approved for Month', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', icon: CheckCircle2 },
   rejected: { label: 'Rejected', color: 'bg-red-500/10 text-red-500 border-red-500/20', icon: XCircle },
   processed: { label: 'Processed', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', icon: CheckCircle2 },
+  deferred: { label: 'Deferred to Next Month', color: 'bg-slate-500/10 text-slate-500 border-slate-500/20', icon: Clock },
 };
 
 interface Claim {
@@ -123,6 +126,15 @@ const EmployeeReimbursements: React.FC = () => {
     e.preventDefault();
     if (!claimType || !amount || Number(amount) <= 0) {
       showSweetAlert('Validation Error', 'Please select an expense type and enter a valid amount.', 'error');
+      return;
+    }
+    if (!description || description.trim() === '') {
+      showSweetAlert('Validation Error', 'Description is mandatory.', 'error');
+      return;
+    }
+    const wordCount = description.trim() === '' ? 0 : description.trim().split(/\s+/).length;
+    if (wordCount > 1000) {
+      showSweetAlert('Validation Error', 'Description cannot exceed 1000 words.', 'error');
       return;
     }
 
@@ -425,15 +437,23 @@ const EmployeeReimbursements: React.FC = () => {
             {/* Description */}
             <div className="space-y-1.5">
               <Label className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                Description / Purpose
+                Description / Purpose <span className="text-red-500">*</span>
               </Label>
               <Textarea
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief details about the expense..."
+                required
                 className={`${inputClass} resize-none custom-scrollbar`}
               />
+              <div className={`text-right text-xs mt-1 ${
+                (description.trim() === '' ? 0 : description.trim().split(/\s+/).length) > 1000 
+                  ? 'text-red-500 font-semibold' 
+                  : isDark ? 'text-slate-500' : 'text-slate-400'
+              }`}>
+                {description.trim() === '' ? 0 : description.trim().split(/\s+/).length}/1000 words
+              </div>
             </div>
 
             <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
