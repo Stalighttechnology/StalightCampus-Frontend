@@ -65,6 +65,7 @@ interface Student {
   section: string;
   batch: string;
   admission_mode: string;
+  assigned_templates?: any[];
 }
 
 interface FeeTemplate {
@@ -117,6 +118,8 @@ const FeeAssignments: React.FC = () => {
   const [openSelect, setOpenSelect] = useState<'batch' | 'branch' | 'semester' | 'section' | 'admission' | null>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [viewTemplatesModalOpen, setViewTemplatesModalOpen] = useState(false);
+  const [studentToView, setStudentToView] = useState<Student | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
     totalPages: 1,
@@ -687,14 +690,22 @@ const FeeAssignments: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
-                            {(student as any).assigned_templates?.length > 0 ?
-                              (student as any).assigned_templates.map((at: any) =>
-                                <Badge key={at.id} variant="secondary" className={`text-[12px] hover:bg-green-100 dark:hover:bg-green-950/40 border transition-colors ${theme === 'dark' ? 'bg-green-950/30 text-green-400 border-green-800/60' : 'bg-green-100/50 text-green-700 border-green-200'}`}>
-                                  {at.template_name}
-                                </Badge>
-                              ) :
+                            {student.assigned_templates && student.assigned_templates.length > 0 ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs h-7 px-3"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setStudentToView(student);
+                                  setViewTemplatesModalOpen(true);
+                                }}
+                              >
+                                View ({student.assigned_templates.length})
+                              </Button>
+                            ) : (
                               <span className="text-xs text-muted-foreground">None</span>
-                            }
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -863,6 +874,32 @@ const FeeAssignments: React.FC = () => {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Assigned Templates Modal */}
+      <Dialog open={viewTemplatesModalOpen} onOpenChange={setViewTemplatesModalOpen}>
+        <DialogContent className="w-[95vw] sm:max-w-md rounded-2xl p-4 sm:p-6 max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Assigned Fees</DialogTitle>
+            <DialogDescription className="text-sm">
+              Fees assigned to {studentToView?.name} ({studentToView?.usn}).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] py-2 my-2 scrollbar-thin pr-1">
+            {studentToView?.assigned_templates && studentToView.assigned_templates.length > 0 ? (
+              studentToView.assigned_templates.map((at: any) => (
+                <div key={at.id} className="flex justify-between items-center p-3 sm:p-4 border border-border/60 rounded-xl bg-card shadow-sm">
+                  <span className="font-semibold text-sm sm:text-base">{at.template_name}</span>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-muted-foreground p-6 bg-muted/10 rounded-xl border border-dashed">No fees assigned.</div>
+            )}
+          </div>
+          <DialogFooter className="mt-2 sm:mt-0">
+            <Button variant="outline" className="w-full sm:w-auto font-medium" onClick={() => setViewTemplatesModalOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
