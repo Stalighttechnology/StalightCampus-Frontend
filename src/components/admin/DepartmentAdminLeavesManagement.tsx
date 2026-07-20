@@ -43,7 +43,20 @@ interface DepartmentAdminLeavesManagementProps {
   toast: (options: any) => void;
 }
 
-const getStatusBadge = (status: string, theme: string) => {
+const isLeaveExpired = (toDateStr: string) => {
+  if (!toDateStr || toDateStr === "N/A") return false;
+  const toDate = new Date(toDateStr);
+  if (isNaN(toDate.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  toDate.setHours(0, 0, 0, 0);
+  return toDate < today;
+};
+
+const getStatusBadge = (status: string, theme: string, isExpired?: boolean) => {
+  if (status === "Pending" && isExpired) {
+    return <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-red-950/40 text-red-400 border border-red-900/30' : 'bg-red-50 text-red-600 border border-red-100'}`}>Expired</span>;
+  }
   switch (status) {
     case "Pending":
       return <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700'}`}>Pending</span>;
@@ -475,7 +488,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                               <span>{leave.department}</span>
                             </div>
                           </div>
-                          <div className="shrink-0">{getStatusBadge(leave.status, theme)}</div>
+                          <div className="shrink-0">{getStatusBadge(leave.status, theme, isLeaveExpired(leave.to))}</div>
                         </div>
 
                         <div className="mt-3 space-y-3">
@@ -499,38 +512,44 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                           </Button>
 
                           {leave.status === "Pending" ? (
-                            <div className="grid grid-cols-2 gap-3 mt-2">
-                              <Button
-                                variant="outline"
-                                className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
-                                  ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
-                                  : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
-                                  }`}
-                                onClick={() => handleApprove(leave.id)}
-                                disabled={loading}
-                              >
-                                <CheckCircle size={16} /> Approve
-                              </Button>
-                              <Button
-                                variant="outline"
-                                className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
-                                  ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
-                                  : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
-                                  }`}
-                                onClick={() => handleReject(leave.id)}
-                                disabled={loading}
-                              >
-                                <XCircle size={16} /> Reject
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-between pt-2 border-t border-border/20 mt-2">
-                              <span className="text-xs text-muted-foreground italic">Processed</span>
-                              {leave.reviewed_by && (
-                                <span className="text-xs text-muted-foreground font-medium">by {leave.reviewed_by}</span>
-                              )}
-                            </div>
-                          )}
+                             isLeaveExpired(leave.to) ? (
+                               <div className="flex items-center justify-between pt-2 border-t border-border/20 mt-2">
+                                 <span className="text-xs text-muted-foreground italic">Expired</span>
+                               </div>
+                             ) : (
+                               <div className="grid grid-cols-2 gap-3 mt-2">
+                                 <Button
+                                   variant="outline"
+                                   className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
+                                     ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
+                                     : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                                     }`}
+                                   onClick={() => handleApprove(leave.id)}
+                                   disabled={loading}
+                                 >
+                                   <CheckCircle size={16} /> Approve
+                                 </Button>
+                                 <Button
+                                   variant="outline"
+                                   className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
+                                     ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
+                                     : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                                     }`}
+                                   onClick={() => handleReject(leave.id)}
+                                   disabled={loading}
+                                 >
+                                   <XCircle size={16} /> Reject
+                                 </Button>
+                               </div>
+                             )
+                           ) : (
+                             <div className="flex items-center justify-between pt-2 border-t border-border/20 mt-2">
+                               <span className="text-xs text-muted-foreground italic">Processed</span>
+                               {leave.reviewed_by && (
+                                 <span className="text-xs text-muted-foreground font-medium">by {leave.reviewed_by}</span>
+                               )}
+                             </div>
+                           )}
                         </div>
                       </div>
                     ) :
@@ -582,37 +601,43 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                               View
                             </button>
                           </td>
-                          <td className="py-4 px-2 md:px-4 text-center">{getStatusBadge(leave.status, theme)}</td>
+                          <td className="py-4 px-2 md:px-4 text-center">{getStatusBadge(leave.status, theme, isLeaveExpired(leave.to))}</td>
                           <td className="py-4 px-2 md:px-4 text-center">
                             {leave.status === "Pending" ? (
-                              <div className="flex justify-center gap-2">
-                                <Button
-                                  onClick={() => handleApprove(leave.id)}
-                                  size="sm"
-                                  variant="outline"
-                                  className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
-                                    ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
-                                    : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
-                                    }`}
-                                  disabled={loading}
-                                >
-                                  <CheckCircle size={16} />
-                                  <span className="ml-1 hidden sm:inline">Approve</span>
-                                </Button>
-                                <Button
-                                  onClick={() => handleReject(leave.id)}
-                                  size="sm"
-                                  variant="outline"
-                                  className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
-                                    ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
-                                    : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
-                                    }`}
-                                  disabled={loading}
-                                >
-                                  <XCircle size={16} />
-                                  <span className="ml-1 hidden sm:inline">Reject</span>
-                                </Button>
-                              </div>
+                              isLeaveExpired(leave.to) ? (
+                                <div className="flex flex-col items-center justify-center">
+                                  <span className="text-xs text-muted-foreground italic">Expired</span>
+                                </div>
+                              ) : (
+                                <div className="flex justify-center gap-2">
+                                  <Button
+                                    onClick={() => handleApprove(leave.id)}
+                                    size="sm"
+                                    variant="outline"
+                                    className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
+                                      ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
+                                      : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                                      }`}
+                                    disabled={loading}
+                                  >
+                                    <CheckCircle size={16} />
+                                    <span className="ml-1 hidden sm:inline">Approve</span>
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleReject(leave.id)}
+                                    size="sm"
+                                    variant="outline"
+                                    className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
+                                      ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
+                                      : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                                      }`}
+                                    disabled={loading}
+                                  >
+                                    <XCircle size={16} />
+                                    <span className="ml-1 hidden sm:inline">Reject</span>
+                                  </Button>
+                                </div>
+                              )
                             ) : (
                               <div className="flex flex-col items-end gap-0.5">
                                 <span className="text-xs text-muted-foreground italic">Processed</span>
