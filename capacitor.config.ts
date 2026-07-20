@@ -28,8 +28,10 @@ const config: CapacitorConfig = {
     },
     CapacitorUpdater: {
       appId: 'com.stalight.campus',
-      autoUpdate: true,
-      defaultChannel: 'production'
+      autoUpdate: 'always',
+      defaultChannel: 'production',
+      version: '0.0.0',
+      autoSplashscreen: true
     },
     Keyboard: {
       resize: 'body',
@@ -40,6 +42,9 @@ const config: CapacitorConfig = {
       overlaysWebView: true,
       style: 'LIGHT',
       backgroundColor: '#00000000'
+    },
+    SplashScreen: {
+      launchAutoHide: false
     }
   }
 };
