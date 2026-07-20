@@ -260,7 +260,7 @@ const FeeComponents: React.FC = () => {
       )}
 
       <Card className={`${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader id="feesmanager-components-header" className="flex flex-row items-center justify-between max-[480px]:flex-col max-[480px]:items-start gap-4">
+        <CardHeader id="feesmanager-components-header" className="flex flex-row items-center justify-between max-[480px]:flex-col max-[480px]:items-start gap-4 border-b pb-4">
           <div>
             <CardTitle className={`${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Fee Components List
@@ -340,7 +340,7 @@ const FeeComponents: React.FC = () => {
             </DialogContent>
           </Dialog>
         </CardHeader>
-        <CardContent className="max-[480px]:px-3 max-[480px]:py-4">
+        <CardContent className="max-[480px]:px-3 max-[480px]:py-4 pt-4">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>

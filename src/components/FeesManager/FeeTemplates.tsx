@@ -479,10 +479,13 @@ const FeeTemplates: React.FC = () => {
       }
 
       <Card className={`${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader id="feesmanager-templates-header" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <CardTitle className="flex items-center gap-2">
-            Fee Templates List
-          </CardTitle>
+        <CardHeader id="feesmanager-templates-header" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-4">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              Fee Templates List
+            </CardTitle>
+            <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Create and manage fee structures using components</p>
+          </div>
 
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
@@ -667,7 +670,7 @@ const FeeTemplates: React.FC = () => {
             </DialogContent>
           </Dialog>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <Table>
             <TableHeader>
               <TableRow className={theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}>

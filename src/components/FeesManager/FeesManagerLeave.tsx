@@ -200,11 +200,11 @@ const FeesManagerLeave = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leave Application Form - Left Side */}
         <Card id="feesmanager-leave-form" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-          <CardHeader>
+          <CardHeader className="border-b pb-4">
             <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
             <p className="text-sm text-muted-foreground mt-1 font-normal">Your leave request will be routed to the <span className="font-medium text-primary">Dean</span> for approval.</p>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-4">
             {/* Error Message */}
             {error && (
               <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
@@ -290,13 +290,13 @@ const FeesManagerLeave = () => {
 
         {/* Recent Leave Applications - Right Side */}
         <Card id="feesmanager-recent-leaves" className={theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}>
-          <CardHeader>
+          <CardHeader className="border-b pb-4">
             <div>
               <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
               <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 max-h-[500px] overflow-y-auto custom-scrollbar">
+          <CardContent className="flex-1 max-h-[500px] overflow-y-auto custom-scrollbar pt-4">
             <div className="overflow-x-auto thin-scrollbar">
               {/* Mobile: stacked cards */}
               <div className="md:hidden space-y-3">
