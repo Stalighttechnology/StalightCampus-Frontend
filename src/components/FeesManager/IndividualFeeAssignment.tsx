@@ -29,6 +29,7 @@ import {
   getFeesManagerSemesters,
   getFeesManagerSections,
   getFeesManagerAssignments,
+  getFeeTemplates,
   deleteFeeAssignment
 } from
   "../../utils/fees_manager_api";
@@ -84,6 +85,7 @@ const IndividualFeeAssignment: React.FC = () => {
   const [semesters, setSemesters] = useState<{ id: number; number: number; name: string; }[]>([]);
   const [sections, setSections] = useState<{ id: number; name: string; }[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [templates, setTemplates] = useState<{ id: number; name: string; total_amount: number; fee_type: string }[]>([]);
 
   // Loading states for cascading filters
   const [loadingInitialFilters, setLoadingInitialFilters] = useState(false);
@@ -100,6 +102,7 @@ const IndividualFeeAssignment: React.FC = () => {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
 
   const [openSelect, setOpenSelect] = useState<'batch' | 'branch' | 'semester' | 'section' | 'admission' | null>(null);
   const [pagination, setPagination] = useState({
@@ -137,9 +140,17 @@ const IndividualFeeAssignment: React.FC = () => {
   const fetchInitialFilters = useCallback(async () => {
     try {
       setLoadingInitialFilters(true);
-      const filterJson = await getFeesManagerFilters();
-      if (!filterJson.success) throw new Error(filterJson.message || 'Failed to fetch initial data');
+      const [filterJson, templateJson] = await Promise.all([
+        getFeesManagerFilters(),
+        getFeeTemplates(1, 200)
+      ]);
+
+      if (!filterJson.success || !templateJson.success) {
+        throw new Error('Failed to fetch initial data');
+      }
+
       setFilterData(filterJson.data);
+      setTemplates(templateJson.data || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -207,6 +218,7 @@ const IndividualFeeAssignment: React.FC = () => {
         ...(selectedFilters.semesterId && { semester_id: selectedFilters.semesterId }),
         ...(selectedFilters.sectionId && { section_id: selectedFilters.sectionId }),
         ...(selectedFilters.admissionMode && { admission_mode: selectedFilters.admissionMode }),
+        ...(selectedTemplateId && { template_id: selectedTemplateId }),
         ...(appliedSearch && { search: appliedSearch })
       };
 
@@ -226,7 +238,7 @@ const IndividualFeeAssignment: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedFilters, appliedSearch, pagination.pageSize]);
+  }, [selectedFilters, appliedSearch, selectedTemplateId, pagination.pageSize]);
 
   useEffect(() => {
     fetchInitialFilters();
@@ -261,7 +273,7 @@ const IndividualFeeAssignment: React.FC = () => {
         selectedFilters.sectionId &&
         selectedFilters.admissionMode;
 
-      if (allFiltersSelected || appliedSearch.trim().length > 0) {
+      if (allFiltersSelected || selectedTemplateId || appliedSearch.trim().length > 0) {
         fetchAssignments(1);
       } else {
         setAssignments([]);
@@ -276,6 +288,7 @@ const IndividualFeeAssignment: React.FC = () => {
     selectedFilters.semesterId,
     selectedFilters.sectionId,
     selectedFilters.admissionMode,
+    selectedTemplateId,
     appliedSearch,
     fetchAssignments
   ]);
@@ -286,6 +299,8 @@ const IndividualFeeAssignment: React.FC = () => {
     selectedFilters.semesterId &&
     selectedFilters.sectionId &&
     selectedFilters.admissionMode;
+  const canShowAssignments = allFiltersSelected || !!selectedTemplateId || appliedSearch.trim().length > 0;
+  const selectedTemplateLabel = templates.find((template) => template.id.toString() === selectedTemplateId)?.name || 'Filter';
 
   const handleDelete = async (id: number) => {
     const confirmed = await showConfirmAlert(
@@ -509,8 +524,8 @@ const IndividualFeeAssignment: React.FC = () => {
             </div>
 
             {/* Search Row */}
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="relative max-w-md w-full">
+            <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center">
+              <div className="relative w-full md:flex-1 md:max-w-none">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by student or USN..."
@@ -527,26 +542,63 @@ const IndividualFeeAssignment: React.FC = () => {
                 )}
               </div>
 
-              {/* Group by Student toggle */}
-              <button
-                onClick={() => { setGroupByStudent(v => !v); setExpandedStudentIds(new Set()); }}
-                className={`flex items-center gap-2 h-10 px-4 rounded-md border font-semibold text-sm transition-all whitespace-nowrap ml-auto ${
-                  groupByStudent
-                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                    : 'bg-background border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground'
-                }`}
-                title="Toggle Group by Student"
-              >
-                <Users className="h-4 w-4" />
-                Group by Student
-              </button>
+              <div className="grid grid-cols-2 gap-2 md:ml-auto md:flex md:flex-nowrap md:items-center md:gap-3">
+                <div className="min-w-0 md:w-[220px] md:flex-shrink-0">
+                  <Select
+                    value={selectedTemplateId}
+                    onValueChange={(val) => setSelectedTemplateId(val)}
+                    disabled={loadingInitialFilters || !allFiltersSelected}
+                  >
+                    <SelectTrigger className="h-10 min-w-0 rounded-lg border-0 bg-violet-500 px-3 md:px-4 font-semibold text-white shadow-sm transition-all hover:bg-violet-600 disabled:bg-violet-500 disabled:text-white disabled:opacity-60 disabled:shadow-none [&>svg]:text-current">
+                      <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+                        <Filter className="h-4 w-4 flex-shrink-0" />
+                        <span className="block min-w-0 flex-1 truncate text-left text-sm text-white">
+                          {selectedTemplateLabel}
+                        </span>
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {loadingInitialFilters ? (
+                        <SelectItem value="loading" disabled className="text-muted-foreground text-xs text-center">
+                          Loading templates...
+                        </SelectItem>
+                      ) : templates.length > 0 ? (
+                        <>
+
+                          {templates.map((template) => (
+                            <SelectItem key={template.id} value={template.id.toString()}>{template.name}</SelectItem>
+                          ))}
+                        </>
+                      ) : (
+                        <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                          No templates found
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Group by Student toggle */}
+                <button
+                  onClick={() => { setGroupByStudent(v => !v); setExpandedStudentIds(new Set()); }}
+                  className={`flex h-10 w-full min-w-0 items-center justify-center gap-2 rounded-md border px-3 font-semibold text-sm transition-all whitespace-nowrap md:w-auto md:px-4 md:flex-shrink-0 ${
+                    groupByStudent
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                      : 'bg-background border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                  }`}
+                  title="Toggle Group by Student"
+                >
+                  <Users className="h-4 w-4 flex-shrink-0" />
+                  Group by Student
+                </button>
+              </div>
             </div>
           </CardContent>
         </div>
 
         <CardContent className="p-6 pt-0">
           <div className="border rounded-xl overflow-hidden shadow-sm">
-            {!allFiltersSelected && !appliedSearch ? (
+            {!canShowAssignments ? (
               <div className="min-h-[400px] py-10 flex flex-col items-center justify-center bg-muted/5 px-4 text-center">
                 <div className="relative mb-6">
                   <div className="absolute -top-3 -right-3 bg-primary/10 p-2 rounded-full animate-bounce sm:-top-4 sm:-right-4 sm:p-3">
@@ -812,3 +864,14 @@ const IndividualFeeAssignment: React.FC = () => {
 };
 
 export default IndividualFeeAssignment;
+
+
+
+
+
+
+
+
+
+
+
