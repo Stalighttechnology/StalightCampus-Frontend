@@ -259,7 +259,7 @@ const ExamWindowConfig: React.FC<ExamWindowConfigProps> = ({ batchId, examPeriod
                       <SelectTrigger className="w-[56px] h-8 text-xs bg-white border-slate-200 text-slate-900">
                         <SelectValue placeholder="HH" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white text-slate-900 border-slate-200 max-h-[160px] overflow-y-auto">
+                      <SelectContent className="bg-white text-slate-900 border-slate-200 max-h-[160px] overflow-y-auto z-[9999]">
                         {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map((h) => (
                           <SelectItem key={h} value={h}>{h}</SelectItem>
                         ))}
@@ -276,7 +276,7 @@ const ExamWindowConfig: React.FC<ExamWindowConfigProps> = ({ batchId, examPeriod
                       <SelectTrigger className="w-[56px] h-8 text-xs bg-white border-slate-200 text-slate-900">
                         <SelectValue placeholder="MM" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white text-slate-900 border-slate-200 max-h-[160px] overflow-y-auto">
+                      <SelectContent className="bg-white text-slate-900 border-slate-200 max-h-[160px] overflow-y-auto z-[9999]">
                         {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map((m) => (
                           <SelectItem key={m} value={m}>{m}</SelectItem>
                         ))}
@@ -291,7 +291,7 @@ const ExamWindowConfig: React.FC<ExamWindowConfigProps> = ({ batchId, examPeriod
                       <SelectTrigger className="w-[62px] h-8 text-xs bg-white border-slate-200 text-slate-900">
                         <SelectValue placeholder="AM/PM" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white text-slate-900 border-slate-200">
+                      <SelectContent className="bg-white text-slate-900 border-slate-200 z-[9999]">
                         <SelectItem value="AM">AM</SelectItem>
                         <SelectItem value="PM">PM</SelectItem>
                       </SelectContent>
@@ -346,7 +346,7 @@ const ExamWindowConfig: React.FC<ExamWindowConfigProps> = ({ batchId, examPeriod
                       <SelectTrigger className="w-[56px] h-8 text-xs bg-white border-slate-200 text-slate-900">
                         <SelectValue placeholder="HH" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white text-slate-900 border-slate-200 max-h-[160px] overflow-y-auto">
+                      <SelectContent className="bg-white text-slate-900 border-slate-200 max-h-[160px] overflow-y-auto z-[9999]">
                         {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map((h) => (
                           <SelectItem key={h} value={h}>{h}</SelectItem>
                         ))}
@@ -363,7 +363,7 @@ const ExamWindowConfig: React.FC<ExamWindowConfigProps> = ({ batchId, examPeriod
                       <SelectTrigger className="w-[56px] h-8 text-xs bg-white border-slate-200 text-slate-900">
                         <SelectValue placeholder="MM" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white text-slate-900 border-slate-200 max-h-[160px] overflow-y-auto">
+                      <SelectContent className="bg-white text-slate-900 border-slate-200 max-h-[160px] overflow-y-auto z-[9999]">
                         {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map((m) => (
                           <SelectItem key={m} value={m}>{m}</SelectItem>
                         ))}
@@ -378,7 +378,7 @@ const ExamWindowConfig: React.FC<ExamWindowConfigProps> = ({ batchId, examPeriod
                       <SelectTrigger className="w-[62px] h-8 text-xs bg-white border-slate-200 text-slate-900">
                         <SelectValue placeholder="AM/PM" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white text-slate-900 border-slate-200">
+                      <SelectContent className="bg-white text-slate-900 border-slate-200 z-[9999]">
                         <SelectItem value="AM">AM</SelectItem>
                         <SelectItem value="PM">PM</SelectItem>
                       </SelectContent>
