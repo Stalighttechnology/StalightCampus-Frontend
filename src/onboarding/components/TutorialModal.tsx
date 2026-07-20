@@ -69,7 +69,7 @@ export const TutorialModal = ({
             <div className="mx-auto w-16 h-16 bg-white shadow-lg border-2 border-primary rounded-2xl flex items-center justify-center mb-6 overflow-hidden">
               <img src="/logo.jpeg" alt="Logo" className="w-full h-full object-contain" />
             </div>
-            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">
               Welcome to StalightCampus
             </h2>
             <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">

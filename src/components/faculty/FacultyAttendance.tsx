@@ -715,7 +715,7 @@ const FacultyAttendance = () => {
                           </Button>
                         </DialogTrigger>
                         <DialogContent
-                          className={`sm:max-w-[425px] p-6 space-y-4 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
+                          className={`w-[90%] max-w-[90%] sm:max-w-[425px] p-6 space-y-4 rounded-xl ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
                         >
                           <DialogHeader>
                             <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Filter Attendance History</DialogTitle>
