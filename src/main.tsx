@@ -263,6 +263,8 @@ if (typeof window !== 'undefined') {
 
 
 
+import { GlobalErrorBoundary } from './components/common/GlobalErrorBoundary';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -275,19 +277,22 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById("root")!).render(
   import.meta.env.PROD ?
   <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
+      <GlobalErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
+        </QueryClientProvider>
+      </GlobalErrorBoundary>
+    </React.StrictMode> :
+
+  <GlobalErrorBoundary>
+    <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <App />
         </ThemeProvider>
       </QueryClientProvider>
-    </React.StrictMode> :
-
-  <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
-    </QueryClientProvider>
-
+  </GlobalErrorBoundary>
 );
 
 // Service worker registration
