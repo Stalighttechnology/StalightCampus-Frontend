@@ -830,7 +830,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
                   <AnimatePresence>
                     {!collapsed && (
                       isMobile ? (
-                        <span className={`truncate ${role === 'coe' ? 'text-xs font-medium' : ''}`}>{item.name}</span>
+                        <span className={`truncate ${role === 'coe' ? 'text-[15px] font-medium' : ''}`}>{item.name}</span>
                       ) : (
                         <motion.span
                           className={`truncate ${role === 'coe' ? 'text-sm font-medium' : ''}`}
