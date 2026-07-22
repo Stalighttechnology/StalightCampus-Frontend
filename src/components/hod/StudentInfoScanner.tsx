@@ -616,44 +616,34 @@ const StudentInfoScanner = () => {
               <Button
                 onClick={toggleScanner}
                 variant="outline"
-                size="sm"
-                className={`h-11 ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
-
+                className={`w-11 h-11 shrink-0 flex items-center justify-center ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
                 <QrCode className="h-4 w-4" />
               </Button>
               <Button
                 onClick={toggleFaceScanner}
                 variant="outline"
-                size="sm"
                 title="Open Face Scanner"
-                className={`h-11 ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
-
+                className={`w-11 h-11 shrink-0 flex items-center justify-center ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
                 <Camera className="h-4 w-4" />
               </Button>
               <Button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isRecognizingFace}
                 variant="outline"
-                size="sm"
                 title="Upload Photo for Face Recognition"
-                className={`h-11 ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
+                className={`w-11 h-11 shrink-0 flex items-center justify-center ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
                 {isRecognizingFace ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
               </Button>
               <Button
                 onClick={() => fetchStudentData()}
                 disabled={loading}
-                className="h-11 bg-primary hover:bg-[#9147e0] text-white px-6 sm:px-8 flex-1 sm:flex-none">
-
-                {loading ?
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
-
-                    <Search className="h-4 w-4" />
-                  </motion.div> :
-
-                  "Search"
-                }
+                className="h-11 bg-primary hover:bg-[#9147e0] text-white px-3 sm:px-8 flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2">
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4" />
+                )}
+                <span>Search</span>
               </Button>
               {studentData && detectedStudents.length === 0 && (
                 /* Mobile Export Icon Button */
