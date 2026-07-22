@@ -639,7 +639,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                                 </div>
                               )
                             ) : (
-                              <div className="flex flex-col items-end gap-0.5">
+                              <div className="flex flex-col items-center justify-center gap-0.5">
                                 <span className="text-xs text-muted-foreground italic">Processed</span>
                                 {leave.reviewed_by && (
                                   <span className="text-xs text-muted-foreground">by {leave.reviewed_by}</span>
