@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { ScrollArea } from "../ui/scroll-area";
 import { Button } from "../ui/button";
-import { Loader2, FileDown, ClipboardList, CalendarIcon, Filter, XCircle } from "lucide-react";
+import { Loader2, FileDown, FileSpreadsheet, ClipboardList, CalendarIcon, Filter, XCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "../ui/dialog";
 import { getAttendanceRecordsWithSummary, getAttendanceRecordDetails, getAssignedSubjects } from "@/utils/faculty_api";
 import { API_BASE_URL, API_ENDPOINT } from "@/utils/config";
@@ -209,58 +209,77 @@ const AttendanceRecords = () => {
       .finally(() => setLoadingDetails(false));
   };
 
-  const handleExportPdf = async () => {
+
+
+  const handleExportExcel = async () => {
     if (!selectedRecord) return;
     setExporting(true);
-    setPdfUrl(null);
     setDetailsError("");
 
     try {
-      const res = await fetchWithTokenRefresh(
-        `${API_ENDPOINT}/faculty/generate-statistics/?file_id=${selectedRecord.id}`,
+      const response = await fetchWithTokenRefresh(
+        `${API_ENDPOINT}/faculty/export-session-excel/?file_id=${selectedRecord.id}`,
         {
           method: "GET",
           headers: {
             Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-            "Content-Type": "application/json",
           },
         }
       );
-      const data = await res.json();
-      if (data.success && data.data && data.data.pdf_url) {
-        setPdfUrl(data.data.pdf_url);
-        let downloadUrl = data.data.pdf_url;
-        if (!downloadUrl.startsWith('http://') && !downloadUrl.startsWith('https://')) {
-          const domain = new URL(API_ENDPOINT).origin;
-          downloadUrl = `${domain}${downloadUrl}`;
-        }
-
-        const pdfRes = await fetchWithTokenRefresh(downloadUrl);
-        if (pdfRes.ok) {
-          const blob = await pdfRes.blob();
-          const localUrl = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = localUrl;
-          a.download = `stats_${selectedRecord.subject || "Attendance"}_${selectedRecord.date}.pdf`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          window.URL.revokeObjectURL(localUrl);
-        } else {
-          setDetailsError("Failed to download PDF file");
-        }
+      if (response.ok) {
+        const blob = await response.blob();
+        const localUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = localUrl;
+        const safeSubject = (selectedRecord.subject || "Attendance").replace(/\s+/g, "_");
+        a.download = `attendance_${safeSubject}_${selectedRecord.date}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(localUrl);
       } else {
-        setDetailsError(data.message || "Failed to generate PDF");
+        generateClientCsv();
       }
     } catch (e: unknown) {
-      if (e instanceof Error) {
-        setDetailsError(e.message || "Failed to generate PDF");
-      } else {
-        setDetailsError("Failed to generate PDF");
-      }
+      generateClientCsv();
     } finally {
       setExporting(false);
     }
+  };
+
+  const generateClientCsv = () => {
+    if (!selectedRecord) return;
+    const rows = [
+      ["Attendance Details Report"],
+      ["Subject", selectedRecord.subject || "--"],
+      ["Date", selectedRecord.date],
+      ["Class", `Sem ${selectedRecord.semester || ''}, ${selectedRecord.branch || ''} ${selectedRecord.section || ''}`],
+      ["Total Present", presentList.length.toString()],
+      ["Total Absent", absentList.length.toString()],
+      ["Total Strength", (presentList.length + absentList.length).toString()],
+      [],
+      ["Sl No", "USN", "Student Name", "Status"]
+    ];
+
+    let sl = 1;
+    presentList.forEach(s => {
+      rows.push([sl.toString(), s.usn, s.name, "PRESENT"]);
+      sl++;
+    });
+    absentList.forEach(s => {
+      rows.push([sl.toString(), s.usn, s.name, "ABSENT"]);
+      sl++;
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    const safeSubject = (selectedRecord.subject || "Attendance").replace(/\s+/g, "_");
+    link.setAttribute("download", `attendance_${safeSubject}_${selectedRecord.date}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   return (
@@ -409,17 +428,6 @@ const AttendanceRecords = () => {
                                     Comprehensive record for this session
                                   </DialogDescription>
                                 </DialogHeader>
-                                {selectedRecord && selectedRecord.summary && selectedRecord.summary.total_count > 0 && (
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="flex dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 bg-white text-zinc-900 border border-zinc-200 h-9 w-9 items-center justify-center shrink-0 p-0 ml-4"
-                                    onClick={handleExportPdf}
-                                    disabled={exporting}
-                                  >
-                                    {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileDown className="w-3.5 h-3.5" />}
-                                  </Button>
-                                )}
                               </div>
 
                               <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-h-[60vh] md:max-h-[70vh] overflow-y-auto custom-scrollbar">
@@ -504,21 +512,21 @@ const AttendanceRecords = () => {
                                 <div className="text-xs font-medium text-slate-500">
                                   Total strength: {presentList.length + absentList.length} students
                                 </div>
-                                <div className="flex gap-2 w-full sm:w-auto">
-                                  {selectedRecord && selectedRecord.summary && selectedRecord.summary.total_count > 0 && (
-                                    <Button
+                                  <div className="flex gap-2 w-full sm:w-auto">
+                                    {selectedRecord && selectedRecord.summary && selectedRecord.summary.total_count > 0 && (
+                                      <Button
                                       className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 text-white font-semibold px-6 shadow-lg shadow-purple-500/20 transition-all active:scale-95"
-                                      onClick={handleExportPdf}
-                                      disabled={exporting}
-                                    >
-                                      {exporting ? (
-                                        <><Loader2 className="animate-spin mr-2 h-4 w-4" /> Processing</>
-                                      ) : (
-                                        <><FileDown className="mr-2 h-4 w-4" /> Export Report</>
-                                      )}
-                                    </Button>
-                                  )}
-                                </div>
+                                      onClick={handleExportExcel}
+                                        disabled={exporting}
+                                      >
+                                        {exporting ? (
+                                          <><Loader2 className="animate-spin mr-2 h-4 w-4" /> Processing</>
+                                        ) : (
+                                          <><FileSpreadsheet className="mr-2 h-4 w-4" /> Export Report</>
+                                        )}
+                                      </Button>
+                                    )}
+                                  </div>
                               </div>
                             </DialogContent>
                           </Dialog>
