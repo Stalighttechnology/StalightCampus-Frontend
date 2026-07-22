@@ -888,7 +888,7 @@ const FacultyAttendance = () => {
                   size="sm"
                   onClick={() => setHistoryPage(Math.max(1, historyPage - 1))}
                   disabled={historyLoading || historyPage === 1}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all hover:text-white">
                   Previous
                 </Button>
 
@@ -903,7 +903,7 @@ const FacultyAttendance = () => {
                   size="sm"
                   onClick={() => setHistoryPage(Math.min(historyTotalPages, historyPage + 1))}
                   disabled={historyLoading || historyPage === historyTotalPages}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all hover:text-white">
                   Next
                 </Button>
               </div>
