@@ -94,11 +94,7 @@ export const BillingManagement: React.FC = () => {
   };
 
   const handleRemoveOrgLogo = async () => {
-    const confirmed = await showConfirmAlert('Remove Logo', 'Are you sure you want to remove the logo?', 'Remove');
-    if (confirmed.isConfirmed) {
-      setOrgLogoPreview(null);
-      setOrgLogo(null);
-    }
+    handleDeleteLogoDirectly();
   };
 
   const handleDirectLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,6 +173,8 @@ export const BillingManagement: React.FC = () => {
 
       const res = await response.json();
       if (res.success) {
+        setOrgLogoPreview(null);
+        setOrgLogo(null);
         showSuccessAlert('Success', 'Organization logo removed successfully');
         if (data) {
           setData({
@@ -230,7 +228,7 @@ export const BillingManagement: React.FC = () => {
       if (res.success) {
         showSuccessAlert('Success', 'Organization details updated successfully');
         setShowEditOrg(false);
-        const newLogo = res.logo || orgLogoPreview || null;
+        const newLogo = !orgLogoPreview ? null : (res.logo || orgLogoPreview);
         if (data) {
           setData({
             ...data,
