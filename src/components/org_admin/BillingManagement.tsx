@@ -861,13 +861,13 @@ export const BillingManagement: React.FC = () => {
 
       {/* Raise Ticket Modal */}
       <Dialog open={showRaiseTicket} onOpenChange={setShowRaiseTicket}>
-        <DialogContent className="w-[90%] sm:max-w-[500px] mx-auto rounded-xl">
+        <DialogContent onPointerDownOutside={(e) => e.preventDefault()} className="w-[90%] sm:max-w-[500px] mx-auto rounded-xl">
           <DialogHeader>
             <DialogTitle>Raise Support Ticket</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="subject">Subject</Label>
+              <Label htmlFor="subject">Subject <span className="text-red-500">*</span></Label>
               <Input
                 id="subject"
                 placeholder="Brief issue title"
@@ -895,7 +895,7 @@ export const BillingManagement: React.FC = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Description <span className="text-red-500">*</span></Label>
               <Textarea
                 id="description"
                 placeholder="Detailed explanation of the issue"
@@ -971,7 +971,7 @@ export const BillingManagement: React.FC = () => {
 
       {/* Edit Organization Details Dialog */}
       <Dialog open={showEditOrg} onOpenChange={setShowEditOrg}>
-        <DialogContent className="w-[90%] sm:w-[95%] sm:max-w-[550px] max-h-[85vh] overflow-y-auto mx-auto rounded-xl flex flex-col gap-4 custom-scrollbar">
+        <DialogContent onPointerDownOutside={(e) => e.preventDefault()} className="w-[90%] sm:w-[95%] sm:max-w-[550px] max-h-[85vh] overflow-y-auto mx-auto rounded-xl flex flex-col gap-4 custom-scrollbar">
           <DialogHeader className="border-b pb-3">
             <DialogTitle className="text-xl font-semibold text-left">Edit Organization Details</DialogTitle>
           </DialogHeader>

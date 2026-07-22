@@ -790,10 +790,10 @@ const DeanProfile = () => {
 
                   {/* Raise Ticket Dialog */}
                   <Dialog open={showRaiseTicket} onOpenChange={setShowRaiseTicket}>
-                    <DialogContent className="w-[90%] sm:max-w-[500px] mx-auto rounded-xl">
+                    <DialogContent onPointerDownOutside={(e) => e.preventDefault()} className="w-[90%] sm:max-w-[500px] mx-auto rounded-xl">
                       <DialogHeader><DialogTitle>Raise Support Ticket</DialogTitle></DialogHeader>
                       <div className="space-y-4 pt-4">
-                        <div><Label>Subject</Label><Input value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} placeholder="Brief summary" disabled={submittingTicket} /></div>
+                        <div><Label>Subject <span className="text-red-500">*</span></Label><Input value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} placeholder="Brief summary" disabled={submittingTicket} /></div>
                         <div>
                           <Label>Priority</Label>
                           <Select value={ticketForm.priority} onValueChange={(v) => setTicketForm({ ...ticketForm, priority: v })}>
@@ -806,7 +806,7 @@ const DeanProfile = () => {
                             </SelectContent>
                           </Select>
                         </div>
-                        <div><Label>Description</Label><Textarea value={ticketForm.description} onChange={(e) => setTicketForm({ ...ticketForm, description: e.target.value })} disabled={submittingTicket} placeholder="Detailed description..." className="min-h-[80px]" /></div>
+                        <div><Label>Description <span className="text-red-500">*</span></Label><Textarea value={ticketForm.description} onChange={(e) => setTicketForm({ ...ticketForm, description: e.target.value })} disabled={submittingTicket} placeholder="Detailed description..." className="min-h-[80px]" /></div>
                         <Button className="w-full" onClick={handleRaiseTicket} disabled={submittingTicket}>
                           {submittingTicket ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : 'Submit Ticket'}
                         </Button>

@@ -675,13 +675,13 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               <DialogTrigger asChild>
                 <Button className="bg-primary text-white w-full sm:w-auto">Raise Ticket</Button>
               </DialogTrigger>
-              <DialogContent className="w-[90%] sm:max-w-[500px] mx-auto rounded-xl">
+              <DialogContent onPointerDownOutside={(e) => e.preventDefault()} className="w-[90%] sm:max-w-[500px] mx-auto rounded-xl">
                 <DialogHeader>
                   <DialogTitle>Raise Support Ticket</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div>
-                    <Label>Subject</Label>
+                    <Label>Subject <span className="text-red-500">*</span></Label>
                     <Input value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} placeholder="Brief summary of the issue" disabled={submittingTicket} />
                   </div>
                   <div>
@@ -702,7 +702,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                     </Select>
                   </div>
                   <div>
-                    <Label>Description</Label>
+                    <Label>Description <span className="text-red-500">*</span></Label>
                     <div className="h-20 rounded-md border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                       <Textarea
                         value={ticketForm.description}
