@@ -151,7 +151,7 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
       case "holiday-calendar":
         return (
           <div>
-            <HolidayCalendar />
+            <HolidayCalendar showLeaves={true} userRole={user?.role || "principal"} />
           </div>);
 
       case "hod-leaves":

@@ -145,7 +145,17 @@ export const getMyApprovedLeaves = async (role?: string, startDate?: string, end
             allLeaves = [];
         }
         
-        return allLeaves.filter((l: any) => l.status === 'APPROVED');
+        return allLeaves
+            .filter((l: any) => l.status === 'APPROVED' || l.status === 'APPROVE')
+            .map((l: any) => ({
+                id: l.id,
+                start_date: l.start_date || l.date_from,
+                end_date: l.end_date || l.date_to,
+                leave_type: l.leave_type || l.type || 'Leave',
+                title: l.title || 'Leave',
+                reason: l.reason || '',
+                status: l.status
+            }));
     } catch (error) {
         console.error('Error fetching approved leaves:', error);
         return [];

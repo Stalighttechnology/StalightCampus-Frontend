@@ -123,6 +123,38 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
         });
     };
 
+    const getLeaveStatusLabel = (status?: string) => {
+        if (!status) return 'Leave';
+        const s = status.toUpperCase();
+        if (s === 'APPROVED' || s === 'APPROVE') return 'Approved Leave';
+        if (s === 'REJECTED' || s === 'REJECT') return 'Rejected Leave';
+        if (s === 'PENDING') return 'Pending Leave';
+        return 'Leave';
+    };
+
+    const getLeaveStatusStyles = (status?: string, theme?: string) => {
+        const s = status ? status.toUpperCase() : '';
+        if (s === 'APPROVED' || s === 'APPROVE') {
+            return {
+                bg: theme === 'dark' ? 'bg-teal-500/20' : 'bg-teal-100/40',
+                text: 'text-teal-600 dark:text-teal-400',
+                pill: 'bg-teal-500/10 text-teal-600 hover:bg-teal-500/20'
+            };
+        }
+        if (s === 'REJECTED' || s === 'REJECT') {
+            return {
+                bg: theme === 'dark' ? 'bg-red-500/20' : 'bg-red-100/40',
+                text: 'text-red-600 dark:text-red-400',
+                pill: 'bg-red-500/10 text-red-600 hover:bg-red-500/20'
+            };
+        }
+        return {
+            bg: theme === 'dark' ? 'bg-yellow-500/20' : 'bg-yellow-100/40',
+            text: 'text-yellow-600 dark:text-yellow-400',
+            pill: 'bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20'
+        };
+    };
+
     const handleExamClick = (e: React.MouseEvent, exam: ExamEvent) => {
         e.stopPropagation();
         setSelectedExam(exam);
@@ -351,7 +383,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                                     dayHolidays[0].holiday_type === 'event'
                                                         ? (theme === 'dark' ? 'bg-primary/20' : 'bg-primary/10')
                                                         : (theme === 'dark' ? 'bg-rose-500/20' : 'bg-rose-100/40')
-                                                ) : hasExam ? (theme === 'dark' ? 'bg-amber-500/20' : 'bg-amber-100/45') : hasLeave ? (theme === 'dark' ? 'bg-teal-500/20' : 'bg-teal-100/40') : (theme === 'dark' ? 'bg-card' : 'bg-white')
+                                                ) : hasExam ? (theme === 'dark' ? 'bg-amber-500/20' : 'bg-amber-100/45') : hasLeave ? getLeaveStatusStyles(dayLeaves[0]?.status, theme).bg : (theme === 'dark' ? 'bg-card' : 'bg-white')
                                             )} ${isToday ? 'ring-1 ring-primary/30' : ''} ${isCurrentMonth && (hasHoliday || hasExam || hasLeave) ? 'rounded-xl m-1 border border-border/40 shadow-sm' : ''}`}
                                     >
 
@@ -400,19 +432,22 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                             )}
 
                                             {/* Leave chips */}
-                                            {isCurrentMonth && dayLeaves.slice(0, 1).map(leave => (
-                                                <div key={leave.id} className="flex flex-col gap-0.5 items-center w-full text-center">
-                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 break-all w-full text-center text-teal-600 dark:text-teal-400" title={leave.leave_type}>
-                                                        {leave.leave_type?.replace(/_/g, ' ')}
-                                                    </span>
-                                                    <span
-                                                        onClick={(e) => handleLeaveClick(e, leave)}
-                                                        className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider cursor-pointer bg-teal-500/10 text-teal-600 hover:bg-teal-500/20"
-                                                    >
-                                                        Approved Leave
-                                                    </span>
-                                                </div>
-                                            ))}
+                                            {isCurrentMonth && dayLeaves.slice(0, 1).map(leave => {
+                                                const styles = getLeaveStatusStyles(leave.status, theme);
+                                                return (
+                                                    <div key={leave.id} className="flex flex-col gap-0.5 items-center w-full text-center">
+                                                        <span className={`text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 break-all w-full text-center ${styles.text}`} title={leave.leave_type}>
+                                                            {leave.leave_type?.replace(/_/g, ' ')}
+                                                        </span>
+                                                        <span
+                                                            onClick={(e) => handleLeaveClick(e, leave)}
+                                                            className={`text-[8px] md:text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider cursor-pointer ${styles.pill}`}
+                                                        >
+                                                            {getLeaveStatusLabel(leave.status)}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
                                             {isCurrentMonth && dayLeaves.length > 1 && (
                                                 <span className="text-[9px] font-medium text-teal-600 w-full text-center">+{dayLeaves.length - 1} more</span>
                                             )}
@@ -563,13 +598,29 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                 >
                     <DialogHeader>
                         <DialogTitle className={`flex items-center gap-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                            <span className="w-2.5 h-2.5 rounded-full bg-teal-500 inline-block"></span>
-                            Approved Leave Details
+                            <span className={`w-2.5 h-2.5 rounded-full inline-block ${
+                                selectedLeave?.status?.toUpperCase() === 'APPROVED' || selectedLeave?.status?.toUpperCase() === 'APPROVE'
+                                    ? 'bg-teal-500'
+                                    : selectedLeave?.status?.toUpperCase() === 'REJECTED' || selectedLeave?.status?.toUpperCase() === 'REJECT'
+                                        ? 'bg-red-500'
+                                        : 'bg-yellow-500'
+                            }`}></span>
+                            {selectedLeave?.status?.toUpperCase() === 'APPROVED' || selectedLeave?.status?.toUpperCase() === 'APPROVE'
+                                ? 'Approved Leave Details'
+                                : selectedLeave?.status?.toUpperCase() === 'REJECTED' || selectedLeave?.status?.toUpperCase() === 'REJECT'
+                                    ? 'Rejected Leave Details'
+                                    : 'Pending Leave Details'}
                         </DialogTitle>
                     </DialogHeader>
                     {selectedLeave && (
                         <div className="space-y-3 py-3">
-                            <div className={`rounded-lg p-3 border ${theme === 'dark' ? 'bg-teal-500/10 border-teal-500/20' : 'bg-teal-50 border-teal-100'}`}>
+                            <div className={`rounded-lg p-3 border ${
+                                selectedLeave.status?.toUpperCase() === 'APPROVED' || selectedLeave.status?.toUpperCase() === 'APPROVE'
+                                    ? (theme === 'dark' ? 'bg-teal-500/10 border-teal-500/20 text-teal-600 dark:text-teal-400' : 'bg-teal-50 border-teal-100 text-teal-600')
+                                    : selectedLeave.status?.toUpperCase() === 'REJECTED' || selectedLeave.status?.toUpperCase() === 'REJECT'
+                                        ? (theme === 'dark' ? 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400' : 'bg-red-50 border-red-100 text-red-600')
+                                        : (theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-yellow-50 border-yellow-100 text-yellow-600')
+                            }`}>
                                 <p className="text-sm font-bold text-teal-600 dark:text-teal-400 capitalize">{selectedLeave.leave_type?.replace(/_/g, ' ')}</p>
                                 {selectedLeave.title && (
                                     <p className="text-xs text-muted-foreground mt-0.5">{selectedLeave.title}</p>
