@@ -526,11 +526,23 @@ const StaffTaskTracker = () => {
                                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   placeholder="Search branches..."
-                                  className="pl-8 h-9"
+                                  className="pl-8 pr-12 h-9"
                                   value={branchSearchTerm}
                                   onChange={(e) => setBranchSearchTerm(e.target.value)}
                                   onKeyDown={(e) => e.stopPropagation()}
                                 />
+                                {branchSearchTerm && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setBranchSearchTerm("");
+                                    }}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                                  >
+                                    Clear
+                                  </button>
+                                )}
                               </div>
                             </div>
                           }
@@ -574,11 +586,23 @@ const StaffTaskTracker = () => {
                               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                               <Input
                                 placeholder="Search staff..."
-                                className="pl-8 h-9"
+                                className="pl-8 pr-12 h-9"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 onKeyDown={(e) => e.stopPropagation()}
                               />
+                              {searchTerm && (
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setSearchTerm("");
+                                  }}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                                >
+                                  Clear
+                                </button>
+                              )}
                             </div>
 
                             <div className="flex items-center justify-between px-1">
