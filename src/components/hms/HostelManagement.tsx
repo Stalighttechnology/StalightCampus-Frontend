@@ -322,7 +322,7 @@ const HostelManagement: React.FC = () => {
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="latitude" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Center Latitude *</Label>
+                          <Label htmlFor="latitude" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Center Latitude <span className="text-red-500">*</span></Label>
                           <Input
                             id="latitude"
                             type="number"
@@ -335,7 +335,7 @@ const HostelManagement: React.FC = () => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="longitude" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Center Longitude *</Label>
+                          <Label htmlFor="longitude" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Center Longitude <span className="text-red-500">*</span></Label>
                           <Input
                             id="longitude"
                             type="number"
@@ -348,7 +348,7 @@ const HostelManagement: React.FC = () => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="radius" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Radius (meters) *</Label>
+                          <Label htmlFor="radius" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Radius (meters) <span className="text-red-500">*</span></Label>
                           <Input
                             id="radius"
                             type="number"

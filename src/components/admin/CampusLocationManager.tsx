@@ -335,7 +335,7 @@ const CampusLocationManager: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-4 w-full min-w-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full min-w-0">
                   <div>
-                    <Label htmlFor="name">Name *</Label>
+                    <Label htmlFor="name">Name <span className="text-red-500">*</span></Label>
                     <Input id="name" value={formData.name} onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))} required />
                   </div>
                   <div>
@@ -351,15 +351,15 @@ const CampusLocationManager: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full min-w-0">
                   <div>
-                    <Label htmlFor="center_latitude">Center Latitude *</Label>
+                    <Label htmlFor="center_latitude">Center Latitude <span className="text-red-500">*</span></Label>
                     <Input id="center_latitude" type="number" step="any" value={formData.center_latitude} onChange={(e) => setFormData((prev) => ({ ...prev, center_latitude: parseFloat(e.target.value) || 0 }))} required />
                   </div>
                   <div>
-                    <Label htmlFor="center_longitude">Center Longitude *</Label>
+                    <Label htmlFor="center_longitude">Center Longitude <span className="text-red-500">*</span></Label>
                     <Input id="center_longitude" type="number" step="any" value={formData.center_longitude} onChange={(e) => setFormData((prev) => ({ ...prev, center_longitude: parseFloat(e.target.value) || 0 }))} required />
                   </div>
                   <div>
-                    <Label htmlFor="radius_meters">Radius (meters) *</Label>
+                    <Label htmlFor="radius_meters">Radius (meters) <span className="text-red-500">*</span></Label>
                     <Input id="radius_meters" type="number" min="10" max="5000" value={formData.radius_meters} onChange={(e) => handleRadiusChange(e.target.value)} required />
                   </div>
                 </div>
