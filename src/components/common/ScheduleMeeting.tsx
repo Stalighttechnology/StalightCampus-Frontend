@@ -405,7 +405,7 @@ export default function ScheduleMeeting() {
               case 'teacher':
                 return '/faculty/faculty-profile';
               case 'principal':
-                return '/principal/profile';
+                return '/admin/profile';
               case 'org_admin':
                 return '/org-admin/profile';
               case 'hms':
