@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, Users, Download, X, Search, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Users, Download, X, Search, Pencil, ChevronLeft, ChevronRight, HelpCircle } from "lucide-react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Skeleton, SkeletonTable, SkeletonCard } from "../ui/skeleton";
 import DashboardCard from "../common/DashboardCard";
 import { FaUserGraduate, FaUserCheck, FaUserTimes } from "react-icons/fa";
@@ -81,6 +82,7 @@ const ProctorStudents = () => {
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isSectionOpen, setIsSectionOpen] = useState(false);
   const [isProctorOpen, setIsProctorOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [proctorError, setProctorError] = useState("");
 
   const studentsPerPage = 20;
@@ -598,9 +600,46 @@ const ProctorStudents = () => {
                 <CardTitle className={`text-lg sm:text-2xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   Proctor Assignment - {state.branchName}
                 </CardTitle>
-                <p className={`text-sm sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  View and manage student-proctor assignments
-                </p>
+                <div className="mt-1">
+                  <p className={`text-sm inline-baseline ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    <span>View and manage student-proctor assignments</span>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center p-0.5 rounded-full text-muted-foreground hover:text-primary hover:bg-muted/80 transition-colors focus:outline-none ml-1.5 align-middle"
+                          title="How to assign & edit proctors"
+                        >
+                          <HelpCircle className="w-4 h-4" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        side="bottom"
+                        align="start"
+                        className={`w-80 sm:w-96 p-4 shadow-xl border rounded-lg ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
+                      >
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between border-b pb-2 border-border">
+                              <h4 className="font-semibold text-sm flex items-center gap-1.5 text-primary">
+                                <HelpCircle className="w-4 h-4" />
+                                Proctor Assignment Instructions
+                              </h4>
+                            </div>
+                            <ol className="space-y-2.5 text-xs text-muted-foreground list-decimal pl-4">
+                              <li>
+                                <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Assigning New Proctors:</strong>
+                                <p className="mt-0.5">Select <span className="font-medium text-primary">Unassigned</span> in the Proctor dropdown filter (along with Semester and Section) to view students without a proctor. Click <span className="font-medium text-primary">Edit</span> to enter edit mode, select students, choose a proctor, and click <span className="font-medium text-primary">Assign Selected</span>.</p>
+                              </li>
+                              <li>
+                                <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Editing Existing Assignments:</strong>
+                                <p className="mt-0.5">Filter by the assigned Proctor or view all students, enter edit mode, select the student(s) you wish to reassign, pick the new proctor from the top dropdown menu, and confirm to update.</p>
+                              </li>
+                            </ol>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                  </p>
+                </div>
               </div>
             </div>
             <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
