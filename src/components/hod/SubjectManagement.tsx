@@ -567,7 +567,9 @@ const SubjectManagement = () => {
 
             {/* Course Code */}
             <div className="mb-4">
-              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Code</label>
+              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Course Code <span className="text-red-500">*</span>
+              </label>
               <Input
                 type="text"
                 value={state.newSubject.code}
@@ -585,7 +587,9 @@ const SubjectManagement = () => {
 
             {/* Course Name */}
             <div className="mb-4">
-              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Name</label>
+              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Course Name <span className="text-red-500">*</span>
+              </label>
               <Input
                 type="text"
                 value={state.newSubject.name}
@@ -602,7 +606,9 @@ const SubjectManagement = () => {
 
             {/* Semester */}
             <div className="mb-4">
-              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Semester")}</label>
+              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                {translateTerminology("Semester")} <span className="text-red-500">*</span>
+              </label>
               <Select
                 value={state.newSubject.semester_id}
                 onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, semester_id: val } })}
@@ -623,7 +629,9 @@ const SubjectManagement = () => {
 
             {/* Course Type */}
             <div className="mb-4">
-              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Type</label>
+              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Course Type <span className="text-red-500">*</span>
+              </label>
               <Select
                 value={state.newSubject.subject_type}
                 onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, subject_type: val } })}
@@ -642,7 +650,9 @@ const SubjectManagement = () => {
 
             {/* Course Credits */}
             <div className="mb-4">
-              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Credits</label>
+              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Course Credits <span className="text-red-500">*</span>
+              </label>
               <Input
                 type="number"
                 min={1}
@@ -659,7 +669,9 @@ const SubjectManagement = () => {
 
             {/* Max CIE Marks */}
             <div className="mb-4">
-              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Max CIE Marks</label>
+              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Max CIE Marks <span className="text-red-500">*</span>
+              </label>
               <Input
                 type="number"
                 min={0}
@@ -679,7 +691,9 @@ const SubjectManagement = () => {
 
             {/* Max SEE Marks */}
             <div className="mb-6">
-              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Max SEE Marks</label>
+              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Max SEE Marks <span className="text-red-500">*</span>
+              </label>
               <Input
                 type="number"
                 min={0}

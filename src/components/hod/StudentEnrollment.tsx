@@ -703,10 +703,11 @@ const StudentEnrollment = () => {
                     {students.filter((s: any) => s.checked).length}
                   </span>
                 </div>
-                <label className="flex items-center gap-2 cursor-pointer group shrink-0">
+                <label className={`flex items-center gap-2 shrink-0 ${(!semesterId || !sectionId || !subjectType || !selectedSubjectId) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer group'}`}>
                   <Checkbox
                     id="show-enrolled-only-checkbox"
                     checked={showEnrolledOnly}
+                    disabled={!semesterId || !sectionId || !subjectType || !selectedSubjectId}
                     onCheckedChange={(checked) => setShowEnrolledOnly(!!checked)}
                   />
                   <span className="font-semibold text-gray-700 dark:text-gray-300 group-hover:text-purple-600 transition-colors whitespace-nowrap">Show enrolled only</span>
