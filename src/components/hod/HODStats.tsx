@@ -326,7 +326,11 @@ const handleApprove = async (index: number) => {
         {entry.name}: {entry.value}
       </text>
     );
-  };
+  };  const attendancePct = stats?.faculty_attendance_today && stats.faculty_attendance_today.total_faculty > 0
+    ? Math.round((stats.faculty_attendance_today.present / stats.faculty_attendance_today.total_faculty) * 100)
+    : 0;
+
+  const attendanceColor = attendancePct >= 75 ? "text-emerald-600 dark:text-emerald-400" : attendancePct >= 50 ? "text-amber-600 dark:text-amber-400" : "text-rose-600 dark:text-rose-400";
 
   return (
     <div className={` space-y-6 font-sans min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
@@ -356,45 +360,44 @@ const handleApprove = async (index: number) => {
       <div id="hod-stats-cards" className={`grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
         {[
           {
-            title: "Total Faculty",
-            className: "text-gray-600",
+            title: `Total ${translateTerminology("Faculty")}`,
             value: stats?.faculty_count.toString() || "0",
-            icon: <Users className="text-gray-600" />,
+            icon: <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />,
+            iconBg: "bg-blue-100 dark:bg-blue-950/60",
             change: "+2.5% since last month",
-            color: "text-gray-600",
+            color: "text-blue-600 dark:text-blue-400 font-medium",
           },
           {
-            title: "Total Students",
+            title: `Total ${translateTerminology("Students")}`,
             value: stats?.student_count.toString() || "0",
-            icon: <Users className="text-gray-600" />,
+            icon: <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />,
+            iconBg: "bg-purple-100 dark:bg-purple-950/60",
             change: "+5.1% since last semester",
-            color: "text-gray-600",
+            color: "text-purple-600 dark:text-purple-400 font-medium",
           },
           {
-            title: "Faculty Present Today",
+            title: `${translateTerminology("Faculty")} Present Today`,
             value: stats?.faculty_attendance_today?.present.toString() || "0",
-            icon: <CheckCircle className="text-green-600" />,
-            change: `${stats?.faculty_attendance_today ? Math.round((stats.faculty_attendance_today.present / stats.faculty_attendance_today.total_faculty) * 100) : 0}% attendance`,
-            color: "text-green-600",
+            icon: <CheckCircle className={`w-6 h-6 ${attendanceColor}`} />,
+            iconBg: attendancePct >= 75 ? "bg-emerald-100 dark:bg-emerald-950/60" : attendancePct >= 50 ? "bg-amber-100 dark:bg-amber-950/60" : "bg-rose-100 dark:bg-rose-950/60",
+            change: `${attendancePct}% attendance`,
+            color: `${attendanceColor} font-medium`,
             clickable: true,
             onClick: () => setPage("faculty-attendance"),
           },
         ].map((item, i) => (
             <div
               key={i}
-              className={`p-4 rounded-lg shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} text-gray-900 outline-none focus:ring-2 focus:ring-white ${item.clickable ? `cursor-pointer ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}` : ''}`}
+              className={`p-4 rounded-xl shadow-sm flex items-center gap-4 hover:shadow-md transition-all border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} text-gray-900 outline-none ${item.clickable ? `cursor-pointer ${theme === 'dark' ? 'hover:bg-accent/80' : 'hover:bg-gray-50'}` : ''}`}
               onClick={item.onClick}
             >
-              <div className={`flex items-center justify-center w-12 h-12 rounded-full ${theme === 'dark' ? 'bg-accent' : 'bg-gray-200'}`}>
-              {item.icon && (
-                // Make icon large and blue for visibility
-                <span className="text-blue-600 text-3xl">{item.icon}</span>
-              )}
+              <div className={`flex items-center justify-center w-12 h-12 rounded-xl shrink-0 ${item.iconBg}`}>
+                {item.icon}
               </div>
-              <div>
-              <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{item.title}</p>
-              <p className={`text-xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{item.value}</p>
-              <p className={`text-xs ${item.color}`}>{item.change}</p>
+              <div className="min-w-0 flex-1">
+                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{item.title}</p>
+                <p className={`text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{item.value}</p>
+                <p className={`text-xs mt-0.5 ${item.color}`}>{item.change}</p>
               </div>
             </div>
         ))}
