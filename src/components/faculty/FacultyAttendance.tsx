@@ -646,7 +646,7 @@ const FacultyAttendance = () => {
                   size="sm"
                   onClick={() => setRecentPage(Math.max(1, recentPage - 1))}
                   disabled={recentPage === 1}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all hover:text-white">
                   Previous
                 </Button>
 
@@ -661,7 +661,7 @@ const FacultyAttendance = () => {
                   size="sm"
                   onClick={() => setRecentPage(Math.min(recentTotalPages, recentPage + 1))}
                   disabled={recentPage === recentTotalPages}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all hover:text-white">
                   Next
                 </Button>
               </div>
