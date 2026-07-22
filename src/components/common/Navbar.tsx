@@ -294,7 +294,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           <div className="text-xs font-medium">
             {currentTime.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
           </div>
-          <div className="text-[10px] opacity-70">
+          <div className="text-[13px] opacity-70">
             {currentTime.toLocaleTimeString('en-US', { hour: "2-digit", minute: "2-digit", hour12: true })}
           </div>
         </div>
