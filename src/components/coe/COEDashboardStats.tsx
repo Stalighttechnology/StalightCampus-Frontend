@@ -185,9 +185,9 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
           <p className="text-[16px] sm:text-sm mb-6 text-muted-foreground">Weekly application submission volume</p>
           <div className="min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={trendData}>
+              <LineChart data={trendData} margin={{ top: 10, right: 25, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#3f3f46' : '#e5e7eb'} />
-                <XAxis dataKey="week" stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} fontSize={12} />
+                <XAxis dataKey="week" stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} fontSize={12} padding={{ left: 10, right: 10 }} />
                 <YAxis allowDecimals={false} stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} fontSize={12} />
                 <Tooltip
                   contentStyle={{ backgroundColor: theme === 'dark' ? '#1c1c1e' : '#fff', borderRadius: "8px", border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e5e7eb' }}
