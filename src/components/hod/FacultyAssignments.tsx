@@ -4,7 +4,8 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../ui/card
 import { Button } from "../ui/button";
 import { SkeletonTable } from "../ui/skeleton";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
-import { Pencil, Trash2, Loader2, ChevronLeft, ChevronRight, Search, FileDown } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "../ui/dropdown-menu";
+import { Pencil, Trash2, Loader2, ChevronLeft, ChevronRight, ChevronDown, Search, FileDown } from "lucide-react";
 import { manageFacultyAssignments, manageSections, getFacultyAssignmentsBootstrap, getHODTimetableSemesterData, listFacultyBranches, manageFaculties } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
@@ -182,6 +183,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     facultyId: "",
     subjectId: "",
     sectionId: "",
+    sectionIds: [] as string[],
     semesterId: "",
     assignments: [] as Assignment[],
     editingId: null as string | null,
@@ -567,14 +569,16 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       facultyId: "",
       subjectId: "",
       sectionId: "",
+      sectionIds: [],
       semesterId: "",
       editingId: null
     });
   };
 
   const validateForm = () => {
-    if (!state.facultyId || !state.subjectId || !state.sectionId || !state.semesterId) {
-      showErrorAlert("Error", "Please select all required fields");
+    const selectedSecIds = state.sectionIds.length > 0 ? state.sectionIds : (state.sectionId ? [state.sectionId] : []);
+    if (!state.facultyId || !state.subjectId || selectedSecIds.length === 0 || !state.semesterId) {
+      showErrorAlert("Error", "Please select all required fields including at least one section");
       return false;
     }
     if (!state.faculties.some((f) => f.id === state.facultyId)) {
@@ -585,7 +589,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       showErrorAlert("Error", "Invalid subject selected");
       return false;
     }
-    if (!state.sections.some((s) => s.id === state.sectionId)) {
+    if (!state.sections.some((sec) => selectedSecIds.includes(sec.id))) {
       showErrorAlert("Error", "Invalid section selected");
       return false;
     }
@@ -599,63 +603,118 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
   const handleAssignFaculty = async () => {
     if (!validateForm() || !state.branchId) return;
 
-    // 🚨 Case 1: Prevent multiple faculties or duplicate faculty assignment for same subject/section/semester
-    if (hasDuplicateAssignment(state.subjectId, state.sectionId, state.semesterId, state.editingId)) {
-      const dup = state.assignments.find((a) => a.subject_id === state.subjectId && a.section_id === state.sectionId && a.semester_id === state.semesterId && a.id !== state.editingId);
-      showErrorAlert("Duplicate Assignment", `Subject "${dup?.subject || ''}" is already assigned to Section ${dup?.section || ''}, Semester ${dup?.semester || ''}. Only one faculty can be assigned.`);
-      return;
+    const selectedSecIds = state.sectionIds.length > 0 ? state.sectionIds : [state.sectionId];
+
+    // Check duplicate assignments for each section
+    for (const secId of selectedSecIds) {
+      if (hasDuplicateAssignment(state.subjectId, secId, state.semesterId, state.editingId)) {
+        const dup = state.assignments.find((a) => a.subject_id === state.subjectId && a.section_id === secId && a.semester_id === state.semesterId && a.id !== state.editingId);
+        showErrorAlert("Duplicate Assignment", `Subject "${dup?.subject || ''}" is already assigned to Section ${dup?.section || ''}, Semester ${dup?.semester || ''}. Only one faculty can be assigned.`);
+        return;
+      }
+
+      if (hasDuplicateFaculty(state.facultyId, state.subjectId, secId, state.semesterId, state.editingId)) {
+        const dupF = state.assignments.find((a) => a.faculty_id === state.facultyId && a.subject_id === state.subjectId && a.section_id === secId && a.semester_id === state.semesterId && a.id !== state.editingId);
+        const facultyName = buildFacultyName(state.facultyId);
+        showErrorAlert("Duplicate Faculty Assignment", `${facultyName} is already assigned to ${dupF?.subject || ''} - Section ${dupF?.section || ''}, Semester ${dupF?.semester || ''}.`);
+        return;
+      }
     }
 
-    if (hasDuplicateFaculty(state.facultyId, state.subjectId, state.sectionId, state.semesterId, state.editingId)) {
-      const dupF = state.assignments.find((a) => a.faculty_id === state.facultyId && a.subject_id === state.subjectId && a.section_id === state.sectionId && a.semester_id === state.semesterId && a.id !== state.editingId);
-      const facultyName = buildFacultyName(state.facultyId);
-      showErrorAlert("Duplicate Faculty Assignment", `${facultyName} is already assigned to ${dupF?.subject || ''} - Section ${dupF?.section || ''}, Semester ${dupF?.semester || ''}.`);
-      return;
-    }
-
-    // ✅ Proceed if no duplicates
     const isEditing = !!state.editingId;
     const originalAssignments = [...state.assignments];
-    const originalFormState = {
-      facultyId: state.facultyId,
-      subjectId: state.subjectId,
-      sectionId: state.sectionId,
-      semesterId: state.semesterId,
-      editingId: state.editingId
-    };
 
-    // Optimistic update
-    const tempId = `temp-${Date.now()}`;
-    if (isEditing) applyOptimisticEdit();else applyOptimisticCreate(tempId);
+    updateState({ isAssigning: true, loading: true });
 
-    // Clear form optimistically and show success alert
-    resetForm();
-    showSuccessAlert(isEditing ? "Updated" : "Success", isEditing ? "Assignment updated successfully" : "Faculty assigned successfully");
+    try {
+      if (isEditing) {
+        // Update the assignment being edited with the first selected section
+        const primarySecId = selectedSecIds[0];
+        const updateData: ManageFacultyAssignmentsRequest = {
+          action: "update",
+          assignment_id: state.editingId!,
+          faculty_id: state.facultyId,
+          subject_id: state.subjectId,
+          semester_id: state.semesterId,
+          section_id: primarySecId,
+          branch_id: state.branchId
+        };
+        await manageFacultyAssignments(updateData, "POST");
 
-    const data: ManageFacultyAssignmentsRequest = {
-      action: isEditing ? "update" : "create",
-      assignment_id: state.editingId,
-      faculty_id: originalFormState.facultyId,
-      subject_id: originalFormState.subjectId,
-      semester_id: originalFormState.semesterId,
-      section_id: originalFormState.sectionId,
-      branch_id: state.branchId
-    };
+        // Create new assignments for any additional selected sections
+        for (let i = 1; i < selectedSecIds.length; i++) {
+          const createData: ManageFacultyAssignmentsRequest = {
+            action: "create",
+            faculty_id: state.facultyId,
+            subject_id: state.subjectId,
+            semester_id: state.semesterId,
+            section_id: selectedSecIds[i],
+            branch_id: state.branchId
+          };
+          await manageFacultyAssignments(createData, "POST");
+        }
+      } else {
+        // Create assignments for all selected sections
+        for (const secId of selectedSecIds) {
+          const createData: ManageFacultyAssignmentsRequest = {
+            action: "create",
+            faculty_id: state.facultyId,
+            subject_id: state.subjectId,
+            semester_id: state.semesterId,
+            section_id: secId,
+            branch_id: state.branchId
+          };
+          await manageFacultyAssignments(createData, "POST");
+        }
+      }
 
-    if (isEditing) {
-      await saveUpdateAssignment(data, originalAssignments, originalFormState as FormState);
-    } else {
-      await saveCreateAssignment(data, originalAssignments, originalFormState as FormState);
+      resetForm();
+      showSuccessAlert(
+        isEditing ? "Updated" : "Success",
+        isEditing
+          ? "Faculty assignment updated successfully"
+          : `Faculty assigned successfully to ${selectedSecIds.length} section(s)`
+      );
+
+      // Refresh list if filter is currently active
+      if (state.filterSemesterId && state.filterSectionId) {
+        const response = await manageFacultyAssignments({
+          branch_id: state.branchId,
+          semester_id: state.filterSemesterId,
+          section_id: state.filterSectionId,
+          page: state.assignmentsPage
+        }, "GET");
+        if (response.success && (response.data?.assignments || (response as any).results?.data?.assignments)) {
+          updateState({
+            assignments: response.data?.assignments || (response as any).results?.data?.assignments
+          });
+        }
+      }
+    } catch (err) {
+      updateState({ assignments: originalAssignments });
+      const errorMessage = isErrorWithMessage(err) ? err.message : "Failed to save assignment";
+      showErrorAlert("Error", errorMessage);
+      setError(errorMessage);
+    } finally {
+      updateState({ isAssigning: false, loading: false });
     }
   };
 
   const handleEdit = (assignment: Assignment) => {
+    // Find all sections currently assigned to this faculty for this subject and semester
+    const matchingSectionIds = state.assignments
+      .filter((a) => a.faculty_id === assignment.faculty_id && a.subject_id === assignment.subject_id && a.semester_id === assignment.semester_id)
+      .map((a) => a.section_id);
+    
+    const initialSectionIds = matchingSectionIds.length > 0 ? Array.from(new Set([assignment.section_id, ...matchingSectionIds])) : [assignment.section_id];
+
     updateState({
       editingId: assignment.id,
       selectedBranchForFaculty: assignment.branch_id || state.branchId,
       facultyId: assignment.faculty_id,
       subjectId: assignment.subject_id,
       sectionId: assignment.section_id,
+      sectionIds: initialSectionIds,
       semesterId: assignment.semester_id
     });
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1016,34 +1075,81 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                 </label>
               </div>
               <div>
-                <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section
-                <Select
-                    open={isSectionOpen}
-                    onOpenChange={setIsSectionOpen}
-                    value={state.sectionId}
-                    onValueChange={(value) => {
-                      updateState({ sectionId: value });
-                    }}
-                    disabled={state.loading || state.isAssigning || !state.subjectId}>
-                    
-                  <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder="Choose Section" />
-                  </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
+                <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section</label>
+                <DropdownMenu open={isSectionOpen} onOpenChange={setIsSectionOpen}>
+                  <DropdownMenuTrigger asChild disabled={state.loading || state.isAssigning || !state.subjectId}>
+                    <Button
+                      variant="outline"
+                      className={`w-full justify-between font-normal ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
+                    >
+                      <span className="truncate">
+                        {state.sectionIds.length === 0
+                          ? "Choose Section"
+                          : state.sectionIds.length === 1
+                          ? `Section ${state.sections.find((s) => s.id === state.sectionIds[0])?.name || ''}`
+                          : state.sectionIds.length === state.sections.length && state.sections.length > 1
+                          ? "All Sections Selected"
+                          : state.sections
+                              .filter((sec) => state.sectionIds.includes(sec.id))
+                              .map((sec) => `Section ${sec.name}`)
+                              .join(", ")}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50 ml-2 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className={`w-[240px] max-h-[220px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
                     {state.sections.length > 0 ? (
-                      state.sections.map((section) => (
-                        <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                          Section {section.name}
-                        </SelectItem>
-                      ))
+                      <>
+                        <div className="p-2 border-b border-border flex justify-between items-center text-xs">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const allSecIds = state.sections.map((s) => s.id);
+                              updateState({ sectionIds: allSecIds, sectionId: allSecIds[0] || "" });
+                            }}
+                            className="text-primary hover:underline font-semibold"
+                          >
+                            Select All
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              updateState({ sectionIds: [], sectionId: "" });
+                            }}
+                            className="text-muted-foreground hover:underline"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                        {state.sections.map((section) => {
+                          const isChecked = state.sectionIds.includes(section.id);
+                          return (
+                            <DropdownMenuCheckboxItem
+                              key={section.id}
+                              checked={isChecked}
+                              onCheckedChange={(checked) => {
+                                let newSecIds: string[];
+                                if (checked) {
+                                  newSecIds = [...state.sectionIds, section.id];
+                                } else {
+                                  newSecIds = state.sectionIds.filter((id) => id !== section.id);
+                                }
+                                updateState({ sectionIds: newSecIds, sectionId: newSecIds[0] || "" });
+                              }}
+                              className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}
+                            >
+                              Section {section.name}
+                            </DropdownMenuCheckboxItem>
+                          );
+                        })}
+                      </>
                     ) : (
-                      <SelectItem value="none" disabled className="text-center text-xs text-muted-foreground">
-                        No sections available
-                      </SelectItem>
+                      <div className="p-3 text-center text-xs text-muted-foreground">No sections available</div>
                     )}
-                  </SelectContent>
-                </Select>
-                </label>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
             <div className="flex justify-end gap-2">
