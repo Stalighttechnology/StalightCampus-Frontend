@@ -20,6 +20,21 @@ import { getCOEFeeSettings } from "@/utils/coe_api";
 
 
 const MakeupExam = () => {
+  const formatDateTimeToDDMMYYYY = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return "-";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      const timeFormatted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      return `${day}-${month}-${year}, ${timeFormatted}`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
   const role = typeof globalThis !== 'undefined' && globalThis.window ? globalThis.window.sessionStorage.getItem("role") : null;
   const { theme } = useTheme();
   const [filters, setFilters] = useState({ batch_id: "", branch_id: "", semester_id: "", section_id: "", exam_period: "" });
@@ -583,7 +598,7 @@ const MakeupExam = () => {
 
       {/* View Request Details Dialog */}
       <Dialog open={viewModal.open} onOpenChange={(open) => !open && setViewModal({ open: false })}>
-        <DialogContent className={`max-w-[95vw] sm:max-w-[90vw] md:max-w-lg ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+        <DialogContent className={`w-[90vw] max-w-[90vw] sm:max-w-lg rounded-2xl ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
           <DialogHeader>
             <DialogTitle className="text-sm sm:text-base">Makeup Request Details</DialogTitle>
           </DialogHeader>
@@ -606,7 +621,7 @@ const MakeupExam = () => {
                   <strong>Exam Period:</strong> {viewModal.request.exam_period}
                 </div>
                 <div>
-                  <strong>Requested At:</strong> {new Date(viewModal.request.requested_at).toLocaleDateString()}
+                  <strong>Requested At:</strong> {formatDateTimeToDDMMYYYY(viewModal.request.requested_at)}
                 </div>
                 {viewModal.request.processed_by_name &&
               <div>
@@ -615,7 +630,7 @@ const MakeupExam = () => {
               }
                 {viewModal.request.processed_at &&
               <div>
-                    <strong>Processed At:</strong> {new Date(viewModal.request.processed_at).toLocaleDateString()}
+                    <strong>Processed At:</strong> {formatDateTimeToDDMMYYYY(viewModal.request.processed_at)}
                   </div>
               }
               </div>

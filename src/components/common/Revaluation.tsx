@@ -23,6 +23,21 @@ type Filters = {usn: string;exam_period: string;};
 
 
 const Revaluation = () => {
+  const formatDateTimeToDDMMYYYY = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return "-";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      const timeFormatted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      return `${day}-${month}-${year}, ${timeFormatted}`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
   const role = typeof globalThis !== 'undefined' && globalThis.window ? globalThis.window.sessionStorage.getItem("role") : null;
   const [filters, setFilters] = useState<Filters>({ usn: "", exam_period: "" });
   const [students, setStudents] = useState<Array<{usn: string;name: string;student_id: number;subjects: Array<{subject_id: number;subject_name: string;cie_marks?: number;see_marks?: number;total_marks?: number;status: string;applied: boolean;subject_mark_id: number;request_details?: {status: string;types: string[];requested_at: string;processed_by?: string;processed_at?: string;response_note?: string;attachment?: string | null;};}>;}>>([]);
@@ -647,7 +662,7 @@ const Revaluation = () => {
 
       {/* View Request Dialog */}
       <Dialog open={viewModal.open} onOpenChange={(open) => !open && setViewModal({ open: false })}>
-        <DialogContent className={`max-w-[95vw] sm:max-w-[90vw] md:max-w-md ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+        <DialogContent className={`w-[90vw] max-w-[90vw] sm:max-w-md rounded-2xl ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
           <DialogHeader>
             <DialogTitle className="text-sm sm:text-base">Request Details</DialogTitle>
           </DialogHeader>
@@ -656,7 +671,7 @@ const Revaluation = () => {
               <div><strong>Subject:</strong> {viewModal.request.subject_name}</div>
               <div><strong>Status:</strong> {viewModal.request.status}</div>
               <div><strong>Types:</strong> {(viewModal.request.types || []).map((t: string) => t === 'photocopy' ? 'Photocopy' : 'Revaluation').join(', ') || '-'}</div>
-              <div><strong>Requested At:</strong> {viewModal.request.requested_at || '-'}</div>
+              <div><strong>Requested At:</strong> {formatDateTimeToDDMMYYYY(viewModal.request.requested_at)}</div>
               {viewModal.request.attachment && (
                 <div className="pt-2">
                   <Button
