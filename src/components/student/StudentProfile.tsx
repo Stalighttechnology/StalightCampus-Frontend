@@ -573,50 +573,85 @@ const StudentProfile: React.FC = () => {
     }
   };
 
+  const PHONE_FIELDS = [
+    'phone',
+    'alternate_mobile',
+    'father_contact',
+    'mother_contact',
+    'guardian_phone',
+    'emergency_contact'
+  ];
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target as HTMLInputElement & HTMLTextAreaElement;
+
+    if (name === 'aadhaar_number') {
+      const digitsOnly = value.replace(/\D/g, '');
+      setForm((p) => ({ ...p, [name]: digitsOnly.slice(0, 12) }));
+      return;
+    }
+
+    if (PHONE_FIELDS.includes(name)) {
+      const hasPlus = value.trim().startsWith('+');
+      const digitsOnly = value.replace(/\D/g, '');
+      let sanitized = hasPlus ? `+${digitsOnly}` : digitsOnly;
+      const maxLen = sanitized.startsWith('+91') ? 13 : (sanitized.startsWith('91') && digitsOnly.length > 10 ? 12 : 13);
+      setForm((p) => ({ ...p, [name]: sanitized.slice(0, maxLen) }));
+      return;
+    }
+
     setForm((p) => ({ ...p, [name]: value }));
   };
 
   const handleSave = async () => {
     // Helper validators
-    const validateEmail = (emailStr: string): boolean => {
+    const validateEmail = (emailStr: any): boolean => {
       if (!emailStr) return true;
+      const str = String(emailStr).trim();
+      if (!str) return true;
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(emailStr);
+      return emailRegex.test(str);
     };
 
-    const validatePhone = (phoneStr: string): boolean => {
-      if (!phoneStr) return true;
-      const clean = phoneStr.replace(/[\s\-\+]/g, '');
-      return /^\d{10}$/.test(clean);
+    const validatePhone = (phoneStr: any): boolean => {
+      if (!phoneStr && phoneStr !== 0) return true;
+      const str = String(phoneStr).trim();
+      if (!str) return true;
+      const clean = str.replace(/[\s\-]/g, '');
+      return /^(\+91\d{10}|91\d{10}|\d{10})$/.test(clean);
     };
 
-    const validateAadhaar = (aadhaarStr: string): boolean => {
-      if (!aadhaarStr) return true;
-      const clean = aadhaarStr.replace(/\s+/g, '');
+    const validateAadhaar = (aadhaarStr: any): boolean => {
+      if (!aadhaarStr && aadhaarStr !== 0) return true;
+      const str = String(aadhaarStr).trim();
+      if (!str) return true;
+      const clean = str.replace(/\s+/g, '');
       return /^\d{12}$/.test(clean);
     };
 
     // Client-side validations
     if (form.phone && !validatePhone(form.phone)) {
-      showErrorAlert('Invalid Input', 'Please enter a valid 10-digit mobile number.');
+      showErrorAlert('Invalid Input', 'Please enter a valid phone number (10 digits or with +91/91 prefix).');
       return;
     }
     if (form.alternate_mobile && !validatePhone(form.alternate_mobile)) {
-      showErrorAlert('Invalid Input', 'Please enter a valid 10-digit alternate mobile number.');
+      showErrorAlert('Invalid Input', 'Please enter a valid alternate mobile number (10 digits or with +91/91 prefix).');
       return;
     }
     if (form.father_contact && !validatePhone(form.father_contact)) {
-      showErrorAlert('Invalid Input', "Please enter a valid 10-digit mobile number for Father's Contact.");
+      showErrorAlert('Invalid Input', "Please enter a valid number for Father's Contact (10 digits or with +91/91 prefix).");
       return;
     }
     if (form.mother_contact && !validatePhone(form.mother_contact)) {
-      showErrorAlert('Invalid Input', "Please enter a valid 10-digit mobile number for Mother's Contact.");
+      showErrorAlert('Invalid Input', "Please enter a valid number for Mother's Contact (10 digits or with +91/91 prefix).");
       return;
     }
     if (form.guardian_phone && !validatePhone(form.guardian_phone)) {
-      showErrorAlert('Invalid Input', "Please enter a valid 10-digit mobile number for Guardian's Phone.");
+      showErrorAlert('Invalid Input', "Please enter a valid number for Guardian's Phone (10 digits or with +91/91 prefix).");
+      return;
+    }
+    if (form.emergency_contact && !validatePhone(form.emergency_contact)) {
+      showErrorAlert('Invalid Input', "Please enter a valid number for Emergency Contact (10 digits or with +91/91 prefix).");
       return;
     }
 
@@ -1071,7 +1106,7 @@ const StudentProfile: React.FC = () => {
                       </div>
                       <div>
                         <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Phone</Label>
-                        <Input name="phone" maxLength={10} value={form.phone} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                        <Input name="phone" maxLength={13} value={form.phone} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                       </div>
                     </div>
 
@@ -1232,7 +1267,7 @@ const StudentProfile: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Alternate Mobile</Label>
-                      <Input name="alternate_mobile" maxLength={10} value={form.alternate_mobile || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                      <Input name="alternate_mobile" maxLength={13} value={form.alternate_mobile || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Personal Email</Label>
@@ -1334,13 +1369,13 @@ const StudentProfile: React.FC = () => {
                           <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Father's Name</Label>
                           <Input name="father_name" value={form.father_name || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                           <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Father's Contact</Label>
-                          <Input name="father_contact" maxLength={10} value={form.father_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                          <Input name="father_contact" maxLength={13} value={form.father_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                         </div>
                         <div>
                           <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Mother's Name</Label>
                           <Input name="mother_name" value={form.mother_name || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                           <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Mother's Contact</Label>
-                          <Input name="mother_contact" maxLength={10} value={form.mother_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                          <Input name="mother_contact" maxLength={13} value={form.mother_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                         </div>
                       </div>
                     </div>
@@ -1381,7 +1416,7 @@ const StudentProfile: React.FC = () => {
                           </div>
                           <div>
                             <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Guardian Contact</Label>
-                            <Input name="guardian_phone" maxLength={10} value={form.guardian_phone || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                            <Input name="guardian_phone" maxLength={13} value={form.guardian_phone || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                             <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Guardian Email</Label>
                             <Input name="guardian_email" value={form.guardian_email || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                           </div>
@@ -1414,7 +1449,7 @@ const StudentProfile: React.FC = () => {
                       </div>
                       <div>
                         <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Emergency Contact</Label>
-                        <Input name="emergency_contact" value={form.emergency_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                        <Input name="emergency_contact" maxLength={13} value={form.emergency_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                       </div>
                       <div>
                         <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Allergies</Label>
