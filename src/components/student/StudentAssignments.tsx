@@ -237,6 +237,23 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
     };
   }, [assignments]);
 
+  const formatDateTimeToDDMMYYYY = (dateStr: string | null | undefined, includeTime: boolean = true): string => {
+    if (!dateStr) return "--";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      const dateFormatted = `${day}-${month}-${year}`;
+      if (!includeTime) return dateFormatted;
+      const timeFormatted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      return `${dateFormatted}, ${timeFormatted}`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
   const getStatusBadge = (assignment: any) => {
     const now = new Date();
     const dueDate = new Date(assignment.due_date);
@@ -388,9 +405,9 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
                                 <span className={`font-semibold px-2 py-0.5 rounded-lg ${theme === 'dark' ? 'bg-white/5 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
                                   {assignment.subject}
                                 </span>
-                                <span className="flex items-center gap-1.5 text-muted-foreground">
+                                 <span className="flex items-center gap-1.5 text-muted-foreground">
                                   <Clock size={15} />
-                                  Due {new Date(assignment.due_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                                  Due {formatDateTimeToDDMMYYYY(assignment.due_date, true)}
                                 </span>
                                 {assignment.faculty && (
                                   <span className="flex items-center gap-1.5 text-muted-foreground">
@@ -513,7 +530,7 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
                             <div className="flex flex-col md:flex-row justify-between gap-6">
                               <div className="space-y-1.5">
                                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{assignment.auto_zero ? 'Deadline Passed' : 'Submission Date'}</p>
-                                <p className="text-sm font-medium">{assignment.auto_zero ? new Date(assignment.due_date).toLocaleString() : new Date(assignment.submission_date).toLocaleString()}</p>
+                                <p className="text-sm font-medium">{formatDateTimeToDDMMYYYY(assignment.auto_zero ? assignment.due_date : assignment.submission_date, true)}</p>
                               </div>
                               <div className="space-y-1.5 md:text-center">
                                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Resubmissions</p>
@@ -637,13 +654,13 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Submitted on</span>
-                  <span className="font-medium">{new Date(selectedAssignment.submission_date).toLocaleString()}</span>
+                  <span className="font-medium">{formatDateTimeToDDMMYYYY(selectedAssignment.submission_date, true)}</span>
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Deadline</span>
                   <span className={`font-medium ${isWithinDeadline(selectedAssignment) ? 'text-green-500' : 'text-red-400'}`}>
-                    {new Date(selectedAssignment.due_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                    {formatDateTimeToDDMMYYYY(selectedAssignment.due_date, true)}
                     {isWithinDeadline(selectedAssignment) ? ' (Open)' : ' (Closed)'}
                   </span>
                 </div>
@@ -657,7 +674,7 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
                       </div>
                       <div>
                         <p className="text-sm font-semibold truncate max-w-[200px]">Attempt {h.attempt_number}</p>
-                        <p className="text-[10px] text-muted-foreground">{new Date(h.submitted_at).toLocaleString()}</p>
+                        <p className="text-[10px] text-muted-foreground">{formatDateTimeToDDMMYYYY(h.submitted_at, true)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
@@ -682,7 +699,7 @@ const StudentAssignments = ({ readOnly = false }: { readOnly?: boolean }) => {
                       </div>
                       <div>
                         <p className="text-sm font-semibold truncate max-w-[200px]">Attempt {(selectedAssignment.resubmission_count || 0) + 1} (Latest)</p>
-                        <p className="text-[10px] text-muted-foreground">{new Date(selectedAssignment.submission_date).toLocaleString()}</p>
+                        <p className="text-[10px] text-muted-foreground">{formatDateTimeToDDMMYYYY(selectedAssignment.submission_date, true)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
