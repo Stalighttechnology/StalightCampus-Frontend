@@ -1681,6 +1681,7 @@ export interface MarkFacultyAttendanceRequest {
   status?: "present" | "absent";
   action?: "check_in" | "check_out";
   notes?: string;
+  deviceId?: string;
 }
 
 export interface MarkFacultyAttendanceResponse {

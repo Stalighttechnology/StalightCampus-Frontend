@@ -13,6 +13,7 @@ import Swal from "sweetalert2";
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { API_ENDPOINT } from "@/utils/config";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Device } from '@capacitor/device';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -223,14 +224,23 @@ const FacultyAttendance = () => {
     setIsSubmitting(true);
     setMarkingStatus(status);
     setIsAnimating(true);
-    setLoadingMessage((status === 'present' && action !== 'check_out') ? "Initializing location..." : "Preparing request...");
+    setLoadingMessage(status === 'present' ? "Initializing location..." : "Preparing request...");
 
     try {
       let latitude: number | undefined = undefined;
       let longitude: number | undefined = undefined;
       let device_info: any = undefined;
+      let deviceId: string | undefined = undefined;
 
-      if (status === 'present' && action !== 'check_out') {
+      try {
+        const info = await Device.getId();
+        deviceId = info.identifier;
+      } catch (e) {
+        // Fallback for non-capacitor environments
+        deviceId = "web-" + navigator.userAgent.substring(0, 50);
+      }
+
+      if (status === 'present') {
         setLoadingMessage("Detecting your location...");
         // Require geolocation for marking present
         if (!navigator.geolocation) {
@@ -289,7 +299,8 @@ const FacultyAttendance = () => {
       const requestData: MarkFacultyAttendanceRequest & any = {
         status,
         action,
-        notes: notes.trim() || undefined
+        notes: notes.trim() || undefined,
+        deviceId
       };
       if (latitude !== undefined && longitude !== undefined) {
         requestData.latitude = latitude;
@@ -306,7 +317,15 @@ const FacultyAttendance = () => {
         setAttendanceStatus(status);
         await fetchAttendanceData(); // Refresh data
       } else {
-        toast.error(response.message || "Failed to mark attendance");
+        Swal.fire({
+          title: "Action Blocked",
+          text: response.message || "Failed to mark attendance",
+          icon: "error",
+          confirmButtonText: "Okay",
+          confirmButtonColor: "#ef4444",
+          background: theme === "dark" ? "#1c1c1e" : "#ffffff",
+          color: theme === "dark" ? "#E4E4E7" : "#000000",
+        });
       }
     } catch (error) {
 
@@ -374,6 +393,12 @@ const FacultyAttendance = () => {
             <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Today's Attendance
             </CardTitle>
+            <div className={`mt-2 p-3 rounded-md text-sm border ${theme === 'dark' ? 'bg-blue-900/20 border-blue-800 text-blue-200' : 'bg-blue-50 border-blue-200 text-blue-800'}`}>
+              <div className="flex gap-2">
+                <span className="font-semibold">Note:</span>
+                <span>Your attendance is linked to this specific device for today and requires campus location verification for both Check-In and Check-Out. You cannot mark attendance on someone else's behalf.</span>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6 pb-0">
             {/* Animated Toggle Buttons */}
