@@ -4,7 +4,8 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../ui/card
 import { Button } from "../ui/button";
 import { SkeletonTable } from "../ui/skeleton";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "../ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu";
+import { Checkbox } from "../ui/checkbox";
 import { Pencil, Trash2, Loader2, ChevronLeft, ChevronRight, ChevronDown, Search, FileDown } from "lucide-react";
 import { manageFacultyAssignments, manageSections, getFacultyAssignmentsBootstrap, getHODTimetableSemesterData, listFacultyBranches, manageFaculties } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
@@ -1126,22 +1127,26 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                         {state.sections.map((section) => {
                           const isChecked = state.sectionIds.includes(section.id);
                           return (
-                            <DropdownMenuCheckboxItem
+                            <DropdownMenuItem
                               key={section.id}
-                              checked={isChecked}
-                              onCheckedChange={(checked) => {
+                              onSelect={(e) => e.preventDefault()}
+                              onClick={() => {
                                 let newSecIds: string[];
-                                if (checked) {
-                                  newSecIds = [...state.sectionIds, section.id];
-                                } else {
+                                if (isChecked) {
                                   newSecIds = state.sectionIds.filter((id) => id !== section.id);
+                                } else {
+                                  newSecIds = [...state.sectionIds, section.id];
                                 }
                                 updateState({ sectionIds: newSecIds, sectionId: newSecIds[0] || "" });
                               }}
-                              className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}
+                              className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm cursor-pointer ${theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}`}
                             >
-                              Section {section.name}
-                            </DropdownMenuCheckboxItem>
+                              <Checkbox
+                                checked={isChecked}
+                                className="pointer-events-none"
+                              />
+                              <span>Section {section.name}</span>
+                            </DropdownMenuItem>
                           );
                         })}
                       </>
