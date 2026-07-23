@@ -16,6 +16,25 @@ import {
 import { Skeleton } from "../ui/skeleton";
 
 const StudentSyllabus = () => {
+  const formatDateToDDMMYYYY = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return "";
+    try {
+      const trimmed = dateStr.trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        const [year, month, day] = trimmed.split("-");
+        return `${day}-${month}-${year}`;
+      }
+      const dateObj = new Date(trimmed);
+      if (isNaN(dateObj.getTime())) return dateStr;
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const year = dateObj.getFullYear();
+      return `${day}-${month}-${year}`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
   const { theme } = useTheme();
   const { toast } = useToast();
   
@@ -270,7 +289,7 @@ const StudentSyllabus = () => {
                             {w.is_completed && w.completed_date && (
                               <div className="flex items-center gap-1.5 text-xs opacity-70">
                                 <Calendar className="w-3.5 h-3.5" />
-                                <span>Covered on {w.completed_date} by {w.faculty_name || "Faculty"}</span>
+                                <span>Covered on {formatDateToDDMMYYYY(w.completed_date)} by {w.faculty_name || "Faculty"}</span>
                               </div>
                             )}
                           </div>

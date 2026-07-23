@@ -577,7 +577,7 @@ const TakeAttendance = () => {
             </CardHeader>
             <CardContent className="pb-0">
               <div className="space-y-4 w-full max-w-full">
-                <div id="take-attendance-selectors" className="flex flex-col gap-2 sm:grid sm:grid-cols-2 md:grid-cols-5 w-full">
+                <div id="take-attendance-selectors" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 sm:gap-3 w-full">
                   <Select value={subjectId?.toString()} onValueChange={(v) => {
                     setSubjectId(Number(v));
                   }}>
@@ -639,13 +639,14 @@ const TakeAttendance = () => {
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-full justify-start text-left font-normal",
+                          "w-full justify-start text-left font-normal px-2.5 sm:px-3 overflow-hidden min-w-0",
                           !attendanceDate && "text-muted-foreground",
                           theme === 'dark' ? 'bg-background border-input text-foreground' : 'bg-white border-gray-300 text-gray-900'
                         )}>
-                        
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {attendanceDate ? format(parseISO(attendanceDate), "PPP") : <span>Pick a date</span>}
+                        <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                        <span className="truncate flex-1 min-w-0" title={attendanceDate ? format(parseISO(attendanceDate), "PPP") : undefined}>
+                          {attendanceDate ? format(parseISO(attendanceDate), "PPP") : <span>Pick a date</span>}
+                        </span>
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">

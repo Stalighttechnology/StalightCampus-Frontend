@@ -595,7 +595,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="upload-title">Material Title *</Label>
+                <Label htmlFor="upload-title">Material Title <span className="text-red-500">*</span></Label>
                 <Input
                   id="upload-title"
                   placeholder="Enter title (e.g. Unit 1 Notes)"
@@ -607,7 +607,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
               </div>
 
               <div className="space-y-2">
-                <Label>Subject / Course *</Label>
+                <Label>Subject / Course <span className="text-red-500">*</span></Label>
                 <Select
                   value={uploadSubject}
                   onValueChange={(subjId) => {
@@ -659,7 +659,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
             </div>
 
             <div className="space-y-4">
-              <Label>File Upload *</Label>
+              <Label>File Upload <span className="text-red-500">*</span></Label>
               <div
                 onDragEnter={handleDrag}
                 onDragOver={handleDrag}

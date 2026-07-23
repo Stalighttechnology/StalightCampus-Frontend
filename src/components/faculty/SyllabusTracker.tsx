@@ -25,6 +25,25 @@ import { Skeleton } from "../ui/skeleton";
 import { showConfirmAlert } from "../../utils/sweetalert";
 
 const SyllabusTracker = () => {
+  const formatDateToDDMMYYYY = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return "";
+    try {
+      const trimmed = dateStr.trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        const [year, month, day] = trimmed.split("-");
+        return `${day}-${month}-${year}`;
+      }
+      const dateObj = new Date(trimmed);
+      if (isNaN(dateObj.getTime())) return dateStr;
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const year = dateObj.getFullYear();
+      return `${day}-${month}-${year}`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
   const { toast } = useToast();
   const { data: assignments = [], isLoading: assignmentsLoading } = useFacultyAssignmentsQuery();
   const { theme } = useTheme();
@@ -508,7 +527,7 @@ const SyllabusTracker = () => {
                         <div className="flex flex-col items-stretch md:items-end gap-3 w-full md:w-auto pl-0 border-t md:border-t-0 pt-4 md:pt-0">
                           {w.completed_date && (
                             <div className="text-xs text-muted-foreground md:text-right leading-tight">
-                              Covered: <span className="font-semibold text-foreground">{w.completed_date}</span> &bull; By: <span className="font-semibold text-foreground">{w.faculty_name}</span>
+                              Covered: <span className="font-semibold text-foreground">{formatDateToDDMMYYYY(w.completed_date)}</span> &bull; By: <span className="font-semibold text-foreground">{w.faculty_name}</span>
                             </div>
                           )}
                           <div className="flex flex-col sm:flex-row gap-2 w-full">

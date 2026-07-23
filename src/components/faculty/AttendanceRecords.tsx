@@ -54,6 +54,22 @@ interface AttendanceDetail {
 }
 
 const AttendanceRecords = () => {
+  const formatDateToDDMMYYYY = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return "--";
+    try {
+      const trimmed = dateStr.trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        const [year, month, day] = trimmed.split("-");
+        return `${day}-${month}-${year}`;
+      }
+      const dateObj = new Date(trimmed);
+      if (isNaN(dateObj.getTime())) return dateStr;
+      return format(dateObj, "dd-MM-yyyy");
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
   const formatAttendancePercentage = (percentage: number | string): string => {
     if (percentage === "NA" || percentage === null || percentage === undefined) {
       return "NA";
@@ -400,7 +416,7 @@ const AttendanceRecords = () => {
                   <TableBody>
                     {records.map((record) => (
                       <TableRow key={record.id} className={theme === 'dark' ? 'hover:bg-muted' : 'hover:bg-gray-50'}>
-                        <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{record.date}</TableCell>
+                        <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{formatDateToDDMMYYYY(record.date)}</TableCell>
                         <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{record.subject}</TableCell>
                         <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{record.section}</TableCell>
                         <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{record.semester}</TableCell>
@@ -435,7 +451,7 @@ const AttendanceRecords = () => {
                                   <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl border ${theme === 'dark' ? 'bg-slate-900/30 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
                                     <div className="space-y-1">
                                       <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Date</p>
-                                      <p className="text-sm font-semibold">{selectedRecord.date}</p>
+                                      <p className="text-sm font-semibold">{formatDateToDDMMYYYY(selectedRecord.date)}</p>
                                     </div>
                                     <div className="space-y-1">
                                       <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Subject</p>

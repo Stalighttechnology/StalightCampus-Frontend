@@ -641,19 +641,19 @@ const FacultyAssignments = () => {
               filteredAssignments.length > 0 ?
                 <>
                   {/* Desktop Table View */}
-                  <div className="hidden md:block overflow-x-auto">
-                    <table className="w-full text-left">
+                  <div className="hidden md:block overflow-x-auto rounded-xl border border-border/60 bg-card shadow-sm">
+                    <table className="w-full text-left border-collapse min-w-[800px]">
                       <thead>
-                        <tr className="border-b border-border text-sm font-semibold text-muted-foreground">
-                          <th className="pb-4 pt-2">Assignment</th>
-                          <th className="pb-4 pt-2">Subject & Class</th>
-                          <th className="pb-4 pt-2">Submissions</th>
-                          <th className="pb-4 pt-2">Due Date</th>
-                          <th className="pb-4 pt-2">Status</th>
-                          <th className="pb-4 pt-2 text-right">Actions</th>
+                        <tr className={`border-b border-border/60 text-xs font-semibold text-muted-foreground uppercase tracking-wider ${theme === 'dark' ? 'bg-muted/40' : 'bg-gray-50/80'}`}>
+                          <th className="px-4 py-3.5 whitespace-nowrap">Assignment</th>
+                          <th className="px-4 py-3.5 whitespace-nowrap">Subject & Class</th>
+                          <th className="px-4 py-3.5 whitespace-nowrap">Submissions</th>
+                          <th className="px-4 py-3.5 whitespace-nowrap">Due Date</th>
+                          <th className="px-4 py-3.5 whitespace-nowrap">Status</th>
+                          <th className="px-4 py-3.5 text-right whitespace-nowrap">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-border">
+                      <tbody className="divide-y divide-border/50">
                         {filteredAssignments.map((assignment) => {
                           const isOverdue = new Date(assignment.due_date) < new Date();
                           return (
@@ -661,87 +661,84 @@ const FacultyAssignments = () => {
                               key={assignment.id}
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
-                              className="group hover:bg-muted/50 transition-colors">
+                              className="group hover:bg-muted/30 transition-colors">
 
-                              <td className="py-4">
+                              <td className="px-4 py-4 max-w-[280px]">
                                 <div className="flex items-center gap-3">
-                                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
                                     <FileText size={20} />
                                   </div>
-                                  <div>
-                                    <p className="font-semibold">{assignment.title}</p>
-                                    <p className="text-xs text-muted-foreground line-clamp-1">{assignment.description}</p>
+                                  <div className="min-w-0">
+                                    <p className="font-semibold text-sm text-foreground truncate">{assignment.title}</p>
+                                    <p className="text-xs text-muted-foreground line-clamp-1" title={assignment.description}>{assignment.description || 'No description provided'}</p>
                                   </div>
                                 </div>
                               </td>
-                              <td className="py-4">
+                              <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="text-sm">
-                                  <p className="font-semibold">{assignment.subject}</p>
+                                  <p className="font-semibold text-foreground">{assignment.subject}</p>
                                   <p className="text-xs text-muted-foreground">
                                     {assignment.branch_name} • Sem {assignment.semester_number} • {assignment.section_name || 'All Sections'}
                                   </p>
                                 </div>
                               </td>
-                              <td className="py-4">
-                                <div className="flex flex-col gap-1">
-                                  <div className="flex items-center justify-between text-xs w-24">
+                              <td className="px-4 py-4 whitespace-nowrap">
+                                <div className="flex flex-col gap-1 w-28">
+                                  <div className="flex items-center justify-between text-xs font-medium">
                                     <span>{assignment.submission_count} Submitted</span>
                                   </div>
-                                  <div className="h-1.5 w-24 bg-muted rounded-full overflow-hidden">
+                                  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                                     <div
-                                      className="h-full bg-primary"
-                                      style={{ width: `${Math.min(assignment.submission_count / 100 * 100, 100)}%` }} />
-
+                                      className="h-full bg-primary rounded-full"
+                                      style={{ width: `${Math.min((assignment.submission_count / 100) * 100, 100)}%` }} />
                                   </div>
-                                  <p className="text-[12px] text-muted-foreground">{assignment.graded_count} Graded</p>
+                                  <p className="text-[11px] text-muted-foreground">{assignment.graded_count} Graded</p>
                                 </div>
                               </td>
-                              <td className="py-4">
-                                <div className="flex items-center gap-2 text-sm">
-                                  <Calendar size={14} className="text-muted-foreground" />
-                                  <span>{new Date(assignment.due_date).toLocaleDateString()}</span>
+                              <td className="px-4 py-4 whitespace-nowrap">
+                                <div className="flex items-center gap-2 text-sm text-foreground">
+                                  <Calendar size={14} className="text-muted-foreground shrink-0" />
+                                  <span>{new Date(assignment.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                 </div>
                               </td>
-                              <td className="py-4">
-                                <span className={`px-2 py-1 rounded-full text-[12px] font-semibold uppercase ${isOverdue ?
-                                  'bg-red-500/10 text-red-500' :
-                                  'bg-green-500/10 text-green-500'}`
+                              <td className="px-4 py-4 whitespace-nowrap">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider ${isOverdue ?
+                                  'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20' :
+                                  'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'}`
                                 }>
                                   {isOverdue ? 'Overdue' : 'Active'}
                                 </span>
                               </td>
-                              <td className="py-4 text-right">
-                                <div className="flex items-center justify-end gap-2">
+                              <td className="px-4 py-4 text-right whitespace-nowrap">
+                                <div className="flex items-center justify-end gap-1.5">
                                   <Button
                                     variant="ghost"
                                     size="sm"
                                     className="h-8 w-8 p-0"
+                                    title="Edit assignment"
                                     onClick={() => handleEditClick(assignment)}>
-
-                                    <Edit size={16} />
+                                    <Edit size={15} />
                                   </Button>
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                    title="Delete assignment"
                                     onClick={() => handleDeleteAssignment(assignment)}
                                     disabled={submitting}>
-
-                                    <Trash2 size={16} />
+                                    <Trash2 size={15} />
                                   </Button>
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="h-8 gap-2"
+                                    className="h-8 gap-1.5 text-xs font-medium"
                                     onClick={() => handleViewSubmissions(assignment)}>
-
                                     View
                                     <ChevronRight size={14} />
                                   </Button>
                                 </div>
                               </td>
                             </motion.tr>);
-
                         })}
                       </tbody>
                     </table>
@@ -938,7 +935,7 @@ const FacultyAssignments = () => {
             <form onSubmit={handleCreateAssignment} className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-semibold">Assignment Title</label>
+                  <label className="text-sm font-semibold">Assignment Title <span className="text-red-500">*</span></label>
                   <Input
                     required
                     placeholder="e.g. Introduction to Data Structures"
@@ -948,7 +945,7 @@ const FacultyAssignments = () => {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-semibold">Description / Instructions</label>
+                  <label className="text-sm font-semibold">Description / Instructions <span className="text-red-500">*</span></label>
                   <Textarea
                     required
                     placeholder="Enter assignment details, rules, and guidelines..."
@@ -959,7 +956,7 @@ const FacultyAssignments = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">{translateTerminology("Branch")}</label>
+                  <label className="text-sm font-semibold">{translateTerminology("Branch")} <span className="text-red-500">*</span></label>
                   <Select
                     required
                     value={formData.branch_id}
@@ -991,7 +988,7 @@ const FacultyAssignments = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Subject</label>
+                  <label className="text-sm font-semibold">Subject <span className="text-red-500">*</span></label>
                   <Select
                     required
                     value={formData.subject_id}
@@ -1023,7 +1020,7 @@ const FacultyAssignments = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">{translateTerminology("Semester")}</label>
+                  <label className="text-sm font-semibold">{translateTerminology("Semester")} <span className="text-red-500">*</span></label>
                   <Select
                     required
                     value={formData.semester_id}
@@ -1055,7 +1052,7 @@ const FacultyAssignments = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Section</label>
+                  <label className="text-sm font-semibold">Section <span className="text-red-500">*</span></label>
                   <Select
                     required
                     value={formData.section_id}
@@ -1080,7 +1077,7 @@ const FacultyAssignments = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Due Date</label>
+                  <label className="text-sm font-semibold">Due Date <span className="text-red-500">*</span></label>
                   <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                     <PopoverTrigger asChild>
                       <Button
@@ -1121,7 +1118,7 @@ const FacultyAssignments = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Max Marks</label>
+                  <label className="text-sm font-semibold">Max Marks <span className="text-red-500">*</span></label>
                   <Input
                     required
                     type="number"
@@ -1133,7 +1130,7 @@ const FacultyAssignments = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Weightage (%)</label>
+                  <label className="text-sm font-semibold">Weightage (%) <span className="text-red-500">*</span></label>
                   <Input
                     required
                     type="number"
