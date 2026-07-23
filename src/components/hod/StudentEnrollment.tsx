@@ -46,6 +46,8 @@ const StudentEnrollment = () => {
   const [isSectionOpen, setIsSectionOpen] = useState(false);
   const [isSubjectTypeOpen, setIsSubjectTypeOpen] = useState(false);
   const [isSubjectOpen, setIsSubjectOpen] = useState(false);
+  const [isAddSubjectSemesterOpen, setIsAddSubjectSemesterOpen] = useState(false);
+  const [isAddSubjectTypeOpen, setIsAddSubjectTypeOpen] = useState(false);
 
   // Add Semester / Section states
   const [isAddSemesterOpen, setIsAddSemesterOpen] = useState(false);
@@ -911,8 +913,13 @@ const StudentEnrollment = () => {
                 <div className="space-y-2">
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">{translateTerminology("Semester")}</label>
                   <Select
+                    open={isAddSubjectSemesterOpen}
+                    onOpenChange={setIsAddSubjectSemesterOpen}
                     value={newSubjectState.semester_id}
-                    onValueChange={(v) => setNewSubjectState(prev => ({ ...prev, semester_id: v }))}
+                    onValueChange={(v) => {
+                      setNewSubjectState(prev => ({ ...prev, semester_id: v }));
+                      setTimeout(() => setIsAddSubjectTypeOpen(true), 150);
+                    }}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder={translateTerminology("Select Semester")} />
@@ -927,6 +934,8 @@ const StudentEnrollment = () => {
                 <div className="space-y-2">
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Course Type</label>
                   <Select
+                    open={isAddSubjectTypeOpen}
+                    onOpenChange={setIsAddSubjectTypeOpen}
                     value={newSubjectState.subject_type}
                     onValueChange={(v) => setNewSubjectState(prev => ({ ...prev, subject_type: v }))}
                   >
@@ -947,7 +956,7 @@ const StudentEnrollment = () => {
                     max="10"
                     required
                     value={newSubjectState.credits}
-                    onChange={(e) => setNewSubjectState(prev => ({ ...prev, credits: parseInt(e.target.value) || 3 }))}
+                    onChange={(e) => setNewSubjectState(prev => ({ ...prev, credits: e.target.value === "" ? "" : parseInt(e.target.value) || "" }))}
                     className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
                       }`}
                   />

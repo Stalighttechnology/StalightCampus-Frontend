@@ -59,7 +59,7 @@ interface SubjectManagementState {
   semesters: Semester[];
   showModal: "add" | "edit" | null;
   currentSubject: Subject | null;
-  newSubject: { code: string; name: string; semester_id: string; subject_type: string; credits: number; max_cie_marks: number; max_see_marks: number; };
+  newSubject: { code: string; name: string; semester_id: string; subject_type: string; credits: number | string; max_cie_marks: number | string; max_see_marks: number | string; };
   loading: boolean;
   branchId: string;
   currentPage: number;
@@ -94,6 +94,8 @@ const SubjectManagement = () => {
 
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isTypeOpen, setIsTypeOpen] = useState(false);
+  const [isModalSemesterOpen, setIsModalSemesterOpen] = useState(false);
+  const [isModalTypeOpen, setIsModalTypeOpen] = useState(false);
 
   const totalPages = state.totalPages;
   const [downloadingPDF, setDownloadingPDF] = useState(false);
@@ -610,8 +612,13 @@ const SubjectManagement = () => {
                 {translateTerminology("Semester")} <span className="text-red-500">*</span>
               </label>
               <Select
+                open={isModalSemesterOpen}
+                onOpenChange={setIsModalSemesterOpen}
                 value={state.newSubject.semester_id}
-                onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, semester_id: val } })}
+                onValueChange={(val: string) => {
+                  updateState({ newSubject: { ...state.newSubject, semester_id: val } });
+                  setTimeout(() => setIsModalTypeOpen(true), 150);
+                }}
                 disabled={state.loading}>
 
                 <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
@@ -633,6 +640,8 @@ const SubjectManagement = () => {
                 Course Type <span className="text-red-500">*</span>
               </label>
               <Select
+                open={isModalTypeOpen}
+                onOpenChange={setIsModalTypeOpen}
                 value={state.newSubject.subject_type}
                 onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, subject_type: val } })}
                 disabled={state.loading}>
@@ -659,7 +668,7 @@ const SubjectManagement = () => {
                 value={state.newSubject.credits}
                 onChange={(e) =>
                   updateState({
-                    newSubject: { ...state.newSubject, credits: parseInt(e.target.value) || 0 }
+                    newSubject: { ...state.newSubject, credits: e.target.value === "" ? "" : parseInt(e.target.value) || "" }
                   })
                 }
                 disabled={state.loading}
@@ -678,6 +687,10 @@ const SubjectManagement = () => {
                 max={300}
                 value={state.newSubject.max_cie_marks}
                 onChange={(e) => {
+                  if (e.target.value === "") {
+                    updateState({ newSubject: { ...state.newSubject, max_cie_marks: "" } });
+                    return;
+                  }
                   let val = parseInt(e.target.value) || 0;
                   if (val > 300) val = 300;
                   updateState({
@@ -700,6 +713,10 @@ const SubjectManagement = () => {
                 max={300}
                 value={state.newSubject.max_see_marks}
                 onChange={(e) => {
+                  if (e.target.value === "") {
+                    updateState({ newSubject: { ...state.newSubject, max_see_marks: "" } });
+                    return;
+                  }
                   let val = parseInt(e.target.value) || 0;
                   if (val > 300) val = 300;
                   updateState({
