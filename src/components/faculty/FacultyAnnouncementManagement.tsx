@@ -28,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle } from
 "@/components/ui/alert-dialog";
-import { Loader2, Plus, Calendar as CalendarIcon, Check } from "lucide-react";
+import { Loader2, Plus, Calendar as CalendarIcon, Check, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -54,7 +54,7 @@ import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
 import { SkeletonList } from "@/components/ui/skeleton";
-import { getAssignedSubjectsGrouped } from "@/utils/faculty_api";
+import { getAssignedSubjectsGrouped, getProctorStudents } from "@/utils/faculty_api";
 
 const FacultyAnnouncementManagement = () => {
   const [myAnnouncements, setMyAnnouncements] = useState<Announcement[]>([]);
@@ -65,6 +65,7 @@ const FacultyAnnouncementManagement = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const { theme } = useTheme();
+  const [proctorCount, setProctorCount] = useState<number | null>(null);
 
   // Form state
   const [formData, setFormData] = useState<CreateAnnouncementRequest>({
@@ -110,6 +111,19 @@ const FacultyAnnouncementManagement = () => {
         }
       } catch (err) {
         console.error("Failed to load assigned subjects/sections", err);
+      }
+
+      try {
+        const proctorRes = await getProctorStudents({ page: 1, page_size: 1 });
+        if (proctorRes.success && proctorRes.data) {
+          const total = proctorRes.pagination?.total ?? proctorRes.count ?? proctorRes.data.length;
+          setProctorCount(total);
+        } else {
+          setProctorCount(0);
+        }
+      } catch (err) {
+        console.error("Failed to load proctor students count", err);
+        setProctorCount(0);
       }
     };
     fetchAssigned();
@@ -162,6 +176,17 @@ const FacultyAnnouncementManagement = () => {
         title: "Validation Error",
         text: "Please fill all required fields",
         icon: "warning",
+        confirmButtonColor: "#9147e0",
+        target: document.body
+      });
+      return;
+    }
+
+    if (!formData.section && proctorCount === 0) {
+      MySwal.fire({
+        title: "No Proctor Students Assigned",
+        text: "You do not have any assigned proctor students. You cannot send an announcement to proctor students.",
+        icon: "error",
         confirmButtonColor: "#9147e0",
         target: document.body
       });
@@ -581,13 +606,27 @@ const FacultyAnnouncementManagement = () => {
                           </Select>
                         </div>
 
-                        <div className="p-3 rounded-lg bg-muted">
-                          <p className="text-sm text-muted-foreground">
-                            ℹ️ {formData.section 
-                              ? `This announcement will be targeted to students in the selected class/section.`
-                              : "This announcement will be visible to your proctor students only."}
-                          </p>
-                        </div>
+                        {!formData.section && proctorCount === 0 ? (
+                          <div className="p-3.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+                            <div className="flex items-start gap-2.5">
+                              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                              <div className="text-xs sm:text-sm">
+                                <p className="font-semibold">No Proctor Students Assigned</p>
+                                <p className="mt-0.5 opacity-90">
+                                  You do not have any proctor students assigned to your account. Announcements targeted to "My Proctor Students" cannot be sent until students are assigned to you by your HOD.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-3 rounded-lg bg-muted">
+                            <p className="text-sm text-muted-foreground">
+                              ℹ️ {formData.section 
+                                ? `This announcement will be targeted to students in the selected class/section.`
+                                : `This announcement will be visible to your proctor students only.${proctorCount !== null && proctorCount > 0 ? ` (${proctorCount} student${proctorCount === 1 ? '' : 's'})` : ''}`}
+                            </p>
+                          </div>
+                        )}
 
                         <div className="flex gap-3 justify-end pt-4">
                           <Button
@@ -598,8 +637,8 @@ const FacultyAnnouncementManagement = () => {
                           </Button>
                           <Button
                               onClick={handleCreateOrUpdate}
-                              disabled={submitting}
-                              className="bg-primary text-white hover:bg-primary/90 transition-colors">
+                              disabled={submitting || (!formData.section && proctorCount === 0)}
+                              className="bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50">
                               
                             {submitting ? (
                                <>
