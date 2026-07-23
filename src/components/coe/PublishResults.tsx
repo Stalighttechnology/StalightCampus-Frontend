@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription }
 import { useTheme } from '@/context/ThemeContext';
 import { paginationToUI } from '@/utils/paginationToUI';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { AlertTriangle, Copy, ExternalLink, Search, Settings } from 'lucide-react';
+import { AlertTriangle, Copy, ExternalLink, Search, Settings, Loader2, Check } from 'lucide-react';
 import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult, importCieMarks, importSeeMarks, updateOrgPassingCriteria } from "../../utils/coe_api";
 import { toast } from "sonner";
 import { showWarningAlert } from "../../utils/sweetalert";
@@ -21,6 +21,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   // Do not pre-select exam_period so students aren't auto-loaded before user choice
   const [selected, setSelected] = useState<any>({ batch: '', branch: '', semester: '', exam_period: '' });
   const [upload, setUpload] = useState<any>(null);
+  const [creatingUpload, setCreatingUpload] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
   const [studentsPage, setStudentsPage] = useState(1);
   const [studentsPageSize, setStudentsPageSize] = useState(25);
@@ -97,12 +98,23 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       toast.error('Select all filters before creating upload');
       return;
     }
-    const res = await createResultUploadBatch({ batch: String(selected.batch), branch: String(selected.branch), semester: String(selected.semester), exam_period: selected.exam_period });
-    if (res.success) {
-      setSearchQuery('');
-      setUpload(res.upload_batch);
-    } else {
-      toast.error(res.message || 'Failed to create upload');
+    try {
+      setCreatingUpload(true);
+      const res = await createResultUploadBatch({ batch: String(selected.batch), branch: String(selected.branch), semester: String(selected.semester), exam_period: selected.exam_period });
+      if (res.success) {
+        setSearchQuery('');
+        setUpload(res.upload_batch);
+        toast.success('Upload batch initialized successfully');
+        setTimeout(() => {
+          document.getElementById('coe-upload-batch-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+      } else {
+        toast.error(res.message || 'Failed to create upload');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create upload');
+    } finally {
+      setCreatingUpload(false);
     }
   };
 
@@ -486,8 +498,24 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </Select>
               </div>
               <div className="flex items-end">
-                <Button className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={handleCreate}>
-                  Create Upload Batch
+                <Button 
+                  disabled={creatingUpload || !!upload}
+                  className={upload ? "w-full sm:w-auto bg-emerald-600/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-semibold cursor-not-allowed opacity-100" : "w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90"} 
+                  onClick={handleCreate}
+                >
+                  {creatingUpload ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2 inline-block" />
+                      Creating Batch...
+                    </>
+                  ) : upload ? (
+                    <>
+                      <Check className="w-4 h-4 mr-1.5 inline-block text-emerald-600 dark:text-emerald-400" />
+                      Batch Created
+                    </>
+                  ) : (
+                    "Create Upload Batch"
+                  )}
                 </Button>
               </div>
             </div>
@@ -496,7 +524,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       </Card>
 
       {upload &&
-      <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
+      <Card id="coe-upload-batch-details" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4 transition-all duration-300 scroll-mt-6`}>
           <CardContent className="p-4 sm:p-5">
             <div className="flex flex-col gap-4">
               {/* Header section with ID & Status */}

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription }
 import { useTheme } from '@/context/ThemeContext';
 import { paginationToUI } from '@/utils/paginationToUI';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { AlertTriangle, Copy, ExternalLink, Search, Settings } from 'lucide-react';
+import { AlertTriangle, Copy, ExternalLink, Search, Settings, Loader2, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForRevalMakeupUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult, updateOrgPassingCriteria } from '../../utils/coe_api';
 import { showWarningAlert } from '../../utils/sweetalert';
@@ -19,6 +19,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [semesters, setSemesters] = useState<any[]>([]);
   const [selected, setSelected] = useState<any>({ batch: '', branch: '', semester: '', exam_period: '', request_type: '' });
   const [upload, setUpload] = useState<any>(null);
+  const [creatingUpload, setCreatingUpload] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
   const [studentsPage, setStudentsPage] = useState(1);
   const [studentsPageSize, setStudentsPageSize] = useState(25);
@@ -83,12 +84,23 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
       toast.error('Select all filters including Request Type before creating upload');
       return;
     }
-    const res = await createResultUploadBatch({ batch: String(selected.batch), branch: String(selected.branch), semester: String(selected.semester), exam_period: selected.exam_period });
-    if (res.success) {
-      setSearchQuery('');
-      setUpload(res.upload_batch);
-    } else {
-      toast.error(res.message || 'Failed to create upload');
+    try {
+      setCreatingUpload(true);
+      const res = await createResultUploadBatch({ batch: String(selected.batch), branch: String(selected.branch), semester: String(selected.semester), exam_period: selected.exam_period });
+      if (res.success) {
+        setSearchQuery('');
+        setUpload(res.upload_batch);
+        toast.success('Upload batch initialized successfully');
+        setTimeout(() => {
+          document.getElementById('coe-reval-upload-batch-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+      } else {
+        toast.error(res.message || 'Failed to create upload');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create upload');
+    } finally {
+      setCreatingUpload(false);
     }
   };
 
@@ -429,10 +441,23 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
         </div>
         <div className="flex items-end">
           <Button
+                disabled={creatingUpload || !!upload}
                 onClick={handleCreate}
-                className="w-full bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
+                className={upload ? "w-full bg-emerald-600/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-semibold cursor-not-allowed opacity-100" : "w-full bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90"}>
                 
-            Create Upload Batch
+            {creatingUpload ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2 inline-block" />
+                Creating Batch...
+              </>
+            ) : upload ? (
+              <>
+                <Check className="w-4 h-4 mr-1.5 inline-block text-emerald-600 dark:text-emerald-400" />
+                Batch Created
+              </>
+            ) : (
+              "Create Upload Batch"
+            )}
           </Button>
         </div>
       </div>
@@ -440,7 +465,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
       </Card>
 
       {upload &&
-      <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
+      <Card id="coe-reval-upload-batch-details" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4 transition-all duration-300 scroll-mt-6`}>
           <CardContent className="p-4 sm:p-5">
             <div className="flex flex-col gap-4">
               {/* Header section with ID & Status */}
