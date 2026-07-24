@@ -31,6 +31,25 @@ const Pricing = () => {
   const [activeFAQ, setActiveFAQ] = useState<number | null>(null);
   const [isTrialPopupOpen, setIsTrialPopupOpen] = useState(false);
   const [activeCompareTab, setActiveCompareTab] = useState<'basic' | 'pro' | 'advance'>('basic');
+  const tableContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollToColumn = (plan: 'basic' | 'pro' | 'advance') => {
+    setActiveCompareTab(plan);
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    const scrollWidth = container.scrollWidth;
+    const clientWidth = container.clientWidth;
+    if (scrollWidth > clientWidth) {
+      if (plan === 'basic') {
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else if (plan === 'pro') {
+        container.scrollTo({ left: (scrollWidth - clientWidth) / 2, behavior: 'smooth' });
+      } else if (plan === 'advance') {
+        container.scrollTo({ left: scrollWidth - clientWidth, behavior: 'smooth' });
+      }
+    }
+  };
 
   const basicPrice = "₹150";
   const proPrice = "₹200";
@@ -265,7 +284,7 @@ const Pricing = () => {
           {/* Mobile plan selector tabs */}
           <div className="md:hidden flex p-1.5 bg-slate-100/80 backdrop-blur-md rounded-2xl mb-6 mx-auto max-w-sm border border-slate-200/50">
             <button
-              onClick={() => setActiveCompareTab('basic')}
+              onClick={() => scrollToColumn('basic')}
               className={`flex-1 py-3 text-center rounded-xl text-sm font-bold transition-all duration-300 ${
                 activeCompareTab === 'basic'
                   ? 'bg-white text-blue-600 shadow-md shadow-blue-500/5'
@@ -275,7 +294,7 @@ const Pricing = () => {
               Basic
             </button>
             <button
-              onClick={() => setActiveCompareTab('pro')}
+              onClick={() => scrollToColumn('pro')}
               className={`flex-1 py-3 text-center rounded-xl text-sm font-bold transition-all duration-300 ${
                 activeCompareTab === 'pro'
                   ? 'bg-white text-purple-600 shadow-md shadow-purple-500/5'
@@ -285,7 +304,7 @@ const Pricing = () => {
               Pro
             </button>
             <button
-              onClick={() => setActiveCompareTab('advance')}
+              onClick={() => scrollToColumn('advance')}
               className={`flex-1 py-3 text-center rounded-xl text-sm font-bold transition-all duration-300 ${
                 activeCompareTab === 'advance'
                   ? 'bg-white text-amber-600 shadow-md shadow-amber-500/5'
@@ -297,40 +316,42 @@ const Pricing = () => {
           </div>
 
           <div className="overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white shadow-xl shadow-slate-200/40">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-0 md:min-w-[800px]">
+            <div ref={tableContainerRef} className="overflow-x-auto md:overflow-x-visible scroll-smooth">
+              <table className="w-full text-left border-collapse min-w-0 md:min-w-[800px] table-fixed md:table-auto">
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-200">
-                    <th className="py-8 px-6 md:px-8 text-xs font-bold text-slate-500 uppercase tracking-widest w-[60%] md:w-[40%]">Core Capabilities</th>
-                    <th className={`py-8 px-4 text-center md:w-[20%] w-[40%] ${activeCompareTab === 'basic' ? 'table-cell' : 'hidden'} md:table-cell`}>
-                      <div className="text-slate-900 font-black text-xl">Basic</div>
+                    <th className="py-6 px-3 md:py-8 md:px-8 text-[12px] md:text-xs font-bold text-slate-500 uppercase tracking-wider w-[40%] md:w-[40%] break-words whitespace-normal">Core Capabilities</th>
+                    <th className={`py-6 px-2 md:py-8 md:px-4 text-center w-[20%] transition-all duration-300 ${activeCompareTab === 'basic' ? 'bg-blue-50/40' : ''}`}>
+                      <div className="text-slate-900 font-black text-sm md:text-xl">Basic</div>
                     </th>
-                    <th className={`py-8 px-4 text-center md:w-[20%] w-[40%] relative ${activeCompareTab === 'pro' ? 'table-cell' : 'hidden'} md:table-cell`}>
+                    <th className={`py-6 px-2 md:py-8 md:px-4 text-center w-[20%] relative transition-all duration-300 ${activeCompareTab === 'pro' ? 'bg-purple-50/60' : ''}`}>
                       {/* Highlight column indicator */}
-                      <div className="absolute inset-0 bg-purple-50/50 border-x border-purple-100/50 -z-10"></div>
-                      <div className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 font-black text-xl">Pro</div>
+                      <div className="absolute inset-0 bg-purple-50/30 border-x border-purple-100/30 -z-10"></div>
+                      <div className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 font-black text-sm md:text-xl">Pro</div>
                     </th>
-                    <th className={`py-8 px-4 text-center md:w-[20%] w-[40%] ${activeCompareTab === 'advance' ? 'table-cell' : 'hidden'} md:table-cell`}>
-                      <div className="text-slate-900 font-black text-xl">Advance</div>
+                    <th className={`py-6 px-2 md:py-8 md:px-4 text-center w-[25%] transition-all duration-300 ${activeCompareTab === 'advance' ? 'bg-amber-50/40' : ''}`}>
+                      <div className="text-slate-900 font-black text-sm md:text-xl">Advance</div>
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {comparisonFeatures.map((row, i) => (
                     <tr key={i} className="group hover:bg-slate-50/50 transition-colors">
-                      <td className="py-5 px-6 md:px-8 text-slate-700 font-medium text-sm flex items-center gap-2">
-                        {row.name}
-                        {i > 5 && <Info size={14} className="text-slate-400 cursor-help" />}
+                      <td className="py-4 px-3 md:py-5 md:px-8 text-slate-700 font-medium text-xs md:text-sm break-words whitespace-normal w-[40%]">
+                        <div className="flex items-center gap-1 md:gap-2 flex-wrap md:flex-nowrap">
+                          <span>{row.name}</span>
+                          {i > 5 && <Info size={12} className="text-slate-400 cursor-help shrink-0" />}
+                        </div>
                       </td>
-                      <td className={`py-5 px-4 text-center ${activeCompareTab === 'basic' ? 'table-cell' : 'hidden'} md:table-cell`}>
-                        {row.basic ? <Check size={20} className="text-blue-500 mx-auto" /> : <span className="text-slate-300">—</span>}
+                      <td className={`py-4 px-2 md:py-5 md:px-4 text-center w-[20%] transition-all duration-300 ${activeCompareTab === 'basic' ? 'bg-blue-50/20' : ''}`}>
+                        {row.basic ? <Check size={18} className="text-blue-500 mx-auto md:w-5 md:h-5" /> : <span className="text-slate-300">—</span>}
                       </td>
-                      <td className={`py-5 px-4 text-center relative ${activeCompareTab === 'pro' ? 'table-cell' : 'hidden'} md:table-cell`}>
-                        <div className="absolute inset-0 bg-purple-50/30 border-x border-purple-100/30 -z-10 group-hover:bg-purple-50/50 transition-colors"></div>
-                        {row.pro ? <Check size={20} className="text-purple-600 mx-auto" /> : <span className="text-slate-300">—</span>}
+                      <td className={`py-4 px-2 md:py-5 md:px-4 text-center relative w-[20%] transition-all duration-300 ${activeCompareTab === 'pro' ? 'bg-purple-50/30' : ''}`}>
+                        <div className="absolute inset-0 bg-purple-50/20 border-x border-purple-100/20 -z-10 group-hover:bg-purple-50/30 transition-colors"></div>
+                        {row.pro ? <Check size={18} className="text-purple-600 mx-auto md:w-5 md:h-5" /> : <span className="text-slate-300">—</span>}
                       </td>
-                      <td className={`py-5 px-4 text-center ${activeCompareTab === 'advance' ? 'table-cell' : 'hidden'} md:table-cell`}>
-                        {row.advance ? <Check size={20} className="text-amber-500 mx-auto" /> : <span className="text-slate-300">—</span>}
+                      <td className={`py-4 px-2 md:py-5 md:px-4 text-center w-[20%] transition-all duration-300 ${activeCompareTab === 'advance' ? 'bg-amber-50/20' : ''}`}>
+                        {row.advance ? <Check size={18} className="text-amber-500 mx-auto md:w-5 md:h-5" /> : <span className="text-slate-300">—</span>}
                       </td>
                     </tr>
                   ))}
