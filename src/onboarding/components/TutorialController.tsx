@@ -218,7 +218,24 @@ const shouldScrollStep = (targetStep: any): boolean => {
        target.includes('study-materials') ||
        target.includes('schedule-class'));
 
-    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden || isTransport || isLibrary || isAdmin || isProctor || isFaculty;
+    // 12. Student tour targets
+    const isStudent =
+      typeof target === 'string' &&
+      (target.startsWith('#student-') ||
+       target.includes('attendance') ||
+       target.includes('timetable') ||
+       target.includes('marks') ||
+       target.includes('revaluation') ||
+       target.includes('makeupexam') ||
+       target.includes('fees') ||
+       target.includes('announcements') ||
+       target.includes('library') ||
+       target.includes('hostel') ||
+       target.includes('transportation') ||
+       target.includes('leave') ||
+       target.includes('class-schedule'));
+
+    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden || isTransport || isLibrary || isAdmin || isProctor || isFaculty || isStudent;
   }
   return !targetStep.disableScrolling;
 };

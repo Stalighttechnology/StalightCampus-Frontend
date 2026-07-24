@@ -38,9 +38,21 @@ export function studentTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: isMobile ? '#timetable-card' : '#timetable-card-header',
+        target: '#timetable-card-header',
         title: 'Weekly Timetable',
         content: 'View your complete class and exam schedule here.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-student-syllabus') {
+    return [
+      {
+        ...step,
+        target: '#student-syllabus-header',
+        title: 'Syllabus Tracker',
+        content: 'Track the week-by-week syllabus completion status of all your enrolled courses.',
         placement: isMobile ? step.placement : 'top',
       },
     ];
@@ -50,7 +62,7 @@ export function studentTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: isMobile ? '#marks-overview-card' : '#marks-overview-card-header',
+        target: '#marks-overview-card-header',
         title: 'Performance Overview',
         content: 'Track your internal assessment/test marks and averages.',
         placement: isMobile ? step.placement : 'top',

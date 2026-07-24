@@ -4,7 +4,7 @@ export const studentTour: Step[] = [
   {
     target: 'body',
     title: 'Welcome to StalightCampus!',
-    content: 'Let\'s show you around your student portal and help you get started.',
+    content: "Let's show you around your student portal and help you get started.",
     placement: 'center' as const,
     disableBeacon: true,
   },
@@ -54,6 +54,15 @@ export const studentTour: Step[] = [
     route: '/timetable',
   },
   {
+    target: '#sidebar-class-schedule',
+    title: 'Class Schedule',
+    content:
+      'View complete and detailed daily/weekly schedule and location of all lectures.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/class-schedule',
+  },
+  {
     target: '#sidebar-attendance',
     title: 'Track Attendance',
     content:
@@ -61,23 +70,6 @@ export const studentTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: false,
     route: '/attendance',
-  },
-  {
-    target: '#sidebar-marks',
-    title: 'Check Your Marks',
-    content:
-      'Review all your exam scores, grades, and performance metrics in one place.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/marks',
-  },
-  {
-    target: '#student-syllabus-header',
-    title: 'Syllabus Tracker',
-    content: 'Track the week-by-week syllabus completion status of all your enrolled courses.',
-    placement: 'bottom' as const,
-    disableBeacon: false,
-    route: '/student-syllabus',
   },
   {
     target: '#sidebar-student-study-material',
@@ -96,6 +88,23 @@ export const studentTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: false,
     route: '/student-assignment',
+  },
+  {
+    target: '#sidebar-student-syllabus',
+    title: 'Syllabus Tracker',
+    content: 'Track the week-by-week syllabus completion status of all your enrolled courses.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/student-syllabus',
+  },
+  {
+    target: '#sidebar-marks',
+    title: 'Check Your Marks',
+    content:
+      'Review all your exam scores, grades, and performance metrics in one place.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/marks',
   },
   {
     target: '#sidebar-revaluation',
@@ -125,6 +134,24 @@ export const studentTour: Step[] = [
     route: '/fees',
   },
   {
+    target: '#sidebar-announcements',
+    title: 'View Announcements',
+    content:
+      'Stay updated with the latest college notices, event details, and official circulars.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/announcements',
+  },
+  {
+    target: '#sidebar-library',
+    title: 'Library Services',
+    content:
+      'Search catalog, check borrowed books list, track return dates, and view pending fines.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/library',
+  },
+  {
     target: '#sidebar-student-hostel-details',
     title: 'Hostel Details',
     content:
@@ -143,24 +170,6 @@ export const studentTour: Step[] = [
     route: '/transportation',
   },
   {
-    target: '#sidebar-library',
-    title: 'Library Services',
-    content:
-      'Search catalog, check borrowed books list, track return dates, and view pending fines.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/library',
-  },
-  {
-    target: '#sidebar-announcements',
-    title: 'View Announcements',
-    content:
-      'Stay updated with the latest college notices, event details, and official circulars.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/announcements',
-  },
-  {
     target: '#sidebar-leave-request',
     title: 'Apply for Leave',
     content:
@@ -168,15 +177,6 @@ export const studentTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: false,
     route: '/leave-request',
-  },
-  {
-    target: '#sidebar-class-schedule',
-    title: 'Class Schedule',
-    content:
-      'View complete and detailed daily/weekly schedule and location of all lectures.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/class-schedule',
   },
   {
     target: '#sidebar-profile',

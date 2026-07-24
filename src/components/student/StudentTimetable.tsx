@@ -194,7 +194,7 @@ const StudentTimetable = () => {
 
   return (
     <Card id="timetable-card" className={`w-full max-w-full overflow-hidden border ${theme === 'dark' ? 'bg-card border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'} shadow-sm rounded-xl`}>
-      <CardHeader className="border-b pb-4 mb-4 px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5">
+      <CardHeader id="timetable-card-header" className="border-b pb-4 mb-4 px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
           <div className="flex flex-row justify-between items-start w-full md:w-auto gap-4">
             <div className="flex flex-col">
