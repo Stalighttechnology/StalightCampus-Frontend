@@ -307,12 +307,4 @@ export const hodTour: Step[] = [
     disableBeacon: false,
     route: '/hod/hod-profile',
   },
-  {
-    target: '#sidebar-act-as-teacher',
-    title: 'Act as Faculty',
-    content: 'Switch interface context to review schedules or perform actions as a teacher.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/faculty/dashboard',
-  },
 ];

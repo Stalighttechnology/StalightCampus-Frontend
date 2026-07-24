@@ -203,7 +203,11 @@ const shouldScrollStep = (targetStep: any): boolean => {
        target === '#apply-leave-form-card' ||
        target === '#recent-leaves-card');
 
-    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden || isTransport || isLibrary || isAdmin;
+    // 10. Proctor targets
+    const isProctor =
+      typeof target === 'string' && target.includes('proctor');
+
+    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden || isTransport || isLibrary || isAdmin || isProctor;
   }
   return !targetStep.disableScrolling;
 };

@@ -111,14 +111,15 @@ export function hodTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
-  // Mobile-only placement fix for Proctor Assignments header (step 14).
-  // On mobile, 'top' clips the tooltip — override to 'bottom' so it stays visible.
-  // On desktop, fall through to the default handler (step is used as-is).
+  // Mobile placement fix for Proctor Assignments header.
+  // Set placement to 'top' on mobile so the tooltip stays above the header section
+  // without overlapping the title or repeating the stats card target.
   if (target === '#proctors-header-filters-section' && isMobile) {
     return [
       {
         ...step,
-        placement: 'bottom' as const,
+        target: '#proctors-header-filters-section',
+        placement: 'top' as const,
       },
     ];
   }
@@ -381,18 +382,6 @@ export function hodTransform(step: any, isMobile: boolean): any[] | null {
         title: 'Payroll Logs',
         content: 'Access payslips, check salary statements, and track financial transactions.',
         placement: isMobile ? step.placement : 'top',
-      },
-    ];
-  }
-
-  if (target === '#sidebar-act-as-teacher') {
-    return [
-      {
-        ...step,
-        target: '#faculty-stats-cards',
-        title: 'Act as Faculty',
-        content: 'Switch interface context to review schedules or perform actions as a teacher.',
-        placement: isMobile ? step.placement : 'bottom',
       },
     ];
   }
