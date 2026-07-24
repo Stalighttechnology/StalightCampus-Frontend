@@ -305,7 +305,7 @@ const AdminCOAttainment: React.FC<AdminCOAttainmentProps> = () => {
   return (
     <div id="co-attainment-container">
       <Card>
-        <CardHeader className="border-b border-border/50 flex flex-row items-start justify-between space-y-0">
+        <CardHeader id="co-attainment-header" className="border-b border-border/50 flex flex-row items-start justify-between space-y-0">
           <div>
             <CardTitle className="text-xl sm:text-2xl font-semibold">CO Attainment</CardTitle>
             <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">

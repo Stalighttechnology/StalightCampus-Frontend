@@ -45,6 +45,10 @@ const scrollTargetIntoView = (selector: string) => {
         selector === '#feesmanager-payments-header' ||
         selector === '#coe-stats-grid';
 
+      const isMobile = window.innerWidth < 768;
+      const isActionCards = selector === '#admin-action-cards';
+      const isTallElement = el.offsetHeight > (window.innerHeight - 120);
+
       if (isTopElement) {
         // Scroll parent to top for headers and stats grids
         let parent = el.parentElement;
@@ -62,6 +66,30 @@ const scrollTargetIntoView = (selector: string) => {
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
         console.log('[ONBOARDING DEBUG] Scrolled to top for:', selector);
+      } else if (isMobile && (isActionCards || isTallElement)) {
+        // Find scrollable parent
+        let parent = el.parentElement;
+        let scrollParent = null;
+        while (parent) {
+          const style = window.getComputedStyle(parent);
+          if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+            scrollParent = parent;
+            break;
+          }
+          parent = parent.parentElement;
+        }
+
+        if (scrollParent) {
+          const parentRect = scrollParent.getBoundingClientRect();
+          const elementRect = el.getBoundingClientRect();
+          const relativeTop = elementRect.top - parentRect.top + scrollParent.scrollTop;
+          scrollParent.scrollTo({ top: relativeTop - 90, behavior: 'smooth' });
+        } else {
+          const elementRect = el.getBoundingClientRect();
+          const absoluteElementTop = elementRect.top + window.pageYOffset;
+          window.scrollTo({ top: absoluteElementTop - 90, behavior: 'smooth' });
+        }
+        console.log('[ONBOARDING DEBUG] Scrolled to top offset for tall element on mobile:', selector);
       } else {
         // Native scrollIntoView is highly reliable and handles scrolling parents automatically
         el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });

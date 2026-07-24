@@ -38,7 +38,7 @@ export function adminTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#bulk-upload-form-section',
+        target: '#bulk-upload-header',
         title: 'Bulk Upload Faculty',
         content:
           'Upload CSV or Excel files to bulk enroll faculty members into the system.',
@@ -113,7 +113,7 @@ export function adminTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#department-admin-leaves-header-section',
+        target: '#dept-admin-leaves-header-section',
         title: 'Leave Requests',
         content:
           "Review and approve leave requests from Department",
@@ -149,10 +149,10 @@ export function adminTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#admin-faculty-attendance-header-select',
-        title: 'Select Branch',
+        target: '#faculty-attendance-header-section',
+        title: 'Faculty Attendance',
         content:
-          'Choose a branch from the dropdown to load and view faculty attendance data for that department.',
+          'Track and manage faculty attendance records across different branches.',
         placement: isMobile ? step.placement : 'bottom',
       },
     ];
@@ -265,6 +265,126 @@ export function adminTransform(step: any, isMobile: boolean): any[] | null {
         target: '#admin-profile-header',
         title: 'Admin Profile Information',
         content: 'Manage your profile details, change passwords, and configure settings.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-timetable-config') {
+    return [
+      {
+        ...step,
+        target: '#principal-timetable-settings-header',
+        title: 'Timetable Configuration',
+        content: 'Configure the daily class periods and breaks for your institution.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-co-attainment') {
+    return [
+      {
+        ...step,
+        target: '#co-attainment-header',
+        title: 'CO PO Attainment',
+        content: 'Track institutional Course Outcome (CO) attainment and PO mapping.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-finance') {
+    return [
+      {
+        ...step,
+        target: '#dean-finance-stats-grid',
+        title: 'Financial Health',
+        content: 'Analyze high-level financial health, fee collection charts, and transaction trends.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-reports') {
+    return [
+      {
+        ...step,
+        target: '#feesmanager-reports-header',
+        title: 'Reports & Analytics',
+        content: 'Generate consolidated academic, attendance, or finance reports.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-schedule-meeting') {
+    return [
+      {
+        ...step,
+        target: '#schedule-meetings-header-console',
+        title: 'Schedule Meetings',
+        content: 'Plan, configure, and coordinate interactive meetings with HODs, faculty, or students.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-staff-tasks') {
+    return [
+      {
+        ...step,
+        target: '#staff-tasks-tracker-header',
+        title: 'Staff Tasks',
+        content: 'Assign academic tasks, monitor progress, and manage department workflows.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-campus-locations') {
+    return [
+      {
+        ...step,
+        target: '#dean-campus-locations-header',
+        title: 'Campus Locations',
+        content: 'View and manage physical campus boundaries, departments, and geolocation configurations.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-alumni-directory') {
+    return [
+      {
+        ...step,
+        target: '#alumni-directory-header',
+        title: 'Alumni Directory',
+        content: 'Search, audit, and stay connected with graduated cohorts and manage alumni relationships.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-holiday-calendar') {
+    return [
+      {
+        ...step,
+        target: '#holiday-calendar-header',
+        title: 'Institutional Calendar',
+        content: 'Check scheduled holidays, exam dates, and upcoming academic events.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-my-payroll') {
+    return [
+      {
+        ...step,
+        target: '#faculty-payroll-header',
+        title: 'Payroll Logs',
+        content: 'Access payslips, check salary statements, and track financial transactions.',
         placement: isMobile ? step.placement : 'top',
       },
     ];

@@ -199,7 +199,7 @@ const BulkUpload = ({ setError, toast }: BulkUploadProps) => {
     <div className={` w-full mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       <Card id="bulk-upload-card">
         <div id="bulk-upload-form-section">
-          <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+          <CardHeader id="bulk-upload-header" className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
             <div>
               <CardTitle className="text-xl sm:text-2xl font-semibold">Bulk Upload Faculty</CardTitle>
               <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">

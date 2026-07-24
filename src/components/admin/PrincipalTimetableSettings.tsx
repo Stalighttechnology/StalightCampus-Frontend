@@ -330,7 +330,7 @@ export default function PrincipalTimetableSettings() {
   return (
     <div className="space-y-6 w-full">
       <Card className={`border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-        <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <CardHeader id="principal-timetable-settings-header" className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle className="text-xl sm:text-2xl font-semibold">Timetable Configuration</CardTitle>
             <p className={`text-sm md:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>

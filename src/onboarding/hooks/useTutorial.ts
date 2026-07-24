@@ -7,6 +7,7 @@ import { studentTour } from '../config/studentTour';
 import { facultyTour } from '../config/facultyTour';
 import { hodTour } from '../config/hodTour';
 import { adminTour } from '../config/adminTour';
+import { principalTour } from '../config/principalTour';
 import { coeTour } from '../config/coeTour';
 import { deanTour } from '../config/deanTour';
 import { feesManagerTour } from '../config/feesManagerTour';
@@ -26,7 +27,7 @@ const ROLE_TO_TOUR_MAP: Record<string, any> = {
   teacher: { steps: facultyTour, keys: TUTORIAL_KEYS.FACULTY },
   hod: { steps: hodTour, keys: TUTORIAL_KEYS.HOD },
   admin: { steps: adminTour, keys: TUTORIAL_KEYS.ADMIN },
-  principal: { steps: adminTour, keys: TUTORIAL_KEYS.ADMIN },
+  principal: { steps: principalTour, keys: TUTORIAL_KEYS.ADMIN },
   coe: { steps: coeTour, keys: TUTORIAL_KEYS.COE },
   dean: { steps: deanTour, keys: TUTORIAL_KEYS.DEAN },
   feesmanager: { steps: feesManagerTour, keys: TUTORIAL_KEYS.FEES },
