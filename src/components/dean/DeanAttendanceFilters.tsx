@@ -230,8 +230,8 @@ const DeanAttendanceFilters = () => {
         </Alert>
       ) : (
         <>
-          <Card className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} w-full max-w-full flex flex-col mb-4 ${loading ? 'opacity-70 pointer-events-none' : ''}`}>
-            <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+          <Card id="dean-attendance-filters-card" className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} w-full max-w-full flex flex-col mb-4 ${loading ? 'opacity-70 pointer-events-none' : ''}`}>
+            <CardHeader id="dean-attendance-filters-card-header" className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
               <div>
                 <CardTitle>Attendance Filters</CardTitle>
                 <CardDescription className="text-[16px] sm:text-sm text-muted-foreground mt-1">

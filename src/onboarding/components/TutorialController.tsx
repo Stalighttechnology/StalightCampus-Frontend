@@ -235,7 +235,11 @@ const shouldScrollStep = (targetStep: any): boolean => {
        target.includes('leave') ||
        target.includes('class-schedule'));
 
-    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden || isTransport || isLibrary || isAdmin || isProctor || isFaculty || isStudent;
+    // 13. Dean tour targets
+    const isDean =
+      typeof target === 'string' && target.includes('dean');
+
+    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden || isTransport || isLibrary || isAdmin || isProctor || isFaculty || isStudent || isDean;
   }
   return !targetStep.disableScrolling;
 };

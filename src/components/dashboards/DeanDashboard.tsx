@@ -61,6 +61,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'admin-leaves': 'admin-leaves',
     'enroll-user': 'enroll-user',
     'billing': 'billing',
+    'announcements': 'announcement-management',
     'announcement-management': 'announcement-management',
     'schedule-meeting': 'schedule-meeting',
     'alumni-directory': 'alumni-directory',

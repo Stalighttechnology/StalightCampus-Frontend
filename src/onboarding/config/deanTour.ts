@@ -5,7 +5,7 @@ export const deanTour: Step[] = [
     target: 'body',
     title: 'Welcome to StalightCampus!',
     content:
-      'Let\'s show you around your Dean dashboard to help you oversee academic and institutional operations.',
+      "Let's show you around your Dean dashboard to help you oversee academic and institutional operations.",
     placement: 'center' as const,
     disableBeacon: true,
   },
@@ -46,26 +46,35 @@ export const deanTour: Step[] = [
     route: '/dean/dashboard',
   },
   {
-    target: '#sidebar-enroll-user',
-    title: 'Enroll Staff',
+    target: '#sidebar-exams',
+    title: 'Exams',
     content:
-      'Onboard and enroll new institutional roles such as HODs, faculty members, Deans, COE, or Fees Managers.',
+      'Monitor scheduled exams, track active sessions, and publish exam results.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/dean/enroll-user',
+    route: '/dean/exams',
   },
   {
-    target: '#sidebar-billing',
-    title: 'Billing & Plans',
+    target: '#sidebar-co-attainment',
+    title: 'CO/PO Attainment',
     content:
-      'Monitor your subscription tier, billing address, payments history, and support tickets.',
+      'Calculate and analyze Course Outcome (CO) attainment and PO mapping levels across departments.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/dean/billing',
+    route: '/dean/co-attainment',
+  },
+  {
+    target: '#sidebar-faculty',
+    title: 'Faculty Profiles',
+    content:
+      'View faculty assignments, schedules, leave history, and track weekly teaching hours.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/dean/faculty',
   },
   {
     target: '#sidebar-attendance',
-    title: 'Today\'s Attendance',
+    title: "Today's Attendance",
     content:
       'View real-time student attendance percentages and snapshots across departments.',
     placement: 'right' as const,
@@ -82,31 +91,22 @@ export const deanTour: Step[] = [
     route: '/dean/attendance-filters',
   },
   {
-    target: '#hod-search-student-card',
-    title: 'Scan for Student Info',
+    target: '#sidebar-enroll-user',
+    title: 'Enroll Staff',
     content:
-      'Quickly search for student details or use barcode and face scanner to retrieve their academic profile.',
-    placement: 'bottom' as const,
-    disableBeacon: false,
-    route: '/dean/scan-student-info',
-  },
-  {
-    target: '#sidebar-exams',
-    title: 'Exams',
-    content:
-      'Monitor scheduled exams, track active sessions, and publish exam results.',
+      'Onboard and enroll new institutional roles such as HODs, faculty members, Deans, COE, or Fees Managers.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/dean/exams',
+    route: '/dean/enroll-user',
   },
   {
-    target: '#sidebar-faculty',
-    title: 'Faculty Profiles',
+    target: '#sidebar-announcement-management',
+    title: 'Announcement Management',
     content:
-      'View faculty assignments, schedules, leave history, and track weekly teaching hours.',
+      'Create, broadcast, and manage institutional announcements and notices across departments.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/dean/faculty',
+    route: '/dean/announcement-management',
   },
   {
     target: '#sidebar-finance',
@@ -125,6 +125,24 @@ export const deanTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: false,
     route: '/dean/campus-locations',
+  },
+  {
+    target: '#sidebar-billing',
+    title: 'Billing & Plans',
+    content:
+      'Monitor your subscription tier, billing address, payments history, and support tickets.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/dean/billing',
+  },
+  {
+    target: '#sidebar-scan-student-info',
+    title: 'Scan for Student Info',
+    content:
+      'Quickly search for student details or use barcode and face scanner to retrieve their academic profile.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/dean/scan-student-info',
   },
   {
     target: '#sidebar-admin-leaves',

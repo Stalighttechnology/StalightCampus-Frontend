@@ -155,6 +155,42 @@ export function deanTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
+  if (target === '#sidebar-co-attainment') {
+    return [
+      {
+        ...step,
+        target: '#co-attainment-header',
+        title: 'CO/PO Attainment',
+        content: 'Calculate and analyze Course Outcome (CO) attainment levels across departments.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-announcement-management') {
+    return [
+      {
+        ...step,
+        target: '#announcement-header-section',
+        title: 'Announcement Management',
+        content: 'Create, broadcast, and manage institutional announcements and notices.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-scan-student-info') {
+    return [
+      {
+        ...step,
+        target: '#hod-search-student-card',
+        title: 'Scan for Student Info',
+        content: 'Quickly search for student details or use barcode and face scanner to retrieve their academic profile.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
   if (target === '#sidebar-profile') {
     return [
       {
