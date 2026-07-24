@@ -413,7 +413,7 @@ const ExamApplication: React.FC = () => {
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
-      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0 pb-4 border-b">
+      <CardHeader id="exam-applications-header" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0 pb-4 border-b">
         <div className="flex items-start justify-between w-full sm:w-auto">
           <div className="flex flex-col">
             <CardTitle className={`text-xl sm:text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Exam Applications</CardTitle>

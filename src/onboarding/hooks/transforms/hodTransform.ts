@@ -148,7 +148,7 @@ export function hodTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#co-attainment-selectors',
+        target: '#co-attainment-header',
         placement: isMobile ? step.placement : 'top',
       },
     ];
@@ -158,7 +158,7 @@ export function hodTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#exam-applications-filters',
+        target: '#exam-applications-header',
         placement: isMobile ? step.placement : 'top',
       },
     ];
@@ -285,6 +285,114 @@ export function hodTransform(step: any, isMobile: boolean): any[] | null {
         title: 'Admin Profile Information',
         content: 'Manage your profile details, change passwords, and configure settings.',
         placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-syllabus-status') {
+    return [
+      {
+        ...step,
+        target: '#hod-syllabus-tracker-header',
+        title: 'Syllabus Status Management',
+        content: 'Configure and manage week-wise syllabus templates for subjects in your department.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-syllabus-monitor') {
+    return [
+      {
+        ...step,
+        target: '#hod-semester-monitor-header',
+        title: 'Semester Syllabus Monitoring',
+        content: 'Track and monitor week-by-week teaching progress across all subjects in real time.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-schedule-meeting') {
+    return [
+      {
+        ...step,
+        target: '#schedule-meetings-header-console',
+        title: 'Schedule Meetings',
+        content: 'Plan, configure, and coordinate interactive meetings with HODs, faculty, or students.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-staff-tasks') {
+    return [
+      {
+        ...step,
+        target: '#staff-tasks-tracker-header',
+        title: 'Staff Tasks',
+        content: 'Assign academic tasks, monitor progress, and manage department workflows.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-holiday-calendar') {
+    return [
+      {
+        ...step,
+        target: '#holiday-calendar-header',
+        title: 'Institutional Calendar',
+        content: 'Check scheduled holidays, exam dates, and upcoming academic events.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-alumni-directory') {
+    return [
+      {
+        ...step,
+        target: '#alumni-directory-header',
+        title: 'Alumni Directory',
+        content: 'Search, audit, and stay connected with graduated cohorts and manage alumni relationships.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-reimbursements') {
+    return [
+      {
+        ...step,
+        target: '#reimbursements-header-section',
+        title: 'Reimbursements & Claims',
+        content: 'Submit reimbursement claims, track claim approvals, and check statements.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-my-payroll') {
+    return [
+      {
+        ...step,
+        target: '#faculty-payroll-header',
+        title: 'Payroll Logs',
+        content: 'Access payslips, check salary statements, and track financial transactions.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-act-as-teacher') {
+    return [
+      {
+        ...step,
+        target: '#faculty-stats-cards',
+        title: 'Act as Faculty',
+        content: 'Switch interface context to review schedules or perform actions as a teacher.',
+        placement: isMobile ? step.placement : 'bottom',
       },
     ];
   }
