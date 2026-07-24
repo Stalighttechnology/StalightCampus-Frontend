@@ -154,7 +154,7 @@ const shouldScrollStep = (targetStep: any): boolean => {
     // 3. Stats grids & headers (which are at top of pages or dashboard)
     const isStats =
       typeof target === 'string' &&
-      (target.includes('stats') ||
+      (target.includes('stat') ||
        target === '#feesmanager-invoices-header' ||
        target === '#feesmanager-payments-header');
 
@@ -207,7 +207,18 @@ const shouldScrollStep = (targetStep: any): boolean => {
     const isProctor =
       typeof target === 'string' && target.includes('proctor');
 
-    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden || isTransport || isLibrary || isAdmin || isProctor;
+    // 11. Faculty tour targets
+    const isFaculty =
+      typeof target === 'string' &&
+      (target.startsWith('#faculty-') ||
+       target.includes('live-session') ||
+       target.includes('timetable') ||
+       target.includes('upload') ||
+       target.includes('co-attainment') ||
+       target.includes('study-materials') ||
+       target.includes('schedule-class'));
+
+    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden || isTransport || isLibrary || isAdmin || isProctor || isFaculty;
   }
   return !targetStep.disableScrolling;
 };

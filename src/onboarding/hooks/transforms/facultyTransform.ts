@@ -12,7 +12,7 @@ export function facultyTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: isMobile ? '#timetable-card' : '#timetable-card-header',
+        target: '#timetable-card-header',
         title: 'Weekly Timetable',
         content: 'View your complete class and exam schedule here.',
         placement: isMobile ? step.placement : 'top',
@@ -102,7 +102,7 @@ export function facultyTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#co-attainment-selectors',
+        target: '#co-attainment-header',
         title: 'Calculate CO Attainment',
         content:
           '• Select a Subject to view and calculate Course Outcome (CO) attainment levels.\n• Configure the Target Threshold percentage (default 60%) to establish student grade targets.\n• Once a subject is selected, overall attainment results and reports will display below.',
@@ -118,14 +118,14 @@ export function facultyTransform(step: any, isMobile: boolean): any[] | null {
         target: '#statistics-attendance-overview-card',
         title: 'Attendance Overview',
         content: 'View real-time line charts for student attendance tracking.',
-        placement: isMobile ? step.placement : 'right',
+        placement: isMobile ? ('top' as const) : 'right',
       },
       {
         ...step,
         target: '#statistics-average-marks-card',
         title: 'Average Marks',
         content: 'View interactive bar charts for average marks analysis.',
-        placement: isMobile ? step.placement : 'left',
+        placement: isMobile ? ('top' as const) : 'left',
       },
       {
         ...step,
@@ -133,7 +133,7 @@ export function facultyTransform(step: any, isMobile: boolean): any[] | null {
         title: 'Proctor Students & Export PDF',
         content:
           '• Proctor Students: Review complete proctor student details in the summary table.\n• Export PDF: Use this button to download a comprehensive proctor student statistics report.',
-        placement: isMobile ? step.placement : 'top',
+        placement: isMobile ? ('top' as const) : 'top',
       },
     ];
   }
@@ -275,6 +275,18 @@ export function facultyTransform(step: any, isMobile: boolean): any[] | null {
         target: '#study-materials-header',
         title: 'Study Materials',
         content: 'View and upload course-related study materials for your assigned subjects.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-syllabus-status') {
+    return [
+      {
+        ...step,
+        target: '#faculty-syllabus-tracker-header',
+        title: 'Syllabus Tracker',
+        content: 'Track weekly teaching progress based on department master templates.',
         placement: isMobile ? step.placement : 'top',
       },
     ];

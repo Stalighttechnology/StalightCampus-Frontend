@@ -3,9 +3,9 @@ import { Step } from 'react-joyride';
 export const facultyTour: Step[] = [
   {
     target: 'body',
-    title: 'Welcome to StalightCampus!',
+    title: "Welcome to StalightCampus!",
     content:
-      'Let\'s show you around your faculty dashboard and help you get the most out of your teaching tools.',
+      "Let's show you around your faculty dashboard and help you get the most out of your teaching tools.",
     placement: 'center' as const,
     disableBeacon: true,
   },
@@ -46,6 +46,15 @@ export const facultyTour: Step[] = [
     route: '/faculty/dashboard',
   },
   {
+    target: '#sidebar-timetable',
+    title: 'View Timetable',
+    content:
+      'Check your complete teaching schedule, class timings, and exam supervision duties.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/faculty/timetable',
+  },
+  {
     target: '#sidebar-take-attendance',
     title: 'Take Attendance',
     content:
@@ -64,15 +73,6 @@ export const facultyTour: Step[] = [
     route: '/faculty/attendance-records',
   },
   {
-    target: '#sidebar-faculty-attendance',
-    title: 'My Attendance',
-    content:
-      'Mark your own daily attendance and check your personal attendance history.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/faculty/faculty-attendance',
-  },
-  {
     target: '#sidebar-upload-marks',
     title: 'Upload Marks',
     content:
@@ -82,13 +82,28 @@ export const facultyTour: Step[] = [
     route: '/faculty/upload-marks',
   },
   {
-    target: '#sidebar-upload-qp',
-    title: 'Upload Question Papers',
-    content:
-      'Upload class tests or end-of-semester question papers for review and printing.',
+    target: '#sidebar-faculty-assignments',
+    title: 'Assignments',
+    content: 'Manage and grade student assignment submissions.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/faculty/upload-qp',
+    route: '/faculty/assignments',
+  },
+  {
+    target: '#sidebar-study-materials',
+    title: 'Study Material',
+    content: 'Upload and distribute syllabus materials and documents for your subjects.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/faculty/study-materials',
+  },
+  {
+    target: '#sidebar-syllabus-status',
+    title: 'Syllabus Tracker',
+    content: 'Track weekly teaching progress based on department master templates.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/faculty/syllabus-status',
   },
   {
     target: '#sidebar-co-attainment',
@@ -100,22 +115,29 @@ export const facultyTour: Step[] = [
     route: '/faculty/co-attainment',
   },
   {
-    target: '#sidebar-statistics',
-    title: 'Generate Statistics',
-    content:
-      'Generate and view academic statistics, charts, and reports for your proctor students.',
+    target: '#sidebar-exam-applications',
+    title: 'Exam Applications',
+    content: 'Review and manage exam registration applications.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/faculty/statistics',
+    route: '/faculty/exam-applications',
   },
   {
-    target: '#sidebar-apply-leave',
-    title: 'Apply Leave',
+    target: '#sidebar-upload-qp',
+    title: 'Upload Question Papers',
     content:
-      'Apply for leave requests and track your leave approvals status.',
+      'Upload class tests or end-of-semester question papers for review and printing.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/faculty/apply-leave',
+    route: '/faculty/upload-qp',
+  },
+  {
+    target: '#sidebar-proctor-students',
+    title: 'Proctor Students',
+    content: 'Access records and view profiles of students assigned to you as proctored mentees.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/faculty/proctor-students',
   },
   {
     target: '#sidebar-student-leave',
@@ -127,54 +149,13 @@ export const facultyTour: Step[] = [
     route: '/faculty/student-leave',
   },
   {
-    target: '#sidebar-timetable',
-    title: 'View Timetable',
+    target: '#sidebar-faculty-announcement-management',
+    title: 'Student Announcements',
     content:
-      'Check your complete teaching schedule, class timings, and exam supervision duties.',
+      'Broadcast updates, event notices, or academic news directly to your proctor students.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/faculty/timetable',
-  },
-  {
-    target: '#sidebar-faculty-assignments',
-    title: 'Assignments',
-    content: 'Manage and grade student assignment submissions.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/faculty/assignments',
-  },
-  {
-    target: '#sidebar-exam-applications',
-    title: 'Exam Applications',
-    content: 'Review and manage exam registration applications.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/faculty/exam-applications',
-  },
-
-  {
-    target: '#sidebar-proctor-students',
-    title: 'Proctor Students',
-    content: 'Access records and view profiles of students assigned to you as proctored mentees.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/faculty/proctor-students',
-  },
-  {
-    target: '#sidebar-scan-student-info',
-    title: 'Scan for Student Info',
-    content: 'Quickly search and lookup detailed academic profile of any student.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/faculty/scan-student-info',
-  },
-  {
-    target: '#sidebar-study-materials',
-    title: 'Study Material',
-    content: 'Upload and distribute syllabus materials and documents for your subjects.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/faculty/study-materials',
+    route: '/faculty/announcements',
   },
   {
     target: '#sidebar-schedule-class',
@@ -185,21 +166,39 @@ export const facultyTour: Step[] = [
     route: '/faculty/schedule-class',
   },
   {
-    target: '#sidebar-faculty-announcement-management',
-    title: 'Student Announcements',
+    target: '#sidebar-statistics',
+    title: 'Generate Statistics',
     content:
-      'Broadcast updates, event notices, or academic news directly to your proctor students.',
+      'Generate and view academic statistics, charts, and reports for your proctor students.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/faculty/announcements',
+    route: '/faculty/statistics',
   },
   {
-    target: '#faculty-syllabus-tracker-header',
-    title: 'Syllabus Tracker',
-    content: 'Track weekly teaching progress based on department master templates.',
-    placement: 'bottom' as const,
+    target: '#sidebar-scan-student-info',
+    title: 'Scan for Student Info',
+    content: 'Quickly search and lookup detailed academic profile of any student.',
+    placement: 'right' as const,
     disableBeacon: false,
-    route: '/faculty/syllabus-status',
+    route: '/faculty/scan-student-info',
+  },
+  {
+    target: '#sidebar-faculty-attendance',
+    title: 'My Attendance',
+    content:
+      'Mark your own daily attendance and check your personal attendance history.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/faculty/faculty-attendance',
+  },
+  {
+    target: '#sidebar-apply-leave',
+    title: 'Apply Leave',
+    content:
+      'Apply for leave requests and track your leave approvals status.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/faculty/apply-leave',
   },
   {
     target: '#sidebar-faculty-profile',
