@@ -332,7 +332,7 @@ const CampusLocationManager: React.FC = () => {
   return (
     <div id="dean-campus-locations-container" className={`flex flex-col h-[100dvh] overflow-hidden text-sm sm:text-base w-full max-w-[412px] sm:max-w-none sm:min-h-screen mx-auto`}>
       {/* Header area (fixed) */}
-      <Card className={`shrink-0 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+      <Card id="dean-campus-locations-header" className={`shrink-0 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
         <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Campus Location Management</CardTitle>

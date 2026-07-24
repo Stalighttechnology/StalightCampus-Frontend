@@ -290,9 +290,9 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
   //  Render
   // ──────────────────────────────────
   return (
-    <div className="space-y-6">
+    <div id="alumni-directory-container" className="space-y-6">
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
-        <CardHeader className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+        <CardHeader id="alumni-directory-header" className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
           <div>
             <CardTitle className="text-xl sm:text-2xl font-semibold">Alumni Directory</CardTitle>
             <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">

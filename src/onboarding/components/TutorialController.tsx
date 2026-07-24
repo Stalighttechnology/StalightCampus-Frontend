@@ -261,12 +261,58 @@ export const TutorialController = () => {
 
   console.log('[ONBOARDING DEBUG] Current steps list in controller:', steps);
 
+  // Lock page scrolling when the tutorial guide is active
   useEffect(() => {
-    console.log('[TOUR GUIDE LIFECYCLE] TutorialController mounted');
-    return () => {
-      console.log('[TOUR GUIDE LIFECYCLE] TutorialController unmounted');
-    };
-  }, []);
+    if (isActive) {
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+
+      const preventDefault = (e: Event) => {
+        e.preventDefault();
+      };
+
+      const scrollKeys: Record<string, boolean> = {
+        ArrowUp: true,
+        ArrowDown: true,
+        Space: true,
+        PageUp: true,
+        PageDown: true,
+        End: true,
+        Home: true,
+      };
+
+      const preventDefaultForScrollKeys = (e: KeyboardEvent) => {
+        const activeEl = document.activeElement;
+        const isInput = activeEl && (
+          activeEl.tagName === 'INPUT' ||
+          activeEl.tagName === 'TEXTAREA' ||
+          activeEl.getAttribute('contenteditable') === 'true'
+        );
+
+        if (isInput) return;
+
+        if (scrollKeys[e.key]) {
+          e.preventDefault();
+          return false;
+        }
+      };
+
+      window.addEventListener('wheel', preventDefault, { passive: false });
+      window.addEventListener('touchmove', preventDefault, { passive: false });
+      window.addEventListener('keydown', preventDefaultForScrollKeys, { passive: false });
+
+      return () => {
+        document.body.style.overflow = originalBodyOverflow;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+        window.removeEventListener('wheel', preventDefault);
+        window.removeEventListener('touchmove', preventDefault);
+        window.removeEventListener('keydown', preventDefaultForScrollKeys);
+      };
+    }
+  }, [isActive]);
 
   const [isNavigating, setIsNavigating] = useState(false);
   const [showLoader, setShowLoader] = useState(false);

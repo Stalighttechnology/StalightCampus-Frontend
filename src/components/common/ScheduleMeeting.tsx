@@ -455,7 +455,7 @@ export default function ScheduleMeeting() {
 
   return (
     <div className="space-y-6 animate-in fade-in">
-      <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
+      <Card id="schedule-meetings-header-console" className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
         <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle className='text-xl sm:text-2xl font-semibold' >Meetings &amp; Schedules</CardTitle>
@@ -706,61 +706,65 @@ export default function ScheduleMeeting() {
           )}
         </CardHeader>
         
-        <CardContent className="p-4 sm:p-6">
-          {loading ? (
-            <div className="grid gap-4">
-              <SkeletonCard className="h-32 w-full" />
-              <SkeletonCard className="h-32 w-full" />
+        <CardContent className="p-4 sm:p-6 pb-6">
+          {/* Segmented Tab Switcher */}
+          <div className="flex justify-center">
+            <div className={`p-1 rounded-xl flex gap-1 ${theme === 'dark' ? 'bg-slate-900 border border-slate-800' : 'bg-slate-100 border border-slate-200'}`}>
+              <button
+                onClick={() => setActiveTab('upcoming')}
+                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                  activeTab === 'upcoming'
+                    ? (theme === 'dark' ? 'bg-primary text-white shadow-lg' : 'bg-white text-slate-900 shadow-sm')
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Upcoming ({upcomingTotal})
+              </button>
+              <button
+                onClick={() => setActiveTab('past')}
+                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                  activeTab === 'past'
+                    ? (theme === 'dark' ? 'bg-primary text-white shadow-lg' : 'bg-white text-slate-900 shadow-sm')
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                History ({pastTotal})
+              </button>
             </div>
-          ) : (() => {
-            const now = new Date();
-            const displayMeetings = activeTab === 'upcoming' ? upcomingMeetings : pastMeetings;
-            const currentTotal = activeTab === 'upcoming' ? upcomingTotal : pastTotal;
-            const currentPage = activeTab === 'upcoming' ? upcomingPage : pastPage;
-            const totalPages = Math.ceil(currentTotal / 10);
+          </div>
+        </CardContent>
+      </Card>
 
-            return (
-              <>
-                {/* Segmented Tab Switcher */}
-                <div className="flex justify-center mb-6">
-                  <div className={`p-1 rounded-xl flex gap-1 ${theme === 'dark' ? 'bg-slate-900 border border-slate-800' : 'bg-slate-100 border border-slate-200'}`}>
-                    <button
-                      onClick={() => setActiveTab('upcoming')}
-                      className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
-                        activeTab === 'upcoming'
-                          ? (theme === 'dark' ? 'bg-primary text-white shadow-lg' : 'bg-white text-slate-900 shadow-sm')
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      Upcoming ({upcomingTotal})
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('past')}
-                      className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
-                        activeTab === 'past'
-                          ? (theme === 'dark' ? 'bg-primary text-white shadow-lg' : 'bg-white text-slate-900 shadow-sm')
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      History ({pastTotal})
-                    </button>
-                  </div>
-                </div>
+      {/* Main meetings list */}
+      <div className="space-y-6">
+        {loading ? (
+          <div className="grid gap-4">
+            <SkeletonCard className="h-32 w-full" />
+            <SkeletonCard className="h-32 w-full" />
+          </div>
+        ) : (() => {
+          const now = new Date();
+          const displayMeetings = activeTab === 'upcoming' ? upcomingMeetings : pastMeetings;
+          const currentTotal = activeTab === 'upcoming' ? upcomingTotal : pastTotal;
+          const currentPage = activeTab === 'upcoming' ? upcomingPage : pastPage;
+          const totalPages = Math.ceil(currentTotal / 10);
 
-                {displayMeetings.length === 0 ? (
-                  <div className={`p-8 text-center rounded-xl border-2 border-dashed ${theme === 'dark' ? 'bg-card/30 text-muted-foreground border-border' : 'bg-gray-50/50 text-gray-500 border-gray-300'} flex flex-col items-center justify-center`}>
-                    <Video className="mx-auto h-12 w-12 opacity-30 mb-3 text-primary animate-pulse" />
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {activeTab === 'upcoming' ? 'No Upcoming Meetings' : 'No Past Meetings'}
-                    </h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {activeTab === 'upcoming' 
-                        ? 'There are currently no meetings scheduled for you.' 
-                        : 'No meeting history found.'}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 pb-2">
+          return (
+            <>
+              {displayMeetings.length === 0 ? (
+                <Card className={`border p-8 text-center rounded-[1.5rem] ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} flex flex-col items-center justify-center`}>
+                  <Video className="mx-auto h-12 w-12 opacity-30 mb-3 text-primary animate-pulse" />
+                  <h3 className="text-lg font-semibold text-foreground">
+                    {activeTab === 'upcoming' ? 'No Upcoming Meetings' : 'No Past Meetings'}
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {activeTab === 'upcoming' 
+                      ? 'There are currently no meetings scheduled for you.' 
+                      : 'No meeting history found.'}
+                  </p>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 pb-2">
                     {displayMeetings.map((meeting) => {
                       const start = new Date(meeting.start_time);
                       const end = new Date(meeting.end_time);
@@ -900,8 +904,7 @@ export default function ScheduleMeeting() {
               </>
             );
           })()}
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }

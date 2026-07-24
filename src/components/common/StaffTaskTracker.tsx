@@ -450,7 +450,7 @@ const StaffTaskTracker = () => {
 
   return (
     <Card className="border-border bg-card text-card-foreground">
-      <CardHeader className="border-b pb-4">
+      <CardHeader id="staff-tasks-tracker-header" className="border-b pb-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <CardTitle className="text-xl sm:text-2xl font-semibold tracking-tight">Task Tracker</CardTitle>

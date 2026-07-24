@@ -250,10 +250,10 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
 
 
     return (
-        <div className="space-y-3 flex flex-col pb-2 w-full max-w-full">
+        <div id="holiday-calendar-container" className="space-y-3 flex flex-col pb-2 w-full max-w-full">
             <Card className={`flex-1 flex flex-col border min-h-[650px] w-full max-w-full rounded-lg ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
                 {/* Header Section */}
-                <CardHeader className="flex flex-col md:flex-row items-stretch md:items-center justify-between pb-3 gap-3 border-b border-gray-100 dark:border-border/30">
+                <CardHeader id="holiday-calendar-header" className="flex flex-col md:flex-row items-stretch md:items-center justify-between pb-3 gap-3 border-b border-gray-100 dark:border-border/30">
                     {/* Month Title & Navigation */}
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 w-full md:w-auto">
                         <div className="flex flex-row items-center justify-between w-full sm:w-auto gap-2">

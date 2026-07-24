@@ -426,7 +426,7 @@ export const BillingManagement: React.FC = () => {
       <div className="grid gap-6 grid-cols-1 min-[1250px]:grid-cols-3">
         {/* Current Plan Card */}
         <Card id="billing-plan-card" className="col-span-1 min-[1250px]:col-span-1 flex flex-col h-full">
-          <CardHeader className="border-b pb-4 flex flex-row items-center justify-between">
+          <CardHeader id="billing-plan-card-header" className="border-b pb-4 flex flex-row items-center justify-between">
             <div>
               <CardTitle className={`text-xl sm:text-2xl font-semibold flex items-center gap-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Current Plan
@@ -547,7 +547,7 @@ export const BillingManagement: React.FC = () => {
 
         {/* Organization Details Card */}
         <Card id="billing-org-details-card" className="col-span-1 min-[1250px]:col-span-2 flex flex-col h-full">
-          <CardHeader className="border-b pb-4 flex flex-row items-center justify-between">
+          <CardHeader id="billing-org-details-card-header" className="border-b pb-4 flex flex-row items-center justify-between">
             <div className="flex-1 pr-4">
               <CardTitle className={`text-xl sm:text-2xl font-semibold flex items-center gap-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Organization Details

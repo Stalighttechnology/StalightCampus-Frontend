@@ -125,7 +125,7 @@ const FacultyPayroll: React.FC<FacultyPayrollProps> = ({ user }) => {
   return (
     <div className="space-y-6 pb-10">
       <Card className={cardClass}>
-        <CardHeader className="border-b pb-4">
+        <CardHeader id="faculty-payroll-header" className="border-b pb-4">
           <div className="flex items-center gap-3">
 
             <div>
