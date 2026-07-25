@@ -311,7 +311,7 @@ const WardenGatePassManagement = () => {
       {/* Main Card */}
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
         {/* ── Card Header ── */}
-        <CardHeader className="pb-0 border-b bg-muted/30">
+        <CardHeader id="warden-gate-passes-header" className="pb-0 border-b bg-muted/30">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4">
             <div>
               <CardTitle className="text-xl sm:text-2xl">Gate Pass Requests</CardTitle>

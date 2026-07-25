@@ -37,6 +37,33 @@ export const wardenTour: Step[] = [
     route: '/warden/residents',
   },
   {
+    target: '#sidebar-student-meals',
+    title: "Today's Menu",
+    content:
+      "Check today's scheduled meals and mess menu timings for residents.",
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/warden/student-meals',
+  },
+  {
+    target: '#sidebar-menu-management',
+    title: 'Mess Menu Management',
+    content:
+      'Plan weekly mess meal menus and schedule special dining menus.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/warden/menu-management',
+  },
+  {
+    target: '#sidebar-gate-passes',
+    title: 'Gate Pass Requests',
+    content:
+      'Review and process student out-pass and gate pass requests.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/warden/gate-passes',
+  },
+  {
     target: '#sidebar-issues',
     title: 'Issue Tracking',
     content:
@@ -55,6 +82,24 @@ export const wardenTour: Step[] = [
     route: '/warden/visitor_logs',
   },
   {
+    target: '#sidebar-announcement-management',
+    title: 'Announcement Management',
+    content:
+      'Create and broadcast announcements to hostel residents and staff.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/warden/announcement-management',
+  },
+  {
+    target: '#sidebar-schedule-meeting',
+    title: 'Meetings',
+    content:
+      'Schedule and organize administrative meetings.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/warden/schedule-meeting',
+  },
+  {
     target: '#sidebar-apply-leave',
     title: 'Apply Leave',
     content:
@@ -62,6 +107,42 @@ export const wardenTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: false,
     route: '/warden/apply-leave',
+  },
+  {
+    target: '#sidebar-my-attendance',
+    title: 'My Attendance',
+    content:
+      'Check your personal daily attendance logs and records.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/warden/my-attendance',
+  },
+  {
+    target: '#sidebar-holiday-calendar',
+    title: 'Calendar',
+    content:
+      'View institutional holiday calendar and scheduled events.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/warden/holiday-calendar',
+  },
+  {
+    target: '#sidebar-reimbursements',
+    title: 'Reimbursements & Claims',
+    content:
+      'Submit and monitor status of expense reimbursement claims.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/warden/reimbursements',
+  },
+  {
+    target: '#sidebar-my-payroll',
+    title: 'My Salary & Payroll',
+    content:
+      'View your monthly salary statements, pay slips, and statutory deductions.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/warden/my-payroll',
   },
   {
     target: '#sidebar-profile',
@@ -73,4 +154,3 @@ export const wardenTour: Step[] = [
     route: '/warden/profile',
   },
 ];
-

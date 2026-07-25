@@ -229,7 +229,7 @@ const WardenDashboard = () => {
           </div>
         </>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div id="warden-all-stats-container" className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Hostel Selection Cards */}
           <div id="warden-hostels-grid" className="md:col-span-1 flex flex-col gap-6">
             {hostels.map((hostel) => (
