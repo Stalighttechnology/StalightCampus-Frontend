@@ -221,8 +221,6 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
     };
 
     fetchDashboardData();
-    const dataRefreshInterval = setInterval(fetchDashboardData, 5 * 60 * 1000);
-    return () => clearInterval(dataRefreshInterval);
   }, []);
 
   useEffect(() => {
