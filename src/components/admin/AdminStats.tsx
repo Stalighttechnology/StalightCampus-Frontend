@@ -37,6 +37,7 @@ import {
 } from
   "lucide-react";
 import {
+  Skeleton,
   SkeletonPageHeader,
   SkeletonStatsGrid,
   SkeletonChart,
@@ -251,15 +252,47 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
   if (loading) {
     return (
       <div className="space-y-8">
-        <SkeletonPageHeader />
-        <SkeletonStatsGrid items={4} />
+        {/* Metric Cards Skeleton */}
+        <SkeletonStatsGrid items={userTier >= 2 ? 6 : 5} columns={3} />
+
+        {/* Admission Overview Skeleton */}
+        {userTier >= 3 && (
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-48" />
+            <SkeletonStatsGrid items={4} columns={4} />
+          </div>
+        )}
+
+        {/* Search Bar Skeleton */}
+        <div className="flex gap-2 items-center">
+          <Skeleton className="h-10 flex-1 rounded-lg" />
+          <Skeleton className="h-10 w-28 rounded-lg" />
+        </div>
+
+        {/* Charts Skeleton */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SkeletonChart />
           <SkeletonChart />
         </div>
-        <SkeletonTable rows={5} cols={3} />
-      </div>);
 
+        {/* Branch Statistics Table Skeleton */}
+        <SkeletonTable rows={5} cols={3} />
+
+        {/* Action Cards Grid Skeleton */}
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-36 mb-4" />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {Array.from({ length: user?.role === "org_admin" ? 6 : 10 }).map((_, i) => (
+              <div key={i} className="rounded-lg border p-4 space-y-3 bg-card shadow-sm">
+                <Skeleton className="h-5 w-5 rounded" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!stats) {
