@@ -74,15 +74,6 @@ export const feesManagerTour: Step[] = [
     route: '/fees-manager/assignments',
   },
   {
-    target: '#sidebar-individual-fees',
-    title: 'Individual Fees',
-    content:
-      'Review, manage, or delete specific student fee assignments.',
-    placement: 'right' as const,
-    disableBeacon: true,
-    route: '/fees-manager/individual-fees',
-  },
-  {
     target: '#sidebar-bulk-assignment',
     title: 'Bulk Assignment',
     content:
@@ -90,6 +81,15 @@ export const feesManagerTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: true,
     route: '/fees-manager/bulk-assignment',
+  },
+  {
+    target: '#sidebar-individual-fees',
+    title: 'Individual Fees',
+    content:
+      'Review, manage, or delete specific student fee assignments.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/fees-manager/individual-fees',
   },
   {
     target: '#sidebar-invoices',
@@ -110,6 +110,42 @@ export const feesManagerTour: Step[] = [
     route: '/fees-manager/payments',
   },
   {
+    target: '#sidebar-student-reports',
+    title: 'Student Fee Reports',
+    content:
+      'Access individual student fee ledgers, cohort statistics, and send payment reminders.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/fees-manager/student-reports',
+  },
+  {
+    target: '#sidebar-reports',
+    title: 'Attendance Reports',
+    content:
+      'Monitor and generate staff attendance audit reports and download them as PDF/Excel.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/fees-manager/reports',
+  },
+  {
+    target: '#sidebar-payroll',
+    title: 'Payroll Management',
+    content:
+      'Manage staff payroll, salary slips, and compensation processing.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/fees-manager/payroll',
+  },
+  {
+    target: '#sidebar-announcement-management',
+    title: 'Announcement Management',
+    content:
+      'Create and manage institution-wide announcements and updates.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/fees-manager/announcement-management',
+  },
+  {
     target: '#sidebar-payment-settings',
     title: 'Payment Settings',
     content:
@@ -117,6 +153,15 @@ export const feesManagerTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: true,
     route: '/fees-manager/payment-settings',
+  },
+  {
+    target: '#sidebar-schedule-meeting',
+    title: 'Schedule Meeting',
+    content:
+      'Schedule and organize meetings across institutional staff.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/fees-manager/schedule-meeting',
   },
   {
     target: '#sidebar-leave',
@@ -136,22 +181,22 @@ export const feesManagerTour: Step[] = [
     route: '/fees-manager/my-attendance',
   },
   {
-    target: '#sidebar-reports',
-    title: 'Attendance Reports',
+    target: '#sidebar-holiday-calendar',
+    title: 'Calendar',
     content:
-      'Monitor and generate staff attendance audit reports and download them as PDF/Excel.',
+      'View institutional holiday calendar and scheduled events.',
     placement: 'right' as const,
     disableBeacon: true,
-    route: '/fees-manager/reports',
+    route: '/fees-manager/holiday-calendar',
   },
   {
-    target: '#sidebar-student-reports',
-    title: 'Student Fee Reports',
+    target: '#sidebar-my-payroll',
+    title: 'My Salary & Payroll',
     content:
-      'Access individual student fee ledgers, cohort statistics, and send payment reminders.',
+      'View your personal monthly salary statements, statutory deductions, and pay slips.',
     placement: 'right' as const,
     disableBeacon: true,
-    route: '/fees-manager/student-reports',
+    route: '/fees-manager/my-payroll',
   },
   {
     target: '#sidebar-profile',

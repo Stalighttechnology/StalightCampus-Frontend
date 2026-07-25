@@ -785,61 +785,62 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   return (
     <div className="space-y-6 pb-10">
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-        <CardHeader id="fees-manager-payroll-header" className="border-b mb-3">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-xl sm:text-2xl font-semibold mb-2">Payroll Management</CardTitle>
-              <CardDescription>Manage employee salaries, statutory PF/ESI compliance, TDS taxes, loans, and Razorpay payouts.</CardDescription>
-            </div>
-            {!selectedRun && (
-              <div className="flex gap-2 w-full sm:w-auto">
-                <Button
-                  variant="outline"
-                  className="gap-2 w-full sm:w-auto bg-primary text-white hover:bg-primary/80 hover:text-white"
-                  onClick={async () => {
-                    setLoading(true);
-                    const res = await getPayrollSettings();
-                    if (res.success) setPayrollSettings(res.data);
-                    setLoading(false);
-                    setConfigModalOpen(true);
-                  }}
-                >
-                  <Settings size={16} /> Configurations
-                </Button>
+        <div id="fees-manager-payroll-header-section">
+          <CardHeader id="fees-manager-payroll-header" className="border-b mb-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-xl sm:text-2xl font-semibold mb-2">Payroll Management</CardTitle>
+                <CardDescription>Manage employee salaries, statutory PF/ESI compliance, TDS taxes, loans, and Razorpay payouts.</CardDescription>
               </div>
-            )}
-          </div>
-        </CardHeader>
+              {!selectedRun && (
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <Button
+                    variant="outline"
+                    className="gap-2 w-full sm:w-auto bg-primary text-white hover:bg-primary/80 hover:text-white"
+                    onClick={async () => {
+                      setLoading(true);
+                      const res = await getPayrollSettings();
+                      if (res.success) setPayrollSettings(res.data);
+                      setLoading(false);
+                      setConfigModalOpen(true);
+                    }}
+                  >
+                    <Settings size={16} /> Configurations
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardHeader>
 
-        <CardContent className="space-y-6">
-          {/* Tabs */}
-          <div className={`flex border-b overflow-x-auto gap-4 dark:border-slate-800`}>
-        {([
-          { id: 'overview', label: 'Overview' },
-          { id: 'structures', label: 'Salary Structures' },
-          { id: 'reimbursements', label: 'Reimbursements' },
-          { id: 'adjustments', label: 'Adjustments' },
-          { id: 'attendance-lock', label: 'Attendance Lock' },
-          { id: 'runs', label: 'Payroll Batches' },
-          { id: 'reports', label: 'Reports' },
-        ] as const).map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => { setActiveTab(tab.id as any); setSelectedRun(null); }}
-            className={`pb-3 text-sm font-semibold whitespace-nowrap transition-all border-b-2 ${
-              activeTab === tab.id
-                ? 'border-primary text-primary'
-                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+          <CardContent className="space-y-6 pb-0">
+            {/* Tabs */}
+            <div className={`flex border-b overflow-x-auto gap-4 dark:border-slate-800`}>
+              {([
+                { id: 'overview', label: 'Overview' },
+                { id: 'structures', label: 'Salary Structures' },
+                { id: 'reimbursements', label: 'Reimbursements' },
+                { id: 'adjustments', label: 'Adjustments' },
+                { id: 'attendance-lock', label: 'Attendance Lock' },
+                { id: 'runs', label: 'Payroll Batches' },
+                { id: 'reports', label: 'Reports' },
+              ] as const).map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => { setActiveTab(tab.id as any); setSelectedRun(null); }}
+                  className={`pb-3 text-sm font-semibold whitespace-nowrap transition-all border-b-2 ${
+                    activeTab === tab.id
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </div>
 
-      {/* Alert panels (managed via modal overlays now) */}
-
-      {/* TAB CONTENT: Overview */}
+        <CardContent className="space-y-6 pt-4">
       {activeTab === 'overview' && !selectedRun && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">

@@ -8,6 +8,16 @@
 export function feesManagerTransform(step: any, isMobile: boolean): any[] | null {
   const target = step.target;
 
+  if (target === '#feesmanager-recent-transactions') {
+    return [
+      {
+        ...step,
+        target: '#feesmanager-recent-transactions-header',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
   if (target === '#sidebar-components') {
     return [
       {
@@ -38,21 +48,21 @@ export function feesManagerTransform(step: any, isMobile: boolean): any[] | null
     ];
   }
 
-  if (target === '#sidebar-individual-fees') {
-    return [
-      {
-        ...step,
-        target: '#feesmanager-individual-assignments-filters',
-        placement: isMobile ? step.placement : 'bottom',
-      },
-    ];
-  }
-
   if (target === '#sidebar-bulk-assignment') {
     return [
       {
         ...step,
         target: '#feesmanager-bulk-assignment-header',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-individual-fees') {
+    return [
+      {
+        ...step,
+        target: '#feesmanager-individual-assignments-filters',
         placement: isMobile ? step.placement : 'bottom',
       },
     ];
@@ -78,12 +88,68 @@ export function feesManagerTransform(step: any, isMobile: boolean): any[] | null
     ];
   }
 
+  if (target === '#sidebar-student-reports') {
+    return [
+      {
+        ...step,
+        target: '#feesmanager-student-reports-search-header',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-reports') {
+    return [
+      {
+        ...step,
+        target: '#feesmanager-reports-header',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-payroll') {
+    return [
+      {
+        ...step,
+        target: '#fees-manager-payroll-header-section',
+        title: 'Payroll Management',
+        content: 'Manage employee salaries, statutory PF/ESI compliance, TDS taxes, loans, and Razorpay payouts.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-announcement-management') {
+    return [
+      {
+        ...step,
+        target: '#announcement-header-section',
+        title: 'Announcement Management',
+        content: 'Create and manage system announcements.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
   if (target === '#sidebar-payment-settings') {
     return [
       {
         ...step,
         target: '#feesmanager-payment-settings-header',
         placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-schedule-meeting') {
+    return [
+      {
+        ...step,
+        target: '#schedule-meetings-header-console',
+        title: 'Meetings & Schedules',
+        content: 'Schedule and manage online meetings across staff roles.',
+        placement: isMobile ? step.placement : 'top',
       },
     ];
   }
@@ -107,35 +173,39 @@ export function feesManagerTransform(step: any, isMobile: boolean): any[] | null
     ];
   }
 
-  if (target === '#sidebar-reports') {
-    return [
-      {
-        ...step,
-        target: '#feesmanager-reports-header',
-        placement: isMobile ? step.placement : 'bottom',
-      },
-    ];
-  }
-
-  if (target === '#sidebar-student-reports') {
-    return [
-      {
-        ...step,
-        target: '#feesmanager-student-reports-search-header',
-        placement: isMobile ? step.placement : 'bottom',
-      },
-    ];
-  }
-
   if (target === '#sidebar-my-attendance') {
     return [
       {
         ...step,
         target: '#today-attendance-toggle-section',
-        title: 'My Attendance',
+        title: "Today's Attendance",
         content:
           'Mark your attendance as present or absent for today and optionally add notes.',
         placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-holiday-calendar') {
+    return [
+      {
+        ...step,
+        target: '#holiday-calendar-header',
+        title: 'Institutional Calendar',
+        content: 'View upcoming holidays, events, exams, and approved leaves.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-my-payroll') {
+    return [
+      {
+        ...step,
+        target: '#faculty-payroll-header',
+        title: 'My Salary & Payroll',
+        content: 'View your payslips, statutory deductions, and salary history.',
+        placement: isMobile ? step.placement : 'bottom',
       },
     ];
   }

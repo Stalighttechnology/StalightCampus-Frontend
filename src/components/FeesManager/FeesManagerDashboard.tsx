@@ -271,7 +271,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
 
       {/* Recent Transactions Table */}
       <div id="feesmanager-recent-transactions" className={`rounded-lg shadow mt-5 overflow-hidden ${theme === 'dark' ? 'border border-border bg-card' : 'border border-gray-200 bg-white'}`}>
-        <div className="flex flex-row items-center justify-between p-6 border-b dark:border-slate-800">
+        <div id="feesmanager-recent-transactions-header" className="flex flex-row items-center justify-between p-6 border-b dark:border-slate-800">
           <div>
             <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Transactions</h3>
             <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Last 5 successful fee collections</p>
