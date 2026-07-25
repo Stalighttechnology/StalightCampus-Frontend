@@ -9,20 +9,31 @@ export function transportAdminTransform(step: any, isMobile: boolean): any[] | n
   const target = step.target;
 
   if (target === '#sidebar-dashboard') {
+    if (isMobile) {
+      return [
+        {
+          ...step,
+          target: '#transport-stats-grid',
+          title: 'System Statistics',
+          content: 'Monitor overall system fleet, active routes, drivers, and pending complaints at a glance.',
+          placement: step.placement,
+        },
+      ];
+    }
     return [
       {
         ...step,
         target: '#transport-stats-grid',
         title: 'System Statistics',
         content: 'Monitor overall system fleet, active routes, drivers, and pending complaints at a glance.',
-        placement: isMobile ? step.placement : 'bottom',
+        placement: 'bottom',
       },
       {
         ...step,
         target: '#transport-live-trips-title',
         title: 'Live Trip Status',
         content: 'Check the real-time active trips status currently running on campus.',
-        placement: isMobile ? step.placement : 'top',
+        placement: 'top',
       },
     ];
   }
@@ -37,21 +48,21 @@ export function transportAdminTransform(step: any, isMobile: boolean): any[] | n
     ];
   }
 
-  if (target === '#sidebar-transport-routes') {
-    return [
-      {
-        ...step,
-        target: '#transport-routes-action-header',
-        placement: isMobile ? step.placement : 'bottom',
-      },
-    ];
-  }
-
   if (target === '#sidebar-transport-drivers') {
     return [
       {
         ...step,
         target: '#transport-drivers-action-header',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-transport-routes') {
+    return [
+      {
+        ...step,
+        target: '#transport-routes-action-header',
         placement: isMobile ? step.placement : 'bottom',
       },
     ];
@@ -96,6 +107,42 @@ export function transportAdminTransform(step: any, isMobile: boolean): any[] | n
     ];
   }
 
+  if (target === '#sidebar-announcement-management') {
+    return [
+      {
+        ...step,
+        target: '#announcement-header-section',
+        title: 'Announcement Management',
+        content: 'Create and manage system announcements.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-schedule-meeting') {
+    return [
+      {
+        ...step,
+        target: '#schedule-meetings-header-console',
+        title: 'Meetings & Schedules',
+        content: 'Schedule and manage online meetings across staff roles.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-manage-leaves') {
+    return [
+      {
+        ...step,
+        target: '#hod-leaves-header-section',
+        title: 'Driver Leave Requests',
+        content: 'Review and manage leave applications submitted by drivers.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
   if (target === '#sidebar-apply-leave') {
     return [
       {
@@ -115,14 +162,50 @@ export function transportAdminTransform(step: any, isMobile: boolean): any[] | n
     ];
   }
 
-  if (target === '#sidebar-manage-leaves') {
+  if (target === '#sidebar-my-attendance') {
     return [
       {
         ...step,
-        target: '#hod-leaves-header-section',
-        title: 'Driver Leave Requests',
-        content: 'Review and manage leave applications submitted by drivers.',
+        target: '#today-attendance-toggle-section',
+        title: "Today's Attendance",
+        content: 'Mark your daily attendance check-in or check-out here.',
         placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-holiday-calendar') {
+    return [
+      {
+        ...step,
+        target: '#holiday-calendar-header',
+        title: 'Institutional Calendar',
+        content: 'View upcoming holidays, events, exams, and approved leaves.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-reimbursements') {
+    return [
+      {
+        ...step,
+        target: '#reimbursements-header-section',
+        title: 'Reimbursements & Claims',
+        content: 'Submit and track your expense reimbursement requests.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-my-payroll') {
+    return [
+      {
+        ...step,
+        target: '#faculty-payroll-header',
+        title: 'My Salary & Payroll',
+        content: 'View your payslips, statutory deductions, and salary history.',
+        placement: isMobile ? step.placement : 'bottom',
       },
     ];
   }

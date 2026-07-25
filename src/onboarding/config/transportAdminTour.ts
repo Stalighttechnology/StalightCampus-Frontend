@@ -28,15 +28,6 @@ export const transportAdminTour: Step[] = [
     route: '/transport-admin/transport-buses',
   },
   {
-    target: '#sidebar-transport-routes',
-    title: 'Routes & Stops',
-    content:
-      'Configure bus routes, start and end points, morning and evening timings, link buses, and manage stops.',
-    placement: 'right' as const,
-    disableBeacon: true,
-    route: '/transport-admin/transport-routes',
-  },
-  {
     target: '#sidebar-transport-drivers',
     title: 'Driver Assignments',
     content:
@@ -44,6 +35,15 @@ export const transportAdminTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: true,
     route: '/transport-admin/transport-drivers',
+  },
+  {
+    target: '#sidebar-transport-routes',
+    title: 'Routes & Stops',
+    content:
+      'Configure bus routes, start and end points, morning and evening timings, link buses, and manage stops.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/transport-admin/transport-routes',
   },
   {
     target: '#sidebar-transport-allocations',
@@ -73,13 +73,22 @@ export const transportAdminTour: Step[] = [
     route: '/transport-admin/transport-incidents',
   },
   {
-    target: '#sidebar-apply-leave',
-    title: 'Apply Leave',
+    target: '#sidebar-announcement-management',
+    title: 'Announcement Management',
     content:
-      'Submit leave requests and track your application history.',
+      'Create and broadcast transport announcements to drivers, staff, and students.',
     placement: 'right' as const,
     disableBeacon: true,
-    route: '/transport-admin/apply-leave',
+    route: '/transport-admin/announcement-management',
+  },
+  {
+    target: '#sidebar-schedule-meeting',
+    title: 'Meetings',
+    content:
+      'Schedule and organize meetings across transport staff.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/transport-admin/schedule-meeting',
   },
   {
     target: '#sidebar-manage-leaves',
@@ -89,6 +98,51 @@ export const transportAdminTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: true,
     route: '/transport-admin/manage-leaves',
+  },
+  {
+    target: '#sidebar-apply-leave',
+    title: 'Apply Leave',
+    content:
+      'Submit leave requests and track your application history.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/transport-admin/apply-leave',
+  },
+  {
+    target: '#sidebar-my-attendance',
+    title: 'My Attendance',
+    content:
+      'Check your personal daily attendance logs and records.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/transport-admin/my-attendance',
+  },
+  {
+    target: '#sidebar-holiday-calendar',
+    title: 'Calendar',
+    content:
+      'View institutional holiday calendar and scheduled events.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/transport-admin/holiday-calendar',
+  },
+  {
+    target: '#sidebar-reimbursements',
+    title: 'Reimbursements & Claims',
+    content:
+      'Submit and monitor status of expense reimbursement claims.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/transport-admin/reimbursements',
+  },
+  {
+    target: '#sidebar-my-payroll',
+    title: 'My Salary & Payroll',
+    content:
+      'View your monthly salary statements, pay slips, and statutory deductions.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/transport-admin/my-payroll',
   },
   {
     target: '#sidebar-profile',
