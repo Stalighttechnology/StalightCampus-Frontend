@@ -628,7 +628,7 @@ const StudentAnnouncements = () => {
       <div>
         <Card id="announcements-card" className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
           <div id="announcements-header-stats">
-            <CardHeader className={`px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-2 border-b ${theme === 'dark' ? 'border-border bg-muted/30' : 'border-gray-200 bg-muted/10'}`}>
+            <CardHeader id="announcement-header-section" className={`px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-2 border-b ${theme === 'dark' ? 'border-border bg-muted/30' : 'border-gray-200 bg-muted/10'}`}>
               <div className="flex justify-between items-center">
                 <div>
                   <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
