@@ -46,15 +46,6 @@ export const hmsTour: Step[] = [
     route: '/hms/rooms',
   },
   {
-    target: '#sidebar-students',
-    title: 'Student Management',
-    content:
-      'Filter and search registered hostel students, assign them to rooms, and manage no-dues clearance.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/hms/students',
-  },
-  {
     target: '#sidebar-enrollment',
     title: 'Staff Enrollment',
     content:
@@ -64,22 +55,22 @@ export const hmsTour: Step[] = [
     route: '/hms/enrollment',
   },
   {
-    target: '#sidebar-staff',
-    title: 'Staff Directory',
+    target: '#sidebar-students',
+    title: 'Student Management',
     content:
-      'View, update, and manage the list of registered wardens and caretakers.',
+      'Filter and search registered hostel students, assign them to rooms, and manage no-dues clearance.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/hms/staff',
+    route: '/hms/students',
   },
   {
-    target: '#sidebar-menu-management',
-    title: 'Mess Menu Management',
+    target: '#sidebar-outside-students',
+    title: 'Outside Students',
     content:
-      'Plan breakfast, lunch, snacks, and dinner menu items weekly or schedule special menus.',
+      'Manage records for non-hostel students utilizing campus amenities.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/hms/menu-management',
+    route: '/hms/outside-students',
   },
   {
     target: '#sidebar-student-meals',
@@ -89,6 +80,15 @@ export const hmsTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: false,
     route: '/hms/student-meals',
+  },
+  {
+    target: '#sidebar-menu-management',
+    title: 'Mess Menu Management',
+    content:
+      'Plan breakfast, lunch, snacks, and dinner menu items weekly or schedule special menus.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hms/menu-management',
   },
   {
     target: '#sidebar-issues',
@@ -109,13 +109,31 @@ export const hmsTour: Step[] = [
     route: '/hms/visitor_logs',
   },
   {
-    target: '#sidebar-apply-leave',
-    title: 'Apply Leave',
+    target: '#sidebar-staff',
+    title: 'Staff Directory',
     content:
-      'Submit leave requests and track your application history.',
+      'View, update, and manage the list of registered wardens and caretakers.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/hms/apply-leave',
+    route: '/hms/staff',
+  },
+  {
+    target: '#sidebar-announcement-management',
+    title: 'Announcement Management',
+    content:
+      'Create and manage announcements for hostel residents and staff.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hms/announcement-management',
+  },
+  {
+    target: '#sidebar-schedule-meeting',
+    title: 'Schedule Meeting',
+    content:
+      'Schedule and organize meetings across hostel staff.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hms/schedule-meeting',
   },
   {
     target: '#sidebar-manage-warden-leaves',
@@ -125,6 +143,51 @@ export const hmsTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: false,
     route: '/hms/manage-warden-leaves',
+  },
+  {
+    target: '#sidebar-apply-leave',
+    title: 'Apply Leave',
+    content:
+      'Submit leave requests and track your application history.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hms/apply-leave',
+  },
+  {
+    target: '#sidebar-my-attendance',
+    title: 'My Attendance',
+    content:
+      'Check your personal daily attendance logs and records.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hms/my-attendance',
+  },
+  {
+    target: '#sidebar-holiday-calendar',
+    title: 'Calendar',
+    content:
+      'View institutional holiday calendar and scheduled events.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hms/holiday-calendar',
+  },
+  {
+    target: '#sidebar-reimbursements',
+    title: 'Reimbursements & Claims',
+    content:
+      'Submit and monitor status of expense reimbursement claims.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hms/reimbursements',
+  },
+  {
+    target: '#sidebar-my-payroll',
+    title: 'My Salary & Payroll',
+    content:
+      'View your monthly salary statements, pay slips, and statutory deductions.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hms/my-payroll',
   },
   {
     target: '#sidebar-profile',

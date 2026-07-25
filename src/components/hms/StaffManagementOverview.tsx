@@ -96,7 +96,7 @@ const StaffManagementOverview: React.FC = () => {
       if (response.success) {
         toast({ title: "Success", description: "Warden details updated." });
         setIsWardenModalOpen(false);
-        
+
         // Update local and context state
         const updatedWarden = response.data || editingWarden;
         setWardens(prev => prev.map(w => w.id === editingWarden.id ? updatedWarden : w));
@@ -146,7 +146,7 @@ const StaffManagementOverview: React.FC = () => {
       if (response.success) {
         toast({ title: "Success", description: "Caretaker details updated." });
         setIsCaretakerModalOpen(false);
-        
+
         // Update local and context state
         const updatedCaretaker = response.data || editingCaretaker;
         setCaretakers(prev => prev.map(c => c.id === editingCaretaker.id ? updatedCaretaker : c));
@@ -350,7 +350,7 @@ const StaffManagementOverview: React.FC = () => {
                               <Badge variant="outline" className="text-[10px] mt-1 py-0">{warden.designation || 'Warden'}</Badge>
                             </div>
                           </div>
-                          
+
                           <div className="text-xs text-muted-foreground space-y-2 pt-2 border-t border-border/50">
                             <div className="flex items-center gap-2">
                               <Mail size={13} className="text-muted-foreground/70" />
@@ -523,7 +523,7 @@ const StaffManagementOverview: React.FC = () => {
                               <Badge variant="outline" className="text-[10px] mt-1 py-0">Caretaker</Badge>
                             </div>
                           </div>
-                          
+
                           <div className="text-xs text-muted-foreground space-y-2 pt-2 border-t border-border/50">
                             <div className="flex items-center gap-2">
                               <Mail size={13} className="text-muted-foreground/70" />
@@ -574,23 +574,23 @@ const StaffManagementOverview: React.FC = () => {
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Name</Label>
-                <Input id="name" value={editingWarden.name} onChange={e => setEditingWarden({...editingWarden, name: e.target.value})} className="h-10" />
+                <Input id="name" value={editingWarden.name} onChange={e => setEditingWarden({ ...editingWarden, name: e.target.value })} className="h-10" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email</Label>
-                <Input id="email" type="email" value={editingWarden.email} onChange={e => setEditingWarden({...editingWarden, email: e.target.value})} className="h-10" />
+                <Input id="email" type="email" value={editingWarden.email} onChange={e => setEditingWarden({ ...editingWarden, email: e.target.value })} className="h-10" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone</Label>
-                <Input id="phone" value={editingWarden.phone} onChange={e => setEditingWarden({...editingWarden, phone: e.target.value})} className="h-10" />
+                <Input id="phone" value={editingWarden.phone} onChange={e => setEditingWarden({ ...editingWarden, phone: e.target.value })} className="h-10" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="designation" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Designation</Label>
-                <Input id="designation" value={editingWarden.designation} onChange={e => setEditingWarden({...editingWarden, designation: e.target.value})} className="h-10" />
+                <Input id="designation" value={editingWarden.designation} onChange={e => setEditingWarden({ ...editingWarden, designation: e.target.value })} className="h-10" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="experience" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Experience (Years)</Label>
-                <Input id="experience" type="number" value={editingWarden.experience} onChange={e => setEditingWarden({...editingWarden, experience: e.target.value})} className="h-10" />
+                <Input id="experience" type="number" value={editingWarden.experience} onChange={e => setEditingWarden({ ...editingWarden, experience: e.target.value })} className="h-10" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Address</Label>
@@ -598,7 +598,7 @@ const StaffManagementOverview: React.FC = () => {
                   id="address"
                   contentEditable
                   suppressContentEditableWarning
-                  onBlur={e => setEditingWarden({...editingWarden, address: e.currentTarget.innerText})}
+                  onBlur={e => setEditingWarden({ ...editingWarden, address: e.currentTarget.innerText })}
                   className="min-h-[100px] max-h-[150px] overflow-y-auto border border-input rounded-md p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-background custom-scrollbar whitespace-pre-wrap"
                 >
                   {editingWarden.address}
@@ -627,19 +627,19 @@ const StaffManagementOverview: React.FC = () => {
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
                 <Label htmlFor="c_name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Name</Label>
-                <Input id="c_name" value={editingCaretaker.name} onChange={e => setEditingCaretaker({...editingCaretaker, name: e.target.value})} className="h-10" />
+                <Input id="c_name" value={editingCaretaker.name} onChange={e => setEditingCaretaker({ ...editingCaretaker, name: e.target.value })} className="h-10" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="c_email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email</Label>
-                <Input id="c_email" type="email" value={editingCaretaker.email} onChange={e => setEditingCaretaker({...editingCaretaker, email: e.target.value})} className="h-10" />
+                <Input id="c_email" type="email" value={editingCaretaker.email} onChange={e => setEditingCaretaker({ ...editingCaretaker, email: e.target.value })} className="h-10" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="c_phone" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone</Label>
-                <Input id="c_phone" value={editingCaretaker.phone} onChange={e => setEditingCaretaker({...editingCaretaker, phone: e.target.value})} className="h-10" />
+                <Input id="c_phone" value={editingCaretaker.phone} onChange={e => setEditingCaretaker({ ...editingCaretaker, phone: e.target.value })} className="h-10" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="c_experience" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Experience (Years)</Label>
-                <Input id="c_experience" type="number" value={editingCaretaker.experience} onChange={e => setEditingCaretaker({...editingCaretaker, experience: e.target.value})} className="h-10" />
+                <Input id="c_experience" type="number" value={editingCaretaker.experience} onChange={e => setEditingCaretaker({ ...editingCaretaker, experience: e.target.value })} className="h-10" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="c_address" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Address</Label>
@@ -647,7 +647,7 @@ const StaffManagementOverview: React.FC = () => {
                   id="c_address"
                   contentEditable
                   suppressContentEditableWarning
-                  onBlur={e => setEditingCaretaker({...editingCaretaker, address: e.currentTarget.innerText})}
+                  onBlur={e => setEditingCaretaker({ ...editingCaretaker, address: e.currentTarget.innerText })}
                   className="min-h-[100px] max-h-[150px] overflow-y-auto border border-input rounded-md p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-background custom-scrollbar whitespace-pre-wrap"
                 >
                   {editingCaretaker.address}

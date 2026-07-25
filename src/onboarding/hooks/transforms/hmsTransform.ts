@@ -39,16 +39,6 @@ export function hmsTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
-  if (target === '#sidebar-students') {
-    return [
-      {
-        ...step,
-        target: '#hms-students-card',
-        placement: isMobile ? step.placement : 'top',
-      },
-    ];
-  }
-
   if (target === '#sidebar-enrollment') {
     return [
       {
@@ -59,37 +49,23 @@ export function hmsTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
-  if (target === '#sidebar-staff') {
-    if (isMobile) {
-      return [
-        {
-          ...step,
-          target: '#hms-staff-stats-grid',
-          placement: step.placement,
-        },
-      ];
-    }
+  if (target === '#sidebar-students') {
     return [
       {
         ...step,
-        target: '#hms-staff-stats-grid',
-        placement: 'bottom',
-      },
-      {
-        ...step,
-        target: '#hms-staff-lists-container',
-        title: 'Staff Directory',
-        content: 'View and manage registered Wardens and Caretakers in this grid.',
-        placement: 'top',
+        target: '#hms-students-card',
+        placement: isMobile ? step.placement : 'top',
       },
     ];
   }
 
-  if (target === '#sidebar-menu-management') {
+  if (target === '#sidebar-outside-students') {
     return [
       {
         ...step,
-        target: '#hms-menu-card',
+        target: '#hms-outside-students-card',
+        title: 'Outside Students',
+        content: 'View and manage non-hostel student amenity registrations.',
         placement: isMobile ? step.placement : 'top',
       },
     ];
@@ -100,6 +76,16 @@ export function hmsTransform(step: any, isMobile: boolean): any[] | null {
       {
         ...step,
         target: '#hms-meals-card',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-menu-management') {
+    return [
+      {
+        ...step,
+        target: '#hms-menu-card',
         placement: isMobile ? step.placement : 'top',
       },
     ];
@@ -134,6 +120,68 @@ export function hmsTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
+  if (target === '#sidebar-staff') {
+    if (isMobile) {
+      return [
+        {
+          ...step,
+          target: '#hms-staff-stats-grid',
+          placement: step.placement,
+        },
+      ];
+    }
+    return [
+      {
+        ...step,
+        target: '#hms-staff-stats-grid',
+        placement: 'bottom',
+      },
+      {
+        ...step,
+        target: '#hms-staff-lists-container',
+        title: 'Staff Directory',
+        content: 'View and manage registered Wardens and Caretakers in this grid.',
+        placement: 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-announcement-management') {
+    return [
+      {
+        ...step,
+        target: '#announcement-header-section',
+        title: 'Announcement Management',
+        content: 'Create and manage system announcements.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-schedule-meeting') {
+    return [
+      {
+        ...step,
+        target: '#schedule-meetings-header-console',
+        title: 'Meetings & Schedules',
+        content: 'Schedule and manage online meetings across staff roles.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-manage-warden-leaves') {
+    return [
+      {
+        ...step,
+        target: '#Warden-leaves-header-section',
+        title: 'Warden Leave Requests',
+        content: 'Review, approve, or reject leave requests submitted by hostel wardens.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
   if (target === '#sidebar-apply-leave') {
     return [
       {
@@ -153,14 +201,50 @@ export function hmsTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
-  if (target === '#sidebar-manage-warden-leaves') {
+  if (target === '#sidebar-my-attendance') {
     return [
       {
         ...step,
-        target: '#Warden-leaves-header-section',
-        title: 'Warden Leave Requests',
-        content: 'Review, approve, or reject leave requests submitted by hostel wardens.',
+        target: '#today-attendance-toggle-section',
+        title: "Today's Attendance",
+        content: 'Mark your daily attendance check-in or check-out here.',
         placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-holiday-calendar') {
+    return [
+      {
+        ...step,
+        target: '#holiday-calendar-header',
+        title: 'Institutional Calendar',
+        content: 'View upcoming holidays, events, exams, and approved leaves.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-reimbursements') {
+    return [
+      {
+        ...step,
+        target: '#reimbursements-header-section',
+        title: 'Reimbursements & Claims',
+        content: 'Submit and track your expense reimbursement requests.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-my-payroll') {
+    return [
+      {
+        ...step,
+        target: '#faculty-payroll-header',
+        title: 'My Salary & Payroll',
+        content: 'View your payslips, statutory deductions, and salary history.',
+        placement: isMobile ? step.placement : 'bottom',
       },
     ];
   }
