@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useTheme } from '../../context/ThemeContext';
 import { showConfirmAlert, showSuccessAlert, showErrorAlert } from '../../utils/sweetalert';
+import { Skeleton } from '../ui/skeleton';
 
 interface HolidayCalendarProps {
     readOnly?: boolean;
@@ -363,7 +364,15 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
 
                         {/* Days Grid */}
                         <div className={`flex-1 grid grid-cols-7 auto-rows-fr divide-x divide-y ${theme === 'dark' ? 'divide-border bg-card' : 'divide-gray-100 bg-white'}`}>
-                            {daysInMonth.map((day, idx) => {
+                            {loading ? (
+                                Array.from({ length: 35 }).map((_, idx) => (
+                                    <div key={idx} className="p-2 min-h-[75px]">
+                                        <Skeleton className="h-4 w-6 mb-2 rounded" />
+                                        <Skeleton className="h-3 w-full rounded" />
+                                    </div>
+                                ))
+                            ) : (
+                                daysInMonth.map((day, idx) => {
                                 const dayHolidays = getHolidaysForDay(day);
                                 const dayExams = getExamsForDay(day);
                                 const dayLeaves = getLeavesForDay(day);
@@ -463,7 +472,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                         </div>
                                     </div>
                                 );
-                            })}
+                            }))}
                         </div>
                     </div>
                 </CardContent>

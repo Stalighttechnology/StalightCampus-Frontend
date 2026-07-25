@@ -609,8 +609,8 @@ const fetchData = async (page: number = 1, search: string = filter) => {
 
           <CardContent className="flex-1 overflow-hidden flex flex-col px-2 sm:px-4 pt-0">
 
-            {loading && branches.length === 0 ?
-              <SkeletonTable rows={pageSize} cols={4} /> :
+            {loading ?
+              <SkeletonTable rows={pageSize} cols={5} /> :
 
               <>
                   {/* Desktop View: Table */}

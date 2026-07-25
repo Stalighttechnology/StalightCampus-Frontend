@@ -32,6 +32,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "../ui/dialog";
+import { SkeletonTable } from "../ui/skeleton";
 
 const CertificateManagement = () => {
   const { toast } = useToast();
@@ -236,9 +237,8 @@ const CertificateManagement = () => {
       <Card className="shadow-md border-slate-200/60 dark:border-slate-800 overflow-hidden">
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 space-y-2">
-              <Loader2 className="w-8 h-8 text-primary animate-spin" />
-              <p className="text-sm text-slate-500 font-medium">Fetching certificates...</p>
+            <div className="p-4">
+              <SkeletonTable rows={5} cols={6} />
             </div>
           ) : certs.length === 0 ? (
             <div className="text-center py-16 text-slate-500 dark:text-slate-400">

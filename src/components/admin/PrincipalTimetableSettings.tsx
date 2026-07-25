@@ -19,6 +19,7 @@ import {
 } from "../../components/ui/select";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { SkeletonTable } from "../ui/skeleton";
 
 const MySwal = withReactContent(Swal);
 
@@ -455,10 +456,7 @@ export default function PrincipalTimetableSettings() {
           </Dialog>
         <CardContent className="p-6">
           {loading ? (
-            <div className="p-12 text-center text-muted-foreground flex justify-center items-center gap-2">
-              <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></span>
-              Loading slots...
-            </div>
+            <SkeletonTable rows={5} cols={5} />
           ) : slots.length === 0 ? (
             <div className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 text-center ${
               theme === 'dark' ? 'border-border bg-muted/5' : 'border-gray-200 bg-gray-50/30'
