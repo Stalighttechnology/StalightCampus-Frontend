@@ -28,13 +28,13 @@ export const admissionManagerTour: Step[] = [
     route: '/admission-manager',
   },
   {
-    target: '#sidebar-campus-builder',
-    title: 'Campus Page Builder',
+    target: '#sidebar-admission-courses',
+    title: 'Academic Program Catalog',
     content:
-      'Create and customize your public-facing admissions landing page, configure campus features, test page designs, and adjust style themes.',
+      'Add, manage, and configure academic programs, duration, codes, and courses offered by your campus.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/admission-manager/campus-builder',
+    route: '/admission-manager/admission-courses',
   },
   {
     target: '#sidebar-admission-enquiries',
@@ -64,33 +64,6 @@ export const admissionManagerTour: Step[] = [
     route: '/admission-manager/admission-students',
   },
   {
-    target: '#sidebar-admission-courses',
-    title: 'Academic Program Catalog',
-    content:
-      'Add, manage, and configure academic programs, duration, codes, and courses offered by your campus.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/admission-manager/admission-courses',
-  },
-  {
-    target: '#sidebar-seat-matrix',
-    title: 'Quota & Seat Allocation',
-    content:
-      'Configure seat capacity limits, merit allotments, management quotas, and view real-time occupancy updates.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/admission-manager/seat-matrix',
-  },
-  {
-    target: '#sidebar-admission-fees',
-    title: 'Fees & Transaction Tracking',
-    content:
-      'Monitor applicant fee transactions, payment configurations, receipt generation, and transaction statuses.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/admission-manager/admission-fees',
-  },
-  {
     target: '#sidebar-admission-documents',
     title: 'Document Verification',
     content:
@@ -98,6 +71,15 @@ export const admissionManagerTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: false,
     route: '/admission-manager/admission-documents',
+  },
+  {
+    target: '#sidebar-counsellor-management',
+    title: 'Counsellors Management',
+    content:
+      'Assign admission counsellors and manage team targets and performance.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admission-manager/counsellor-management',
   },
   {
     target: '#sidebar-admission-communication',
@@ -118,13 +100,22 @@ export const admissionManagerTour: Step[] = [
     route: '/admission-manager/admission-reports',
   },
   {
-    target: '#sidebar-admission-settings',
-    title: 'Timeline & Campaign Settings',
+    target: '#sidebar-campus-builder',
+    title: 'Campus Page Builder',
     content:
-      'Set up and schedule intake campaign schedules, manage start and end timelines, and toggle campaign states.',
+      'Create and customize your public-facing admissions landing page, configure campus features, test page designs, and adjust style themes.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/admission-manager/admission-settings',
+    route: '/admission-manager/campus-builder',
+  },
+  {
+    target: '#sidebar-schedule-meeting',
+    title: 'Schedule Meeting',
+    content:
+      'Schedule and organize meetings across institutional staff and counsellors.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admission-manager/schedule-meeting',
   },
   {
     target: '#sidebar-my-attendance',
@@ -133,6 +124,24 @@ export const admissionManagerTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: false,
     route: '/admission-manager/my-attendance',
+  },
+  {
+    target: '#sidebar-holiday-calendar',
+    title: 'Calendar',
+    content:
+      'View institutional holiday calendar and scheduled events.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admission-manager/holiday-calendar',
+  },
+  {
+    target: '#sidebar-my-payroll',
+    title: 'My Salary & Payroll',
+    content:
+      'View your monthly salary statements, pay slips, and compensation details.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admission-manager/my-payroll',
   },
   {
     target: '#sidebar-profile',

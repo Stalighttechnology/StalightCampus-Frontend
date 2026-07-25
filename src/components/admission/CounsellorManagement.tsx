@@ -147,7 +147,7 @@ export default function CounsellorManagement() {
   return (
     <div id="counsellor-management-container" className="space-y-6 w-full max-w-full overflow-hidden">
       <Card className="overflow-hidden w-full border-border">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+        <CardHeader id="counsellor-management-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
           <div>
             <CardTitle className="sm:text-2xl text-xl font-semibold">Counsellors</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">Manage admission counsellors and their accounts.</p>

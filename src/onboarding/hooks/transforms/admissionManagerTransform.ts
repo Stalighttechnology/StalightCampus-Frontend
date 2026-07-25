@@ -8,12 +8,24 @@
 export function admissionManagerTransform(step: any, isMobile: boolean): any[] | null {
   const target = step.target;
 
-  if (target === '#sidebar-campus-builder') {
+  if (target === '#admission-stats-grid') {
     return [
       {
         ...step,
-        target: '#campus-builder-header',
-        placement: isMobile ? step.placement : 'top',
+        target: '#all-admission-stats-grid',
+        title: 'Admission Overview & Task Metrics',
+        content: 'Monitor pipeline health metrics and task follow-ups in real-time.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-admission-courses') {
+    return [
+      {
+        ...step,
+        target: '#admission-courses-header',
+        placement: isMobile ? step.placement : 'bottom',
       },
     ];
   }
@@ -48,41 +60,23 @@ export function admissionManagerTransform(step: any, isMobile: boolean): any[] |
     ];
   }
 
-  if (target === '#sidebar-admission-courses') {
-    return [
-      {
-        ...step,
-        target: '#admission-courses-header',
-        placement: isMobile ? step.placement : 'bottom',
-      },
-    ];
-  }
-
-  if (target === '#sidebar-seat-matrix') {
-    return [
-      {
-        ...step,
-        target: '#admission-seat-matrix-header',
-        placement: isMobile ? step.placement : 'bottom',
-      },
-    ];
-  }
-
-  if (target === '#sidebar-admission-fees') {
-    return [
-      {
-        ...step,
-        target: '#admission-fees-header',
-        placement: isMobile ? step.placement : 'bottom',
-      },
-    ];
-  }
-
   if (target === '#sidebar-admission-documents') {
     return [
       {
         ...step,
         target: '#admission-documents-header',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-counsellor-management') {
+    return [
+      {
+        ...step,
+        target: '#counsellor-management-header',
+        title: 'Counsellors Management',
+        content: 'Assign admission counsellors and manage team targets and performance.',
         placement: isMobile ? step.placement : 'bottom',
       },
     ];
@@ -117,12 +111,24 @@ export function admissionManagerTransform(step: any, isMobile: boolean): any[] |
     ];
   }
 
-  if (target === '#sidebar-admission-settings') {
+  if (target === '#sidebar-campus-builder') {
     return [
       {
         ...step,
-        target: '#admission-settings-header',
-        placement: isMobile ? step.placement : 'bottom',
+        target: '#campus-builder-header',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-schedule-meeting') {
+    return [
+      {
+        ...step,
+        target: '#schedule-meetings-header-console',
+        title: 'Meetings & Schedules',
+        content: 'Schedule and manage online meetings across staff roles.',
+        placement: isMobile ? step.placement : 'top',
       },
     ];
   }
@@ -136,6 +142,30 @@ export function admissionManagerTransform(step: any, isMobile: boolean): any[] |
         content:
           'Mark your attendance as present or absent for today and optionally add notes.',
         placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-holiday-calendar') {
+    return [
+      {
+        ...step,
+        target: '#holiday-calendar-header',
+        title: 'Institutional Calendar',
+        content: 'View upcoming holidays, events, exams, and approved leaves.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-my-payroll') {
+    return [
+      {
+        ...step,
+        target: '#faculty-payroll-header',
+        title: 'My Salary & Payroll',
+        content: 'View your payslips, statutory deductions, and salary history.',
+        placement: isMobile ? step.placement : 'bottom',
       },
     ];
   }
