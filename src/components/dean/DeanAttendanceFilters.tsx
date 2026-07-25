@@ -218,7 +218,6 @@ const DeanAttendanceFilters = () => {
           <SkeletonPageHeader />
           <SkeletonCard className="h-32" />
           <div className="space-y-4">
-            <SkeletonCard className="h-40" />
             <SkeletonStatsGrid items={6} />
           </div>
         </div>

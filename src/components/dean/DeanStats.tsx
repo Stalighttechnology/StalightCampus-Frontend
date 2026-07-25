@@ -250,7 +250,7 @@ const DeanStats = () => {
         <CardContent className="space-y-8 p-2">
           {loading ? (
             <div className="space-y-8">
-              <SkeletonStatsGrid items={6} />
+              <SkeletonStatsGrid items={userTier >= 2 ? 6 : 5} columns={3} />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <SkeletonChart className="h-80" />
                 <SkeletonChart className="h-80" />

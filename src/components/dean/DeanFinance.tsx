@@ -64,7 +64,7 @@ const DeanFinance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
   if (loading) {
     return (
       <div className="space-y-6">
-        <SkeletonStatsGrid items={4} />
+        <SkeletonStatsGrid items={4} columns={4} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <SkeletonCard className="lg:col-span-2 h-[400px]" />
           <SkeletonCard className="h-[400px]" />

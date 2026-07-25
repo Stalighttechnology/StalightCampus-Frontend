@@ -498,21 +498,6 @@ const DeanFacultyProfile = ({
       {showInitialSkeleton ? (
         <div className="space-y-6">
           <SkeletonPageHeader />
-          <Card
-            className={
-              theme === "dark"
-                ? "w-full bg-card border border-border"
-                : "w-full bg-white border border-gray-200"
-            }
-          >
-            <CardContent className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <SkeletonCard className="h-20" />
-                <SkeletonCard className="h-20" />
-                <SkeletonCard className="h-20" />
-              </div>
-            </CardContent>
-          </Card>
           <div className="space-y-4">
             <SkeletonStatsGrid items={6} />
             <SkeletonList items={3} />

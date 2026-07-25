@@ -80,7 +80,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
       {loading ? (
         <div className="space-y-6">
           <SkeletonPageHeader />
-          <SkeletonStatsGrid items={4} />
+          <SkeletonStatsGrid items={4} columns={4} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <SkeletonList items={5} />
             <SkeletonList items={5} />

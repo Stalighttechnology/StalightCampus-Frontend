@@ -412,13 +412,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
         <CardContent className="px-6 pb-6 pt-2 space-y-8">
           {firstLoad ?
             <div className="space-y-6">
-              <SkeletonStatsGrid items={4} />
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <SkeletonCard className="h-24" />
-                <SkeletonCard className="h-24" />
-                <SkeletonCard className="h-24" />
-                <SkeletonCard className="h-24" />
-              </div>
+              <SkeletonStatsGrid items={3} columns={3} />
               <SkeletonTable rows={10} cols={8} />
             </div> :
 
