@@ -18,6 +18,7 @@ import { libraryAdminTour } from '../config/libraryAdminTour';
 import { orgAdminTour } from '../config/orgAdminTour';
 import { driverTour } from '../config/driverTour';
 import { admissionManagerTour } from '../config/admissionManagerTour';
+import { counsellorTour } from '../config/counsellorTour';
 import { applyRoleTransform, applyMobileLabels } from './transforms';
 import { isPageAllowed } from '../../utils/planGating';
 
@@ -41,6 +42,7 @@ const ROLE_TO_TOUR_MAP: Record<string, any> = {
   driver: { steps: driverTour, keys: TUTORIAL_KEYS.DRIVER },
   admission_manager: { steps: admissionManagerTour, keys: TUTORIAL_KEYS.ADMISSION_MANAGER },
   admissionmanager: { steps: admissionManagerTour, keys: TUTORIAL_KEYS.ADMISSION_MANAGER },
+  counsellor: { steps: counsellorTour, keys: TUTORIAL_KEYS.COUNSELLOR },
 };
 
 const resolveOrgPlan = (authUser: Record<string, any> | null): string => {

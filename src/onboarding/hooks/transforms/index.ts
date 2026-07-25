@@ -19,6 +19,7 @@ import { libraryAdminTransform } from './libraryAdminTransform';
 import { orgAdminTransform } from './orgAdminTransform';
 import { driverTransform } from './driverTransform';
 import { admissionManagerTransform } from './admissionManagerTransform';
+import { counsellorTransform } from './counsellorTransform';
 
 export { applyMobileLabels } from './mobileLabels';
 
@@ -56,6 +57,7 @@ export const ROLE_TRANSFORM_MAP: Record<string, RoleTransformFn> = {
   driver: driverTransform,
   admission_manager: admissionManagerTransform,
   admissionmanager: admissionManagerTransform,
+  counsellor: counsellorTransform,
 };
 
 /**

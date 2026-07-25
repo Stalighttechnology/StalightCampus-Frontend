@@ -302,6 +302,7 @@ const getHomePath = (role: string): string => {
     driver: '/driver',
     admission_manager: '/admission-manager',
     admissionmanager: '/admission-manager',
+    counsellor: '/counsellor',
   };
   return roleMap[role.toLowerCase()] || '/dashboard';
 };

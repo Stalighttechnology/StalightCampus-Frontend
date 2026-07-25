@@ -9,6 +9,7 @@ import FacultyPayroll from "../faculty/FacultyPayroll";
 import AdmissionApplications from "../admission/AdmissionApplications";
 import AdmissionDocuments from "../admission/AdmissionDocuments";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 
 interface DashboardProps {
   user: any;
@@ -57,6 +58,7 @@ const CounsellorDashboard = ({ user }: DashboardProps) => {
 
   return (
     <>
+      <TutorialController />
       <DashboardLayout
         role="counsellor"
         user={user}

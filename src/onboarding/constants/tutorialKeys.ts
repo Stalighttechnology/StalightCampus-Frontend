@@ -83,6 +83,12 @@ export const TUTORIAL_KEYS = {
     STEP: 'tutorial_admission_manager_step',
     VERSION: 'tutorial_admission_manager_version',
   },
+  COUNSELLOR: {
+    COMPLETED: 'tutorial_counsellor_completed',
+    ACTIVE: 'tutorial_counsellor_active',
+    STEP: 'tutorial_counsellor_step',
+    VERSION: 'tutorial_counsellor_version',
+  },
 };
 
 /**
