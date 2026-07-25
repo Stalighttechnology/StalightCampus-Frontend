@@ -59,6 +59,7 @@ import { WardenProvider } from "./context/WardenContext";
 import { HMSProvider } from "./context/HMSContext";
 import { shouldShowFloatingAssistant } from "./utils/config";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { useWebSocketNotifications } from "./hooks/useWebSocketNotifications";
 import { initErrorLogger } from "./utils/errorLogger";
 import type { ReactNode } from "react";
 
@@ -171,6 +172,7 @@ const ProtectedRoute = ({
 };
 
 const AppContent = () => {
+  useWebSocketNotifications();
   const { role: userRole, user: userData } = useAuth();
   const [showExitDialog, setShowExitDialog] = useState(false);
   const location = useLocation();

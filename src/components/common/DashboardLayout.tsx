@@ -122,44 +122,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   // Use React Query to cache bootstrap/unread counts per role.
   const queryClient = useQueryClient();
 
-  const studentQuery = useQuery({
-    queryKey: ["dashboard", "student", "overview"],
-    queryFn: getDashboardOverview,
-    enabled: role === 'student',
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false
-  });
-
-  const facultyQuery = useQuery({
-    queryKey: ["dashboard", "faculty", "bootstrap"],
-    queryFn: getFacultyDashboardBootstrap,
-    enabled: role === 'faculty',
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false
-  });
-
-  const hodQuery = useQuery({
-    queryKey: ["dashboard", "hod", (user as any)?.extra?.branch_id || (user as any)?.branch_id || ''],
-    queryFn: () => getHODStats((user as any)?.extra?.branch_id || (user as any)?.branch_id || ''),
-    enabled: role === 'hod',
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false
-  });
-
-  const adminQuery = useQuery({
-    queryKey: ["dashboard", "admin", "stats"],
-    queryFn: getAdminStats,
-    enabled: role === 'admin' || role === 'principal' || role === 'org_admin',
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false
-  });
-
   // Dedicated lightweight query for the unread notification count
   const unreadCountQuery = useQuery({
     queryKey: ["unreadCount", role, accessToken],
     queryFn: getUnreadNotificationCount,
-    refetchInterval: 5 * 60 * 1000, // Reduced from 30s to 5m to avoid hammering the backend
-    refetchOnWindowFocus: true, // It's okay to poll this fast endpoint on focus
+    refetchOnWindowFocus: false, // Disabled because WebSockets handle instant updates
     enabled: !!accessToken,
   });
 
