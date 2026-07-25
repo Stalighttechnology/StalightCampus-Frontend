@@ -83,7 +83,7 @@ export function coeTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#coe-qp-approvals-card',
+        target: '#qp-approvals-header-section',
         title: 'Question Paper Final Approvals',
         content: 'Review and approve submitted question papers for examinations.',
         placement: isMobile ? step.placement : 'top',
@@ -125,6 +125,115 @@ export function coeTransform(step: any, isMobile: boolean): any[] | null {
         title: 'Exam Scheduling',
         content:
           '• Title: Exam Scheduling\n• Info: Manage and schedule examinations across batches and branches.\n• Button: Schedule New Exam',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-fee-settings') {
+    return [
+      {
+        ...step,
+        target: '#coe-fee-settings-header',
+        title: 'Fee Settings',
+        content: 'Configure and manage student fees for revaluation, photocopy, and makeup exams.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-scan-student-info') {
+    return [
+      {
+        ...step,
+        target: '#hod-search-student-card',
+        title: 'Scan for Student Info',
+        content: 'Quickly search for student details or use barcode and face scanner to retrieve their academic profile.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-schedule-meeting') {
+    return [
+      {
+        ...step,
+        target: '#schedule-meetings-header-console',
+        title: 'Meetings & Schedules',
+        content: 'Schedule and manage online meetings across staff roles.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-co-attainment') {
+    return [
+      {
+        ...step,
+        target: '#co-attainment-header',
+        title: 'Calculate CO Attainment',
+        content:
+          '• Select a Subject to view and calculate Course Outcome (CO) attainment levels.\n• Configure the Target Threshold percentage (default 60%) to establish student grade targets.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-my-attendance') {
+    return [
+      {
+        ...step,
+        target: '#today-attendance-toggle-section',
+        title: "Today's Attendance",
+        content: 'Mark your daily attendance check-in or check-out here.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-announcement-management') {
+    return [
+      {
+        ...step,
+        target: '#announcement-header-section',
+        title: 'Announcement Management',
+        content: 'Create and manage system announcements.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-holiday-calendar') {
+    return [
+      {
+        ...step,
+        target: '#holiday-calendar-header',
+        title: 'Institutional Calendar',
+        content: 'View upcoming holidays, events, exams, and approved leaves.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-reimbursements') {
+    return [
+      {
+        ...step,
+        target: '#reimbursements-header-section',
+        title: 'Reimbursements & Claims',
+        content: 'Submit and track your expense reimbursement requests.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-my-payroll') {
+    return [
+      {
+        ...step,
+        target: '#faculty-payroll-header',
+        title: 'My Salary & Payroll',
+        content: 'View your payslips, statutory deductions, and salary history.',
         placement: isMobile ? step.placement : 'bottom',
       },
     ];

@@ -46,49 +46,13 @@ export const coeTour: Step[] = [
     route: '/coe/dashboard',
   },
   {
-    target: '#sidebar-apply-leave',
-    title: 'Apply Leave',
+    target: '#sidebar-exam-scheduling',
+    title: 'Exam Scheduling',
     content:
-      'Submit your leave applications and view recent request histories here.',
+      'Create, view, and organize timetables for upcoming campus examinations.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/coe/apply-leave',
-  },
-  {
-    target: '#sidebar-student-status',
-    title: 'Student Status',
-    content:
-      'View and verify the graduation/examination eligibility and status of students.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/coe/student-status',
-  },
-  {
-    target: '#sidebar-course-statistics',
-    title: 'Course Statistics',
-    content:
-      'Check academic performance statistics and grade distributions across courses.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/coe/course-statistics',
-  },
-  {
-    target: '#sidebar-makeup-requests',
-    title: 'Makeup Requests',
-    content:
-      'Review and manage makeup exam requests submitted by students.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/coe/makeup-requests',
-  },
-  {
-    target: '#sidebar-revaluation-requests',
-    title: 'Revaluation Requests',
-    content:
-      'Process student applications for mark revaluation and photocopy requests.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/coe/revaluation-requests',
+    route: '/coe/exam-scheduling',
   },
   {
     target: '#sidebar-qp-approvals',
@@ -118,31 +82,130 @@ export const coeTour: Step[] = [
     route: '/coe/publish-results-reval-makeup',
   },
   {
-    target: '#sidebar-exam-scheduling',
-    title: 'Exam Scheduling',
+    target: '#sidebar-revaluation-requests',
+    title: 'Revaluation Requests',
     content:
-      'Create, view, and organize timetables for upcoming campus examinations.',
+      'Process student applications for mark revaluation and photocopy requests.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/coe/exam-scheduling',
+    route: '/coe/revaluation-requests',
   },
   {
-    target: '#hod-search-student-card',
+    target: '#sidebar-makeup-requests',
+    title: 'Makeup Requests',
+    content:
+      'Review and manage makeup exam requests submitted by students.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/coe/makeup-requests',
+  },
+  {
+    target: '#sidebar-student-status',
+    title: 'Student Status',
+    content:
+      'View and verify the graduation/examination eligibility and status of students.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/coe/student-status',
+  },
+  {
+    target: '#sidebar-course-statistics',
+    title: 'Course Statistics',
+    content:
+      'Check academic performance statistics and grade distributions across courses.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/coe/course-statistics',
+  },
+  {
+    target: '#sidebar-co-attainment',
+    title: 'CO/PO Attainment',
+    content:
+      'Track and evaluate Course Outcome and Program Outcome attainment levels.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/coe/co-attainment',
+  },
+  {
+    target: '#sidebar-announcement-management',
+    title: 'Announcement Management',
+    content:
+      'Create and manage institution-wide announcements and updates.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/coe/announcement-management',
+  },
+  {
+    target: '#sidebar-fee-settings',
+    title: 'Fee Settings',
+    content:
+      'Configure and manage student fees for revaluation, photocopy, and makeup exams.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/coe/fee-settings',
+  },
+  {
+    target: '#sidebar-scan-student-info',
     title: 'Scan for Student Info',
     content:
       'Quickly search for student details or use barcode and face scanner to retrieve their academic profile.',
-    placement: 'bottom' as const,
+    placement: 'right' as const,
     disableBeacon: false,
     route: '/coe/scan-student-info',
   },
   {
-    target: '#coe-fee-settings-header',
-    title: 'Fee Settings',
+    target: '#sidebar-schedule-meeting',
+    title: 'Schedule Meeting',
     content:
-      'Configure and manage student fees for revaluation, photocopy, and makeup exams.',
-    placement: 'bottom' as const,
+      'Schedule and organize academic or administrative meetings.',
+    placement: 'right' as const,
     disableBeacon: false,
-    route: '/coe/fee-settings',
+    route: '/coe/schedule-meeting',
+  },
+  {
+    target: '#sidebar-apply-leave',
+    title: 'Apply Leave',
+    content:
+      'Submit your leave applications and view recent request histories here.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/coe/apply-leave',
+  },
+  {
+    target: '#sidebar-my-attendance',
+    title: 'My Attendance',
+    content:
+      'Check your personal daily attendance logs and records.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/coe/my-attendance',
+  },
+  {
+    target: '#sidebar-holiday-calendar',
+    title: 'Calendar',
+    content:
+      'View the institutional holiday calendar and scheduled events.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/coe/holiday-calendar',
+  },
+  {
+    target: '#sidebar-reimbursements',
+    title: 'Reimbursements & Claims',
+    content:
+      'Submit and monitor status of reimbursement and expense claims.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/coe/reimbursements',
+  },
+  {
+    target: '#sidebar-my-payroll',
+    title: 'My Salary & Payroll',
+    content:
+      'View your monthly salary statements, pay slips, and compensation details.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/coe/my-payroll',
   },
   {
     target: '#sidebar-profile',
