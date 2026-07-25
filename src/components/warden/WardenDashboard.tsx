@@ -159,7 +159,7 @@ const WardenDashboard = () => {
     return (
       <div className="space-y-8">
         <SkeletonPageHeader />
-        <SkeletonStatsGrid items={4} />
+        <SkeletonStatsGrid items={2} columns={2} />
         <SkeletonCard className="h-[400px]" />
       </div>);
 

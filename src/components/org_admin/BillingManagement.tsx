@@ -355,8 +355,11 @@ export const BillingManagement: React.FC = () => {
     return (
       <div className="space-y-6">
         <SkeletonPageHeader />
-        <SkeletonStatsGrid items={3} />
-        <SkeletonTable rows={4} cols={5} />
+        <div className="grid gap-6 grid-cols-1 min-[1250px]:grid-cols-3">
+          <SkeletonCard className="col-span-1 h-[450px]" />
+          <SkeletonCard className="col-span-1 min-[1250px]:col-span-2 h-[450px]" />
+        </div>
+        <SkeletonTable rows={5} cols={5} />
       </div>
     );
   }
