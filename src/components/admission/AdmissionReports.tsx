@@ -8,7 +8,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from '../../context/ThemeContext';
-import { SkeletonStatsGrid, SkeletonForm } from '../ui/skeleton';
+import { SkeletonStatsGrid, SkeletonForm, SkeletonChart } from '../ui/skeleton';
 
 export default function AdmissionReports() {
   const [analytics, setAnalytics] = useState<any>(null);
@@ -41,6 +41,7 @@ export default function AdmissionReports() {
       <div className="space-y-6">
         <SkeletonStatsGrid items={3} columns={3} />
         <SkeletonForm fields={4} />
+        <SkeletonChart />
       </div>
     );
   }
