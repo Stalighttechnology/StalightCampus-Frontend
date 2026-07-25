@@ -34,6 +34,18 @@ export function libraryAdminTransform(step: any, isMobile: boolean): any[] | nul
     ];
   }
 
+  if (target === '#sidebar-announcements') {
+    return [
+      {
+        ...step,
+        target: '#announcements-header-stats',
+        title: 'Announcements Overview',
+        content: 'Stay updated with the latest news, notices, alerts, and unread announcement statistics.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
   if (target === '#sidebar-library-books') {
     return [
       {
@@ -64,6 +76,18 @@ export function libraryAdminTransform(step: any, isMobile: boolean): any[] | nul
     ];
   }
 
+  if (target === '#sidebar-schedule-meeting') {
+    return [
+      {
+        ...step,
+        target: '#schedule-meetings-header-console',
+        title: 'Meetings & Schedules',
+        content: 'Schedule and manage online meetings across staff roles.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
   if (target === '#sidebar-apply-leave') {
     return [
       {
@@ -79,6 +103,54 @@ export function libraryAdminTransform(step: any, isMobile: boolean): any[] | nul
         title: 'Recent Leaves',
         content: 'Track the status of your submitted leave requests.',
         placement: isMobile ? step.placement : 'left',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-my-attendance') {
+    return [
+      {
+        ...step,
+        target: '#today-attendance-toggle-section',
+        title: "Today's Attendance",
+        content: 'Mark your daily attendance check-in or check-out here.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-holiday-calendar') {
+    return [
+      {
+        ...step,
+        target: '#holiday-calendar-header',
+        title: 'Institutional Calendar',
+        content: 'View upcoming holidays, events, exams, and approved leaves.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-reimbursements') {
+    return [
+      {
+        ...step,
+        target: '#reimbursements-header-section',
+        title: 'Reimbursements & Claims',
+        content: 'Submit and track your expense reimbursement requests.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-my-payroll') {
+    return [
+      {
+        ...step,
+        target: '#faculty-payroll-header',
+        title: 'My Salary & Payroll',
+        content: 'View your payslips, statutory deductions, and salary history.',
+        placement: isMobile ? step.placement : 'bottom',
       },
     ];
   }

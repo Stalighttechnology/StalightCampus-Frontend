@@ -39,10 +39,10 @@ export function driverTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#announcement-header-section',
-        title: 'Announcements',
-        content: 'View announcements and notices from campus administration.',
-        placement: isMobile ? step.placement : 'top',
+        target: '#announcements-header-stats',
+        title: 'Announcements Overview',
+        content: 'Stay updated with the latest news, notices, alerts, and unread announcement statistics.',
+        placement: isMobile ? step.placement : 'bottom',
       },
     ];
   }

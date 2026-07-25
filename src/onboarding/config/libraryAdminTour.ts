@@ -19,8 +19,17 @@ export const libraryAdminTour: Step[] = [
     route: '/library-admin',
   },
   {
+    target: '#sidebar-announcements',
+    title: 'Announcements',
+    content:
+      'View system-wide news, library notices, and announcements.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/library-admin/announcements',
+  },
+  {
     target: '#sidebar-library-books',
-    title: 'Book Catalog',
+    title: 'Books Catalog',
     content:
       'Add and manage library books, assign ISBNs, organize shelves, view barcode details, and export titles as PDF.',
     placement: 'right' as const,
@@ -29,7 +38,7 @@ export const libraryAdminTour: Step[] = [
   },
   {
     target: '#sidebar-library-circulation',
-    title: 'Active Circulation',
+    title: 'Circulation',
     content:
       'Track checked-out books, view borrower information, manage due dates, and renew return deadlines.',
     placement: 'right' as const,
@@ -46,6 +55,15 @@ export const libraryAdminTour: Step[] = [
     route: '/library-admin/library-fines',
   },
   {
+    target: '#sidebar-schedule-meeting',
+    title: 'Meetings',
+    content:
+      'Schedule and organize meetings across library staff and campus roles.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/library-admin/schedule-meeting',
+  },
+  {
     target: '#sidebar-apply-leave',
     title: 'Apply Leave',
     content:
@@ -53,6 +71,42 @@ export const libraryAdminTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: true,
     route: '/library-admin/apply-leave',
+  },
+  {
+    target: '#sidebar-my-attendance',
+    title: 'My Attendance',
+    content:
+      'Check your daily attendance logs and records.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/library-admin/my-attendance',
+  },
+  {
+    target: '#sidebar-holiday-calendar',
+    title: 'Calendar',
+    content:
+      'View institutional holiday calendar and scheduled events.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/library-admin/holiday-calendar',
+  },
+  {
+    target: '#sidebar-reimbursements',
+    title: 'Reimbursements & Claims',
+    content:
+      'Submit and monitor status of expense reimbursement claims.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/library-admin/reimbursements',
+  },
+  {
+    target: '#sidebar-my-payroll',
+    title: 'My Salary & Payroll',
+    content:
+      'View your monthly salary statements, pay slips, and statutory deductions.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/library-admin/my-payroll',
   },
   {
     target: '#sidebar-profile',
