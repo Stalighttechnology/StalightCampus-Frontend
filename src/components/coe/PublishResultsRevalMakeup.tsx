@@ -341,7 +341,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
       <Card id="coe-publish-results-reval-makeup-filters" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
         <CardHeader className="border-b pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-3 sm:gap-4 space-y-0">
           <div className="flex flex-col">
-            <CardTitle className="text-xl sm:text-2xl font-semibold">Filter And Create Upload Batch</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl font-semibold">Publish Results (Reval/Makeup)</CardTitle>
             <CardDescription className="text-sm text-muted-foreground mt-1">Filter students and create exam result upload batches.</CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={() => setSettingsModalOpen(true)} className="flex items-center gap-2 w-full sm:w-auto justify-center">

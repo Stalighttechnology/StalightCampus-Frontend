@@ -96,7 +96,7 @@ export function coeTransform(step: any, isMobile: boolean): any[] | null {
       {
         ...step,
         target: '#coe-publish-results-filters',
-        title: 'Filter And Create Upload Batch',
+        title: 'Publish Results',
         content:
           '• Batch: Select batch\n• Branch: Select branch\n• Semester: Select semester\n• Exam Period: Select exam period\n• Create Upload Batch: Click to initialize or load results upload form.',
         placement: isMobile ? step.placement : 'top',
@@ -109,7 +109,7 @@ export function coeTransform(step: any, isMobile: boolean): any[] | null {
       {
         ...step,
         target: '#coe-publish-results-reval-makeup-filters',
-        title: 'Filter And Create Upload Batch',
+        title: 'Publish Results (Reval/Makeup)',
         content:
           '• Batch: Select batch\n• Branch: Select branch\n• Semester: Select semester\n• Exam Period: Select exam period\n• Request Type: Select request type\n• Create Upload Batch: Click to initialize or load results upload form.',
         placement: isMobile ? step.placement : 'top',
