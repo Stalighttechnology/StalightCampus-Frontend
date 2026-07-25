@@ -342,7 +342,7 @@ const SyllabusTracker = () => {
             </p>
           </div>
         </CardHeader>
-        <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
+        <CardContent className="px-3 sm:px-4 lg:px-6 pb-3 sm:pb-4 lg:pb-6 pt-0 space-y-6">
           {/* Dropdown Filters */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-1">

@@ -414,7 +414,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
     return (
       <div className="space-y-8 p-6">
         <SkeletonPageHeader />
-        <SkeletonStatsGrid items={4} />
+        <SkeletonStatsGrid items={4} columns={4} />
         <div className="space-y-4">
           <Skeleton className="h-10 w-full rounded-xl" />
           <SkeletonTable rows={10} cols={6} />

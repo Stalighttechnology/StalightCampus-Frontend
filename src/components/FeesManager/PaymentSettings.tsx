@@ -21,6 +21,8 @@ import {
   AlertTriangle 
 } from "lucide-react";
 
+import { SkeletonForm } from "../ui/skeleton";
+
 const RAZORPAY_DASHBOARD = 'https://dashboard.razorpay.com/app/';
 const RAZORPAY_DOCS_KEYS = 'https://razorpay.com/docs/payment-gateway/server-integration/';
 
@@ -123,9 +125,8 @@ const PaymentSettings: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="py-20 flex flex-col items-center justify-center space-y-4">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm font-medium animate-pulse">Loading Integration Settings...</p>
+      <div className="p-6">
+        <SkeletonForm fields={4} />
       </div>
     );
   }
