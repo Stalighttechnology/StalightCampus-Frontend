@@ -62,7 +62,7 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
   if (loading) {
     return (
       <div className="space-y-6">
-        <SkeletonStatsGrid items={4} />
+        <SkeletonStatsGrid items={4} columns={4} />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SkeletonChart />
           <SkeletonChart />

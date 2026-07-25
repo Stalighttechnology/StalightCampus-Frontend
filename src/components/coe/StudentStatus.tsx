@@ -484,7 +484,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
 
         {loading &&
           <div className="space-y-6">
-            <SkeletonStatsGrid items={4} />
+            <SkeletonStatsGrid items={4} columns={4} />
             <Card>
               <CardContent className="p-6">
                 <SkeletonTable rows={10} cols={5} />
