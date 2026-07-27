@@ -55,6 +55,7 @@ import {
   SkeletonCard
 } from
   "@/components/ui/skeleton";
+import { AnimatePresence, motion } from "framer-motion";
 
 
 interface Payment {
@@ -121,6 +122,12 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
   // Group by Student toggle state
   const [groupByStudent, setGroupByStudent] = useState(false);
   const [expandedStudentIds, setExpandedStudentIds] = useState<Set<number>>(new Set());
+
+  // Modal state for Group-by-Student view
+  const [selectedStudentGroupForModal, setSelectedStudentGroupForModal] = useState<{
+    student: any;
+    payments: Payment[];
+  } | null>(null);
 
   const toggleStudentExpand = (studentId: number) => {
     setExpandedStudentIds(prev => {
@@ -569,7 +576,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
               {/* Group by Student toggle */}
               <button
                 onClick={() => { setGroupByStudent(v => !v); setExpandedStudentIds(new Set()); }}
-                className={`flex items-center gap-2 h-11 px-4 rounded-xl border font-semibold text-sm transition-all whitespace-nowrap ml-auto ${
+                className={`flex items-center justify-center gap-2 h-11 px-4 rounded-xl border font-semibold text-sm transition-all whitespace-nowrap w-full sm:w-auto sm:ml-auto ${
                   groupByStudent
                     ? 'bg-primary text-primary-foreground border-primary shadow-md'
                     : 'bg-background border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground'
@@ -617,12 +624,11 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 <TableRow className="hover:bg-transparent border-b border-border/50">
                   {groupByStudent ? (
                     <>
-                      <TableHead className="w-8"></TableHead>
                       <TableHead className="px-6 py-4 text-[13px] font-semibold uppercase tracking-wider">Student Details</TableHead>
                       <TableHead className="px-6 py-4 text-right text-[13px] font-semibold uppercase tracking-wider">Amount</TableHead>
                       <TableHead className="px-6 py-4 text-center text-[13px] font-semibold uppercase tracking-wider">Mode</TableHead>
                       <TableHead className="px-6 py-4 text-center text-[13px] font-semibold uppercase tracking-wider">Status</TableHead>
-                      <TableHead className="px-6 py-4 text-right pr-6 text-[13px] font-semibold uppercase tracking-wider"></TableHead>
+                      <TableHead className="px-6 py-4 text-center text-[13px] font-semibold uppercase tracking-wider">Actions</TableHead>
                     </>
                   ) : (
                     <>
@@ -655,7 +661,6 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   groupByStudent ? (
                     groupedPayments.map(({ student, payments: studentPayments }) => {
                       const totalAmt = studentPayments.reduce((s, p) => s + Number(p.amount), 0);
-                      const isExpanded = expandedStudentIds.has(student.id);
 
                       // Determine worst case status
                       const allSuccess = studentPayments.every(p => p.status === 'success' || p.status === 'completed');
@@ -666,16 +671,8 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                       return (
                         <React.Fragment key={student.id}>
                           <TableRow
-                            className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50 cursor-pointer"
-                            onClick={() => toggleStudentExpand(student.id)}
+                            className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50"
                           >
-                            <TableCell className="px-4 py-4 w-8">
-                              <ChevronDown
-                                className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
-                                  isExpanded ? 'rotate-0' : '-rotate-90'
-                                }`}
-                              />
-                            </TableCell>
                             <TableCell className="px-6 py-4 align-middle">
                               <div className="font-semibold text-foreground leading-tight">{student.name}</div>
                               <div className="text-[13px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">
@@ -694,64 +691,18 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                             <TableCell className="text-center py-4 align-middle">
                               {getStatusBadge(groupStatus as any)}
                             </TableCell>
-                            <TableCell className="text-right pr-6 py-4 align-middle">
+                            <TableCell className="text-center py-4 align-middle">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className={`h-8 w-8 rounded-full transition-all active:scale-95 ${theme === 'dark' ? 'text-blue-400 hover:bg-blue-950/30' : 'text-blue-600 hover:bg-blue-50'}`}
+                                title="View All Payments"
+                                onClick={() => setSelectedStudentGroupForModal({ student, payments: studentPayments })}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
                             </TableCell>
                           </TableRow>
-
-                          {/* Expanded individual payments */}
-                          <AnimatePresence>
-                            {isExpanded && studentPayments.map(p => (
-                              <TableRow
-                                key={p.id}
-                                className="bg-muted/10 hover:bg-primary/5 border-b border-border/30 transition-all"
-                              >
-                                <TableCell className="py-3 px-6 align-middle pl-12">
-                                  <div className="font-mono font-semibold text-primary tracking-tighter text-xs uppercase">{p.invoice.invoice_number}</div>
-                                  <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mt-0.5">
-                                    {new Date(p.payment_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
-                                  </div>
-                                </TableCell>
-                                <TableCell className="px-6 py-3 align-middle text-sm font-medium">
-                                  {p.invoice.fee_assignment?.template?.name || 'Manual Entry'}
-                                </TableCell>
-                                <TableCell className="text-right py-3 align-middle">
-                                  <div className="font-semibold text-sm">{formatCurrency(p.amount)}</div>
-                                </TableCell>
-                                <TableCell className="text-center py-3 align-middle">
-                                  {getMethodBadge(p.payment_method)}
-                                </TableCell>
-                                <TableCell className="text-center py-3 align-middle">
-                                  {getStatusBadge(p.status)}
-                                </TableCell>
-                                <TableCell className="text-right pr-6 py-3 align-middle">
-                                  <div className="flex justify-end gap-1">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className={`h-7 w-7 rounded-full transition-all ${theme === 'dark' ? 'text-blue-400 hover:bg-blue-950/30' : 'text-blue-600 hover:bg-blue-50'}`}
-                                      onClick={(e) => { e.stopPropagation(); fetchPaymentDetails(p.id); }}
-                                    >
-                                      <Eye className="h-3.5 w-3.5" />
-                                    </Button>
-                                    {(p.status === 'completed' || p.status === 'success' || p.status === 'pending') &&
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className={`h-7 w-7 rounded-full transition-all ${p.status === 'pending'
-                                          ? 'text-gray-400 opacity-50 cursor-not-allowed'
-                                          : (theme === 'dark' ? 'text-green-400 hover:bg-green-950/30' : 'text-green-600 hover:bg-green-50')
-                                          }`}
-                                        onClick={(e) => { e.stopPropagation(); p.status !== 'pending' && downloadReceipt(p.id); }}
-                                        disabled={downloadingReceiptId !== null || p.status === 'pending'}
-                                      >
-                                        {downloadingReceiptId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-                                      </Button>
-                                    }
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </AnimatePresence>
                         </React.Fragment>
                       );
                     })
@@ -1171,6 +1122,127 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
               Close Window
             </button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Student Group Payments Modal */}
+      <Dialog open={!!selectedStudentGroupForModal} onOpenChange={(open) => !open && setSelectedStudentGroupForModal(null)}>
+        <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-2xl max-h-[80vh] sm:max-h-[85vh] flex flex-col overflow-hidden p-0 rounded-2xl border border-border/80 shadow-2xl">
+          {selectedStudentGroupForModal && (
+            <>
+              {/* Modal Header */}
+              <div className="p-4 sm:p-6 pb-4 border-b bg-muted/30 relative">
+                <div className="flex flex-col gap-1 pr-6">
+                  <h2 className="text-lg sm:text-xl font-semibold text-foreground leading-tight">
+                    {selectedStudentGroupForModal.student.name}
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
+                    <span className="font-mono font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded text-[11px]">
+                      {selectedStudentGroupForModal.student.usn}
+                    </span>
+                    <span className="text-muted-foreground/40">•</span>
+                    <span className="font-medium text-foreground/80">{selectedStudentGroupForModal.student.department}</span>
+                    <span className="text-muted-foreground/40">•</span>
+                    <span className="font-medium text-muted-foreground">Sem {selectedStudentGroupForModal.student.semester || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-4 sm:p-6 overflow-y-auto space-y-3.5 flex-1 bg-background">
+                {/* Summary Banner */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-muted/40 border border-border/80 dark:border-border/70 text-xs font-semibold">
+                  <span className="text-muted-foreground font-medium">
+                    Payments ({selectedStudentGroupForModal.payments.length})
+                  </span>
+                  <span className="text-sm font-semibold text-foreground">
+                    Total: <span className="text-green-600 dark:text-green-400 font-bold">{formatCurrency(selectedStudentGroupForModal.payments.reduce((sum, p) => sum + Number(p.amount), 0))}</span>
+                  </span>
+                </div>
+
+                {/* Payments List */}
+                <div className="space-y-3">
+                  {selectedStudentGroupForModal.payments.map((p) => (
+                    <div
+                      key={p.id}
+                      className="rounded-xl border border-border/80 dark:border-border/70 bg-card hover:border-primary/40 shadow-sm transition-all overflow-hidden"
+                    >
+                      {/* Card Top – Invoice # + Status */}
+                      <div className="flex items-center justify-between px-4 py-3 bg-muted/30 border-b border-border/60">
+                        <span className="font-mono font-bold text-primary text-sm uppercase tracking-tight">
+                          {p.invoice.invoice_number}
+                        </span>
+                        {getStatusBadge(p.status)}
+                      </div>
+
+                      {/* Card Body */}
+                      <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm">
+                        {/* Date */}
+                        <div>
+                          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Date</div>
+                          <div className="font-medium text-foreground">
+                            {new Date(p.payment_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          </div>
+                        </div>
+
+                        {/* Academic Year */}
+                        <div>
+                          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Academic Year</div>
+                          <div className="font-medium text-foreground">
+                            {p.invoice.academic_year || '—'}
+                          </div>
+                        </div>
+
+                        {/* Template Name */}
+                        <div className="col-span-2">
+                          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Template</div>
+                          <div className="font-semibold text-foreground">
+                            {p.invoice.fee_assignment?.template?.name || 'Manual Entry'}
+                          </div>
+                        </div>
+
+                        {/* Fee Type */}
+                        <div>
+                          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Fee Type</div>
+                          <Badge variant="secondary" className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 border border-border/50">
+                            {p.invoice.fee_assignment?.template?.fee_type || 'Custom'}
+                          </Badge>
+                        </div>
+
+                        {/* Payment Method */}
+                        <div>
+                          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Method</div>
+                          {getMethodBadge(p.payment_method)}
+                        </div>
+                      </div>
+
+                      {/* Card Footer – amount */}
+                      <div className="flex items-center border-t border-border/60">
+                        <div className="flex-1 text-center py-3">
+                          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Amount Paid</div>
+                          <div className="font-bold text-green-600 dark:text-green-400 text-sm mt-0.5">{formatCurrency(p.amount)}</div>
+                        </div>
+                        {(p.status === 'completed' || p.status === 'success') && (
+                          <div className="border-l border-border/60 px-4 py-3">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={`h-8 w-8 rounded-full transition-all active:scale-95 ${theme === 'dark' ? 'text-green-400 hover:bg-green-950/30' : 'text-green-600 hover:bg-green-50'}`}
+                              title="Download Receipt"
+                              onClick={() => downloadReceipt(p.id)}
+                              disabled={downloadingReceiptId !== null}
+                            >
+                              {downloadingReceiptId === p.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>);
