@@ -8,6 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
   CheckCircle2,
   User,
   CheckCircle,
@@ -19,7 +26,8 @@ import {
   Calendar,
   Trash2,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Eye
 } from
   'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
@@ -112,18 +120,12 @@ const IndividualFeeAssignment: React.FC = () => {
     pageSize: 20
   });
 
-  // Group by Student toggle state
+  // Group by Student toggle state & modal view
   const [groupByStudent, setGroupByStudent] = useState(false);
-  const [expandedStudentIds, setExpandedStudentIds] = useState<Set<number>>(new Set());
-
-  const toggleStudentExpand = (studentId: number) => {
-    setExpandedStudentIds(prev => {
-      const next = new Set(prev);
-      if (next.has(studentId)) next.delete(studentId);
-      else next.add(studentId);
-      return next;
-    });
-  };
+  const [selectedStudentForModal, setSelectedStudentForModal] = useState<{
+    student: Assignment['student'];
+    assignments: Assignment[];
+  } | null>(null);
 
   // Build grouped map: studentId -> { student, assignments[] }
   const groupedAssignments = React.useMemo(() => {
@@ -542,17 +544,17 @@ const IndividualFeeAssignment: React.FC = () => {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-2 md:ml-auto md:flex md:flex-nowrap md:items-center md:gap-3">
-                <div className="min-w-0 md:w-[220px] md:flex-shrink-0">
+              <div className="flex flex-row items-center gap-2 md:ml-auto md:flex-nowrap md:gap-3">
+                <div className="flex-1 min-w-0 md:w-[220px] md:flex-initial">
                   <Select
                     value={selectedTemplateId}
                     onValueChange={(val) => setSelectedTemplateId(val)}
                     disabled={loadingInitialFilters || !allFiltersSelected}
                   >
-                    <SelectTrigger className="h-10 min-w-0 rounded-lg border-0 bg-violet-500 px-3 md:px-4 font-semibold text-white shadow-sm transition-all hover:bg-violet-600 disabled:bg-violet-500 disabled:text-white disabled:opacity-60 disabled:shadow-none [&>svg]:text-current">
-                      <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+                    <SelectTrigger className="h-10 w-full rounded-lg border-0 bg-violet-500 px-2.5 sm:px-4 font-semibold text-white shadow-sm transition-all hover:bg-violet-600 disabled:bg-violet-500 disabled:text-white disabled:opacity-60 disabled:shadow-none [&>svg]:text-current">
+                      <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2 overflow-hidden">
                         <Filter className="h-4 w-4 flex-shrink-0" />
-                        <span className="block min-w-0 flex-1 truncate text-left text-sm text-white">
+                        <span className="block min-w-0 flex-1 truncate text-left text-xs sm:text-sm text-white font-semibold">
                           {selectedTemplateLabel}
                         </span>
                       </div>
@@ -580,16 +582,15 @@ const IndividualFeeAssignment: React.FC = () => {
 
                 {/* Group by Student toggle */}
                 <button
-                  onClick={() => { setGroupByStudent(v => !v); setExpandedStudentIds(new Set()); }}
-                  className={`flex h-10 w-full min-w-0 items-center justify-center gap-2 rounded-md border px-3 font-semibold text-sm transition-all whitespace-nowrap md:w-auto md:px-4 md:flex-shrink-0 ${
-                    groupByStudent
-                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                      : 'bg-background border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground'
-                  }`}
+                  onClick={() => setGroupByStudent(v => !v)}
+                  className={`flex-1 min-w-0 flex h-10 items-center justify-center gap-1.5 sm:gap-2 rounded-lg border px-2.5 sm:px-4 font-semibold text-xs sm:text-sm transition-all whitespace-nowrap md:flex-initial ${groupByStudent
+                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                    : 'bg-background border-border/80 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                    }`}
                   title="Toggle Group by Student"
                 >
                   <Users className="h-4 w-4 flex-shrink-0" />
-                  Group by Student
+                  <span className="truncate">Group by Student</span>
                 </button>
               </div>
             </div>
@@ -608,7 +609,7 @@ const IndividualFeeAssignment: React.FC = () => {
                     <Filter className="h-6 w-6 text-muted-foreground/30 sm:h-8 sm:w-8" />
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-foreground mb-2">Selection Required</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-2">Selection Required</h3>
                 <p className="text-muted-foreground max-w-sm mb-8 text-sm px-2">
                   Please complete the cascading filter selection above to view fee assignments.
                 </p>
@@ -621,13 +622,13 @@ const IndividualFeeAssignment: React.FC = () => {
                     { label: 'Admission', active: !!selectedFilters.admissionMode }
                   ].map((step, i) => (
                     <div key={step.label} className="flex flex-col items-center gap-2 min-w-[60px] sm:min-w-[80px]">
-                      <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border-2 transition-all duration-300 ${step.active
-                          ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25 scale-110'
-                          : 'bg-background border-muted text-muted-foreground opacity-60'
+                      <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold border-2 transition-all duration-300 ${step.active
+                        ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25 scale-110'
+                        : 'bg-background border-muted text-muted-foreground opacity-60'
                         }`}>
                         {step.active ? <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6" /> : i + 1}
                       </div>
-                      <span className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-colors duration-300 ${step.active ? 'text-primary' : 'text-muted-foreground opacity-60'
+                      <span className={`text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider transition-colors duration-300 ${step.active ? 'text-primary' : 'text-muted-foreground opacity-60'
                         }`}>
                         {step.label}
                       </span>
@@ -654,11 +655,11 @@ const IndividualFeeAssignment: React.FC = () => {
                     <TableRow className="hover:bg-transparent">
                       {groupByStudent ? (
                         <>
-                          <TableHead className="w-8"></TableHead>
                           <TableHead className="font-semibold py-4 px-6 text-foreground h-12">Student Details</TableHead>
                           <TableHead className="font-semibold text-foreground h-12 text-center">Department</TableHead>
                           <TableHead className="font-semibold text-foreground h-12 text-center">Assignments Summary</TableHead>
                           <TableHead className="font-semibold text-foreground h-12 text-center">Total Assigned</TableHead>
+                          <TableHead className="text-right font-semibold pr-6 text-foreground h-12">Action</TableHead>
                         </>
                       ) : (
                         <>
@@ -677,88 +678,48 @@ const IndividualFeeAssignment: React.FC = () => {
                     {groupByStudent ? (
                       groupedAssignments.map(({ student, assignments: studentAssigns }) => {
                         const totalAmt = studentAssigns.reduce((s, i) => s + (i.template.total_amount || 0), 0);
-                        const isExpanded = expandedStudentIds.has(student.id);
 
                         return (
-                          <React.Fragment key={student.id}>
-                            {/* Group Header Row */}
-                            <TableRow
-                              className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50 cursor-pointer"
-                              onClick={() => toggleStudentExpand(student.id)}
-                            >
-                              <TableCell className="px-4 py-4 w-8">
-                                <ChevronDown
-                                  className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
-                                    isExpanded ? 'rotate-0' : '-rotate-90'
-                                  }`}
-                                />
-                              </TableCell>
-                              <TableCell className="py-4 px-6 align-middle">
-                                <div className="font-semibold text-foreground leading-tight">{student.name}</div>
-                                <div className="text-[10px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">{student.usn}</div>
-                              </TableCell>
-                              <TableCell className="align-middle text-center">
-                                <div className="flex flex-col items-center justify-center">
-                                  <div className="text-sm font-medium leading-tight">{student.department}</div>
-                                  <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-tight mt-1">Sem {student.semester} • Sec {student.section}</div>
-                                </div>
-                              </TableCell>
-                              <TableCell className="align-middle text-center">
-                                <Badge variant="outline" className="text-[12px] font-semibold">
-                                  {studentAssigns.length} Assignment{studentAssigns.length !== 1 ? 's' : ''}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="align-middle text-center">
-                                <span className="font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded text-sm">
-                                  {formatCurrency(totalAmt)}
-                                </span>
-                              </TableCell>
-                            </TableRow>
-
-                            {/* Expanded Assignments */}
-                            <AnimatePresence>
-                              {isExpanded && studentAssigns.map(assignment => (
-                                <TableRow
-                                  key={assignment.id}
-                                  className="bg-muted/10 hover:bg-primary/5 transition-all border-b border-border/30"
-                                >
-                                  <TableCell className="px-4 py-3"></TableCell>
-                                  <TableCell className="py-3 px-6 align-middle" colSpan={2}>
-                                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-tight">
-                                      <Calendar className="h-3.5 w-3.5 text-muted-foreground/50" />
-                                      Assigned: {formatDate(assignment.assigned_at)}
-                                    </div>
-                                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-tight mt-1">
-                                      <Calendar className="h-3.5 w-3.5 text-muted-foreground/50" />
-                                      Due: {assignment.due_date ? formatDate(assignment.due_date) : '-'}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="align-middle text-center">
-                                    <div className="flex flex-col items-center gap-1">
-                                      <span className="font-semibold text-sm leading-tight">{assignment.template.name}</span>
-                                      <Badge variant="outline" className="w-fit text-[10px] uppercase font-semibold tracking-widest px-2 border-border/50 h-5">
-                                        {assignment.template.fee_type}
-                                      </Badge>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="align-middle text-center">
-                                    <span className="font-semibold text-foreground">
-                                      {formatCurrency(assignment.template.total_amount)}
-                                    </span>
-                                  </TableCell>
-                                  <TableCell className="text-right pr-6 align-middle">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-all active:scale-95"
-                                      onClick={(e) => { e.stopPropagation(); handleDelete(assignment.id); }}>
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </AnimatePresence>
-                          </React.Fragment>
+                          <TableRow
+                            key={student.id}
+                            className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50 cursor-pointer"
+                            onClick={() => setSelectedStudentForModal({ student, assignments: studentAssigns })}
+                          >
+                            <TableCell className="py-4 px-6 align-middle">
+                              <div className="font-semibold text-foreground leading-tight">{student.name}</div>
+                              <div className="text-[10px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">{student.usn}</div>
+                            </TableCell>
+                            <TableCell className="align-middle text-center">
+                              <div className="flex flex-col items-center justify-center">
+                                <div className="text-sm font-medium leading-tight">{student.department}</div>
+                                <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-tight mt-1">Sem {student.semester} • Sec {student.section}</div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="align-middle text-center">
+                              <Badge variant="outline" className="text-[12px] font-semibold">
+                                {studentAssigns.length} Assignment{studentAssigns.length !== 1 ? 's' : ''}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="align-middle text-center">
+                              <span className="font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded text-sm">
+                                {formatCurrency(totalAmt)}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right pr-6 align-middle">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 gap-1.5 font-medium text-xs transition-all hover:bg-primary hover:text-white"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedStudentForModal({ student, assignments: studentAssigns });
+                                }}
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                                View
+                              </Button>
+                            </TableCell>
+                          </TableRow>
                         );
                       })
                     ) : (
@@ -807,7 +768,7 @@ const IndividualFeeAssignment: React.FC = () => {
                               size="icon"
                               className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-all active:scale-95"
                               onClick={() => handleDelete(assignment.id)}>
-  
+
                               <Trash2 className="h-4.5 w-4.5" />
                             </Button>
                           </TableCell>
@@ -848,7 +809,7 @@ const IndividualFeeAssignment: React.FC = () => {
                 className={`${theme === 'dark'
                   ? 'text-muted-foreground bg-card border border-border'
                   : 'text-gray-700 bg-white border border-gray-300'
-                } px-3 py-1 h-9 min-w-[36px]`}
+                  } px-3 py-1 h-9 min-w-[36px]`}
               >
                 {pagination.page}
               </Button>
@@ -866,6 +827,113 @@ const IndividualFeeAssignment: React.FC = () => {
           </CardFooter>
         )}
       </Card>
+
+      {/* Grouped Student Fee Assignments Modal */}
+      <Dialog open={!!selectedStudentForModal} onOpenChange={(open) => !open && setSelectedStudentForModal(null)}>
+        <DialogContent className="w-[92vw] max-w-[92vw] sm:max-w-2xl max-h-[85vh] flex flex-col overflow-hidden p-0 rounded-2xl border border-border/80 shadow-2xl">
+          {selectedStudentForModal && (
+            <>
+              {/* Modal Header */}
+              <div className="p-4 sm:p-6 pb-4 border-b bg-muted/30 relative">
+                <div className="flex flex-col gap-1 pr-6">
+                  <h2 className="text-lg sm:text-xl font-semibold text-foreground leading-tight">
+                    {selectedStudentForModal.student.name}
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
+                    <span className="font-mono font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded text-[11px]">
+                      {selectedStudentForModal.student.usn}
+                    </span>
+                    <span className="text-muted-foreground/40">•</span>
+                    <span className="font-medium text-foreground/80">{selectedStudentForModal.student.department}</span>
+                    <span className="text-muted-foreground/40">•</span>
+                    <span className="font-medium text-muted-foreground">
+                      Sem {selectedStudentForModal.student.semester} ({selectedStudentForModal.student.section})
+                    </span>
+                    {selectedStudentForModal.student.batch && (
+                      <>
+                        <span className="text-muted-foreground/40">•</span>
+                        <span className="font-medium text-muted-foreground">{selectedStudentForModal.student.batch}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-4 sm:p-6 overflow-y-auto space-y-3.5 flex-1 bg-background">
+                {/* Summary Banner */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-muted/40 border border-border/80 dark:border-border/70 text-xs font-semibold">
+                  <span className="text-muted-foreground font-medium">
+                    Assigned Fee Templates ({selectedStudentForModal.assignments.length})
+                  </span>
+                  <span className="text-sm font-semibold text-foreground">
+                    Total: <span className="text-green-600 dark:text-green-400 font-bold">{formatCurrency(selectedStudentForModal.assignments.reduce((sum, a) => sum + (a.template.total_amount || 0), 0))}</span>
+                  </span>
+                </div>
+
+                {/* Assignments List */}
+                <div className="space-y-3">
+                  {selectedStudentForModal.assignments.map((assignment) => (
+                    <div
+                      key={assignment.id}
+                      className="p-4 rounded-xl border border-border/80 dark:border-border/70 bg-card hover:border-primary/50 shadow-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-sm sm:text-base text-foreground">
+                            {assignment.template.name}
+                          </span>
+                          <Badge variant="secondary" className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 border border-border/50">
+                            {assignment.template.fee_type}
+                          </Badge>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1.5 font-medium">
+                            <Calendar className="h-3.5 w-3.5 text-primary/70" />
+                            <span>Assigned: <strong className="text-foreground/90">{formatDate(assignment.assigned_at)}</strong></span>
+                          </div>
+                          <div className="flex items-center gap-1.5 font-medium">
+                            <Calendar className="h-3.5 w-3.5 text-destructive/70" />
+                            <span>Due: <strong className="text-foreground/90">{assignment.due_date ? formatDate(assignment.due_date) : '-'}</strong></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-5 pt-3 sm:pt-0 border-t sm:border-t-0 border-border/60">
+                        <div className="text-right">
+                          <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Amount</div>
+                          <div className="font-bold text-green-600 dark:text-green-400">
+                            {formatCurrency(assignment.template.total_amount)}
+                          </div>
+                        </div>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-all active:scale-95"
+                          title="Delete Assignment"
+                          onClick={() => {
+                            handleDelete(assignment.id);
+                            setSelectedStudentForModal(prev => {
+                              if (!prev) return null;
+                              const updated = prev.assignments.filter(a => a.id !== assignment.id);
+                              if (updated.length === 0) return null;
+                              return { ...prev, assignments: updated };
+                            });
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>);
 
 };
