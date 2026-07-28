@@ -619,6 +619,7 @@ interface PromoteStudentsRequest {
   from_semester_id: string;
   to_semester_id: string;
   section_id?: string;
+  batch_id?: string;
   branch_id: string;
   student_ids?: string[];
 }
@@ -1675,7 +1676,7 @@ export const getHODSubjectBootstrap = async (include: string[] = ['profile', 'se
   }
 };
 export const manageStudents = async (
-data: ManageStudentsRequest | {branch_id: string;semester_id?: string;section_id?: string;page?: number;page_size?: number;},
+data: ManageStudentsRequest | {branch_id: string;semester_id?: string;section_id?: string;batch_id?: string;page?: number;page_size?: number;},
 method: "GET" | "POST" = "GET")
 : Promise<ManageStudentsResponse> => {
   // Simple in-memory cache to avoid immediate GET after a recent POST
@@ -1692,6 +1693,7 @@ method: "GET" | "POST" = "GET")
       const params = new URLSearchParams({ branch_id });
       if ((data as any).semester_id) params.append("semester_id", (data as any).semester_id);
       if ((data as any).section_id) params.append("section_id", (data as any).section_id);
+      if ((data as any).batch_id) params.append("batch_id", (data as any).batch_id);
       if ((data as any).search) params.append("search", (data as any).search);
       if ((data as any).subject_id) params.append("subject_id", (data as any).subject_id);
       if ((data as any).cycle) params.append("cycle", (data as any).cycle);

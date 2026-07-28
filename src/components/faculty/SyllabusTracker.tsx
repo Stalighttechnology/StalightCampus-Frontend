@@ -19,7 +19,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useFacultyAssignmentsQuery } from "@/hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
-import { getSyllabusStatus, updateSyllabusProgress, exportSyllabusPdf } from "@/utils/faculty_api";
+import { getSyllabusStatus, updateSyllabusProgress, exportSyllabusPdf , getBatches } from "@/utils/faculty_api";
 import { BookOpen, CheckCircle, Clock, Save, Loader2, FileDown } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { showConfirmAlert } from "../../utils/sweetalert";
@@ -57,6 +57,8 @@ const SyllabusTracker = () => {
     section_id: a.section_id ? Number(a.section_id) : null
   })), [assignments]);
 
+  const [batches, setBatches] = useState<any[]>([]);
+  const [batchId, setBatchId] = useState<number | null>(null);
   const [branchId, setBranchId] = useState<number | null>(null);
   const [semesterId, setSemesterId] = useState<number | null>(null);
   const [subjectId, setSubjectId] = useState<number | null>(null);
@@ -72,6 +74,7 @@ const SyllabusTracker = () => {
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isSubjectOpen, setIsSubjectOpen] = useState(false);
   const [isSectionOpen, setIsSectionOpen] = useState(false);
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
   
   const [exportingPDF, setExportingPDF] = useState(false);
 
@@ -85,7 +88,8 @@ const SyllabusTracker = () => {
         subject_id: subjectId.toString(),
         branch_id: matchingAssignment?.branch_id?.toString() || "",
         semester_id: semesterId?.toString() || "",
-        section_id: isElective ? "" : (sectionId?.toString() || "")
+        section_id: isElective ? "" : (sectionId?.toString() || ""),
+        batch_id: batchId?.toString() || ""
       });
 
       const url = window.URL.createObjectURL(blob);
@@ -116,6 +120,27 @@ const SyllabusTracker = () => {
       setExportingPDF(false);
     }
   };
+
+  // Load batches on mount — no auto-select
+  useEffect(() => {
+    getBatches().then(res => {
+      if (res.success && res.data && res.data.length > 0) {
+        setBatches(res.data);
+        // No auto-select — user must choose
+      }
+    });
+  }, []);
+
+  // When batch changes, reset all dependent filters and auto-open branch
+  useEffect(() => {
+    if (!batchId) return;
+    setBranchId(null);
+    setSemesterId(null);
+    setSubjectId(null);
+    setSectionId(null);
+    setSyllabusData(null);
+    setIsBranchOpen(true);
+  }, [batchId]);
 
   // 0. Branches (Unique list from assignments)
   const branches = useMemo(() => {
@@ -182,7 +207,7 @@ const SyllabusTracker = () => {
 
   // Fetch Syllabus status
   const fetchSyllabus = async () => {
-    const hasRequiredFilters = isElective ? !!subjectId : (!!subjectId && !!sectionId);
+    const hasRequiredFilters = (isElective ? !!subjectId : (!!subjectId && !!sectionId)) && !!batchId;
     if (!hasRequiredFilters) {
       setSyllabusData(null);
       return;
@@ -195,7 +220,8 @@ const SyllabusTracker = () => {
         subject_id: subjectId!.toString(),
         branch_id: matchingAssignment?.branch_id?.toString() || "",
         semester_id: semesterId?.toString() || "",
-        section_id: isElective ? "" : (sectionId?.toString() || "")
+        section_id: isElective ? "" : (sectionId?.toString() || ""),
+        batch_id: batchId?.toString() || ""
       });
       if (res.success && res.data) {
         setSyllabusData(res.data);
@@ -222,7 +248,7 @@ const SyllabusTracker = () => {
 
   useEffect(() => {
     fetchSyllabus();
-  }, [semesterId, subjectId, sectionId, isElective]);
+  }, [semesterId, subjectId, sectionId, isElective, batchId]);
 
   // Save individual week progress
   const handleSaveProgress = async (weekNum: number, currentCompleted: boolean) => {
@@ -236,6 +262,7 @@ const SyllabusTracker = () => {
         branch_id: isElective ? undefined : matchingAssignment?.branch_id?.toString(),
         semester_id: isElective ? undefined : semesterId?.toString(),
         section_id: isElective ? undefined : sectionId?.toString(),
+        batch_id: batchId!.toString(),
         week_number: weekNum,
         is_completed: currentCompleted, // Only save text, keep completion status unchanged
         topics_covered: edit.topics_covered,
@@ -274,6 +301,7 @@ const SyllabusTracker = () => {
         branch_id: isElective ? undefined : matchingAssignment?.branch_id?.toString(),
         semester_id: isElective ? undefined : semesterId?.toString(),
         section_id: isElective ? undefined : sectionId?.toString(),
+        batch_id: batchId?.toString() || "",
         week_number: weekNum,
         is_completed: !currentCompleted,
         topics_covered: edit.topics_covered,
@@ -344,12 +372,24 @@ const SyllabusTracker = () => {
         </CardHeader>
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
           {/* Dropdown Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold uppercase opacity-80">Batch</label>
+              <Select value={batchId?.toString() || ""} onValueChange={(v) => setBatchId(Number(v))}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {batches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-1">
               <label className="text-xs font-semibold uppercase opacity-80">{translateTerminology("Branch")}</label>
-              <Select value={branchId?.toString() || ""} onValueChange={(v) => setBranchId(Number(v))}>
+              <Select value={branchId?.toString() || ""} onValueChange={(v) => setBranchId(Number(v))} disabled={!batchId} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateTerminology("Select Branch")} />
+                  <SelectValue placeholder={!batchId ? "Select Batch first" : translateTerminology("Select Branch")} />
                 </SelectTrigger>
                 <SelectContent>
                   {branches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}

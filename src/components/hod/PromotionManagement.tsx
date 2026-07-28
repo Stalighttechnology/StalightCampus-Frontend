@@ -58,6 +58,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { SkeletonTable } from "../ui/skeleton";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
+import { getBatches } from "../../utils/faculty_api";
 
 interface Semester {
   id: string;
@@ -368,6 +369,8 @@ const PromotionOverview = ({ onTabChange, theme, stats }: { onTabChange: (tab: "
 
 const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabChange: (tab: "overview" | "promote" | "demote") => void; onSuccess?: () => void; }) => {
   const [state, setState] = useState({
+    batches: [] as any[],
+    selectedBatchId: "",
     semesters: [] as Semester[],
     sections: [] as Section[],
     students: [] as Student[],
@@ -386,7 +389,8 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
     totalStudents: 0,
     hasNext: false,
     hasPrevious: false,
-    isSectionOpen: false
+    isSectionOpen: false,
+    isSemesterOpen: false
   });
 
   // Helper to update state
@@ -399,7 +403,16 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
     const fetchInitialData = async () => {
       updateState({ isLoading: true });
       try {
-        const bootstrapResponse = await getPromotionBootstrap();
+        const [bootstrapResponse, batchRes] = await Promise.all([
+          getPromotionBootstrap(),
+          getBatches()
+        ]);
+        
+        let initialBatches = [] as any[];
+        if (batchRes.success && batchRes.data) {
+          initialBatches = batchRes.data;
+        }
+
         if (bootstrapResponse.success && bootstrapResponse.data) {
           const { profile, semesters, sections } = bootstrapResponse.data;
 
@@ -408,14 +421,14 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
               branchId: profile.branch_id,
               totalSemesters: profile.total_semesters || 8,
               semesters: semesters || [],
-              sections: sections || []
+              sections: sections || [],
+              batches: initialBatches
             });
           }
         } else {
-          updateState({ errors: [bootstrapResponse.message || "Failed to fetch promotion data"] });
+          updateState({ errors: [bootstrapResponse.message || "Failed to fetch promotion data"], batches: initialBatches });
         }
       } catch (err) {
-
         updateState({ errors: ["Failed to load initial data"] });
       } finally {
         updateState({ isLoading: false });
@@ -424,6 +437,18 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
 
     fetchInitialData();
   }, []);
+
+  // When batch changes: reset semester/section, clear list, auto-open semester dropdown
+  useEffect(() => {
+    if (!state.selectedBatchId) return;
+    updateState({
+      selectedSemester: "",
+      selectedSection: "",
+      students: [],
+      selectedStudents: [],
+      isSemesterOpen: true
+    });
+  }, [state.selectedBatchId]);
 
   // Fetch sections when semester changes
   useEffect(() => {
@@ -449,7 +474,6 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
           }
         }
       } catch (err) {
-
         updateState({ errors: ["Failed to load sections"] });
       }
     };
@@ -457,10 +481,10 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
     fetchSections();
   }, [state.selectedSemester, state.branchId, state.semesters]);
 
-  // Fetch students when semester and section change
+  // Fetch students when semester, section, and batch change
   useEffect(() => {
     const fetchStudents = async () => {
-      if (!state.selectedSemester || !state.branchId || !state.selectedSection) {
+      if (!state.selectedSemester || !state.branchId || !state.selectedSection || !state.selectedBatchId) {
         updateState({ students: [], selectedStudents: [] });
         return;
       }
@@ -475,6 +499,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
             branch_id: state.branchId,
             semester_id: semesterId,
             section_id: sectionId,
+            batch_id: state.selectedBatchId,
             page_size: 50 // Use AdminPagination default page size
           }, "GET");
 
@@ -533,7 +558,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
     };
 
     fetchStudents();
-  }, [state.selectedSemester, state.selectedSection, state.branchId, state.semesters, state.sections]);
+  }, [state.selectedSemester, state.selectedSection, state.selectedBatchId, state.branchId, state.semesters, state.sections]);
 
   // Handle individual student selection
   const handleStudentSelect = (usn: string, checked: boolean) => {
@@ -572,6 +597,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
           branch_id: state.branchId,
           semester_id: semesterId,
           section_id: sectionId,
+          batch_id: state.selectedBatchId,
           page: page,
           page_size: 50 // Use AdminPagination default page size
         }, "GET");
@@ -710,7 +736,8 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
           from_semester_id: currentSemesterId, // Pass as string
           to_semester_id: nextSemester?.id, // Pass as string
           branch_id: state.branchId,
-          ...(sectionId && { section_id: sectionId })
+          ...(sectionId && { section_id: sectionId }),
+          ...(state.selectedBatchId && { batch_id: state.selectedBatchId })
         });
       }
 
@@ -858,7 +885,8 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
         from_semester_id: currentSemesterId, // Pass as string
         to_semester_id: nextSemester.id, // Pass as string
         branch_id: state.branchId,
-        ...(sectionId && { section_id: sectionId })
+        ...(sectionId && { section_id: sectionId }),
+        ...(state.selectedBatchId && { batch_id: state.selectedBatchId })
       });
 
       if (res.success) {
@@ -947,14 +975,37 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
           <CardDescription className="text-sm text-muted-foreground mt-1">Configure rules and select students to promote to the next semester.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
             <Select
-              value={state.selectedSemester}
-              onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "", isSectionOpen: false })}
+              value={state.selectedBatchId}
+              onValueChange={(value) => updateState({ selectedBatchId: value })}
               disabled={state.isLoading}>
 
               <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
-                <SelectValue placeholder={translateTerminology("Select Semester")} />
+                <SelectValue placeholder="Select Batch" />
+              </SelectTrigger>
+              <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
+                {state.batches.length === 0 ? (
+                  <SelectItem value="none" disabled className="text-muted-foreground">No Batches</SelectItem>
+                ) : (
+                  state.batches.map((batch) => (
+                    <SelectItem key={batch.id} value={batch.id.toString()} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
+                      {batch.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={state.selectedSemester}
+              onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "", isSectionOpen: false })}
+              open={state.isSemesterOpen}
+              onOpenChange={(open) => updateState({ isSemesterOpen: open })}
+              disabled={state.isLoading || !state.selectedBatchId}>
+
+              <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
+                <SelectValue placeholder={!state.selectedBatchId ? "Select Batch first" : translateTerminology("Select Semester")} />
               </SelectTrigger>
               <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
                 {state.semesters.length === 0 ? (
@@ -1064,7 +1115,9 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
                       </TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.batch}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {student.batch ? student.batch.replace(/_Sem(\d+)/gi, ' (Sem $1)').replace(/_/g, ' ') : 'N/A'}
+                      </TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section || 'N/A'}</TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester}</TableCell>
                     </TableRow>
@@ -1126,6 +1179,8 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
 
 const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabChange: (tab: "overview" | "promote" | "demote") => void; onSuccess?: () => void; }) => {
   const [state, setState] = useState({
+    batches: [] as any[],
+    selectedBatchId: "",
     semesters: [] as Semester[],
     sections: [] as Section[],
     students: [] as Student[],
@@ -1146,7 +1201,8 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
     totalStudents: 0,
     hasNext: false,
     hasPrevious: false,
-    isSectionOpen: false
+    isSectionOpen: false,
+    isSemesterOpen: false
   });
 
   // Helper to update state
@@ -1159,7 +1215,16 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
     const fetchInitialData = async () => {
       updateState({ isLoading: true });
       try {
-        const bootstrapResponse = await getPromotionBootstrap();
+        const [bootstrapResponse, batchRes] = await Promise.all([
+          getPromotionBootstrap(),
+          getBatches()
+        ]);
+
+        let initialBatches = [] as any[];
+        if (batchRes.success && batchRes.data) {
+          initialBatches = batchRes.data;
+        }
+
         if (bootstrapResponse.success && bootstrapResponse.data) {
           const { profile, semesters, sections } = bootstrapResponse.data;
 
@@ -1168,14 +1233,14 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
               branchId: profile.branch_id,
               totalSemesters: profile.total_semesters || 8,
               semesters: semesters || [],
-              sections: sections || []
+              sections: sections || [],
+              batches: initialBatches
             });
           }
         } else {
-          updateState({ errors: [bootstrapResponse.message || "Failed to fetch demotion data"] });
+          updateState({ errors: [bootstrapResponse.message || "Failed to fetch demotion data"], batches: initialBatches });
         }
       } catch (err) {
-
         updateState({ errors: ["Failed to load initial data"] });
       } finally {
         updateState({ isLoading: false });
@@ -1184,6 +1249,18 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
 
     fetchInitialData();
   }, []);
+
+  // When batch changes: reset semester/section, clear list, auto-open semester dropdown
+  useEffect(() => {
+    if (!state.selectedBatchId) return;
+    updateState({
+      selectedSemester: "",
+      selectedSection: "",
+      students: [],
+      selectedStudents: [],
+      isSemesterOpen: true
+    });
+  }, [state.selectedBatchId]);
 
   // Fetch sections when semester changes
   useEffect(() => {
@@ -1209,7 +1286,6 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
           }
         }
       } catch (err) {
-
         updateState({ errors: ["Failed to load sections"] });
       }
     };
@@ -1217,10 +1293,10 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
     fetchSections();
   }, [state.selectedSemester, state.branchId, state.semesters]);
 
-  // Fetch students when semester and section change
+  // Fetch students when semester, section, and batch change
   useEffect(() => {
     const fetchStudents = async () => {
-      if (!state.selectedSemester || !state.branchId || !state.selectedSection) {
+      if (!state.selectedSemester || !state.branchId || !state.selectedSection || !state.selectedBatchId) {
         updateState({ students: [], selectedStudents: [] });
         return;
       }
@@ -1235,6 +1311,7 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
             branch_id: state.branchId,
             semester_id: semesterId,
             section_id: sectionId,
+            batch_id: state.selectedBatchId,
             page_size: 50 // Use AdminPagination default page size
           }, "GET");
 
@@ -1293,7 +1370,7 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
     };
 
     fetchStudents();
-  }, [state.selectedSemester, state.selectedSection, state.branchId, state.semesters, state.sections]);
+  }, [state.selectedSemester, state.selectedSection, state.selectedBatchId, state.branchId, state.semesters, state.sections]);
 
   // Handle individual student selection
   const handleStudentSelect = (usn: string, checked: boolean) => {
@@ -1332,6 +1409,7 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
           branch_id: state.branchId,
           semester_id: semesterId,
           section_id: sectionId,
+          batch_id: state.selectedBatchId,
           page: page,
           page_size: 50 // Use AdminPagination default page size
         }, "GET");
@@ -1543,14 +1621,37 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
               <Select
-                value={state.selectedSemester}
-                onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "", isSectionOpen: false })}
+                value={state.selectedBatchId}
+                onValueChange={(value) => updateState({ selectedBatchId: value })}
                 disabled={state.isLoading}>
 
                 <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
-                  <SelectValue placeholder={translateTerminology("Select Semester")} />
+                  <SelectValue placeholder="Select Batch" />
+                </SelectTrigger>
+                <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
+                  {state.batches.length === 0 ? (
+                    <SelectItem value="none" disabled className="text-muted-foreground">No Batches</SelectItem>
+                  ) : (
+                    state.batches.map((batch) => (
+                      <SelectItem key={batch.id} value={batch.id.toString()} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
+                        {batch.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={state.selectedSemester}
+                onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "", isSectionOpen: false })}
+                open={state.isSemesterOpen}
+                onOpenChange={(open) => updateState({ isSemesterOpen: open })}
+                disabled={state.isLoading || !state.selectedBatchId}>
+
+                <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
+                  <SelectValue placeholder={!state.selectedBatchId ? "Select Batch first" : translateTerminology("Select Semester")} />
                 </SelectTrigger>
                 <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
                   {state.semesters.length === 0 ? (
@@ -1644,7 +1745,9 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
                       </TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.batch}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {student.batch ? student.batch.replace(/_Sem(\d+)/gi, ' (Sem $1)').replace(/_/g, ' ') : 'N/A'}
+                      </TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section || 'N/A'}</TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester}</TableCell>
                     </TableRow>

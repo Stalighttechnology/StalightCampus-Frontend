@@ -18,7 +18,7 @@ import {
 import { Button } from "../ui/button";
 import { useTheme } from "@/context/ThemeContext";
 import { 
-  getSyllabusBootstrap, 
+  getBatches,
   getSemesterSyllabusMonitor,
   getSubjectSyllabusMonitor,
   SemesterSyllabusMonitorResponse,
@@ -41,6 +41,9 @@ const HODSemesterMonitor = () => {
   const { toast } = useToast();
   const { theme } = useTheme();
 
+  const [batches, setBatches] = useState<any[]>([]);
+  const [batchId, setBatchId] = useState<number | null>(null);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [semesters, setSemesters] = useState<any[]>([]);
   const [bootstrapLoading, setBootstrapLoading] = useState(true);
   const [semesterId, setSemesterId] = useState<number | null>(null);
@@ -55,7 +58,7 @@ const HODSemesterMonitor = () => {
     if (!semesterId) return;
     setExportingSubjectId(subj.subject_id);
     try {
-      const blob = await exportSubjectSyllabusMonitorPdf(semesterId.toString(), subj.subject_id.toString());
+      const blob = await exportSubjectSyllabusMonitorPdf(batchId!.toString(), semesterId.toString(), subj.subject_id.toString());
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -86,6 +89,7 @@ const HODSemesterMonitor = () => {
     if (sectionId) setExportingSectionId(sectionId);
     try {
       const blob = await exportSyllabusPdf({
+        batch_id: batchId!.toString(),
         subject_id: subject.subject_id.toString(),
         branch_id: "",
         semester_id: semesterId?.toString() || "",
@@ -124,10 +128,11 @@ const HODSemesterMonitor = () => {
 
   // Fetch Semester syllabus monitoring metrics
   const fetchMonitorData = async (showLoader = false, overrideSemesterId?: string) => {
+    if (!batchId) return;
     const sId = overrideSemesterId || semesterId?.toString();
     if (showLoader) setLoadingMonitor(true);
     try {
-      const res = await getSemesterSyllabusMonitor(sId);
+      const res = await getSemesterSyllabusMonitor(batchId.toString(), sId);
       if (res.success) {
         if (res.semesters && res.semesters.length > 0 && semesters.length === 0) {
           setSemesters(res.semesters);
@@ -152,9 +157,38 @@ const HODSemesterMonitor = () => {
   };
 
   useEffect(() => {
-    // Initial fetch to get default semester and data
-    fetchMonitorData(true);
+    const initBatches = async () => {
+      const bRes = await getBatches();
+      if (bRes.success && bRes.data && bRes.data.length > 0) {
+        setBatches(bRes.data);
+        // No auto-select — user must choose
+      }
+      setBootstrapLoading(false);
+    };
+    initBatches();
   }, []);
+
+  // When batch changes: reset semester, fetch semesters list, then auto-open semester dropdown
+  useEffect(() => {
+    if (!batchId) return;
+    setSemesterId(null);
+    setMonitorData(null);
+    // Fetch semesters list by hitting the monitor with no semester (backend returns semesters)
+    (async () => {
+      try {
+        const res = await getSemesterSyllabusMonitor(batchId.toString());
+        if (res.success && res.semesters) {
+          setSemesters(res.semesters);
+          setIsSemesterOpen(true); // auto-open semester dropdown
+        }
+      } catch {}
+    })();
+  }, [batchId]);
+
+  // When semester is explicitly chosen, fetch the data
+  useEffect(() => {
+    if (batchId && semesterId) fetchMonitorData(true);
+  }, [semesterId]);
 
   const handleSemesterChange = (val: string) => {
     const newId = Number(val);
@@ -167,7 +201,7 @@ const HODSemesterMonitor = () => {
     setSelectedSubject({ ...subj, sections_progress: [] });
     setLoadingSubjectProgress(true);
     try {
-      const res = await getSubjectSyllabusMonitor(semesterId.toString(), subj.subject_id.toString());
+      const res = await getSubjectSyllabusMonitor(batchId!.toString(), semesterId.toString(), subj.subject_id.toString());
       if (res.success) {
         setSelectedSubject({ ...subj, sections_progress: res.sections_progress || [] });
       } else {
@@ -205,13 +239,35 @@ const HODSemesterMonitor = () => {
               <CardDescription>Track weekly teaching completions across all subjects in the department.</CardDescription>
             </div>
 
+            {/* Batch Filter */}
+            <div className="flex flex-col items-start gap-1 shrink-0 w-full sm:w-auto mr-4">
+              <span className="text-xs font-semibold uppercase opacity-80 shrink-0">Batch</span>
+              <Select 
+                value={batchId?.toString() || ""} 
+                onValueChange={(v) => setBatchId(Number(v))}
+              >
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue placeholder="Select Batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {batches.map(b => (
+                    <SelectItem key={b.id} value={b.id.toString()}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Semester Filter */}
             <div className="flex flex-col items-start gap-1 shrink-0 w-full sm:w-auto">
               <span className="text-xs font-semibold uppercase opacity-80 shrink-0">{translateTerminology("Semester")}</span>
               <Select 
                 value={semesterId?.toString() || ""} 
                 onValueChange={handleSemesterChange}
-                disabled={bootstrapLoading}
+                disabled={!batchId || bootstrapLoading}
+                open={isSemesterOpen}
+                onOpenChange={setIsSemesterOpen}
               >
                 <SelectTrigger className="w-full sm:w-40">
                   <SelectValue placeholder={translateTerminology("Select Semester")} />

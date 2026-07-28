@@ -2129,6 +2129,7 @@ export const updateSyllabusProgress = async (data: {
   branch_id?: string;
   semester_id?: string;
   section_id?: string;
+  batch_id: string;
   week_number: number;
   is_completed: boolean;
   topics_covered: string;
@@ -2195,9 +2196,10 @@ export interface SemesterSyllabusMonitorResponse {
   }[];
 }
 
-export const getSemesterSyllabusMonitor = async (semesterId?: string): Promise<SemesterSyllabusMonitorResponse> => {
+export const getSemesterSyllabusMonitor = async (batchId: string, semesterId?: string): Promise<SemesterSyllabusMonitorResponse> => {
   try {
-    const query = semesterId ? `?semester_id=${semesterId}` : '';
+    let query = `?batch_id=${batchId}`;
+    if (semesterId) query += `&semester_id=${semesterId}`;
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/semester-monitor/${query}`, {
       method: "GET",
       headers: {
@@ -2225,9 +2227,9 @@ export interface SubjectSyllabusMonitorResponse {
   }>;
 }
 
-export const getSubjectSyllabusMonitor = async (semesterId: string, subjectId: string): Promise<SubjectSyllabusMonitorResponse> => {
+export const getSubjectSyllabusMonitor = async (batchId: string, semesterId: string, subjectId: string): Promise<SubjectSyllabusMonitorResponse> => {
   try {
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/subject-monitor/?semester_id=${semesterId}&subject_id=${subjectId}`, {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/subject-monitor/?batch_id=${batchId}&semester_id=${semesterId}&subject_id=${subjectId}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
@@ -2240,8 +2242,8 @@ export const getSubjectSyllabusMonitor = async (semesterId: string, subjectId: s
   }
 };
 
-export const exportSemesterSyllabusMonitorPdf = async (semesterId: string): Promise<Blob> => {
-  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/semester-monitor/export-pdf/?semester_id=${semesterId}`, {
+export const exportSemesterSyllabusMonitorPdf = async (batchId: string, semesterId: string): Promise<Blob> => {
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/semester-monitor/export-pdf/?batch_id=${batchId}&semester_id=${semesterId}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
@@ -2253,8 +2255,8 @@ export const exportSemesterSyllabusMonitorPdf = async (semesterId: string): Prom
   return response.blob();
 };
 
-export const exportSubjectSyllabusMonitorPdf = async (semesterId: string, subjectId: string): Promise<Blob> => {
-  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/subject-monitor/export-pdf/?semester_id=${semesterId}&subject_id=${subjectId}`, {
+export const exportSubjectSyllabusMonitorPdf = async (batchId: string, semesterId: string, subjectId: string): Promise<Blob> => {
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/subject-monitor/export-pdf/?batch_id=${batchId}&semester_id=${semesterId}&subject_id=${subjectId}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
@@ -2345,4 +2347,4 @@ export const getEmployeePfEsiSummary = async () => {
     return { success: false, message: 'Network error fetching PF/ESI summary' };
   }
 };
-
+

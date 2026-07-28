@@ -22,7 +22,8 @@ import {
   getSyllabusStatus,
   updateSyllabusPlan,
   getSyllabusBootstrap,
-  exportSyllabusPdf
+  exportSyllabusPdf,
+  getBatches
 } from "@/utils/faculty_api";
 import {
   BookOpen,
@@ -52,6 +53,8 @@ const HODSyllabusTracker = () => {
   const { theme } = useTheme();
 
   // Bootstrap lists
+  const [batches, setBatches] = useState<any[]>([]);
+  const [batchId, setBatchId] = useState<number | null>(null);
   const [semesters, setSemesters] = useState<any[]>([]);
   const [allSubjects, setAllSubjects] = useState<any[]>([]);
   const [bootstrapLoading, setBootstrapLoading] = useState(true);
@@ -75,7 +78,17 @@ const HODSyllabusTracker = () => {
   }>>([]);
 
   const [isSubjectOpen, setIsSubjectOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [exportingPDF, setExportingPDF] = useState(false);
+
+  // When batch changes, reset semester/subject and auto-open semester dropdown
+  useEffect(() => {
+    if (!batchId) return;
+    setSemesterId(null);
+    setSubjectId(null);
+    setSyllabusData(null);
+    setIsSemesterOpen(true);
+  }, [batchId]);
 
   const handleExportPDF = async () => {
     if (!subjectId) return;
@@ -120,7 +133,11 @@ const HODSyllabusTracker = () => {
     const loadBootstrap = async () => {
       setBootstrapLoading(true);
       try {
-        const res = await getSyllabusBootstrap();
+        const [res, batchRes] = await Promise.all([getSyllabusBootstrap(), getBatches()]);
+        if (batchRes.success && batchRes.data && batchRes.data.length > 0) {
+          setBatches(batchRes.data);
+          // No auto-select — user must choose batch first
+        }
         if (res.success) {
           setSemesters(res.semesters || []);
           setAllSubjects(res.subjects || []);
@@ -166,7 +183,8 @@ const HODSyllabusTracker = () => {
         subject_id: subjectId.toString(),
         branch_id: "",
         semester_id: semesterId?.toString() || "",
-        section_id: ""
+        section_id: "",
+        batch_id: batchId?.toString() || ""
       });
       if (res.success && res.data) {
         setSyllabusData(res.data);
@@ -191,7 +209,7 @@ const HODSyllabusTracker = () => {
     } finally {
       if (showLoader) setLoadingSyllabus(false);
     }
-  }, [semesterId, subjectId, editingPlan, toast]);
+  }, [semesterId, subjectId, batchId, editingPlan, toast]);
 
   useEffect(() => {
     fetchSyllabus(true);
@@ -273,12 +291,24 @@ const HODSyllabusTracker = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Dropdown Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold uppercase opacity-80">Batch</label>
+              <Select value={batchId?.toString() || ""} onValueChange={(v) => setBatchId(Number(v))} disabled={bootstrapLoading}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {batches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-1">
               <label className="text-xs font-semibold uppercase opacity-80">{translateTerminology("Semester")}</label>
-              <Select value={semesterId?.toString() || ""} onValueChange={(v) => setSemesterId(Number(v))}>
+              <Select value={semesterId?.toString() || ""} onValueChange={(v) => setSemesterId(Number(v))} disabled={!batchId} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateTerminology("Select Semester")} />
+                  <SelectValue placeholder={!batchId ? "Select Batch first" : translateTerminology("Select Semester")} />
                 </SelectTrigger>
                 <SelectContent>
                   {semesters.map(s => <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>)}
