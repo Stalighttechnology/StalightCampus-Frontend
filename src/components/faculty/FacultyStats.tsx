@@ -250,12 +250,8 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
   if (loading) {
     return (
       <div className="space-y-6">
-        <SkeletonStatsGrid items={3} />
-        <SkeletonChart />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
+        <SkeletonStatsGrid items={userTier >= 2 ? 3 : 1} columns={3} />
+        <SkeletonChart className="h-[400px]" />
       </div>);
 
   }

@@ -415,7 +415,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
       <div key={activePage}>
         {loading && activePage === 'dashboard' ? (
           <div className="space-y-8 pb-10">
-            <SkeletonStatsGrid items={4} />
+            <SkeletonStatsGrid items={5} columns={5} />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
                 <SkeletonChart className="h-[400px]" />

@@ -22,6 +22,7 @@ import {
 import { useTheme } from '@/context/ThemeContext'; // Added theme context import
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
+import { SkeletonTable } from '@/components/ui/skeleton';
 import {
   getFeeComponents,
   createFeeComponent,
@@ -243,9 +244,8 @@ const FeeComponents: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2">Loading fee components...</span>
+      <div className="p-6">
+        <SkeletonTable rows={5} cols={5} />
       </div>
     );
   }

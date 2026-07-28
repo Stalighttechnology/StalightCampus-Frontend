@@ -246,7 +246,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
     return (
       <div className="space-y-6">
         <SkeletonPageHeader />
-        <SkeletonStatsGrid items={3} />
+        <SkeletonStatsGrid items={3} columns={3} />
         <SkeletonTable rows={4} cols={5} />
       </div>);
 

@@ -979,7 +979,7 @@ const StudentFeeReports: React.FC = () => {
 
           {bulkLoading && (
             <div className="space-y-4">
-              <SkeletonStatsGrid items={4} />
+              <SkeletonStatsGrid items={4} columns={4} />
               <div className="space-y-4">
                 <Skeleton className="h-12 w-full rounded-xl" />
                 <SkeletonTable rows={10} cols={10} />

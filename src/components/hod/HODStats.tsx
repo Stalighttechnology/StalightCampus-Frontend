@@ -337,7 +337,7 @@ const handleApprove = async (index: number) => {
       {/* Loading and Errors */}
       {isLoading && (
         <div className="space-y-6">
-          <SkeletonStatsGrid items={3} />
+          <SkeletonStatsGrid items={3} columns={3} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <SkeletonChart />
             <SkeletonChart />
