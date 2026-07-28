@@ -8,6 +8,8 @@ import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { useTheme } from "../../context/ThemeContext";
 
+import { App } from '@capacitor/app';
+
 const GoogleLogo = ({ className = "w-4 h-4 mr-2 shrink-0" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -24,7 +26,7 @@ export default function GoogleIntegrationTab() {
   const [googleConnectLoading, setGoogleConnectLoading] = useState(false);
   const [googleUserInfo, setGoogleUserInfo] = useState<{name: string, email: string, picture: string} | null>(null);
 
-  useEffect(() => {
+  const fetchGoogleStatus = () => {
     setGoogleConnectLoading(true);
     fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/status/`)
       .then(res => res.json())
@@ -40,6 +42,42 @@ export default function GoogleIntegrationTab() {
       })
       .catch(err => console.error("Failed to fetch google status", err))
       .finally(() => setGoogleConnectLoading(false));
+  };
+
+  useEffect(() => {
+    fetchGoogleStatus();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchGoogleStatus();
+      }
+    };
+    
+    const handleFocus = () => {
+      fetchGoogleStatus();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    let appStateListener: any = null;
+    if (Capacitor.isNativePlatform()) {
+      App.addListener('appStateChange', ({ isActive }) => {
+        if (isActive) {
+          fetchGoogleStatus();
+        }
+      }).then(listener => {
+        appStateListener = listener;
+      });
+    }
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+      if (appStateListener) {
+        appStateListener.remove();
+      }
+    };
   }, []);
 
   return (
