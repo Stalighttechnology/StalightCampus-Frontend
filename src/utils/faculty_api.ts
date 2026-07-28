@@ -2348,3 +2348,48 @@ export const getEmployeePfEsiSummary = async () => {
   }
 };
 
+
+// --- Course Exit Survey Endpoints ---
+
+export const toggleCourseExitSurvey = async (subjectId: string, active: boolean) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/syllabus/toggle-survey/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ subject_id: subjectId, active })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error toggling course exit survey' };
+  }
+};
+
+export const getStudentCourseExitSurveys = async () => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/course-exit-surveys/`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error fetching active course exit surveys' };
+  }
+};
+
+export const submitCourseExitSurvey = async (subjectId: string, ratings: { [key: string]: number }) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/course-exit-surveys/submit/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ subject_id: subjectId, ratings })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error submitting course exit survey' };
+  }
+};
+
+

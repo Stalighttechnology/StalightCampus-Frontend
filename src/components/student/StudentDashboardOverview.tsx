@@ -26,6 +26,9 @@ import { getDashboardOverview } from "../../utils/student_api";
 import { useTheme } from "@/context/ThemeContext";
 import { API_BASE_URL } from "../../utils/config";
 import { PLAN_TIERS } from "@/utils/planGating";
+import { getStudentCourseExitSurveys } from "@/utils/faculty_api";
+import { StudentCourseExitSurveys } from "./StudentCourseExitSurveys";
+import { AlertCircle, ChevronRight } from "lucide-react";
 
 import { SkeletonStatsGrid, SkeletonChart, SkeletonPageHeader } from "../ui/skeleton";
 
@@ -105,6 +108,25 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
   const [nextSession, setNextSession] = useState<any>(null);
   const [viewportTrigger, setViewportTrigger] = useState(0);
   const { theme } = useTheme();
+
+  const [pendingSurveysCount, setPendingSurveysCount] = useState(0);
+  const [isSurveyModalOpen, setIsSurveyModalOpen] = useState(false);
+
+  const fetchPendingSurveysCount = useCallback(async () => {
+    try {
+      const res = await getStudentCourseExitSurveys();
+      if (res.success && res.data) {
+        const pending = res.data.filter((s: any) => !s.is_submitted).length;
+        setPendingSurveysCount(pending);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPendingSurveysCount();
+  }, [fetchPendingSurveysCount]);
 
   const userStr = typeof window !== 'undefined' ? sessionStorage.getItem("user") || localStorage.getItem("user") : null;
   const sessionUser = userStr ? JSON.parse(userStr) : null;
@@ -400,6 +422,29 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
 
   return (
     <div className={`w-full max-w-full overflow-x-hidden space-y-5  ${theme === 'dark' ? 'bg-background text-gray-200' : 'bg-gray-50 text-gray-900'}`}>
+      {pendingSurveysCount > 0 && (
+        <Card className="border border-yellow-500/20 bg-yellow-500/5 text-yellow-800 dark:text-yellow-200 shadow-sm">
+          <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center text-yellow-600 dark:text-yellow-400 shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div className="text-left">
+                <h4 className="font-semibold text-sm">Course Exit Surveys Pending</h4>
+                <p className="text-xs opacity-80">You have {pendingSurveysCount} pending course exit surveys to complete.</p>
+              </div>
+            </div>
+            <Button
+              onClick={() => setIsSurveyModalOpen(true)}
+              className="bg-yellow-600 hover:bg-yellow-700 text-white border-transparent shrink-0 w-full sm:w-auto"
+              size="sm"
+            >
+              Take Surveys <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Top Cards Row */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Today's Lectures Card */}
@@ -701,6 +746,11 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
           </Card>
         </section>
       )}
+      <StudentCourseExitSurveys
+        isOpen={isSurveyModalOpen}
+        onClose={() => setIsSurveyModalOpen(false)}
+        onRefreshCount={fetchPendingSurveysCount}
+      />
     </div>);
 
 };

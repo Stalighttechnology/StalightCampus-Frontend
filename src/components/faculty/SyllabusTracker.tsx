@@ -20,9 +20,30 @@ import { Input } from "../ui/input";
 import { useFacultyAssignmentsQuery } from "@/hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
 import { getSyllabusStatus, updateSyllabusProgress, exportSyllabusPdf , getBatches } from "@/utils/faculty_api";
-import { BookOpen, CheckCircle, Clock, Save, Loader2, FileDown } from "lucide-react";
+import { BookOpen, CheckCircle, Clock, Save, Loader2, FileDown, Star } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from "../ui/dialog";
 import { Skeleton } from "../ui/skeleton";
 import { showConfirmAlert } from "../../utils/sweetalert";
+
+const SURVEY_QUESTIONS = [
+  { id: "Q1", text: "How clearly were the Course Outcomes (COs) and course syllabus communicated to you at the start of the semester?" },
+  { id: "Q2", text: "To what extent did the course delivery cover the entire prescribed syllabus in a structured and timely manner?" },
+  { id: "Q3", text: "How would you rate the instructor's effectiveness in explaining complex concepts and ensuring conceptual clarity?" },
+  { id: "Q4", text: "How effectively did the instructor encourage interactive discussion, critical questioning, and classroom engagement?" },
+  { id: "Q5", text: "Rate the relevance, quality, and accessibility of the study materials, references, and digital resources provided." },
+  { id: "Q6", text: "How well did the internal assessments (IA tests, assignments) evaluate your actual understanding of the course?" },
+  { id: "Q7", text: "How effectively did laboratory sessions, projects, or case studies assist in applying theoretical concepts to practical scenarios?" },
+  { id: "Q8", text: "To what extent is the course content relevant to contemporary industry trends, placement preparation, and future applications?" },
+  { id: "Q9", text: "How effectively did this course enhance your engineering problem-solving, analytical thinking, and design capabilities?" },
+  { id: "Q10", text: "Overall, rate the learning value, academic growth, and professional benefit you gained from this course." },
+];
 
 const SyllabusTracker = () => {
   const formatDateToDDMMYYYY = (dateStr: string | null | undefined): string => {
@@ -67,6 +88,7 @@ const SyllabusTracker = () => {
   const [syllabusData, setSyllabusData] = useState<any>(null);
   const [loadingSyllabus, setLoadingSyllabus] = useState(false);
   const [savingProgress, setSavingProgress] = useState<number | null>(null);
+  const [selectedSurveySubject, setSelectedSurveySubject] = useState<any | null>(null);
 
   // Local state for progress edits
   const [progressEdits, setProgressEdits] = useState<{[weekNum: number]: { topics_covered: string; notes: string; is_completed: boolean } }>({});
@@ -463,26 +485,59 @@ const SyllabusTracker = () => {
             </div>
           ) : syllabusData ? (
             <div className="space-y-6">
-              {/* Progress Summary Card */}
-              <div className={`p-6 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100'}`}>
-                <div className="space-y-2 flex-1">
-                  <div className="flex justify-between text-sm font-semibold">
-                    <span>Overall Syllabus Coverage</span>
-                    <span className="text-primary">{syllabusData.progress_percentage}% Completed</span>
+              {/* Progress Summary Card & Survey Stats Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className={`lg:col-span-2 p-6 rounded-xl border flex flex-col justify-between gap-4 ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100'}`}>
+                  <div className="space-y-2 flex-1">
+                    <div className="flex justify-between text-sm font-semibold">
+                      <span>Overall Syllabus Coverage</span>
+                      <span className="text-primary">{syllabusData.progress_percentage}% Completed</span>
+                    </div>
+                    {/* Glowing Premium Progress Bar */}
+                    <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden relative">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 transition-all duration-500 relative"
+                        style={{ width: `${syllabusData.progress_percentage}%` }}
+                      >
+                        <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                      </div>
+                    </div>
+                    <p className="text-xs opacity-75">
+                      {syllabusData.completed_weeks} of {syllabusData.total_weeks} weeks covered.
+                    </p>
                   </div>
-                  {/* Glowing Premium Progress Bar */}
-                  <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden relative">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 transition-all duration-500 relative"
-                      style={{ width: `${syllabusData.progress_percentage}%` }}
-                    >
-                      <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                </div>
+
+                {syllabusData.survey_stats && syllabusData.survey_stats.total_responses > 0 ? (
+                  <div className={`p-6 rounded-xl border flex flex-col justify-between gap-4 ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-yellow-500/5 border-yellow-500/20'}`}>
+                    <div className="space-y-2 text-left">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-semibold">Course Exit Survey</span>
+                        <span className="text-xs text-muted-foreground">{syllabusData.survey_stats.total_responses} responses</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Star className="w-8 h-8 text-yellow-500 fill-current" />
+                        <span className="text-3xl font-extrabold text-yellow-600 dark:text-yellow-400">
+                          {syllabusData.survey_stats.average_rating}
+                        </span>
+                        <span className="text-sm text-muted-foreground">/ 5.0 Rating</span>
+                      </div>
+                      <Button
+                        onClick={() => setSelectedSurveySubject(syllabusData)}
+                        variant="outline"
+                        size="sm"
+                        className="w-full mt-3 h-8 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/20"
+                      >
+                        View Question Breakdown
+                      </Button>
                     </div>
                   </div>
-                  <p className="text-xs opacity-75">
-                    {syllabusData.completed_weeks} of {syllabusData.total_weeks} weeks covered.
-                  </p>
-                </div>
+                ) : (
+                  <div className={`p-6 rounded-xl border flex flex-col justify-center items-center gap-2 text-center text-muted-foreground ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-100'}`}>
+                    <Star className="w-6 h-6 text-muted-foreground/30" />
+                    <span className="text-sm font-medium">No Exit Surveys Collected</span>
+                  </div>
+                )}
               </div>
 
               {/* Weeks Checklist */}
@@ -614,6 +669,65 @@ const SyllabusTracker = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Survey Analytics Dialog */}
+      {selectedSurveySubject && selectedSurveySubject.survey_stats && (
+        <Dialog open={!!selectedSurveySubject} onOpenChange={(open) => { if (!open) setSelectedSurveySubject(null); }}>
+          <DialogContent className={`w-[95vw] sm:max-w-3xl overflow-y-auto max-h-[90vh] p-4 sm:p-6 rounded-2xl ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+            <DialogHeader className="border-b pb-4 pr-6">
+              <DialogTitle className="text-xl font-bold text-primary flex items-center gap-2">
+                <Star className="w-5 h-5 fill-current text-yellow-500" />
+                Course Exit Survey Analytics
+              </DialogTitle>
+              <DialogDescription className="text-sm">
+                Detailed ratings breakdown for <strong>{selectedSurveySubject.subject_name}</strong> based on {selectedSurveySubject.survey_stats.total_responses} student responses.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 pt-4 overflow-y-auto max-h-[60vh] pr-1">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/20 mb-2">
+                <span className="font-semibold text-sm">Overall Average Rating</span>
+                <div className="flex items-center gap-1.5 font-bold text-lg text-yellow-600 dark:text-yellow-400">
+                  <Star className="w-5 h-5 fill-current" />
+                  {selectedSurveySubject.survey_stats.average_rating} / 5.0
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {SURVEY_QUESTIONS.map((q, idx) => {
+                  const rating = selectedSurveySubject.survey_stats.question_averages[q.id] || 0.0;
+                  const percentage = (rating / 5) * 100;
+                  return (
+                    <div key={q.id} className={`p-4 rounded-xl border space-y-2.5 transition-all duration-300 ${theme === 'dark' ? 'bg-muted/5 border-border' : 'bg-gray-50/30 border-gray-100'}`}>
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="space-y-0.5 text-left">
+                          <span className="text-xs font-semibold text-primary uppercase">Question {idx + 1}</span>
+                          <p className="text-sm font-medium leading-relaxed">{q.text}</p>
+                        </div>
+                        <span className="text-sm font-bold shrink-0 text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+                          <Star className="w-3.5 h-3.5 fill-current" />
+                          {rating.toFixed(2)}
+                        </span>
+                      </div>
+                      {/* Rating Progress Visualizer */}
+                      <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden relative">
+                        <div
+                          className="h-full rounded-full bg-yellow-500 transition-all duration-500"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <DialogFooter className="border-t pt-4">
+              <Button onClick={() => setSelectedSurveySubject(null)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
