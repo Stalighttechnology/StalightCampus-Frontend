@@ -7,7 +7,7 @@ import { getBillingAndSupport, BillingAndSupportResponse } from '../../utils/adm
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { API_ENDPOINT } from '../../utils/config';
 import { useToast } from '../../hooks/use-toast';
-import { SkeletonPageHeader, SkeletonTable, SkeletonStatsGrid } from '../ui/skeleton';
+import { SkeletonPageHeader, SkeletonTable, SkeletonStatsGrid, SkeletonCard } from '../ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
