@@ -46,7 +46,7 @@ interface GatePass {
   out_time: string;
   expected_return_date: string;
   expected_return_time: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'expired';
   action_note?: string;
   created_at: string;
   actioned_at?: string;
@@ -292,6 +292,7 @@ const WardenGatePassManagement = () => {
   const getStatusBadge = (s: string) => {
     if (s === 'approved') return <Badge className="bg-green-500/10 text-green-600 border-green-200 capitalize">Approved</Badge>;
     if (s === 'rejected') return <Badge className="bg-red-500/10 text-red-600 border-red-200 capitalize">Rejected</Badge>;
+    if (s === 'expired') return <Badge className="bg-gray-500/10 text-gray-600 border-gray-200 capitalize">Expired</Badge>;
     return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-200 capitalize">Pending</Badge>;
   };
 
@@ -371,6 +372,7 @@ const WardenGatePassManagement = () => {
                         { label: 'Pending', value: 'pending' },
                         { label: 'Approved', value: 'approved' },
                         { label: 'Rejected', value: 'rejected' },
+                        { label: 'Expired', value: 'expired' },
                       ].map((item) => (
                         <button key={item.value}
                           className={`block w-full text-left px-3 py-2 text-xs rounded-lg font-medium transition-colors ${statusFilter === item.value
@@ -429,6 +431,7 @@ const WardenGatePassManagement = () => {
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="approved">Approved</SelectItem>
                       <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="expired">Expired</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

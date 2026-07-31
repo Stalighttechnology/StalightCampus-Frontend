@@ -862,12 +862,14 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
                           pending: theme === 'dark' ? 'bg-yellow-900/30 text-yellow-300 border-yellow-700' : 'bg-yellow-50 text-yellow-800 border-yellow-200',
                           approved: theme === 'dark' ? 'bg-green-900/30 text-green-300 border-green-700' : 'bg-green-50 text-green-800 border-green-200',
                           rejected: theme === 'dark' ? 'bg-red-900/30 text-red-300 border-red-700' : 'bg-red-50 text-red-800 border-red-200',
+                          expired: theme === 'dark' ? 'bg-gray-800/40 text-gray-300 border-gray-700' : 'bg-gray-100 text-gray-700 border-gray-300',
                         };
 
                         const statusIcons: Record<string, React.ReactNode> = {
                           pending: <FaClock className="w-4 h-4 text-yellow-500" />,
                           approved: <FaCheckCircle className="w-4 h-4 text-green-500" />,
                           rejected: <FaExclamationCircle className="w-4 h-4 text-red-500" />,
+                          expired: <FaClock className="w-4 h-4 text-gray-400" />,
                         };
 
                         const colorClass = statusColors[gp.status] || statusColors.pending;
