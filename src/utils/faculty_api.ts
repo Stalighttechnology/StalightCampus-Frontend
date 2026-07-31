@@ -1682,11 +1682,17 @@ export interface MarkFacultyAttendanceRequest {
   action?: "check_in" | "check_out";
   notes?: string;
   deviceId?: string;
+  latitude?: number;
+  longitude?: number;
+  device_info?: any;
+  off_campus_reason?: string;
 }
 
 export interface MarkFacultyAttendanceResponse {
   success: boolean;
   message?: string;
+  allow_self_declaration?: boolean;
+  location?: AttendanceLocation;
   data?: {
     id: string;
     date: string;

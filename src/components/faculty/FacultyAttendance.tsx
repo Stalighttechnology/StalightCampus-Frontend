@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { CheckCircle, XCircle, Clock, FileText, RotateCcw, Loader2, FileDown, CalendarIcon, Filter } from "lucide-react";
+import { CheckCircle, XCircle, Clock, FileText, RotateCcw, Loader2, FileDown, CalendarIcon, Filter, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -316,6 +316,61 @@ const FacultyAttendance = () => {
         toast.success(isUpdate ? `Attendance updated to ${status}` : `Attendance marked as ${status}`);
         setAttendanceStatus(status);
         await fetchAttendanceData(); // Refresh data
+      } else if (response.allow_self_declaration) {
+        const distanceInfo = response.location?.distance_meters 
+          ? ` (Distance: ${Math.round(response.location.distance_meters)}m outside boundary)` 
+          : "";
+        const selfDeclarationResult = await Swal.fire({
+          title: "Outside Campus Boundary",
+          html: `<div class="text-left text-sm space-y-2">
+            <p>You are currently outside the campus boundary${distanceInfo}.</p>
+            <p class="font-semibold text-amber-500 mt-2">⚠️ Your attendance will be logged as <strong>Outside Campus (Self-Declared)</strong>, and your exact coordinates will be stored for audit.</p>
+            <p class="mt-4 text-xs font-semibold">Please enter your reason for off-campus duty to proceed:</p>
+          </div>`,
+          icon: "warning",
+          input: "textarea",
+          inputPlaceholder: "E.g., Client meeting, official seminar, university visit, field work...",
+          inputAttributes: {
+            'aria-label': 'Type your reason here'
+          },
+          showCancelButton: true,
+          confirmButtonText: "Declare & Check In",
+          cancelButtonText: "Cancel",
+          confirmButtonColor: "#f59e0b",
+          background: theme === "dark" ? "#1c1c1e" : "#ffffff",
+          color: theme === "dark" ? "#E4E4E7" : "#000000",
+          inputValidator: (value) => {
+            if (!value || !value.trim()) {
+              return 'You must enter a reason for off-campus duty!';
+            }
+            return null;
+          }
+        });
+
+        if (selfDeclarationResult.isConfirmed && selfDeclarationResult.value) {
+          setLoadingMessage("Submitting declaration...");
+          const retryResponse = await markFacultyAttendance({
+            ...requestData,
+            off_campus_reason: selfDeclarationResult.value.trim()
+          });
+
+          if (retryResponse.success) {
+            const isUpdate = retryResponse.data?.updated || false;
+            toast.success(isUpdate ? `Attendance updated to ${status} (Off-Campus)` : `Attendance marked as ${status} (Off-Campus)`);
+            setAttendanceStatus(status);
+            await fetchAttendanceData();
+          } else {
+            Swal.fire({
+              title: "Action Blocked",
+              text: retryResponse.message || "Failed to mark off-campus attendance",
+              icon: "error",
+              confirmButtonText: "Okay",
+              confirmButtonColor: "#ef4444",
+              background: theme === "dark" ? "#1c1c1e" : "#ffffff",
+              color: theme === "dark" ? "#E4E4E7" : "#000000",
+            });
+          }
+        }
       } else {
         Swal.fire({
           title: "Action Blocked",
@@ -342,6 +397,110 @@ const FacultyAttendance = () => {
     setAttendanceStatus(null);
     setNotes("");
     setTodayRecord(null);
+  };
+
+  const handleOffCampusDuty = async () => {
+    // Step 1: Show warning + reason input
+    const result = await Swal.fire({
+      title: "Off-Campus Duty Check-In",
+      html: `<div class="text-left text-sm space-y-2">
+        <p>You are declaring that you are currently <strong>outside the campus</strong> on official duty.</p>
+        <p class="font-semibold text-amber-500 mt-2">⚠️ Your attendance will be logged as <strong>Outside Campus (Self-Declared)</strong>, and your exact coordinates will be stored for audit.</p>
+        <p class="mt-4 text-xs font-semibold">Please enter your reason for off-campus duty to proceed:</p>
+      </div>`,
+      icon: "warning",
+      input: "textarea",
+      inputPlaceholder: "E.g., Client meeting, official seminar, university visit, field work...",
+      inputAttributes: { 'aria-label': 'Type your reason here' },
+      showCancelButton: true,
+      confirmButtonText: "Declare & Check In",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#f59e0b",
+      background: theme === "dark" ? "#1c1c1e" : "#ffffff",
+      color: theme === "dark" ? "#E4E4E7" : "#000000",
+      inputValidator: (value) => {
+        if (!value || !value.trim()) return 'You must enter a reason for off-campus duty!';
+        return null;
+      }
+    });
+
+    if (!result.isConfirmed || !result.value) return;
+    const off_campus_reason = result.value.trim();
+
+    // Step 2: Get location
+    setIsSubmitting(true);
+    setMarkingStatus('present');
+    setLoadingMessage('Getting your location...');
+    let latitude: number | undefined;
+    let longitude: number | undefined;
+    let device_info: object | undefined;
+
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('Location timeout')), 10000);
+        navigator.geolocation.getCurrentPosition(
+          (p) => { clearTimeout(timer); resolve(p); },
+          (err) => { clearTimeout(timer); reject(err); },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      }).catch((err) => {
+        if (err && err.code === 1) toast.error('Location permission denied. Enable location to check in.');
+        else toast.error('Unable to get device location.');
+        return null;
+      });
+
+      if (!pos) {
+        setIsSubmitting(false);
+        setMarkingStatus(null);
+        setLoadingMessage('');
+        return;
+      }
+
+      latitude = pos.coords.latitude;
+      longitude = pos.coords.longitude;
+      device_info = {
+        accuracy: pos.coords.accuracy,
+        altitude: pos.coords.altitude,
+        heading: pos.coords.heading,
+        speed: pos.coords.speed,
+        timestamp: pos.timestamp,
+        userAgent: navigator.userAgent
+      };
+
+      setLoadingMessage('Syncing with server...');
+      const response = await markFacultyAttendance({
+        status: 'present',
+        action: 'check_in',
+        off_campus_reason,
+        latitude,
+        longitude,
+        device_info,
+        notes: notes.trim() || undefined,
+      });
+
+      if (response.success) {
+        setLoadingMessage('Almost done...');
+        toast.success('Off-campus check-in recorded successfully!');
+        setAttendanceStatus('present');
+        await fetchAttendanceData();
+      } else {
+        Swal.fire({
+          title: 'Action Blocked',
+          text: response.message || 'Failed to mark off-campus attendance',
+          icon: 'error',
+          confirmButtonText: 'Okay',
+          confirmButtonColor: '#ef4444',
+          background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: theme === 'dark' ? '#E4E4E7' : '#000000',
+        });
+      }
+    } catch {
+      toast.error('Network error occurred');
+    } finally {
+      setIsSubmitting(false);
+      setMarkingStatus(null);
+      setLoadingMessage('');
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -466,6 +625,24 @@ const FacultyAttendance = () => {
                 )}
               </div>
 
+              {/* Off-Campus Duty Button — shown only when not yet checked in */}
+              {!todayRecord?.check_in_time && attendanceStatus !== 'absent' && (
+                <div className="mt-2">
+                  <button
+                    onClick={handleOffCampusDuty}
+                    disabled={isSubmitting}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
+                      ${theme === 'dark'
+                        ? 'border-amber-500/50 text-amber-400 hover:bg-amber-500/10'
+                        : 'border-amber-400 text-amber-600 hover:bg-amber-50'
+                      }`}
+                  >
+                    <MapPin className="w-3.5 h-3.5" />
+                    Off-Campus Duty? Declare Here
+                  </button>
+                </div>
+              )}
+
               {/* Attendance Details (Times & Hours) */}
               {todayRecord?.check_in_time && (
                 <div className={`mt-4 p-4 rounded-lg w-full max-w-sm text-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
@@ -579,11 +756,23 @@ const FacultyAttendance = () => {
 
                       <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Location not recorded</p>
                     }
-                    {todayRecord.notes &&
-                      <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        Notes: {todayRecord.notes}
-                      </p>
-                    }
+                    {todayRecord.notes && (
+                      <div className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        {todayRecord.notes.includes('[Off-Campus Check-in]') ? (
+                          <span className="flex flex-wrap items-center gap-1.5">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Off-Campus Duty</span>
+                            {(() => {
+                              const r = todayRecord.notes.replace('[Off-Campus Check-in] Reason:', '').trim();
+                              return r.length > 35 ? (
+                                <><span>{r.slice(0, 32)}...</span><button onClick={() => Swal.fire({ title: 'Off-Campus Duty Reason', text: r, icon: 'info', confirmButtonText: 'Close', confirmButtonColor: '#3b82f6', background: theme === 'dark' ? '#1c1c1e' : '#ffffff', color: theme === 'dark' ? '#E4E4E7' : '#000000' })} className="text-xs text-blue-500 hover:underline font-bold">(View)</button></>
+                              ) : <span>{r}</span>;
+                            })()}
+                          </span>
+                        ) : (
+                          <span>Notes: {todayRecord.notes}</span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -632,14 +821,24 @@ const FacultyAttendance = () => {
                         )}
                       </div>
                     </div>
-                    {record.notes &&
+                    {record.notes && (
                       <div className="mt-2 flex items-start space-x-2">
-                        <FileText className="w-4 h-4 mt-0.5 text-gray-500" />
-                        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                          {record.notes}
-                        </p>
+                        <FileText className="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
+                        <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                          {record.notes.includes('[Off-Campus Check-in]') ? (
+                            <span className="flex flex-wrap items-center gap-1.5">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Off-Campus Duty</span>
+                              {(() => {
+                                const r = record.notes.replace('[Off-Campus Check-in] Reason:', '').trim();
+                                return r.length > 35 ? (
+                                  <><span>{r.slice(0, 32)}...</span><button onClick={() => Swal.fire({ title: 'Off-Campus Duty Reason', text: r, icon: 'info', confirmButtonText: 'Close', confirmButtonColor: '#3b82f6', background: theme === 'dark' ? '#1c1c1e' : '#ffffff', color: theme === 'dark' ? '#E4E4E7' : '#000000' })} className="text-xs text-blue-500 hover:underline font-bold">(View)</button></>
+                                ) : <span>{r}</span>;
+                              })()}
+                            </span>
+                          ) : record.notes}
+                        </div>
                       </div>
-                    }
+                    )}
                     {record.total_hours && (
                       <div className="mt-2 text-xs font-semibold text-right text-primary">
                         Total: {record.total_hours} hrs
@@ -881,6 +1080,24 @@ const FacultyAttendance = () => {
                         )}
                       </div>
                     </div>
+                    {record.notes && (
+                      <div className="mt-2 flex items-start space-x-2">
+                        <FileText className="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
+                        <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                          {record.notes.includes('[Off-Campus Check-in]') ? (
+                            <span className="flex flex-wrap items-center gap-1.5">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Off-Campus Duty</span>
+                              {(() => {
+                                const r = record.notes.replace('[Off-Campus Check-in] Reason:', '').trim();
+                                return r.length > 35 ? (
+                                  <><span>{r.slice(0, 32)}...</span><button onClick={() => Swal.fire({ title: 'Off-Campus Duty Reason', text: r, icon: 'info', confirmButtonText: 'Close', confirmButtonColor: '#3b82f6', background: theme === 'dark' ? '#1c1c1e' : '#ffffff', color: theme === 'dark' ? '#E4E4E7' : '#000000' })} className="text-xs text-blue-500 hover:underline font-bold">(View)</button></>
+                                ) : <span>{r}</span>;
+                              })()}
+                            </span>
+                          ) : record.notes}
+                        </div>
+                      </div>
+                    )}
                     {record.total_hours && (
                       <div className="mt-2 text-xs font-semibold text-right text-primary">
                         Total: {record.total_hours} hrs

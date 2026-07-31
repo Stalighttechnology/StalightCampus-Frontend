@@ -75,6 +75,7 @@ interface FacultySummary {
 const AdminFacultyAttendanceView: React.FC = () => {
   const [branches, setBranches] = useState<any[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>("");
+  const [showOffCampusOnly, setShowOffCampusOnly] = useState(false);
   const [todayAttendance, setTodayAttendance] = useState<FacultyAttendanceTodayRecord[]>([]);
   const [exportingToday, setExportingToday] = useState(false);
   const [exportingRecords, setExportingRecords] = useState(false);
@@ -535,10 +536,9 @@ const AdminFacultyAttendanceView: React.FC = () => {
     setRecordsPagination((prev) => ({ ...prev, page_size: newPageSize, page: 1 })); // Reset to page 1 when changing page size
   };
 
-  const loadAllData = async () => {
-    // Load all data by setting a large page size
-    await fetchTodayAttendance(1, 1000); // Load up to 1000 records
-  };
+  const displayedTodayAttendance = showOffCampusOnly
+    ? todayAttendance.filter(record => record.notes?.includes('[Off-Campus Check-in]'))
+    : todayAttendance;
 
   return (
     <>
@@ -759,8 +759,19 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           <CardTitle className={`text-xl sm:text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                             Faculty Attendance <span className="inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
                           </CardTitle>
-                          {/* Desktop Export PDF Button */}
-                          <Button
+                          <div className="flex items-center gap-4 shrink-0">
+                            <label className={`flex items-center gap-2 text-xs sm:text-sm font-medium cursor-pointer select-none ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>
+                              <input
+                                type="checkbox"
+                                checked={showOffCampusOnly}
+                                onChange={(e) => setShowOffCampusOnly(e.target.checked)}
+                                className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 accent-primary"
+                              />
+                              <span>Off-Campus Duty Only</span>
+                            </label>
+
+                            {/* Desktop Export PDF Button */}
+                            <Button
                             onClick={handleExportTodayPDF}
                             disabled={exportingToday}
                             className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 hover:text-white transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
@@ -792,6 +803,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                               <FileDown className="w-4 h-4" />
                             )}
                           </Button>
+                          </div>
                         </CardHeader>
                         <CardContent className="p-0">
                           <div className="overflow-x-auto">
@@ -805,7 +817,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                 </tr>
                               </thead>
                               <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                                {todayAttendance.length === 0 ?
+                                {displayedTodayAttendance.length === 0 ?
                                   <tr>
                                     <td colSpan={4} className="py-12">
                                       <div className={`flex flex-col items-center justify-center space-y-3 p-8 border-2 border-dashed rounded-xl mx-auto max-w-sm ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
@@ -820,7 +832,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                     </td>
                                   </tr> :
 
-                                  todayAttendance.map((record) =>
+                                  displayedTodayAttendance.map((record) =>
                                     <tr key={record.faculty_id} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
                                       <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                                         <div className="font-medium faculty-name">{record.faculty_name}</div>
@@ -848,7 +860,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                             {record.location.inside ?
                                               <>On campus • {record.location.distance_meters !== null && record.location.distance_meters !== undefined ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</> :
 
-                                              <>Outside campus • {record.location.distance_meters !== null && record.location.distance_meters !== undefined ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</>
+                                              <span className="text-amber-600 dark:text-amber-400 font-medium">Outside campus • {record.location.distance_meters !== null && record.location.distance_meters !== undefined ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</span>
                                             }
                                             {record.location.campus_name ? ` • ${record.location.campus_name}` : ''}
                                           </div> :
@@ -856,8 +868,53 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                           <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} location-text`}>Location not recorded</div>
                                         }
                                       </td>
-                                      <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                                        {record.notes || '-'}
+                                      <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} min-w-[200px] break-words`}>
+                                        {record.notes?.includes('[Off-Campus Check-in]') ? (
+                                          <div className="space-y-1">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                                              Off-Campus Duty
+                                            </span>
+                                            <div className="font-medium text-foreground">
+                                              {(() => {
+                                                const fullReason = record.notes.replace('[Off-Campus Check-in] Reason:', '').trim();
+                                                if (fullReason.length > 35) {
+                                                  return (
+                                                    <span className="flex items-center flex-wrap gap-1">
+                                                      <span>{fullReason.slice(0, 32)}...</span>
+                                                      <button
+                                                        onClick={() => Swal.fire({
+                                                          title: "Off-Campus Duty Reason",
+                                                          text: fullReason,
+                                                          icon: "info",
+                                                          confirmButtonText: "Close",
+                                                          confirmButtonColor: "#3b82f6",
+                                                          background: theme === "dark" ? "#1c1c1e" : "#ffffff",
+                                                          color: theme === "dark" ? "#E4E4E7" : "#000000",
+                                                        })}
+                                                        className="text-xs text-blue-500 hover:underline font-bold"
+                                                      >
+                                                        (View)
+                                                      </button>
+                                                    </span>
+                                                  );
+                                                }
+                                                return fullReason;
+                                              })()}
+                                            </div>
+                                            {record.location?.latitude && record.location?.longitude && (
+                                              <a
+                                                href={`https://www.google.com/maps?q=${record.location.latitude},${record.location.longitude}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 text-xs text-blue-500 hover:underline mt-1 font-medium"
+                                              >
+                                                📍 View Location on Map
+                                              </a>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          record.notes || '-'
+                                        )}
                                       </td>
                                     </tr>
                                   )
@@ -1283,6 +1340,11 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                 <div className="mt-1 text-gray-300">
                                   {record.check_in_time && <div>In: {new Date(record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>}
                                   {record.check_out_time && <div>Out: {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>}
+                                </div>
+                              )}
+                              {record.notes?.includes('[Off-Campus Check-in]') && (
+                                <div className="mt-1 text-amber-300 max-w-[180px] break-words whitespace-normal font-medium">
+                                  Off-Campus Duty: {record.notes.replace('[Off-Campus Check-in] Reason:', '').trim()}
                                 </div>
                               )}
                             </>
