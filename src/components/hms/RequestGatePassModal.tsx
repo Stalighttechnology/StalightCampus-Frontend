@@ -216,7 +216,7 @@ const RequestGatePassModal = ({
         <form onSubmit={handleSubmit} className="p-6 space-y-4 flex-1 overflow-y-auto custom-scrollbar min-h-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 flex flex-col">
-              <Label htmlFor="out_date" className="text-xs sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Out Date *</Label>
+              <Label htmlFor="out_date" className="text-xs sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Out Date <span className="text-red-500">*</span></Label>
               <Popover open={outCalendarOpen} onOpenChange={setOutCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -243,7 +243,7 @@ const RequestGatePassModal = ({
             </div>
 
             <div className="space-y-1.5 flex flex-col">
-              <Label className="text-xs sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Out Time *</Label>
+              <Label className="text-xs sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Out Time <span className="text-red-500">*</span></Label>
               <div className="flex gap-1.5">
                 <Select value={outTimeParts.hour} onValueChange={(val) => handleOutTimeChange('hour', val)}>
                   <SelectTrigger className="h-10 text-sm sm:text-xs w-full bg-background border-border/80">
@@ -281,7 +281,7 @@ const RequestGatePassModal = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 flex flex-col">
-              <Label htmlFor="expected_return_date" className="text-xs sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Return Date *</Label>
+              <Label htmlFor="expected_return_date" className="text-xs sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Return Date <span className="text-red-500">*</span></Label>
               <Popover open={returnCalendarOpen} onOpenChange={setReturnCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -308,7 +308,7 @@ const RequestGatePassModal = ({
             </div>
 
             <div className="space-y-1.5 flex flex-col">
-              <Label className="text-xs sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Return Time *</Label>
+              <Label className="text-xs sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Return Time <span className="text-red-500">*</span></Label>
               <div className="flex gap-1.5">
                 <Select value={returnTimeParts.hour} onValueChange={(val) => handleReturnTimeChange('hour', val)}>
                   <SelectTrigger className="h-10 text-sm sm:text-xs w-full bg-background border-border/80">
@@ -345,7 +345,7 @@ const RequestGatePassModal = ({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="reason" className="text-xs sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Reason *</Label>
+            <Label htmlFor="reason" className="text-xs sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Reason <span className="text-red-500">*</span></Label>
             <Textarea
               id="reason"
               placeholder="State the reason for leaving campus (e.g. going home, medical checkup)..."
