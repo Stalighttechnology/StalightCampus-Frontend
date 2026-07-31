@@ -115,6 +115,7 @@ bun.lockb
 # Local AI tooling folders
 .claude/
 .gemini/
+.codebuddy/
 .qoder/
 .cursor/
 .kiro/
@@ -123,6 +124,7 @@ bun.lockb
 # MCP configs (machine-specific)
 .mcp.json
 .opencode.json
+opencode.jsonc
 .vscode/mcp.json
 .cursor/mcp.json
 .qoder/mcp.json
@@ -134,6 +136,8 @@ skills/
 /hooks/
 
 # Optional generated AI instruction files
+AGENTS.md
+CODEBUDDY.md
 CLAUDE.md
 GEMINI.md
 QODER.md
