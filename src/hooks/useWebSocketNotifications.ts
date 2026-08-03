@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../utils/config';
+import { isTokenExpired, refreshToken } from '../utils/authService';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -18,8 +19,24 @@ export const useWebSocketNotifications = () => {
             return;
         }
 
-        const connect = () => {
-            const currentToken = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+        const getValidToken = async (): Promise<string | null> => {
+            let token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+            if (isTokenExpired(token)) {
+                console.log("🔄 WebSocket token expired/expiring, triggering proactive refresh...");
+                const refreshRes = await refreshToken();
+                if (refreshRes.success && refreshRes.access) {
+                    sessionStorage.setItem('access_token', refreshRes.access);
+                    token = refreshRes.access;
+                } else {
+                    console.warn("⚠️ WebSocket token refresh failed");
+                    return null;
+                }
+            }
+            return token;
+        };
+
+        const connect = async () => {
+            const currentToken = await getValidToken();
             if (!currentToken) return;
 
             // Convert http:// to ws:// and https:// to wss://
@@ -61,8 +78,7 @@ export const useWebSocketNotifications = () => {
                 
                 // Try reconnecting after 5 seconds
                 setTimeout(() => {
-                    const tokenCheck = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
-                    if (tokenCheck && wsRef.current?.readyState !== WebSocket.OPEN) {
+                    if (wsRef.current?.readyState !== WebSocket.OPEN) {
                         connect();
                     }
                 }, 5000);

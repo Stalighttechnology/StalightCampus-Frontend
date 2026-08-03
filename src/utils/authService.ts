@@ -105,7 +105,7 @@ interface RefreshTokenResponse {
 }
 
 // Helper to check if a JWT token is expired
-const isTokenExpired = (token: string | null): boolean => {
+export const isTokenExpired = (token: string | null): boolean => {
   if (!token) return true;
   try {
     const base64Url = token.split(".")[1];
