@@ -51,7 +51,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const isMobile = useIsMobile();
   const { theme } = useTheme();
   const { logout } = useAuth();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 1024);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 768);
   const [error, setError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [notificationCount, setNotificationCount] = useState<number>(0);
@@ -101,23 +101,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const accessToken = sessionStorage.getItem('access_token');
   useFCM(accessToken);
 
-  // Lock sidebar open on desktop, collapsible only on mobile/tablet
+  // Sync sidebar state with isMobile reactive hook
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setSidebarCollapsed(false); // Force expand on desktop - no collapsing allowed
-      } else {
-        setSidebarCollapsed(true); // Allow collapse on mobile/tablet
-      }
-    };
-
-    // Set initial state
-    handleResize();
-
-    // Listen for resize events
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    setSidebarCollapsed(isMobile);
+  }, [isMobile]);
 
   // Use React Query to cache bootstrap/unread counts per role.
   const queryClient = useQueryClient();
@@ -182,10 +169,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     };
   }, [queryClient, role, accessToken]);
 
-  // Close sidebar when page changes on mobile/tablet only
+  // Close sidebar when page changes on mobile/small screens (< 768px)
   useEffect(() => {
     const isTutorialActive = document.body.classList.contains('tutorial-active');
-    if (window.innerWidth < 1024 && !isTutorialActive) {
+    if (window.innerWidth < 768 && !isTutorialActive) {
       setSidebarCollapsed(true);
     }
     // Always scroll to top when page changes
@@ -194,15 +181,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     }
   }, [activePage]);
 
-  // Listen for onboarding system events to open/close sidebar drawer on mobile/tablet
+  // Listen for onboarding system events to open/close sidebar drawer on mobile/small screens
   useEffect(() => {
     const handleOpen = () => {
-      if (window.innerWidth < 1024) {
+      if (window.innerWidth < 768) {
         setSidebarCollapsed(false);
       }
     };
     const handleClose = () => {
-      if (window.innerWidth < 1024) {
+      if (window.innerWidth < 768) {
         setSidebarCollapsed(true);
       }
     };
@@ -215,8 +202,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   }, []);
 
   const toggleSidebar = () => {
-    // Only allow toggling on mobile/tablet (< 1024px)
-    if (window.innerWidth < 1024) {
+    // Only allow toggling on mobile / small screens (< 768px)
+    if (window.innerWidth < 768) {
       setSidebarCollapsed(!sidebarCollapsed);
     }
   };
@@ -266,7 +253,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Main Content Area */}
       <div
-        className={`flex-1 min-h-0 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 pb-[env(safe-area-inset-bottom,0px)] ${sidebarCollapsed ? 'ml-0' : 'lg:ml-64'}`
+        className={`flex-1 min-h-0 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 pb-[env(safe-area-inset-bottom,0px)] ${sidebarCollapsed ? 'ml-0' : 'md:ml-64'}`
         }>
 
         {/* Navbar */}
@@ -278,7 +265,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             user={user}
             onNotificationClick={onNotificationClick}
             setPage={handlePageChange}
-            showHamburger={sidebarCollapsed && window.innerWidth < 1024}
+            showHamburger={window.innerWidth < 768}
             onHamburgerClick={toggleSidebar}
             unreadCount={unreadCount}
             personalNotificationCount={notificationCount}

@@ -249,10 +249,10 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
     <motion.div
       className={`w-full flex items-center justify-between px-2 sm:px-4 pb-3 lg:pb-0 relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
       style={{
-        height: window.innerWidth >= 1024 ? '5rem' : undefined,
+        height: window.innerWidth >= 768 ? '5rem' : undefined,
         paddingTop: Capacitor.isNativePlatform()
           ? 'calc(env(safe-area-inset-top, 24px) + 2px)'
-          : window.innerWidth < 1024 ? '16px' : '0px'
+          : window.innerWidth < 768 ? '16px' : '0px'
       }}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}

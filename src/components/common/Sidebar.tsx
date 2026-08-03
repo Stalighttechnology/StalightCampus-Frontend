@@ -723,10 +723,10 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       <motion.div
         className={`px-4 pb-3 lg:pb-0 flex items-center border-b ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
         style={{
-          height: window.innerWidth >= 1024 ? '5rem' : undefined,
+          height: window.innerWidth >= 768 ? '5rem' : undefined,
           paddingTop: Capacitor.isNativePlatform()
             ? 'calc(env(safe-area-inset-top, 24px) + 2px)'
-            : window.innerWidth < 1024 ? '16px' : '0px'
+            : window.innerWidth < 768 ? '16px' : '0px'
         }}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -892,8 +892,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     </motion.div>
   );
 
-  // For mobile/tablet - use overlay approach
-  if (window.innerWidth < 1024) {
+  // For small mobile screens - use overlay approach
+  if (isMobile) {
     return (
       <>
         <AnimatePresence>
