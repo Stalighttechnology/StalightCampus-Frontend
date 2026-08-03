@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../utils/config';
+import { isTokenExpired, refreshToken } from '../utils/authService';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -8,6 +9,7 @@ export const useWebSocketNotifications = () => {
     const { isAuthenticated } = useAuth();
     const queryClient = useQueryClient();
     const wsRef = useRef<WebSocket | null>(null);
+    const authFailedRef = useRef(false);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -18,15 +20,37 @@ export const useWebSocketNotifications = () => {
             return;
         }
 
-        const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
-        if (!token) return;
+        const getValidToken = async (): Promise<string | null> => {
+            let token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+            if (isTokenExpired(token)) {
+                try {
+                    const refreshRes = await refreshToken();
+                    if (refreshRes.success && refreshRes.access) {
+                        sessionStorage.setItem('access_token', refreshRes.access);
+                        token = refreshRes.access;
+                    } else {
+                        return null;
+                    }
+                } catch (err) {
+                    return null;
+                }
+            }
+            return token;
+        };
 
-        // Convert http:// to ws:// and https:// to wss://
-        const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss://' : 'ws://';
-        const wsBaseUrl = API_BASE_URL.replace(/^https?:\/\//, wsProtocol);
-        const wsUrl = `${wsBaseUrl}/ws/notifications/?token=${token}`;
+        const connect = async () => {
+            const currentToken = await getValidToken();
+            if (!currentToken) {
+                authFailedRef.current = true;
+                return;
+            }
+            authFailedRef.current = false;
 
-        const connect = () => {
+            // Convert http:// to ws:// and https:// to wss://
+            const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss://' : 'ws://';
+            const wsBaseUrl = API_BASE_URL.replace(/^https?:\/\//, wsProtocol);
+            const wsUrl = `${wsBaseUrl}/ws/notifications/?token=${currentToken}`;
+
             const ws = new WebSocket(wsUrl);
             wsRef.current = ws;
 
@@ -56,13 +80,13 @@ export const useWebSocketNotifications = () => {
             };
 
             ws.onclose = (event) => {
-                // Don't reconnect if it was closed normally
-                if (event.code === 1000 || event.code === 1001) return;
+                // Don't reconnect if closed normally, unauthorized, or auth refresh failed
+                if (event.code === 1000 || event.code === 1001 || event.code === 4001) return;
+                if (authFailedRef.current) return;
                 
                 // Try reconnecting after 5 seconds
                 setTimeout(() => {
-                    const tokenCheck = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
-                    if (tokenCheck && wsRef.current?.readyState !== WebSocket.OPEN) {
+                    if (wsRef.current?.readyState !== WebSocket.OPEN) {
                         connect();
                     }
                 }, 5000);
