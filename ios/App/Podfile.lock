@@ -14,6 +14,8 @@ PODS:
     - Capacitor
     - FirebaseMessaging
   - CapacitorCordova (8.3.4)
+  - CapacitorDevice (8.0.3):
+    - Capacitor
   - CapacitorFilesystem (8.1.2):
     - Capacitor
     - IONFilesystemLib (~> 1.1.1)
@@ -104,6 +106,7 @@ DEPENDENCIES:
   - "CapacitorCamera (from `../../node_modules/@capacitor/camera`)"
   - "CapacitorCommunityFcm (from `../../node_modules/@capacitor-community/fcm`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorDevice (from `../../node_modules/@capacitor/device`)"
   - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
   - "CapacitorGeolocation (from `../../node_modules/@capacitor/geolocation`)"
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
@@ -145,6 +148,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor-community/fcm"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorDevice:
+    :path: "../../node_modules/@capacitor/device"
   CapacitorFilesystem:
     :path: "../../node_modules/@capacitor/filesystem"
   CapacitorGeolocation:
@@ -173,6 +178,7 @@ SPEC CHECKSUMS:
   CapacitorCamera: 8f6acf83664118321111e76acef86390211ccb08
   CapacitorCommunityFcm: 8e659cf3177bb510011b328cf5809ae3e93721a5
   CapacitorCordova: c07921bdcfec6f691bae22274446b4d606ebf6a4
+  CapacitorDevice: 708e742b60a61572cd593e44c809592e8f31da14
   CapacitorFilesystem: 2db285a1ac6e475cc27cae2e1bea999000f9e2be
   CapacitorGeolocation: b36f6287bfc9f2eefa04dc900496f2c8ae666136
   CapacitorKeyboard: 31c8285d92c9d1410071d52449f16d2c6673b6f4
@@ -196,6 +202,6 @@ SPEC CHECKSUMS:
   Version: de5907f2c5d0f3cf21708db7801d1d5401139486
   ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
 
-PODFILE CHECKSUM: 4fca463c177ab76c9a11ef2580eaf032c4453c65
+PODFILE CHECKSUM: 8d193086aba6001d974938fdf811ffabc974691d
 
 COCOAPODS: 1.16.2
