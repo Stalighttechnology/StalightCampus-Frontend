@@ -9,6 +9,7 @@ export const useWebSocketNotifications = () => {
     const { isAuthenticated } = useAuth();
     const queryClient = useQueryClient();
     const wsRef = useRef<WebSocket | null>(null);
+    const authFailedRef = useRef(false);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -22,13 +23,15 @@ export const useWebSocketNotifications = () => {
         const getValidToken = async (): Promise<string | null> => {
             let token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
             if (isTokenExpired(token)) {
-                console.log("🔄 WebSocket token expired/expiring, triggering proactive refresh...");
-                const refreshRes = await refreshToken();
-                if (refreshRes.success && refreshRes.access) {
-                    sessionStorage.setItem('access_token', refreshRes.access);
-                    token = refreshRes.access;
-                } else {
-                    console.warn("⚠️ WebSocket token refresh failed");
+                try {
+                    const refreshRes = await refreshToken();
+                    if (refreshRes.success && refreshRes.access) {
+                        sessionStorage.setItem('access_token', refreshRes.access);
+                        token = refreshRes.access;
+                    } else {
+                        return null;
+                    }
+                } catch (err) {
                     return null;
                 }
             }
@@ -37,7 +40,11 @@ export const useWebSocketNotifications = () => {
 
         const connect = async () => {
             const currentToken = await getValidToken();
-            if (!currentToken) return;
+            if (!currentToken) {
+                authFailedRef.current = true;
+                return;
+            }
+            authFailedRef.current = false;
 
             // Convert http:// to ws:// and https:// to wss://
             const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss://' : 'ws://';
@@ -73,8 +80,9 @@ export const useWebSocketNotifications = () => {
             };
 
             ws.onclose = (event) => {
-                // Don't reconnect if closed normally or unauthorized (4001)
+                // Don't reconnect if closed normally, unauthorized, or auth refresh failed
                 if (event.code === 1000 || event.code === 1001 || event.code === 4001) return;
+                if (authFailedRef.current) return;
                 
                 // Try reconnecting after 5 seconds
                 setTimeout(() => {
