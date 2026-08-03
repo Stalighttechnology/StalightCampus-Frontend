@@ -554,10 +554,20 @@ const StudentAnnouncements = () => {
       });
       if (response.success && response.data) {
         const received = response.data.received_announcements;
-        setAnnouncements(received?.results || []);
+        const results = received?.results || [];
+        setAnnouncements(results);
         setTotalCount(received?.count || 0);
-        setUnreadCount(received?.unread_count || 0);
+        setUnreadCount(0);
         setTotalPages(Math.ceil((received?.count || 0) / pageSize));
+
+        // Auto-mark unread received announcements as read when viewing received page
+        const unreadItems = results.filter((a: any) => !a.is_read);
+        if (unreadItems.length > 0) {
+          unreadItems.forEach((a: any) => {
+            markAnnouncementRead(a.id);
+          });
+          window.dispatchEvent(new CustomEvent('refresh-unread-count'));
+        }
       } else {
         setError(response.message || "Failed to load announcements");
       }

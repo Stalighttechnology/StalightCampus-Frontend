@@ -313,6 +313,18 @@ export const AnnouncementSections = ({
     (a) => !a.is_read && !isExpired(a.expires_at)
   ).length;
 
+  useEffect(() => {
+    if ((activeTab === 'received' || hideReceivedTab) && onMarkRead && receivedAnnouncements && receivedAnnouncements.length > 0) {
+      const unreadItems = receivedAnnouncements.filter(a => !a.is_read && !isExpired(a.expires_at));
+      if (unreadItems.length > 0) {
+        unreadItems.forEach(a => {
+          onMarkRead(a.id);
+        });
+        window.dispatchEvent(new CustomEvent('refresh-unread-count'));
+      }
+    }
+  }, [activeTab, receivedAnnouncements, hideReceivedTab, onMarkRead]);
+
   return (
     <>
       <style>{`
