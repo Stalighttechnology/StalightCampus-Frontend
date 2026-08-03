@@ -30,7 +30,7 @@ import { getStudentCourseExitSurveys } from "@/utils/faculty_api";
 import { StudentCourseExitSurveys } from "./StudentCourseExitSurveys";
 import { AlertCircle, ChevronRight } from "lucide-react";
 
-import { SkeletonStatsGrid, SkeletonChart, SkeletonPageHeader } from "../ui/skeleton";
+import { Skeleton } from "../ui/skeleton";
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
@@ -356,19 +356,6 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
     }
   }), [theme]);
 
-  if (isLoading) {
-    return (
-      <div className={`p-4 space-y-6 ${theme === 'dark' ? 'bg-background text-gray-200' : 'bg-gray-50 text-gray-900'}`}>
-        <SkeletonPageHeader />
-        <SkeletonStatsGrid items={2} />
-        <div className="space-y-4">
-          <SkeletonChart className="h-[300px]" />
-          <SkeletonChart className="h-[300px]" />
-        </div>
-      </div>);
-
-  }
-
   if (error) {
     return (
       <div className={`p-4 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
@@ -389,33 +376,87 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
 
   }
 
-  // Render with skeleton loaders while loading (for onboarding tour to work)
+  // Render with structured skeleton loaders while loading (maintains card IDs for onboarding tour)
   if (isLoading || !dashboardData) {
     return (
-      <div className={`w-full space-y-5 ${theme === 'dark' ? 'bg-background text-gray-200' : 'bg-gray-50 text-gray-900'}`}>
-        {/* Skeleton Top Cards */}
+      <div className={`w-full max-w-full overflow-x-hidden space-y-5 ${theme === 'dark' ? 'bg-background text-gray-200' : 'bg-gray-50 text-gray-900'}`}>
+        {/* Top Cards Grid Skeleton */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card id="student-schedule-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm`}>
             <CardContent className="p-5">
-              <SkeletonStatsGrid />
+              <div className="flex items-start gap-4 min-w-0">
+                <Skeleton className="w-12 h-12 rounded-xl shrink-0" />
+                <div className="flex-1 space-y-2 min-w-0">
+                  <Skeleton className="h-3 w-28" />
+                  <Skeleton className="h-7 w-20" />
+                  <Skeleton className="h-8 w-full rounded-lg" />
+                </div>
+              </div>
             </CardContent>
           </Card>
           <Card id="student-attendance-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm`}>
             <CardContent className="p-5">
-              <SkeletonStatsGrid />
+              <div className="flex items-start gap-4 min-w-0">
+                <Skeleton className="w-12 h-12 rounded-xl shrink-0" />
+                <div className="flex-1 space-y-2 min-w-0">
+                  <Skeleton className="h-3 w-32" />
+                  <Skeleton className="h-7 w-24" />
+                  <Skeleton className="h-8 w-full rounded-lg" />
+                </div>
+              </div>
             </CardContent>
           </Card>
         </section>
-        <Card id="student-timeline-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm`}>
-          <CardContent className="p-5">
-            <SkeletonChart />
-          </CardContent>
-        </Card>
-        <Card id="student-performance-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm`}>
-          <CardContent className="p-5">
-            <SkeletonChart />
-          </CardContent>
-        </Card>
+
+        {/* Timeline Skeleton Card */}
+        <section className="w-full">
+          <Card id="student-timeline-card" className={`overflow-hidden border border-border shadow-sm ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
+            <CardHeader className="p-5 border-b border-border/50">
+              <div className="flex flex-row items-center justify-between w-full gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-6 bg-primary/40 rounded-full"></div>
+                  <Skeleton className="h-6 w-36" />
+                </div>
+                <Skeleton className="h-8 w-28 rounded-full" />
+              </div>
+            </CardHeader>
+            <CardContent className="p-5">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="p-5 rounded-2xl border border-border/50 space-y-3">
+                  <Skeleton className="h-4 w-20 rounded-md" />
+                  <Skeleton className="h-6 w-3/4" />
+                  <div className="grid grid-cols-2 gap-4 pt-2">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                </div>
+                <div className="p-5 rounded-2xl border border-border/50 space-y-3">
+                  <Skeleton className="h-4 w-20 rounded-md" />
+                  <Skeleton className="h-6 w-3/4" />
+                  <div className="grid grid-cols-2 gap-4 pt-2">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Performance Chart Skeleton Card */}
+        <section>
+          <Card id="student-performance-card" className={`overflow-hidden ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm`}>
+            <CardHeader className="p-5 pb-0">
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-44" />
+                <Skeleton className="h-4 w-64" />
+              </div>
+            </CardHeader>
+            <CardContent className="p-5 pt-4">
+              <Skeleton className="h-[250px] md:h-[320px] w-full rounded-lg" />
+            </CardContent>
+          </Card>
+        </section>
       </div>
     );
   }
