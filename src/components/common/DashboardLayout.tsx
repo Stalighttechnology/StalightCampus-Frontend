@@ -119,7 +119,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   useEffect(() => {
     if (unreadCountQuery.data?.success) {
-      const total = unreadCountQuery.data.count || unreadCountQuery.data.unread_count || 0;
+      const total = unreadCountQuery.data.unread_count ?? unreadCountQuery.data.count ?? 0;
       const notifOnly = unreadCountQuery.data.notification_count ?? total;
       setUnreadCount(total);
       setNotificationCount(notifOnly);
@@ -136,19 +136,19 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         setNotificationCount(0);
         setUnreadCount(0);
         setRecentNotifications([]);
-        queryClient.invalidateQueries({ queryKey: ["unreadCount", role, accessToken] });
+        queryClient.invalidateQueries({ queryKey: ["unreadCount"] });
         return;
       }
       if (e.detail?.decrement) {
-        // Only decrement the personal notification count; announcements are unaffected
         setNotificationCount((prev) => Math.max(0, prev - (e.detail.decrement || 1)));
         setUnreadCount((prev) => Math.max(0, prev - (e.detail.decrement || 1)));
+        queryClient.invalidateQueries({ queryKey: ["unreadCount"] });
         return;
       }
       // Immediately increment optimistically, then sync with server
       setUnreadCount((prev) => prev + 1);
       setNotificationCount((prev) => prev + 1);
-      queryClient.invalidateQueries({ queryKey: ["unreadCount", role, accessToken] });
+      queryClient.invalidateQueries({ queryKey: ["unreadCount"] });
     };
     window.addEventListener('refresh-unread-count', handleRefresh);
 

@@ -61,15 +61,24 @@ export const useWebSocketNotifications = () => {
             ws.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
-                    if (data.event === 'notification') {
-                        // Show a toast
-                        toast(data.title || "New Notification", {
-                            description: data.message,
-                        });
+                    const isNotification = data.event === 'notification' || 
+                                           data.notification_type === 'announcement' || 
+                                           data.type === 'announcement' || 
+                                           (typeof data.event === 'string' && data.event.startsWith('announcement.'));
+
+                    if (isNotification) {
+                        // Show a toast unless it's a deletion
+                        if (data.event !== 'announcement.deleted') {
+                            toast(data.title || "New Notification", {
+                                description: data.message,
+                            });
+                        }
                         
-                        // Invalidate react-query to refetch notifications
+                        // Invalidate react-query to refetch notifications, announcements, and unread badge count
                         queryClient.invalidateQueries({ queryKey: ['studentNotifications'] });
                         queryClient.invalidateQueries({ queryKey: ['notifications'] });
+                        queryClient.invalidateQueries({ queryKey: ['announcements'] });
+                        queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
                         
                         // Update the navbar badge count
                         window.dispatchEvent(new CustomEvent('refresh-unread-count'));
