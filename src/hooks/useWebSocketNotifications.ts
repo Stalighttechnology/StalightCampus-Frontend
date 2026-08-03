@@ -18,15 +18,15 @@ export const useWebSocketNotifications = () => {
             return;
         }
 
-        const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
-        if (!token) return;
-
-        // Convert http:// to ws:// and https:// to wss://
-        const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss://' : 'ws://';
-        const wsBaseUrl = API_BASE_URL.replace(/^https?:\/\//, wsProtocol);
-        const wsUrl = `${wsBaseUrl}/ws/notifications/?token=${token}`;
-
         const connect = () => {
+            const currentToken = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+            if (!currentToken) return;
+
+            // Convert http:// to ws:// and https:// to wss://
+            const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss://' : 'ws://';
+            const wsBaseUrl = API_BASE_URL.replace(/^https?:\/\//, wsProtocol);
+            const wsUrl = `${wsBaseUrl}/ws/notifications/?token=${currentToken}`;
+
             const ws = new WebSocket(wsUrl);
             wsRef.current = ws;
 
@@ -56,8 +56,8 @@ export const useWebSocketNotifications = () => {
             };
 
             ws.onclose = (event) => {
-                // Don't reconnect if it was closed normally
-                if (event.code === 1000 || event.code === 1001) return;
+                // Don't reconnect if closed normally or unauthorized (4001)
+                if (event.code === 1000 || event.code === 1001 || event.code === 4001) return;
                 
                 // Try reconnecting after 5 seconds
                 setTimeout(() => {
