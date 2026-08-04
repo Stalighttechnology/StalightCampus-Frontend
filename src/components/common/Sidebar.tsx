@@ -353,7 +353,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
     principal: [
       { name: "Dashboard", page: "dashboard" },
-      { name: "Timetable Configuration", page: "timetable-config" },
+      { name: "Workflow Configuration", page: "timetable-config" },
       { name: getTerm("branches"), page: "branches" },
       { name: "Batches", page: "batches" },
       { name: "Faculty Assignments", page: "teacher-assignments" },
@@ -407,7 +407,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
     admin: [
       { name: "Dashboard", page: "dashboard" },
-      { name: "Timetable Configuration", page: "timetable-config" },
+      { name: "Workflow Configuration", page: "timetable-config" },
       { name: getTerm("branches"), page: "branches" },
       { name: "Batches", page: "batches" },
       { name: "Faculty Assignments", page: "teacher-assignments" },
@@ -546,6 +546,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
     dean: [
       { name: "Dashboard", page: "dashboard" },
+      { name: "Question Papers", page: "qp-approvals" },
       { name: "Exams", page: "exams" },
       { name: translateTerminology("CO/PO Attainment"), page: "co-attainment" },
       { name: "Faculty", page: "faculty" },

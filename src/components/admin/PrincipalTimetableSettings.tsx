@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, GripVertical, Clock, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, Edit2, GripVertical, Clock, AlertTriangle, Save, ShieldCheck, ChevronRight } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -72,6 +72,23 @@ export default function PrincipalTimetableSettings() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState<TimetableSlot | null>(null);
   
+  const [approvalChain, setApprovalChain] = useState<string[]>(['hod', 'principal', 'coe']);
+  const [chainLoading, setChainLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'timetable' | 'qp-workflow'>('timetable');
+
+  const PRESETS: Record<string, string[]> = {
+    "Standard": ["hod", "principal", "coe"],
+    "Short": ["hod", "principal"],
+    "Extended": ["hod", "principal", "coe", "dean"],
+  };
+
+  const AVAILABLE_ROLES = [
+    { value: 'hod', label: 'HOD' },
+    { value: 'dean', label: 'Dean' },
+    { value: 'principal', label: 'Principal' },
+    { value: 'coe', label: 'COE' },
+  ];
+  
   const [startTimeParts, setStartTimeParts] = useState({ hour: "09", minute: "00", period: "AM" });
   const [endTimeParts, setEndTimeParts] = useState({ hour: "10", minute: "00", period: "AM" });
   
@@ -100,8 +117,41 @@ export default function PrincipalTimetableSettings() {
     }
   };
 
+  const fetchApprovalChain = async () => {
+    try {
+      setChainLoading(true);
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/qp-approval-chain/`);
+      if (res.ok) {
+        const data = await res.json();
+        setApprovalChain(data.qp_approval_chain || ['hod', 'principal', 'coe']);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setChainLoading(false);
+    }
+  };
+
+  const handleSaveApprovalChain = async () => {
+    try {
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/qp-approval-chain/`, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qp_approval_chain: approvalChain })
+      });
+      if (res.ok) {
+        toast({ title: "Success", description: "Approval workflow saved" });
+      } else {
+        toast({ title: "Error", description: "Failed to save workflow", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to save workflow", variant: "destructive" });
+    }
+  };
+
   useEffect(() => {
     fetchSlots();
+    fetchApprovalChain();
   }, []);
 
   useEffect(() => {
@@ -330,6 +380,28 @@ export default function PrincipalTimetableSettings() {
 
   return (
     <div className="space-y-6 w-full">
+      <div className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-2xl font-bold">Workflow Configuration</h2>
+          <p className="text-muted-foreground text-sm">Manage timetable slots and question paper approval workflows</p>
+        </div>
+        <div className="flex border-b border-border/50">
+          <button
+            className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'timetable' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+            onClick={() => setActiveTab('timetable')}
+          >
+            Timetable Slots
+          </button>
+          <button
+            className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'qp-workflow' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+            onClick={() => setActiveTab('qp-workflow')}
+          >
+            Question Paper Workflow
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'timetable' && (
       <Card className={`border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <CardHeader id="principal-timetable-settings-header" className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -534,6 +606,92 @@ export default function PrincipalTimetableSettings() {
           )}
         </CardContent>
       </Card>
+      )}
+
+      {/* QP Approval Workflow Configuration */}
+      {activeTab === 'qp-workflow' && (
+      <Card className={`border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+        <CardHeader className="border-b border-border/50">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-semibold">Question Paper Approval Workflow</CardTitle>
+              <CardDescription className="mt-1">
+                Configure the sequence of approvers for Question Papers submitted by faculty.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          {chainLoading ? (
+            <SkeletonTable rows={2} cols={1} />
+          ) : (
+            <div className="space-y-6">
+              {/* Presets */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Quick Presets</Label>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(PRESETS).map(([presetName, presetChain]) => (
+                    <Button
+                      key={presetName}
+                      variant={JSON.stringify(approvalChain) === JSON.stringify(presetChain) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setApprovalChain(presetChain)}
+                      className={theme === 'dark' && JSON.stringify(approvalChain) !== JSON.stringify(presetChain) ? 'border-border' : ''}
+                    >
+                      {presetName}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chain Builder */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Custom Workflow</Label>
+                <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background border-border' : 'bg-gray-50 border-gray-200'}`}>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-sm font-medium text-muted-foreground">
+                      Faculty (Submits)
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    
+                    {approvalChain.map((role, index) => (
+                      <React.Fragment key={`${role}-${index}`}>
+                        <div className="flex items-center gap-1">
+                          <div className={`px-3 py-1.5 rounded-full border text-sm font-medium ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-700'}`}>
+                            {AVAILABLE_ROLES.find(r => r.value === role)?.label || role}
+                          </div>
+                        </div>
+                        
+                        {index < approvalChain.length - 1 && (
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        )}
+                        {index === approvalChain.length - 1 && (
+                          <div className="flex items-center gap-2 ml-2">
+                            <ChevronRight className="w-4 h-4 text-green-500" />
+                            <div className="px-3 py-1.5 rounded-full bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-xs font-semibold text-green-700 dark:text-green-400">
+                              Approved ✅
+                            </div>
+                          </div>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button onClick={handleSaveApprovalChain} className="shadow-sm">
+                  <Save className="w-4 h-4 mr-2" /> Save Workflow
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      )}
     </div>
   );
 }

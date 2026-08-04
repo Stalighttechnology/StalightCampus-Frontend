@@ -34,7 +34,13 @@ interface QPPending {
   last_action?: { actor?: string; role?: string; action?: string; comment?: string; timestamp?: string; } | null;
 }
 
-const AdminQPApprovals = () => {
+interface AdminQPApprovalsProps {
+  role?: "principal" | "dean";
+}
+
+const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
+  const apiPrefix = role === "principal" ? "admin" : "dean";
+
   const [pendingQPs, setPendingQPs] = useState<QPPending[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedQP, setSelectedQP] = useState<QPPending | null>(null);
@@ -55,8 +61,26 @@ const AdminQPApprovals = () => {
   const [isHistoryView, setIsHistoryView] = useState(false);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [activeTab, setActiveTab] = useState("pending");
+  const [approvalChain, setApprovalChain] = useState<string[]>(['hod', 'principal', 'coe']);
   const { theme } = useTheme();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchApprovalChain = async () => {
+      try {
+        const response = await fetch(`${API_ENDPOINT}/organizations/qp-approval-chain/`, {
+          headers: { Authorization: `Bearer ${sessionStorage.getItem("access_token")}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.qp_approval_chain) {
+            setApprovalChain(data.qp_approval_chain);
+          }
+        }
+      } catch (err) {}
+    };
+    fetchApprovalChain();
+  }, []);
 
   const getStatusBadgeStyle = (status: string) => {
     const s = (status || '').toLowerCase();
@@ -172,7 +196,7 @@ const AdminQPApprovals = () => {
   const fetchPendingQPs = async (page: number = 1) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_ENDPOINT}/admin/qps/admin-pending/?page=${page}&page_size=10`, {
+      const response = await fetch(`${API_ENDPOINT}/admin/qps/${apiPrefix}-pending/?page=${page}&page_size=10`, {
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
         }
@@ -202,7 +226,7 @@ const AdminQPApprovals = () => {
   const fetchHistoryQPs = async (page: number = 1) => {
     setHistoryLoading(true);
     try {
-      const response = await fetch(`${API_ENDPOINT}/admin/qps/admin-history/?page=${page}&page_size=10`, {
+      const response = await fetch(`${API_ENDPOINT}/admin/qps/${apiPrefix}-history/?page=${page}&page_size=10`, {
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
         }
@@ -229,10 +253,26 @@ const AdminQPApprovals = () => {
     }
   };
 
+  const getNextRole = (currentRole: string) => {
+    const idx = approvalChain.indexOf(currentRole);
+    if (idx !== -1 && idx + 1 < approvalChain.length) {
+      const next = approvalChain[idx + 1];
+      if (next === 'hod') return 'HOD';
+      if (next === 'coe') return 'COE';
+      return next.charAt(0).toUpperCase() + next.slice(1);
+    }
+    return null;
+  };
+
   const handleApprove = async (qpId: number) => {
+    const nextRole = getNextRole(role);
+    const textMsg = nextRole 
+      ? `Are you sure you want to approve and forward this question paper to ${nextRole}?`
+      : 'Are you sure you want to approve and finalize this question paper?';
+
     const result = await MySwal.fire({
       title: 'Confirm approval',
-      text: 'Are you sure you want to approve and forward this question paper to COE?',
+      text: textMsg,
       icon: 'question',
       showCancelButton: true,
       showCloseButton: true,
@@ -251,7 +291,7 @@ const AdminQPApprovals = () => {
 
     setActionLoading(true);
     try {
-      const response = await fetch(`${API_ENDPOINT}/admin/qps/${qpId}/admin-approve/`, {
+      const response = await fetch(`${API_ENDPOINT}/admin/qps/${qpId}/${apiPrefix}-approve/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
@@ -311,7 +351,7 @@ const AdminQPApprovals = () => {
 
     setActionLoading(true);
     try {
-      const response = await fetch(`${API_ENDPOINT}/admin/qps/${qpId}/admin-reject/`, {
+      const response = await fetch(`${API_ENDPOINT}/admin/qps/${qpId}/${apiPrefix}-reject/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,

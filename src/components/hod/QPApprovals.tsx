@@ -78,6 +78,24 @@ const QPApprovals = () => {
   const [historyTotalCount, setHistoryTotalCount] = useState(0);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("pending");
+  const [approvalChain, setApprovalChain] = useState<string[]>(['hod', 'principal', 'coe']);
+
+  useEffect(() => {
+    const fetchApprovalChain = async () => {
+      try {
+        const response = await fetch(`${API_ENDPOINT}/organizations/qp-approval-chain/`, {
+          headers: { Authorization: `Bearer ${sessionStorage.getItem("access_token")}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.qp_approval_chain) {
+            setApprovalChain(data.qp_approval_chain);
+          }
+        }
+      } catch (err) {}
+    };
+    fetchApprovalChain();
+  }, []);
 
   const toggleExpanded = (key: string) => {
     setExpanded((p) => ({ ...p, [key]: !p[key] }));
@@ -251,10 +269,26 @@ const QPApprovals = () => {
     fetchQPDetail(qp.id);
   };
 
+  const getNextRole = (currentRole: string) => {
+    const idx = approvalChain.indexOf(currentRole);
+    if (idx !== -1 && idx + 1 < approvalChain.length) {
+      const next = approvalChain[idx + 1];
+      if (next === 'hod') return 'HOD';
+      if (next === 'coe') return 'COE';
+      return next.charAt(0).toUpperCase() + next.slice(1);
+    }
+    return null;
+  };
+
   const handleApprove = async (qpId: number) => {
+    const nextRole = getNextRole('hod');
+    const textMsg = nextRole 
+      ? `Are you sure you want to approve and forward this question paper to ${nextRole}?`
+      : 'Are you sure you want to approve and finalize this question paper?';
+
     const result = await MySwal.fire({
       title: 'Confirm approval',
-      text: 'Are you sure you want to approve and forward this question paper to Admin?',
+      text: textMsg,
       icon: 'question',
       showCancelButton: true,
       showCloseButton: true,

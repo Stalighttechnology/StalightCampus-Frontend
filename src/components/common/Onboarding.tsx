@@ -41,6 +41,7 @@ const Onboarding = () => {
     phone: "",
     plan: plan || "basic",
     accreditation_id: "",
+    institution_type: "engineering",
     institution_address: "",
     billing_address: "",
     tax_id: "",
@@ -180,6 +181,9 @@ const Onboarding = () => {
         name: orgData.admin_name,
         email: orgData.email,
         contact: orgData.phone,
+        tech_poc_mobile: formData.tech_poc_mobile,
+        institution_type: formData.institution_type,
+        plan_type: formData.plan,
       },
       theme: {
         color: '#7c3aed',
@@ -343,6 +347,23 @@ const Onboarding = () => {
                           value={formData.accreditation_id}
                           onChange={e => setFormData({ ...formData, accreditation_id: e.target.value })}
                         />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Institution Type</label>
+                        <Select
+                          value={formData.institution_type}
+                          onValueChange={(value) => setFormData({ ...formData, institution_type: value })}
+                        >
+                          <SelectTrigger className="bg-gray-50 border-gray-100 h-12 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all">
+                            <SelectValue placeholder="Select Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="engineering">Engineering College</SelectItem>
+                            <SelectItem value="medical">Medical College</SelectItem>
+                            <SelectItem value="school">School / K-12</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Brand Logo</label>

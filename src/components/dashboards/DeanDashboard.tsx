@@ -28,6 +28,7 @@ import { HolidayCalendar } from "../admin/HolidayCalendar";
 import AlumniDirectory from "../common/AlumniDirectory";
 import ScheduleMeeting from "../common/ScheduleMeeting";
 import StaffTaskTracker from "../common/StaffTaskTracker";
+import AdminQPApprovals from "../admin/AdminQPApprovals";
 
 interface DeanUser {
   username: string;
@@ -66,6 +67,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'schedule-meeting': 'schedule-meeting',
     'alumni-directory': 'alumni-directory',
     'co-attainment': 'co-attainment',
+    'qp-approvals': 'qp-approvals',
   };
   return pathMap[lastPart] || 'dashboard';
 };
@@ -112,6 +114,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <div><DeanExams /></div>;
       case 'co-attainment':
         return <div><AdminCOAttainment /></div>;
+      case 'qp-approvals':
+        return <div><AdminQPApprovals role="dean" /></div>;
       case 'faculty':
         return <div><DeanFacultyProfile /></div>;
       case 'finance':
