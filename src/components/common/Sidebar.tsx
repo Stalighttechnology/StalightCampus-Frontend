@@ -61,6 +61,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { useNavigate, useLocation } from "react-router-dom";
+
+// Module filtering mapping
+const MODULE_PAGE_MAP: Record<string, string[]> = {
+  leave_management: ['apply-leave', 'leaves', 'manage-leaves', 'admin-leaves', 'student-leave', 'manage-warden-leaves', 'department-admin-leaves', 'apply-leaves', 'leave-request', 'leave', 'hod-leaves'],
+  hostel_management: ['hostels', 'rooms', 'residents', 'gate-passes', 'menu-management', 'student-hostel-details'],
+  transportation: ['transportation', 'transport-tracking', 'transport-drivers', 'transport-buses', 'transport-routes', 'driver-history', 'driver-complaints', 'transport-allocations'],
+  library_management: ['library', 'library-books', 'library-circulation', 'library-fines'],
+  fees_and_finance: ['fees', 'individual-fees', 'invoices', 'payments', 'billing', 'payment-settings', 'student-reports'],
+  exams_and_qp: ['exams', 'upload-qp', 'qp-approvals', 'publish-results', 'revaluation', 'makeupexam', 'marks', 'exam-applications', 'exam-scheduling', 'revaluation-requests', 'publish-results-reval-makeup', 'makeup-requests', 'internal-marks'],
+  payroll_management: ['payroll', 'my-payroll', 'reimbursements', 'finance'],
+  admissions: ['admission-applications', 'admission-enquiries', 'admission-communication', 'admission-reports', 'admission-courses', 'enrollment'],
+  announcements: ['announcements', 'announcement-management', 'hod-announcement-management', 'faculty-announcement-management'],
+  attendance: ['attendance', 'take-attendance', 'my-attendance', 'low-attendance', 'attendance-filters', 'attendance-records', 'hod-attendance', 'faculty-attendance'],
+  academics_extra: ['syllabus-monitor', 'syllabus-status', 'study-materials', 'student-study-material', 'assignments', 'faculty-assignments', 'student-assignment', 'co-attainment']
+};
 
 interface SidebarProps {
   role: string;
@@ -806,6 +822,15 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         <div className="space-y-1 px-3">
           {isRoleAllowed && menuItems[role]
             ?.filter(item => isPageAllowed(item.page, orgPlan, role) && (item.page === 'co-attainment' ? hasFeature('coAttainment') : true) && (item.page === 'student-enrollment' ? hasFeature('electives') : true))
+            ?.filter(item => {
+              const activeModules = user?.org_active_modules || {};
+              for (const [moduleKey, pages] of Object.entries(MODULE_PAGE_MAP)) {
+                if (pages.includes(item.page)) {
+                  return activeModules[moduleKey] !== false;
+                }
+              }
+              return true;
+            })
             ?.map((item, index) => (
               <motion.div
                 key={item.page}

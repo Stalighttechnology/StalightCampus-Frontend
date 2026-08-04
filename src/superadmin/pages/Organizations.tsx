@@ -4,7 +4,7 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
-import { Search, MoreVertical, Building2, Trash2, Edit, Eye } from "lucide-react";
+import { Search, MoreVertical, Building2, Trash2, Edit, Eye, Layers } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import {
@@ -41,6 +41,7 @@ import {
   SelectValue } from
 "../../components/ui/select";
 
+import { Switch } from "../../components/ui/switch";
 import { API_BASE_URL } from "@/utils/config";
 import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
 
@@ -58,6 +59,24 @@ const Organizations = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [viewOrg, setViewOrg] = useState<any | null>(null);
   const [viewOrgLoading, setViewOrgLoading] = useState(false);
+
+  const [moduleOrg, setModuleOrg] = useState<any | null>(null);
+  const [activeModules, setActiveModules] = useState<Record<string, boolean>>({});
+  const [moduleSaveLoading, setModuleSaveLoading] = useState(false);
+  
+  const MODULE_GROUPS = [
+    { key: 'leave_management', label: 'Leave Management', desc: 'Hides Apply Leave, Manage Leaves, Admin Leaves, HOD Leaves, Department Leaves, and Leave Requests' },
+    { key: 'hostel_management', label: 'Hostel Management', desc: 'Hides Hostel Dashboard, Rooms, Residents, Gate Passes, and Menu Management' },
+    { key: 'transportation', label: 'Transportation', desc: 'Hides Live Tracking, Buses, Drivers, Routes, Allocations, and Transport Incidents' },
+    { key: 'library_management', label: 'Library Management', desc: 'Hides Library Catalog, Books, Circulation, and Fines' },
+    { key: 'fees_and_finance', label: 'Fees & Finance', desc: 'Hides Individual Fees, Invoices, Payments, Billing, Settings, and Fee Reports' },
+    { key: 'exams_and_qp', label: 'Exams & Question Papers', desc: 'Hides Exams, QP Approvals, Marks, Results, Revaluation, and Makeup Exams' },
+    { key: 'payroll_management', label: 'Payroll Management', desc: 'Hides Payroll, My Payroll, Reimbursements, and Finance pages' },
+    { key: 'admissions', label: 'Admissions', desc: 'Hides Admission Enquiries, Applications, Documents, Counsellors, and Enrollment' },
+    { key: 'announcements', label: 'Announcements', desc: 'Hides Announcement Management for HOD, Faculty, and Admin roles' },
+    { key: 'attendance', label: 'Attendance', desc: 'Hides Take Attendance, My Attendance, Low Attendance, Records, and Filters' },
+    { key: 'academics_extra', label: 'Academics (Extras)', desc: 'Hides Syllabus Monitor, Study Materials, Assignments, and CO/PO Attainment' },
+  ];
 
   const fetchOrgs = async () => {
     try {
@@ -123,6 +142,52 @@ const Organizations = () => {
 
     } finally {
       setActionLoading(false);
+    }
+  };
+
+
+  const openModuleOrg = async (org: any) => {
+    setModuleOrg(org);
+    setActionLoading(true);
+    try {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/organizations/${org.id}/`, {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setActiveModules(data.active_modules || {});
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleModuleSave = async () => {
+    if (!window.confirm(`Are you sure you want to save these module changes for ${moduleOrg?.name}?\n\nDisabled modules will instantly disappear from the sidebar for ALL users across this institution.`)) {
+      return;
+    }
+    setModuleSaveLoading(true);
+    try {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/organizations/${moduleOrg.id}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
+        },
+        body: JSON.stringify({ active_modules: activeModules })
+      });
+      if (response.ok) {
+        setModuleOrg(null);
+        fetchOrgs();
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setModuleSaveLoading(false);
     }
   };
 
@@ -281,6 +346,9 @@ const Organizations = () => {
                         }}>
                               <Edit className="w-4 h-4 mr-2 text-blue-500" /> Change Plan
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openModuleOrg(org)}>
+                              <Layers className="w-4 h-4 mr-2 text-teal-500" /> Manage Modules
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                           className={`${org.name === "Stalight HQ" ? "text-gray-400 cursor-not-allowed" : "text-red-600 focus:text-red-600"}`}
                           onClick={() => org.name !== "Stalight HQ" && setDeleteOrg(org)}
@@ -359,6 +427,40 @@ const Organizations = () => {
       </Dialog>
 
       {/* View Details Dialog */}
+
+      <Dialog open={!!moduleOrg} onOpenChange={(open) => !open && setModuleOrg(null)}>
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manage Active Modules</DialogTitle>
+            <DialogDescription>
+              Enable or disable specific modules for {moduleOrg?.name}. This will hide them from all users across this institution.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4">
+            {MODULE_GROUPS.map((mod) => (
+              <div key={mod.key} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                <div className="space-y-0.5 pr-4">
+                  <h4 className="text-sm font-medium">{mod.label}</h4>
+                  <p className="text-[11px] text-muted-foreground">{mod.desc}</p>
+                </div>
+                <Switch 
+                  checked={activeModules[mod.key] !== false} 
+                  onCheckedChange={(checked) => setActiveModules({...activeModules, [mod.key]: checked})} 
+                />
+              </div>
+            ))}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setModuleOrg(null)}>Cancel</Button>
+            <Button onClick={handleModuleSave} disabled={moduleSaveLoading}>
+              {moduleSaveLoading ? "Saving..." : "Save Modules"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!viewOrg} onOpenChange={(open) => !open && setViewOrg(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
