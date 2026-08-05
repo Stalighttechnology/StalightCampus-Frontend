@@ -97,6 +97,8 @@ export const translateTerminology = (content: any): any => {
   const replacements = [
     { pattern: /\bBranch\b/gi, key: "branch" },
     { pattern: /\bBranches\b/gi, key: "branches" },
+    { pattern: /\bDepartment\b/gi, key: "branch" },
+    { pattern: /\bDepartments\b/gi, key: "branches" },
     { pattern: /\bSemester\b/g, key: "semester" },
     { pattern: /\bSemesters\b/g, key: "semesters" },
     { pattern: /\bHOD\b/gi, key: "hod" },
