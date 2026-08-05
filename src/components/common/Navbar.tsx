@@ -520,8 +520,8 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                 <div className={`text-xs font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   {user?.first_name ? `${user.first_name} ` : "User"}
                 </div>
-                <div className="text-[10px] opacity-60 capitalize">
-                  {(role === "admin" || role === "principal") ? "Principal" : role}
+                <div className="text-[10px] opacity-60">
+                  {(role === "admin" || role === "principal") ? "Principal" : translateTerminology(role)}
                 </div>
               </div>
               <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-xs shadow-inner overflow-hidden">
