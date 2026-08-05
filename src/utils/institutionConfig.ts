@@ -78,8 +78,8 @@ export const getTerm = (key: keyof InstitutionTerminology, type?: InstitutionTyp
 export const hasFeature = (feature: 'labs' | 'electives' | 'coAttainment', type?: InstitutionType): boolean => {
   const currentType = type || getInstitutionType();
   if (currentType === 'school') {
-    if (feature === 'labs' || feature === 'electives' || feature === 'coAttainment') {
-      return false; // Example: Schools might not use standard engineering lab/elective features
+    if (feature === 'labs' || feature === 'coAttainment') {
+      return false; // Example: Schools might not use standard engineering lab/coAttainment features
     }
   }
   if (currentType === 'medical') {
