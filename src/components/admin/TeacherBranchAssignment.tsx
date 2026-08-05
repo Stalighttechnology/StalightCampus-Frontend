@@ -350,9 +350,9 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
         <div id="teacher-assignments-header-section" className="flex flex-col">
           <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-xl sm:text-2xl font-semibold">Faculty-Branch Assignments</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl font-semibold">{translateTerminology("Faculty-Branch Assignments")}</CardTitle>
               <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
-                Assign primary branches to faculty members
+                {translateTerminology("Assign primary branches to faculty members")}
               </CardDescription>
             </div>
             <div className="w-full sm:w-auto">
@@ -364,7 +364,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                 }}
                 className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white h-9 px-3 font-semibold shadow-md w-full sm:w-auto">
                 <Building className="h-4 w-4" />
-                Assign Primary Branch
+                {translateTerminology("Assign Primary Branch")}
               </Button>
             </div>
           </CardHeader>
@@ -531,7 +531,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
       <Dialog open={showBranchDialog} onOpenChange={setShowBranchDialog}>
         <DialogContent className="w-full max-w-[90%] rounded-lg sm:rounded-md sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Assign Primary Branch</DialogTitle>
+            <DialogTitle>{translateTerminology("Assign Primary Branch")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex flex-col gap-1">
@@ -607,35 +607,32 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                       </div>
                     )}
                   </div>
-                  <div 
-                    className="pt-1 max-h-[250px] overflow-y-auto custom-scrollbar p-1"
-                    onWheel={(e) => e.stopPropagation()}
-                    onTouchMove={(e) => e.stopPropagation()}>
+                  <div className="max-h-[160px] overflow-y-auto p-1">
                     {dialogLoading ? (
-                      <div className="p-4 flex flex-col items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                        <span className="text-[10px] text-muted-foreground">Loading...</span>
-                      </div>
+                      <div className="p-3 text-center text-xs text-muted-foreground">Loading faculty...</div>
                     ) : dialogTeachers.length === 0 ? (
-                      <div className="p-3 text-sm text-muted-foreground text-center">No faculty found</div>
+                      <div className="p-3 text-center text-xs text-muted-foreground">No faculty found</div>
                     ) : (
                       dialogTeachers.map((teacher) => {
                         const isSelected = selectedTeachers.some(t => t.id === teacher.id);
                         return (
-                          <div 
-                            key={teacher.id} 
-                            className="flex items-center space-x-2 px-2 py-2 hover:bg-accent rounded-sm cursor-pointer"
+                          <div
+                            key={teacher.id}
+                            className={cn(
+                              "flex items-center space-x-2 p-2 rounded-sm cursor-pointer hover:bg-accent text-xs",
+                              isSelected && "bg-accent/50"
+                            )}
                             onClick={() => {
                               setSelectedTeachers(prev => {
-                                if (prev.some(t => t.id === teacher.id)) {
+                                const exists = prev.some(t => t.id === teacher.id);
+                                if (exists) {
                                   return prev.filter(t => t.id !== teacher.id);
                                 } else {
                                   return [...prev, teacher];
                                 }
                               });
-                            }}
-                          >
-                            <Checkbox 
+                            }}>
+                            <Checkbox
                               checked={isSelected}
                               onCheckedChange={(checked) => {
                                 setSelectedTeachers(prev => {
@@ -662,10 +659,10 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             </div>
 
             <div>
-              <label className="text-sm font-medium">Select Branch</label>
+              <label className="text-sm font-medium">{translateTerminology("Select Branch")}</label>
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
                 <SelectTrigger className="w-full mt-1">
-                  <SelectValue placeholder="Choose a branch" />
+                  <SelectValue placeholder={translateTerminology("Choose a branch")} />
                 </SelectTrigger>
                 <CustomSelectContent className="max-h-[180px]">
                   {branches.length === 0 ? (
