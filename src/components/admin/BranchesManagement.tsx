@@ -539,9 +539,9 @@ const fetchData = async (page: number = 1, search: string = filter) => {
           <div id="branches-management-header-section" className="flex flex-col">
             <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <CardTitle className="text-xl sm:text-2xl font-semibold">Branch Management</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl font-semibold">{translateTerminology("Branch Management")}</CardTitle>
                 <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
-                  Manage branches and assign department heads
+                  {translateTerminology("Manage branches and assign department heads")}
                 </CardDescription>
               </div>
 
@@ -553,7 +553,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                       className="flex items-center justify-center gap-1 w-auto"
                       onClick={() => setIsAddDialogOpen(true)}
                       disabled={loading}>
-                      <PlusIcon className="w-4 h-4" /> Add Branch
+                      <PlusIcon className="w-4 h-4" /> {translateTerminology("Add Branch")}
                     </Button>
 
                     <Button
@@ -561,7 +561,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                       className="flex items-center justify-center gap-1 w-auto"
                       onClick={() => { setIsAssignDialogOpen(true); fetchHODs(); }}
                       disabled={loading}>
-                      <UserPlus2Icon className="w-4 h-4" /> Assign HOD
+                      <UserPlus2Icon className="w-4 h-4" /> {translateTerminology("Assign HOD")}
                     </Button>
                   </div>
                 )}
@@ -620,9 +620,9 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                         <tr>
                           <th className="branch-name-col py-3 px-3 text-left font-bold">{translateTerminology("Branch Name")}</th>
                           <th className="py-3 px-3 hidden sm:table-cell font-bold">{translateTerminology("Branch Code")}</th>
-                          <th className="py-3 px-3 font-bold text-center">Semesters</th>
-                          <th className="hod-col py-3 px-3 font-bold">Assigned HOD</th>
-                          <th className="py-3 px-3 hidden sm:table-cell font-bold">HOD Contact</th>
+                          <th className="py-3 px-3 font-bold text-center">{translateTerminology("Semesters")}</th>
+                          <th className="hod-col py-3 px-3 font-bold">{translateTerminology("Assigned HOD")}</th>
+                          <th className="py-3 px-3 hidden sm:table-cell font-bold">{translateTerminology("HOD Contact")}</th>
                           {!isReadOnly && <th className="actions-col py-3 px-3 text-right w-24 font-bold">Actions</th>}
                         </tr>
                       </thead>
@@ -735,15 +735,15 @@ const fetchData = async (page: number = 1, search: string = filter) => {
 
                           <div className={`grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t text-xs sm:text-sm ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'}`}>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">Semesters</span>
+                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">{translateTerminology("Semesters")}</span>
                               <span className="font-medium">{branch.total_semesters || "--"}</span>
                             </div>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">Assigned HOD</span>
+                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">{translateTerminology("Assigned HOD")}</span>
                               <span className="font-medium break-words">{branch.hod || "--"}</span>
                             </div>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">HOD Contact</span>
+                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">{translateTerminology("HOD Contact")}</span>
                               <span className="font-medium break-words text-wrap">{branch.hod_contact || "--"}</span>
                             </div>
                           </div>
@@ -902,20 +902,20 @@ const fetchData = async (page: number = 1, search: string = filter) => {
 
         <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
           <DialogContent className={theme === 'dark' ? 'bg-card text-foreground max-w-[90vw] sm:max-w-md rounded-xl' : 'bg-white text-gray-900 max-w-[90vw] sm:max-w-md rounded-xl'}>
-            <DialogHeader><DialogTitle>Assign Department Head</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{translateTerminology("Assign HOD")}</DialogTitle></DialogHeader>
             <div className="space-y-5 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Target Branch</label>
+                <label className="text-sm font-semibold">{translateTerminology("Target Branch")}</label>
                 <Select
                   value={selectedBranchId?.toString() || ""}
                   onValueChange={(val) => setSelectedBranchId(Number(val))}>
 
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a branch" />
+                    <SelectValue placeholder={translateTerminology("Select a branch")} />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {branches.length === 0 ? (
-                      <SelectItem value="none" disabled>No branches found</SelectItem>
+                      <SelectItem value="none" disabled>{translateTerminology("No branches found")}</SelectItem>
                     ) : (
                       branches.map((branch) =>
                         <SelectItem key={branch.id} value={branch.id.toString()}>{branch.name}</SelectItem>
@@ -926,7 +926,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Available HODs</label>
+                <label className="text-sm font-semibold">{translateTerminology("Available HODs")}</label>
                 <Select
                   value={newHodId}
                   onValueChange={setNewHodId}>
@@ -939,7 +939,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                         const name = `${u.first_name} ${u.last_name}`.trim();
                         return !branches.some(b => b.hod === name);
                       }).length === 0 ? (
-                      <SelectItem value="none" disabled>No available HODs found</SelectItem>
+                      <SelectItem value="none" disabled>{translateTerminology("No available HODs found")}</SelectItem>
                     ) : (
                       users.filter(u => {
                         const name = `${u.first_name} ${u.last_name}`.trim();
@@ -961,7 +961,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                 disabled={loading || !selectedBranchId || !newHodId}
                 className="flex-1 bg-primary text-white">
 
-                {loading ? "Assigning..." : "Assign HOD"}
+                {loading ? "Assigning..." : translateTerminology("Assign HOD")}
               </Button>
             </DialogFooter>
           </DialogContent>

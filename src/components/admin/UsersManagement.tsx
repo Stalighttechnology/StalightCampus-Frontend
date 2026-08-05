@@ -61,6 +61,8 @@ function extractArray<T>(obj: unknown, primaryKey: keyof any, fallbackKey?: keyo
 }
 
 
+import { translateTerminology } from "../../utils/institutionConfig";
+
 const getStatusBadge = (status: string, theme: string) => {
   const baseClass = "px-3 py-1 rounded-full text-xs font-medium";
   if (status === "Active")
@@ -72,9 +74,8 @@ const getStatusBadge = (status: string, theme: string) => {
 const getRoleBadge = (role: string, theme: string) => {
   return (
     <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800'}`}>
-      {role}
+      {translateTerminology(role)}
     </span>);
-
 };
 
 const ALL_ROLES = [
@@ -572,7 +573,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
           {options.map((opt) => (
             <SelectItem key={opt} value={opt}>
-              {opt}
+              {translateTerminology(opt)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -809,8 +810,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                         <tr
                           key={user.id}
                           className={`table-row border-b transition-colors duration-200 ${theme === 'dark' ?
-                              'border-border hover:bg-accent' :
-                              'border-gray-200 hover:bg-gray-50'
+                            'border-border hover:bg-accent' :
+                            'border-gray-200 hover:bg-gray-50'
                             }`}
                         >
                           <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[200px]">
