@@ -9,6 +9,7 @@ import { Capacitor } from "@capacitor/core";
 import { fetchParentChildrenCached } from "../../utils/student_api";
 import { Popover, PopoverContent, PopoverTrigger, PopoverArrow } from "../ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { translateTerminology } from "../../utils/institutionConfig";
 
 interface User {
   username: string;
@@ -284,7 +285,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
             </span>
           </motion.div>
           <p className={`text-[9px] uppercase tracking-wider font-medium truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-            {role === "admin" || role === "principal" ? "Principal" : role.replace('_', ' ')} Portal
+            {role === "admin" || role === "principal" ? "Principal" : translateTerminology(role.toUpperCase()).replace('_', ' ')} Portal
           </p>
         </div>
       </div>

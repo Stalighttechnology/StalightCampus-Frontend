@@ -330,7 +330,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
           <DashboardCard
             title={translateTerminology("HODs")}
             value={stats.total_hods || 0}
-            description="Dept heads"
+            description={translateTerminology("Dept heads")}
             icon={<FaUserTie className={theme === 'dark' ? "text-yellow-400 text-3xl" : "text-yellow-500 text-3xl"} />} />
 
           {userTier >= 2 && (

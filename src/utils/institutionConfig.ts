@@ -101,6 +101,8 @@ export const translateTerminology = (content: any): any => {
     { pattern: /\bSemesters\b/g, key: "semesters" },
     { pattern: /\bHOD\b/g, key: "hod" },
     { pattern: /\bHODs\b/g, key: "hod" },
+    { pattern: /\bDept heads\b/gi, key: "hod" },
+    { pattern: /\bDepartment heads\b/gi, key: "hod" },
     { pattern: /\bProctor\b/g, key: "proctor" },
     { pattern: /\bProctors\b/g, key: "proctor" },
     { pattern: /\bMentoring\b/g, key: "mentoring" },
@@ -112,7 +114,7 @@ export const translateTerminology = (content: any): any => {
   for (const { pattern, key } of replacements) {
     if (pattern.test(result)) {
       let replacement = getTerm(key as any);
-      if (pattern.source.includes("HODs") || pattern.source.includes("Proctors") || pattern.source.includes("Electives")) {
+      if (pattern.source.includes("HODs") || pattern.source.includes("Dept heads") || pattern.source.includes("Department heads") || pattern.source.includes("Proctors") || pattern.source.includes("Electives")) {
         replacement = replacement + "s";
       }
 
