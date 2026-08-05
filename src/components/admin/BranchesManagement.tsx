@@ -812,7 +812,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Total Semesters</label>
+                <label className="text-sm font-semibold">{translateTerminology("Total Semesters")}</label>
                 <Input
                   type="number"
                   min="1"
@@ -879,7 +879,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
 
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Total Semesters</label>
+                <label className="text-sm font-semibold">{translateTerminology("Total Semesters")}</label>
                 <Input
                   type="number"
                   min="1"
