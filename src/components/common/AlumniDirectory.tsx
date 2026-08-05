@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Eye, Search, GraduationCap, Loader2, MousePointer2, Filter, CheckCircle, Edit, Save, X } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { translateTerminology } from '../../utils/institutionConfig';
 
 // ──────────────────────────────────
 //  Types
@@ -327,7 +328,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
 
             {/* Branch */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-gray-400">Branch</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-gray-400">{translateTerminology("Branch")}</label>
               <Select
                 value={filters.branchId}
                 open={branchOpen}
@@ -339,7 +340,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                 disabled={(!filters.batchId) || (userRole === 'hod')}
               >
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Select Branch" />
+                  <SelectValue placeholder={translateTerminology("Select Branch")} />
                 </SelectTrigger>
                 <SelectContent>
                   {filterData.branches.map(b => (
@@ -413,7 +414,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                 <div className="flex flex-wrap justify-center gap-4 sm:gap-6 w-full max-w-3xl">
                   {[
                     { label: 'Batch', active: !!filters.batchId },
-                    { label: 'Branch', active: !!filters.branchId },
+                    { label: translateTerminology('Branch'), active: !!filters.branchId },
                     { label: 'Admission Mode', active: !!filters.admissionMode }
                   ].map((step, i) => (
                     <div key={step.label} className="flex flex-col items-center gap-2 min-w-[60px] sm:min-w-[80px]">
@@ -456,7 +457,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b bg-gray-50 dark:bg-gray-800/50 text-left">
-                          {['USN', 'Name', 'Branch', 'Batch', 'Mode', 'Actions'].map(h => (
+                          {['USN', 'Name', translateTerminology('Branch'), 'Batch', 'Mode', 'Actions'].map(h => (
                             <th key={h} className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{h}</th>
                           ))}
                         </tr>
@@ -593,7 +594,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                       ['Name',           selectedAlumni.name],
                       ['Email',          selectedAlumni.email],
                       ['Phone',          selectedAlumni.phone],
-                      ['Branch',         selectedAlumni.branch],
+                      [translateTerminology('Branch'), selectedAlumni.branch],
                       ['Batch',          selectedAlumni.batch],
                       ['Mode',           selectedAlumni.mode_of_admission],
                       ['Blood Group',    selectedAlumni.blood_group],

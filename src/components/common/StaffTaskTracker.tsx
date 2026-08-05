@@ -25,6 +25,7 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { cn } from "../../lib/utils";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
+import { translateTerminology } from "../../utils/institutionConfig";
 
 // Custom SelectContent components without scroll arrows
 const CustomSelectContent = forwardRef<
@@ -510,14 +511,14 @@ const StaffTaskTracker = () => {
                   {/* Branch selector only for principal */}
                   {role === 'principal' && (
                     <div className="grid gap-2">
-                      <Label>Select Branch First <span className="text-destructive">*</span></Label>
+                      <Label>{translateTerminology("Select Branch First")} <span className="text-destructive">*</span></Label>
                       <Select value={selectedBranch} onValueChange={(val) => {
                         setSelectedBranch(val);
                         setSubPage(1);
                         setNewTask({ ...newTask, assigned_to: '', assigned_to_name: '' });
                       }}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a branch" />
+                          <SelectValue placeholder={translateTerminology("Select a branch")} />
                         </SelectTrigger>
                         <CustomSelectContent
                           header={
@@ -525,7 +526,7 @@ const StaffTaskTracker = () => {
                               <div className="relative">
                                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
-                                  placeholder="Search branches..."
+                                  placeholder="Search..."
                                   className="pl-8 pr-12 h-9"
                                   value={branchSearchTerm}
                                   onChange={(e) => setBranchSearchTerm(e.target.value)}
@@ -572,7 +573,7 @@ const StaffTaskTracker = () => {
                       <SelectTrigger>
                         <SelectValue placeholder={
                           role === 'principal' && !selectedBranch && !appliedSearch
-                            ? "Select a branch first..."
+                            ? translateTerminology("Select a branch first...")
                             : "Choose staff member..."
                         }>
                           {newTask.assigned_to_name ? newTask.assigned_to_name : "Choose staff member..."}
@@ -646,7 +647,7 @@ const StaffTaskTracker = () => {
                         ) : (
                           subordinates.map(sub => (
                             <SelectItem key={sub.id} value={sub.id.toString()}>
-                              {sub.name} <span className="text-xs text-muted-foreground ml-2 capitalize">({sub.role})</span>
+                              {sub.name} <span className="text-xs text-muted-foreground ml-2 capitalize">({translateTerminology(sub.role)})</span>
                             </SelectItem>
                           ))
                         )}
