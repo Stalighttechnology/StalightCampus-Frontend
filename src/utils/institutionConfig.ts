@@ -44,7 +44,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     branches: 'Streams',
     semester: 'Term',
     semesters: 'Terms',
-    hod: 'Coordinator',
+    hod: 'Co-ordinator',
     coAttainment: 'Learning Outcomes',
     labs: 'Practicals',
     electives: 'Optional Subjects',
