@@ -448,7 +448,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
     hod: [
       { name: "Dashboard", page: "dashboard" },
-      { name: "Semester Management", page: "semesters" },
+      { name: translateTerminology("Semester Management"), page: "semesters" },
       { name: "Courses", page: "subjects" },
       { name: "Elective Course Enrollment", page: "student-enrollment" },
       { name: "Faculty Assignments", page: "faculty-assignments" },

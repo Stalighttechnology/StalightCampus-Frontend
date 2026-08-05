@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "../../utils/institutionConfig";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Pencil, Trash2, BookOpen, FileDown, Loader2 } from "lucide-react";
@@ -127,6 +127,17 @@ const SubjectManagement = () => {
     } finally {
       setDownloadingPDF(false);
     }
+  };
+
+  const getSemesterName = (number: number) => {
+    if (getInstitutionType() === 'school') {
+      return `Class ${number}`;
+    }
+    let suffix = "th";
+    if (number % 10 === 1 && number % 100 !== 11) suffix = "st";
+    else if (number % 10 === 2 && number % 100 !== 12) suffix = "nd";
+    else if (number % 10 === 3 && number % 100 !== 13) suffix = "rd";
+    return `${number}${suffix} Semester`;
   };
 
   // Helper to update state
@@ -307,11 +318,6 @@ const SubjectManagement = () => {
     }
   };
 
-  const getSemesterName = (number: number) => {
-    const suffixes = ["st", "nd", "rd", "th", "th", "th", "th", "th"];
-    return `${number}${suffixes[number - 1]} Semester`;
-  };
-
   // Helper to get semester number by ID
   const getSemesterNumber = (semesterId: string): string => {
     const semester = state.semesters.find((s) => s.id === semesterId);
@@ -445,9 +451,13 @@ const SubjectManagement = () => {
                         <tr>
                           <th className="px-4 py-3 font-semibold text-left">COURSE CODE</th>
                           <th className="px-4 py-3 font-semibold text-left">COURSE NAME</th>
-                          <th className="px-4 py-3 font-semibold text-left">SEMESTER</th>
-                          <th className="px-4 py-3 font-semibold text-left">COURSE TYPE</th>
-                          <th className="px-4 py-3 font-semibold text-left">COURSE CREDITS</th>
+                          <th className="px-4 py-3 font-semibold text-left">{getInstitutionType() === 'school' ? 'CLASS' : 'SEMESTER'}</th>
+                          {getInstitutionType() !== 'school' && (
+                            <th className="px-4 py-3 font-semibold text-left">COURSE TYPE</th>
+                          )}
+                          {getInstitutionType() !== 'school' && (
+                            <th className="px-4 py-3 font-semibold text-left">COURSE CREDITS</th>
+                          )}
                           <th className="px-4 py-3 font-semibold text-left">ACTIONS</th>
                         </tr>
                       </thead>
@@ -461,8 +471,12 @@ const SubjectManagement = () => {
                             <td className="px-4 py-3">{subject.subject_code}</td>
                             <td className="px-4 py-3">{subject.name}</td>
                             <td className="px-4 py-3">{getSemesterNumber(subject.semester_id)}</td>
-                            <td className="px-4 py-3">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? 'Elective Subjects' : 'Open Elective Subjects'}</td>
-                            <td className="px-4 py-3">{subject.credits ?? 0}</td>
+                            {getInstitutionType() !== 'school' && (
+                              <td className="px-4 py-3">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? 'Elective Subjects' : 'Open Elective Subjects'}</td>
+                            )}
+                            {getInstitutionType() !== 'school' && (
+                              <td className="px-4 py-3">{subject.credits ?? 0}</td>
+                            )}
                             <td className="px-4 py-3 flex gap-5">
                               <Pencil
                                 className={`w-4 h-4 cursor-pointer ${theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}`}
@@ -627,106 +641,114 @@ const SubjectManagement = () => {
                 <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                   {state.semesters.map((semester) =>
                     <SelectItem key={semester.id} value={semester.id}>
-                      Semester {semester.number}
+                      {getSemesterName(semester.number)}
                     </SelectItem>
                   )}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Course Type */}
-            <div className="mb-4">
-              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Course Type <span className="text-red-500">*</span>
-              </label>
-              <Select
-                open={isModalTypeOpen}
-                onOpenChange={setIsModalTypeOpen}
-                value={state.newSubject.subject_type}
-                onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, subject_type: val } })}
-                disabled={state.loading}>
+            {/* Course Type - Optional / Hidden for School */}
+            {getInstitutionType() !== 'school' && (
+              <div className="mb-4">
+                <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Course Type <span className="text-red-500">*</span>
+                </label>
+                <Select
+                  open={isModalTypeOpen}
+                  onOpenChange={setIsModalTypeOpen}
+                  value={state.newSubject.subject_type}
+                  onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, subject_type: val } })}
+                  disabled={state.loading}>
 
-                <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
-                  <SelectValue placeholder="Select Type" />
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                  <SelectItem value="regular">Regular</SelectItem>
-                  <SelectItem value="elective">Elective Subjects</SelectItem>
-                  <SelectItem value="open_elective">Open Elective Subjects</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                    <SelectValue placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                    <SelectItem value="regular">Regular</SelectItem>
+                    <SelectItem value="elective">Elective Subjects</SelectItem>
+                    <SelectItem value="open_elective">Open Elective Subjects</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
-            {/* Course Credits */}
-            <div className="mb-4">
-              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Course Credits <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="number"
-                min={1}
-                value={state.newSubject.credits}
-                onChange={(e) =>
-                  updateState({
-                    newSubject: { ...state.newSubject, credits: e.target.value === "" ? "" : parseInt(e.target.value) || "" }
-                  })
-                }
-                disabled={state.loading}
-                className={`${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 rounded`}
-              />
-            </div>
-
-            {/* Max CIE Marks */}
-            <div className="mb-4">
-              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Max CIE Marks <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="number"
-                min={0}
-                max={300}
-                value={state.newSubject.max_cie_marks}
-                onChange={(e) => {
-                  if (e.target.value === "") {
-                    updateState({ newSubject: { ...state.newSubject, max_cie_marks: "" } });
-                    return;
+            {/* Course Credits - Optional / Hidden for School */}
+            {getInstitutionType() !== 'school' && (
+              <div className="mb-4">
+                <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Course Credits <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={state.newSubject.credits}
+                  onChange={(e) =>
+                    updateState({
+                      newSubject: { ...state.newSubject, credits: e.target.value === "" ? "" : parseInt(e.target.value) || "" }
+                    })
                   }
-                  let val = parseInt(e.target.value) || 0;
-                  if (val > 300) val = 300;
-                  updateState({
-                    newSubject: { ...state.newSubject, max_cie_marks: val }
-                  });
-                }}
-                disabled={state.loading}
-                className={`${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 rounded`}
-              />
-            </div>
+                  disabled={state.loading}
+                  className={`${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 rounded`}
+                />
+              </div>
+            )}
 
-            {/* Max SEE Marks */}
-            <div className="mb-6">
-              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Max SEE Marks <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="number"
-                min={0}
-                max={300}
-                value={state.newSubject.max_see_marks}
-                onChange={(e) => {
-                  if (e.target.value === "") {
-                    updateState({ newSubject: { ...state.newSubject, max_see_marks: "" } });
-                    return;
-                  }
-                  let val = parseInt(e.target.value) || 0;
-                  if (val > 300) val = 300;
-                  updateState({
-                    newSubject: { ...state.newSubject, max_see_marks: val }
-                  });
-                }}
-                disabled={state.loading}
-                className={`${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 rounded`}
-              />
-            </div>
+            {/* Max CIE Marks - Optional / Hidden for School */}
+            {getInstitutionType() !== 'school' && (
+              <div className="mb-4">
+                <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Max CIE Marks <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={300}
+                  value={state.newSubject.max_cie_marks}
+                  onChange={(e) => {
+                    if (e.target.value === "") {
+                      updateState({ newSubject: { ...state.newSubject, max_cie_marks: "" } });
+                      return;
+                    }
+                    let val = parseInt(e.target.value) || 0;
+                    if (val > 300) val = 300;
+                    updateState({
+                      newSubject: { ...state.newSubject, max_cie_marks: val }
+                    });
+                  }}
+                  disabled={state.loading}
+                  className={`${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 rounded`}
+                />
+              </div>
+            )}
+
+            {/* Max SEE Marks - Optional / Hidden for School */}
+            {getInstitutionType() !== 'school' && (
+              <div className="mb-6">
+                <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Max SEE Marks <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={300}
+                  value={state.newSubject.max_see_marks}
+                  onChange={(e) => {
+                    if (e.target.value === "") {
+                      updateState({ newSubject: { ...state.newSubject, max_see_marks: "" } });
+                      return;
+                    }
+                    let val = parseInt(e.target.value) || 0;
+                    if (val > 300) val = 300;
+                    updateState({
+                      newSubject: { ...state.newSubject, max_see_marks: val }
+                    });
+                  }}
+                  disabled={state.loading}
+                  className={`${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 rounded`}
+                />
+              </div>
+            )}
 
 
             {/* Action Buttons */}
