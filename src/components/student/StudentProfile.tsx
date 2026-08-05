@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Upload, Camera, CheckCircle, AlertCircle, Eye, EyeOff, Monitor, Smartphone, Tablet, Globe, RefreshCw, ShieldCheck, Clock , Trash, ScanFace, Check, Users } from 'lucide-react';
+import { Upload, Camera, CheckCircle, AlertCircle, Eye, EyeOff, Monitor, Smartphone, Tablet, Globe, RefreshCw, ShieldCheck, Clock , Trash, ScanFace, Check, Users , MessageCircle, Phone, Mail } from 'lucide-react';
 import { useTheme } from "@/context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { getFullStudentProfile } from "@/utils/student_api";
@@ -1053,7 +1053,7 @@ const StudentProfile: React.FC = () => {
               }
 
               <div className="text-md sm:text-lg font-semibold text-center mb-1">{form.first_name} {form.last_name}</div>
-              <div className={`text-md sm:text-md mb-4 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{form.username || form.email}</div>
+              <div className={`text-md sm:text-md mb-4 text-center break-all ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{form.username || form.email}</div>
 
               <div className="w-full mt-4 sm:mt-6 flex flex-col">
                 <h4 className={`text-[16px] sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
@@ -1664,12 +1664,49 @@ const StudentProfile: React.FC = () => {
                           <div className="grid gap-3 sm:grid-cols-2">
                             {form.linked_parents.map((parent: any, idx: number) => (
                               <div key={idx} className={`p-3 border rounded-md flex items-center justify-between ${theme === 'dark' ? 'bg-background border-input' : 'bg-gray-50 border-gray-200'}`}>
-                                <div>
-                                  <p className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{parent.name}</p>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <p className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{parent.name}</p>
+                                    {parent.relation && (
+                                      <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                                        {parent.relation}
+                                      </span>
+                                    )}
+                                  </div>
                                   <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{parent.email}</p>
+                                  <div className="flex items-center gap-3 mt-2">
+                                    {parent.phone && (
+                                      <>
+                                        <a 
+                                          href={`https://wa.me/${parent.phone.replace(/[^0-9]/g, '')}`} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-green-600 hover:text-green-700 transition-colors"
+                                          title="Chat on WhatsApp"
+                                        >
+                                          <MessageCircle className="w-4 h-4" />
+                                        </a>
+                                        <a 
+                                          href={`tel:${parent.phone.replace(/[^0-9+]/g, '')}`} 
+                                          className="text-blue-500 hover:text-blue-600 transition-colors"
+                                          title="Call Parent"
+                                        >
+                                          <Phone className="w-4 h-4" />
+                                        </a>
+                                      </>
+                                    )}
+                                    {parent.email && (
+                                      <a 
+                                        href={`mailto:${parent.email}`} 
+                                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+                                        title="Email Parent"
+                                      >
+                                        <Mail className="w-4 h-4" />
+                                      </a>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-
+                                <div className="flex items-center gap-2 shrink-0">
                                   <div className="px-2 py-1 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200">
                                     Linked
                                   </div>

@@ -316,6 +316,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
         },
         body: JSON.stringify({
           payment_type: paymentType,
+              student_usn: feeData?.student?.usn,
           selected_components: paymentType === 'component' && currentInvoice?.components ?
             Array.from(selectedComponents).map((idx: any) => currentInvoice.components[idx as number]?.id) :
             null
