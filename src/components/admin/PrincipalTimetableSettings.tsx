@@ -20,6 +20,7 @@ import {
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { SkeletonTable } from "../ui/skeleton";
+import { translateTerminology } from "../../utils/institutionConfig";
 
 const MySwal = withReactContent(Swal);
 
@@ -83,7 +84,7 @@ export default function PrincipalTimetableSettings() {
   };
 
   const AVAILABLE_ROLES = [
-    { value: 'hod', label: 'HOD' },
+    { value: 'hod', label: translateTerminology('HOD') },
     { value: 'dean', label: 'Dean' },
     { value: 'principal', label: 'Principal' },
     { value: 'coe', label: 'COE' },
@@ -567,8 +568,8 @@ export default function PrincipalTimetableSettings() {
                             </p>
                             {slot.is_break && (
                               <span className={`text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full border ${theme === 'dark'
-                                  ? 'bg-orange-950/40 text-orange-400 border-orange-900/60'
-                                  : 'bg-orange-100 text-orange-800 border-orange-200'
+                                ? 'bg-orange-950/40 text-orange-400 border-orange-900/60'
+                                : 'bg-orange-100 text-orange-800 border-orange-200'
                                 }`}>
                                 Break
                               </span>
@@ -656,7 +657,7 @@ export default function PrincipalTimetableSettings() {
                           <React.Fragment key={`${role}-${index}`}>
                             <div className="flex items-center gap-1">
                               <div className={`px-3 py-1.5 rounded-full border text-sm font-medium ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-700'}`}>
-                                {AVAILABLE_ROLES.find(r => r.value === role)?.label || role}
+                                {AVAILABLE_ROLES.find(r => r.value === role)?.label || translateTerminology(role.toUpperCase())}
                               </div>
                             </div>
 
