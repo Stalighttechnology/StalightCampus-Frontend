@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTheme } from "@/context/ThemeContext";
+import { MessageCircle, Phone, Mail } from "lucide-react";
 import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { useToast } from "@/components/ui/use-toast";
@@ -18,7 +19,7 @@ const ProctorStudentParentModal: React.FC<ProctorStudentParentModalProps> = ({ s
   const { toast } = useToast();
   
   const [linkedParents, setLinkedParents] = useState<any[]>([]);
-  const [parentData, setParentData] = useState({ parent_name: '', parent_email: '', old_email: '' });
+  const [parentData, setParentData] = useState({ parent_name: '', parent_email: '', parent_phone: '', parent_type: '', old_email: '' });
   const [linkingParent, setLinkingParent] = useState(false);
   const [isEditingParent, setIsEditingParent] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -27,7 +28,7 @@ const ProctorStudentParentModal: React.FC<ProctorStudentParentModalProps> = ({ s
     if (student) {
       fetchParents();
     }
-  }, [student]);
+  }, [student?.id]);
 
   const fetchParents = async () => {
     setLoading(true);
@@ -60,7 +61,7 @@ const ProctorStudentParentModal: React.FC<ProctorStudentParentModalProps> = ({ s
       const res = await response.json();
       if (res.success) {
         toast({ title: 'Success', description: isEditingParent ? 'Parent details updated successfully!' : 'Parent account linked successfully!' });
-        setParentData({ parent_name: "", parent_email: "", old_email: "" });
+        setParentData({ parent_name: "", parent_email: "", parent_phone: "", parent_type: "", old_email: "" });
         setIsEditingParent(false);
         if (res.parents) {
           setLinkedParents(res.parents);
@@ -94,14 +95,53 @@ const ProctorStudentParentModal: React.FC<ProctorStudentParentModalProps> = ({ s
                 <div className="grid gap-3 sm:grid-cols-2">
                   {linkedParents.map((parent: any, idx: number) => (
                     <div key={idx} className={`p-3 border rounded-md flex items-center justify-between ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
-                      <div>
-                        <p className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{parent.name}</p>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{parent.name}</p>
+                          {parent.relation && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                              {parent.relation}
+                            </span>
+                          )}
+                        </div>
                         <p className={`text-xs break-all pr-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{parent.email}</p>
+                        
+                        <div className="flex items-center gap-3 mt-2">
+                          {parent.phone && (
+                            <>
+                              <a 
+                                href={`https://wa.me/${parent.phone.replace(/[^0-9]/g, '')}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-green-600 hover:text-green-700 transition-colors"
+                                title="Chat on WhatsApp"
+                              >
+                                <MessageCircle className="w-4 h-4" />
+                              </a>
+                              <a 
+                                href={`tel:${parent.phone.replace(/[^0-9+]/g, '')}`} 
+                                className="text-blue-500 hover:text-blue-600 transition-colors"
+                                title="Call Parent"
+                              >
+                                <Phone className="w-4 h-4" />
+                              </a>
+                            </>
+                          )}
+                          {parent.email && (
+                            <a 
+                              href={`mailto:${parent.email}`} 
+                              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+                              title="Email Parent"
+                            >
+                              <Mail className="w-4 h-4" />
+                            </a>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                         <button 
                           onClick={() => {
-                            setParentData({ parent_name: parent.name, parent_email: parent.email, old_email: parent.email });
+                            setParentData({ parent_name: parent.name, parent_email: parent.email, parent_phone: parent.phone || '', parent_type: parent.relation || '', old_email: parent.email });
                             setIsEditingParent(true);
                           }}
                           className={`p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}
@@ -127,7 +167,7 @@ const ProctorStudentParentModal: React.FC<ProctorStudentParentModalProps> = ({ s
                     <button 
                       onClick={() => {
                         setIsEditingParent(false);
-                        setParentData({ parent_name: '', parent_email: '', old_email: '' });
+                        setParentData({ parent_name: '', parent_email: '', parent_phone: '', parent_type: '', old_email: '' });
                       }}
                       className="text-xs text-primary hover:underline"
                     >
@@ -159,6 +199,31 @@ const ProctorStudentParentModal: React.FC<ProctorStudentParentModalProps> = ({ s
                       value={parentData.parent_email}
                       onChange={(e) => setParentData({...parentData, parent_email: e.target.value})}
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="parent_phone" className="text-sm mb-1.5 block">Parent's Phone Number</Label>
+                    <Input 
+                      id="parent_phone" 
+                      type="tel" 
+                      placeholder="e.g. +91 9876543210" 
+                      value={parentData.parent_phone}
+                      onChange={(e) => setParentData({...parentData, parent_phone: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="parent_type" className="text-sm mb-1.5 block">Relation</Label>
+                    <select
+                      id="parent_type"
+                      value={parentData.parent_type}
+                      onChange={(e) => setParentData({...parentData, parent_type: e.target.value})}
+                      className="w-full h-11 px-3 py-2 text-sm rounded-md border bg-transparent border-input focus:outline-none focus:ring-2 focus:ring-ring focus:border-input"
+                    >
+                      <option value="">Select Relation</option>
+                      <option value="Father">Father</option>
+                      <option value="Mother">Mother</option>
+                      <option value="Guardian">Guardian</option>
+                      <option value="Other">Other</option>
+                    </select>
                   </div>
                 </div>
                 <div className="flex justify-end mt-2">
