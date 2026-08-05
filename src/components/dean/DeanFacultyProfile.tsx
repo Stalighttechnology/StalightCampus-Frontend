@@ -558,7 +558,7 @@ const DeanFacultyProfile = ({
                             : "bg-white border-gray-200"
                             }`}
                         >
-                          <SelectValue placeholder="Select a branch" />
+                          <SelectValue placeholder={translateTerminology("Select a branch")} />
                         </SelectTrigger>
                         <SelectContent>
                           {branches.map((b: Branch) => (
@@ -611,7 +611,7 @@ const DeanFacultyProfile = ({
                             }
                             title={
                               !selectedBranch || !selectedFaculty
-                                ? "Select branch and faculty to enable filters"
+                                ? translateTerminology("Select branch and faculty to enable filters")
                                 : undefined
                             }
                           >
