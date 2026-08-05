@@ -648,30 +648,28 @@ const SubjectManagement = () => {
               </Select>
             </div>
 
-            {/* Course Type - Optional / Hidden for School */}
-            {getInstitutionType() !== 'school' && (
-              <div className="mb-4">
-                <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  Course Type <span className="text-red-500">*</span>
-                </label>
-                <Select
-                  open={isModalTypeOpen}
-                  onOpenChange={setIsModalTypeOpen}
-                  value={state.newSubject.subject_type}
-                  onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, subject_type: val } })}
-                  disabled={state.loading}>
+            {/* Course Type - Always shown */}
+            <div className="mb-4">
+              <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Course Type <span className="text-red-500">*</span>
+              </label>
+              <Select
+                open={isModalTypeOpen}
+                onOpenChange={setIsModalTypeOpen}
+                value={state.newSubject.subject_type}
+                onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, subject_type: val } })}
+                disabled={state.loading}>
 
-                  <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
-                    <SelectValue placeholder="Select Type" />
-                  </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectItem value="regular">Regular</SelectItem>
-                    <SelectItem value="elective">Elective Subjects</SelectItem>
-                    <SelectItem value="open_elective">Open Elective Subjects</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+                <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                  <SelectValue placeholder="Select Type" />
+                </SelectTrigger>
+                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                  <SelectItem value="regular">Regular</SelectItem>
+                  <SelectItem value="elective">Elective Subjects</SelectItem>
+                  <SelectItem value="open_elective">Open Elective Subjects</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Course Credits - Optional / Hidden for School */}
             {getInstitutionType() !== 'school' && (

@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
@@ -18,6 +18,9 @@ import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 const StudentEnrollment = () => {
   useHODBootstrap();
   const getSemesterName = (number: number) => {
+    if (getInstitutionType() === 'school') {
+      return `Class ${number}`;
+    }
     const suffixes = ["st", "nd", "rd", "th", "th", "th", "th", "th"];
     return `${number}${suffixes[number - 1]} Semester`;
   };
@@ -948,19 +951,21 @@ const StudentEnrollment = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Course Credits</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    required
-                    value={newSubjectState.credits}
-                    onChange={(e) => setNewSubjectState(prev => ({ ...prev, credits: e.target.value === "" ? "" : parseInt(e.target.value) || "" }))}
-                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
-                      }`}
-                  />
-                </div>
+                {getInstitutionType() !== 'school' && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Course Credits</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      required
+                      value={newSubjectState.credits}
+                      onChange={(e) => setNewSubjectState(prev => ({ ...prev, credits: e.target.value === "" ? "" : parseInt(e.target.value) || "" }))}
+                      className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                    />
+                  </div>
+                )}
                 <DialogFooter className="pt-4 flex gap-2 justify-end">
                   <Button
                     type="button"
