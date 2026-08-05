@@ -377,7 +377,7 @@ const AdminHODAttendance: React.FC = () => {
                 <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total HODs</p>
+                      <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{translateTerminology("Total HODs")}</p>
                       <p className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_hods}</p>
                     </div>
                     <Users className="w-8 h-8 text-blue-600" />
@@ -415,7 +415,7 @@ const AdminHODAttendance: React.FC = () => {
             <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
               <CardHeader className="px-6 py-4 border-b border-border flex flex-row justify-between items-center gap-4">
                 <CardTitle className={`text-xl sm:text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  Today's HOD Attendance <span className="block sm:inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
+                  {translateTerminology("Today's HOD Attendance")} <span className="block sm:inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
                 </CardTitle>
                 {/* Desktop Export PDF Button */}
                 <Button
@@ -708,7 +708,7 @@ const AdminHODAttendance: React.FC = () => {
 
                 <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
                   <div className={`px-6 py-4 border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'} flex items-center justify-between gap-4`}>
-                    <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>HOD Attendance Summary</h3>
+                    <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("HOD Attendance Summary")}</h3>
                     {/* Desktop Export PDF Button */}
                     <Button
                       disabled={!hasSearched || exporting}

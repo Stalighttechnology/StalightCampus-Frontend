@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { useState, useRef } from "react";
 import Swal from "sweetalert2";
 import {
@@ -210,7 +210,9 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
                         <SelectItem value="transport_admin">Transport Admin</SelectItem>
                         <SelectItem value="library_admin">Library Admin</SelectItem>
                         <SelectItem value="admission_manager">Admission Manager</SelectItem>
-                        <SelectItem value="placement_officer">Placement Officer (Sync Admin)</SelectItem>
+                        {getInstitutionType() !== 'school' && (
+                          <SelectItem value="placement_officer">Placement Officer (Sync Admin)</SelectItem>
+                        )}
                       </>
                     )}
                   </SelectContent>

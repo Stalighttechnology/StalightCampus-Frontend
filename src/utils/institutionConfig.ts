@@ -42,9 +42,9 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
   school: {
     branch: 'Stream',
     branches: 'Streams',
-    semester: 'Term',
-    semesters: 'Terms',
-    hod: 'Co-ordinator',
+    semester: 'Class',
+    semesters: 'Classes',
+    hod: 'Co-Ordinator',
     coAttainment: 'Learning Outcomes',
     labs: 'Practicals',
     electives: 'Optional Subjects',
@@ -95,8 +95,10 @@ export const translateTerminology = (content: any): any => {
 
   let result = content;
   const replacements = [
-    { pattern: /\bBranch\b/g, key: "branch" },
-    { pattern: /\bBranches\b/g, key: "branches" },
+    { pattern: /\bBranch\b/gi, key: "branch" },
+    { pattern: /\bBranches\b/gi, key: "branches" },
+    { pattern: /\bDepartment\b/gi, key: "branch" },
+    { pattern: /\bDepartments\b/gi, key: "branches" },
     { pattern: /\bSemester\b/g, key: "semester" },
     { pattern: /\bSemesters\b/g, key: "semesters" },
     { pattern: /\bHOD\b/gi, key: "hod" },
@@ -123,8 +125,14 @@ export const translateTerminology = (content: any): any => {
         if (match === match.toLowerCase()) {
           return replacement.toLowerCase();
         }
+        if (key === 'hod') {
+          return replacement;
+        }
         if (match === match.toUpperCase()) {
           return replacement.toUpperCase();
+        }
+        if (match[0] === match[0].toUpperCase()) {
+          return replacement.charAt(0).toUpperCase() + replacement.slice(1);
         }
         return replacement;
       });

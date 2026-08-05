@@ -285,7 +285,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
             </span>
           </motion.div>
           <p className={`text-[9px] uppercase tracking-wider font-medium truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-            {role === "admin" || role === "principal" ? "Principal" : translateTerminology(role.toUpperCase()).replace('_', ' ')} Portal
+            {role === "admin" || role === "principal" ? "Principal" : translateTerminology(role).replace('_', ' ')} Portal
           </p>
         </div>
       </div>

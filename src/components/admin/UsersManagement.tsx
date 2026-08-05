@@ -28,6 +28,7 @@ import { manageUsers, manageUserAction, getBranchesWithHODs } from "../../utils/
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
 import { PLAN_TIERS } from "../../utils/planGating";
+import { translateTerminology, getInstitutionType } from "../../utils/institutionConfig";
 import { SkeletonTable, SkeletonPageHeader } from "../ui/skeleton";
 
 interface User {
@@ -61,7 +62,6 @@ function extractArray<T>(obj: unknown, primaryKey: keyof any, fallbackKey?: keyo
 }
 
 
-import { translateTerminology } from "../../utils/institutionConfig";
 
 const getStatusBadge = (status: string, theme: string) => {
   const baseClass = "px-3 py-1 rounded-full text-xs font-medium";
@@ -161,7 +161,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const user = userStr ? JSON.parse(userStr) : null;
   const orgPlan = user?.org_plan || "basic";
   const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
-  const roles = userTier >= 3 ? ALL_ROLES : userTier === 2 ? PRO_PLAN_ROLES : BASIC_PLAN_ROLES;
+  const baseRoles = userTier >= 3 ? ALL_ROLES : userTier === 2 ? PRO_PLAN_ROLES : BASIC_PLAN_ROLES;
+  const roles = getInstitutionType() === 'school' ? baseRoles.filter(r => r !== "Placement Officer") : baseRoles;
 
   const rolesNeedingDept = ["Head of Department", "Teacher", "Student"];
   const isAnyFilterActive =
@@ -670,10 +671,10 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                     </div>
 
                     <div className="flex flex-col gap-2 flex-1 min-w-0">
-                      <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Department</span>
+                      <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>{translateTerminology("Department")}</span>
                       <SelectMenu
                         label=""
-                        placeholder="Choose Department"
+                        placeholder={translateTerminology("Choose Department")}
                         value={departmentFilter}
                         onChange={setDepartmentFilter}
                         options={departments}

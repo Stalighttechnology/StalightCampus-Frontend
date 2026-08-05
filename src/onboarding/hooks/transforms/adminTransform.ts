@@ -1,3 +1,5 @@
+import { translateTerminology } from '../../../utils/institutionConfig';
+
 /**
  * Step transform for the Admin / Principal role.
  * Maps sidebar targets to the actual DOM elements highlighted on each page.
@@ -127,9 +129,9 @@ export function adminTransform(step: any, isMobile: boolean): any[] | null {
       {
         ...step,
         target: '#hod-attendance-stats-grid',
-        title: "Today's HOD Attendance",
+        title: translateTerminology("Today's HOD Attendance"),
         content:
-          "View today's attendance snapshot — total HODs, present, absent, and unmarked counts at a glance.",
+          translateTerminology("View today's attendance snapshot — total HODs, present, absent, and unmarked counts at a glance."),
         placement: isMobile ? step.placement : 'top',
         switchTab: 'today',
       },
