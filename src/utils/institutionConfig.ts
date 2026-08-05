@@ -44,7 +44,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     branches: 'Streams',
     semester: 'Class',
     semesters: 'Classes',
-    hod: 'Co-ordinator',
+    hod: 'Co-Ordinator',
     coAttainment: 'Learning Outcomes',
     labs: 'Practicals',
     electives: 'Optional Subjects',
@@ -124,6 +124,9 @@ export const translateTerminology = (content: any): any => {
       result = result.replace(pattern, (match) => {
         if (match === match.toLowerCase()) {
           return replacement.toLowerCase();
+        }
+        if (key === 'hod') {
+          return replacement;
         }
         if (match === match.toUpperCase()) {
           return replacement.toUpperCase();
