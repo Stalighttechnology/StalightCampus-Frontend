@@ -334,7 +334,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                 }
               </div>
               <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
-                Review and approve leave requests from Heads of Departments
+                {translateTerminology("Review and approve leave requests from Heads of Departments")}
               </CardDescription>
             </div>
             <div className="leave-filter-container flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">

@@ -23,6 +23,7 @@ import Swal from 'sweetalert2';
 import { useTheme } from "../../context/ThemeContext";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
+import { translateTerminology } from "../../utils/institutionConfig";
 import { format } from "date-fns";
 import { SkeletonTable } from "../ui/skeleton";
 
@@ -340,7 +341,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                 }
               </div>
               <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
-                Review and approve leave requests from Department Admins
+                {translateTerminology("Review and approve leave requests from Department Admins")}
               </CardDescription>
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">

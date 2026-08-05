@@ -747,7 +747,7 @@ const AdminHODAttendance: React.FC = () => {
                     <Table>
                       <TableHeader className={theme === 'dark' ? 'bg-card' : 'bg-gray-50'}>
                         <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                          <TableHead className="px-6 py-3 text-left">HOD Name</TableHead>
+                          <TableHead className="px-6 py-3 text-left">{translateTerminology("HOD Name")}</TableHead>
                           <TableHead className="px-6 py-3 text-left">{translateTerminology("Branch")}</TableHead>
                           <TableHead className="px-6 py-3 text-left">Total Days</TableHead>
                           <TableHead className="px-6 py-3 text-left">Present</TableHead>

@@ -101,9 +101,12 @@ export const translateTerminology = (content: any): any => {
     { pattern: /\bDepartments\b/gi, key: "branches" },
     { pattern: /\bSemester\b/g, key: "semester" },
     { pattern: /\bSemesters\b/g, key: "semesters" },
+    { pattern: /\bDepartment Admin\b/gi, key: "branchAdmin" },
+    { pattern: /\bDepartment Admins\b/gi, key: "branchAdmins" },
     { pattern: /\bHOD\b/gi, key: "hod" },
     { pattern: /\bHODs\b/gi, key: "hod" },
     { pattern: /\bHead of Department\b/gi, key: "hod" },
+    { pattern: /\bHeads of Departments\b/gi, key: "hod" },
     { pattern: /\bDept heads\b/gi, key: "hod" },
     { pattern: /\bDepartment heads\b/gi, key: "hod" },
     { pattern: /\bProctor\b/g, key: "proctor" },
@@ -117,7 +120,7 @@ export const translateTerminology = (content: any): any => {
   for (const { pattern, key } of replacements) {
     if (pattern.test(result)) {
       let replacement = getTerm(key as any);
-      if (pattern.source.includes("HODs") || pattern.source.includes("Dept heads") || pattern.source.includes("Department heads") || pattern.source.includes("Proctors") || pattern.source.includes("Electives")) {
+      if (pattern.source.includes("HODs") || pattern.source.includes("Heads of Departments") || pattern.source.includes("Dept heads") || pattern.source.includes("Department heads") || pattern.source.includes("Proctors") || pattern.source.includes("Electives")) {
         replacement = replacement + "s";
       }
 
