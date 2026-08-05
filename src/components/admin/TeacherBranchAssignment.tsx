@@ -21,6 +21,9 @@ import {
   DialogTitle } from
 "../ui/dialog";
 import { Badge } from "../ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Checkbox } from "../ui/checkbox";
+import { ChevronDown } from "lucide-react";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { useToast } from "../../hooks/use-toast";
@@ -88,7 +91,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [selectedTeachers, setSelectedTeachers] = useState<Teacher[]>([]);
   const [showBranchDialog, setShowBranchDialog] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -268,7 +271,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
   };
 
   const handleAssignPrimaryBranch = async () => {
-    if (!selectedTeacher || !selectedBranch) return;
+    if (selectedTeachers.length === 0 || !selectedBranch) return;
 
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/assign-teacher-branch/`, {
@@ -278,7 +281,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          teacher_id: selectedTeacher.id,
+          teacher_ids: selectedTeachers.map(t => t.id),
           branch_id: selectedBranch
         })
       });
@@ -287,27 +290,27 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
       if (result.success) {
         toast({
           title: "Success",
-          description: result.message,
+          description: result.message || `Assigned branch to ${selectedTeachers.length} facult${selectedTeachers.length > 1 ? 'ies' : 'y'}.`,
           variant: "default"
         });
-        // Update local state using returned teacher payload to avoid extra GET
-        if (result.teacher) {
+        
+        // Update local state using returned teacher payloads for those that succeeded
+        if (result.teachers && result.teachers.length > 0) {
           setTeachers((prev) =>
-          prev.map((t) =>
-          t.id === result.teacher.id ?
-          { ...t, primary_branch: result.teacher.primary_branch } :
-          t
-          )
+            prev.map((t) => {
+              const updatedTeacher = result.teachers.find((st: any) => st.id === t.id);
+              return updatedTeacher ? { ...t, primary_branch: updatedTeacher.primary_branch } : t;
+            })
           );
         }
+
         setShowBranchDialog(false);
         setSelectedBranch("");
-        setSelectedTeacher(null);
+        setSelectedTeachers([]);
       } else {
-        setError(result.message || "Failed to assign branch");
+        setError(result.message || "Failed to assign branch to the selected faculties.");
       }
     } catch (error) {
-
       setError("Failed to assign branch");
     }
   };
@@ -355,7 +358,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             <div className="w-full sm:w-auto">
               <Button
                 onClick={() => {
-                  setSelectedTeacher(null);
+                  setSelectedTeachers([]);
                   setSelectedBranch("");
                   setShowBranchDialog(true);
                 }}
@@ -462,7 +465,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                             variant="outline" 
                             size="icon" 
                             onClick={() => {
-                              setSelectedTeacher(teacher);
+                              setSelectedTeachers([teacher]);
                               if (teacher.primary_branch) {
                                 setSelectedBranch(teacher.primary_branch.id.toString());
                               } else {
@@ -531,96 +534,131 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             <DialogTitle>Assign Primary Branch</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Select Faculty</label>
-              <Select value={selectedTeacher?.id.toString() || ""} onValueChange={(value) => {
-                  const teacher = dialogTeachers.find((t) => t.id.toString() === value) || teachers.find((t) => t.id.toString() === value);
-                  setSelectedTeacher(teacher || null);
-                  if (teacher?.primary_branch) {
-                    setSelectedBranch(teacher.primary_branch.id.toString());
-                  } else {
-                    setSelectedBranch("");
-                  }
-                }}>
-                <SelectTrigger className="w-full mt-1">
-                  <SelectValue placeholder="Choose a faculty" />
-                </SelectTrigger>
-                <CustomSelectContent
-                    className="max-h-[250px]"
-                    header={
-                    <div className="p-2 space-y-2">
-                      <div className="relative">
-                        <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                        <Input
-                          placeholder="Search faculty..."
-                          value={dialogSearchTerm}
-                          onChange={(e) => setDialogSearchTerm(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              setDialogAppliedSearch(dialogSearchTerm.trim());
-                            }
-                            e.stopPropagation();
-                          }}
-                          onPointerDown={(e) => e.stopPropagation()}
-                          className="h-8 pl-8 text-xs bg-muted/50 border-none ring-1 focus-visible:ring-primary" />
-                      </div>
-                      {dialogTotalPages > 1 && (
-                        <div className="flex items-center justify-between px-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0"
-                            onPointerDown={(e) => e.preventDefault()}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setDialogCurrentPage((prev) => Math.max(1, prev - 1));
-                            }}
-                            disabled={dialogCurrentPage === 1 || dialogLoading}>
-                            
-                            <ChevronLeft className="h-4 w-4" />
-                          </Button>
-                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                            Page {dialogCurrentPage} of {dialogTotalPages}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0"
-                            onPointerDown={(e) => e.preventDefault()}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setDialogCurrentPage((prev) => Math.min(dialogTotalPages, prev + 1));
-                            }}
-                            disabled={dialogCurrentPage === dialogTotalPages || dialogLoading}>
-                            
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium flex items-center justify-between">
+                <span>Select Faculty</span>
+                {selectedTeachers.length > 0 && (
+                  <span className="text-xs text-primary font-semibold bg-primary/10 px-2 py-0.5 rounded-full">
+                    {selectedTeachers.length} selected
+                  </span>
+                )}
+              </label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full mt-1 justify-between font-normal" role="combobox">
+                    <span className="truncate flex-1 text-left">
+                      {selectedTeachers.length > 0
+                        ? selectedTeachers.length === 1
+                          ? `${selectedTeachers[0].first_name} ${selectedTeachers[0].last_name}`
+                          : `${selectedTeachers.length} faculties selected`
+                        : <span className="text-muted-foreground">Choose faculties</span>}
+                    </span>
+                    <ChevronDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-full p-0 flex flex-col sm:w-[var(--radix-popover-trigger-width)]" 
+                  align="start"
+                  onWheel={(e) => e.stopPropagation()}
+                  onTouchMove={(e) => e.stopPropagation()}>
+                  <div className="p-2 space-y-2 border-b">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                      <Input
+                        placeholder="Search faculty..."
+                        value={dialogSearchTerm}
+                        onChange={(e) => setDialogSearchTerm(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            setDialogAppliedSearch(dialogSearchTerm.trim());
+                          }
+                          e.stopPropagation();
+                        }}
+                        className="h-8 pl-8 text-xs bg-muted/50 border-none ring-1 focus-visible:ring-primary" />
                     </div>
-                    }>
-                    
-                  <div className="pt-1">
+                    {dialogTotalPages > 1 && (
+                      <div className="flex items-center justify-between px-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setDialogCurrentPage((prev) => Math.max(1, prev - 1));
+                          }}
+                          disabled={dialogCurrentPage === 1 || dialogLoading}>
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                          Page {dialogCurrentPage} of {dialogTotalPages}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setDialogCurrentPage((prev) => Math.min(dialogTotalPages, prev + 1));
+                          }}
+                          disabled={dialogCurrentPage === dialogTotalPages || dialogLoading}>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  <div 
+                    className="pt-1 max-h-[250px] overflow-y-auto custom-scrollbar p-1"
+                    onWheel={(e) => e.stopPropagation()}
+                    onTouchMove={(e) => e.stopPropagation()}>
                     {dialogLoading ? (
                       <div className="p-4 flex flex-col items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                         <span className="text-[10px] text-muted-foreground">Loading...</span>
                       </div>
                     ) : dialogTeachers.length === 0 ? (
-                      <SelectItem value="none" disabled>No faculty found</SelectItem>
+                      <div className="p-3 text-sm text-muted-foreground text-center">No faculty found</div>
                     ) : (
-                      dialogTeachers.map((teacher) => (
-                        <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                          {teacher.first_name} {teacher.last_name}
-                        </SelectItem>
-                      ))
+                      dialogTeachers.map((teacher) => {
+                        const isSelected = selectedTeachers.some(t => t.id === teacher.id);
+                        return (
+                          <div 
+                            key={teacher.id} 
+                            className="flex items-center space-x-2 px-2 py-2 hover:bg-accent rounded-sm cursor-pointer"
+                            onClick={() => {
+                              setSelectedTeachers(prev => {
+                                if (prev.some(t => t.id === teacher.id)) {
+                                  return prev.filter(t => t.id !== teacher.id);
+                                } else {
+                                  return [...prev, teacher];
+                                }
+                              });
+                            }}
+                          >
+                            <Checkbox 
+                              checked={isSelected}
+                              onCheckedChange={(checked) => {
+                                setSelectedTeachers(prev => {
+                                  if (checked) {
+                                    return [...prev, teacher];
+                                  } else {
+                                    return prev.filter(t => t.id !== teacher.id);
+                                  }
+                                });
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div className="grid gap-0.5">
+                              <span className="text-sm font-medium">{teacher.first_name} {teacher.last_name}</span>
+                              <span className="text-xs text-muted-foreground">{teacher.email}</span>
+                            </div>
+                          </div>
+                        );
+                      })
                     )}
                   </div>
-                </CustomSelectContent>
-              </Select>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
@@ -649,7 +687,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             </Button>
             <Button
                 onClick={handleAssignPrimaryBranch}
-                disabled={!selectedTeacher || !selectedBranch}
+                disabled={selectedTeachers.length === 0 || !selectedBranch}
                 className="bg-primary hover:bg-primary/90 text-white">
                 
               Assign Branch

@@ -2399,3 +2399,22 @@ export const submitCourseExitSurvey = async (subjectId: string, ratings: { [key:
 };
 
 
+
+export const updateAttendanceRecord = async (
+  recordId: number,
+  updates: Array<{ id: number; status: boolean }>
+): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/attendance-records/${recordId}/update/`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ updates })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
