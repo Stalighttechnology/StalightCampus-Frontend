@@ -706,7 +706,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   if (getInstitutionType() === 'school') {
     Object.keys(menuItems).forEach((key) => {
-      menuItems[key] = menuItems[key].filter(item => item.page !== 'exam-applications');
+      menuItems[key] = menuItems[key].filter(
+        item => !['exam-applications', 'revaluation', 'makeupexam', 'revaluation-requests', 'makeup-requests'].includes(item.page)
+      );
     });
   }
 
