@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { cn } from "@/lib/utils";
@@ -80,6 +80,13 @@ interface Student {
 }
 
 const PromotionManagement = () => {
+  const getSemesterName = (number: number) => {
+    if (getInstitutionType() === 'school') {
+      return `Class ${number}`;
+    }
+    return `Semester ${number}`;
+  };
+
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<"overview" | "promote" | "demote">("overview");
   const [stats, setStats] = useState({
@@ -971,8 +978,12 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
       {/* Promotion Controls */}
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader>
-          <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Promote Students to Next Semester</CardTitle>
-          <CardDescription className="text-sm text-muted-foreground mt-1">Configure rules and select students to promote to the next semester.</CardDescription>
+          <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            {getInstitutionType() === 'school' ? 'Promote Students to Next Class' : 'Promote Students to Next Semester'}
+          </CardTitle>
+          <CardDescription className="text-sm text-muted-foreground mt-1">
+            {getInstitutionType() === 'school' ? 'Configure rules and select students to promote to the next class.' : 'Configure rules and select students to promote to the next semester.'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
@@ -1005,15 +1016,15 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
               disabled={state.isLoading || !state.selectedBatchId}>
 
               <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
-                <SelectValue placeholder={!state.selectedBatchId ? "Select Batch first" : translateTerminology("Select Semester")} />
+                <SelectValue placeholder={!state.selectedBatchId ? "Select Batch first" : (getInstitutionType() === 'school' ? "Choose Class" : translateTerminology("Select Semester"))} />
               </SelectTrigger>
               <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
                 {state.semesters.length === 0 ? (
-                  <SelectItem value="none" disabled className="text-muted-foreground">No Semester</SelectItem>
+                  <SelectItem value="none" disabled className="text-muted-foreground">{getInstitutionType() === 'school' ? "No Class" : "No Semester"}</SelectItem>
                 ) : (
                   state.semesters.map((semester) => (
                     <SelectItem key={semester.id} value={`${semester.number}th Semester`} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
-                      Semester {semester.number}
+                      {getInstitutionType() === 'school' ? `Class ${semester.number}` : `Semester ${semester.number}`}
                     </SelectItem>
                   ))
                 )}
@@ -1063,7 +1074,9 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
             <CardTitle className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               <span className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-blue-400" />
-                <span className="text-xl sm:text-semibold md:text-lg">Students in {state.selectedSemester} - {state.selectedSection}</span>
+                <span className="text-xl sm:text-semibold md:text-lg">
+                  Students in {getInstitutionType() === 'school' ? state.selectedSemester.replace(/(\d+)(?:st|nd|rd|th)\s+Semester/gi, 'Class $1') : state.selectedSemester} - {state.selectedSection}
+                </span>
               </span>
               <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
                 <div className="flex items-center gap-2">
@@ -1100,7 +1113,9 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
                     <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Name</TableHead>
                     <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Batch</TableHead>
                     <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Section</TableHead>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Sem</TableHead>
+                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                      {getInstitutionType() === 'school' ? 'Class' : 'Sem'}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1116,10 +1131,16 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {student.batch ? student.batch.replace(/_Sem(\d+)/gi, ' (Sem $1)').replace(/_/g, ' ') : 'N/A'}
+                        {student.batch ? (
+                          getInstitutionType() === 'school'
+                            ? student.batch.replace(/_Sem(\d+)/gi, ' (Class $1)').replace(/_/g, ' ')
+                            : student.batch.replace(/_Sem(\d+)/gi, ' (Sem $1)').replace(/_/g, ' ')
+                        ) : 'N/A'}
                       </TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section || 'N/A'}</TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {getInstitutionType() === 'school' ? student.semester.replace(/(\d+)(?:st|nd|rd|th)\s+Semester/gi, 'Class $1') : student.semester}
+                      </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -1616,8 +1637,12 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
       {/* Demotion Controls */}
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader>
-          <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Demote Students to Previous Semester</CardTitle>
-          <CardDescription className="text-sm text-muted-foreground mt-1">Select students to demote to the previous semester.</CardDescription>
+          <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            {getInstitutionType() === 'school' ? 'Demote Students to Previous Class' : 'Demote Students to Previous Semester'}
+          </CardTitle>
+          <CardDescription className="text-sm text-muted-foreground mt-1">
+            {getInstitutionType() === 'school' ? 'Select students to demote to the previous class.' : 'Select students to demote to the previous semester.'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">
@@ -1651,17 +1676,17 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
                 disabled={state.isLoading || !state.selectedBatchId}>
 
                 <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
-                  <SelectValue placeholder={!state.selectedBatchId ? "Select Batch first" : translateTerminology("Select Semester")} />
+                  <SelectValue placeholder={!state.selectedBatchId ? "Select Batch first" : (getInstitutionType() === 'school' ? "Choose Class" : translateTerminology("Select Semester"))} />
                 </SelectTrigger>
                 <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
                   {state.semesters.length === 0 ? (
-                    <SelectItem value="none" disabled className="text-muted-foreground">No Semester</SelectItem>
+                    <SelectItem value="none" disabled className="text-muted-foreground">{getInstitutionType() === 'school' ? "No Class" : "No Semester"}</SelectItem>
                   ) : (
                     state.semesters
                       .filter((semester) => semester.number !== 1)
                       .map((semester) => (
                         <SelectItem key={semester.id} value={`${semester.number}th Semester`} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
-                          Semester {semester.number}
+                          {getInstitutionType() === 'school' ? `Class ${semester.number}` : `Semester ${semester.number}`}
                         </SelectItem>
                       ))
                   )}
@@ -1704,7 +1729,9 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
             <CardTitle className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               <span className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-red-400" />
-                <span className="text-xl sm:text-semibold md:text-lg">Students in {state.selectedSemester} - {state.selectedSection}</span>
+                <span className="text-xl sm:text-semibold md:text-lg">
+                  Students in {getInstitutionType() === 'school' ? state.selectedSemester.replace(/(\d+)(?:st|nd|rd|th)\s+Semester/gi, 'Class $1') : state.selectedSemester} - {state.selectedSection}
+                </span>
               </span>
               <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
                 <Button
@@ -1730,7 +1757,9 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
                     <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Name</TableHead>
                     <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Batch</TableHead>
                     <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Section</TableHead>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Sem</TableHead>
+                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                      {getInstitutionType() === 'school' ? 'Class' : 'Sem'}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1746,10 +1775,16 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {student.batch ? student.batch.replace(/_Sem(\d+)/gi, ' (Sem $1)').replace(/_/g, ' ') : 'N/A'}
+                        {student.batch ? (
+                          getInstitutionType() === 'school'
+                            ? student.batch.replace(/_Sem(\d+)/gi, ' (Class $1)').replace(/_/g, ' ')
+                            : student.batch.replace(/_Sem(\d+)/gi, ' (Sem $1)').replace(/_/g, ' ')
+                        ) : 'N/A'}
                       </TableCell>
                       <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section || 'N/A'}</TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {getInstitutionType() === 'school' ? student.semester.replace(/(\d+)(?:st|nd|rd|th)\s+Semester/gi, 'Class $1') : student.semester}
+                      </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -1814,10 +1849,12 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
           </DialogHeader>
           <div className="space-y-4">
             <div className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              <p><strong>{translateTerminology("Semester")}:</strong> {state.selectedSemester}</p>
+              <p>
+                <strong>{getInstitutionType() === 'school' ? 'Class' : translateTerminology("Semester")}:</strong> {getInstitutionType() === 'school' ? state.selectedSemester.replace(/(\d+)(?:st|nd|rd|th)\s+Semester/gi, 'Class $1') : state.selectedSemester}
+              </p>
               <p><strong>Section:</strong> {state.selectedSection || "All Sections"}</p>
               <p className={`mt-2 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                ⚠️ This will demote {state.selectedStudents.length > 0 ? `the ${state.selectedStudents.length} selected students` : 'ALL students'} in the selected semester/section to the previous semester.
+                ⚠️ This will demote {state.selectedStudents.length > 0 ? `the ${state.selectedStudents.length} selected students` : 'ALL students'} in the selected {getInstitutionType() === 'school' ? 'class' : 'semester'}/section to the previous {getInstitutionType() === 'school' ? 'class' : 'semester'}.
               </p>
             </div>
             <div>

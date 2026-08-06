@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm, hasFeature } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, hasFeature, getInstitutionType } from "@/utils/institutionConfig";
 //sidebar.tsx
 
 import { useState, useEffect } from "react";
@@ -702,6 +702,12 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       menuItems['faculty'] = menuItems['faculty'].filter(item => item.page !== 'apply-leave' && item.page !== 'faculty-attendance' && item.page !== 'reimbursements' && item.page !== 'my-payroll' && item.page !== 'staff-tasks');
       menuItems['faculty'].push({ name: "Return to HOD", page: "return-to-hod" });
     }
+  }
+
+  if (getInstitutionType() === 'school') {
+    Object.keys(menuItems).forEach((key) => {
+      menuItems[key] = menuItems[key].filter(item => item.page !== 'exam-applications');
+    });
   }
 
   // Automatically scroll active sidebar item into view
