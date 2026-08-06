@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getInstitutionType } from '@/utils/institutionConfig';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
@@ -525,10 +526,10 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
                   </motion.div>
                   <motion.div variants={itemVariants}>
                     <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
-                      Current Semester
+                      {getInstitutionType() === 'school' ? 'Current Class' : 'Current Semester'}
                     </label>
                     <p className={`text-base sm:text-lg font-semibold mt-1 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                      Semester {feeData?.student?.semester || 'N/A'}
+                      {getInstitutionType() === 'school' ? `Class ${feeData?.student?.semester || 'N/A'}` : `Semester ${feeData?.student?.semester || 'N/A'}`}
                     </p>
                   </motion.div>
                 </div>

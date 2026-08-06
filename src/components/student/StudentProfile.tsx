@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { Switch } from "@/components/ui/switch";
 import { handleNotificationToggle, checkNotificationPermission } from "../../utils/notificationHelper";
 import React, { useEffect, useRef, useState } from "react";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Upload, Camera, CheckCircle, AlertCircle, Eye, EyeOff, Monitor, Smartphone, Tablet, Globe, RefreshCw, ShieldCheck, Clock , Trash, ScanFace, Check, Users , MessageCircle, Phone, Mail } from 'lucide-react';
+import { Upload, Camera, CheckCircle, AlertCircle, Eye, EyeOff, Monitor, Smartphone, Tablet, Globe, RefreshCw, ShieldCheck, Clock, Trash, ScanFace, Check, Users, MessageCircle, Phone, Mail } from 'lucide-react';
 import { useTheme } from "@/context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { getFullStudentProfile } from "@/utils/student_api";
@@ -34,124 +34,124 @@ type StudentForm = Record<string, any>;
 /* ── Brand / OS / Browser inline SVG logos for Login Activity ── */
 const BRAND_LOGOS: Record<string, (size: number) => React.ReactNode> = {
   'Apple': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" /></svg>
   ),
   'Samsung': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M5.9 4.1C4.3 4.1 3 5.4 3 7v10c0 1.6 1.3 2.9 2.9 2.9h12.2c1.6 0 2.9-1.3 2.9-2.9V7c0-1.6-1.3-2.9-2.9-2.9H5.9zm.6 7.5h1.1v1.5c0 .3-.1.5-.3.7-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.2-.2-.3-.4-.3-.7v-.4h.9v.3c0 .1 0 .1.1.2 0 0 .1.1.1.1s.1 0 .1-.1c.1-.1.1-.1.1-.2v-1.4H6.5v-.9h1.1v.9h-1.1v-.9zm2.1 0h.9l.6 1.6.6-1.6h.9l-1.1 2.5h-.9l-1-2.5zm3.7 0h1.7v.7h-1v.3h.9v.6h-.9v.3h1v.7h-1.7v-2.6zm2.4 0h.8v1.9h1v.7h-1.8v-2.6zm2.3 0h1.7v.7h-1v.3h.9v.6h-.9v.3h1v.7h-1.7v-2.6z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M5.9 4.1C4.3 4.1 3 5.4 3 7v10c0 1.6 1.3 2.9 2.9 2.9h12.2c1.6 0 2.9-1.3 2.9-2.9V7c0-1.6-1.3-2.9-2.9-2.9H5.9zm.6 7.5h1.1v1.5c0 .3-.1.5-.3.7-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.2-.2-.3-.4-.3-.7v-.4h.9v.3c0 .1 0 .1.1.2 0 0 .1.1.1.1s.1 0 .1-.1c.1-.1.1-.1.1-.2v-1.4H6.5v-.9h1.1v.9h-1.1v-.9zm2.1 0h.9l.6 1.6.6-1.6h.9l-1.1 2.5h-.9l-1-2.5zm3.7 0h1.7v.7h-1v.3h.9v.6h-.9v.3h1v.7h-1.7v-2.6zm2.4 0h.8v1.9h1v.7h-1.8v-2.6zm2.3 0h1.7v.7h-1v.3h.9v.6h-.9v.3h1v.7h-1.7v-2.6z" /></svg>
   ),
   'OnePlus': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.5 11h-3v3c0 .55-.45 1-1 1h-1c-.55 0-1-.45-1-1v-3h-3c-.55 0-1-.45-1-1v-1c0-.55.45-1 1-1h3V7c0-.55.45-1 1-1h1c.55 0 1 .45 1 1v3h3c.55 0 1 .45 1 1v1c0 .55-.45 1-1 1z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.5 11h-3v3c0 .55-.45 1-1 1h-1c-.55 0-1-.45-1-1v-3h-3c-.55 0-1-.45-1-1v-1c0-.55.45-1 1-1h3V7c0-.55.45-1 1-1h1c.55 0 1 .45 1 1v3h3c.55 0 1 .45 1 1v1c0 .55-.45 1-1 1z" /></svg>
   ),
   'Motorola': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.1 0 2.04.74 2.33 1.75L12 10.5 9.67 6.75C9.96 5.74 10.9 5 12 5zm-5.5 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5c.55 0 1.06.18 1.47.48L8 12l-1.97 2.02c-.41.3-.92.48-1.53.48zm11 0c-.61 0-1.12-.18-1.53-.48L14 12l1.97-2.02c.41-.3.92-.48 1.53-.48 1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5zm-5.5 4.5c-1.1 0-2.04-.74-2.33-1.75L12 13.5l2.33 3.75C14.04 18.26 13.1 19 12 19z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.1 0 2.04.74 2.33 1.75L12 10.5 9.67 6.75C9.96 5.74 10.9 5 12 5zm-5.5 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5c.55 0 1.06.18 1.47.48L8 12l-1.97 2.02c-.41.3-.92.48-1.53.48zm11 0c-.61 0-1.12-.18-1.53-.48L14 12l1.97-2.02c.41-.3.92-.48 1.53-.48 1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5zm-5.5 4.5c-1.1 0-2.04-.74-2.33-1.75L12 13.5l2.33 3.75C14.04 18.26 13.1 19 12 19z" /></svg>
   ),
   'Xiaomi': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 2h3v3H8V8zm5 0h3v8h-3V8zm-5 5h3v3H8v-3z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 2h3v3H8V8zm5 0h3v8h-3V8zm-5 5h3v3H8v-3z" /></svg>
   ),
   'Redmi': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 2h3v3H8V8zm5 0h3v8h-3V8zm-5 5h3v3H8v-3z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 2h3v3H8V8zm5 0h3v8h-3V8zm-5 5h3v3H8v-3z" /></svg>
   ),
   'OPPO': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" /></svg>
   ),
   'Vivo': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M3 8l4.5 8h1L12 9.5 15.5 16h1L21 8h-2l-3.5 6L12 7.5 8.5 14 5 8H3z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M3 8l4.5 8h1L12 9.5 15.5 16h1L21 8h-2l-3.5 6L12 7.5 8.5 14 5 8H3z" /></svg>
   ),
   'Realme': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M5 5h14v4H5V5zm0 6h8v8H5v-8zm10 0h4v8h-4v-8z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M5 5h14v4H5V5zm0 6h8v8H5v-8zm10 0h4v8h-4v-8z" /></svg>
   ),
   'POCO': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm3 3h2v6H9V9zm4 0h2v6h-2V9z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm3 3h2v6H9V9zm4 0h2v6h-2V9z" /></svg>
   ),
   'Google Pixel': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.13 15.94c-1.98-.33-3.65-1.53-4.58-3.19l1.74-1.01c.64 1.15 1.8 1.98 3.15 2.2v2zm.26-4.07A3.005 3.005 0 0 1 9 10.87c0-1.66 1.34-3 3-3 1.31 0 2.42.84 2.83 2.01l-1.86 1.08A1.001 1.001 0 0 0 12 9.87c-.55 0-1 .45-1 1 0 .43.27.79.65.93l-1.52.87v.2zm5.11 1.32-1.74-1.01c.42-.74.66-1.59.66-2.49 0-.45-.06-.88-.17-1.29l1.86-1.08c.25.72.39 1.5.39 2.31 0 1.29-.38 2.49-1 3.49v.07z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.13 15.94c-1.98-.33-3.65-1.53-4.58-3.19l1.74-1.01c.64 1.15 1.8 1.98 3.15 2.2v2zm.26-4.07A3.005 3.005 0 0 1 9 10.87c0-1.66 1.34-3 3-3 1.31 0 2.42.84 2.83 2.01l-1.86 1.08A1.001 1.001 0 0 0 12 9.87c-.55 0-1 .45-1 1 0 .43.27.79.65.93l-1.52.87v.2zm5.11 1.32-1.74-1.01c.42-.74.66-1.59.66-2.49 0-.45-.06-.88-.17-1.29l1.86-1.08c.25.72.39 1.5.39 2.31 0 1.29-.38 2.49-1 3.49v.07z" /></svg>
   ),
   'Nokia': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h2v12H4V6zm4 0h2l4 7V6h2v12h-2l-4-7v7H8V6zm10 0h2v12h-2V6z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h2v12H4V6zm4 0h2l4 7V6h2v12h-2l-4-7v7H8V6zm10 0h2v12h-2V6z" /></svg>
   ),
   'Huawei': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 6.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5V12h-3V8.5zm-4 3c-.83 0-1.5-.67-1.5-1.5S6.17 8.5 7 8.5H10v3H7zm5 7c-.83 0-1.5-.67-1.5-1.5V14h3v3c0 .83-.67 1.5-1.5 1.5zm5-7h-3V8.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 6.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5V12h-3V8.5zm-4 3c-.83 0-1.5-.67-1.5-1.5S6.17 8.5 7 8.5H10v3H7zm5 7c-.83 0-1.5-.67-1.5-1.5V14h3v3c0 .83-.67 1.5-1.5 1.5zm5-7h-3V8.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z" /></svg>
   ),
   'LG': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-3-11v6h4v-2h-2V9H9zm5 0v4h2v2h-2v-2h-1V9h3v6h-4V9h2z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-3-11v6h4v-2h-2V9H9zm5 0v4h2v2h-2v-2h-1V9h3v6h-4V9h2z" /></svg>
   ),
   'ASUS': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M2 16l4-8h1.5l-3 6H20l-3-6h1.5l4 8H2zm7-6h2l1 2 1-2h2l-2.25 4.5h-1.5L9 10z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M2 16l4-8h1.5l-3 6H20l-3-6h1.5l4 8H2zm7-6h2l1 2 1-2h2l-2.25 4.5h-1.5L9 10z" /></svg>
   ),
   'Sony Xperia': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M3 8.5C3 6.57 4.57 5 6.5 5h11C19.43 5 21 6.57 21 8.5v7c0 1.93-1.57 3.5-3.5 3.5h-11C4.57 19 3 17.43 3 15.5v-7zM6.5 7C5.67 7 5 7.67 5 8.5v7c0 .83.67 1.5 1.5 1.5h11c.83 0 1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5h-11z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M3 8.5C3 6.57 4.57 5 6.5 5h11C19.43 5 21 6.57 21 8.5v7c0 1.93-1.57 3.5-3.5 3.5h-11C4.57 19 3 17.43 3 15.5v-7zM6.5 7C5.67 7 5 7.67 5 8.5v7c0 .83.67 1.5 1.5 1.5h11c.83 0 1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5h-11z" /></svg>
   ),
   'Windows PC': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M3 12V6.75l7-1.05V12H3zm8-6.3L21 4v8H11V5.7zM3 13h7v6.3l-7-1.05V13zm8 0h10v8l-10-1.5V13z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M3 12V6.75l7-1.05V12H3zm8-6.3L21 4v8H11V5.7zM3 13h7v6.3l-7-1.05V13zm8 0h10v8l-10-1.5V13z" /></svg>
   ),
   'Linux': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 2c-1.77 0-2.71 1.52-2.83 2.55-.06.51.01 1.06.26 1.56.22.44.35.88.35 1.39 0 .77-.32 1.34-.67 1.83-.33.46-.68.85-.82 1.37-.12.46-.1.99.15 1.57.03.07.06.14.1.21-.74.56-1.41 1.3-1.85 2.14-.45.87-.66 1.83-.51 2.79.1.6.4 1.15.83 1.59.13.14.28.26.44.37-.05.22-.07.44-.06.66.02.55.23 1.06.58 1.46.35.4.84.65 1.38.72.28.04.56.02.83-.05.13.27.31.52.55.72.39.33.88.52 1.39.52.51 0 1-.19 1.39-.52.23-.2.42-.44.55-.72.27.07.55.09.83.05.54-.07 1.03-.32 1.38-.72.35-.4.56-.91.58-1.46.01-.22-.01-.44-.06-.66.16-.11.31-.23.44-.37.43-.44.73-.99.83-1.59.15-.96-.06-1.92-.51-2.79-.44-.84-1.11-1.58-1.85-2.14.04-.07.07-.14.1-.21.25-.58.27-1.11.15-1.57-.14-.52-.49-.91-.82-1.37-.35-.49-.67-1.06-.67-1.83 0-.51.13-.95.35-1.39.25-.5.32-1.05.26-1.56C15.21 3.52 14.27 2 12.5 2z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 2c-1.77 0-2.71 1.52-2.83 2.55-.06.51.01 1.06.26 1.56.22.44.35.88.35 1.39 0 .77-.32 1.34-.67 1.83-.33.46-.68.85-.82 1.37-.12.46-.1.99.15 1.57.03.07.06.14.1.21-.74.56-1.41 1.3-1.85 2.14-.45.87-.66 1.83-.51 2.79.1.6.4 1.15.83 1.59.13.14.28.26.44.37-.05.22-.07.44-.06.66.02.55.23 1.06.58 1.46.35.4.84.65 1.38.72.28.04.56.02.83-.05.13.27.31.52.55.72.39.33.88.52 1.39.52.51 0 1-.19 1.39-.52.23-.2.42-.44.55-.72.27.07.55.09.83.05.54-.07 1.03-.32 1.38-.72.35-.4.56-.91.58-1.46.01-.22-.01-.44-.06-.66.16-.11.31-.23.44-.37.43-.44.73-.99.83-1.59.15-.96-.06-1.92-.51-2.79-.44-.84-1.11-1.58-1.85-2.14.04-.07.07-.14.1-.21.25-.58.27-1.11.15-1.57-.14-.52-.49-.91-.82-1.37-.35-.49-.67-1.06-.67-1.83 0-.51.13-.95.35-1.39.25-.5.32-1.05.26-1.56C15.21 3.52 14.27 2 12.5 2z" /></svg>
   ),
   'Chromebook': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-2.76 0-5-2.24-5-5h3c0 1.1.9 2 2 2s2-.9 2-2h3c0 2.76-2.24 5-5 5zm6.65-5H15c0-1.66-1.34-3-3-3s-3 1.34-3 3H5.35C5.13 8.52 8.25 5.8 12 5.8s6.87 2.72 6.65 6.2z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-2.76 0-5-2.24-5-5h3c0 1.1.9 2 2 2s2-.9 2-2h3c0 2.76-2.24 5-5 5zm6.65-5H15c0-1.66-1.34-3-3-3s-3 1.34-3 3H5.35C5.13 8.52 8.25 5.8 12 5.8s6.87 2.72 6.65 6.2z" /></svg>
   ),
   'Android Phone': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z" /></svg>
   ),
 };
 
 const BROWSER_LOGOS: Record<string, (size: number) => React.ReactNode> = {
   'Chrome': (s) => (
     <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" fill="#4285F4"/>
-      <circle cx="12" cy="12" r="4.5" fill="white"/>
-      <path d="M12 7.5l6.93 4a10 10 0 0 0-.43-4H12z" fill="#EA4335"/>
-      <path d="M5.07 15.5l3.47-6A4.5 4.5 0 0 0 7.5 12c0 .92.28 1.77.75 2.49L5.07 15.5z" fill="#FBBC05"/>
-      <path d="M18.93 15.5H12l3.47 6A10 10 0 0 0 18.93 15.5z" fill="#34A853"/>
-      <circle cx="12" cy="12" r="3" fill="white"/>
+      <circle cx="12" cy="12" r="10" fill="#4285F4" />
+      <circle cx="12" cy="12" r="4.5" fill="white" />
+      <path d="M12 7.5l6.93 4a10 10 0 0 0-.43-4H12z" fill="#EA4335" />
+      <path d="M5.07 15.5l3.47-6A4.5 4.5 0 0 0 7.5 12c0 .92.28 1.77.75 2.49L5.07 15.5z" fill="#FBBC05" />
+      <path d="M18.93 15.5H12l3.47 6A10 10 0 0 0 18.93 15.5z" fill="#34A853" />
+      <circle cx="12" cy="12" r="3" fill="white" />
     </svg>
   ),
   'Firefox': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="#FF6611"/><path d="M12 4c.7 0 1.38.1 2.03.26-.4.53-.63 1.19-.53 1.89.14 1.02.84 1.73 1.6 2.15.67.37 1.12.94 1.12 1.7 0 1.2-1.16 2-2.22 2-2.76 0-5-2.24-5-5 0-.57.1-1.11.27-1.62A7.97 7.97 0 0 1 12 4z" fill="#FFBD4F"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="#FF6611" /><path d="M12 4c.7 0 1.38.1 2.03.26-.4.53-.63 1.19-.53 1.89.14 1.02.84 1.73 1.6 2.15.67.37 1.12.94 1.12 1.7 0 1.2-1.16 2-2.22 2-2.76 0-5-2.24-5-5 0-.57.1-1.11.27-1.62A7.97 7.97 0 0 1 12 4z" fill="#FFBD4F" /></svg>
   ),
   'Safari': (s) => (
     <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" fill="#006CFF"/>
-      <circle cx="12" cy="12" r="9" fill="white" stroke="#006CFF" strokeWidth="0.5"/>
-      <polygon points="12,3 14,12 12,21 10,12" fill="#FF3B30" opacity="0.9"/>
-      <polygon points="3,12 12,10 21,12 12,14" fill="#006CFF" opacity="0.7"/>
+      <circle cx="12" cy="12" r="10" fill="#006CFF" />
+      <circle cx="12" cy="12" r="9" fill="white" stroke="#006CFF" strokeWidth="0.5" />
+      <polygon points="12,3 14,12 12,21 10,12" fill="#FF3B30" opacity="0.9" />
+      <polygon points="3,12 12,10 21,12 12,14" fill="#006CFF" opacity="0.7" />
     </svg>
   ),
   'Microsoft Edge': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 3.34 1.64 6.3 4.16 8.1.17-.5.27-1.03.27-1.6 0-2.56-1.42-4.03-1.42-4.03S6.5 12.5 9.5 12.5c2 0 3.5 1.12 3.5 3.5 0 2.5-2 4-4 4-.74 0-1.42-.2-2-.54A9.95 9.95 0 0 0 12 22c5.52 0 10-4.48 10-10 0-1.72-.44-3.34-1.21-4.75C18.52 4.84 15.5 3 12 3c-3.5 0-6.5 2.5-7.5 5.5h5c1.38 0 2.5 1.12 2.5 2.5" fill="#0078D4"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 3.34 1.64 6.3 4.16 8.1.17-.5.27-1.03.27-1.6 0-2.56-1.42-4.03-1.42-4.03S6.5 12.5 9.5 12.5c2 0 3.5 1.12 3.5 3.5 0 2.5-2 4-4 4-.74 0-1.42-.2-2-.54A9.95 9.95 0 0 0 12 22c5.52 0 10-4.48 10-10 0-1.72-.44-3.34-1.21-4.75C18.52 4.84 15.5 3 12 3c-3.5 0-6.5 2.5-7.5 5.5h5c1.38 0 2.5 1.12 2.5 2.5" fill="#0078D4" /></svg>
   ),
   'Opera': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM8.5 16.5c-1.38-1.38-2-3.5-2-4.5s.62-3.12 2-4.5c1.38 1.38 2 3.5 2 4.5s-.62 3.12-2 4.5zm7 0c-1.38-1.38-2-3.5-2-4.5s.62-3.12 2-4.5c1.38 1.38 2 3.5 2 4.5s-.62 3.12-2 4.5z" fill="#FF1B2D"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM8.5 16.5c-1.38-1.38-2-3.5-2-4.5s.62-3.12 2-4.5c1.38 1.38 2 3.5 2 4.5s-.62 3.12-2 4.5zm7 0c-1.38-1.38-2-3.5-2-4.5s.62-3.12 2-4.5c1.38 1.38 2 3.5 2 4.5s-.62 3.12-2 4.5z" fill="#FF1B2D" /></svg>
   ),
   'Samsung Internet': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="#1428A0"/><path d="M7 10c1-2 3-3.5 5-3.5S16 7 17 10" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/><path d="M17 14c-1 2-3 3.5-5 3.5S8 17 7 14" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="#1428A0" /><path d="M7 10c1-2 3-3.5 5-3.5S16 7 17 10" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M17 14c-1 2-3 3.5-5 3.5S8 17 7 14" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" /></svg>
   ),
   'Brave': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 6v4c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4zm0 2.18L19 8v2c0 4.52-3.15 8.76-7 9.93V4.18z" fill="#FB542B"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 6v4c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4zm0 2.18L19 8v2c0 4.52-3.15 8.76-7 9.93V4.18z" fill="#FB542B" /></svg>
   ),
 };
 
 const OS_LOGOS: Record<string, (size: number) => React.ReactNode> = {
   'windows': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M3 12V6.75l7-1.05V12H3zm8-6.3L21 4v8H11V5.7zM3 13h7v6.3l-7-1.05V13zm8 0h10v8l-10-1.5V13z" fill="#00ADEF"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M3 12V6.75l7-1.05V12H3zm8-6.3L21 4v8H11V5.7zM3 13h7v6.3l-7-1.05V13zm8 0h10v8l-10-1.5V13z" fill="#00ADEF" /></svg>
   ),
   'android': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z" fill="#3DDC84"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z" fill="#3DDC84" /></svg>
   ),
   'ios': (s) => BRAND_LOGOS['Apple'](s),
   'ipados': (s) => BRAND_LOGOS['Apple'](s),
   'macos': (s) => BRAND_LOGOS['Apple'](s),
   'linux': (s) => (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 2c-1.77 0-2.71 1.52-2.83 2.55-.06.51.01 1.06.26 1.56.22.44.35.88.35 1.39 0 .77-.32 1.34-.67 1.83-.33.46-.68.85-.82 1.37-.12.46-.1.99.15 1.57.03.07.06.14.1.21-.74.56-1.41 1.3-1.85 2.14-.45.87-.66 1.83-.51 2.79.1.6.4 1.15.83 1.59.13.14.28.26.44.37-.05.22-.07.44-.06.66.02.55.23 1.06.58 1.46.35.4.84.65 1.38.72.28.04.56.02.83-.05.13.27.31.52.55.72.39.33.88.52 1.39.52.51 0 1-.19 1.39-.52.23-.2.42-.44.55-.72.27.07.55.09.83.05.54-.07 1.03-.32 1.38-.72.35-.4.56-.91.58-1.46.01-.22-.01-.44-.06-.66.16-.11.31-.23.44-.37.43-.44.73-.99.83-1.59.15-.96-.06-1.92-.51-2.79-.44-.84-1.11-1.58-1.85-2.14.04-.07.07-.14.1-.21.25-.58.27-1.11.15-1.57-.14-.52-.49-.91-.82-1.37-.35-.49-.67-1.06-.67-1.83 0-.51.13-.95.35-1.39.25-.5.32-1.05.26-1.56C15.21 3.52 14.27 2 12.5 2z" fill="#F0C800"/></svg>
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 2c-1.77 0-2.71 1.52-2.83 2.55-.06.51.01 1.06.26 1.56.22.44.35.88.35 1.39 0 .77-.32 1.34-.67 1.83-.33.46-.68.85-.82 1.37-.12.46-.1.99.15 1.57.03.07.06.14.1.21-.74.56-1.41 1.3-1.85 2.14-.45.87-.66 1.83-.51 2.79.1.6.4 1.15.83 1.59.13.14.28.26.44.37-.05.22-.07.44-.06.66.02.55.23 1.06.58 1.46.35.4.84.65 1.38.72.28.04.56.02.83-.05.13.27.31.52.55.72.39.33.88.52 1.39.52.51 0 1-.19 1.39-.52.23-.2.42-.44.55-.72.27.07.55.09.83.05.54-.07 1.03-.32 1.38-.72.35-.4.56-.91.58-1.46.01-.22-.01-.44-.06-.66.16-.11.31-.23.44-.37.43-.44.73-.99.83-1.59.15-.96-.06-1.92-.51-2.79-.44-.84-1.11-1.58-1.85-2.14.04-.07.07-.14.1-.21.25-.58.27-1.11.15-1.57-.14-.52-.49-.91-.82-1.37-.35-.49-.67-1.06-.67-1.83 0-.51.13-.95.35-1.39.25-.5.32-1.05.26-1.56C15.21 3.52 14.27 2 12.5 2z" fill="#F0C800" /></svg>
   ),
   'chromeos': (s) => (
     <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" fill="#4285F4"/>
-      <circle cx="12" cy="12" r="4.5" fill="white"/>
-      <path d="M12 7.5l6.93 4a10 10 0 0 0-.43-4H12z" fill="#EA4335"/>
-      <path d="M5.07 15.5l3.47-6A4.5 4.5 0 0 0 7.5 12c0 .92.28 1.77.75 2.49L5.07 15.5z" fill="#FBBC05"/>
-      <path d="M18.93 15.5H12l3.47 6A10 10 0 0 0 18.93 15.5z" fill="#34A853"/>
-      <circle cx="12" cy="12" r="3" fill="white"/>
+      <circle cx="12" cy="12" r="10" fill="#4285F4" />
+      <circle cx="12" cy="12" r="4.5" fill="white" />
+      <path d="M12 7.5l6.93 4a10 10 0 0 0-.43-4H12z" fill="#EA4335" />
+      <path d="M5.07 15.5l3.47-6A4.5 4.5 0 0 0 7.5 12c0 .92.28 1.77.75 2.49L5.07 15.5z" fill="#FBBC05" />
+      <path d="M18.93 15.5H12l3.47 6A10 10 0 0 0 18.93 15.5z" fill="#34A853" />
+      <circle cx="12" cy="12" r="3" fill="white" />
     </svg>
   ),
 };
@@ -207,7 +207,7 @@ const StudentProfile: React.FC = () => {
     about: "",
     profile_picture: "",
     designation: "",
-    
+
     // Student Fields
     name: "",
     usn: "",
@@ -225,7 +225,7 @@ const StudentProfile: React.FC = () => {
     year_of_study: "",
     department: "",
     proctor: {},
-    
+
     // Personal Profile Fields
     preferred_name: "",
     nationality: "",
@@ -236,12 +236,12 @@ const StudentProfile: React.FC = () => {
     alternate_mobile: "",
     personal_email: "",
     institutional_email: "",
-    
+
     // Official IDs
     aadhaar_number: "",
     passport_number: "",
     pan_number: "",
-    
+
     // Address Fields
     address_permanent: "",
     address_current: "",
@@ -249,28 +249,28 @@ const StudentProfile: React.FC = () => {
     state: "",
     country: "",
     pin_code: "",
-    
+
     // Social Links
     linkedin: "",
     github: "",
     portfolio: "",
-    
+
     // Parent Details
     father_name: "",
     father_contact: "",
     mother_name: "",
     mother_contact: "",
-    
+
     // Guardian Details
     guardian_name: "",
     guardian_relationship: "",
     guardian_phone: "",
     guardian_email: "",
-    
+
     // Socio-economic
     occupation: "",
     income_range: "",
-    
+
     // Medical Information
     blood_group: "",
     emergency_contact: "",
@@ -279,12 +279,12 @@ const StudentProfile: React.FC = () => {
     medical_history: "",
     medical_conditions: ""
   });
-  
+
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile'|'personal'|'academic'|'face'|'activity' | 'help' | 'settings' | 'parent'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'personal' | 'academic' | 'face' | 'activity' | 'help' | 'settings' | 'parent'>('profile');
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  
+
   const [parentData, setParentData] = useState({ parent_name: '', parent_email: '', old_email: '' });
   const [linkingParent, setLinkingParent] = useState(false);
   const [isEditingParent, setIsEditingParent] = useState(false);
@@ -318,14 +318,14 @@ const StudentProfile: React.FC = () => {
   useEffect(() => {
     checkNotificationPermission(setNotificationsEnabled);
   }, []);
-  
+
   // Toggle states for Guardian Details and Address
   const [showGuardianDetails, setShowGuardianDetails] = useState(false);
   const [sameAsPermament, setSameAsPermament] = useState(false);
 
   // Face upload / training states
   const [faceImages, setFaceImages] = useState<File[]>([]);
-  const [faceTrainingStatus, setFaceTrainingStatus] = useState<'idle'|'training'|'success'|'error'>('idle');
+  const [faceTrainingStatus, setFaceTrainingStatus] = useState<'idle' | 'training' | 'success' | 'error'>('idle');
   const [faceTrainingMessage, setFaceTrainingMessage] = useState('');
   const [faceTrainingProgress, setFaceTrainingProgress] = useState(0);
   const [showFaceIDAnimation, setShowFaceIDAnimation] = useState(false);
@@ -419,7 +419,7 @@ const StudentProfile: React.FC = () => {
                 newForm.father_contact = pd.parent_contact;
               }
             }
-          } catch (e) {}
+          } catch (e) { }
 
           setForm(newForm);
           // Initialize guardian details visibility based on existing data
@@ -497,7 +497,7 @@ const StudentProfile: React.FC = () => {
     }
   };
 
-  
+
   const handleDeleteProfilePicture = async () => {
     const confirmed = await showConfirmAlert('Remove Photo', 'Are you sure you want to remove your profile picture?', 'Remove');
     if (!confirmed.isConfirmed) return;
@@ -507,7 +507,7 @@ const StudentProfile: React.FC = () => {
         method: 'DELETE'
       });
       const res = await response.json();
-      
+
       if (res.success) {
         setForm((prev: any) => ({ ...prev, profile_picture: "", profile_image: "" }));
         const userStr = sessionStorage.getItem("user");
@@ -542,7 +542,7 @@ const StudentProfile: React.FC = () => {
     try {
       // Step 1 & 2: Upload to R2 via backend proxy
       const fileUrl = await uploadFileViaBackendProxy(file, 'profiles');
-      
+
       if (fileUrl) {
         // Step 3: Finalize update with backend
         const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/upload-picture/`, {
@@ -704,7 +704,7 @@ const StudentProfile: React.FC = () => {
         date_of_birth: form.date_of_birth || '',
         gender: form.gender || '',
         designation: form.designation || '',
-        
+
         // Personal Profile Fields (all optional, can be empty)
         preferred_name: form.preferred_name || '',
         nationality: form.nationality || '',
@@ -715,12 +715,12 @@ const StudentProfile: React.FC = () => {
         alternate_mobile: (form.alternate_mobile || '').replace(/\s+/g, ''),
         personal_email: form.personal_email || '',
         institutional_email: form.institutional_email || '',
-        
+
         // Official IDs (all optional)
         aadhaar_number: form.aadhaar_number || '',
         passport_number: form.passport_number || '',
         pan_number: form.pan_number || '',
-        
+
         // Address Fields (all optional)
         address_permanent: form.address_permanent || '',
         address_current: form.address_current || '',
@@ -728,25 +728,25 @@ const StudentProfile: React.FC = () => {
         state: form.state || '',
         country: form.country || '',
         pin_code: form.pin_code || '',
-        
+
         // Social Links (all optional)
         linkedin: form.linkedin || '',
         github: form.github || '',
         portfolio: form.portfolio || '',
-        
+
         // Parent Details (all optional - can be empty)
         father_name: form.father_name || '',
         father_contact: (form.father_contact || '').replace(/\s+/g, ''),
         mother_name: form.mother_name || '',
         mother_contact: (form.mother_contact || '').replace(/\s+/g, ''),
-        
+
         // Guardian Details (all optional)
         guardian: guardianObj,
-        
+
         // Socio-economic (all optional)
         occupation: form.occupation || '',
         income_range: form.income_range || '',
-        
+
         // Medical Information (all optional - can be empty)
         blood_group: form.blood_group || '',
         emergency_contact: form.emergency_contact || '',
@@ -757,14 +757,14 @@ const StudentProfile: React.FC = () => {
       };
 
       await updateProfileMutation.mutateAsync(payload);
-      
+
       // Use the mutation response to update UI immediately (no extra GET call)
       setForm(prev => ({
         ...prev,
         ...payload,
         phone: payload.mobile_number,
       }));
-      
+
       // Update guardian details visibility based on saved data
       setShowGuardianDetails(!!(payload.guardian_name || payload.guardian_phone || payload.guardian_email));
       setSameAsPermament(false);
@@ -777,20 +777,20 @@ const StudentProfile: React.FC = () => {
   };
   const handleViewProctor = () => {
     if (!form.proctor) return;
-    
+
     const name = form.proctor.first_name || form.proctor.username ? `${form.proctor.first_name || ''} ${form.proctor.last_name || ''}`.trim() : form.proctor.username || 'Unknown';
     const email = form.proctor.email || null;
     const phone = form.proctor.phone_number || null;
-    
+
     const isDarkMode = document.documentElement.classList.contains('dark');
-    const emailHtml = email 
-      ? `<a href="mailto:${email}" class="swal2-confirm swal2-styled" style="background-color: #ea4335; margin: 0 5px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Email</a>` 
+    const emailHtml = email
+      ? `<a href="mailto:${email}" class="swal2-confirm swal2-styled" style="background-color: #ea4335; margin: 0 5px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Email</a>`
       : `<button class="swal2-cancel swal2-styled" disabled style="margin: 0 5px; opacity: 0.5; cursor: not-allowed; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> None</button>`;
-      
-    const phoneHtml = phone 
+
+    const phoneHtml = phone
       ? `<a href="tel:${phone}" class="swal2-confirm swal2-styled" style="background-color: #3b82f6; margin: 0 5px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> Call</a>`
       : `<button class="swal2-cancel swal2-styled" disabled style="margin: 0 5px; opacity: 0.5; cursor: not-allowed; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> None</button>`;
-      
+
     let waNumber = phone ? phone.replace(/\D/g, '') : '';
     if (waNumber && waNumber.length === 10) {
       waNumber = '91' + waNumber; // Default to India country code if 10 digits
@@ -798,15 +798,16 @@ const StudentProfile: React.FC = () => {
 
     const waSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`;
 
-    const waHtml = phone 
+    const waHtml = phone
       ? `<a href="https://wa.me/${waNumber}" target="_blank" class="swal2-confirm swal2-styled" style="background-color: #25D366; margin: 0 5px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;">${waSvg} WhatsApp</a>`
       : `<button class="swal2-cancel swal2-styled" disabled style="margin: 0 5px; opacity: 0.5; cursor: not-allowed; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;">${waSvg} None</button>`;
 
+    const roleLabel = getInstitutionType() === 'school' ? 'Class Teacher' : 'Proctor';
     MySwal.fire({
-      title: `<strong style="font-size: 1.5rem;">${name}</strong>`,
+      title: `<span style="font-weight: 600; font-size: 1.5rem;">${name}</span>`,
       html: `
-        <div style="text-align: left; margin-bottom: 15px; font-size: 1rem; color: ${isDarkMode ? '#ccc' : '#555'};">
-          <p style="margin: 5px 0;"><strong>Role:</strong> Proctor</p>
+        <div style="text-align: left; margin-bottom: 12px; font-size: 1rem; color: ${isDarkMode ? '#ccc' : '#555'};">
+          <p style="margin: 5px 0;"><strong>Role:</strong> ${roleLabel}</p>
           <p style="margin: 5px 0;"><strong>Email:</strong> ${email || 'Not provided'}</p>
           <p style="margin: 5px 0;"><strong>Phone:</strong> ${phone || 'Not provided'}</p>
         </div>
@@ -834,7 +835,7 @@ const StudentProfile: React.FC = () => {
     const files = e.target.files;
     if (!files) return;
     const arr = Array.from(files);
-    if (faceImages.length + arr.length > 5) {showErrorAlert('Error', 'Maximum 5 images allowed');return;}
+    if (faceImages.length + arr.length > 5) { showErrorAlert('Error', 'Maximum 5 images allowed'); return; }
     setFaceImages((p) => [...p, ...arr]);
   };
 
@@ -895,18 +896,18 @@ const StudentProfile: React.FC = () => {
   };
 
   const trainFace = async () => {
-    if (faceImages.length < 3) {showErrorAlert('Error', 'Please upload at least 3 face images');return;}
-    setFaceTrainingStatus('training');setFaceTrainingProgress(0);setFaceTrainingMessage('Preparing images...');
+    if (faceImages.length < 3) { showErrorAlert('Error', 'Please upload at least 3 face images'); return; }
+    setFaceTrainingStatus('training'); setFaceTrainingProgress(0); setFaceTrainingMessage('Preparing images...');
     try {
       // Compress all files in parallel
       const compressedFiles = await Promise.all(faceImages.map(f => compressImage(f)));
-      
+
       const fd = new FormData();
       compressedFiles.forEach((f) => fd.append('images', f));
-      setFaceTrainingProgress(25);setFaceTrainingMessage('Uploading images...');
+      setFaceTrainingProgress(25); setFaceTrainingMessage('Uploading images...');
       const resp = await fetch(`${API_ENDPOINT}/student/train-face/`, { method: 'POST', headers: { 'Authorization': `Bearer ${sessionStorage.getItem("access_token")}` }, body: fd });
       const j = await resp.json();
-      setFaceTrainingProgress(75);setFaceTrainingMessage('Training face recognition...');
+      setFaceTrainingProgress(75); setFaceTrainingMessage('Training face recognition...');
       if (j.success) {
         setFaceTrainingProgress(100);
         setFaceTrainingStatus('success');
@@ -918,22 +919,22 @@ const StudentProfile: React.FC = () => {
           showSuccessAlert('Success', 'Face updated successfully!');
         }, 2500);
       } else {
-        setFaceTrainingStatus('error');setFaceTrainingMessage(j.message || 'Face training failed');showErrorAlert('Error', j.message || 'Face training failed');
+        setFaceTrainingStatus('error'); setFaceTrainingMessage(j.message || 'Face training failed'); showErrorAlert('Error', j.message || 'Face training failed');
       }
     } catch (err) {
-      setFaceTrainingStatus('error');setFaceTrainingMessage('Network error occurred');showErrorAlert('Error', 'Network error occurred');
+      setFaceTrainingStatus('error'); setFaceTrainingMessage('Network error occurred'); showErrorAlert('Error', 'Network error occurred');
     }
   };
 
   const handleChangePassword = async () => {
-    if (!passwordData.current_password || !passwordData.new_password || !passwordData.confirm_password) {showErrorAlert('Missing fields', 'Please fill all password fields');return;}
-    if (passwordData.new_password !== passwordData.confirm_password) {showErrorAlert('Password mismatch', 'New passwords do not match');return;}
+    if (!passwordData.current_password || !passwordData.new_password || !passwordData.confirm_password) { showErrorAlert('Missing fields', 'Please fill all password fields'); return; }
+    if (passwordData.new_password !== passwordData.confirm_password) { showErrorAlert('Password mismatch', 'New passwords do not match'); return; }
     try {
       const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/change-password/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(passwordData) });
       const j = await resp.json();
-      if (j.success) {setShowPasswordDialog(false);setPasswordData({ current_password: '', new_password: '', confirm_password: '' });showSuccessAlert('Password changed', 'Your password has been updated successfully.');} else
-      showErrorAlert('Unable to change password', j.message || 'Failed to change password');
-    } catch (err) {showErrorAlert('Unable to change password', 'Network error');}
+      if (j.success) { setShowPasswordDialog(false); setPasswordData({ current_password: '', new_password: '', confirm_password: '' }); showSuccessAlert('Password changed', 'Your password has been updated successfully.'); } else
+        showErrorAlert('Unable to change password', j.message || 'Failed to change password');
+    } catch (err) { showErrorAlert('Unable to change password', 'Network error'); }
   };
 
   if (loading) {
@@ -958,11 +959,10 @@ const StudentProfile: React.FC = () => {
               size="sm"
               onClick={() => { if (editing) handleSave(); else setEditing(true); }}
               variant="outline"
-              className={`flex-1 sm:flex-none w-full sm:w-auto text-sm text-white border transition-colors ${
-                editing 
-                  ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white' 
-                  : 'bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white'
-              }`}
+              className={`flex-1 sm:flex-none w-full sm:w-auto text-sm text-white border transition-colors ${editing
+                ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white'
+                : 'bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white'
+                }`}
               disabled={loading || updateProfileMutation.isPending}
             >
               {editing ? updateProfileMutation.isPending ? 'Saving Profile...' : 'Save Profile' : 'Edit Profile'}
@@ -1018,8 +1018,8 @@ const StudentProfile: React.FC = () => {
                     <AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">{(form.first_name?.[0] || '') + (form.last_name?.[0] || '')}</AvatarFallback>
                   </Avatar>
                   {(editing || !form?.profile_picture) && (
-                    <label 
-                      htmlFor="profile-picture-upload" 
+                    <label
+                      htmlFor="profile-picture-upload"
                       className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center text-white cursor-pointer"
                     >
                       <Camera className="h-5 w-5 mb-1 transform scale-75 group-hover:scale-100 group-hover:animate-bounce transition-transform duration-300" />
@@ -1044,7 +1044,7 @@ const StudentProfile: React.FC = () => {
               </div>
 
               {isUploadingPicture &&
-              <div className="mb-2 text-center">
+                <div className="mb-2 text-center">
                   <div className="space-y-1">
                     <Progress value={uploadProgress} className="w-full h-2" />
                     <p className="text-[12px] sm:text-xs text-gray-500">Uploading... {uploadProgress}%</p>
@@ -1056,11 +1056,11 @@ const StudentProfile: React.FC = () => {
               <div className={`text-md sm:text-md mb-4 text-center break-all ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{form.username || form.email}</div>
 
               <div className="w-full mt-4 sm:mt-6 flex flex-col">
-                <h4 className={`text-[16px] sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
+                <h4 className={`text-[16px] sm:text-sm font-semibold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
                 <div className={`border rounded-lg p-2.5 sm:p-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
                     <div className="flex flex-col justify-start">
-                      <span className={`text-[14px] sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Department</span>
+                      <span className={`text-[14px] sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Department")}</span>
                       <span className={`text-[16px] sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 bg-purple-100 text-purple-700`}>{form.branch || '—'}</span>
                     </div>
                     <div className="flex flex-col justify-start">
@@ -1086,7 +1086,7 @@ const StudentProfile: React.FC = () => {
 
               <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 relative overflow-hidden ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                 {activeTab === 'profile' &&
-                <div className="space-y-4">
+                  <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>First Name</Label>
@@ -1123,356 +1123,356 @@ const StudentProfile: React.FC = () => {
                 }
 
                 {activeTab === 'personal' &&
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Date of Birth</Label>
-                      {editing ? (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal h-10 text-[16px] sm:text-sm flex items-center justify-between",
-                                !form.date_of_birth && "text-muted-foreground",
-                                theme === 'dark' ? 'bg-background text-foreground border-input' : 'bg-white text-gray-900 border-gray-300'
-                              )}
-                            >
-                              {form.date_of_birth && !isNaN(new Date(form.date_of_birth).getTime()) ? (
-                                format(parseISO(form.date_of_birth), "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="h-4 w-4 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              captionLayout="dropdown"
-                              fromYear={1930}
-                              toYear={new Date().getFullYear()}
-                              selected={form.date_of_birth && !isNaN(new Date(form.date_of_birth).getTime()) ? parseISO(form.date_of_birth) : undefined}
-                              onSelect={(date) => {
-                                if (date) {
-                                  const formatted = format(date, "yyyy-MM-dd");
-                                  setForm((prev) => ({ ...prev, date_of_birth: formatted }));
-                                } else {
-                                  setForm((prev) => ({ ...prev, date_of_birth: "" }));
-                                }
-                              }}
-                              disabled={(date) =>
-                                date > new Date() || date < new Date("1900-01-01")
-                              }
-                              initialFocus
-                              classNames={{
-                                caption_dropdowns: "flex justify-center gap-1.5 items-center mx-8",
-                                caption_label: "hidden",
-                              }}
-                              components={{
-                                Dropdown: ({ value, onChange, children }: any) => {
-                                  const options = React.Children.toArray(children) as React.ReactElement[];
-                                  const selectedOption = options.find((opt) => opt.props.value === value);
-                                  const selectedLabel = selectedOption ? selectedOption.props.children : "";
-
-                                  return (
-                                    <Select
-                                      value={value?.toString()}
-                                      onValueChange={(val) => {
-                                        if (onChange) {
-                                          const dummyEvent = {
-                                            target: { value: val },
-                                          } as unknown as React.ChangeEvent<HTMLSelectElement>;
-                                          onChange(dummyEvent);
-                                        }
-                                      }}
-                                    >
-                                      <SelectTrigger className="h-8 py-0.5 px-2 text-xs font-semibold bg-background border border-input rounded-md min-w-[75px] max-w-[95px] flex items-center justify-between">
-                                        <SelectValue>{selectedLabel}</SelectValue>
-                                      </SelectTrigger>
-                                      <SelectContent className="max-h-[220px] overflow-y-auto">
-                                        {options.map((opt) => (
-                                          <SelectItem key={opt.props.value} value={opt.props.value.toString()} className="text-xs">
-                                            {opt.props.children}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  );
-                                }
-                              }}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      ) : (
-                        <Input
-                          name="date_of_birth"
-                          value={form.date_of_birth && !isNaN(new Date(form.date_of_birth).getTime()) ? format(parseISO(form.date_of_birth), "dd/MM/yyyy") : "—"}
-                          readOnly
-                          className={getInputClassName(false)}
-                        />
-                      )}
-                    </div>
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Gender</Label>
-                      {editing ? (
-                        <Select
-                          value={form.gender || ''}
-                          onValueChange={(val) => setForm(prev => ({ ...prev, gender: val }))}
-                        >
-                          <SelectTrigger className="w-full h-10 text-[16px] sm:text-sm">
-                            <SelectValue placeholder="Select Gender" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Male">Male</SelectItem>
-                            <SelectItem value="Female">Female</SelectItem>
-                            <SelectItem value="Other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Input
-                          name="gender"
-                          value={form.gender || "—"}
-                          readOnly
-                          className={getInputClassName(false)}
-                        />
-                      )}
-                    </div>
-                    {/* Blood Group moved to Medical Info */}
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Primary Language</Label>
-                      <Input name="primary_language" value={form.primary_language || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
-                    </div>
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Aadhaar Number</Label>
-                      <Input name="aadhaar_number" maxLength={12} value={form.aadhaar_number || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
-                    </div>
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>PAN / Passport</Label>
-                      <Input name="pan_number" value={form.pan_number || ''} onChange={handleChange} placeholder="PAN" readOnly={!editing} className={getInputClassName(true, 'mb-2')} />
-                      <Input name="passport_number" value={form.passport_number || ''} onChange={handleChange} placeholder="Passport" readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
-                    </div>
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Nationality</Label>
-                      <Input name="nationality" value={form.nationality || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
-                    </div>
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Religion / Caste</Label>
-                      <Input name="religion" value={form.religion || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'mb-2')} />
-                      <Input name="caste" value={form.caste || ''} onChange={handleChange} placeholder="Caste (optional)" readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Alternate Mobile</Label>
-                      <Input name="alternate_mobile" maxLength={13} value={form.alternate_mobile || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
-                    </div>
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Personal Email</Label>
-                      <Input name="personal_email" value={form.personal_email || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
-                    </div>
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Institutional Email</Label>
-                      <Input name="institutional_email" value={form.institutional_email || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
-                    </div>
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>City / State / PIN</Label>
-                      <div className="grid grid-cols-3 gap-2">
-                        <Input name="city" value={form.city || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
-                        <Input name="state" value={form.state || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
-                        <Input name="pin_code" value={form.pin_code || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
-                      </div>
-                    </div>
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Permanent Address</Label>
-                      <Textarea name="address_permanent" value={form.address_permanent || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Current Address</Label>
-                        {editing && (
-                          <label className="flex items-center gap-2 text-sm cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={sameAsPermament}
-                              onChange={(e) => {
-                                setSameAsPermament(e.target.checked);
-                                if (e.target.checked) {
-                                  setForm(prev => ({ ...prev, address_current: prev.address_permanent }));
-                                }
-                              }}
-                              className="w-4 h-4"
-                            />
-                            <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Same as Permanent</span>
-                          </label>
-                        )}
-                      </div>
-                      <Textarea name="address_current" value={form.address_current || ''} onChange={handleChange} readOnly={!editing || sameAsPermament} className={getInputClassName(!sameAsPermament, 'text-[14px]')} />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>LinkedIn</Label>
-                      <div className="flex gap-2">
-                        <Input name="linkedin" value={form.linkedin || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'flex-1')} />
-                        {form.linkedin && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => window.open(form.linkedin.startsWith('http') ? form.linkedin : `https://${form.linkedin}`, '_blank')}
-                            className="whitespace-nowrap"
-                          >
-                            View
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>GitHub / Portfolio</Label>
-                      <div className="flex gap-2 mb-2">
-                        <Input name="github" value={form.github || ''} onChange={handleChange} placeholder="GitHub" readOnly={!editing} className={getInputClassName(true, 'flex-1')} />
-                        {form.github && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => window.open(form.github.startsWith('http') ? form.github : `https://${form.github}`, '_blank')}
-                            className="whitespace-nowrap"
-                          >
-                            View
-                          </Button>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Input name="portfolio" value={form.portfolio || ''} onChange={handleChange} placeholder="Portfolio URL" readOnly={!editing} className={getInputClassName(true, 'text-[14px] flex-1')} />
-                        {form.portfolio && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => window.open(form.portfolio.startsWith('http') ? form.portfolio : `https://${form.portfolio}`, '_blank')}
-                            className="whitespace-nowrap"
-                          >
-                            View
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
                   <div className="space-y-4">
-                    <div className="rounded-lg p-3 border bg-white dark:bg-card">
-                      <h4 className="font-semibold mb-2">Parents Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Father's Name</Label>
-                          <Input name="father_name" value={form.father_name || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
-                          <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Father's Contact</Label>
-                          <Input name="father_contact" maxLength={13} value={form.father_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
-                        </div>
-                        <div>
-                          <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Mother's Name</Label>
-                          <Input name="mother_name" value={form.mother_name || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
-                          <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Mother's Contact</Label>
-                          <Input name="mother_contact" maxLength={13} value={form.mother_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
-                        </div>
-                      </div>
-                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                    <div className="rounded-lg p-3 border bg-white dark:bg-card">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-semibold">Guardian Details</h4>
-                        {editing && (
-                          <label className="flex items-center gap-2 text-sm cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={showGuardianDetails}
-                              onChange={(e) => {
-                                setShowGuardianDetails(e.target.checked);
-                                if (!e.target.checked) {
-                                  setForm(prev => ({
-                                    ...prev,
-                                    guardian_name: '',
-                                    guardian_relationship: '',
-                                    guardian_phone: '',
-                                    guardian_email: ''
-                                  }));
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Date of Birth</Label>
+                        {editing ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full pl-3 text-left font-normal h-10 text-[16px] sm:text-sm flex items-center justify-between",
+                                  !form.date_of_birth && "text-muted-foreground",
+                                  theme === 'dark' ? 'bg-background text-foreground border-input' : 'bg-white text-gray-900 border-gray-300'
+                                )}
+                              >
+                                {form.date_of_birth && !isNaN(new Date(form.date_of_birth).getTime()) ? (
+                                  format(parseISO(form.date_of_birth), "PPP")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="h-4 w-4 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                captionLayout="dropdown"
+                                fromYear={1930}
+                                toYear={new Date().getFullYear()}
+                                selected={form.date_of_birth && !isNaN(new Date(form.date_of_birth).getTime()) ? parseISO(form.date_of_birth) : undefined}
+                                onSelect={(date) => {
+                                  if (date) {
+                                    const formatted = format(date, "yyyy-MM-dd");
+                                    setForm((prev) => ({ ...prev, date_of_birth: formatted }));
+                                  } else {
+                                    setForm((prev) => ({ ...prev, date_of_birth: "" }));
+                                  }
+                                }}
+                                disabled={(date) =>
+                                  date > new Date() || date < new Date("1900-01-01")
                                 }
-                              }}
-                              className="w-4 h-4"
-                            />
-                            <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Add Guardian</span>
-                          </label>
+                                initialFocus
+                                classNames={{
+                                  caption_dropdowns: "flex justify-center gap-1.5 items-center mx-8",
+                                  caption_label: "hidden",
+                                }}
+                                components={{
+                                  Dropdown: ({ value, onChange, children }: any) => {
+                                    const options = React.Children.toArray(children) as React.ReactElement[];
+                                    const selectedOption = options.find((opt) => opt.props.value === value);
+                                    const selectedLabel = selectedOption ? selectedOption.props.children : "";
+
+                                    return (
+                                      <Select
+                                        value={value?.toString()}
+                                        onValueChange={(val) => {
+                                          if (onChange) {
+                                            const dummyEvent = {
+                                              target: { value: val },
+                                            } as unknown as React.ChangeEvent<HTMLSelectElement>;
+                                            onChange(dummyEvent);
+                                          }
+                                        }}
+                                      >
+                                        <SelectTrigger className="h-8 py-0.5 px-2 text-xs font-semibold bg-background border border-input rounded-md min-w-[75px] max-w-[95px] flex items-center justify-between">
+                                          <SelectValue>{selectedLabel}</SelectValue>
+                                        </SelectTrigger>
+                                        <SelectContent className="max-h-[220px] overflow-y-auto">
+                                          {options.map((opt) => (
+                                            <SelectItem key={opt.props.value} value={opt.props.value.toString()} className="text-xs">
+                                              {opt.props.children}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    );
+                                  }
+                                }}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <Input
+                            name="date_of_birth"
+                            value={form.date_of_birth && !isNaN(new Date(form.date_of_birth).getTime()) ? format(parseISO(form.date_of_birth), "dd/MM/yyyy") : "—"}
+                            readOnly
+                            className={getInputClassName(false)}
+                          />
                         )}
                       </div>
-                      {showGuardianDetails && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Guardian Name</Label>
-                            <Input name="guardian_name" value={form.guardian_name || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
-                            <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Relationship</Label>
-                            <Input name="guardian_relationship" value={form.guardian_relationship || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
-                          </div>
-                          <div>
-                            <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Guardian Contact</Label>
-                            <Input name="guardian_phone" maxLength={13} value={form.guardian_phone || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
-                            <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Guardian Email</Label>
-                            <Input name="guardian_email" value={form.guardian_email || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Medical info removed per request */}
-                  </div>
-
-                  <div className="rounded-lg p-3 border bg-white dark:bg-card">
-                    <h4 className="font-semibold mb-2">Medical Info</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Blood Group</Label>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Gender</Label>
                         {editing ? (
-                          <Select value={form.blood_group || ''} onValueChange={(val) => setForm(p => ({ ...p, blood_group: val }))}>
-                            <SelectTrigger className={getInputClassName(true)}>
-                              <SelectValue placeholder="Select Blood Group" />
+                          <Select
+                            value={form.gender || ''}
+                            onValueChange={(val) => setForm(prev => ({ ...prev, gender: val }))}
+                          >
+                            <SelectTrigger className="w-full h-10 text-[16px] sm:text-sm">
+                              <SelectValue placeholder="Select Gender" />
                             </SelectTrigger>
                             <SelectContent>
-                              {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
-                                <SelectItem key={bg} value={bg}>{bg}</SelectItem>
-                              ))}
+                              <SelectItem value="Male">Male</SelectItem>
+                              <SelectItem value="Female">Female</SelectItem>
+                              <SelectItem value="Other">Other</SelectItem>
                             </SelectContent>
                           </Select>
                         ) : (
-                          <Input name="blood_group" value={form.blood_group || ''} readOnly className={getInputClassName(false)} />
+                          <Input
+                            name="gender"
+                            value={form.gender || "—"}
+                            readOnly
+                            className={getInputClassName(false)}
+                          />
                         )}
                       </div>
+                      {/* Blood Group moved to Medical Info */}
                       <div>
-                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Emergency Contact</Label>
-                        <Input name="emergency_contact" maxLength={13} value={form.emergency_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Primary Language</Label>
+                        <Input name="primary_language" value={form.primary_language || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                       </div>
                       <div>
-                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Allergies</Label>
-                        <Input name="allergies" value={form.allergies || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Aadhaar Number</Label>
+                        <Input name="aadhaar_number" maxLength={12} value={form.aadhaar_number || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                       </div>
                       <div>
-                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Disabilities</Label>
-                        <Input name="disabilities" value={form.disabilities || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>PAN / Passport</Label>
+                        <Input name="pan_number" value={form.pan_number || ''} onChange={handleChange} placeholder="PAN" readOnly={!editing} className={getInputClassName(true, 'mb-2')} />
+                        <Input name="passport_number" value={form.passport_number || ''} onChange={handleChange} placeholder="Passport" readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                       </div>
-                      <div className="md:col-span-2">
-                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Medical History / Notes</Label>
-                        <Textarea name="medical_history" value={form.medical_history || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Nationality</Label>
+                        <Input name="nationality" value={form.nationality || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                      </div>
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Religion / Caste</Label>
+                        <Input name="religion" value={form.religion || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'mb-2')} />
+                        <Input name="caste" value={form.caste || ''} onChange={handleChange} placeholder="Caste (optional)" readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Alternate Mobile</Label>
+                        <Input name="alternate_mobile" maxLength={13} value={form.alternate_mobile || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                      </div>
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Personal Email</Label>
+                        <Input name="personal_email" value={form.personal_email || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                      </div>
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Institutional Email</Label>
+                        <Input name="institutional_email" value={form.institutional_email || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                      </div>
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>City / State / PIN</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <Input name="city" value={form.city || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                          <Input name="state" value={form.state || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                          <Input name="pin_code" value={form.pin_code || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Permanent Address</Label>
+                        <Textarea name="address_permanent" value={form.address_permanent || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Current Address</Label>
+                          {editing && (
+                            <label className="flex items-center gap-2 text-sm cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={sameAsPermament}
+                                onChange={(e) => {
+                                  setSameAsPermament(e.target.checked);
+                                  if (e.target.checked) {
+                                    setForm(prev => ({ ...prev, address_current: prev.address_permanent }));
+                                  }
+                                }}
+                                className="w-4 h-4"
+                              />
+                              <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Same as Permanent</span>
+                            </label>
+                          )}
+                        </div>
+                        <Textarea name="address_current" value={form.address_current || ''} onChange={handleChange} readOnly={!editing || sameAsPermament} className={getInputClassName(!sameAsPermament, 'text-[14px]')} />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>LinkedIn</Label>
+                        <div className="flex gap-2">
+                          <Input name="linkedin" value={form.linkedin || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'flex-1')} />
+                          {form.linkedin && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(form.linkedin.startsWith('http') ? form.linkedin : `https://${form.linkedin}`, '_blank')}
+                              className="whitespace-nowrap"
+                            >
+                              View
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>GitHub / Portfolio</Label>
+                        <div className="flex gap-2 mb-2">
+                          <Input name="github" value={form.github || ''} onChange={handleChange} placeholder="GitHub" readOnly={!editing} className={getInputClassName(true, 'flex-1')} />
+                          {form.github && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(form.github.startsWith('http') ? form.github : `https://${form.github}`, '_blank')}
+                              className="whitespace-nowrap"
+                            >
+                              View
+                            </Button>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Input name="portfolio" value={form.portfolio || ''} onChange={handleChange} placeholder="Portfolio URL" readOnly={!editing} className={getInputClassName(true, 'text-[14px] flex-1')} />
+                          {form.portfolio && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(form.portfolio.startsWith('http') ? form.portfolio : `https://${form.portfolio}`, '_blank')}
+                              className="whitespace-nowrap"
+                            >
+                              View
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="rounded-lg p-3 border bg-white dark:bg-card">
+                        <h4 className="font-semibold mb-2">Parents Details</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Father's Name</Label>
+                            <Input name="father_name" value={form.father_name || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                            <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Father's Contact</Label>
+                            <Input name="father_contact" maxLength={13} value={form.father_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                          </div>
+                          <div>
+                            <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Mother's Name</Label>
+                            <Input name="mother_name" value={form.mother_name || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                            <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Mother's Contact</Label>
+                            <Input name="mother_contact" maxLength={13} value={form.mother_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg p-3 border bg-white dark:bg-card">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-semibold">Guardian Details</h4>
+                          {editing && (
+                            <label className="flex items-center gap-2 text-sm cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={showGuardianDetails}
+                                onChange={(e) => {
+                                  setShowGuardianDetails(e.target.checked);
+                                  if (!e.target.checked) {
+                                    setForm(prev => ({
+                                      ...prev,
+                                      guardian_name: '',
+                                      guardian_relationship: '',
+                                      guardian_phone: '',
+                                      guardian_email: ''
+                                    }));
+                                  }
+                                }}
+                                className="w-4 h-4"
+                              />
+                              <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Add Guardian</span>
+                            </label>
+                          )}
+                        </div>
+                        {showGuardianDetails && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Guardian Name</Label>
+                              <Input name="guardian_name" value={form.guardian_name || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                              <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Relationship</Label>
+                              <Input name="guardian_relationship" value={form.guardian_relationship || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                            </div>
+                            <div>
+                              <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Guardian Contact</Label>
+                              <Input name="guardian_phone" maxLength={13} value={form.guardian_phone || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                              <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Guardian Email</Label>
+                              <Input name="guardian_email" value={form.guardian_email || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Medical info removed per request */}
+                    </div>
+
+                    <div className="rounded-lg p-3 border bg-white dark:bg-card">
+                      <h4 className="font-semibold mb-2">Medical Info</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Blood Group</Label>
+                          {editing ? (
+                            <Select value={form.blood_group || ''} onValueChange={(val) => setForm(p => ({ ...p, blood_group: val }))}>
+                              <SelectTrigger className={getInputClassName(true)}>
+                                <SelectValue placeholder="Select Blood Group" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
+                                  <SelectItem key={bg} value={bg}>{bg}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Input name="blood_group" value={form.blood_group || ''} readOnly className={getInputClassName(false)} />
+                          )}
+                        </div>
+                        <div>
+                          <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Emergency Contact</Label>
+                          <Input name="emergency_contact" maxLength={13} value={form.emergency_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                        </div>
+                        <div>
+                          <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Allergies</Label>
+                          <Input name="allergies" value={form.allergies || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                        </div>
+                        <div>
+                          <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Disabilities</Label>
+                          <Input name="disabilities" value={form.disabilities || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Medical History / Notes</Label>
+                          <Textarea name="medical_history" value={form.medical_history || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
                 }
 
                 {activeTab === 'academic' &&
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Current Semester</Label>
-                      <Input value={form.current_semester} readOnly className={getInputClassName(false)} />
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>{translateTerminology("Current Semester")}</Label>
+                      <Input value={getInstitutionType() === 'school' ? String(form.current_semester || '').replace(/^Sem\s*/i, 'Class ') : form.current_semester} readOnly className={getInputClassName(false)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Section</Label>
@@ -1493,9 +1493,9 @@ const StudentProfile: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <Input value={form.proctor ? form.proctor.first_name || form.proctor.username ? `${form.proctor.first_name || ''} ${form.proctor.last_name || ''}`.trim() : form.proctor.username || '' : ''} readOnly className={getInputClassName(false)} />
                         {form.proctor && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             type="button"
                             onClick={handleViewProctor}
                             className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300 dark:bg-card dark:text-foreground dark:border-border h-10 px-4"
@@ -1512,10 +1512,12 @@ const StudentProfile: React.FC = () => {
                       <Input value={form.student_status || ''} readOnly className={getInputClassName(false)} />
                     </div>
 
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Mode of Admission</Label>
-                      <Input value={form.mode_of_admission || ''} readOnly className={getInputClassName(false)} />
-                    </div>
+                    {getInstitutionType() !== 'school' && (
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Mode of Admission</Label>
+                        <Input value={form.mode_of_admission || 'Regular'} readOnly className={getInputClassName(false)} />
+                      </div>
+                    )}
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Batch</Label>
@@ -1530,7 +1532,7 @@ const StudentProfile: React.FC = () => {
                 }
 
                 {activeTab === 'face' &&
-                <div className="space-y-4">
+                  <div className="space-y-4">
                     <div className="text-center">
                       <h3 className="text-lg font-semibold mb-2">Face Recognition Training</h3>
                       <p className="text-[16px] sm:text-sm text-gray-600 dark:text-gray-400">Upload 3-5 clear face photos to train the AI recognition system</p>
@@ -1558,21 +1560,21 @@ const StudentProfile: React.FC = () => {
                         </div>
 
                         {faceImages.length > 0 &&
-                      <div className="space-y-2 mt-4">
+                          <div className="space-y-2 mt-4">
                             <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Selected Images ({faceImages.length}/5)</Label>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                               {faceImages.map((image, idx) =>
-                          <div key={idx} className="relative">
+                                <div key={idx} className="relative">
                                   <img src={URL.createObjectURL(image)} alt={`Face ${idx + 1}`} className="w-full h-20 object-cover rounded-lg" />
                                   <button onClick={() => removeFaceImage(idx)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600">×</button>
                                 </div>
-                          )}
+                              )}
                             </div>
                           </div>
-                      }
+                        }
 
                         {faceTrainingStatus !== 'idle' &&
-                      <div className="space-y-2 mt-4">
+                          <div className="space-y-2 mt-4">
                             <div className="flex items-center gap-2">
                               {faceTrainingStatus === 'training' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>}
                               {faceTrainingStatus === 'success' && <CheckCircle className="h-4 w-4 text-green-500" />}
@@ -1581,7 +1583,7 @@ const StudentProfile: React.FC = () => {
                             </div>
                             {faceTrainingStatus === 'training' && <Progress value={faceTrainingProgress} className="w-full h-2" />}
                           </div>
-                      }
+                        }
 
                         <div className="flex justify-center mt-6">
                           <Button onClick={trainFace} disabled={faceImages.length < 3 || faceTrainingStatus === 'training'} className="bg-primary hover:bg-primary/90 text-white px-8">{faceTrainingStatus === 'training' ? 'Training...' : 'Train Face AI'}</Button>
@@ -1614,7 +1616,7 @@ const StudentProfile: React.FC = () => {
                           className="absolute"
                         >
                           <motion.div
-                            animate={{ 
+                            animate={{
                               y: [0, -10, 0, 10, 0],
                               color: ["#ffffff", "#4ade80", "#ffffff"]
                             }}
@@ -1638,7 +1640,7 @@ const StudentProfile: React.FC = () => {
                   )}
                 </AnimatePresence>
 
-                
+
                 {activeTab === 'settings' && (
                   <div className="animate-in fade-in duration-300">
                     <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Settings</h3>
@@ -1677,17 +1679,17 @@ const StudentProfile: React.FC = () => {
                                   <div className="flex items-center gap-3 mt-2">
                                     {parent.phone && (
                                       <>
-                                        <a 
-                                          href={`https://wa.me/${parent.phone.replace(/[^0-9]/g, '')}`} 
-                                          target="_blank" 
+                                        <a
+                                          href={`https://wa.me/${parent.phone.replace(/[^0-9]/g, '')}`}
+                                          target="_blank"
                                           rel="noopener noreferrer"
                                           className="text-green-600 hover:text-green-700 transition-colors"
                                           title="Chat on WhatsApp"
                                         >
                                           <MessageCircle className="w-4 h-4" />
                                         </a>
-                                        <a 
-                                          href={`tel:${parent.phone.replace(/[^0-9+]/g, '')}`} 
+                                        <a
+                                          href={`tel:${parent.phone.replace(/[^0-9+]/g, '')}`}
                                           className="text-blue-500 hover:text-blue-600 transition-colors"
                                           title="Call Parent"
                                         >
@@ -1696,8 +1698,8 @@ const StudentProfile: React.FC = () => {
                                       </>
                                     )}
                                     {parent.email && (
-                                      <a 
-                                        href={`mailto:${parent.email}`} 
+                                      <a
+                                        href={`mailto:${parent.email}`}
                                         className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
                                         title="Email Parent"
                                       >
@@ -1733,7 +1735,7 @@ const StudentProfile: React.FC = () => {
                     <HelpLearningCard />
                   </div>
                 )}
-{activeTab === 'activity' &&  (
+                {activeTab === 'activity' && (
                   <div className="space-y-4">
                     {/* Header */}
                     <div className="flex items-center justify-between">
@@ -1760,7 +1762,7 @@ const StudentProfile: React.FC = () => {
                     {/* Loading state */}
                     {loginHistoryLoading && (
                       <div className="space-y-3">
-                        {[1,2,3].map(i => (
+                        {[1, 2, 3].map(i => (
                           <div key={i} className={`animate-pulse rounded-xl p-4 ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
                             <div className="flex items-center gap-4">
                               <div className={`h-12 w-12 rounded-xl ${theme === 'dark' ? 'bg-muted-foreground/20' : 'bg-gray-200'}`} />
@@ -1807,22 +1809,22 @@ const StudentProfile: React.FC = () => {
                           // Device icon
                           const DeviceIcon = entry.device_type === 'mobile' ? Smartphone
                             : entry.device_type === 'tablet' ? Tablet
-                            : entry.device_type === 'desktop' ? Monitor
-                            : Globe;
+                              : entry.device_type === 'desktop' ? Monitor
+                                : Globe;
 
                           // Color scheme per device type
                           const iconColor = entry.device_type === 'mobile' ? 'text-emerald-600'
                             : entry.device_type === 'tablet' ? 'text-blue-600'
-                            : entry.device_type === 'desktop' ? 'text-violet-600'
-                            : 'text-orange-500';
+                              : entry.device_type === 'desktop' ? 'text-violet-600'
+                                : 'text-orange-500';
 
                           const iconBg = entry.device_type === 'mobile'
                             ? (theme === 'dark' ? 'bg-emerald-900/30' : 'bg-emerald-50')
                             : entry.device_type === 'tablet'
-                            ? (theme === 'dark' ? 'bg-blue-900/30' : 'bg-blue-50')
-                            : entry.device_type === 'desktop'
-                            ? (theme === 'dark' ? 'bg-violet-900/30' : 'bg-violet-50')
-                            : (theme === 'dark' ? 'bg-orange-900/30' : 'bg-orange-50');
+                              ? (theme === 'dark' ? 'bg-blue-900/30' : 'bg-blue-50')
+                              : entry.device_type === 'desktop'
+                                ? (theme === 'dark' ? 'bg-violet-900/30' : 'bg-violet-50')
+                                : (theme === 'dark' ? 'bg-orange-900/30' : 'bg-orange-50');
 
                           return (
                             <div
@@ -1883,11 +1885,10 @@ const StudentProfile: React.FC = () => {
                                   <button
                                     onClick={() => terminateSession(entry.id)}
                                     disabled={!!entry.is_current}
-                                    className={`text-xs px-2.5 py-1 rounded-md transition-all font-medium ${
-                                      entry.is_current
-                                        ? 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400 cursor-not-allowed'
-                                        : 'bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50 dark:border dark:border-red-900/30'
-                                    }`}
+                                    className={`text-xs px-2.5 py-1 rounded-md transition-all font-medium ${entry.is_current
+                                      ? 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400 cursor-not-allowed'
+                                      : 'bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50 dark:border dark:border-red-900/30'
+                                      }`}
                                   >
                                     {entry.is_current ? 'Current' : 'Logout'}
                                   </button>
