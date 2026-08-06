@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -245,8 +245,12 @@ const HODSyllabusTracker = () => {
         <CardHeader id="hod-syllabus-tracker-header" className="border-b mb-3">
           <div className="flex flex-row items-start justify-between gap-4 w-full">
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-xl sm:text-2xl font-semibold mb-2">Department Syllabus Management</CardTitle>
-              <CardDescription>Configure department-level week-wise syllabus templates.</CardDescription>
+              <CardTitle className="text-xl sm:text-2xl font-semibold mb-2">
+                {getInstitutionType() === 'school' ? 'Stream Syllabus Management' : 'Department Syllabus Management'}
+              </CardTitle>
+              <CardDescription>
+                {getInstitutionType() === 'school' ? 'Configure stream-level week-wise syllabus templates.' : 'Configure department-level week-wise syllabus templates.'}
+              </CardDescription>
             </div>
             {syllabusData && (
               <>
@@ -305,13 +309,17 @@ const HODSyllabusTracker = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase opacity-80">{translateTerminology("Semester")}</label>
+              <label className="text-xs font-semibold uppercase opacity-80">{getInstitutionType() === 'school' ? 'Class' : translateTerminology("Semester")}</label>
               <Select value={semesterId?.toString() || ""} onValueChange={(v) => setSemesterId(Number(v))} disabled={!batchId} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={!batchId ? "Select Batch first" : translateTerminology("Select Semester")} />
+                  <SelectValue placeholder={!batchId ? "Select Batch first" : (getInstitutionType() === 'school' ? 'Choose Class' : translateTerminology("Select Semester"))} />
                 </SelectTrigger>
                 <SelectContent>
-                  {semesters.map(s => <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>)}
+                  {semesters.map(s => (
+                    <SelectItem key={s.id} value={s.id.toString()}>
+                      {getInstitutionType() === 'school' ? `Class ${s.number}` : `Semester ${s.number}`}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -320,7 +328,7 @@ const HODSyllabusTracker = () => {
               <label className="text-xs font-semibold uppercase opacity-80">Subject</label>
               <Select value={subjectId?.toString() || ""} onValueChange={(v) => setSubjectId(Number(v))} disabled={!semesterId} open={isSubjectOpen} onOpenChange={setIsSubjectOpen}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={!semesterId ? "Select Semester first" : "Select Subject"} />
+                  <SelectValue placeholder={!semesterId ? (getInstitutionType() === 'school' ? "Select Class first" : "Select Semester first") : "Select Subject"} />
                 </SelectTrigger>
                 <SelectContent>
                   {subjects.length > 0 ? (
@@ -509,8 +517,14 @@ const HODSyllabusTracker = () => {
                 <BookOpen className="w-12 h-12 text-muted-foreground opacity-50" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Select Subject & Semester</h3>
-                <p className="text-sm opacity-70 max-w-sm mx-auto mt-1">Please select the Semester and Subject to load the weekly syllabus tracking configuration.</p>
+                <h3 className="text-lg font-semibold">
+                  {getInstitutionType() === 'school' ? 'Select Subject & Class' : 'Select Subject & Semester'}
+                </h3>
+                <p className="text-sm opacity-70 max-w-sm mx-auto mt-1">
+                  {getInstitutionType() === 'school'
+                    ? 'Please select the Class and Subject to load the weekly syllabus tracking configuration.'
+                    : 'Please select the Semester and Subject to load the weekly syllabus tracking configuration.'}
+                </p>
               </div>
             </div>
           )}
