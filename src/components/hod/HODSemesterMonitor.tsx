@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { useEffect, useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -288,8 +288,14 @@ const HODSemesterMonitor = () => {
         <CardHeader id="hod-semester-monitor-header" className="border-b mb-3">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
             <div className="flex-1 min-w-0 text-left">
-              <CardTitle className="text-xl sm:text-2xl font-semibold mb-2">Semester Syllabus Overview</CardTitle>
-              <CardDescription>Track weekly teaching completions across all subjects in the department.</CardDescription>
+              <CardTitle className="text-xl sm:text-2xl font-semibold mb-2">
+                {getInstitutionType() === 'school' ? 'Class Syllabus Overview' : 'Semester Syllabus Overview'}
+              </CardTitle>
+              <CardDescription>
+                {getInstitutionType() === 'school'
+                  ? 'Track weekly teaching completions across all subjects in the stream.'
+                  : 'Track weekly teaching completions across all subjects in the department.'}
+              </CardDescription>
             </div>
 
             {/* Batch Filter */}
@@ -314,7 +320,9 @@ const HODSemesterMonitor = () => {
 
             {/* Semester Filter */}
             <div className="flex flex-col items-start gap-1 shrink-0 w-full sm:w-auto">
-              <span className="text-xs font-semibold uppercase opacity-80 shrink-0">{translateTerminology("Semester")}</span>
+              <span className="text-xs font-semibold uppercase opacity-80 shrink-0">
+                {getInstitutionType() === 'school' ? 'Class' : translateTerminology("Semester")}
+              </span>
               <Select 
                 value={semesterId?.toString() || ""} 
                 onValueChange={handleSemesterChange}
@@ -323,12 +331,12 @@ const HODSemesterMonitor = () => {
                 onOpenChange={setIsSemesterOpen}
               >
                 <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder={translateTerminology("Select Semester")} />
+                  <SelectValue placeholder={getInstitutionType() === 'school' ? 'Choose Class' : translateTerminology("Select Semester")} />
                 </SelectTrigger>
                 <SelectContent>
                   {semesters.map(s => (
                     <SelectItem key={s.id} value={s.id.toString()}>
-                      Semester {s.number}
+                      {getInstitutionType() === 'school' ? `Class ${s.number}` : `Semester ${s.number}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -492,7 +500,9 @@ const HODSemesterMonitor = () => {
               <div>
                 <h3 className="text-lg font-semibold">No Syllabus Tracked Yet</h3>
                 <p className="text-sm opacity-70 max-w-sm mx-auto mt-1">
-                  There are no active subjects assigned or tracked under this semester.
+                  {getInstitutionType() === 'school'
+                    ? 'There are no active subjects assigned or tracked under this class.'
+                    : 'There are no active subjects assigned or tracked under this semester.'}
                 </p>
               </div>
             </div>

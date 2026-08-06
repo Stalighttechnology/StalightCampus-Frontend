@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import React, { useState, useEffect, ReactNode, Component } from "react";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -761,24 +761,26 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
               <div className="flex flex-row gap-3 items-start md:items-end w-full sm:w-auto">
                 {/* Semester Filter */}
                 <div className="flex flex-col flex-1 sm:flex-none sm:w-56">
-                  <label className={`text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{translateTerminology("Semester")}</label>
+                  <label className={`text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                    {getInstitutionType() === 'school' ? 'Class' : translateTerminology("Semester")}
+                  </label>
                   <Select
                     value={state.selectedSemester}
                     onValueChange={handleSemesterChange}
                     disabled={state.loading || state.semesters.length === 0}>
 
                     <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || state.semesters.length === 0}>
-                      <SelectValue placeholder={state.semesters.length === 0 ? "No semester available" : "Select Semester"} />
+                      <SelectValue placeholder={state.semesters.length === 0 ? (getInstitutionType() === 'school' ? "No class available" : "No semester available") : (getInstitutionType() === 'school' ? "Choose Class" : "Select Semester")} />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white border border-gray-300 text-gray-900 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {state.semesters.length === 0 ? (
                         <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
-                          No semester available
+                          {getInstitutionType() === 'school' ? "No class available" : "No semester available"}
                         </div>
                       ) : (
                         state.semesters.map((semester) =>
                           <SelectItem key={semester.id} value={semester.id}>
-                            Sem {semester.number}
+                            {getInstitutionType() === 'school' ? `Class ${semester.number}` : `Sem ${semester.number}`}
                           </SelectItem>
                         )
                       )}
@@ -797,7 +799,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                     <SelectTrigger id="section-select-trigger" className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || !state.selectedSemester}>
                       <SelectValue placeholder={
                         !state.selectedSemester ?
-                          "Select Semester" :
+                          (getInstitutionType() === 'school' ? "Select Class first" : "Select Semester first") :
                           state.sections.length === 0 ?
                           "No section available" :
                           "Select Section"
@@ -806,7 +808,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                     <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white border border-gray-300 text-gray-900 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {!state.selectedSemester ? (
                         <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
-                          Select semester first
+                          {getInstitutionType() === 'school' ? "Select class first" : "Select semester first"}
                         </div>
                       ) : state.sections.length === 0 ? (
                         <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
@@ -879,7 +881,9 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                   <p className="max-w-xs text-base leading-relaxed">
                     {state.selectedSemester && state.selectedSection ?
                       "Great! No students have low attendance in the selected section." :
-                      "Select a semester and section above to identify students who may require attendance interventions."}
+                      (getInstitutionType() === 'school' ?
+                        "Select a class and section above to identify students who may require attendance interventions." :
+                        "Select a semester and section above to identify students who may require attendance interventions.")}
                   </p>
                 </div>
             }
