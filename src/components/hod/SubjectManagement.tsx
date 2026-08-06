@@ -325,7 +325,7 @@ const SubjectManagement = () => {
   };
 
   return (
-    <div id="hod-subjects-container" className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div id="hod-subjects-container" className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <div id="courses-header-filters-section">
           <CardHeader className="border-b pb-4">

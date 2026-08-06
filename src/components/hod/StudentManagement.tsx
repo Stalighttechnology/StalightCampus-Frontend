@@ -1213,7 +1213,7 @@ const StudentManagement = () => {
   // Chart removed
 
   return (
-    <div id="hod-students-container" className={` sm: md: lg: space-y-6 md:space-y-5 min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div id="hod-students-container" className={`space-y-6 md:space-y-5 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
 
       {/* Add Student Manually Form */}
       <Card id="add-student-manually-card" className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
