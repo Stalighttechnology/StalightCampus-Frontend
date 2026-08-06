@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from "react";
 import { FileText, Download, AlertCircle, BookOpen, Search, Loader2 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
@@ -98,7 +98,7 @@ const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme:
         {material.subject_code}
       </TableCell>
       <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap text-center`}>
-        {material.semester || "N/A"}
+        {material.semester ? (getInstitutionType() === 'school' ? material.semester.replace(/^Sem\s*/i, 'Class ') : material.semester) : "N/A"}
       </TableCell>
       <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4`}>
         <div className="flex items-center gap-3">
@@ -322,7 +322,9 @@ const StudyMaterialsStudent = () => {
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   {semesters.map((s) => (
-                    <SelectItem key={s.id} value={s.id.toString()}>Sem {s.number}</SelectItem>
+                    <SelectItem key={s.id} value={s.id.toString()}>
+                      {`${getInstitutionType() === 'school' ? 'Class' : 'Sem'} ${s.number}`}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -348,7 +350,7 @@ const StudyMaterialsStudent = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search by title, course name, course code, semester, or uploaded by..."
+                placeholder={`Search by title, course name, course code, ${translateTerminology("semester")}, or uploaded by...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={`w-full pl-3 pr-12 py-2 text-sm sm:text-base h-10 sm:h-11 border rounded ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}
@@ -375,7 +377,7 @@ const StudyMaterialsStudent = () => {
                   Select Filters to View Materials
                 </h3>
                 <p className={`text-base md:text-sm max-w-md mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Please select your branch, semester, and section from the dropdowns above to access and download your study materials.
+                  Please select your {translateTerminology("branch")}, {translateTerminology("semester")}, and section from the dropdowns above to access and download your study materials.
                 </p>
               </div>
             ) : (
@@ -387,7 +389,9 @@ const StudyMaterialsStudent = () => {
                       <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Title</TableHead>
                       <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Course Name</TableHead>
                       <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Code</TableHead>
-                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap text-center">Sem</TableHead>
+                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap text-center">
+                        {getInstitutionType() === 'school' ? 'Class' : 'Sem'}
+                      </TableHead>
                       <TableHead className="hidden lg:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Uploaded By</TableHead>
                       <TableHead className="text-right px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Action</TableHead>
                     </TableRow>
