@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ListTodo, Activity, User, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { ListTodo, Activity, User, LogOut, ChevronLeft, ChevronRight, CalendarCheck, Megaphone } from "lucide-react";
 
 interface Props {
   collapsed: boolean;
@@ -11,6 +11,8 @@ interface Props {
 const MENU_ITEMS = [
   { id: "assigned-issues", label: "Assigned Issues", icon: <ListTodo size={20} /> },
   { id: "monitoring", label: "HQ Monitor", icon: <Activity size={20} /> },
+  { id: "attendance", label: "My Attendance", icon: <CalendarCheck size={20} /> },
+  { id: "announcements", label: "Announcements", icon: <Megaphone size={20} /> },
   { id: "profile", label: "Profile", icon: <User size={20} /> },
 ];
 

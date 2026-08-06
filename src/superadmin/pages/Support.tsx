@@ -5,7 +5,7 @@ import { Button } from "../../components/ui/button";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
 import { useTheme } from "../../context/ThemeContext";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../components/ui/dialog";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
@@ -274,6 +274,7 @@ const Support = () => {
                 {selectedTicket?.priority} Priority
               </Badge>
             </DialogTitle>
+            <DialogDescription className="sr-only">Support ticket details and resolution controls</DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
@@ -309,10 +310,10 @@ const Support = () => {
                       <ShieldCheck size={18} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold flex items-center gap-2">
+                      <div className="text-sm font-bold flex items-center gap-2">
                         {selectedTicket?.org_details?.admin_name}
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Admin</Badge>
-                      </p>
+                      </div>
                       <div className="flex flex-col gap-1 mt-1 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1.5"><Mail size={12} /> {selectedTicket?.org_details?.admin_email}</span>
                         <span className="flex items-center gap-1.5"><Phone size={12} /> {selectedTicket?.org_details?.admin_mobile}</span>
@@ -326,10 +327,10 @@ const Support = () => {
                       <Wrench size={18} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold flex items-center gap-2">
+                      <div className="text-sm font-bold flex items-center gap-2">
                         {selectedTicket?.org_details?.tech_poc_name}
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Tech POC</Badge>
-                      </p>
+                      </div>
                       <div className="flex flex-col gap-1 mt-1 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1.5"><Mail size={12} /> {selectedTicket?.org_details?.tech_poc_email}</span>
                         <span className="flex items-center gap-1.5"><Phone size={12} /> {selectedTicket?.org_details?.tech_poc_mobile}</span>

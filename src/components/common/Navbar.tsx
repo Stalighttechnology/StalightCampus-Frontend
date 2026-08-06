@@ -23,7 +23,7 @@ interface User {
 }
 
 interface NavbarProps {
-  role: "admin" | "principal" | "hod" | "faculty" | "student" | "fees_manager" | "coe";
+  role: "admin" | "principal" | "hod" | "faculty" | "student" | "fees_manager" | "coe" | "developer" | "superadmin";
   user?: User;
   onNotificationClick?: () => void;
   setPage: (page: string) => void;

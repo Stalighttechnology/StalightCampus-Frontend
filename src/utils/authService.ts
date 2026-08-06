@@ -129,7 +129,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
   try {
     // Access token is now managed by AuthContext (in‑memory). We retrieve it from sessionStorage if available.
     // Note: AuthContext will populate sessionStorage with a refreshed token via its refreshAccessToken method.
-    let accessToken = sessionStorage.getItem("access_token") || _inMemoryAccessToken;
+    let accessToken = sessionStorage.getItem("access_token") || _inMemoryAccessToken || localStorage.getItem("superadmin_token");
 
     // Ensure Authorization header is set only when we have a token. Also include session/device identifiers.
     const sessionId = (typeof window !== 'undefined') ? localStorage.getItem('session_id') : undefined;
@@ -562,7 +562,7 @@ export const refreshSuperadminToken = async (): Promise<{ success: boolean; acce
       return { success: false, message: "No refresh token" };
     }
     
-    const response = await fetch(`${API_ENDPOINT}/token/refresh/`, {
+    const response = await fetch(`${API_ENDPOINT}/superadmin/token/refresh/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

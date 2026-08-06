@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import useIsMobile from "../../hooks/useIsMobile";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import LoginWrapper from "../auth/LoginWrapper";
 import OTPPage from "../auth/OTPPage";
 import ForgotPasswordFlow from "../auth/ForgotPasswordFlow";
@@ -11,9 +11,10 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, isInitializing, role, user: authUser } = useAuth();
   const [roleState, setRoleState] = useState<string | null>(role);
-  const [page, setPage] = useState<string>("login");
+  const [page, setPage] = useState<string>(location.pathname === "/forgot-password" ? "forgot-password" : "login");
   const [userState, setUserState] = useState<any>(authUser);
   const isMobile = useIsMobile();
 
@@ -113,9 +114,13 @@ const Index = () => {
         }
       }
     } else {
-      setPage("login");
+      if (window.location.pathname === "/forgot-password") {
+        setPage("forgot-password");
+      } else if (!["login", "otp", "forgot-password", "reset-password"].includes(page)) {
+        setPage("login");
+      }
     }
-  }, [isInitializing, isAuthenticated, role, authUser, navigate]);
+  }, [isInitializing, isAuthenticated, role, authUser, navigate, page]);
 
   if (isInitializing) {
     return (

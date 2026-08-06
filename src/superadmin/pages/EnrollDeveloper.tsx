@@ -341,12 +341,27 @@ const EnrollDeveloper = () => {
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label>Temporary Password</Label>
-              <Input 
-                type="text" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Ex: Dev@2024!"
-              />
+              <div className="flex gap-2">
+                <Input 
+                  type="text" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Ex: Dev@2024!"
+                  className="flex-1"
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+                    const newPassword = Array.from({length: 12}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+                    setPassword(newPassword);
+                  }}
+                  className="shrink-0"
+                >
+                  Auto-generate
+                </Button>
+              </div>
             </div>
             <div className="space-y-3">
               <Label>Tech Stack / Skills</Label>
