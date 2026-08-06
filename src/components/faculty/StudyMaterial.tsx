@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import React, { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "../ui/card";
 import { FileText, Download, UploadCloud, Trash2, Loader2, Search, BookOpen, X, CloudUpload } from "lucide-react";
@@ -143,7 +143,7 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
         {material.subject_code}
       </TableCell>
       <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap text-center`}>
-        {material.semester || "N/A"}
+        {material.semester ? (getInstitutionType() === 'school' ? material.semester.replace(/Sem\s*/i, 'Class ').replace(/Semester\s*/i, 'Class ') : material.semester) : "N/A"}
       </TableCell>
       <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4`}>
         <div className="flex items-center gap-3">
@@ -413,16 +413,16 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
               >
 
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${isSemestersLoading || selectedBranch === "" || semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={isSemestersLoading || selectedBranch === "" || semesters.length === 0}>
-                  <SelectValue placeholder={isSemestersLoading ? "Loading..." : translateTerminology("Choose Semester")} />
+                  <SelectValue placeholder={isSemestersLoading ? "Loading..." : (getInstitutionType() === 'school' ? "Choose Class" : translateTerminology("Choose Semester"))} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   {semesters.length > 0 ? (
                     semesters.map((s) =>
-                      <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>
+                      <SelectItem key={s.id} value={s.id.toString()}>{getInstitutionType() === 'school' ? `Class ${s.number}` : `Semester ${s.number}`}</SelectItem>
                     )
                   ) : (
                     <div className="p-2 text-sm text-center text-muted-foreground">
-                      No semester
+                      {getInstitutionType() === 'school' ? "No class" : "No semester"}
                     </div>
                   )}
                 </SelectContent>
@@ -497,7 +497,9 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                       <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800">Title</TableHead>
                       <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800">Course Name</TableHead>
                       <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800">Code</TableHead>
-                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 text-center">Sem</TableHead>
+                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 text-center">
+                        {getInstitutionType() === 'school' ? 'Class' : 'Sem'}
+                      </TableHead>
                       <TableHead className="hidden lg:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800">Uploaded By</TableHead>
                       <TableHead className="text-right px-6 py-4 text-base md:text-md font-semibold text-slate-800">Action</TableHead>
                     </TableRow>
@@ -647,8 +649,8 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                     <span className="font-medium text-primary">{grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.branch_id) === uploadBranch)?.branch || 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{translateTerminology("Semester")}:</span>
-                    <span className="font-medium text-primary">{uploadSemester ? `Sem ${grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.semester_id) === uploadSemester)?.semester}` : 'N/A'}</span>
+                    <span className="text-muted-foreground">{getInstitutionType() === 'school' ? 'Class' : translateTerminology("Semester")}:</span>
+                    <span className="font-medium text-primary">{uploadSemester ? (getInstitutionType() === 'school' ? `Class ${grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.semester_id) === uploadSemester)?.semester}` : `Sem ${grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.semester_id) === uploadSemester)?.semester}`) : 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Section:</span>

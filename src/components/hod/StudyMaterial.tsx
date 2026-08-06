@@ -325,7 +325,7 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
         {material.subject_code}
       </TableCell>
       <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap text-center`}>
-        {material.semester || "N/A"}
+        {material.semester ? (getInstitutionType() === 'school' ? material.semester.replace(/Sem\s*/i, 'Class ').replace(/Semester\s*/i, 'Class ') : material.semester) : "N/A"}
       </TableCell>
       <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4`}>
         <div className="flex items-center gap-3">
