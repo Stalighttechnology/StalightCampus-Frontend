@@ -98,21 +98,32 @@ export const useWebSocketNotifications = () => {
                                            (typeof data.event === 'string' && data.event.startsWith('announcement.'));
 
                     if (isNotification) {
-                        // Show a toast unless it's a deletion
-                        if (data.event !== 'announcement.deleted') {
-                            toast(data.title || "New Notification", {
-                                description: data.message,
-                            });
+                        // Determine if THIS user is the one who created/updated the announcement.
+                        // The backend includes sender_id in the WS payload for announcement events.
+                        const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
+                        const parsedUser = userStr ? JSON.parse(userStr) : null;
+                        const currentUserId = parsedUser?.id || parsedUser?.user_id || null;
+                        const isSelf = data.sender_id != null && currentUserId != null && String(data.sender_id) === String(currentUserId);
+
+                        if (!isSelf) {
+                            // Only show toast and bump the unread badge for OTHER people's announcements
+                            if (data.event !== 'announcement.deleted') {
+                                toast(data.title || "New Notification", {
+                                    description: data.message,
+                                });
+                            }
+                            // Update the navbar badge count
+                            window.dispatchEvent(new CustomEvent('refresh-unread-count'));
                         }
                         
-                        // Invalidate react-query to refetch notifications, announcements, and unread badge count
+                        // Always invalidate queries and refresh the announcement list
+                        // (so the sender's "My Announcements" table reflects the new row immediately)
                         queryClient.invalidateQueries({ queryKey: ['studentNotifications'] });
                         queryClient.invalidateQueries({ queryKey: ['notifications'] });
                         queryClient.invalidateQueries({ queryKey: ['announcements'] });
-                        queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
-                        
-                        // Update the navbar badge count + reload any open announcement list
-                        window.dispatchEvent(new CustomEvent('refresh-unread-count'));
+                        if (!isSelf) {
+                            queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
+                        }
                         window.dispatchEvent(new CustomEvent('refresh-announcements'));
                     }
                 } catch (err) {
