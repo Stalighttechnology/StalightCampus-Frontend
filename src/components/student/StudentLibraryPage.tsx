@@ -316,7 +316,7 @@ const StudentLibraryPage: React.FC = () => {
 
           <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
             {/* Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4 w-full">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 w-full">
               <div className={`rounded-2xl border shadow-sm p-3.5 sm:p-4 ${card}`}>
                 <div className="flex items-center gap-2 mb-2 min-w-0">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
