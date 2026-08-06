@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "../../utils/institutionConfig";
 import { useState, useEffect, forwardRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { Input } from "../ui/input";
@@ -133,6 +133,9 @@ const SemesterManagement = () => {
 
   // Derive NAME and YEAR from semester number
   const getSemesterName = (number: number) => {
+    if (getInstitutionType() === "school") {
+      return `Class ${number}`;
+    }
     let suffix = "th";
     if (number % 10 === 1 && number % 100 !== 11) suffix = "st";
     else if (number % 10 === 2 && number % 100 !== 12) suffix = "nd";
@@ -427,8 +430,8 @@ const SemesterManagement = () => {
         <CardHeader className="border-b pb-4">
           <div id="semester-list-header" className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3">
             <div>
-              <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester List</CardTitle>
-              <CardDescription className="text-sm text-muted-foreground mt-1">Define academic semesters, tracks, and active periods.</CardDescription>
+              <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Semester List")}</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground mt-1">{translateTerminology("Define academic semesters, tracks, and active periods.")}</CardDescription>
             </div>
             <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
               <Button
@@ -436,7 +439,7 @@ const SemesterManagement = () => {
                 disabled={loading || !branchId}
                 className="flex-1 sm:flex-initial text-foreground bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white justify-center h-10"
               >
-                + Add Semester
+                + {translateTerminology("Add Semester")}
               </Button>
               {/* Mobile Download PDF Icon Button */}
               <Button
@@ -481,7 +484,9 @@ const SemesterManagement = () => {
                   return (
                     <article key={sem.id} className={`p-4 rounded-md ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`} aria-labelledby={`sem-${sem.id}`}>
                       <h3 id={`sem-${sem.id}`} className="text-base font-semibold">{getSemesterName(sem.number)}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{getYear(sem.number)}</p>
+                      {getInstitutionType() !== 'school' && (
+                        <p className="text-sm text-muted-foreground mt-1">{getYear(sem.number)}</p>
+                      )}
 
                       <div className="mt-3">
                         <div className="text-sm font-medium">Sections:</div>
@@ -519,9 +524,11 @@ const SemesterManagement = () => {
                 <table className="w-full text-sm table-fixed ">
                   <thead className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-gray-100 text-gray-900 border-gray-300'}>
                     <tr className="border-b">
-                      <th className="p-2 text-left" style={{ width: '15%' }}>NAME</th>
-                      <th className="p-2 text-left" style={{ width: '15%' }}>YEAR</th>
-                      <th className="p-2 text-left" style={{ width: '50%' }}>SECTIONS</th>
+                      <th className="p-2 text-left" style={{ width: getInstitutionType() === 'school' ? '25%' : '15%' }}>NAME</th>
+                      {getInstitutionType() !== 'school' && (
+                        <th className="p-2 text-left" style={{ width: '15%' }}>YEAR</th>
+                      )}
+                      <th className="p-2 text-left" style={{ width: getInstitutionType() === 'school' ? '60%' : '50%' }}>SECTIONS</th>
                       <th className="p-2 text-center" style={{ width: '15%' }}>ACTIONS</th>
                     </tr>
                   </thead>
@@ -537,7 +544,9 @@ const SemesterManagement = () => {
                           <td className={`p-2 text-left align-top ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{getSemesterName(sem.number)}</td>
 
                           {/* Year */}
-                          <td className={`p-2 text-left align-top ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{getYear(sem.number)}</td>
+                          {getInstitutionType() !== 'school' && (
+                            <td className={`p-2 text-left align-top ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{getYear(sem.number)}</td>
+                          )}
 
                           {/* Sections */}
                           <td className="p-2 text-left align-top">
@@ -629,12 +638,12 @@ const SemesterManagement = () => {
         <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-[90%] sm:max-w-lg rounded-md sm:rounded-lg`}>
           <DialogHeader>
             <h2 className={`text-lg font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              {editingSemester ? "Edit Semester" : "Add Semester"}
+              {editingSemester ? translateTerminology("Edit Semester") : translateTerminology("Add Semester")}
             </h2>
           </DialogHeader>
           <div className="space-y-4">
             <div className="text-center">
-              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester Number</label>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Semester Number")}</label>
               <Input
                 type="number"
                 name="number"
@@ -646,7 +655,7 @@ const SemesterManagement = () => {
                     e.preventDefault();
                   }
                 }}
-                placeholder="Enter semester number"
+                placeholder={translateTerminology("Enter semester number")}
                 min="1"
                 max="20"
                 disabled={loading}
@@ -663,7 +672,7 @@ const SemesterManagement = () => {
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={loading} className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
-              {editingSemester ? "Save Changes" : "Add Semester"}
+              {editingSemester ? "Save Changes" : translateTerminology("Add Semester")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -546,8 +546,8 @@ const ApplyLeave = () => {
                           <button
                             onClick={() => setSelectedReason(leave.reason)}
                             className={`w-full text-center text-sm font-semibold py-2 px-4 rounded-lg transition border ${theme === 'dark'
-                                ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
-                                : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100'
+                              ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                              : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100'
                               }`}
                           >
                             View Reason
@@ -583,7 +583,7 @@ const ApplyLeave = () => {
                               <FilterIcon className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
                             </div>
                             <div className="max-w-xs mx-auto">
-                              <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                              <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                                 No Leave Requests Found
                               </h3>
                               <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>

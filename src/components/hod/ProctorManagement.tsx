@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,13 @@ interface Section {
 }
 
 const ProctorStudents = () => {
+  const getSemesterName = (number: number) => {
+    if (getInstitutionType() === 'school') {
+      return `Class ${number}`;
+    }
+    return `Sem ${number}`;
+  };
+
   const { toast } = useToast();
   const { theme } = useTheme();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
@@ -618,26 +625,26 @@ const ProctorStudents = () => {
                         align="start"
                         className={`w-80 sm:w-96 p-4 shadow-xl border rounded-lg ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
                       >
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between border-b pb-2 border-border">
-                              <h4 className="font-semibold text-sm flex items-center gap-1.5 text-primary">
-                                <HelpCircle className="w-4 h-4" />
-                                Proctor Assignment Instructions
-                              </h4>
-                            </div>
-                            <ol className="space-y-2.5 text-xs text-muted-foreground list-decimal pl-4">
-                              <li>
-                                <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Assigning New Proctors:</strong>
-                                <p className="mt-0.5">Select <span className="font-medium text-primary">Unassigned</span> in the Proctor dropdown filter (along with Semester and Section) to view students without a proctor. Click <span className="font-medium text-primary">Edit</span> to enter edit mode, select students, choose a proctor, and click <span className="font-medium text-primary">Assign Selected</span>.</p>
-                              </li>
-                              <li>
-                                <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Editing Existing Assignments:</strong>
-                                <p className="mt-0.5">Filter by the assigned Proctor or view all students, enter edit mode, select the student(s) you wish to reassign, pick the new proctor from the top dropdown menu, and confirm to update.</p>
-                              </li>
-                            </ol>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between border-b pb-2 border-border">
+                            <h4 className="font-semibold text-sm flex items-center gap-1.5 text-primary">
+                              <HelpCircle className="w-4 h-4" />
+                              Proctor Assignment Instructions
+                            </h4>
                           </div>
-                        </PopoverContent>
-                      </Popover>
+                          <ol className="space-y-2.5 text-xs text-muted-foreground list-decimal pl-4">
+                            <li>
+                              <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Assigning New Proctors:</strong>
+                              <p className="mt-0.5">Select <span className="font-medium text-primary">Unassigned</span> in the Proctor dropdown filter (along with Semester and Section) to view students without a proctor. Click <span className="font-medium text-primary">Edit</span> to enter edit mode, select students, choose a proctor, and click <span className="font-medium text-primary">Assign Selected</span>.</p>
+                            </li>
+                            <li>
+                              <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Editing Existing Assignments:</strong>
+                              <p className="mt-0.5">Filter by the assigned Proctor or view all students, enter edit mode, select the student(s) you wish to reassign, pick the new proctor from the top dropdown menu, and confirm to update.</p>
+                            </li>
+                          </ol>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </p>
                 </div>
               </div>
@@ -719,7 +726,7 @@ const ProctorStudents = () => {
                   <label className={`block text-sm sm:text-sm mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                     Choose a Proctor
                   </label>
-                  <Select 
+                  <Select
                     open={isProctorOpen}
                     onOpenChange={(open) => {
                       if (!open && document.activeElement?.tagName.toLowerCase() === 'input') {
@@ -735,7 +742,7 @@ const ProctorStudents = () => {
                     <SelectTrigger className={`text-base w-full ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                       <SelectValue placeholder={state.loadingProctors ? "Loading..." : "Choose a proctor"} />
                     </SelectTrigger>
-                    <SelectContent 
+                    <SelectContent
                       className={`max-h-[320px] overflow-hidden flex flex-col z-[9999] ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}
                       onInteractOutside={() => {
                         if (document.activeElement?.tagName.toLowerCase() === 'input') {
@@ -930,7 +937,7 @@ const ProctorStudents = () => {
                       <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white border border-gray-300 text-gray-900 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                         {state.semesters.map((semester) => (
                           <SelectItem key={semester.id} value={semester.id}>
-                            Sem {semester.number}
+                            {getSemesterName(semester.number)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -986,7 +993,7 @@ const ProctorStudents = () => {
                       <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || !state.filters.section_id}>
                         <SelectValue placeholder={state.loadingProctors ? "Loading..." : translateTerminology("Choose Proctor")} />
                       </SelectTrigger>
-                      <SelectContent 
+                      <SelectContent
                         className={`max-h-[320px] overflow-hidden flex flex-col z-[9999] ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}
                         onInteractOutside={() => {
                           if (document.activeElement?.tagName.toLowerCase() === 'input') {
@@ -1168,7 +1175,7 @@ const ProctorStudents = () => {
                       {state.editMode && <th className={`py-3 px-4 w-12 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Select</th>}
                       <th className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>USN</th>
                       <th className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Name</th>
-                      <th className={`py-3 px-4 font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Sem</th>
+                      <th className={`py-3 px-4 font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{getInstitutionType() === 'school' ? 'Class' : 'Sem'}</th>
                       <th className={`py-3 px-4 font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section</th>
                       <th className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Proctor")}</th>
                     </tr>
@@ -1200,7 +1207,12 @@ const ProctorStudents = () => {
                           )}
                           <td className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</td>
                           <td className={`py-3 px-4 whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</td>
-                          <td className={`py-3 px-4 text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester.split('th')[0]}</td>
+                          <td className={`py-3 px-4 text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            {(() => {
+                              const num = parseInt(student.semester.replace(/\D/g, ''), 10);
+                              return !isNaN(num) && num > 0 ? getSemesterName(num) : student.semester;
+                            })()}
+                          </td>
                           <td className={`py-3 px-4 text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section}</td>
                           <td className="py-3 px-4">
                             {student.proctor ? (

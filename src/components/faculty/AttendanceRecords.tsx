@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
@@ -564,7 +564,9 @@ const AttendanceRecords = () => {
                                     </div>
                                     <div className="space-y-1">
                                       <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Class</p>
-                                      <p className="text-sm font-semibold">Sem {selectedRecord.semester}, {selectedRecord.branch}</p>
+                                      <p className="text-sm font-semibold">
+                                        {getInstitutionType() === 'school' ? `Class ${selectedRecord.semester}` : `Sem ${selectedRecord.semester}`}, {selectedRecord.branch}
+                                      </p>
                                     </div>
                                     <div className="space-y-1">
                                       <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Percentage</p>

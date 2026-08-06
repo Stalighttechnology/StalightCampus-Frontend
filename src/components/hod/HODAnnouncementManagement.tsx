@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -372,7 +373,9 @@ const HODAnnouncementManagement = () => {
     });
   };
 
-  const roles = ["student", "faculty", "principal", "placement_officer"];
+  const roles = getInstitutionType() === 'school'
+    ? ["student", "faculty", "principal"]
+    : ["student", "faculty", "principal", "placement_officer"];
 
   return (
     <>
@@ -402,9 +405,11 @@ const HODAnnouncementManagement = () => {
               header={
                 <CardHeader className="announcements-card-header flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 gap-4 border-b ">
                   <div className="space-y-1">
-                    <CardTitle className="announcements-card-title text-xl sm:text-2xl font-semibold">Branch Announcements</CardTitle>
+                    <CardTitle className="announcements-card-title text-xl sm:text-2xl font-semibold">
+                      {getInstitutionType() === 'school' ? 'Stream Announcements' : 'Branch Announcements'}
+                    </CardTitle>
                     <CardDescription className={`text-sm sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      Create and manage announcements for your branch
+                      {getInstitutionType() === 'school' ? 'Create and manage announcements for your stream' : 'Create and manage announcements for your branch'}
                     </CardDescription>
                   </div>
                   <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
@@ -427,7 +432,7 @@ const HODAnnouncementManagement = () => {
                         <DialogDescription>
                           {editingId ?
                             "Update the announcement details below" :
-                            "Create a new announcement for your branch"}
+                            (getInstitutionType() === 'school' ? "Create a new announcement for your stream" : "Create a new announcement for your branch")}
                         </DialogDescription>
                       </DialogHeader>
 
@@ -524,7 +529,7 @@ const HODAnnouncementManagement = () => {
                         <div className="p-3 rounded-lg bg-muted flex items-start gap-2">
                           <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                           <p className="text-sm text-muted-foreground">
-                            This announcement will be visible to your branch only
+                            {getInstitutionType() === 'school' ? 'This announcement will be visible to your stream only' : 'This announcement will be visible to your branch only'}
                           </p>
                         </div>
 

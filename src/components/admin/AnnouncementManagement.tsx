@@ -38,6 +38,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { useTheme } from "@/context/ThemeContext";
 import { PLAN_TIERS } from "@/utils/planGating";
+import { translateTerminology, getInstitutionType } from "@/utils/institutionConfig";
 import { SkeletonTable } from "@/components/ui/skeleton";
 import {
   fetchAnnouncements,
@@ -518,7 +519,8 @@ const AdminAnnouncementManagement = () => {
   };
 
   const baseRoles = getTargetRolesForUser(user?.role);
-  const roles = (userTier >= 2 ? baseRoles : baseRoles.filter(r => BASIC_ROLES.includes(r))).filter(r => r !== user?.role);
+  const rawRoles = (userTier >= 2 ? baseRoles : baseRoles.filter(r => BASIC_ROLES.includes(r))).filter(r => r !== user?.role);
+  const roles = getInstitutionType() === 'school' ? rawRoles.filter(r => r !== "placement_officer") : rawRoles;
 
   const renderHeader = (
     <CardHeader id="announcement-header-section" className="announcements-card-header border-b pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -767,7 +769,7 @@ const AdminAnnouncementManagement = () => {
                           onCheckedChange={() => { }}
                           className="pointer-events-none"
                         />
-                        <span className="capitalize">{role.replace('_', ' ')}</span>
+                        <span className="capitalize">{translateTerminology(role.replace('_', ' '))}</span>
                       </div>
                     );
                   })}

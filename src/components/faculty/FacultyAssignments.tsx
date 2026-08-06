@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import Swal from "sweetalert2";
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -973,11 +973,11 @@ const FacultyAssignments = () => {
                     disabled={hasSubmissions || assignedSubjects.length === 0 || uniqueBranches.length === 0}>
 
                     <SelectTrigger>
-                      <SelectValue placeholder={assignedSubjects.length === 0 ? "No branches assigned" : "Select Branch"} />
+                      <SelectValue placeholder={assignedSubjects.length === 0 ? (getInstitutionType() === 'school' ? "No streams assigned" : "No branches assigned") : (getInstitutionType() === 'school' ? "Select Stream" : "Select Branch")} />
                     </SelectTrigger>
                     <SelectContent className="max-h-[200px]">
                       {uniqueBranches.length === 0 ? (
-                        <SelectItem value="none" disabled>No branches assigned</SelectItem>
+                        <SelectItem value="none" disabled>{getInstitutionType() === 'school' ? "No streams assigned" : "No branches assigned"}</SelectItem>
                       ) : (
                         uniqueBranches.map((b: any) =>
                           <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
@@ -1005,7 +1005,7 @@ const FacultyAssignments = () => {
                     disabled={hasSubmissions || !formData.branch_id || uniqueSubjects.length === 0}>
 
                     <SelectTrigger>
-                      <SelectValue placeholder={!formData.branch_id ? "Select Branch first" : uniqueSubjects.length === 0 ? "No subjects assigned" : "Select Subject"} />
+                      <SelectValue placeholder={!formData.branch_id ? (getInstitutionType() === 'school' ? "Select Stream first" : "Select Branch first") : uniqueSubjects.length === 0 ? "No subjects assigned" : "Select Subject"} />
                     </SelectTrigger>
                     <SelectContent className="max-h-[200px]">
                       {uniqueSubjects.length === 0 ? (
@@ -1037,14 +1037,14 @@ const FacultyAssignments = () => {
                     disabled={hasSubmissions || !formData.subject_id || uniqueSemesters.length === 0}>
 
                     <SelectTrigger>
-                      <SelectValue placeholder={!formData.subject_id ? "Select Subject first" : uniqueSemesters.length === 0 ? "No semesters assigned" : "Select Semester"} />
+                      <SelectValue placeholder={!formData.subject_id ? "Select Subject first" : uniqueSemesters.length === 0 ? (getInstitutionType() === 'school' ? "No classes assigned" : "No semesters assigned") : (getInstitutionType() === 'school' ? "Select Class" : "Select Semester")} />
                     </SelectTrigger>
                     <SelectContent className="max-h-[200px]">
                       {uniqueSemesters.length === 0 ? (
-                        <SelectItem value="none" disabled>No semesters assigned</SelectItem>
+                        <SelectItem value="none" disabled>{getInstitutionType() === 'school' ? "No classes assigned" : "No semesters assigned"}</SelectItem>
                       ) : (
                         uniqueSemesters.map((s: any) =>
-                          <SelectItem key={s.id} value={s.id}>Semester {s.number}</SelectItem>
+                          <SelectItem key={s.id} value={s.id}>{getInstitutionType() === 'school' ? `Class ${s.number}` : `Semester ${s.number}`}</SelectItem>
                         )
                       )}
                     </SelectContent>
@@ -1062,7 +1062,7 @@ const FacultyAssignments = () => {
                     disabled={hasSubmissions || !formData.semester_id || uniqueSections.length === 0}>
 
                     <SelectTrigger>
-                      <SelectValue placeholder={!formData.semester_id ? "Select Semester first" : uniqueSections.length === 0 ? "No sections assigned" : "Select Section"} />
+                      <SelectValue placeholder={!formData.semester_id ? (getInstitutionType() === 'school' ? "Select Class first" : "Select Semester first") : uniqueSections.length === 0 ? "No sections assigned" : "Select Section"} />
                     </SelectTrigger>
                     <SelectContent className="max-h-[200px]">
                       {uniqueSections.length === 0 ? (

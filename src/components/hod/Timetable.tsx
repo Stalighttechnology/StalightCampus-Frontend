@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
@@ -207,6 +207,13 @@ const formatTo12h = (timeStr: string | null | undefined): string => {
   if (hh === 0) hh = 12;
   const hhStr = hh.toString().padStart(2, "0");
   return `${hhStr}:${mm} ${ampm}`;
+};
+
+const getSemesterName = (number: number) => {
+  if (getInstitutionType() === 'school') {
+    return `Class ${number}`;
+  }
+  return `Semester ${number}`;
 };
 
 interface TimePickerProps {
@@ -1312,17 +1319,17 @@ const Timetable = () => {
                       disabled={state.loading || state.semesters.length === 0}>
 
                       <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border" disabled={state.loading || state.semesters.length === 0}>
-                        <SelectValue placeholder={state.semesters.length === 0 ? "No semester available" : "Select Semester"} />
+                        <SelectValue placeholder={state.semesters.length === 0 ? `No ${translateTerminology("semester").toLowerCase()} available` : translateTerminology("Select Semester")} />
                       </SelectTrigger>
                       <SelectContent className="bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar">
                         {state.semesters.length === 0 ? (
                           <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
-                            No semester available
+                            No {translateTerminology("semester").toLowerCase()} available
                           </div>
                         ) : (
                           state.semesters.map((semester) =>
                             <SelectItem key={semester.id} value={semester.id} className="text-foreground">
-                              {semester.number} Semester
+                              {getSemesterName(semester.number)}
                             </SelectItem>
                           )
                         )}
@@ -1340,7 +1347,7 @@ const Timetable = () => {
                       <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border" disabled={state.loading || !state.semesterId}>
                         <SelectValue placeholder={
                           !state.semesterId ?
-                            "Select Semester" :
+                            translateTerminology("Select Semester") :
                             state.sections.length === 0 ?
                               "No section available" :
                               "Select Section"
@@ -1349,7 +1356,7 @@ const Timetable = () => {
                       <SelectContent className="bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar">
                         {!state.semesterId ? (
                           <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
-                            Select semester first
+                            {translateTerminology("Select semester first")}
                           </div>
                         ) : state.sections.length === 0 ? (
                           <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
@@ -1368,9 +1375,12 @@ const Timetable = () => {
                 </div>
                 <div className="text-sm text-muted-foreground mt-2 md:mt-0 md:ml-4 md:whitespace-nowrap md:flex-none">
                   {state.semesterId && state.sectionId ?
-                    `${state.semesters.find((s) => s.id === state.semesterId)?.number} Semester - Section ${state.sections.find((s) => s.id === state.sectionId)?.name}` :
-
-                    "Select Semester and Section"}
+                    (() => {
+                      const semObj = state.semesters.find((s) => s.id === state.semesterId);
+                      const semName = semObj ? getSemesterName(semObj.number) : '';
+                      return `${semName} - Section ${state.sections.find((s) => s.id === state.sectionId)?.name}`;
+                    })() :
+                    `Select ${translateTerminology("Semester")} and Section`}
                 </div>
               </div>
             </div>
@@ -1391,7 +1401,7 @@ const Timetable = () => {
                 </div>
                 <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>View Timetable</h3>
                 <p className="max-w-xs text-base leading-relaxed">
-                  Select a <span className="font-semibold text-primary">semester</span> and <span className="font-semibold text-primary">section</span> above to display the weekly schedule.
+                  Select a <span className="font-semibold text-primary">{translateTerminology("semester").toLowerCase()}</span> and <span className="font-semibold text-primary">section</span> above to display the weekly schedule.
                 </p>
               </div>
             ) : viewMode === 'daily' ? (
@@ -1501,6 +1511,16 @@ const Timetable = () => {
                     );
                   })()}
                 </div>
+              </div>
+            ) : getTableData().length === 0 ? (
+              <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                <div className={`p-5 rounded-full mb-4 ${theme === 'dark' ? 'bg-amber-500/20 text-amber-500' : 'bg-amber-50 text-amber-600'}`}>
+                  <Clock className="w-10 h-10 opacity-80" />
+                </div>
+                <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Timetable Slots Not Configured</h3>
+                <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+                  The time slots for this timetable have not been configured yet. Please configure the timetable slots in administrative settings.
+                </p>
               </div>
             ) : (
               /* HOD WEEKLY GRID VIEW */

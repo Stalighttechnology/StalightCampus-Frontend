@@ -35,6 +35,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { getStaffAttendanceAudit, getStaffDetailedAttendance, STAFF_ROLES } from '../../utils/fees_manager_api';
 import { useTheme } from '@/context/ThemeContext';
 import { PLAN_TIERS } from '../../utils/planGating';
+import { translateTerminology, getInstitutionType } from '../../utils/institutionConfig';
 import {
   Skeleton,
   SkeletonStatsGrid,
@@ -73,9 +74,16 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
   const orgPlan = user?.org_plan || "basic";
   const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
 
-  const filteredRoles = (userTier <= 2
+  const baseFilteredRoles = (userTier <= 2
     ? STAFF_ROLES.filter(r => ['principal', 'hod', 'teacher', 'coe', 'fees_manager'].includes(r.value))
     : STAFF_ROLES);
+
+  const filteredRoles = baseFilteredRoles
+    .filter(r => getInstitutionType() !== 'school' || r.value !== 'placement_officer')
+    .map(r => ({
+      ...r,
+      label: translateTerminology(r.label)
+    }));
 
   // Calendar Detailed View
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
@@ -360,7 +368,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                 <TableRow className="hover:bg-transparent border-b border-border/50">
                   <TableHead className="px-6 py-4 text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Staff Name</TableHead>
                   <TableHead className="px-6 py-4 text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Role</TableHead>
-                  <TableHead className="px-6 py-4 text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Department</TableHead>
+                  <TableHead className="px-6 py-4 text-sm sm:text-[14px] font-semibold uppercase tracking-wider">{translateTerminology("Department")}</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Total Days</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-green-600">Present</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-red-600">Absent</TableHead>
@@ -381,8 +389,8 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                       <TableRow key={item.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
                         <TableCell className="py-5 px-6 font-semibold text-sm sm:text-base text-foreground">{item.name}</TableCell>
                         <TableCell className="px-6">
-                          <Badge variant="outline" className="bg-muted/30 text-[10px] font-semibold uppercase tracking-widest border-border/50 px-2 py-0.5 rounded-md">
-                            {item.role}
+                          <Badge variant="outline" className="bg-muted/30 text-[10px] font-semibold uppercase tracking-widest border-border/50 px-2 py-0.5 rounded-md whitespace-nowrap">
+                            {translateTerminology(item.role)}
                           </Badge>
                         </TableCell>
                         <TableCell className="px-6 text-sm text-muted-foreground font-medium">{item.branch_dept}</TableCell>

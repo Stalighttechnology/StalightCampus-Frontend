@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar as ShadcnCalendar } from '../ui/calendar';
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { translateTerminology } from "../../utils/institutionConfig";
 
 
 const AVAILABLE_ROLES = [
@@ -540,13 +541,13 @@ export default function ScheduleMeeting() {
 
                     {['dean', 'coe', 'principal', 'org_admin', 'admission_manager'].includes(userRole || '') && (
                       <div className="grid gap-2">
-                        <Label htmlFor="branch">Branch (Optional)</Label>
+                        <Label htmlFor="branch">{translateTerminology("Branch (Optional)")}</Label>
                         <Select value={selectedBranch} onValueChange={setSelectedBranch}>
                           <SelectTrigger id="branch" className="w-full h-10 px-3 text-xs">
-                            <SelectValue placeholder="All Branches" />
+                            <SelectValue placeholder={translateTerminology("All Branches")} />
                           </SelectTrigger>
                           <SelectContent className="max-h-[200px]">
-                            <SelectItem value="all-branches">All Branches</SelectItem>
+                            <SelectItem value="all-branches">{translateTerminology("All Branches")}</SelectItem>
                             {branches.map(b => (
                               <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                             ))}
@@ -681,7 +682,7 @@ export default function ScheduleMeeting() {
                               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer w-full"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              {role.label}
+                              {translateTerminology(role.label)}
                             </label>
                           </div>
                         ))}

@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Edit2, Trash2, Eye, Clock, User, AlertCircle, MoreVertical, CheckCircle2, XCircle, Megaphone, BellOff, MapPin, ExternalLink, FileDown, Loader2 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { Announcement } from "@/utils/announcements_api";
+import { translateTerminology } from "@/utils/institutionConfig";
 import { actionGatePass } from "@/utils/hms_api";
 import {
   Table,
@@ -160,10 +161,11 @@ const formatAnnouncementMessage = (msg: string) => {
 
 const formatRoleName = (role: string) => {
   if (!role) return "";
-  return role
+  const formatted = role
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+  return translateTerminology(formatted);
 };
 
 const renderTargetRoles = (targetRoles: string[]) => {

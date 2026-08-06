@@ -429,10 +429,10 @@ const LeaveManagement = () => {
                       <div className="shrink-0">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-medium ${row.status === "Pending" ?
-                              theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
-                              row.status === "Approved" ?
-                                theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' :
-                                theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
+                            theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
+                            row.status === "Approved" ?
+                              theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' :
+                              theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
                           }>
 
                           {row.status}
@@ -513,7 +513,7 @@ const LeaveManagement = () => {
                             <Filter className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
                           </div>
                           <div className="max-w-xs mx-auto">
-                            <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                               No Leave Requests Found
                             </h3>
                             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
@@ -544,10 +544,10 @@ const LeaveManagement = () => {
                         <td className="px-4 py-3">
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-medium ${row.status === "Pending" ?
-                                theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
-                                row.status === "Approved" ?
-                                  theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' :
-                                  theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
+                              theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
+                              row.status === "Approved" ?
+                                theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' :
+                                theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
                             }>
 
                             {row.status}
@@ -559,8 +559,8 @@ const LeaveManagement = () => {
                               <Button
                                 variant="outline"
                                 className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
-                                    'text-green-400 border-green-400 hover:bg-green-900/20' :
-                                    'text-green-700 border-green-600 hover:bg-green-100'}`
+                                  'text-green-400 border-green-400 hover:bg-green-900/20' :
+                                  'text-green-700 border-green-600 hover:bg-green-100'}`
                                 }
                                 onClick={() => handleApprove(index)}
                                 disabled={isLoading}>
@@ -570,8 +570,8 @@ const LeaveManagement = () => {
                               <Button
                                 variant="outline"
                                 className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
-                                    'text-red-400 border-red-400 hover:bg-red-900/20' :
-                                    'text-red-700 border-red-600 hover:bg-red-100'}`
+                                  'text-red-400 border-red-400 hover:bg-red-900/20' :
+                                  'text-red-700 border-red-600 hover:bg-red-100'}`
                                 }
                                 onClick={() => handleReject(index)}
                                 disabled={isLoading}>

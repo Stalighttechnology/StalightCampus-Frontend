@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
@@ -325,7 +325,7 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
         {material.subject_code}
       </TableCell>
       <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap text-center`}>
-        {material.semester || "N/A"}
+        {material.semester ? (getInstitutionType() === 'school' ? material.semester.replace(/Sem\s*/i, 'Class ').replace(/Semester\s*/i, 'Class ') : material.semester) : "N/A"}
       </TableCell>
       <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4`}>
         <div className="flex items-center gap-3">
@@ -786,17 +786,19 @@ const StudyMaterials = () => {
                     disabled={!selectedBranchFilter}>
 
                     <SelectTrigger className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                      <SelectValue placeholder={translateTerminology("Select Semester")} />
+                      <SelectValue placeholder={getInstitutionType() === 'school' ? "Choose Class" : translateTerminology("Select Semester")} />
                     </SelectTrigger>
                     <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
                       {pageSemesters && pageSemesters.length > 0 ? (
                         pageSemesters.map((s) => (
                           <SelectItem key={s.id} value={s.id}>
-                            {`Semester ${s.number}`}
+                            {getInstitutionType() === 'school' ? `Class ${s.number}` : `Semester ${s.number}`}
                           </SelectItem>
                         ))
                       ) : (
-                        <div className="py-2 px-8 text-sm text-muted-foreground text-center">No semesters available</div>
+                        <div className="py-2 px-8 text-sm text-muted-foreground text-center">
+                          {getInstitutionType() === 'school' ? "No classes available" : "No semesters available"}
+                        </div>
                       )}
                     </SelectContent>
                   </Select>
@@ -876,7 +878,9 @@ const StudyMaterials = () => {
                       <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Title</TableHead>
                       <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Course Name</TableHead>
                       <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Code</TableHead>
-                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap text-center">Sem</TableHead>
+                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap text-center">
+                        {getInstitutionType() === 'school' ? 'Class' : 'Sem'}
+                      </TableHead>
                       <TableHead className="hidden lg:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Uploaded By</TableHead>
                       <TableHead className="text-right px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Action</TableHead>
                     </TableRow>
@@ -958,7 +962,9 @@ const StudyMaterials = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>{translateTerminology("Branch")} <span className="text-red-500">*</span></Label>
+                <Label>
+                  {getInstitutionType() === 'school' ? 'Stream' : translateTerminology("Branch")} <span className="text-red-500">*</span>
+                </Label>
                 <Select
                   open={isModalBranchOpen}
                   onOpenChange={setIsModalBranchOpen}
@@ -970,7 +976,7 @@ const StudyMaterials = () => {
                   disabled={uploading}>
 
                   <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
-                    <SelectValue placeholder={translateTerminology("Select Branch")} />
+                    <SelectValue placeholder={getInstitutionType() === 'school' ? 'Select Stream' : translateTerminology("Select Branch")} />
                   </SelectTrigger>
                   <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900')}>
                     {branches.length > 0 ? (
@@ -988,29 +994,33 @@ const StudyMaterials = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>{translateTerminology("Semester")} <span className="text-red-500">*</span></Label>
+                  <Label>
+                    {getInstitutionType() === 'school' ? 'Class' : translateTerminology("Semester")} <span className="text-red-500">*</span>
+                  </Label>
                   <Select
                     open={isModalSemesterOpen}
                     onOpenChange={setIsModalSemesterOpen}
                     value={semesterId}
                     onValueChange={(value) => {
                       setSemesterId(value);
-                      setTimeout(() => setIsModalSectionOpen(true), 150);
+                      setTimeout(() => setIsSectionDropdownOpen(true), 150);
                     }}
                     disabled={uploading || !branchId}>
 
                     <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
-                      <SelectValue placeholder="Select Sem" />
+                      <SelectValue placeholder={getInstitutionType() === 'school' ? "Choose Class" : "Select Sem"} />
                     </SelectTrigger>
                     <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900')}>
                       {modalSemesters.length > 0 ? (
                         modalSemesters.map((s) => (
                           <SelectItem key={s.id} value={s.id}>
-                            Sem {s.number}
+                            {getInstitutionType() === 'school' ? `Class ${s.number}` : `Sem ${s.number}`}
                           </SelectItem>
                         ))
                       ) : (
-                        <div className="py-2 px-8 text-sm text-muted-foreground text-center">No semesters available</div>
+                        <div className="py-2 px-8 text-sm text-muted-foreground text-center">
+                          {getInstitutionType() === 'school' ? "No classes available" : "No semesters available"}
+                        </div>
                       )}
                     </SelectContent>
                   </Select>
@@ -1090,7 +1100,7 @@ const StudyMaterials = () => {
                                  Select All
                                </label>
                                {/* Individual section rows */}
-                               <div className="max-h-[180px] overflow-y-auto">
+                               <div className="max-h-[120px] overflow-y-auto custom-scrollbar">
                                  {modalSections.map((s) => (
                                    <label
                                      key={s.id}

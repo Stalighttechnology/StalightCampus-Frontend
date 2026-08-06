@@ -9,6 +9,7 @@ import { AlertCircle } from "lucide-react";
 import DashboardCard from "../common/DashboardCard";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
+import { translateTerminology } from "../../utils/institutionConfig";
 
 const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
   const { theme } = useTheme();
@@ -96,25 +97,25 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
           <div id="dean-attendance-stats-grid">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <DashboardCard
-                title={`HODs Present ${isMonthly ? 'Days' : ''}`}
+                title={translateTerminology(`HODs Present ${isMonthly ? 'Days' : ''}`)}
                 value={hodPresentCount}
-                description={`Total HODs: ${totalHods}`}
+                description={translateTerminology(`Total HODs: ${totalHods}`)}
                 icon={<FaUserTie className={theme === 'dark' ? 'text-green-400 text-3xl' : 'text-green-500 text-3xl'} />}
               />
               <DashboardCard
-                title={`HODs Absent ${isMonthly ? 'Days' : ''}`}
+                title={translateTerminology(`HODs Absent ${isMonthly ? 'Days' : ''}`)}
                 value={hodAbsentCount}
                 description={isMonthly ? 'Absent days in period' : 'Absent today'}
                 icon={<FaUserSlash className={theme === 'dark' ? 'text-red-400 text-3xl' : 'text-red-500 text-3xl'} />}
               />
               <DashboardCard
-                title="Admins Present"
+                title={translateTerminology("Admins Present")}
                 value={adminPresentCount}
-                description={`Admin presence ${isMonthly ? 'in period' : '(today)'}`}
+                description={translateTerminology(`Admin presence ${isMonthly ? 'in period' : '(today)'}`)}
                 icon={<FaUserShield className={theme === 'dark' ? 'text-indigo-400 text-3xl' : 'text-indigo-500 text-3xl'} />}
               />
               <DashboardCard
-                title="Admins Absent"
+                title={translateTerminology("Admins Absent")}
                 value={isMonthly ? '—' : adminAbsentCount}
                 description={isMonthly ? '(not tracked)' : 'Absent today'}
                 icon={<FaUserSlash className={theme === 'dark' ? 'text-gray-400 text-3xl' : 'text-gray-500 text-3xl'} />}
@@ -126,7 +127,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card className={`flex flex-col shadow ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-xl sm:text-lg font-semibold">HODs — {isMonthly ? 'Monthly Report' : 'Today'}</CardTitle>
+                <CardTitle className="text-xl sm:text-lg font-semibold">{translateTerminology("HODs")} — {isMonthly ? 'Monthly Report' : 'Today'}</CardTitle>
               </CardHeader>
               <CardContent className="flex-1">
                 <div className="grid grid-cols-1 gap-3">
@@ -136,7 +137,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                         <div className="font-medium break-words">{h.name}</div>
                         {isMonthly ? (
                           <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            Present: {h.present_days} days • Absent: {h.absent_days} days • Branch: {h.branch}
+                            Present: {h.present_days} days • Absent: {h.absent_days} days • {translateTerminology("Branch")}: {h.branch}
                           </div>
                         ) : (
                           <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
@@ -183,7 +184,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                         <div className={`p-4 rounded-full bg-primary/10 mb-3`}>
                           <FaUserTie className="w-8 h-8 text-primary/40" />
                         </div>
-                        <p className="text-sm text-muted-foreground font-semibold">No HOD records found</p>
+                        <p className="text-sm text-muted-foreground font-semibold">No {translateTerminology("HOD")} records found</p>
                       </CardContent>
                     </Card>
                   )}
@@ -225,7 +226,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
 
             <Card className={`flex flex-col shadow ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-xl sm:text-lg font-semibold">Admins — {isMonthly ? 'In Period' : 'Today'}</CardTitle>
+                <CardTitle className="text-xl sm:text-lg font-semibold">{translateTerminology("Admins")} — {isMonthly ? 'In Period' : 'Today'}</CardTitle>
               </CardHeader>
               <CardContent className="flex-1">
                 <div className="grid grid-cols-1 gap-3">
@@ -269,7 +270,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                         <div className={`p-4 rounded-full bg-primary/10 mb-3`}>
                           <FaUserShield className="w-8 h-8 text-primary/40" />
                         </div>
-                        <p className="text-sm text-muted-foreground font-semibold">No admin records found</p>
+                        <p className="text-sm text-muted-foreground font-semibold">No {translateTerminology("admin")} records found</p>
                       </CardContent>
                     </Card>
                   )}

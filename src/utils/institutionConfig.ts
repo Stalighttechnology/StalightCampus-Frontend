@@ -26,6 +26,8 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     electives: 'Electives',
     proctor: 'Proctor',
     mentoring: 'Mentoring',
+    admin: 'Admin',
+    admins: 'Admins',
   },
   medical: {
     branch: 'Course',
@@ -37,7 +39,8 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     labs: 'Clinical Postings',
     electives: 'Electives',
     proctor: 'Mentor',
-    mentoring: 'Mentoring',
+    admin: 'Admin',
+    admins: 'Admins',
   },
   school: {
     branch: 'Stream',
@@ -45,6 +48,8 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     semester: 'Class',
     semesters: 'Classes',
     hod: 'Co-Ordinator',
+    admin: 'Principal',
+    admins: 'Principals',
     coAttainment: 'Learning Outcomes',
     labs: 'Practicals',
     electives: 'Optional Subjects',
@@ -99,13 +104,18 @@ export const translateTerminology = (content: any): any => {
     { pattern: /\bBranches\b/gi, key: "branches" },
     { pattern: /\bDepartment\b/gi, key: "branch" },
     { pattern: /\bDepartments\b/gi, key: "branches" },
-    { pattern: /\bSemester\b/g, key: "semester" },
-    { pattern: /\bSemesters\b/g, key: "semesters" },
+    { pattern: /\bSemester\b/gi, key: "semester" },
+    { pattern: /\bSemesters\b/gi, key: "semesters" },
+    { pattern: /\bDepartment Admin\b/gi, key: "branchAdmin" },
+    { pattern: /\bDepartment Admins\b/gi, key: "branchAdmins" },
     { pattern: /\bHOD\b/gi, key: "hod" },
     { pattern: /\bHODs\b/gi, key: "hod" },
     { pattern: /\bHead of Department\b/gi, key: "hod" },
+    { pattern: /\bHeads of Departments\b/gi, key: "hod" },
     { pattern: /\bDept heads\b/gi, key: "hod" },
     { pattern: /\bDepartment heads\b/gi, key: "hod" },
+    { pattern: /\bAdmin\b/g, key: "admin" },
+    { pattern: /\bAdmins\b/g, key: "admins" },
     { pattern: /\bProctor\b/g, key: "proctor" },
     { pattern: /\bProctors\b/g, key: "proctor" },
     { pattern: /\bMentoring\b/g, key: "mentoring" },
@@ -117,7 +127,7 @@ export const translateTerminology = (content: any): any => {
   for (const { pattern, key } of replacements) {
     if (pattern.test(result)) {
       let replacement = getTerm(key as any);
-      if (pattern.source.includes("HODs") || pattern.source.includes("Dept heads") || pattern.source.includes("Department heads") || pattern.source.includes("Proctors") || pattern.source.includes("Electives")) {
+      if (pattern.source.includes("HODs") || pattern.source.includes("Heads of Departments") || pattern.source.includes("Dept heads") || pattern.source.includes("Department heads") || pattern.source.includes("Proctors") || pattern.source.includes("Electives")) {
         replacement = replacement + "s";
       }
 
