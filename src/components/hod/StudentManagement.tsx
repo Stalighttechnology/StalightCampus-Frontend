@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { useRef, useState, useEffect } from "react";
 import {
   Card,
@@ -113,6 +113,17 @@ const StudentManagement = () => {
     pageSize: 50,
     successMessage: ""
   });
+
+  const getSemesterName = (number: number) => {
+    if (getInstitutionType() === 'school') {
+      return `Class ${number}`;
+    }
+    let suffix = "th";
+    if (number % 10 === 1 && number % 100 !== 11) suffix = "st";
+    else if (number % 10 === 2 && number % 100 !== 12) suffix = "nd";
+    else if (number % 10 === 3 && number % 100 !== 13) suffix = "rd";
+    return `${number}${suffix} Semester`;
+  };
 
   const bootstrap = useHODBootstrap();
   const [sectionsCache, setSectionsCache] = useState<Record<string, Section[]>>({});
@@ -699,11 +710,13 @@ const StudentManagement = () => {
       return;
     }
 
-    // Check cycle validation for semesters 1 and 2
-    const semesterNumber = getSemesterNumber(state.bulkForm.semester);
-    if (semesterNumber <= 2 && !state.bulkForm.cycle) {
-      showErrorAlert("Error", "Please select cycle for semesters 1 and 2");
-      return;
+    // Check cycle validation for semesters 1 and 2 (engineering/medical only)
+    if (getInstitutionType() !== 'school') {
+      const semesterNumber = getSemesterNumber(state.bulkForm.semester);
+      if (semesterNumber <= 2 && !state.bulkForm.cycle) {
+        showErrorAlert("Error", "Please select cycle for semesters 1 and 2");
+        return;
+      }
     }
 
     updateState({ isLoading: true, uploadErrors: [] });
@@ -900,12 +913,14 @@ const StudentManagement = () => {
     if (!semester) newErrors.semester = "Semester is required";
     if (!batch) newErrors.batch = "Batch is required";
 
-    // Cycle validation for semesters 1 and 2
-    const semesterNumber = getSemesterNumber(semester);
-    if (semesterNumber <= 2 && !state.manualForm.cycle) {
-      newErrors.cycle = "Cycle is required for semesters 1 and 2";
-    } else if (semesterNumber > 2 && state.manualForm.cycle) {
-      newErrors.cycle = "Cycle can only be set for semesters 1 and 2";
+    // Cycle validation for semesters 1 and 2 (engineering/medical only)
+    if (getInstitutionType() !== 'school') {
+      const semesterNumber = getSemesterNumber(semester);
+      if (semesterNumber <= 2 && !state.manualForm.cycle) {
+        newErrors.cycle = "Cycle is required for semesters 1 and 2";
+      } else if (semesterNumber > 2 && state.manualForm.cycle) {
+        newErrors.cycle = "Cycle can only be set for semesters 1 and 2";
+      }
     }
 
     // Phone validation (optional)
@@ -993,19 +1008,20 @@ const StudentManagement = () => {
     }
   };
 
-
   // Handle edit save
   const handleEditSave = async () => {
-    // Validate cycle for semesters 1 and 2
-    const semesterNumber = getSemesterNumber(state.editForm.semester);
-    if (semesterNumber <= 2 && !state.editForm.cycle) {
-      Swal.fire({
-        icon: "error",
-        title: "Validation Error",
-        text: "Cycle is required for semesters 1 and 2",
-        confirmButtonColor: "#9147e0"
-      });
-      return;
+    // Validate cycle for semesters 1 and 2 (engineering/medical only)
+    if (getInstitutionType() !== 'school') {
+      const semesterNumber = getSemesterNumber(state.editForm.semester);
+      if (semesterNumber <= 2 && !state.editForm.cycle) {
+        Swal.fire({
+          icon: "error",
+          title: "Validation Error",
+          text: "Cycle is required for semesters 1 and 2",
+          confirmButtonColor: "#9147e0"
+        });
+        return;
+      }
     }
 
     try {
@@ -1353,14 +1369,26 @@ const StudentManagement = () => {
                   <SelectValue placeholder="Choose Mode of Admission" />
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                  <SelectItem value="KCET">KCET</SelectItem>
-                  <SelectItem value="COMEDK">COMEDK</SelectItem>
-                  <SelectItem value="JEE Main">JEE Main</SelectItem>
-                  <SelectItem value="NEET">NEET</SelectItem>
-                  <SelectItem value="Merit">Merit</SelectItem>
-                  <SelectItem value="Management">Management</SelectItem>
-                  <SelectItem value="NRI">NRI</SelectItem>
-                  <SelectItem value="Lateral Entry">Lateral Entry</SelectItem>
+                  {getInstitutionType() === 'school' ? (
+                    <>
+                      <SelectItem value="Regular">Regular</SelectItem>
+                      <SelectItem value="Management">Management</SelectItem>
+                      <SelectItem value="Merit">Merit</SelectItem>
+                      <SelectItem value="RTE">RTE</SelectItem>
+                      <SelectItem value="Transfer">Transfer</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="KCET">KCET</SelectItem>
+                      <SelectItem value="COMEDK">COMEDK</SelectItem>
+                      <SelectItem value="JEE Main">JEE Main</SelectItem>
+                      <SelectItem value="NEET">NEET</SelectItem>
+                      <SelectItem value="Merit">Merit</SelectItem>
+                      <SelectItem value="Management">Management</SelectItem>
+                      <SelectItem value="NRI">NRI</SelectItem>
+                      <SelectItem value="Lateral Entry">Lateral Entry</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -1377,13 +1405,13 @@ const StudentManagement = () => {
 
               <SelectTrigger id="semester-select-trigger" className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} placeholder:text-muted-foreground focus:ring-0`}>
                 <SelectValue
-                  placeholder={state.semesters.length === 0 ? "No semesters available" : "Choose Semester"} />
+                  placeholder={state.semesters.length === 0 ? `No ${translateTerminology("semesters").toLowerCase()} available` : translateTerminology("Choose Semester")} />
 
               </SelectTrigger>
               <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                 {state.semesters.map((s) =>
                   <SelectItem key={s.id} value={`${s.number}th Semester`} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
-                    Semester {s.number}
+                    {getSemesterName(s.number)}
                   </SelectItem>
                 )}
                 {state.semesters.length === 0 && (
@@ -1396,7 +1424,7 @@ const StudentManagement = () => {
                         handleOpenAddSemester();
                       }}
                       className="w-full bg-primary hover:bg-[#9147e0] text-white shadow-sm transition-all active:scale-95 text-xs py-1.5 h-auto">
-                      Add Semester
+                      + Add {translateTerminology("Semester")}
                     </Button>
                   </div>
                 )}
@@ -1411,7 +1439,7 @@ const StudentManagement = () => {
                 <SelectValue
                   placeholder={
                     !state.manualForm.semester ?
-                      "Select semester first" :
+                      translateTerminology("Select semester first") :
                       state.manualSections.length === 0 ?
                         "No sections available" :
                         "Choose Section"
@@ -1460,7 +1488,7 @@ const StudentManagement = () => {
                 )}
               </SelectContent>
             </Select>
-            {state.manualForm.semester && getSemesterNumber(state.manualForm.semester) <= 2 &&
+            {getInstitutionType() !== 'school' && state.manualForm.semester && getSemesterNumber(state.manualForm.semester) <= 2 &&
               <Select
                 value={state.manualForm.cycle}
                 onValueChange={(value) => updateState({ manualForm: { ...state.manualForm, cycle: value } })}
@@ -1489,7 +1517,7 @@ const StudentManagement = () => {
                 !state.manualForm.semester ||
                 !state.manualForm.section ||
                 !state.manualForm.batch ||
-                getSemesterNumber(state.manualForm.semester) <= 2 && !state.manualForm.cycle
+                (getInstitutionType() !== 'school' && getSemesterNumber(state.manualForm.semester) <= 2 && !state.manualForm.cycle)
               }
               className="flex items-center justify-center gap-1 text-sm font-medium px-4 py-1.5 rounded-md transition disabled:opacity-50 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
 
@@ -1587,15 +1615,15 @@ const StudentManagement = () => {
                     <SelectValue
                       placeholder={
                         state.semesters.length === 0 ?
-                          "No semesters available" :
-                          "Choose Semester"
+                          `No ${translateTerminology("semesters").toLowerCase()} available` :
+                          translateTerminology("Choose Semester")
                       } />
 
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {state.semesters.map((s) =>
                       <SelectItem key={s.id} value={s.id} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
-                        Semester {s.number}
+                        {getSemesterName(s.number)}
                       </SelectItem>
                     )}
                   </SelectContent>
@@ -1622,7 +1650,7 @@ const StudentManagement = () => {
                     <SelectValue
                       placeholder={
                         state.semesterFilter === "" ?
-                          "Select semester first" :
+                          translateTerminology("Select semester first") :
                           state.listSections.filter((section) => section.semester_id === state.semesterFilter).length === 0 ?
                             "No section available" :
                             "Choose Section"
@@ -1646,8 +1674,9 @@ const StudentManagement = () => {
                   </SelectContent>
                 </Select>
 
-                {/* Cycle dropdown — only for Semester 1 */}
-                {state.semesterFilter !== "" &&
+                {/* Cycle dropdown — only for Semester 1 (and not school) */}
+                {getInstitutionType() !== 'school' &&
+                  state.semesterFilter !== "" &&
                   state.semesters.find(s => s.id === state.semesterFilter)?.number === 1 && (
                   <Select
                     value={state.cycleFilter || "all"}
@@ -1680,10 +1709,10 @@ const StudentManagement = () => {
                 <Search className="w-10 h-10 text-primary opacity-50" />
               </div>
               <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Choose Semester, Choose Section
+                {translateTerminology("Choose Semester")}, Choose Section
               </h3>
               <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                Please choose a semester and section from the dropdowns above to load the student list.
+                Please choose a {translateTerminology("semester").toLowerCase()} and section from the dropdowns above to load the student list.
               </p>
             </div>
           ) : state.isLoading ? (
@@ -1701,7 +1730,9 @@ const StudentManagement = () => {
                       <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Email</th>
                       <th className="hidden sm:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Phone</th>
                       <th className="hidden md:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Section</th>
-                      <th className="hidden lg:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Mode</th>
+                      {getInstitutionType() !== 'school' && (
+                        <th className="hidden lg:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Mode</th>
+                      )}
                       <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">{translateTerminology("Semester")}</th>
                       <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Actions</th>
                     </tr>
@@ -1714,8 +1745,15 @@ const StudentManagement = () => {
                         <td className="py-3 px-3 md:px-4 text-sm md:text-base">{student.email}</td>
                         <td className="hidden sm:table-cell py-3 px-3 md:px-4 text-sm md:text-base">{student.phone && student.phone.trim() ? student.phone : '-'}</td>
                         <td className="hidden md:table-cell py-3 px-3 md:px-4 text-sm md:text-base">Section {student.section}</td>
-                        <td className="hidden lg:table-cell py-3 px-3 md:px-4 text-sm md:text-base">{student.mode_of_admission || 'KCET'}</td>
-                        <td className="py-3 px-3 md:px-4 text-sm md:text-base">{student.semester}</td>
+                        {getInstitutionType() !== 'school' && (
+                          <td className="hidden lg:table-cell py-3 px-3 md:px-4 text-sm md:text-base">{student.mode_of_admission || 'KCET'}</td>
+                        )}
+                        <td className="py-3 px-3 md:px-4 text-sm md:text-base">
+                          {(() => {
+                            const semNum = parseInt(student.semester.replace(/\D/g, ''), 10);
+                            return !isNaN(semNum) && semNum > 0 ? getSemesterName(semNum) : student.semester;
+                          })()}
+                        </td>
                         <td className="py-3 px-3 md:px-4 text-sm md:text-base">
                           <div className="flex items-center gap-3">
                             <button
@@ -1935,8 +1973,8 @@ const StudentManagement = () => {
                 </SelectContent>
               </Select>
 
-              {/* Cycle Dropdown - only for semesters 1 and 2 */}
-              {state.bulkForm.semester && getSemesterNumber(state.bulkForm.semester) <= 2 &&
+              {/* Cycle Dropdown - only for semesters 1 and 2 (and not school) */}
+              {getInstitutionType() !== 'school' && state.bulkForm.semester && getSemesterNumber(state.bulkForm.semester) <= 2 &&
                 <Select
                   value={state.bulkForm.cycle}
                   onValueChange={(value) => updateState({ bulkForm: { ...state.bulkForm, cycle: value } })}
@@ -2213,8 +2251,8 @@ const StudentManagement = () => {
                 </SelectContent>
               </Select>
             </div>
-            {/* Cycle field - only show for semesters 1 and 2 */}
-            {getSemesterNumber(state.editForm.semester) <= 2 &&
+            {/* Cycle field - only show for semesters 1 and 2 (and not school) */}
+            {getInstitutionType() !== 'school' && getSemesterNumber(state.editForm.semester) <= 2 &&
               <div className="col-span-2 space-y-1">
                 <label className="sm:text-[15px] font-medium ml-1">Cycle</label>
                 <Select
