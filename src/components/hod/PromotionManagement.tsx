@@ -209,21 +209,30 @@ const PromotionHistoryModal = ({ open, onOpenChange, type, theme }: { open: bool
                   <TableRow>
                     <TableHead>USN</TableHead>
                     <TableHead>Name</TableHead>
-                    <TableHead>Semesters</TableHead>
+                    <TableHead>{getInstitutionType() === 'school' ? 'Classes' : 'Semesters'}</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Reason</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.usn}</TableCell>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>{item.from_semester || 'N/A'} → {item.to_semester || 'N/A'}</TableCell>
-                      <TableCell>{item.processed_at ? new Date(item.processed_at).toLocaleDateString() : 'N/A'}</TableCell>
-                      <TableCell className="max-w-[200px] truncate" title={item.remarks}>{item.remarks || '-'}</TableCell>
-                    </TableRow>
-                  ))}
+                  {data.map((item) => {
+                    const formatSem = (val: string | null) => {
+                      if (!val) return 'N/A';
+                      if (getInstitutionType() === 'school') {
+                        return val.replace(/(\d+)(?:st|nd|rd|th)\s+Semester/gi, 'Class $1').replace(/Sem\s*(\d+)/gi, 'Class $1');
+                      }
+                      return val;
+                    };
+                    return (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">{item.usn}</TableCell>
+                        <TableCell>{item.name}</TableCell>
+                        <TableCell>{formatSem(item.from_semester)} → {formatSem(item.to_semester)}</TableCell>
+                        <TableCell>{item.processed_at ? new Date(item.processed_at).toLocaleDateString() : 'N/A'}</TableCell>
+                        <TableCell className="max-w-[200px] truncate" title={item.remarks}>{item.remarks || '-'}</TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -1478,7 +1487,7 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
       Swal.fire({
         icon: 'error',
         title: 'Demotion Failed',
-        text: 'No previous semester available to demote to.',
+        text: getInstitutionType() === 'school' ? 'No previous class available to demote to.' : 'No previous semester available to demote to.',
         background: theme === 'dark' ? '#0f172a' : '#fff',
         color: theme === 'dark' ? '#fff' : '#000'
       });
@@ -1490,7 +1499,9 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
 
     const confirmRes = await Swal.fire({
       title: 'Are you sure?',
-      html: `You are about to demote ${studentsToDemote.length} student(s) to Semester ${prevSemester.number}.<br><br><b class="text-red-500">Warning:</b> Once demoted, they will be returned to the previous semester and their current semester data will be adjusted.`,
+      html: getInstitutionType() === 'school'
+        ? `You are about to demote ${studentsToDemote.length} student(s) to Class ${prevSemester.number}.<br><br><b class="text-red-500">Warning:</b> Once demoted, they will be returned to the previous class and their current class data will be adjusted.`
+        : `You are about to demote ${studentsToDemote.length} student(s) to Semester ${prevSemester.number}.<br><br><b class="text-red-500">Warning:</b> Once demoted, they will be returned to the previous semester and their current semester data will be adjusted.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, proceed',
