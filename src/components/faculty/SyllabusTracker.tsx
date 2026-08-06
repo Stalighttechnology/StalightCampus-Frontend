@@ -421,12 +421,20 @@ const SyllabusTracker = () => {
 
             <div className="space-y-1">
               <label className="text-xs font-semibold uppercase opacity-80">{translateTerminology("Semester")}</label>
-              <Select value={semesterId?.toString() || ""} onValueChange={(v) => setSemesterId(Number(v))} disabled={!branchId} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
+              <Select
+                value={semesterId?.toString() || ""}
+                onValueChange={(v) => setSemesterId(Number(v))}
+                disabled={!branchId}
+                open={isSemesterOpen}
+                onOpenChange={setIsSemesterOpen}
+              >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={!branchId ? "Select Branch first" : translateTerminology("Select Semester")} />
+                  <SelectValue placeholder={!branchId ? "Select Branch first" : `Select ${translateTerminology('Semester')}`} />
                 </SelectTrigger>
                 <SelectContent>
-                  {semesters.map(s => <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>)}
+                  {semesters.map(s => (
+                    <SelectItem key={s.id} value={s.id.toString()}>{`${translateTerminology('Semester')} ${s.number}`}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
