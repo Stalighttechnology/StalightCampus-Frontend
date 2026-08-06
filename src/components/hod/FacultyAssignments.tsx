@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { useState, useEffect, useCallback, ReactNode, Component, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
@@ -239,6 +239,13 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     } finally {
       setDownloadingPDF(false);
     }
+  };
+
+  const getSemesterName = (number: number) => {
+    if (getInstitutionType() === 'school') {
+      return `Class ${number}`;
+    }
+    return `Semester ${number}`;
   };
 
   // Helper to update state (stable reference for hooks)
@@ -1026,18 +1033,18 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                     disabled={state.loading || state.isAssigning || !state.facultyId}>
                     
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder="Choose Semester" />
+                    <SelectValue placeholder={translateTerminology("Choose Semester")} />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {state.semesters.length > 0 ? (
                       state.semesters.map((semester) => (
                         <SelectItem key={semester.id} value={semester.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                          Semester {semester.number}
+                          {getSemesterName(semester.number)}
                         </SelectItem>
                       ))
                     ) : (
                       <SelectItem value="none" disabled className="text-center text-xs text-muted-foreground">
-                        No semesters available
+                        No {translateTerminology("semesters").toLowerCase()} available
                       </SelectItem>
                     )}
                   </SelectContent>
@@ -1238,11 +1245,11 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {state.semesters.length === 0 ? (
-                      <div className="p-2 text-center text-sm text-muted-foreground">No semesters available</div>
+                      <div className="p-2 text-center text-sm text-muted-foreground">No {translateTerminology("semesters").toLowerCase()} available</div>
                     ) : (
                       state.semesters.map((semester) => (
                         <SelectItem key={semester.id} value={semester.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                          Semester {semester.number}
+                          {getSemesterName(semester.number)}
                         </SelectItem>
                       ))
                     )}
@@ -1292,12 +1299,13 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                   </div>
                   <h3 className={`text-xl font-semibold mb-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Ready to View Assignments?</h3>
                   <p className="max-w-md text-base leading-relaxed">
-                    Select a <span className="font-semibold text-primary">semester</span> and <span className="font-semibold text-primary">section</span> from the filters above to load the assignment list.
+                    Select a <span className="font-semibold text-primary">{translateTerminology("Semester").toLowerCase()}</span> and <span className="font-semibold text-primary">section</span> from the filters above to load the assignment list.
                   </p>
                 </div>);
 
               if (filteredAssignments.length === 0) {
-                const semNum = state.semesters.find((s) => s.id === state.filterSemesterId)?.number;
+                const semObj = state.semesters.find((s) => s.id === state.filterSemesterId);
+                const semName = semObj ? getSemesterName(semObj.number) : '';
                 const secName = state.filterSections.find((s) => s.id === state.filterSectionId)?.name;
                 return (
                   <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
@@ -1306,7 +1314,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                     </div>
                     <h3 className={`text-xl font-semibold mb-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Assignments Found</h3>
                     <p className="max-w-md text-base leading-relaxed">
-                      There are no faculty assignments assigned to <span className="font-semibold text-primary">Semester {semNum || ''}</span>, <span className="font-semibold text-primary">Section {secName || ''}</span>.
+                      There are no faculty assignments assigned to <span className="font-semibold text-primary">{semName}</span>, <span className="font-semibold text-primary">Section {secName || ''}</span>.
                     </p>
                   </div>
                 );
@@ -1332,7 +1340,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                         
                           <td className="p-2">{assignment.subject}</td>
                           <td className="p-2">{assignment.section}</td>
-                          <td className="p-2">{assignment.semester}</td>
+                          <td className="p-2">{getSemesterName(assignment.semester)}</td>
                           <td className="p-2">
                             {facultyMap[assignment.faculty_id]?.name || assignment.faculty}
                             <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
