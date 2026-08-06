@@ -17,7 +17,8 @@ import {
   Tag,
   FileText,
   MessageSquare,
-  Mail
+  Mail,
+  Megaphone
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useTheme } from "../context/ThemeContext";
@@ -40,7 +41,7 @@ interface SidebarProps {
   toggleCollapse: () => void;
 }
 
-const menuItems = [
+const allMenuItems = [
   { id: "dashboard", label: "Overview", icon: <LayoutDashboard size={20} /> },
   { id: "organizations", label: "Organizations", icon: <Building2 size={20} /> },
   { id: "billing", label: "Billing & Payments", icon: <CreditCard size={20} /> },
@@ -49,18 +50,35 @@ const menuItems = [
   { id: "users", label: "User Analytics", icon: <Users size={20} /> },
   { id: "support", label: "Support Panel", icon: <LifeBuoy size={20} /> },
   { id: "enroll-developer", label: "Enroll Developer", icon: <Users size={20} /> },
+  { id: "office-locations", label: "Office Locations", icon: <Building2 size={20} /> },
+  { id: "developer-audit", label: "Developer Audit", icon: <FileText size={20} /> },
   { id: "monitoring", label: "System Monitor", icon: <Activity size={20} /> },
   { id: "popups", label: "Popups", icon: <MessageSquare size={20} /> },
   { id: "reports", label: "Reports", icon: <BarChart3 size={20} /> },
+  { id: "announcements", label: "Announcements", icon: <Megaphone size={20} /> },
   { id: "nda", label: "NDA & Consents", icon: <FileText size={20} /> },
   { id: "marketing", label: "Marketing Emails", icon: <Mail size={20} /> },
   { id: "certificates", label: "Certificates", icon: <FileText size={20} /> },
   { id: "profile", label: "My Profile", icon: <UserCircle2 size={20} /> },
 ];
 
+const developerAllowedPages = [
+  "dashboard",
+  "users",
+  "support",
+  "monitoring",
+  "popups",
+  "profile"
+];
+
 const Sidebar = ({ activePage, setActivePage, onLogout, collapsed, toggleCollapse }: SidebarProps) => {
   const { theme } = useTheme();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const userRole = localStorage.getItem("superadmin_role");
+  
+  const menuItems = userRole === "developer" 
+    ? allMenuItems.filter(item => developerAllowedPages.includes(item.id))
+    : allMenuItems;
 
   const sidebarContent = (
     <div className="h-full flex flex-col">

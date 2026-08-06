@@ -148,11 +148,11 @@ const SuperAdminProfile: React.FC = () => {
             </div>
             <div>
               <p className="font-bold text-lg leading-tight">
-                {profile.first_name || "Super"} {profile.last_name || "Admin"}
+                {profile.first_name || (localStorage.getItem("superadmin_role") === "developer" ? "Developer" : "Super")} {profile.last_name || (localStorage.getItem("superadmin_role") === "developer" ? "" : "Admin")}
               </p>
               <p className="text-sm text-muted-foreground">@{profile.username}</p>
               <span className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
-                <Shield size={10} /> Stalight HQ · Super Admin
+                <Shield size={10} /> Stalight HQ · {localStorage.getItem("superadmin_role") === "developer" ? "Developer" : "Super Admin"}
               </span>
             </div>
           </div>

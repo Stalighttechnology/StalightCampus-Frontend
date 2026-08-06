@@ -16,6 +16,10 @@ import Coupons from "./pages/Coupons";
 import NDASubmissions from "./pages/NDASubmissions";
 import Popups from "./pages/Popups";
 import BulkEmailer from "./pages/BulkEmailer";
+import OfficeLocation from "./pages/OfficeLocation";
+import DeveloperAttendanceAudit from "./pages/DeveloperAttendanceAudit";
+import DeveloperAnnouncements from "./pages/DeveloperAnnouncements";
+
 import { useTheme } from "../context/ThemeContext";
 import { Sun, Moon, Menu } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -157,6 +161,10 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
               <Route path="marketing" element={<BulkEmailer />} />
               <Route path="profile" element={<Profile />} />
               <Route path="certificates" element={<CertificateManagement />} />
+              <Route path="office-locations" element={<OfficeLocation />} />
+              <Route path="developer-audit" element={<DeveloperAttendanceAudit />} />
+              <Route path="announcements" element={<DeveloperAnnouncements />} />
+
               <Route path="*" element={
                 <div className="flex flex-col items-center justify-center h-[60vh]">
                   <h2 className="text-2xl font-bold text-muted-foreground mb-4">Coming Soon</h2>

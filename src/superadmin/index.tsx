@@ -13,6 +13,12 @@ const SuperAdminIndex = () => {
       const token = localStorage.getItem("superadmin_token");
       const role = localStorage.getItem("superadmin_role");
 
+      if (token && role === "developer") {
+        // Developer landed on admin route — redirect to developer portal
+        window.location.href = "/stalightcampus/developer";
+        return;
+      }
+
       if (token && role === "superadmin") {
         setIsAuthenticated(true);
       } else {

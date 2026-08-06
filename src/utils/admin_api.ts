@@ -1,5 +1,5 @@
 import { API_ENDPOINT } from "./config";
-import { fetchWithTokenRefresh } from "./authService";
+import { fetchWithTokenRefresh, fetchWithSuperadminTokenRefresh } from "./authService";
 
 // Type definitions for request and response data
 interface BranchDistribution {
@@ -1023,6 +1023,119 @@ method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
   }
 };
 
+export const manageOfficeLocation = async (
+data?: {
+  name?: string;
+  description?: string;
+  is_active?: boolean;
+  center_latitude?: number;
+  center_longitude?: number;
+  radius_meters?: number;
+},
+location_id?: number,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
+: Promise<ManageCampusLocationResponse> => {
+  try {
+    let url = location_id ?
+    `${API_ENDPOINT}/superadmin/office-locations/${location_id}/` :
+    `${API_ENDPOINT}/superadmin/office-locations/`;
+
+    const response = await fetchWithSuperadminTokenRefresh(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: method !== "GET" && data ? JSON.stringify(data) : undefined
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      return { success: false, message: result.message || `HTTP ${response.status}` };
+    }
+    return result;
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getDeveloperAttendanceAudit = async (
+  params?: { start_date?: string; end_date?: string; developer_id?: number | string; }
+): Promise<any> => {
+  try {
+    let url = `${API_ENDPOINT}/superadmin/developers/attendance-audit/`;
+    const searchParams = new URLSearchParams();
+    if (params) {
+      if (params.start_date) searchParams.append('start_date', params.start_date);
+      if (params.end_date) searchParams.append('end_date', params.end_date);
+      if (params.developer_id) searchParams.append('developer_id', params.developer_id.toString());
+    }
+    searchParams.append('_t', Date.now().toString());
+    url += `?${searchParams.toString()}`;
+
+    const response = await fetchWithSuperadminTokenRefresh(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+      },
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const markDeveloperAttendance = async (data: MarkDeveloperAttendanceRequest): Promise<any> => {
+  try {
+    const response = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/developer/mark-attendance/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getDeveloperAttendanceRecords = async (params?: { page?: number; page_size?: number; start_date?: string; end_date?: string }): Promise<any> => {
+  try {
+    let url = `${API_ENDPOINT}/developer/my-attendance-records/`;
+    if (params) {
+      const searchParams = new URLSearchParams();
+      if (params.page) searchParams.append('page', params.page.toString());
+      if (params.page_size) searchParams.append('page_size', params.page_size.toString());
+      if (params.start_date) searchParams.append('start_date', params.start_date);
+      if (params.end_date) searchParams.append('end_date', params.end_date);
+      if (searchParams.toString()) {
+        url += `?${searchParams.toString()}`;
+      }
+    }
+
+    const response = await fetchWithSuperadminTokenRefresh(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+      },
+    });
+    const json = await response.json();
+    // DRF PageNumberPagination wraps in { count, next, previous, results: { success, data, stats } }
+    if (json.results && typeof json.results === 'object' && !Array.isArray(json.results)) {
+      return {
+        ...json.results,
+        count: json.count,
+        next: json.next,
+        previous: json.previous,
+      };
+    }
+    return json;
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
 export const getAdminFacultyAttendanceToday = async (
   branchId: number | string,
   params?: { page?: number; page_size?: number }
@@ -1127,3 +1240,24 @@ export const getDepartmentAdminApplyLeaveBootstrap = async (queryString: string)
   }
 };
 
+
+export interface DeveloperAttendanceRecord {
+  id: string | number;
+  date: string;
+  status: string;
+  marked_at?: string;
+  notes?: string;
+  latitude?: number;
+  longitude?: number;
+  distance_meters?: number;
+}
+
+export interface MarkDeveloperAttendanceRequest {
+  status: string;
+  action?: string;
+  notes?: string;
+  latitude?: number;
+  longitude?: number;
+  device_info?: any;
+  off_campus_reason?: string;
+}

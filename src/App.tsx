@@ -337,6 +337,11 @@ const AppContent = () => {
               <Index />
             </>
           } />
+          <Route path="/forgot-password" element={
+            <>
+              <Index />
+            </>
+          } />
           <Route path="/home" element={
             <>
               <Home />

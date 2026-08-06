@@ -43,6 +43,11 @@ const SuperAdminLogin = ({ setIsAuthenticated }: Props) => {
         localStorage.setItem("superadmin_refresh", data.refresh);
         localStorage.setItem("superadmin_role", data.role);
 
+        if (data.role === "developer") {
+          // Developer logged in via admin page — redirect to developer portal
+          window.location.href = "/stalightcampus/developer/assigned-issues";
+          return;
+        }
         setIsAuthenticated(true);
         navigate("/stalightcampus/admin/dashboard");
       } else {
@@ -191,6 +196,15 @@ const SuperAdminLogin = ({ setIsAuthenticated }: Props) => {
                   ) : (
                     <Eye className="h-4 w-4" />
                   )}
+                </button>
+              </div>
+              <div className="flex justify-end mt-1">
+                <button
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                  className="text-sm font-medium text-red-600 hover:text-red-500 transition-colors"
+                >
+                  Forgot password?
                 </button>
               </div>
             </div>

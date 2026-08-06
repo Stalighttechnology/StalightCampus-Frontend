@@ -83,7 +83,10 @@ const AdminAnnouncementManagement = () => {
   const { hostels, fetchHostelsOnly } = useHMSContext();
 
   const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
-  const user = userStr ? JSON.parse(userStr) : null;
+  const parsedUser = userStr ? JSON.parse(userStr) : null;
+  const superadminRole = localStorage.getItem("superadmin_role");
+  
+  const user = parsedUser || (superadminRole ? { role: superadminRole } : null);
   const orgPlan = user?.org_plan || "basic";
   const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
   const isHMSUser = user?.role === 'hms_admin' || user?.role === 'warden';
@@ -487,11 +490,14 @@ const AdminAnnouncementManagement = () => {
     setSelectedHostelId("all");
   };
 
-  const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "driver", "warden"];
-  const BASIC_ROLES = ["student", "hod", "faculty", "principal", "org_admin", "dean", "driver", "warden"];
+  const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "driver", "warden", "developer"];
+  const BASIC_ROLES = ["student", "hod", "faculty", "principal", "org_admin", "dean", "driver", "warden", "developer"];
 
   const getTargetRolesForUser = (userRole: string) => {
     switch (userRole) {
+      case "superadmin":
+      case "developer":
+        return ["developer"];
       case "principal":
       case "org_admin":
       case "admin":
