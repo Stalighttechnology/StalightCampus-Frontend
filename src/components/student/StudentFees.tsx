@@ -845,31 +845,36 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
                   Payment History ({feeData?.statistics?.total_payments || 0})
                 </CardTitle>
                 
-                {/* Desktop Button */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hidden sm:flex bg-primary hover:bg-primary/90 text-white border-primary shrink-0"
-                  disabled={exportingPaymentsPDF}
-                  onClick={handleExportPaymentsPDF}>
-                  {exportingPaymentsPDF ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <FileDown className="w-4 h-4 mr-2" />
-                  )}
-                  {exportingPaymentsPDF ? "Exporting..." : "Download Receipt"}
-                </Button>
+                {/* Desktop & Mobile Download Receipt Buttons (only shown when payment records exist) */}
+                {Boolean(feeData?.payments?.length) && (
+                  <>
+                    {/* Desktop Button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="hidden sm:flex bg-primary hover:bg-primary/90 text-white border-primary shrink-0"
+                      disabled={exportingPaymentsPDF}
+                      onClick={handleExportPaymentsPDF}>
+                      {exportingPaymentsPDF ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <FileDown className="w-4 h-4 mr-2" />
+                      )}
+                      {exportingPaymentsPDF ? "Exporting..." : "Download Receipt"}
+                    </Button>
 
-                {/* Mobile Icon Button */}
-                <Button
-                  onClick={handleExportPaymentsPDF}
-                  disabled={exportingPaymentsPDF}
-                  size="icon"
-                  variant="outline"
-                  className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
-                >
-                  {exportingPaymentsPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-                </Button>
+                    {/* Mobile Icon Button */}
+                    <Button
+                      onClick={handleExportPaymentsPDF}
+                      disabled={exportingPaymentsPDF}
+                      size="icon"
+                      variant="outline"
+                      className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                    >
+                      {exportingPaymentsPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                    </Button>
+                  </>
+                )}
               </CardHeader>
               <CardContent className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                 {feeData?.payments?.length ?
