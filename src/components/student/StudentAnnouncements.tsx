@@ -45,6 +45,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SkeletonList } from "../ui/skeleton";
 import { format, parseISO } from "date-fns";
 
+import { translateTerminology } from "@/utils/institutionConfig";
+
 const getPriorityColor = (priority: string, theme: string) => {
   switch (priority) {
     case "urgent":
@@ -65,7 +67,7 @@ const formatRoleLabel = (role: string | null | undefined) => {
   const r = role.toLowerCase().replace('_', ' ').trim();
   switch (r) {
     case 'hod':
-      return 'HOD';
+      return translateTerminology('HOD');
     case 'coe':
       return 'COE';
     case 'principal':

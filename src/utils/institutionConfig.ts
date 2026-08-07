@@ -47,7 +47,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     branches: 'Streams',
     semester: 'Class',
     semesters: 'Classes',
-    hod: 'Co-Ordinator',
+    hod: 'Coordinator',
     admin: 'Principal',
     admins: 'Principals',
     coAttainment: 'Learning Outcomes',
