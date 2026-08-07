@@ -597,7 +597,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                       Loading semesters...
                     </SelectItem>
                   ) : semesters.length > 0 ? (
-                    semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
+                    semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{translateTerminology(s.name)}</SelectItem>)
                   ) : (
                     <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
                       No semesters found
