@@ -242,7 +242,7 @@ const AttendanceView = () => {
   const handleExportPDF = () => {
     const doc = new jsPDF();
     doc.text(`All Students Attendance Report - ${state.branch.toUpperCase()} - Page ${state.pagination.page}`, 14, 16);
-    const tableColumn = ["Name", "USN", "Attendance", translateTerminology("Semester"), "Section"];
+    const tableColumn = ["Name", translateTerminology("USN"), "Attendance", translateTerminology("Semester"), "Section"];
     const tableRows = currentStudents.map((student) => [
       student.name,
       student.usn,
@@ -474,7 +474,7 @@ const AttendanceView = () => {
             </DialogHeader>
 
             <div className={`space-y-2 mt-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              <p><strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>USN:</strong> {state.selectedStudent?.usn}</p>
+              <p><strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{translateTerminology("USN")}:</strong> {state.selectedStudent?.usn}</p>
               <p><strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Attendance:</strong> {formatAttendancePercentage(state.selectedStudent?.attendance_percentage)}</p>
               <p><strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Total Sessions:</strong> {state.selectedStudent?.total_sessions || "-"}</p>
               <p><strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Present Sessions:</strong> {state.selectedStudent?.present_sessions || "-"}</p>

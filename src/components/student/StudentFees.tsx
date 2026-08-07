@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getInstitutionType } from '@/utils/institutionConfig';
+import { getInstitutionType, translateTerminology } from '@/utils/institutionConfig';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
@@ -510,7 +510,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
                   </motion.div>
                   <motion.div variants={itemVariants}>
                     <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
-                      USN
+                      {translateTerminology("USN")}
                     </label>
                     <p className={`text-base sm:text-lg font-semibold mt-1 font-mono ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                       {feeData?.student?.usn || 'N/A'}

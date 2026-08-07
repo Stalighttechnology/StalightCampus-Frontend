@@ -7,6 +7,7 @@ interface InstitutionTerminology {
   semester: string;
   semesters: string;
   hod: string;
+  usn: string;
   coAttainment: string;
   labs: string;
   electives: string;
@@ -21,6 +22,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     semester: 'Semester',
     semesters: 'Semesters',
     hod: 'HOD',
+    usn: 'USN',
     coAttainment: 'CO Attainment',
     labs: 'Labs',
     electives: 'Electives',
@@ -35,6 +37,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     semester: 'Year/Phase',
     semesters: 'Years/Phases',
     hod: 'HOD',
+    usn: 'USN',
     coAttainment: 'Competency',
     labs: 'Clinical Postings',
     electives: 'Electives',
@@ -48,6 +51,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     semester: 'Class',
     semesters: 'Classes',
     hod: 'Coordinator',
+    usn: 'Roll No',
     admin: 'Principal',
     admins: 'Principals',
     coAttainment: 'Learning Outcomes',
@@ -123,6 +127,7 @@ export const translateTerminology = (content: any): any => {
     { pattern: /\bElective\b/g, key: "electives" },
     { pattern: /\bElectives\b/g, key: "electives" },
     { pattern: /\bCO Attainment\b/g, key: "coAttainment" },
+    { pattern: /\bUSN\b/gi, key: "usn" },
   ];
 
   for (const { pattern, key } of replacements) {
@@ -136,7 +141,7 @@ export const translateTerminology = (content: any): any => {
         if (match === match.toLowerCase()) {
           return replacement.toLowerCase();
         }
-        if (key === 'hod') {
+        if (key === 'hod' || key === 'usn') {
           return replacement;
         }
         if (match === match.toUpperCase()) {

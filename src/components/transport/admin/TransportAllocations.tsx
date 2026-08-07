@@ -607,7 +607,7 @@ const TransportAllocations: React.FC = () => {
               <table className="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
                   <tr className={`sticky top-0 z-10 border-b text-sm sm:text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-card border-border text-foreground shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-900 shadow-sm'}`}>
-                    <th className="p-4">USN</th>
+                    <th className="p-4">{translateTerminology("USN")}</th>
                     <th className="p-4">Student Name</th>
                     <th className="p-4">Academic Details</th>
                     <th className="p-4">Route Info</th>
