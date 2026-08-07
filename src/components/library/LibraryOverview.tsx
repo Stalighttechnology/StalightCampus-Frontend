@@ -1,3 +1,4 @@
+import { translateTerminology } from "@/utils/institutionConfig";
 import UpcomingMeetingsWidget from "../common/UpcomingMeetingsWidget";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -219,7 +220,7 @@ const LibraryOverview = () => {
                 <Search className="absolute left-3 top-2.5 w-4 h-4 opacity-50" />
                 <input
                   type="text"
-                  placeholder="Search student USN, name, or email..."
+                  placeholder={`Search student ${translateTerminology("USN")}, name, or email...`}
                   value={borrowerSearchText}
                   onChange={(e) => setBorrowerSearchText(e.target.value)}
                   className={`w-full pl-9 pr-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'

@@ -827,7 +827,14 @@ export default function ScheduleMeeting() {
                             </div>
                             <div className="flex items-start gap-1.5">
                               <Users className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                              <span className="capitalize leading-normal">{Array.isArray(meeting.target_roles) ? meeting.target_roles.map((r: string) => r.replace('_', ' ')).join(', ') : ''}</span>
+                              <span className="leading-normal">
+                                {Array.isArray(meeting.target_roles)
+                                  ? meeting.target_roles.map((r: string) => {
+                                      const label = r === 'hod' ? 'HOD' : r === 'principal' ? 'Principal' : r.replace('_', ' ');
+                                      return translateTerminology(label.replace(/\b\w/g, c => c.toUpperCase()));
+                                    }).join(', ')
+                                  : ''}
+                              </span>
                             </div>
                             <div className="text-xs font-medium">
                               Organizer: {meeting.organizer_name}
