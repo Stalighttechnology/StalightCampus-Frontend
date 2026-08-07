@@ -380,10 +380,10 @@ const StudentFeeReports: React.FC = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="searchTerm">USN or Student Name</Label>
+                    <Label htmlFor="searchTerm">{translateTerminology("USN")} or Student Name</Label>
                     <Input
                       id="searchTerm"
-                      placeholder="Enter USN or student name"
+                      placeholder={`Enter ${translateTerminology("USN")} or student name`}
                       value={typeof searchTerm === 'string' ? searchTerm : ''}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleIndividualSearch()} />
@@ -503,7 +503,7 @@ const StudentFeeReports: React.FC = () => {
                             <p className="font-semibold text-lg leading-tight">{studentReport.student.name}</p>
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-[14px] font-semibold uppercase tracking-widest text-muted-foreground">USN / ID</Label>
+                            <Label className="text-[14px] font-semibold uppercase tracking-widest text-muted-foreground">{translateTerminology("USN")} / ID</Label>
                             <p className="font-mono font-semibold text-lg text-primary">{studentReport.student.usn}</p>
                           </div>
                           <div className="space-y-1.5">
@@ -511,10 +511,10 @@ const StudentFeeReports: React.FC = () => {
                             <p className="font-semibold text-md">{studentReport.student.branch}</p>
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-[14px] font-semibold uppercase tracking-widest text-muted-foreground">Current Semester</Label>
+                            <Label className="text-[14px] font-semibold uppercase tracking-widest text-muted-foreground">Current {translateTerminology("Semester")}</Label>
                             <div>
                               <Badge variant="secondary" className="px-4 py-1.5 font-semibold text-sm bg-primary/5 text-primary border-primary/20">
-                                Semester {studentReport.student.semester}
+                                {translateTerminology("Semester")} {studentReport.student.semester}
                               </Badge>
                             </div>
                           </div>
@@ -611,7 +611,7 @@ const StudentFeeReports: React.FC = () => {
                       <div className="space-y-4">
                         <h3 className="text-lg font-semibold flex items-center gap-2 tracking-tight">
                           <Calendar className="w-5 h-5 text-primary" />
-                          Semester-wise Breakdown
+                          {translateTerminology("Semester")}-wise Breakdown
                         </h3>
                         <div className="grid grid-cols-1 gap-4">
                           {studentReport.semester_wise_breakdown.map((semester, index) => (
@@ -864,7 +864,7 @@ const StudentFeeReports: React.FC = () => {
                       ) : semesters.length > 0 ? (
                         semesters.map((semester) =>
                           <SelectItem key={semester.id} value={semester.id.toString()} className="rounded-lg">
-                            Semester {semester.number}
+                            {translateTerminology("Semester")} {semester.number}
                           </SelectItem>
                         )
                       ) : (
@@ -1050,7 +1050,7 @@ const StudentFeeReports: React.FC = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>USN</TableHead>
+                        <TableHead>{translateTerminology("USN")}</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>{translateTerminology("Branch")}</TableHead>
                         <TableHead>{translateTerminology("Semester")}</TableHead>

@@ -967,20 +967,20 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                       <p className={`text-base font-semibold mt-1 leading-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{selectedPayment.invoice.student.name}</p>
                     </div>
                     <div>
-                      <p className={`text-xs font-semibold uppercase tracking-widest font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>USN</p>
+                      <p className={`text-xs font-semibold uppercase tracking-widest font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>{translateTerminology("USN")}</p>
                       <p className={`text-sm font-medium mt-1 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>{selectedPayment.invoice.student.usn}</p>
                     </div>
                     <div>
-                      <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Department</p>
+                      <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>{translateTerminology("Department")}</p>
                       <p className={`text-sm font-medium mt-1 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>{selectedPayment.invoice.student.department}</p>
                     </div>
                     <div className="col-span-2">
                       <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>{translateTerminology("Semester")}</p>
                       <p className="text-sm font-semibold mt-1 text-primary">
                         {selectedPayment.invoice.semester && selectedPayment.invoice.semester !== 'N/A'
-                          ? `Semester ${selectedPayment.invoice.semester}`
+                          ? `${translateTerminology("Semester")} ${selectedPayment.invoice.semester}`
                           : selectedPayment.invoice.student.semester && selectedPayment.invoice.student.semester !== 'N/A'
-                            ? `Semester ${selectedPayment.invoice.student.semester}`
+                            ? `${translateTerminology("Semester")} ${selectedPayment.invoice.student.semester}`
                             : 'N/A'}
                       </p>
                     </div>
@@ -995,7 +995,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                       </p>
                     </div>
                     <div>
-                      <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Fee Type / Semester</p>
+                      <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Fee Type / {translateTerminology("Semester")}</p>
                       <p className={`text-sm font-medium mt-1 capitalize ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
                         {selectedPayment.invoice?.fee_assignment?.template?.fee_type ||
                           (selectedPayment.invoice?.invoice_type ? selectedPayment.invoice.invoice_type.replace('_', ' ') : 'N/A')}

@@ -1016,20 +1016,20 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 <p className={`text-base font-semibold mt-1 leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-slate-900'}`}>{selectedInvoice?.student?.name}</p>
               </div>
               <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest font-mono">USN</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest font-mono">{translateTerminology("USN")}</p>
                 <p className={`text-sm font-medium mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-slate-700'}`}>{selectedInvoice?.student?.usn}</p>
               </div>
               <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Department</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{translateTerminology("Department")}</p>
                 <p className={`text-sm font-medium mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-slate-700'}`}>{selectedInvoice?.student?.department}</p>
               </div>
               <div className="col-span-2">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{translateTerminology("Semester")}</p>
                 <p className="text-sm font-semibold mt-1 text-primary">
                   {selectedInvoice?.semester && selectedInvoice.semester !== 'N/A'
-                    ? `Semester ${selectedInvoice.semester}`
+                    ? `${translateTerminology("Semester")} ${selectedInvoice.semester}`
                     : selectedInvoice?.student?.semester && selectedInvoice.student.semester !== 'N/A'
-                    ? `Semester ${selectedInvoice.student.semester}`
+                    ? `${translateTerminology("Semester")} ${selectedInvoice.student.semester}`
                     : 'N/A'}
                 </p>
               </div>

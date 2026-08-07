@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -74,6 +74,7 @@ const MySwal = withReactContent(Swal);
 
 const FeeTemplates: React.FC = () => {
   const { theme } = useTheme(); // Using theme context
+  const institutionType = getInstitutionType();
   const [templates, setTemplates] = useState<FeeTemplate[]>([]);
   const [templatesPage, setTemplatesPage] = useState(1);
   const templatesPageRef = useRef(templatesPage);
@@ -524,7 +525,7 @@ const FeeTemplates: React.FC = () => {
                       id="templateName"
                       value={templateName}
                       onChange={(e) => setTemplateName(e.target.value)}
-                      placeholder={translateTerminology("e.g., B.Tech Semester 1")}
+                      placeholder={institutionType === 'school' ? "e.g., Class 10 Mid Term 1" : translateTerminology("e.g., B.Tech Semester 1")}
                       className={`${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'} mt-1`} />
                     
                   </div>
@@ -538,7 +539,7 @@ const FeeTemplates: React.FC = () => {
                         <SelectValue placeholder="Select fee type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="semester">Semester Fee</SelectItem>
+                        <SelectItem value="semester">{institutionType === 'school' ? 'Mid Term Fee' : 'Semester Fee'}</SelectItem>
                         <SelectItem value="annual">Annual Fee</SelectItem>
                         <SelectItem value="exam">Exam Fee</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
@@ -560,7 +561,7 @@ const FeeTemplates: React.FC = () => {
 
                 {feeType === 'semester' &&
                 <div>
-                    <Label htmlFor="semester">{translateTerminology("Semester")}</Label>
+                    <Label htmlFor="semester">{institutionType === 'school' ? 'Term / Mid Term' : translateTerminology("Semester")}</Label>
                     <Input
                     id="semester"
                     type="number"
@@ -568,7 +569,7 @@ const FeeTemplates: React.FC = () => {
                     max="10"
                     value={semester || ''}
                     onChange={(e) => setSemester(parseInt(e.target.value) || undefined)}
-                    placeholder={translateTerminology("Semester number")}
+                    placeholder={institutionType === 'school' ? "Term / Mid Term number" : translateTerminology("Semester number")}
                     className={`${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'} mt-1`} />
                   
                   </div>
@@ -690,7 +691,9 @@ const FeeTemplates: React.FC = () => {
                   <TableCell className="font-medium">{template.name}</TableCell>
                   <TableCell>
                     <Badge variant="outline">
-                      {template.fee_type.charAt(0).toUpperCase() + template.fee_type.slice(1)}
+                      {template.fee_type === 'semester' 
+                        ? (institutionType === 'school' ? 'Mid Term Fee' : 'Semester Fee')
+                        : template.fee_type.charAt(0).toUpperCase() + template.fee_type.slice(1)}
                     </Badge>
                   </TableCell>
                   <TableCell>{formatCurrency(template.total_amount != null ? Number(template.total_amount) : template.total_amount_cents != null ? Number(template.total_amount_cents) / 100 : 0)}</TableCell>
