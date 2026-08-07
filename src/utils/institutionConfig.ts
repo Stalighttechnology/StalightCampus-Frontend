@@ -7,6 +7,7 @@ interface InstitutionTerminology {
   semester: string;
   semesters: string;
   hod: string;
+  usn: string;
   coAttainment: string;
   labs: string;
   electives: string;
@@ -21,6 +22,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     semester: 'Semester',
     semesters: 'Semesters',
     hod: 'HOD',
+    usn: 'USN',
     coAttainment: 'CO Attainment',
     labs: 'Labs',
     electives: 'Electives',
@@ -35,6 +37,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     semester: 'Year/Phase',
     semesters: 'Years/Phases',
     hod: 'HOD',
+    usn: 'USN',
     coAttainment: 'Competency',
     labs: 'Clinical Postings',
     electives: 'Electives',
@@ -47,7 +50,8 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     branches: 'Streams',
     semester: 'Class',
     semesters: 'Classes',
-    hod: 'Co-Ordinator',
+    hod: 'Coordinator',
+    usn: 'Roll No',
     admin: 'Principal',
     admins: 'Principals',
     coAttainment: 'Learning Outcomes',
@@ -104,6 +108,7 @@ export const translateTerminology = (content: any): any => {
     { pattern: /\bBranches\b/gi, key: "branches" },
     { pattern: /\bDepartment\b/gi, key: "branch" },
     { pattern: /\bDepartments\b/gi, key: "branches" },
+    { pattern: /\bSem\b/gi, key: "semester" },
     { pattern: /\bSemester\b/gi, key: "semester" },
     { pattern: /\bSemesters\b/gi, key: "semesters" },
     { pattern: /\bDepartment Admin\b/gi, key: "branchAdmin" },
@@ -114,14 +119,15 @@ export const translateTerminology = (content: any): any => {
     { pattern: /\bHeads of Departments\b/gi, key: "hod" },
     { pattern: /\bDept heads\b/gi, key: "hod" },
     { pattern: /\bDepartment heads\b/gi, key: "hod" },
-    { pattern: /\bAdmin\b/g, key: "admin" },
-    { pattern: /\bAdmins\b/g, key: "admins" },
+    { pattern: /(?<!Library\s|Transport\s)\bAdmin\b(?!istrat)/g, key: "admin" },
+    { pattern: /(?<!Library\s|Transport\s)\bAdmins\b(?!istrat)/g, key: "admins" },
     { pattern: /\bProctor\b/g, key: "proctor" },
     { pattern: /\bProctors\b/g, key: "proctor" },
     { pattern: /\bMentoring\b/g, key: "mentoring" },
     { pattern: /\bElective\b/g, key: "electives" },
     { pattern: /\bElectives\b/g, key: "electives" },
     { pattern: /\bCO Attainment\b/g, key: "coAttainment" },
+    { pattern: /\bUSN\b/gi, key: "usn" },
   ];
 
   for (const { pattern, key } of replacements) {
@@ -135,7 +141,7 @@ export const translateTerminology = (content: any): any => {
         if (match === match.toLowerCase()) {
           return replacement.toLowerCase();
         }
-        if (key === 'hod') {
+        if (key === 'hod' || key === 'usn') {
           return replacement;
         }
         if (match === match.toUpperCase()) {

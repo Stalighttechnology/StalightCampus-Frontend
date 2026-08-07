@@ -701,13 +701,15 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   if (user?.role === 'hod') {
     if (role === 'faculty') {
       menuItems['faculty'] = menuItems['faculty'].filter(item => item.page !== 'apply-leave' && item.page !== 'faculty-attendance' && item.page !== 'reimbursements' && item.page !== 'my-payroll' && item.page !== 'staff-tasks');
-      menuItems['faculty'].push({ name: "Return to HOD", page: "return-to-hod" });
+      menuItems['faculty'].push({ name: `Return to ${translateTerminology('HOD')}`, page: "return-to-hod" });
     }
   }
 
   if (getInstitutionType() === 'school') {
     Object.keys(menuItems).forEach((key) => {
-      menuItems[key] = menuItems[key].filter(item => item.page !== 'exam-applications');
+      menuItems[key] = menuItems[key].filter(
+        item => !['exam-applications', 'revaluation', 'makeupexam', 'revaluation-requests', 'makeup-requests'].includes(item.page)
+      );
     });
   }
 

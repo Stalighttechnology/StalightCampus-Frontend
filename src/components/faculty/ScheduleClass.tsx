@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { useEffect, useState, useRef, useMemo } from "react";
 import Swal from "sweetalert2";
 import { Capacitor } from '@capacitor/core';
@@ -374,7 +374,7 @@ const DropdownGroup = ({ dropdowns, theme, disabled, className }: DropdownGroupP
         <SelectContent className={contentCls}>
           {semesters.map((s) => (
             <SelectItem key={s.id} value={s.id.toString()}>
-              Sem {s.name}
+              {`${getInstitutionType() === 'school' ? 'Class' : 'Sem'} ${s.name}`}
             </SelectItem>
           ))}
         </SelectContent>

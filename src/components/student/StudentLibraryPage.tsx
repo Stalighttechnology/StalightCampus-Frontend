@@ -316,43 +316,43 @@ const StudentLibraryPage: React.FC = () => {
 
           <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 w-full">
-              <div className={`rounded-2xl border shadow-sm p-3 sm:p-4 ${card}`}>
-                <div className="flex items-center gap-2 mb-2">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 w-full">
+              <div className={`rounded-2xl border shadow-sm p-3.5 sm:p-4 ${card}`}>
+                <div className="flex items-center gap-2 mb-2 min-w-0">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
                     <BookMarked size={16} className="text-blue-500 sm:w-4 sm:h-4" />
                   </div>
-                  <p className={`text-sm font-semibold truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Borrowed</p>
+                  <p className={`text-xs sm:text-sm font-semibold leading-tight break-words min-w-0 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Borrowed</p>
                 </div>
                 <p className="text-2xl font-bold">{summary?.taken_count ?? 0}</p>
               </div>
 
-              <div className={`rounded-2xl border shadow-sm p-3 sm:p-4 ${card} ${(summary?.overdue_count ?? 0) > 0 ? 'ring-2 ring-red-500/40' : ''}`}>
-                <div className="flex items-center gap-2 mb-2">
+              <div className={`rounded-2xl border shadow-sm p-3.5 sm:p-4 ${card} ${(summary?.overdue_count ?? 0) > 0 ? 'ring-2 ring-red-500/40' : ''}`}>
+                <div className="flex items-center gap-2 mb-2 min-w-0">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
                     <AlertTriangle size={16} className="text-red-500 sm:w-4 sm:h-4" />
                   </div>
-                  <p className={`text-sm font-semibold truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Overdue</p>
+                  <p className={`text-xs sm:text-sm font-semibold leading-tight break-words min-w-0 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Overdue</p>
                 </div>
                 <p className={`text-2xl font-bold ${(summary?.overdue_count ?? 0) > 0 ? 'text-red-500' : ''}`}>{summary?.overdue_count ?? 0}</p>
               </div>
 
-              <div className={`rounded-2xl border shadow-sm p-3 sm:p-4 ${card}`}>
-                <div className="flex items-center gap-2 mb-2">
+              <div className={`rounded-2xl border shadow-sm p-3.5 sm:p-4 ${card}`}>
+                <div className="flex items-center gap-2 mb-2 min-w-0">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
                     <CheckCircle size={16} className="text-emerald-500 sm:w-4 sm:h-4" />
                   </div>
-                  <p className={`text-sm font-semibold truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Returned</p>
+                  <p className={`text-xs sm:text-sm font-semibold leading-tight break-words min-w-0 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Returned</p>
                 </div>
                 <p className="text-2xl font-bold">{summary?.returned_count ?? 0}</p>
               </div>
 
-              <div className={`rounded-2xl border shadow-sm p-3 sm:p-4 ${card}`}>
-                <div className="flex items-center gap-2 mb-2">
+              <div className={`rounded-2xl border shadow-sm p-3.5 sm:p-4 ${card}`}>
+                <div className="flex items-center gap-2 mb-2 min-w-0">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
                     <CreditCard size={16} className="text-amber-500 sm:w-4 sm:h-4" />
                   </div>
-                  <p className={`text-sm font-semibold truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Unpaid Fines</p>
+                  <p className={`text-xs sm:text-sm font-semibold leading-tight break-words min-w-0 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Unpaid Fines</p>
                 </div>
                 <p className={`text-2xl font-bold ${(summary?.total_unpaid_fine ?? 0) > 0 ? 'text-amber-500' : ''}`}>
                   ₹{Number(summary?.total_unpaid_fine ?? 0).toFixed(2)}

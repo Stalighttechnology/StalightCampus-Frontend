@@ -529,7 +529,7 @@ const StudentManagement: React.FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
-                      <TableHead className="font-bold">USN</TableHead>
+                      <TableHead className="font-bold">{translateTerminology("USN")}</TableHead>
                       <TableHead className="font-bold">Student Name</TableHead>
                       <TableHead className="font-bold">Room Allocation</TableHead>
                       <TableHead className="text-center font-bold">Status</TableHead>

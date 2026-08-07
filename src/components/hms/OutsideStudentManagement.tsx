@@ -17,6 +17,8 @@ import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../utils/
 import { useHMSContext } from "../../context/HMSContext";
 import { Avatar, AvatarFallback } from '../ui/avatar';
 
+import { translateTerminology } from '@/utils/institutionConfig';
+
 interface OutsideStudent {
   id: number;
   name: string;
@@ -124,7 +126,8 @@ const OutsideStudentManagement: React.FC = () => {
       const res = await getOutsideStudentFilterOptions('courses');
       if (res.success && res.data) {
         const rawData = res.data.data || res.data;
-        setAvailableCourses(rawData.courses || []);
+        const coursesList = rawData.courses || [];
+        setAvailableCourses(Array.from(new Set(coursesList.filter(Boolean))));
       }
     } catch (err) {
       console.error("OutsideStudentManagement - Error fetching courses:", err);
@@ -136,7 +139,8 @@ const OutsideStudentManagement: React.FC = () => {
       const res = await getOutsideStudentFilterOptions('years');
       if (res.success && res.data) {
         const rawData = res.data.data || res.data;
-        setAvailableYears(rawData.years || []);
+        const yearsList = rawData.years || [];
+        setAvailableYears(Array.from(new Set(yearsList.filter(Boolean))));
       }
     } catch (err) {
       console.error("OutsideStudentManagement - Error fetching years:", err);
@@ -219,7 +223,7 @@ const OutsideStudentManagement: React.FC = () => {
     }
 
     if (!addFormData.usn.trim()) {
-      errors.usn = "USN / Custom ID is required.";
+      errors.usn = `${translateTerminology("USN")} / Custom ID is required.`;
     }
 
     if (!addFormData.email.trim()) {
@@ -680,7 +684,7 @@ const OutsideStudentManagement: React.FC = () => {
                   <TableHeader>
                     <TableRow className="whitespace-nowrap">
                       <TableHead>Student</TableHead>
-                      <TableHead>ID / USN</TableHead>
+                      <TableHead>ID / {translateTerminology("USN")}</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Hostel & Room</TableHead>
                       <TableHead>Status</TableHead>

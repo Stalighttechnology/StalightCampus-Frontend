@@ -585,7 +585,7 @@ const ExamApplication: React.FC = () => {
                   <table className="w-full border-collapse min-w-[600px]">
                     <thead className={theme === 'dark' ? 'bg-muted text-foreground' : 'bg-gray-100 text-gray-900'}>
                       <tr>
-                        <th className="px-4 py-3 text-center text-sm font-semibold">USN</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold">{translateTerminology("USN")}</th>
                         <th className="px-4 py-3 text-center text-sm font-semibold">Name</th>
                         <th className="px-4 py-3 text-center text-sm font-semibold">{translateTerminology("Semester")}</th>
                         <th className="px-4 py-3 text-center text-sm font-semibold">Status</th>

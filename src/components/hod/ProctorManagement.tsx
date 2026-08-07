@@ -1173,7 +1173,7 @@ const ProctorStudents = () => {
                   <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-card border-b border-border' : 'bg-gray-50 border-b border-gray-200'}`}>
                     <tr>
                       {state.editMode && <th className={`py-3 px-4 w-12 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Select</th>}
-                      <th className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>USN</th>
+                      <th className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("USN")}</th>
                       <th className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Name</th>
                       <th className={`py-3 px-4 font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{getInstitutionType() === 'school' ? 'Class' : 'Sem'}</th>
                       <th className={`py-3 px-4 font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section</th>

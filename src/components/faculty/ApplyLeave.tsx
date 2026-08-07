@@ -273,7 +273,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             <CardHeader className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b mb-3">
               <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
               <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                Your leave request will be routed to your <span className="font-semibold text-primary">Head of Department (HOD)</span> for approval.
+                Your leave request will be routed to your <span className="font-semibold text-primary">{translateTerminology("Head of Department (HOD)")}</span> for approval.
               </p>
             </CardHeader>
             <CardContent className="space-y-6">

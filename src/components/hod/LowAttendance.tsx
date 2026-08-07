@@ -124,7 +124,7 @@ const AttendanceTable = React.memo(({
       <table className={`w-full text-sm text-left border-collapse ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
         <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-card border-b border-border' : 'bg-gray-50 border-b border-gray-200'}`}>
           <tr>
-            <th className="py-3 px-4 font-semibold">USN</th>
+            <th className="py-3 px-4 font-semibold">{translateTerminology("USN")}</th>
             <th className="py-3 px-4 font-semibold">Name</th>
             <th className="py-3 px-4 font-semibold">Course</th>
             <th className="py-3 px-4 font-semibold text-center">Attendance</th>

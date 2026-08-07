@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { getInstitutionType, translateTerminology } from "@/utils/institutionConfig";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
@@ -207,7 +208,7 @@ const SubmitLeaveRequest = () => {
         <Card id="leave-form-card" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b mb-3 lg:min-h-[115px] flex flex-col justify-center">
             <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
-            <CardDescription className="text-sm text-muted-foreground mt-1">Your leave request will be routed to your <span className="font-medium text-primary">Faculty (Proctor)</span> for approval.</CardDescription>
+            <CardDescription className="text-sm text-muted-foreground mt-1">Your leave request will be routed to your <span className="font-medium text-primary">{getInstitutionType() === 'school' ? 'Class Teacher' : 'Faculty (Proctor)'}</span> for approval.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -353,7 +354,7 @@ const SubmitLeaveRequest = () => {
                   <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>
                     <CalendarIcon className="h-16 w-16 text-primary/30" />
                   </div>
-                  <h3 className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Leave Requests</h3>
+                  <h3 className={`text-xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Leave Requests</h3>
                   <p className={`text-base mt-2 max-w-sm mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                     You haven't submitted any leave requests yet. Your future requests will appear here.
                   </p>
@@ -386,11 +387,10 @@ const SubmitLeaveRequest = () => {
                         <div className="mt-3">
                           <button
                             onClick={() => setViewReason(item.reason)}
-                            className={`w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition border ${
-                              theme === 'dark'
+                            className={`w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition border ${theme === 'dark'
                                 ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
                                 : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
-                            }`}
+                              }`}
                           >
                             View Reason
                           </button>

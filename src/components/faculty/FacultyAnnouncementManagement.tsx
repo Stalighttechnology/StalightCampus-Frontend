@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getInstitutionType, translateTerminology } from "@/utils/institutionConfig";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,12 +99,13 @@ const FacultyAnnouncementManagement = () => {
             const key = `${item.branch_id}-${item.semester_id}-${item.section_id}`;
             if (!seen.has(key)) {
               seen.add(key);
+              const semPrefix = getInstitutionType() === 'school' ? 'Class' : 'Sem';
               sectionsList.push({
                 section_id: item.section_id,
                 section_name: item.section,
                 semester: item.semester,
                 branch: item.branch,
-                label: `${item.branch} - Sem ${item.semester} (Sec ${item.section})`
+                label: `${item.branch} - ${semPrefix} ${item.semester} (Sec ${item.section})`
               });
             }
           });

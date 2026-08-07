@@ -1725,7 +1725,7 @@ const StudentManagement = () => {
                 <table className="min-w-full text-sm md:text-base text-left">
                   <thead className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-gray-100 text-gray-900 border-gray-300'}>
                     <tr className="border-b">
-                      <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">USN</th>
+                      <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">{translateTerminology("USN")}</th>
                       <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Name</th>
                       <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Email</th>
                       <th className="hidden sm:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Phone</th>
