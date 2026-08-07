@@ -124,7 +124,8 @@ const OutsideStudentManagement: React.FC = () => {
       const res = await getOutsideStudentFilterOptions('courses');
       if (res.success && res.data) {
         const rawData = res.data.data || res.data;
-        setAvailableCourses(rawData.courses || []);
+        const coursesList = rawData.courses || [];
+        setAvailableCourses(Array.from(new Set(coursesList.filter(Boolean))));
       }
     } catch (err) {
       console.error("OutsideStudentManagement - Error fetching courses:", err);
@@ -136,7 +137,8 @@ const OutsideStudentManagement: React.FC = () => {
       const res = await getOutsideStudentFilterOptions('years');
       if (res.success && res.data) {
         const rawData = res.data.data || res.data;
-        setAvailableYears(rawData.years || []);
+        const yearsList = rawData.years || [];
+        setAvailableYears(Array.from(new Set(yearsList.filter(Boolean))));
       }
     } catch (err) {
       console.error("OutsideStudentManagement - Error fetching years:", err);
