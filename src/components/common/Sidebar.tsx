@@ -672,6 +672,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Enquiries", page: "admission-enquiries" },
       { name: "Applications", page: "admission-applications" },
       { name: "Students", page: "admission-students" },
+      { name: "Seat Matrix", page: "seat-matrix" },
       { name: "Documents", page: "admission-documents" },
       { name: "Counsellors", page: "counsellor-management" },
       { name: "Communication", page: "admission-communication" },

@@ -53,6 +53,9 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
     if (name === "phone") {
       newValue = value.replace(/\D/g, "").slice(0, 10);
     }
+    if (name === "email") {
+      newValue = value.toLowerCase();
+    }
 
     // Update form data
     setFormData((prev) => ({ ...prev, [name]: newValue }));
