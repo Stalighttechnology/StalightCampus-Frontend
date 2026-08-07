@@ -104,6 +104,7 @@ export const translateTerminology = (content: any): any => {
     { pattern: /\bBranches\b/gi, key: "branches" },
     { pattern: /\bDepartment\b/gi, key: "branch" },
     { pattern: /\bDepartments\b/gi, key: "branches" },
+    { pattern: /\bSem\b/gi, key: "semester" },
     { pattern: /\bSemester\b/gi, key: "semester" },
     { pattern: /\bSemesters\b/gi, key: "semesters" },
     { pattern: /\bDepartment Admin\b/gi, key: "branchAdmin" },

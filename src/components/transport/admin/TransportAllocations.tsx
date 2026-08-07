@@ -368,7 +368,7 @@ const TransportAllocations: React.FC = () => {
                   <SelectValue placeholder={translateTerminology("Semester")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {branchSemesters.map((s: any) => <SelectItem key={s.id} value={s.id.toString()}>Sem {s.number}</SelectItem>)}
+                  {branchSemesters.map((s: any) => <SelectItem key={s.id} value={s.id.toString()}>{translateTerminology("Sem")} {s.number}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -648,7 +648,7 @@ const TransportAllocations: React.FC = () => {
                     <tr key={a.id} className={`border-b text-sm transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}>
                       <td className="p-4 font-mono text-sm sm:text-xs font-semibold">{a.student_details?.usn}</td>
                       <td className="p-4 font-semibold text-base sm:text-sm">{a.student_details?.name}</td>
-                      <td className="p-4 text-sm sm:text-xs opacity-75">{a.student_details?.branch_name} (Sem {a.student_details?.semester_number})</td>
+                      <td className="p-4 text-sm sm:text-xs opacity-75">{a.student_details?.branch_name} ({translateTerminology("Sem")} {a.student_details?.semester_number})</td>
                       <td className="p-4 text-sm sm:text-xs">
                         <div className="flex items-center gap-2">
                           <Navigation size={12} className="opacity-50 text-primary" />
