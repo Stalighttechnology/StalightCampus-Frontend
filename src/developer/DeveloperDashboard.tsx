@@ -7,6 +7,7 @@ import HQMonitor from "./pages/HQMonitor";
 import Profile from "./pages/DeveloperProfile";
 import DeveloperAttendance from "../superadmin/pages/DeveloperAttendance";
 import DeveloperAnnouncements from "../superadmin/pages/DeveloperAnnouncements";
+import DeveloperChatPage from "./pages/DeveloperChatPage";
 import { useTheme } from "../context/ThemeContext";
 import { API_BASE_URL } from "@/utils/config";
 
@@ -115,6 +116,7 @@ const DeveloperDashboard = ({ setIsAuthenticated }: Props) => {
                 <Route path="monitoring" element={<HQMonitor />} />
                 <Route path="attendance" element={<DeveloperAttendance />} />
                 <Route path="announcements" element={<DeveloperAnnouncements />} />
+                <Route path="chat" element={<DeveloperChatPage />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="*" element={<Navigate to="assigned-issues" replace />} />
             </Routes>

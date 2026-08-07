@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { API_ENDPOINT, getSuperAdminToken } from "@/utils/config";
 
 interface AuditSummary {
   id: number;
@@ -53,6 +54,8 @@ const DeveloperAttendanceAudit: React.FC = () => {
   const [isEndPopoverOpen, setIsEndPopoverOpen] = useState(false);
   const [filtersApplied, setFiltersApplied] = useState(false);
   
+  const [exportingPdf, setExportingPdf] = useState(false);
+
   // Detail dialog state
   const [selectedDev, setSelectedDev] = useState<AuditSummary | null>(null);
   const [detailRecords, setDetailRecords] = useState<DetailRecord[]>([]);
@@ -105,6 +108,42 @@ const DeveloperAttendanceAudit: React.FC = () => {
     }
   };
 
+  const handleExportPdf = async () => {
+    setExportingPdf(true);
+    try {
+      const queryParams = new URLSearchParams();
+      if (startDate) queryParams.append("start_date", startDate);
+      if (endDate) queryParams.append("end_date", endDate);
+      
+      const response = await fetch(
+        `${API_ENDPOINT}/superadmin/developers/attendance-audit/export-pdf/?${queryParams.toString()}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${getSuperAdminToken()}`
+          }
+        }
+      );
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `developer_attendance_audit_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        toast.error("Failed to download PDF");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Failed to download PDF");
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case 'present':
@@ -141,13 +180,15 @@ const DeveloperAttendanceAudit: React.FC = () => {
           <div className="flex items-center gap-2 flex-shrink-0 mt-1">
             <Button
               size="sm"
-              disabled={loading || !filtersApplied || records.length === 0}
+              onClick={handleExportPdf}
+              disabled={loading || exportingPdf || !filtersApplied || records.length === 0}
               className="hidden sm:flex justify-center bg-primary text-white hover:bg-primary/90 transition-all shadow-md text-sm font-medium px-4 py-2 rounded-md items-center gap-2 h-9 disabled:opacity-50">
               <Download className="h-4 w-4 flex-shrink-0" />
-              <span>Export PDF</span>
+              <span>{exportingPdf ? "Exporting..." : "Export PDF"}</span>
             </Button>
             <Button
-              disabled={loading || !filtersApplied || records.length === 0}
+              onClick={handleExportPdf}
+              disabled={loading || exportingPdf || !filtersApplied || records.length === 0}
               size="icon"
               variant="outline"
               className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"

@@ -56,6 +56,7 @@ const allMenuItems = [
   { id: "popups", label: "Popups", icon: <MessageSquare size={20} /> },
   { id: "reports", label: "Reports", icon: <BarChart3 size={20} /> },
   { id: "announcements", label: "Announcements", icon: <Megaphone size={20} /> },
+  { id: "chat", label: "HQ Chat", icon: <MessageSquare size={20} /> },
   { id: "nda", label: "NDA & Consents", icon: <FileText size={20} /> },
   { id: "marketing", label: "Marketing Emails", icon: <Mail size={20} /> },
   { id: "certificates", label: "Certificates", icon: <FileText size={20} /> },
@@ -68,6 +69,8 @@ const developerAllowedPages = [
   "support",
   "monitoring",
   "popups",
+  "announcements",
+  "chat",
   "profile"
 ];
 
