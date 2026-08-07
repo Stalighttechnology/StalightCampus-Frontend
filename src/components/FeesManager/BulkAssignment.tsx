@@ -549,14 +549,14 @@ const BulkAssignment: React.FC = () => {
                       Select Fee Template
                     </Label>
                     <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                      <SelectTrigger className="h-12 bg-background border-border/50 text-md">
+                      <SelectTrigger className="min-h-[3.25rem] h-auto py-2.5 px-3 bg-background border-border/50 text-sm sm:text-md [&>span]:line-clamp-none [&>span]:block [&>span]:w-full text-left">
                         <SelectValue placeholder="Choose a template" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-w-[420px]">
                         {templates.map((t) =>
-                          <SelectItem key={t.id} value={t.id.toString()} className="py-3">
-                            <div className="flex flex-col">
-                              <span className="font-semibold">{t.name}</span>
+                          <SelectItem key={t.id} value={t.id.toString()} className="py-2.5">
+                            <div className="flex flex-col text-left space-y-0.5 pr-2">
+                              <span className="font-semibold leading-snug break-words">{t.name}</span>
                               <span className="text-xs text-muted-foreground font-semibold">{formatCurrency(t.total_amount)}</span>
                             </div>
                           </SelectItem>
