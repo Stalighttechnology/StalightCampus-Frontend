@@ -1691,6 +1691,7 @@ export interface MarkFacultyAttendanceRequest {
 export interface MarkFacultyAttendanceResponse {
   success: boolean;
   message?: string;
+  error_code?: string;
   allow_self_declaration?: boolean;
   location?: AttendanceLocation;
   data?: {

@@ -22,7 +22,6 @@ const STAGES = [
   { id: 'documents_verified', label: 'Docs Verified' },
   { id: 'fee_pending', label: 'Fee Pending' },
   { id: 'admission_confirmed', label: 'Confirmed' },
-  { id: 'enrolled', label: 'Enrolled' },
   { id: 'rejected', label: 'Rejected' }
 ];
 
@@ -31,18 +30,12 @@ const isValidTransition = (currentStatus: string, newStatus: string): { valid: b
     return { valid: true };
   }
 
-  // 1. Enrolled is final
-  if (currentStatus === 'enrolled') {
-    return { valid: false, reason: 'Enrolled students cannot be moved to other stages.' };
-  }
-
-  // 2. Admission Confirmed can only go to enrolled
+  // 1. Admission Confirmed is final in the pipeline (enrollment happens via Applications page)
   if (currentStatus === 'admission_confirmed') {
-    if (newStatus === 'enrolled') return { valid: true };
-    return { valid: false, reason: 'Confirmed admissions can only transition to Enrolled.' };
+    return { valid: false, reason: 'Confirmed admissions can only be enrolled via the Applications tab.' };
   }
 
-  // 3. Fee Pending can only go to admission_confirmed
+  // 2. Fee Pending can only go to admission_confirmed
   if (currentStatus === 'fee_pending') {
     if (newStatus === 'admission_confirmed') return { valid: true };
     return { valid: false, reason: 'Leads with pending fees can only transition to Confirmed.' };
@@ -145,11 +138,20 @@ const LeadPipeline: React.FC = () => {
     // Optimistic update
     setLeads(leads.map(l => l.id === leadId ? { ...l, status: newStatus } : l));
     try {
-      await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/enquiries/${leadId}/update_status/`, {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/enquiries/${leadId}/update_status/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
+      if (response.ok && newStatus === 'admission_confirmed') {
+        Swal.fire({
+          title: 'Admission Confirmed',
+          text: 'To enroll this student, please go to the Applications tab and complete the assignment of Batch, Semester, Branch, and Section.',
+          icon: 'info',
+          confirmButtonText: 'Got it',
+          confirmButtonColor: '#3b82f6',
+        });
+      }
     } catch (err) {
       console.error("Error moving lead", err);
       fetchLeads(); // Revert on failure

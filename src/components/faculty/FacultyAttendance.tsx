@@ -316,6 +316,20 @@ const FacultyAttendance = () => {
         toast.success(isUpdate ? `Attendance updated to ${status}` : `Attendance marked as ${status}`);
         setAttendanceStatus(status);
         await fetchAttendanceData(); // Refresh data
+      } else if (response.error_code === 'CAMPUS_LOCATION_NOT_SET') {
+        await Swal.fire({
+          title: "Campus Location Not Configured",
+          html: `<div class="text-left text-sm space-y-2">
+            <p>Geo-location based attendance is not available.</p>
+            <p class="font-semibold text-red-500 mt-2">🏫 Your campus boundary has not been set up by the administration yet.</p>
+            <p class="mt-2 text-xs text-muted-foreground">Please contact your administrator to configure the campus location before you can mark geo-location attendance.</p>
+          </div>`,
+          icon: "error",
+          confirmButtonText: "OK, Got it",
+          confirmButtonColor: "#ef4444",
+          background: theme === "dark" ? "#1c1c1e" : "#ffffff",
+          color: theme === "dark" ? "#f5f5f5" : "#111827",
+        });
       } else if (response.allow_self_declaration) {
         const distanceInfo = response.location?.distance_meters 
           ? ` (Distance: ${Math.round(response.location.distance_meters)}m outside boundary)` 

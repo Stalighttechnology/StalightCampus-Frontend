@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Swal from 'sweetalert2';
 import { downloadFile } from '../../utils/downloadHelper';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 export default function AdmissionApplications() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -19,6 +21,16 @@ export default function AdmissionApplications() {
   const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  const [enrollModalOpen, setEnrollModalOpen] = useState(false);
+  const [enrollAppId, setEnrollAppId] = useState<number | null>(null);
+  const [optionsData, setOptionsData] = useState<{ branches: any[], batches: any[], semesters: any[], sections: any[] }>({ branches: [], batches: [], semesters: [], sections: [] });
+  const [enrollBranchId, setEnrollBranchId] = useState("");
+  const [enrollBatchId, setEnrollBatchId] = useState("");
+  const [enrollSemesterId, setEnrollSemesterId] = useState("");
+  const [enrollSectionId, setEnrollSectionId] = useState("");
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [isEnrolling, setIsEnrolling] = useState(false);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -34,6 +46,36 @@ export default function AdmissionApplications() {
   useEffect(() => {
     fetchApplications();
   }, [currentPage, debouncedSearch]);
+
+  useEffect(() => {
+    if (enrollModalOpen && enrollBranchId) {
+      fetchEnrollmentOptions(enrollBranchId, enrollSemesterId);
+    }
+  }, [enrollBranchId, enrollSemesterId]);
+
+  const fetchEnrollmentOptions = async (branchId?: string, semesterId?: string) => {
+    setOptionsLoading(true);
+    try {
+      let url = `${API_ENDPOINT}/admission/manager/enrollment-options/?`;
+      if (branchId) url += `branch_id=${branchId}&`;
+      if (semesterId) url += `semester_id=${semesterId}&`;
+      const response = await fetchWithTokenRefresh(url);
+      if (response.ok) {
+        const data = await response.json();
+        setOptionsData(prev => ({
+          branches: branchId ? prev.branches : data.branches,
+          batches: branchId ? prev.batches : data.batches,
+          semesters: data.semesters,
+          sections: data.sections
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load enrollment options");
+    } finally {
+      setOptionsLoading(false);
+    }
+  };
 
   const fetchApplications = async () => {
     setLoading(true);
@@ -116,31 +158,42 @@ export default function AdmissionApplications() {
     }
   };
 
-  const handleEnroll = async (id: number) => {
-    const result = await Swal.fire({
-      title: 'Enroll Student?',
-      text: 'Are you sure you want to enroll this student into the institution?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, enroll!',
-      cancelButtonText: 'Cancel',
-      confirmButtonColor: '#10b981',
-    });
-    if (!result.isConfirmed) return;
+  const handleEnroll = (id: number) => {
+    setEnrollAppId(id);
+    setEnrollBranchId("");
+    setEnrollBatchId("");
+    setEnrollSemesterId("");
+    setEnrollSectionId("");
+    setEnrollModalOpen(true);
+    fetchEnrollmentOptions();
+  };
 
+  const submitEnrollment = async () => {
+    if (!enrollBranchId || !enrollBatchId || !enrollSemesterId || !enrollSectionId) {
+      toast.error("Please select Branch, Batch, Semester, and Section.");
+      return;
+    }
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/${id}/enroll/`, {
+      setIsEnrolling(true);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/${enrollAppId}/enroll/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          branch_id: enrollBranchId,
+          batch_id: enrollBatchId,
+          semester_id: enrollSemesterId,
+          section_id: enrollSectionId
+        })
       });
       if (response.ok) {
         toast.success("Student Enrolled Successfully!");
         setApplications(apps => apps.map(app => 
-          app.id === id ? { ...app, enquiry_details: { ...app.enquiry_details, status: 'enrolled' } } : app
+          app.id === enrollAppId ? { ...app, enquiry_details: { ...app.enquiry_details, status: 'enrolled' } } : app
         ));
-        if (selectedApp?.id === id) {
+        if (selectedApp?.id === enrollAppId) {
           setSelectedApp((prev: any) => prev ? ({ ...prev, enquiry_details: { ...prev.enquiry_details, status: 'enrolled' } }) : null);
         }
+        setEnrollModalOpen(false);
       } else {
         const errData = await response.json();
         toast.error(errData.error || "Failed to enroll");
@@ -148,6 +201,8 @@ export default function AdmissionApplications() {
     } catch (err) {
       console.error(err);
       toast.error("Failed to enroll");
+    } finally {
+      setIsEnrolling(false);
     }
   };
 
@@ -420,6 +475,72 @@ export default function AdmissionApplications() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={enrollModalOpen} onOpenChange={setEnrollModalOpen}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Confirm Enrollment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">Please assign the student to their respective batch, branch, semester, and section to finalize enrollment.</p>
+            
+            <div className="space-y-2">
+              <Label>Batch *</Label>
+              <Select value={enrollBatchId} onValueChange={setEnrollBatchId}>
+                <SelectTrigger><SelectValue placeholder="Select Batch" /></SelectTrigger>
+                <SelectContent>
+                  {optionsData.batches.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Branch *</Label>
+              <Select value={enrollBranchId} onValueChange={(val) => { setEnrollBranchId(val); setEnrollSemesterId(""); setEnrollSectionId(""); }}>
+                <SelectTrigger><SelectValue placeholder="Select Branch" /></SelectTrigger>
+                <SelectContent>
+                  {optionsData.branches.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Semester *</Label>
+              <Select value={enrollSemesterId} onValueChange={(val) => { setEnrollSemesterId(val); setEnrollSectionId(""); }} disabled={!enrollBranchId}>
+                <SelectTrigger><SelectValue placeholder="Select Semester" /></SelectTrigger>
+                <SelectContent>
+                  {optionsData.semesters.map((s: any) => (
+                    <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Section *</Label>
+              <Select value={enrollSectionId} onValueChange={setEnrollSectionId} disabled={!enrollSemesterId}>
+                <SelectTrigger><SelectValue placeholder="Select Section" /></SelectTrigger>
+                <SelectContent>
+                  {optionsData.sections.map((s: any) => (
+                    <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setEnrollModalOpen(false)} disabled={isEnrolling}>Cancel</Button>
+            <Button onClick={submitEnrollment} disabled={!enrollBranchId || !enrollBatchId || !enrollSemesterId || !enrollSectionId || isEnrolling}>
+              {isEnrolling ? <><Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" /> Enrolling...</> : 'Enroll Student'}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
