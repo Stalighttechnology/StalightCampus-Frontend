@@ -481,7 +481,7 @@ const StudentManagement: React.FC = () => {
                       <SelectValue placeholder={translateTerminology("Select Semester")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.isArray(semesters) && semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>)}
+                      {Array.isArray(semesters) && semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{translateTerminology("Semester")} {s.number}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 }
@@ -499,7 +499,7 @@ const StudentManagement: React.FC = () => {
 
                     <>
                       <Input
-                        placeholder="USN, Name, Email..."
+                        placeholder={`${translateTerminology("USN")}, Name, Email...`}
                         className="h-9 pl-10 pr-12 bg-background border-muted-foreground/20 focus:border-primary/50 transition-colors"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)} />
