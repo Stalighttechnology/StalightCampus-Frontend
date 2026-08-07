@@ -1304,7 +1304,7 @@ const StudentManagement = () => {
                 type="text"
                 value={state.manualForm.email}
                 onChange={(e) => {
-                  let value = e.target.value;
+                  let value = e.target.value.toLowerCase();
 
                   // Remove spaces and invalid characters commonly not allowed in email
                   value = value.replace(/[!#$%^&*()_+<>?:"{}]/g, "");
@@ -2158,7 +2158,7 @@ const StudentManagement = () => {
                 className={`h-9 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
                 placeholder="Email"
                 value={state.editForm.email}
-                onChange={(e) => updateState({ editForm: { ...state.editForm, email: e.target.value } })} />
+                onChange={(e) => updateState({ editForm: { ...state.editForm, email: e.target.value.toLowerCase() } })} />
 
             </div>
             <div className="col-span-1 space-y-1">
