@@ -795,7 +795,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                         <th className="py-2 px-4 sm:w-[200px]">Full Name</th>
                         <th className="py-2 px-1 md:w-[200px]">Email</th>
                         {roleFilter === "Student" && (
-                          <th className="py-2 px-1 md:w-[150px]">USN</th>
+                          <th className="py-2 px-1 md:w-[150px]">{translateTerminology("USN")}</th>
                         )}
                         <th className="py-2 px-1 md:w-[120px]">Role</th>
                         {(roleFilter === "" || rolesNeedingDept.includes(roleFilter)) && (
