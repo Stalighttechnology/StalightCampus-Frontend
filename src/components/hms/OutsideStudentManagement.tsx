@@ -17,7 +17,7 @@ import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../utils/
 import { useHMSContext } from "../../context/HMSContext";
 import { Avatar, AvatarFallback } from '../ui/avatar';
 
-import { translateTerminology } from '@/utils/institutionConfig';
+import { translateTerminology, getInstitutionType } from '@/utils/institutionConfig';
 
 interface OutsideStudent {
   id: number;
@@ -59,6 +59,7 @@ const getFloorFromRoomNumber = (roomNo: string): number => {
 };
 
 const OutsideStudentManagement: React.FC = () => {
+  const institutionType = getInstitutionType();
   const { hostels, fetchHostelsOnly, updateRoomStudentCount, refreshData } = useHMSContext();
   const { toast } = useToast();
 
@@ -483,7 +484,7 @@ const OutsideStudentManagement: React.FC = () => {
                       {formErrors.name && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.name}</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="usn">USN / Custom ID *</Label>
+                      <Label htmlFor="usn">{translateTerminology("USN")} / Custom ID *</Label>
                       <Input
                         id="usn"
                         placeholder="e.g. OUT-1001"
@@ -522,10 +523,10 @@ const OutsideStudentManagement: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="outside_course_name">Course Name *</Label>
+                      <Label htmlFor="outside_course_name">{institutionType === 'school' ? 'Stream Name *' : 'Course Name *'}</Label>
                       <Input
                         id="outside_course_name"
-                        placeholder="e.g. MBA, MCA, Diploma"
+                        placeholder={institutionType === 'school' ? "e.g. Science, Commerce, Arts" : "e.g. MBA, MCA, Diploma"}
                         value={addFormData.outside_course_name}
                         onChange={(e) => handleInputChange('outside_course_name', e.target.value)}
                         className={formErrors.outside_course_name ? "border-red-500 focus-visible:ring-red-500" : ""}
@@ -533,10 +534,10 @@ const OutsideStudentManagement: React.FC = () => {
                       {formErrors.outside_course_name && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.outside_course_name}</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="outside_year">Year *</Label>
+                      <Label htmlFor="outside_year">{institutionType === 'school' ? 'Class / Grade *' : 'Year *'}</Label>
                       <Input
                         id="outside_year"
-                        placeholder="e.g. 1st Year, 2nd Year"
+                        placeholder={institutionType === 'school' ? "e.g. Grade 10, Grade 12" : "e.g. 1st Year, 2nd Year"}
                         value={addFormData.outside_year}
                         onChange={(e) => handleInputChange('outside_year', e.target.value)}
                         className={formErrors.outside_year ? "border-red-500 focus-visible:ring-red-500" : ""}
