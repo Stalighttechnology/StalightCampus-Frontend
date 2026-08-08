@@ -1,3 +1,4 @@
+import { translateTerminology } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -82,7 +83,7 @@ const groupExams = (exams: ExamEntry[]): ExamGroup[] => {
         title: ex.title || ex.exam_type?.replace('_', ' ') || 'Exam',
         batch: ex.batch || '-',
         branch: ex.branch || '-',
-        semester: ex.semester ? `Sem ${ex.semester}` : '-',
+        semester: ex.semester ? translateTerminology(ex.semester.toString().startsWith('Sem') ? ex.semester.toString() : `Sem ${ex.semester}`) : '-',
         exam_type: ex.exam_type || '',
         exam_period: ex.exam_period || '',
         dateStr: '',
@@ -501,7 +502,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
                                 <tr className={`text-left text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`
                                 }>
                                   <th className="px-6 py-4">Exam Details</th>
-                                  <th className="px-6 py-4 text-center">Batch / Branch / Sem</th>
+                                  <th className="px-6 py-4 text-center">{translateTerminology("Batch / Branch / Sem")}</th>
                                   <th className="px-6 py-4 text-center">Date & Time</th>
                                   <th className="px-6 py-4">Venue</th>
                                   <th className="px-6 py-4 text-center">Status</th>
@@ -618,7 +619,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
                                 <div className="space-y-2">
                                   {[
                                     { label: 'Batch', value: g.batch },
-                                    { label: 'Branch / Sem', value: `${g.branch} • ${g.semester}` },
+                                    { label: translateTerminology("Branch / Sem"), value: `${g.branch} • ${g.semester}` },
                                     { label: 'Date & Time', value: g.dateStr },
                                   ].map(({ label, value }) => (
                                     <div key={label} className="flex items-baseline gap-2">
