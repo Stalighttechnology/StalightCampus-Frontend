@@ -1,3 +1,4 @@
+import { translateTerminology } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -210,8 +211,8 @@ const ExamWindowConfig: React.FC<ExamWindowConfigProps> = ({ batchId, examPeriod
       <CardContent className="p-6">
         <h3 className="text-lg font-semibold text-blue-900 mb-4">Exam Application Window Configuration</h3>
         <p className="text-sm text-blue-700 mb-4">
-          Define the dates during which HODs and Faculty can submit student exam applications for this selection.
-          {(!branchId || branchId === 'all') && " (Applying to ALL branches at once)"}
+          {translateTerminology("Define the dates during which HODs and Faculty can submit student exam applications for this selection.")}
+          {(!branchId || branchId === 'all') && translateTerminology(" (Applying to ALL branches at once)")}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">

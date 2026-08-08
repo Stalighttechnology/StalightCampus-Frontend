@@ -241,7 +241,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                   setTimeout(() => setIsSemesterOpen(true), 150);
                 }} open={isBranchOpen} onOpenChange={setIsBranchOpen} disabled={!filters.exam_period}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select branch" />
+                    <SelectValue placeholder={translateTerminology("Select branch")} />
                   </SelectTrigger>
                   <SelectContent>
                     {filterOptions.branches.map((branch: any) =>
@@ -256,12 +256,12 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                 <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">{translateTerminology("Semester")}</label>
                 <Select value={filters.semester} onValueChange={(value) => setFilters({ ...filters, semester: value })} open={isSemesterOpen} onOpenChange={setIsSemesterOpen} disabled={!filters.branch}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select semester" />
+                    <SelectValue placeholder={translateTerminology("Select semester")} />
                   </SelectTrigger>
                   <SelectContent>
                     {semesters.map((semester: any) =>
                       <SelectItem key={semester.id} value={semester.id.toString()}>
-                        Semester {semester.number}
+                        {translateTerminology(semester.name || `Semester ${semester.number}`)}
                       </SelectItem>
                     )}
                   </SelectContent>
@@ -501,7 +501,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
               </div>
               <h3 className="text-xl sm:text-xl font-semibold sm:font-semibold mb-3">Select filters to view data</h3>
               <p className="text-[16px] sm:text-sm text-muted-foreground max-w-sm mx-auto">
-                Please select a batch, exam period, branch, and semester from the dropdowns above to load the student application status.
+                {translateTerminology("Please select a batch, exam period, branch, and semester from the dropdowns above to load the student application status.")}
               </p>
             </CardContent>
           </Card>
