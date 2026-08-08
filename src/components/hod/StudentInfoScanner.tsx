@@ -582,7 +582,7 @@ const StudentInfoScanner = () => {
         <CardHeader id="scan-student-info-header" className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div className="space-y-1">
             <CardTitle className={`text-xl sm:text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Search Student</CardTitle>
-            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Enter USN or use scanner to find student information</p>
+            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{translateTerminology("Enter USN or use scanner to find student information")}</p>
           </div>
           {studentData && (
             <Button
@@ -605,7 +605,7 @@ const StudentInfoScanner = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Enter USN (e.g., 1AB22CD123)"
+                placeholder={translateTerminology("Enter USN (e.g., 1AB22CD123)")}
                 value={usn}
                 onChange={(e) => setUsn(e.target.value.toUpperCase())}
                 onKeyPress={handleKeyPress}
@@ -681,7 +681,7 @@ const StudentInfoScanner = () => {
               Search Student
             </h3>
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Enter USN, use barcode scanner, or upload a group photo to find student information
+              {translateTerminology("Enter USN, use barcode scanner, or upload a group photo to find student information")}
             </p>
           </div>
         </Card>
@@ -698,25 +698,22 @@ const StudentInfoScanner = () => {
               </CardTitle>
               {multipleFacesResult && (
                 <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Total faces detected: {multipleFacesResult.total}. Matches found: {detectedStudents.length}. Unknown faces: {multipleFacesResult.unknown}.
+                  {multipleFacesResult.total} face(s) detected. {multipleFacesResult.unknown > 0 ? `${multipleFacesResult.unknown} unknown.` : ''}
                 </p>
               )}
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {detectedStudents.map((student, index) => (
+                {detectedStudents.map((student: any) => (
                   <div
-                    key={index}
+                    key={student.id}
                     onClick={() => {
                       setUsn(student.usn);
                       fetchStudentData(student.usn);
                     }}
-                    className={`p-4 rounded-lg border cursor-pointer transition-colors flex items-center gap-3 ${theme === 'dark'
-                      ? 'bg-background border-border hover:border-primary/50 hover:bg-accent/50'
-                      : 'bg-gray-50 border-gray-200 hover:border-primary/50 hover:bg-gray-100'
-                      }`}
+                    className={`p-4 rounded-xl border flex items-center gap-4 cursor-pointer transition-all hover:border-primary ${theme === 'dark' ? 'bg-accent/10 border-border hover:bg-accent/20' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}
                   >
-                    <div className="flex-shrink-0">
+                    <div className="relative shrink-0">
                       {student.photo_url ? (
                         <img
                           src={student.photo_url}
@@ -755,7 +752,7 @@ const StudentInfoScanner = () => {
             <span className="font-semibold text-base">{error}</span>
             {error === "Student not found" && (
               <span className={`text-sm mt-1 ${theme === 'dark' ? 'text-destructive-foreground/80' : 'text-red-600/90'}`}>
-                Please check the USN and try again
+                {translateTerminology("Please check the USN and try again")}
               </span>
             )}
           </div>
@@ -945,7 +942,7 @@ const StudentInfoScanner = () => {
                   <div className="flex items-start gap-3">
                     <BookOpen className="h-4 w-4 text-muted-foreground mt-0.5" />
                     <div>
-                      <div className="text-xs font-semibold text-muted-foreground">USN</div>
+                      <div className="text-xs font-semibold text-muted-foreground">{translateTerminology("USN")}</div>
                       <Badge variant="secondary" className="font-mono text-xs mt-0.5">{studentData.student_info.usn}</Badge>
                     </div>
                   </div>

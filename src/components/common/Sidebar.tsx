@@ -708,7 +708,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   if (getInstitutionType() === 'school') {
     Object.keys(menuItems).forEach((key) => {
       menuItems[key] = menuItems[key].filter(
-        item => !['exam-applications', 'revaluation', 'makeupexam', 'revaluation-requests', 'makeup-requests'].includes(item.page)
+        item => !['exam-applications', 'revaluation', 'makeupexam', 'revaluation-requests', 'makeup-requests', 'fee-settings'].includes(item.page)
       );
     });
   }
