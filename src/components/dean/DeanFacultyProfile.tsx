@@ -558,7 +558,7 @@ const DeanFacultyProfile = ({
                             : "bg-white border-gray-200"
                             }`}
                         >
-                          <SelectValue placeholder={translateTerminology("Select a branch")} />
+                          <SelectValue placeholder={translateTerminology("Select branch")} />
                         </SelectTrigger>
                         <SelectContent>
                           {branches.map((b: Branch) => (
@@ -962,7 +962,7 @@ function AssignmentsList({ assignments, theme }: AssignmentsListProps) {
               </div>
               <div className="flex flex-wrap gap-2">
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-blue-900/30 text-blue-300" : "bg-blue-100 text-blue-800"}`}>{a.branch}</span>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-green-900/30 text-green-300" : "bg-green-100 text-green-800"}`}>Semester {a.semester}</span>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-green-900/30 text-green-300" : "bg-green-100 text-green-800"}`}>{translateTerminology(typeof a.semester === 'number' || (a.semester && !String(a.semester).toLowerCase().includes('sem')) ? `Semester ${a.semester}` : String(a.semester))}</span>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-purple-900/30 text-purple-300" : "bg-purple-100 text-purple-800"}`}>Section {a.section}</span>
               </div>
             </div>
