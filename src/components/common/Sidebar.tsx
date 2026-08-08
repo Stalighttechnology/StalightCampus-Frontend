@@ -566,7 +566,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Exams", page: "exams" },
       { name: translateTerminology("CO/PO Attainment"), page: "co-attainment" },
       { name: "Faculty", page: "faculty" },
-      { name: "HOD & Admin Attendance", page: "attendance" },
+      { name: translateTerminology("HOD & Admin Attendance"), page: "attendance" },
       { name: "Attendance Filters", page: "attendance-filters" },
       { name: "Enroll Staff", page: "enroll-user" },
       { name: "Announcement Management", page: "announcement-management" },

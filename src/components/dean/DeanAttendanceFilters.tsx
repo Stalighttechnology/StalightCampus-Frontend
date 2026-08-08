@@ -157,7 +157,8 @@ const DeanAttendanceFilters = () => {
       params.append("person_id", selectedPersonId || "all");
 
       const url = `${API_ENDPOINT}/dean/reports/hod-admin-attendance/export-pdf/?${params.toString()}`;
-      await downloadFile(url, `${selectedRole.toUpperCase()}_Attendance_Report.pdf`);
+      const rolePrefix = selectedRole === 'hod' ? getTerm('hod').toUpperCase().replace(/\s+/g, '_') : selectedRole.toUpperCase();
+      await downloadFile(url, `${rolePrefix}_Attendance_Report.pdf`);
     } catch (e: any) {
       console.error("Failed to export PDF:", e);
     } finally {
@@ -297,7 +298,7 @@ const DeanAttendanceFilters = () => {
                     </label>
                     <Select disabled={!selectedRole} open={isPersonSelectOpen} onOpenChange={setIsPersonSelectOpen} value={selectedPersonId || ""} onValueChange={(value) => setSelectedPersonId(value)}>
                       <SelectTrigger className={`w-full ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
-                        <SelectValue placeholder={!selectedRole ? "Select role first" : (selectedRole === "hod" ? "Select HOD" : "Select Admin")} />
+                        <SelectValue placeholder={!selectedRole ? "Select role first" : (selectedRole === "hod" ? translateTerminology("Select HOD") : "Select Admin")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All {selectedRole === "hod" ? translateTerminology("HODs") : "Admins"}</SelectItem>
