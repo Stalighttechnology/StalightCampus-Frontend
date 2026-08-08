@@ -42,3 +42,18 @@ export const APP_CONFIG = {
 export const shouldShowFloatingAssistant = (): boolean => {
   return APP_CONFIG.SHOW_FLOATING_ASSISTANT;
 };
+
+// Token helpers — used by HQ Chat and other cross-role features
+export const getSuperAdminToken = (): string | null => {
+  const token = localStorage.getItem("superadmin_token");
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    if (Date.now() < payload.exp * 1000 - 30000) return token;
+  } catch {}
+  return null;
+};
+
+export const getAuthToken = (): string | null => {
+  return sessionStorage.getItem("access_token") || localStorage.getItem("access_token");
+};

@@ -170,12 +170,11 @@ const DeveloperAttendance = () => {
     setExportingPdf(true);
     try {
       const queryParams = new URLSearchParams();
-      queryParams.append("report_type", "my_attendance");
       if (historyStartDate) queryParams.append("start_date", format(historyStartDate, "yyyy-MM-dd"));
       if (historyEndDate) queryParams.append("end_date", format(historyEndDate, "yyyy-MM-dd"));
 
       const response = await fetchWithSuperadminTokenRefresh(
-        `${API_ENDPOINT}/reports/export-pdf/?${queryParams.toString()}`,
+        `${API_ENDPOINT}/superadmin/developers/attendance/my-records/export-pdf/?${queryParams.toString()}`,
         {
           method: "GET",
           headers: {

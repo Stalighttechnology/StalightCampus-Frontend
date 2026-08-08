@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ListTodo, Activity, User, LogOut, ChevronLeft, ChevronRight, CalendarCheck, Megaphone } from "lucide-react";
+import { ListTodo, Activity, User, LogOut, ChevronLeft, ChevronRight, CalendarCheck, Megaphone, MessageSquare } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface Props {
   collapsed: boolean;
@@ -13,12 +14,23 @@ const MENU_ITEMS = [
   { id: "monitoring", label: "HQ Monitor", icon: <Activity size={20} /> },
   { id: "attendance", label: "My Attendance", icon: <CalendarCheck size={20} /> },
   { id: "announcements", label: "Announcements", icon: <Megaphone size={20} /> },
+  { id: "chat", label: "HQ Chat", icon: <MessageSquare size={20} /> },
   { id: "profile", label: "Profile", icon: <User size={20} /> },
 ];
 
 const Sidebar = ({ collapsed, setCollapsed, setIsAuthenticated }: Props) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [chatUnread, setChatUnread] = useState(0);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const count = (e as CustomEvent).detail?.count ?? 0;
+      setChatUnread(count);
+    };
+    window.addEventListener("hq-chat-unread", handler);
+    return () => window.removeEventListener("hq-chat-unread", handler);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("superadmin_token");
@@ -70,8 +82,13 @@ const Sidebar = ({ collapsed, setCollapsed, setIsAuthenticated }: Props) => {
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <div className={`${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}>
+              <div className={`${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"} relative`}>
                 {item.icon}
+                {item.id === "chat" && chatUnread > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-600 text-[8px] text-white font-bold">
+                    {chatUnread > 9 ? '9+' : chatUnread}
+                  </span>
+                )}
               </div>
               
               {!collapsed && (

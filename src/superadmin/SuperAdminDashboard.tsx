@@ -19,6 +19,7 @@ import BulkEmailer from "./pages/BulkEmailer";
 import OfficeLocation from "./pages/OfficeLocation";
 import DeveloperAttendanceAudit from "./pages/DeveloperAttendanceAudit";
 import DeveloperAnnouncements from "./pages/DeveloperAnnouncements";
+import HQChatPage from "./pages/HQChatPage";
 
 import { useTheme } from "../context/ThemeContext";
 import { Sun, Moon, Menu } from "lucide-react";
@@ -164,6 +165,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
               <Route path="office-locations" element={<OfficeLocation />} />
               <Route path="developer-audit" element={<DeveloperAttendanceAudit />} />
               <Route path="announcements" element={<DeveloperAnnouncements />} />
+              <Route path="chat" element={<HQChatPage />} />
 
               <Route path="*" element={
                 <div className="flex flex-col items-center justify-center h-[60vh]">

@@ -175,11 +175,11 @@ const DeveloperMyAttendance = () => {
       if (historyEndDate) queryParams.append("end_date", format(historyEndDate, "yyyy-MM-dd"));
 
       const response = await fetchWithTokenRefresh(
-        `${API_ENDPOINT}/reports/export-pdf/?${queryParams.toString()}`,
+        `${API_ENDPOINT}/superadmin/developers/attendance/my-records/export-pdf/?${queryParams.toString()}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
+            Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`
           }
         }
       );
