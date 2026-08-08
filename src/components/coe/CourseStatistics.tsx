@@ -209,7 +209,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
                 setTimeout(() => setIsSemesterOpen(true), 150);
               }} open={isBranchOpen} onOpenChange={setIsBranchOpen} disabled={!filters.batch}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select branch" />
+                  <SelectValue placeholder={translateTerminology("Select branch")} />
                 </SelectTrigger>
                 <SelectContent>
                   {filterOptions.branches.length > 0 ? (
@@ -219,7 +219,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
                       </SelectItem>
                     )
                   ) : (
-                    <SelectItem value="none" disabled>No branches found</SelectItem>
+                    <SelectItem value="none" disabled>{translateTerminology("No branches found")}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -228,17 +228,17 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
               <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">{translateTerminology("Semester")}</label>
               <Select value={filters.semester} onValueChange={(value) => setFilters({ ...filters, semester: value })} open={isSemesterOpen} onOpenChange={setIsSemesterOpen} disabled={!filters.branch}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select semester" />
+                  <SelectValue placeholder={translateTerminology("Select semester")} />
                 </SelectTrigger>
                 <SelectContent>
                   {semesters.length > 0 ? (
                     semesters.map((semester: any) =>
                       <SelectItem key={semester.id} value={semester.id.toString()}>
-                        Semester {semester.number}
+                        {translateTerminology(semester.name || `Semester ${semester.number}`)}
                       </SelectItem>
                     )
                   ) : (
-                    <SelectItem value="none" disabled>No semesters found</SelectItem>
+                    <SelectItem value="none" disabled>{translateTerminology("No semesters found")}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -412,7 +412,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
             </div>
             <h3 className="text-xl sm:text-xl font-semibold mb-3">Select filters to view stats</h3>
             <p className="text-[16px] sm:text-sm text-muted-foreground max-w-sm mx-auto">
-              Please select a batch, exam period, branch, and semester from the dropdowns above to load the subject-wise application statistics.
+              {translateTerminology("Please select a batch, exam period, branch, and semester from the dropdowns above to load the subject-wise application statistics.")}
             </p>
           </CardContent>
         </Card>
