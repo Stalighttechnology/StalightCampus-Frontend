@@ -723,7 +723,7 @@ const WardenVisitorLogs = () => {
                                   </SelectTrigger>
                                   <SelectContent>
                                     {branches.length === 0 ? (
-                                      <SelectItem value="none" disabled>No batches found</SelectItem>
+                                      <SelectItem value="none" disabled>{translateTerminology("No branches found")}</SelectItem>
                                     ) : (
                                       branches.map((b) => (
                                         <SelectItem key={b.id} value={b.id.toString()}>
@@ -756,13 +756,13 @@ const WardenVisitorLogs = () => {
                                   </SelectTrigger>
                                   <SelectContent>
                                     {!selectedBranch ? (
-                                      <SelectItem value="none" disabled>Select branch first</SelectItem>
+                                      <SelectItem value="none" disabled>{translateTerminology("Select branch first")}</SelectItem>
                                     ) : !semestersByBranch[selectedBranch] || semestersByBranch[selectedBranch].length === 0 ? (
-                                      <SelectItem value="none" disabled>No semesters found</SelectItem>
+                                      <SelectItem value="none" disabled>{translateTerminology("No semesters found")}</SelectItem>
                                     ) : (
                                       semestersByBranch[selectedBranch].map((s: any) => (
                                         <SelectItem key={s.id} value={s.id.toString()}>
-                                          Sem {s.number}
+                                          {translateTerminology(s.name || `Sem ${s.number}`)}
                                         </SelectItem>
                                       ))
                                     )}
