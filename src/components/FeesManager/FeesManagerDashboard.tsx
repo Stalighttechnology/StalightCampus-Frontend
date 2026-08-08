@@ -292,7 +292,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
               </tr>
             </thead>
             <tbody className="divide-y dark:divide-slate-800">
-              {dashboardData?.recent_transactions.map((txn, i) => (
+              {(dashboardData?.recent_transactions || []).map((txn, i) => (
                 <tr key={i} className={`transition-colors ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
                   <td className="px-6 py-4">
                     <div className="font-semibold">{txn.student_name}</div>
