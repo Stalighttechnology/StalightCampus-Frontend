@@ -489,7 +489,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
     examsList.forEach(ex => {
       const batchName = ex.batch?.name || 'All Batches';
       const branchName = ex.subject?.branch || 'All Branches';
-      const semNumber = ex.semester?.number ? `Sem ${ex.semester.number}` : '';
+      const semNumber = ex.semester?.number ? translateTerminology(`Sem ${ex.semester.number}`) : '';
       const key = `${batchName}-${branchName}-${semNumber}-${ex.exam_type}-${ex.exam_period}-${ex.title}`;
       if (!groups[key]) {
         groups[key] = {
@@ -621,12 +621,12 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                   setFormData({ ...formData, branch_id: v, semester_id: '', exam_type: '', exam_period: '', subjects: [] });
                   setTimeout(() => setIsFormSemesterOpen(true), 150);
                 }} open={isFormBranchOpen} onOpenChange={setIsFormBranchOpen} disabled={!formData.batch_id}>
-                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.batch_id ? "Select Branch" : "Select Batch First"} /></SelectTrigger>
+                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.batch_id ? translateTerminology("Select Branch") : translateTerminology("Select Batch First")} /></SelectTrigger>
                   <SelectContent>
                     {branches.length > 0 ? (
                       branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
                     ) : (
-                      <SelectItem value="none" disabled>No branches found</SelectItem>
+                      <SelectItem value="none" disabled>{translateTerminology("No branches found")}</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
@@ -638,12 +638,12 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                   setFormData({ ...formData, semester_id: v, exam_type: '', exam_period: '', subjects: [] });
                   setTimeout(() => setIsFormExamTypeOpen(true), 150);
                 }} open={isFormSemesterOpen} onOpenChange={setIsFormSemesterOpen} disabled={!formData.branch_id}>
-                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.branch_id ? "Select Semester" : "Select Branch First"} /></SelectTrigger>
+                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.branch_id ? translateTerminology("Select Semester") : translateTerminology("Select Branch First")} /></SelectTrigger>
                   <SelectContent>
                     {semesters.length > 0 ? (
-                      semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>Sem {s.number}</SelectItem>)
+                      semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{translateTerminology(s.name || `Sem ${s.number}`)}</SelectItem>)
                     ) : (
-                      <SelectItem value="none" disabled>No semesters found</SelectItem>
+                      <SelectItem value="none" disabled>{translateTerminology("No semesters found")}</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
@@ -655,7 +655,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                   setFormData({ ...formData, exam_type: v, exam_period: '', subjects: [] });
                   setTimeout(() => setIsFormExamPeriodOpen(true), 150);
                 }} open={isFormExamTypeOpen} onOpenChange={setIsFormExamTypeOpen} disabled={!formData.semester_id}>
-                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.semester_id ? "Select Type" : "Select Semester First"} /></SelectTrigger>
+                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.semester_id ? "Select Type" : translateTerminology("Select Semester First")} /></SelectTrigger>
                   <SelectContent>
                     {EXAM_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                   </SelectContent>
@@ -1291,32 +1291,32 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
               </Select>
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Filter by Branch</label>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">{translateTerminology("Filter by Branch")}</label>
               <Select value={listFilters.branch_id} onValueChange={(v) => {
                 handleFilterChange('branch_id', v);
                 if (v && v !== 'all') {
                   setTimeout(() => setIsSemesterOpen(true), 150);
                 }
               }} disabled={!listFilters.batch_id || listFilters.batch_id === 'all'} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
-                <SelectTrigger className="h-10 bg-background"><SelectValue placeholder={!listFilters.batch_id || listFilters.batch_id === 'all' ? "Select Batch First" : "Select Branch"} /></SelectTrigger>
+                <SelectTrigger className="h-10 bg-background"><SelectValue placeholder={!listFilters.batch_id || listFilters.batch_id === 'all' ? translateTerminology("Select Batch First") : translateTerminology("Select Branch")} /></SelectTrigger>
                 <SelectContent>
                   {branches.length > 0 ? (
                     branches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
                   ) : (
-                    <SelectItem value="none" disabled>No branches found</SelectItem>
+                    <SelectItem value="none" disabled>{translateTerminology("No branches found")}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Filter by Semester</label>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">{translateTerminology("Filter by Semester")}</label>
               <Select value={listFilters.semester_id} onValueChange={(v) => handleFilterChange('semester_id', v)} disabled={!listFilters.branch_id || listFilters.branch_id === 'all'} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
-                <SelectTrigger className="h-10 bg-background"><SelectValue placeholder={!listFilters.branch_id || listFilters.branch_id === 'all' ? "Select Branch First" : "Select Semester"} /></SelectTrigger>
+                <SelectTrigger className="h-10 bg-background"><SelectValue placeholder={!listFilters.branch_id || listFilters.branch_id === 'all' ? translateTerminology("Select Branch First") : translateTerminology("Select Semester")} /></SelectTrigger>
                 <SelectContent>
                   {filterSemesters.length > 0 ? (
-                    filterSemesters.map(s => <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>)
+                    filterSemesters.map(s => <SelectItem key={s.id} value={s.id.toString()}>{translateTerminology(s.name || `Semester ${s.number}`)}</SelectItem>)
                   ) : (
-                    <SelectItem value="none" disabled>No semesters found</SelectItem>
+                    <SelectItem value="none" disabled>{translateTerminology("No semesters found")}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -1342,7 +1342,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </h3>
                     <p className="text-muted-foreground max-w-sm mx-auto">
                       {!(listFilters.batch_id && listFilters.branch_id && listFilters.semester_id)
-                        ? "Please select a Batch, Branch, and Semester above to view scheduled exams."
+                        ? translateTerminology("Please select a Batch, Branch, and Semester above to view scheduled exams.")
                         : "There are currently no active exam schedules for the selected filters. Click the Schedule New Exam button above to create one."}
                     </p>
                   </CardContent>
@@ -1355,7 +1355,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                     <thead className={`border-b ${theme === 'dark' ? 'bg-muted/50 border-border text-muted-foreground' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
                       <tr className="whitespace-nowrap">
                         <th className="px-6 py-4 font-semibold">Exam Details</th>
-                        <th className="px-6 py-4 font-semibold text-center">Batch / Branch / Sem</th>
+                        <th className="px-6 py-4 font-semibold text-center">{translateTerminology("Batch / Branch / Sem")}</th>
                         <th className="px-6 py-4 font-semibold text-center">Date & Time</th>
                         <th className="px-6 py-4 font-semibold text-center">Venue</th>
                         <th className="px-6 py-4 font-semibold text-center">Status</th>
