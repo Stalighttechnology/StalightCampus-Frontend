@@ -1,3 +1,4 @@
+import { translateTerminology } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -82,7 +83,7 @@ const groupExams = (exams: ExamEntry[]): ExamGroup[] => {
         title: ex.title || ex.exam_type?.replace('_', ' ') || 'Exam',
         batch: ex.batch || '-',
         branch: ex.branch || '-',
-        semester: ex.semester ? `Sem ${ex.semester}` : '-',
+        semester: ex.semester ? translateTerminology(ex.semester.toString().startsWith('Sem') ? ex.semester.toString() : `Sem ${ex.semester}`) : '-',
         exam_type: ex.exam_type || '',
         exam_period: ex.exam_period || '',
         dateStr: '',
@@ -199,7 +200,11 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
       const json = await res.json();
       if (json.success) {
         const normalized = normalizePaginatedResponse(json, 'data');
-        const list = normalized.items || json.data || [];
+        const rawList = normalized.items || json.data || [];
+        const list = rawList.map((g: any) => ({
+          ...g,
+          semester: g.semester ? translateTerminology(typeof g.semester === 'number' ? `Sem ${g.semester}` : String(g.semester)) : g.semester
+        }));
         setSections(prev => ({
           ...prev,
           [section]: {
@@ -501,7 +506,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
                                 <tr className={`text-left text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`
                                 }>
                                   <th className="px-6 py-4">Exam Details</th>
-                                  <th className="px-6 py-4 text-center">Batch / Branch / Sem</th>
+                                  <th className="px-6 py-4 text-center">{translateTerminology("Batch / Branch / Sem")}</th>
                                   <th className="px-6 py-4 text-center">Date & Time</th>
                                   <th className="px-6 py-4">Venue</th>
                                   <th className="px-6 py-4 text-center">Status</th>
@@ -523,7 +528,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                       <div className="font-medium">{g.batch}</div>
-                                      <div className="text-xs text-muted-foreground">{g.branch} • {g.semester}</div>
+                                      <div className="text-xs text-muted-foreground">{g.branch} • {translateTerminology(g.semester)}</div>
                                     </td>
                                     <td className="px-6 py-4 text-center whitespace-nowrap">
                                       <div className="font-medium">{g.dateStr}</div>
@@ -618,7 +623,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
                                 <div className="space-y-2">
                                   {[
                                     { label: 'Batch', value: g.batch },
-                                    { label: 'Branch / Sem', value: `${g.branch} • ${g.semester}` },
+                                    { label: translateTerminology("Branch / Sem"), value: `${g.branch} • ${translateTerminology(g.semester)}` },
                                     { label: 'Date & Time', value: g.dateStr },
                                   ].map(({ label, value }) => (
                                     <div key={label} className="flex items-baseline gap-2">
@@ -720,7 +725,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
           <DialogHeader>
             <DialogTitle>{currentGroup?.title} - Detailed Schedule</DialogTitle>
             <DialogDescription>
-              {currentGroup?.batch} • {currentGroup?.branch} • {currentGroup?.semester}
+              {currentGroup?.batch} • {currentGroup?.branch} • {translateTerminology(currentGroup?.semester || '')}
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4 border rounded-md overflow-x-auto">
