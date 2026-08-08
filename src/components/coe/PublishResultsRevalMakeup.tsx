@@ -377,13 +377,13 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
             setTimeout(() => setIsSemesterOpen(true), 150);
           }} open={isBranchOpen} onOpenChange={setIsBranchOpen} disabled={!selected.batch}>
             <SelectTrigger id="reval-branch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
-              <SelectValue placeholder="Select branch" />
+              <SelectValue placeholder={translateTerminology("Select branch")} />
             </SelectTrigger>
             <SelectContent>
               {filters.branches && filters.branches.length > 0 ? (
                 filters.branches.map((b: any) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)
               ) : (
-                <SelectItem value="none" disabled>No branches found</SelectItem>
+                <SelectItem value="none" disabled>{translateTerminology("No branches found")}</SelectItem>
               )}
             </SelectContent>
           </Select>
@@ -395,13 +395,13 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
             setTimeout(() => setIsExamPeriodOpen(true), 150);
           }} open={isSemesterOpen} onOpenChange={setIsSemesterOpen} disabled={!selected.branch}>
             <SelectTrigger id="reval-semester" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
-              <SelectValue placeholder="Select semester" />
+              <SelectValue placeholder={translateTerminology("Select semester")} />
             </SelectTrigger>
             <SelectContent>
               {semesters && semesters.length > 0 ? (
-                semesters.map((s: any) => <SelectItem key={s.id} value={String(s.id)}>{s.number}</SelectItem>)
+                semesters.map((s: any) => <SelectItem key={s.id} value={String(s.id)}>{translateTerminology(s.name || `Sem ${s.number}`)}</SelectItem>)
               ) : (
-                <SelectItem value="none" disabled>No semesters found</SelectItem>
+                <SelectItem value="none" disabled>{translateTerminology("No semesters found")}</SelectItem>
               )}
             </SelectContent>
           </Select>
@@ -543,7 +543,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
               <h3 className="text-xl font-semibold mb-2">Select filters to publish results</h3>
               <p className="text-muted-foreground max-w-sm mx-auto">
-                Please select a batch, branch, semester, exam period, and request type from the dropdowns above to load the student list and entry form.
+                {translateTerminology("Please select a batch, branch, semester, exam period, and request type from the dropdowns above to load the student list and entry form.")}
               </p>
             </CardContent>
          </Card> :
