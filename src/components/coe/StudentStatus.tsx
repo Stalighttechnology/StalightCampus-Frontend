@@ -355,7 +355,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <input
                       type="text"
-                      placeholder="Search by USN or Name..."
+                      placeholder={translateTerminology("Search by USN or Name...")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-9 pr-4 py-2 w-full text-sm rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -403,7 +403,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                   <Table className="min-w-full">
                     <TableHeader>
                       <TableRow className="sm:table-row">
-                        <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">USN</TableHead>
+                        <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">{translateTerminology("USN")}</TableHead>
                         <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Student Name</TableHead>
                         <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Status</TableHead>
                         <TableHead className="text-[16px] sm:text-sm whitespace-nowrap font-semibold sm:font-semibold">Applied Subjects</TableHead>
