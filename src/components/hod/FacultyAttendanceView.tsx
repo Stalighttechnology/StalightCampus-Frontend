@@ -500,14 +500,14 @@ const FacultyAttendanceView: React.FC = () => {
 
   return (
     <>
-      <div className={` sm: space-y-4 sm:space-y-6 min-h-screen max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+      <div className={`space-y-4 sm:space-y-6 min-h-screen w-full mx-auto ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <div id="hod-faculty-attendance-header-section" className="space-y-4 sm:space-y-6">
           {/* Tab Navigation */}
-          <div id="hod-faculty-attendance-tabs" className={`flex space-x-1 p-1 rounded-lg mt-3 ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'} overflow-x-auto`}>
+          <div id="hod-faculty-attendance-tabs" className={`flex p-1 rounded-lg mt-3 ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
             <button
               onClick={() => setActiveTab('today')}
-              className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'today' ?
-                'bg-primary text-white' :
+              className={`flex-1 py-2 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'today' ?
+                'bg-primary text-white shadow-sm' :
                 theme === 'dark' ?
                   'text-muted-foreground hover:text-foreground' :
                   'text-gray-600 hover:text-gray-900'}`
@@ -517,8 +517,8 @@ const FacultyAttendanceView: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('records')}
-              className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'records' ?
-                'bg-primary text-white' :
+              className={`flex-1 py-2 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'records' ?
+                'bg-primary text-white shadow-sm' :
                 theme === 'dark' ?
                   'text-muted-foreground hover:text-foreground' :
                   'text-gray-600 hover:text-gray-900'}`
@@ -530,41 +530,41 @@ const FacultyAttendanceView: React.FC = () => {
 
           {activeTab === 'today' && !isLoading && todaySummary.total_faculty > 0 && (
             /* Today's Stats Cards */
-            <div id="hod-faculty-attendance-summary" className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+            <div id="hod-faculty-attendance-summary" className={`grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
                 <div className="flex flex-row items-center justify-between gap-2">
                   <div>
-                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Faculty</p>
-                    <p className={`text-2xl sm:text-3xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_faculty}</p>
+                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Faculty</p>
+                    <p className={`text-xl sm:text-2xl lg:text-3xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_faculty}</p>
                   </div>
-                  <Users className="w-6 sm:w-8 h-6 sm:h-8 text-blue-600 flex-shrink-0" />
+                  <Users className="w-5 sm:w-6 lg:w-8 h-5 sm:h-6 lg:h-8 text-blue-600 flex-shrink-0" />
                 </div>
               </div>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
                 <div className="flex flex-row items-center justify-between gap-2">
                   <div>
-                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
-                    <p className={`text-2xl sm:text-3xl font-bold text-green-600`}>{todaySummary.present}</p>
+                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
+                    <p className={`text-xl sm:text-2xl lg:text-3xl font-bold text-green-600`}>{todaySummary.present}</p>
                   </div>
-                  <CheckCircle className="w-6 sm:w-8 h-6 sm:h-8 text-green-600 flex-shrink-0" />
+                  <CheckCircle className="w-5 sm:w-6 lg:w-8 h-5 sm:h-6 lg:h-8 text-green-600 flex-shrink-0" />
                 </div>
               </div>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
                 <div className="flex flex-row items-center justify-between gap-2">
                   <div>
-                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
-                    <p className={`text-2xl sm:text-3xl font-bold text-red-600`}>{todaySummary.absent}</p>
+                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
+                    <p className={`text-xl sm:text-2xl lg:text-3xl font-bold text-red-600`}>{todaySummary.absent}</p>
                   </div>
-                  <XCircle className="w-6 sm:w-8 h-6 sm:h-8 text-red-600 flex-shrink-0" />
+                  <XCircle className="w-5 sm:w-6 lg:w-8 h-5 sm:h-6 lg:h-8 text-red-600 flex-shrink-0" />
                 </div>
               </div>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
                 <div className="flex flex-row items-center justify-between gap-2">
                   <div>
-                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
-                    <p className={`text-2xl sm:text-3xl font-bold text-gray-600`}>{todaySummary.not_marked}</p>
+                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
+                    <p className={`text-xl sm:text-2xl lg:text-3xl font-bold text-gray-600`}>{todaySummary.not_marked}</p>
                   </div>
-                  <Clock className="w-6 sm:w-8 h-6 sm:h-8 text-gray-600 flex-shrink-0" />
+                  <Clock className="w-5 sm:w-6 lg:w-8 h-5 sm:h-6 lg:h-8 text-gray-600 flex-shrink-0" />
                 </div>
               </div>
             </div>
@@ -586,11 +586,11 @@ const FacultyAttendanceView: React.FC = () => {
         {activeTab === 'today' && !isLoading && todaySummary.total_faculty > 0 &&
           <>
             <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
-              <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b border-border flex flex-row justify-between items-center gap-4">
-                <CardTitle className={`text-xl sm:text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  Faculty Attendance <span className="block sm:inline">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
+              <CardHeader className="px-4 sm:px-6 py-4 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <CardTitle className={`text-lg sm:text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Faculty Attendance <span className="block sm:inline text-sm sm:text-base font-normal text-muted-foreground">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
                 </CardTitle>
-                <div className="flex items-center gap-4 shrink-0">
+                <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
                   <label className={`flex items-center gap-2 text-xs sm:text-sm font-medium cursor-pointer select-none ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>
                     <input
                       type="checkbox"
@@ -607,7 +607,7 @@ const FacultyAttendanceView: React.FC = () => {
                     disabled={exportingToday || todayAttendance.length === 0}
                     size="icon"
                     variant="outline"
-                    className="flex sm:hidden h-10 w-10 items-center justify-center border border-input bg-background"
+                    className="flex sm:hidden h-9 w-9 items-center justify-center border border-input bg-background"
                   >
                     {exportingToday ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
                   </Button>
