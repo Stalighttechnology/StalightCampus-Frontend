@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { getSuperAdminToken, getAuthToken } from '@/utils/config';
+import { getSuperAdminToken, getAuthToken, API_BASE_URL } from '@/utils/config';
 import { HQChatMessage, HQChatGroup } from '@/utils/hq_chat_api';
 
 interface UseHQChatSocketProps {
@@ -25,10 +25,10 @@ export const useHQChatSocket = ({
         if (!token) token = getAuthToken();
         if (!token) return;
 
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        // Assuming backend is on port 8000 for local dev or same host
-        const host = window.location.hostname === 'localhost' ? 'localhost:8000' : window.location.host;
-        const wsUrl = `${protocol}//${host}/ws/hq-chat/?token=${token}`;
+        // Convert http:// to ws:// and https:// to wss://
+        const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss://' : 'ws://';
+        const wsBaseUrl = API_BASE_URL.replace(/^https?:\/\//, wsProtocol);
+        const wsUrl = `${wsBaseUrl}/ws/hq-chat/?token=${token}`;
 
         const ws = new WebSocket(wsUrl);
 

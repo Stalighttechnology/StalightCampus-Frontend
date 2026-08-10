@@ -490,8 +490,8 @@ const AdminAnnouncementManagement = () => {
     setSelectedHostelId("all");
   };
 
-  const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "driver", "warden", "developer"];
-  const BASIC_ROLES = ["student", "hod", "faculty", "principal", "org_admin", "dean", "driver", "warden", "developer"];
+  const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "driver", "warden"];
+  const BASIC_ROLES = ["student", "hod", "faculty", "principal", "org_admin", "dean", "driver", "warden"];
 
   const getTargetRolesForUser = (userRole: string) => {
     switch (userRole) {
