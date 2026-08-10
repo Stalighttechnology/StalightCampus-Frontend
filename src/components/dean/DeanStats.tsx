@@ -266,15 +266,15 @@ const DeanStats = () => {
             <>
               <div id="dean-stats-grid" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                 <DashboardCard
-                  title={translateTerminology("Branches")}
+                  title={translateTerminology("Streams")}
                   value={totalBranches}
-                  description="Active branches"
+                  description={translateTerminology("Active branches")}
                   icon={<FaBuilding className={theme === 'dark' ? 'text-indigo-400 text-3xl' : 'text-indigo-500 text-3xl'} />}
                 />
                 <DashboardCard
                   title="Total Students"
                   value={totalStudents}
-                  description="Across branches"
+                  description={translateTerminology("Across branches")}
                   icon={<FaUserGraduate className={theme === 'dark' ? 'text-blue-400 text-3xl' : 'text-blue-500 text-3xl'} />}
                 />
                 <DashboardCard
@@ -286,7 +286,7 @@ const DeanStats = () => {
                 <DashboardCard
                   title={translateTerminology("HODs")}
                   value={totalHods}
-                  description="Dept heads"
+                  description={translateTerminology("Coordinators")}
                   icon={<FaUserTie className={theme === 'dark' ? 'text-yellow-400 text-3xl' : 'text-yellow-500 text-3xl'} />}
                 />
                 {userTier >= 2 && (
@@ -307,8 +307,8 @@ const DeanStats = () => {
 
               <div id="dean-charts-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div id="dean-branch-distribution-card" className={`rounded-xl shadow-sm p-6 border ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-200'}`}>
-                  <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch Distribution</h3>
-                  <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Students and faculty across branches</p>
+                  <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Branch Distribution")}</h3>
+                  <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{translateTerminology("Students and faculty across branches")}</p>
                   <div className="h-80">
                     <Bar data={barData} options={{ ...barOptions, maintainAspectRatio: false }} />
                   </div>
@@ -325,7 +325,7 @@ const DeanStats = () => {
 
               <div id="dean-branch-summary-card" className={`rounded-xl shadow-sm overflow-hidden border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
                 <div className="px-6 py-4 border-b bg-muted/20">
-                  <h3 className={`text-base font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch Summary</h3>
+                  <h3 className={`text-base font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("Branch Summary")}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-border">

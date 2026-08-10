@@ -312,13 +312,13 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
           <DashboardCard
             title={translateTerminology("Branches")}
             value={stats.total_branches || 0}
-            description="Active branches"
+            description={translateTerminology("Active branches")}
             icon={<FaBuilding className={theme === 'dark' ? "text-indigo-400 text-3xl" : "text-indigo-500 text-3xl"} />} />
 
           <DashboardCard
             title="Total Students"
             value={stats.total_students || 0}
-            description="Across branches"
+            description={translateTerminology("Across branches")}
             icon={<FaUserGraduate className={theme === 'dark' ? "text-blue-400 text-3xl" : "text-blue-500 text-3xl"} />} />
 
           <DashboardCard
@@ -425,10 +425,10 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
             className={`rounded-lg shadow p-6 ${theme === 'dark' ? 'border border-border' : 'border border-gray-200'}`}>
 
             <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              Branch Distribution
+              {translateTerminology("Branch Distribution")}
             </h3>
             <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Students and faculty across branches
+              {translateTerminology("Students and faculty across branches")}
             </p>
 
             <div className="h-80 flex items-center justify-center">
@@ -555,7 +555,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
           className={`rounded-lg shadow p-6 mt-5 ${theme === 'dark' ? 'border border-border' : 'border border-gray-200'}`}>
 
           <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-            Branch Statistics
+            {translateTerminology("Branch Statistics")}
           </h3>
           <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
             Detailed distribution of students and faculty
