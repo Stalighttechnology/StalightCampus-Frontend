@@ -28,7 +28,7 @@ export const useHQChatSocket = ({
         // Convert http:// to ws:// and https:// to wss://
         const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss://' : 'ws://';
         const wsBaseUrl = API_BASE_URL.replace(/^https?:\/\//, wsProtocol);
-        const wsUrl = `${wsBaseUrl}/ws/hq-chat/?token=${token}`;
+        const wsUrl = `${wsBaseUrl}/ws/notifications/hq-chat/?token=${token}`;
 
         const ws = new WebSocket(wsUrl);
 
