@@ -20,6 +20,7 @@ import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { SkeletonList, SkeletonCard } from '../ui/skeleton';
+import { sanitizeHtml } from "../../utils/sanitize";
 
 interface QPPending {
   id: number;
@@ -727,7 +728,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                                 <div className="flex justify-between items-start gap-4">
                                   <div 
                                     className="text-sm text-gray-900 dark:text-gray-100 mb-1 flex-1"
-                                    dangerouslySetInnerHTML={{ __html: isExpanded ? (content || '') : (shortContent || '') }}
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? (content || '') : (shortContent || '')) }}
                                   />
                                   <div className="ml-2 flex-shrink-0">
                                     <Badge className="text-gray-900 dark:text-gray-100 font-semibold text-sm bg-transparent">{s.max_marks}m</Badge>

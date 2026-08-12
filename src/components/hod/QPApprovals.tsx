@@ -12,6 +12,7 @@ import { API_ENDPOINT } from "../../utils/config";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
+import { sanitizeHtml } from "../../utils/sanitize";
 interface QPPending {
   id: number;
   subject: string;
@@ -650,9 +651,9 @@ const QPApprovals = () => {
                                   <div className="flex-1">
                                     <div className="flex justify-between items-start gap-4">
                                       <div
-                                        className="text-sm text-gray-900 dark:text-gray-100 mb-1 flex-1"
-                                        dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
-                                      />
+                                          className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left whitespace-pre-line break-words`}
+                                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? (s.content || '') : (shortContent || '')) }}
+                                        />
                                       <div className="ml-2 flex-shrink-0">
                                         <Badge className="text-gray-900 dark:text-gray-100 font-semibold text-sm bg-transparent">{s.max_marks}m</Badge>
                                       </div>

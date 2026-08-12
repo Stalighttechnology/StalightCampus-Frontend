@@ -21,6 +21,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { SkeletonList, SkeletonTable } from "@/components/ui/skeleton";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
+import { sanitizeHtml } from "../../utils/sanitize";
 import { QRCodeSVG } from 'qrcode.react';
 
 interface QuestionRow {
@@ -1306,7 +1307,7 @@ const UploadQP = () => {
                                       </div>
                                       <div
                                         className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} text-left whitespace-pre-line break-words`}
-                                        dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
+                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? (s.content || '') : (shortContent || '')) }}
                                       />
                                       {(s.content || '').length > 160 && (
                                         <div className="pt-1 text-left">
@@ -1332,7 +1333,7 @@ const UploadQP = () => {
                                         <div className="flex justify-between items-start gap-4">
                                           <div
                                             className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left whitespace-pre-line break-words`}
-                                            dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
+                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? (s.content || '') : (shortContent || '')) }}
                                           />
                                           <div className="ml-2 flex-shrink-0">
                                             <Badge className={`font-semibold text-sm ${getBadgeClassName()}`}>{s.maxMarks}m</Badge>
