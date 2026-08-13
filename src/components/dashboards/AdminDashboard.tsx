@@ -33,6 +33,7 @@ import AlumniDirectory from "../common/AlumniDirectory";
 import PrincipalTimetableSettings from "../admin/PrincipalTimetableSettings";
 import DeanFinance from "../dean/DeanFinance";
 import Reports from "../FeesManager/Reports";
+import ComplianceReports from "../admin/ComplianceReports";
 
 import {
   Users,
@@ -256,6 +257,8 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return <FacultyPayroll />;
       case "staff-tasks":
         return <StaffTaskTracker />;
+      case "compliance-reports":
+        return <ComplianceReports />;
       default:
         return <Navigate to="/not-found" replace />;
     }

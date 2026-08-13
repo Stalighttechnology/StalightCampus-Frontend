@@ -33,7 +33,8 @@ import {
   UserCheck,
   Loader2,
   CreditCard,
-  FileCheck
+  FileCheck,
+  FileText
 } from
   "lucide-react";
 import {
@@ -678,6 +679,13 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
           description="View financial status and reports"
           icon={<CreditCard size={20} />}
           onClick={() => handleCardClick("finance")} />
+
+        <DashboardCard
+          id="compliance-reports-card"
+          title="Compliance Reports"
+          description="Generate NAAC SSR & NBA SAR reports"
+          icon={<FileText size={20} />}
+          onClick={() => handleCardClick("compliance-reports")} />
 
       </div>
     </div>);

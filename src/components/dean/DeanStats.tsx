@@ -1,6 +1,7 @@
 import UpcomingMeetingsWidget from "../common/UpcomingMeetingsWidget";
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { Pie, Bar } from "react-chartjs-2";
@@ -11,7 +12,7 @@ import { SkeletonStatsGrid, SkeletonChart, SkeletonTable, SkeletonPageHeader } f
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { FaUserGraduate, FaChalkboardTeacher, FaUserTie, FaUserCheck, FaBuilding } from "react-icons/fa";
 import { Alert, AlertDescription } from "../ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, FileText } from "lucide-react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -48,6 +49,7 @@ type BranchRow = {
 
 const DeanStats = () => {
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [rows, setRows] = useState<BranchRow[]>([]);
@@ -346,6 +348,27 @@ const DeanStats = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+
+              {/* Compliance Reports Quick Access */}
+              <div className={`rounded-xl p-5 border bg-gradient-to-r from-violet-500/10 to-indigo-500/10 ${theme === 'dark' ? 'border-violet-800/40' : 'border-violet-200'}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-violet-900/40' : 'bg-violet-100'}`}>
+                      <FileText size={18} className={theme === 'dark' ? 'text-violet-400' : 'text-violet-600'} />
+                    </div>
+                    <div>
+                      <p className={`font-semibold text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Compliance Reports</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Generate NAAC SSR &amp; NBA SAR with a single click</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('/dean/compliance-reports')}
+                    className="text-sm font-semibold px-4 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white transition-all shadow-sm"
+                  >
+                    Open →
+                  </button>
                 </div>
               </div>
             </>

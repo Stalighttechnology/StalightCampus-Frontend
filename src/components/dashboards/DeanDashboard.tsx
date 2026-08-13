@@ -29,6 +29,7 @@ import AlumniDirectory from "../common/AlumniDirectory";
 import ScheduleMeeting from "../common/ScheduleMeeting";
 import StaffTaskTracker from "../common/StaffTaskTracker";
 import AdminQPApprovals from "../admin/AdminQPApprovals";
+import ComplianceReports from "../admin/ComplianceReports";
 
 interface DeanUser {
   username: string;
@@ -68,6 +69,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'alumni-directory': 'alumni-directory',
     'co-attainment': 'co-attainment',
     'qp-approvals': 'qp-approvals',
+    'compliance-reports': 'compliance-reports',
   };
   return pathMap[lastPart] || 'dashboard';
 };
@@ -146,6 +148,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <FacultyAttendance />;
       case "staff-tasks":
         return <StaffTaskTracker />;
+      case "compliance-reports":
+        return <ComplianceReports />;
       default:
         return <div>Welcome, Dean.</div>;
     }
