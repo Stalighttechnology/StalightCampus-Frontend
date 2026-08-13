@@ -5,6 +5,7 @@ import { Quote, GraduationCap, ArrowRight, MapPin, Phone, Mail, ChevronDown, Che
 import axios from 'axios';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { API_ENDPOINT } from '../../utils/config';
+import { sanitizeHtml } from '../../utils/sanitize';
 import Swal from 'sweetalert2';
 
 interface Block {
@@ -203,7 +204,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
                     <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight">A Legacy of <span className="text-primary">Excellence</span></h3>
                     <div
                       className="text-lg text-muted-foreground leading-relaxed prose prose-lg dark:prose-invert"
-                      dangerouslySetInnerHTML={{ __html: block.data.text || '<p>About our organization...</p>' }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.data.text || '<p>About our organization...</p>') }}
                     />
 
                     {stats.length > 0 && (

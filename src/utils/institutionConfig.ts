@@ -13,6 +13,11 @@ interface InstitutionTerminology {
   electives: string;
   proctor: string;
   mentoring: string;
+  admin: string;
+  admins: string;
+  activeBranches: string;
+  acrossBranches: string;
+  coordinators: string;
 }
 
 const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
@@ -21,7 +26,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     branches: 'Branches',
     semester: 'Semester',
     semesters: 'Semesters',
-    hod: 'HOD',
+    hod: 'Head of Department',
     usn: 'USN',
     coAttainment: 'CO Attainment',
     labs: 'Labs',
@@ -30,6 +35,9 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     mentoring: 'Mentoring',
     admin: 'Admin',
     admins: 'Admins',
+    activeBranches: 'Active branches',
+    acrossBranches: 'Across branches',
+    coordinators: 'Dept heads',
   },
   medical: {
     branch: 'Course',
@@ -44,6 +52,9 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     proctor: 'Mentor',
     admin: 'Admin',
     admins: 'Admins',
+    activeBranches: 'Active courses',
+    acrossBranches: 'Across courses',
+    coordinators: 'Dept heads',
   },
   school: {
     branch: 'Stream',
@@ -59,6 +70,9 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     electives: 'Optional Subjects',
     proctor: 'Class Teacher',
     mentoring: 'Guidance',
+    activeBranches: 'Active streams',
+    acrossBranches: 'Across streams',
+    coordinators: 'Coordinators',
   }
 };
 
@@ -110,6 +124,11 @@ export const translateTerminology = (content: any): any => {
     { pattern: /\bDepartment heads\b/gi, key: "hod" },
     { pattern: /\bHOD\b/gi, key: "hod" },
     { pattern: /\bHODs\b/gi, key: "hod" },
+    { pattern: /\bActive branches\b/gi, key: "activeBranches" },
+    { pattern: /\bAcross branches\b/gi, key: "acrossBranches" },
+    { pattern: /\bCoordinators\b/gi, key: "coordinators" },
+    { pattern: /\bStreams\b/gi, key: "branches" },
+    { pattern: /\bStream\b/gi, key: "branch" },
     { pattern: /\bBranch\b/gi, key: "branch" },
     { pattern: /\bBranches\b/gi, key: "branches" },
     { pattern: /\bDepartment\b/gi, key: "branch" },

@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Star,
   Sparkles,
+  Sliders,
   Info,
   X,
   MessageCircle
@@ -30,10 +31,10 @@ const Pricing = () => {
   const navigate = useNavigate();
   const [activeFAQ, setActiveFAQ] = useState<number | null>(null);
   const [isTrialPopupOpen, setIsTrialPopupOpen] = useState(false);
-  const [activeCompareTab, setActiveCompareTab] = useState<'basic' | 'pro' | 'advance'>('basic');
+  const [activeCompareTab, setActiveCompareTab] = useState<'basic' | 'pro' | 'advance' | 'custom'>('basic');
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
-  const scrollToColumn = (plan: 'basic' | 'pro' | 'advance') => {
+  const scrollToColumn = (plan: 'basic' | 'pro' | 'advance' | 'custom') => {
     setActiveCompareTab(plan);
     const container = tableContainerRef.current;
     if (!container) return;
@@ -44,8 +45,10 @@ const Pricing = () => {
       if (plan === 'basic') {
         container.scrollTo({ left: 0, behavior: 'smooth' });
       } else if (plan === 'pro') {
-        container.scrollTo({ left: (scrollWidth - clientWidth) / 2, behavior: 'smooth' });
+        container.scrollTo({ left: (scrollWidth - clientWidth) * 0.33, behavior: 'smooth' });
       } else if (plan === 'advance') {
+        container.scrollTo({ left: (scrollWidth - clientWidth) * 0.66, behavior: 'smooth' });
+      } else if (plan === 'custom') {
         container.scrollTo({ left: scrollWidth - clientWidth, behavior: 'smooth' });
       }
     }
@@ -116,7 +119,6 @@ const Pricing = () => {
         "Full Library Administration",
         "Admissions Management",
         "Outcome Based Education (CO)",
-
         "Department Admin Leaves",
         "Everything in Pro +"
       ],
@@ -125,24 +127,46 @@ const Pricing = () => {
       accent: "amber",
       link: "/stalightcampus/advance",
       popular: false
+    },
+    {
+      name: "Custom",
+      price: "Custom",
+      duration: "tailored pricing",
+      description: "For institutions requiring specialized workflows, custom integrations, and dedicated hosting.",
+      tagline: "Build your perfect system",
+      features: [
+        "Custom ERP Modules & Workflows",
+        "Institution-Specific Features",
+        "Custom Roles & Permissions",
+        "Dedicated Database & Hosting",
+        "24/7 Priority Support & SLA",
+        "Everything in Advance +"
+      ],
+      icon: <Sliders className="text-pink-500" size={24} />,
+      iconBg: "bg-pink-50",
+      accent: "pink",
+      link: "mailto:sales@stalight.in",
+      popular: false
     }
   ];
 
   const comparisonFeatures = [
-    { name: "Dashboards, Timetables & Profiles", basic: true, pro: true, advance: true },
-    { name: "Attendance (Student, Faculty, HOD)", basic: true, pro: true, advance: true },
-    { name: "Organization, Staff & Branch Setup", basic: true, pro: true, advance: true },
-    { name: "Internal Marks & Assignments", basic: false, pro: true, advance: true },
-    { name: "Class Scheduling & Study Materials", basic: false, pro: true, advance: true },
-    { name: "Comprehensive Exam & Results Suite", basic: false, pro: true, advance: true },
-    { name: "Fee Management, Invoices & Payments", basic: false, pro: true, advance: true },
-    { name: "Leave Management & Bulk Uploads", basic: false, pro: true, advance: true },
-    { name: "Hostel Management System (HMS)", basic: false, pro: false, advance: true },
-    { name: "Transportation & Fleet Tracking", basic: false, pro: false, advance: true },
-    { name: "Library Catalog & Circulation", basic: false, pro: false, advance: true },
-    { name: "Admissions & Seat Matrix Management", basic: false, pro: false, advance: true },
-    { name: "Outcome Based Education (CO Attainment)", basic: false, pro: false, advance: true },
-
+    { name: "Dashboards, Timetables & Profiles", basic: true, pro: true, advance: true, custom: true },
+    { name: "Attendance (Student, Faculty, HOD)", basic: true, pro: true, advance: true, custom: true },
+    { name: "Organization, Staff & Branch Setup", basic: true, pro: true, advance: true, custom: true },
+    { name: "Internal Marks & Assignments", basic: false, pro: true, advance: true, custom: true },
+    { name: "Class Scheduling & Study Materials", basic: false, pro: true, advance: true, custom: true },
+    { name: "Comprehensive Exam & Results Suite", basic: false, pro: true, advance: true, custom: true },
+    { name: "Fee Management, Invoices & Payments", basic: false, pro: true, advance: true, custom: true },
+    { name: "Leave Management & Bulk Uploads", basic: false, pro: true, advance: true, custom: true },
+    { name: "Hostel Management System (HMS)", basic: false, pro: false, advance: true, custom: true },
+    { name: "Transportation & Fleet Tracking", basic: false, pro: false, advance: true, custom: true },
+    { name: "Library Catalog & Circulation", basic: false, pro: false, advance: true, custom: true },
+    { name: "Admissions & Seat Matrix Management", basic: false, pro: false, advance: true, custom: true },
+    { name: "Outcome Based Education (CO Attainment)", basic: false, pro: false, advance: true, custom: true },
+    { name: "Custom ERP Modules & Workflows", basic: false, pro: false, advance: false, custom: true },
+    { name: "Institution-Specific Features", basic: false, pro: false, advance: false, custom: true },
+    { name: "Custom Roles & Permissions", basic: false, pro: false, advance: false, custom: true }
   ];
 
   const faqs = [
@@ -175,8 +199,28 @@ const Pricing = () => {
   return (
     <div className="h-screen bg-[#FAFAFA] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-900 overflow-y-auto overflow-x-hidden relative scroll-smooth thin-scrollbar">
 
+      {/* --- FLOATING HEADER --- */}
+      <header className="absolute top-0 left-0 w-full z-50 px-6 py-6 md:px-12 flex items-center justify-between pointer-events-auto">
+        <div className="flex items-center gap-3">
+          <img src="/applogo.png" alt="Stalight Campus Logo" className="w-10 h-10 rounded-full object-cover shadow-md border border-white/20" />
+          <div className="flex flex-col">
+            <span className="font-bold text-lg md:text-xl text-slate-900 tracking-tight leading-none mb-1">Stalight Campus</span>
+            <span className="text-[9px] md:text-[10px] font-semibold text-purple-600 uppercase tracking-widest leading-none">Stalight Technologies Pvt Ltd</span>
+          </div>
+        </div>
+      </header>
+
       {/* --- AMBIENT BACKGROUND GLOWS --- */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        {/* Curved Top Background */}
+        <div className="absolute top-0 left-0 w-full overflow-hidden leading-none z-0">
+          <svg viewBox="0 0 1440 320" preserveAspectRatio="none" className="relative block w-full h-[240px] sm:h-[300px] md:h-[360px] lg:h-[420px]">
+            {/* Wave 1 (Bottom, deeper lavender) */}
+            <path d="M0,0 L1440,0 L1440,240 C1150,300 850,180 570,260 C290,340 140,200 0,260 Z" fill="#E2D9FF" opacity="0.65"></path>
+            {/* Wave 2 (Top, lighter lavender) */}
+            <path d="M0,0 L1440,0 L1440,180 C1100,240 800,140 520,210 C240,280 110,180 0,210 Z" fill="#F0EBFF" opacity="0.9"></path>
+          </svg>
+        </div>
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[120px]"></div>
         <div className="absolute top-[20%] right-[-10%] w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[150px]"></div>
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px] opacity-50"></div>
@@ -185,7 +229,10 @@ const Pricing = () => {
       {/* --- HERO SECTION --- */}
       <section className="relative pt-32 pb-16 z-10 w-full text-center px-4">
         <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="max-w-4xl mx-auto flex flex-col items-center">
-
+          
+          <motion.div variants={fadeUp} className="inline-flex items-center px-4 py-1.5 rounded-full bg-purple-100/80 text-purple-700 text-xs font-semibold uppercase tracking-wider mb-6 shadow-sm border border-purple-200/50 backdrop-blur-sm">
+            Pricing & Plans
+          </motion.div>
 
           <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-light tracking-tighter mb-6 leading-[1.1]">
             Scale seamlessly with <br />
@@ -203,7 +250,7 @@ const Pricing = () => {
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={staggerContainer}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch"
           >
             {plans.map((plan) => (
               <motion.div
@@ -229,9 +276,9 @@ const Pricing = () => {
                   <h3 className="text-3xl font-black text-slate-900 tracking-tight mb-2">{plan.name}</h3>
                   <p className="text-slate-500 text-sm font-medium mb-6">{plan.tagline}</p>
 
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-5xl font-black text-slate-900 tracking-tighter">{plan.price}</span>
-                    <span className="text-slate-400 font-medium text-sm">{plan.duration}</span>
+                  <div className="flex items-baseline gap-1.5 flex-wrap">
+                    <span className="text-3xl sm:text-4xl lg:text-3xl xl:text-5xl font-black text-slate-900 tracking-tighter whitespace-nowrap">{plan.price}</span>
+                    <span className="text-slate-400 font-medium text-xs lg:text-[10px] xl:text-sm whitespace-nowrap">{plan.duration}</span>
                   </div>
                 </div>
 
@@ -313,6 +360,16 @@ const Pricing = () => {
             >
               Advance
             </button>
+            <button
+              onClick={() => scrollToColumn('custom')}
+              className={`flex-1 py-3 text-center rounded-xl text-sm font-bold transition-all duration-300 ${
+                activeCompareTab === 'custom'
+                  ? 'bg-white text-pink-600 shadow-md shadow-pink-500/5'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Custom
+            </button>
           </div>
 
           <div className="overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white shadow-xl shadow-slate-200/40">
@@ -320,38 +377,44 @@ const Pricing = () => {
               <table className="w-full text-left border-collapse min-w-0 md:min-w-[800px] table-fixed md:table-auto">
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-200">
-                    <th className="py-6 px-3 md:py-8 md:px-8 text-[12px] md:text-xs font-bold text-slate-500 uppercase tracking-wider w-[40%] md:w-[40%] break-words whitespace-normal">Core Capabilities</th>
-                    <th className={`py-6 px-2 md:py-8 md:px-4 text-center w-[20%] transition-all duration-300 ${activeCompareTab === 'basic' ? 'bg-blue-50/40' : ''}`}>
+                    <th className="py-6 px-3 md:py-8 md:px-8 text-[12px] md:text-xs font-bold text-slate-500 uppercase tracking-wider w-[32%] md:w-[32%] break-words whitespace-normal">Core Capabilities</th>
+                    <th className={`py-6 px-2 md:py-8 md:px-4 text-center w-[17%] transition-all duration-300 ${activeCompareTab === 'basic' ? 'bg-blue-50/40' : ''}`}>
                       <div className="text-slate-900 font-black text-sm md:text-xl">Basic</div>
                     </th>
-                    <th className={`py-6 px-2 md:py-8 md:px-4 text-center w-[20%] relative transition-all duration-300 ${activeCompareTab === 'pro' ? 'bg-purple-50/60' : ''}`}>
+                    <th className={`py-6 px-2 md:py-8 md:px-4 text-center w-[17%] relative transition-all duration-300 ${activeCompareTab === 'pro' ? 'bg-purple-50/60' : ''}`}>
                       {/* Highlight column indicator */}
                       <div className="absolute inset-0 bg-purple-50/30 border-x border-purple-100/30 -z-10"></div>
                       <div className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 font-black text-sm md:text-xl">Pro</div>
                     </th>
-                    <th className={`py-6 px-2 md:py-8 md:px-4 text-center w-[25%] transition-all duration-300 ${activeCompareTab === 'advance' ? 'bg-amber-50/40' : ''}`}>
+                    <th className={`py-6 px-2 md:py-8 md:px-4 text-center w-[17%] transition-all duration-300 ${activeCompareTab === 'advance' ? 'bg-amber-50/40' : ''}`}>
                       <div className="text-slate-900 font-black text-sm md:text-xl">Advance</div>
+                    </th>
+                    <th className={`py-6 px-2 md:py-8 md:px-4 text-center w-[17%] transition-all duration-300 ${activeCompareTab === 'custom' ? 'bg-pink-50/40' : ''}`}>
+                      <div className="text-slate-900 font-black text-sm md:text-xl">Custom</div>
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {comparisonFeatures.map((row, i) => (
                     <tr key={i} className="group hover:bg-slate-50/50 transition-colors">
-                      <td className="py-4 px-3 md:py-5 md:px-8 text-slate-700 font-medium text-xs md:text-sm break-words whitespace-normal w-[40%]">
+                      <td className="py-4 px-3 md:py-5 md:px-8 text-slate-700 font-medium text-xs md:text-sm break-words whitespace-normal w-[32%]">
                         <div className="flex items-center gap-1 md:gap-2 flex-wrap md:flex-nowrap">
                           <span>{row.name}</span>
                           {i > 5 && <Info size={12} className="text-slate-400 cursor-help shrink-0" />}
                         </div>
                       </td>
-                      <td className={`py-4 px-2 md:py-5 md:px-4 text-center w-[20%] transition-all duration-300 ${activeCompareTab === 'basic' ? 'bg-blue-50/20' : ''}`}>
+                      <td className={`py-4 px-2 md:py-5 md:px-4 text-center w-[17%] transition-all duration-300 ${activeCompareTab === 'basic' ? 'bg-blue-50/20' : ''}`}>
                         {row.basic ? <Check size={18} className="text-blue-500 mx-auto md:w-5 md:h-5" /> : <span className="text-slate-300">—</span>}
                       </td>
-                      <td className={`py-4 px-2 md:py-5 md:px-4 text-center relative w-[20%] transition-all duration-300 ${activeCompareTab === 'pro' ? 'bg-purple-50/30' : ''}`}>
+                      <td className={`py-4 px-2 md:py-5 md:px-4 text-center relative w-[17%] transition-all duration-300 ${activeCompareTab === 'pro' ? 'bg-purple-50/30' : ''}`}>
                         <div className="absolute inset-0 bg-purple-50/20 border-x border-purple-100/20 -z-10 group-hover:bg-purple-50/30 transition-colors"></div>
                         {row.pro ? <Check size={18} className="text-purple-600 mx-auto md:w-5 md:h-5" /> : <span className="text-slate-300">—</span>}
                       </td>
-                      <td className={`py-4 px-2 md:py-5 md:px-4 text-center w-[20%] transition-all duration-300 ${activeCompareTab === 'advance' ? 'bg-amber-50/20' : ''}`}>
+                      <td className={`py-4 px-2 md:py-5 md:px-4 text-center w-[17%] transition-all duration-300 ${activeCompareTab === 'advance' ? 'bg-amber-50/20' : ''}`}>
                         {row.advance ? <Check size={18} className="text-amber-500 mx-auto md:w-5 md:h-5" /> : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className={`py-4 px-2 md:py-5 md:px-4 text-center w-[17%] transition-all duration-300 ${activeCompareTab === 'custom' ? 'bg-pink-50/20' : ''}`}>
+                        {row.custom ? <Check size={18} className="text-pink-500 mx-auto md:w-5 md:h-5" /> : <span className="text-slate-300">—</span>}
                       </td>
                     </tr>
                   ))}
@@ -441,10 +504,13 @@ const Pricing = () => {
       </section>
 
       <footer className="relative z-10 py-12 px-4 border-t border-slate-200 bg-white">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <img src="/logo.jpeg" alt="Stalight Campus Logo" className="w-10 h-10 rounded-lg object-cover shadow-sm" />
-            <span className="font-bold text-xl text-slate-900">Stalight Campus</span>
+            <img src="/applogo.png" alt="Stalight Campus Logo" className="w-12 h-12 rounded-full object-cover shadow-md" />
+            <div className="flex flex-col">
+              <span className="font-bold text-xl text-slate-900 leading-none mb-1">Stalight Campus</span>
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest leading-none">Stalight Technologies Pvt Ltd</span>
+            </div>
           </div>
           <div className="text-sm text-slate-500 font-medium">
             &copy; {new Date().getFullYear()} Stalight Campus. All rights reserved.

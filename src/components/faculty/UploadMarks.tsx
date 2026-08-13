@@ -3,6 +3,7 @@ import { useState, useEffect, Fragment } from "react";
 import { Pencil, Plus, Trash2, Layers, Settings2, FileDown, RotateCcw, Save, Check } from "lucide-react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { sanitizeHtml } from "../../utils/sanitize";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -1629,7 +1630,7 @@ const UploadMarks = () => {
                                     </div>
                                     <div
                                       className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} text-left whitespace-pre-line break-words`}
-                                      dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
+                                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? (s.content || '') : (shortContent || '')) }}
                                     />
                                     {(s.content || '').length > 160 && (
                                       <div className="pt-1 text-left">
@@ -1655,7 +1656,7 @@ const UploadMarks = () => {
                                       <div className="flex justify-between items-start gap-4">
                                         <div
                                           className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left whitespace-pre-line break-words`}
-                                          dangerouslySetInnerHTML={{ __html: isExpanded ? (s.content || '') : (shortContent || '') }}
+                                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? (s.content || '') : (shortContent || '')) }}
                                         />
                                         <div className="ml-2 flex-shrink-0">
                                           <Badge className={`font-semibold text-sm ${getBadgeClassName()}`}>{s.maxMarks}m</Badge>
