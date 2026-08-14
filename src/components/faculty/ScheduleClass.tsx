@@ -1,5 +1,5 @@
 import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
-import { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import Swal from "sweetalert2";
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
@@ -45,6 +45,8 @@ import {
   Share2,
   Plus,
   FileDownIcon,
+  Eye,
+  MessageSquare,
 } from "lucide-react";
 import { useFacultyAssignmentsQuery } from "@/hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
@@ -419,7 +421,19 @@ const formatTo12Hour = (timeStr: string) => {
 
 // ─── Sub-component: Class History Card ─────────────────────────────────────
 
-const ClassHistoryCard = ({ cls, theme, currentTime = new Date() }: { cls: ScheduledClassRecord; theme: string; currentTime?: Date }) => {
+const ClassHistoryCard = ({
+  cls,
+  theme,
+  currentTime = new Date(),
+  onViewFeedback,
+  onExportCSV,
+}: {
+  cls: any;
+  theme: string;
+  currentTime?: Date;
+  onViewFeedback?: (cls: any) => void;
+  onExportCSV?: (cls: any) => void;
+}) => {
   const { toast } = useToast();
   const isOnline = cls.meeting_type === "online";
   const dateStr = (() => {
@@ -481,6 +495,11 @@ const ClassHistoryCard = ({ cls, theme, currentTime = new Date() }: { cls: Sched
           </div>
         </div>
         <div className="flex items-center gap-1.5 sm:shrink-0 sm:self-auto self-start pl-10 sm:pl-0">
+          {cls.is_mentoring && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
+              Mentoring
+            </span>
+          )}
           {(() => {
             const classStart = new Date(`${cls.date}T${cls.start_time}`);
             const classEnd = new Date(`${cls.date}T${cls.end_time}`);
@@ -518,42 +537,136 @@ const ClassHistoryCard = ({ cls, theme, currentTime = new Date() }: { cls: Sched
         )}
       </div>
 
-      {cls.meeting_link && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-border/40">
+        {cls.meeting_link ? (
           <a
             href={cls.meeting_link}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-2 hover:text-primary/80 transition-colors font-mono truncate max-w-full sm:max-w-[200px] md:max-w-xs break-all"
+            className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-2 hover:text-primary/80 transition-colors font-mono truncate max-w-full sm:max-w-[180px] md:max-w-xs break-all"
           >
             {cls.meeting_link}
             <ExternalLink className="w-3 h-3 flex-shrink-0" />
           </a>
-          <div className="flex items-center gap-1.5 shrink-0 sm:self-auto self-end">
+        ) : <div />}
+
+        <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-end flex-nowrap shrink-0">
+          {cls.is_mentoring && onViewFeedback && (
             <Button
               variant="outline"
-              size="icon"
-              className="w-8 h-8 rounded-md border-gray-200 dark:border-border text-muted-foreground hover:text-foreground"
-              title="Copy Link"
-              onClick={handleCopy}
+              size="sm"
+              className="h-8 flex-1 sm:flex-initial px-2.5 sm:px-3 text-[11px] sm:text-xs font-semibold rounded-lg border border-purple-300 dark:border-purple-800/80 bg-purple-50/50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors shrink min-w-0 shadow-none"
+              onClick={() => onViewFeedback(cls)}
             >
-              <Copy className="w-3.5 h-3.5" />
+              <span className="truncate">Student Feedback & Status</span>
             </Button>
+          )}
+          {cls.is_mentoring && onExportCSV && (
             <Button
               variant="outline"
-              size="icon"
-              className="w-8 h-8 rounded-md border-gray-200 dark:border-border text-muted-foreground hover:text-foreground"
-              title="Share Link"
-              onClick={handleShare}
+              size="sm"
+              className="h-8 w-8 sm:w-auto sm:px-3 p-0 flex items-center justify-center text-[11px] sm:text-xs font-semibold rounded-lg border border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 gap-1.5 shadow-none shrink-0"
+              onClick={() => onExportCSV(cls)}
+              title="Export mentoring session report with student feedback to CSV"
             >
-              <Share2 className="w-3.5 h-3.5" />
+              <FileDownIcon className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Export CSV</span>
             </Button>
-          </div>
+          )}
+          {cls.meeting_link && (
+            <>
+              <Button
+                variant="outline"
+                size="icon"
+                className="w-8 h-8 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 shrink-0 shadow-none"
+                title="Copy Link"
+                onClick={handleCopy}
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="w-8 h-8 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 shrink-0 shadow-none"
+                title="Share Link"
+                onClick={handleShare}
+              >
+                <Share2 className="w-3.5 h-3.5" />
+              </Button>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
+
+interface StudentFeedbackRowProps {
+  st: any;
+  idx: number;
+  onStatusChange: (idx: number, status: string) => void;
+  onFeedbackChange: (idx: number, feedback: string) => void;
+  onViewFeedback: (st: any) => void;
+}
+
+const StudentFeedbackRow = React.memo(({
+  st,
+  idx,
+  onStatusChange,
+  onFeedbackChange,
+  onViewFeedback,
+}: StudentFeedbackRowProps) => {
+  return (
+    <div className="p-3 space-y-2 text-xs">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <span className="font-semibold text-foreground text-sm">{st.student_name}</span>
+          <span className="text-muted-foreground ml-2 font-mono text-xs">({st.usn})</span>
+        </div>
+        <select
+          value={st.attendance_status || "pending"}
+          onChange={(e) => onStatusChange(idx, e.target.value)}
+          className="h-7 px-2 text-xs rounded-md border border-input bg-background text-foreground font-medium focus:outline-none focus:ring-1 focus:ring-primary shrink-0 cursor-pointer"
+        >
+          <option value="attended">Attended</option>
+          <option value="absent">Absent</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+
+      {st.feedback ? (
+        <div className="bg-purple-50/70 dark:bg-purple-950/40 p-2 rounded-lg border border-purple-200/80 dark:border-purple-800/60 flex items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300 flex items-center gap-1">
+              <MessageSquare className="w-3 h-3 shrink-0" /> Student Response
+            </span>
+            <p className="text-xs text-foreground italic break-words line-clamp-1 mt-0.5">
+              "{st.feedback}"
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-6 px-2 text-[11px] gap-1 text-primary border-primary/30 hover:bg-primary/10 shrink-0 font-medium shadow-none"
+            onClick={() => onViewFeedback(st)}
+          >
+            <Eye className="w-3 h-3" /> View
+          </Button>
+        </div>
+      ) : null}
+
+      <Input
+        type="text"
+        placeholder="Faculty note / specific feedback for this student..."
+        defaultValue={st.feedback || ""}
+        onBlur={(e) => onFeedbackChange(idx, e.target.value)}
+        className="h-8 text-xs w-full"
+      />
+    </div>
+  );
+});
+StudentFeedbackRow.displayName = "StudentFeedbackRow";
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
@@ -686,12 +799,16 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     setExportingPDF(true);
     try {
       const params = new URLSearchParams();
-      const assignment = historyDropdowns.currentAssignment;
-      if (assignment) {
-        if (assignment.subject_id) params.append('subject_id', assignment.subject_id.toString());
-        if (assignment.branch_id) params.append('branch_id', assignment.branch_id.toString());
-        if (assignment.semester_id) params.append('semester_id', assignment.semester_id.toString());
-        if (assignment.section_id) params.append('section_id', assignment.section_id.toString());
+      if (mainTab === "mentoring") {
+        params.append('is_mentoring', 'true');
+      } else {
+        const assignment = historyDropdowns.currentAssignment;
+        if (assignment) {
+          if (assignment.subject_id) params.append('subject_id', assignment.subject_id.toString());
+          if (assignment.branch_id) params.append('branch_id', assignment.branch_id.toString());
+          if (assignment.semester_id) params.append('semester_id', assignment.semester_id.toString());
+          if (assignment.section_id) params.append('section_id', assignment.section_id.toString());
+        }
       }
 
       let url = `${API_ENDPOINT}/scheduled-classes/export_pdf/`;
@@ -715,10 +832,15 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
       const link = document.createElement('a');
       link.href = blobUrl;
 
-      const fileNameSuffix = assignment
-        ? `${assignment.subject_name.replace(/\s+/g, '_')}_${assignment.branch.replace(/\s+/g, '_')}_Sem_${assignment.semester}_Sec_${assignment.section}`
-        : 'All';
-      link.setAttribute('download', `Class_History_${fileNameSuffix}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      if (mainTab === "mentoring") {
+        link.setAttribute('download', `Mentoring_History_${new Date().toISOString().slice(0, 10)}.pdf`);
+      } else {
+        const assignment = historyDropdowns.currentAssignment;
+        const fileNameSuffix = assignment
+          ? `${assignment.subject_name.replace(/\s+/g, '_')}_${assignment.branch.replace(/\s+/g, '_')}_Sem_${assignment.semester}_Sec_${assignment.section}`
+          : 'All';
+        link.setAttribute('download', `Class_History_${fileNameSuffix}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      }
 
       document.body.appendChild(link);
       link.click();
@@ -767,6 +889,9 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     // Sync current history selections to schedule dropdowns if they exist
     if (historyDropdowns.subjectId) {
       scheduleDropdowns.setSubjectId(historyDropdowns.subjectId);
+      if (historyDropdowns.branchId) scheduleDropdowns.setBranchId(historyDropdowns.branchId);
+      if (historyDropdowns.semesterId) scheduleDropdowns.setSemesterId(historyDropdowns.semesterId);
+      if (historyDropdowns.sectionId) scheduleDropdowns.setSectionId(historyDropdowns.sectionId);
     }
 
     if (googleConnected === false) {
@@ -804,9 +929,121 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     setEndPeriod(freshVals.endPeriod);
   };
 
-  // Fetch history when history dropdown is fully selected
+  // Main Tab State (Schedule Class vs Schedule Mentoring)
+  const [mainTab, setMainTab] = useState<"class" | "mentoring">("class");
+
+  // Mentoring Feedback Modal State
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [selectedMentoringClass, setSelectedMentoringClass] = useState<any>(null);
+  const [studentFeedbackList, setStudentFeedbackList] = useState<any[]>([]);
+  const [generalFeedbackText, setGeneralFeedbackText] = useState("");
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
+  const [savingFeedback, setSavingFeedback] = useState(false);
+  const [viewingStudentFeedback, setViewingStudentFeedback] = useState<any>(null);
+
+  const handleStudentStatusChange = useCallback((idx: number, status: string) => {
+    setStudentFeedbackList((prev) => {
+      const copy = [...prev];
+      if (copy[idx]) {
+        copy[idx] = { ...copy[idx], attendance_status: status };
+      }
+      return copy;
+    });
+  }, []);
+
+  const handleStudentFeedbackChange = useCallback((idx: number, feedback: string) => {
+    setStudentFeedbackList((prev) => {
+      const copy = [...prev];
+      if (copy[idx]) {
+        copy[idx] = { ...copy[idx], feedback };
+      }
+      return copy;
+    });
+  }, []);
+
+  const openFeedbackModal = useCallback(async (cls: any) => {
+    setSelectedMentoringClass(cls);
+    setGeneralFeedbackText(cls.general_feedback || "");
+    setStudentFeedbackList([]);
+    setFeedbackModalOpen(true);
+    setLoadingFeedback(true);
+    try {
+      const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/scheduled-classes/${cls.id}/student-feedback/`);
+      const data = await resp.json();
+      if (resp.ok && data.success) {
+        setGeneralFeedbackText(data.general_feedback || "");
+        setStudentFeedbackList(data.students || []);
+      } else {
+        toast({ title: "Error", description: data.error || "Failed to load student feedback list.", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to fetch student feedback.", variant: "destructive" });
+    } finally {
+      setLoadingFeedback(false);
+    }
+  }, [toast]);
+
+  const handleExportMentoringCSV = async (cls: any) => {
+    if (!cls?.id) return;
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/scheduled-classes/${cls.id}/export-feedback-csv/`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export CSV");
+      }
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `Mentoring_Report_${cls.id}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to download mentoring CSV report from server.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveFeedback = async () => {
+    if (!selectedMentoringClass) return;
+    setSavingFeedback(true);
+    try {
+      const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/scheduled-classes/${selectedMentoringClass.id}/student-feedback/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          general_feedback: generalFeedbackText,
+          students: studentFeedbackList
+        })
+      });
+      const data = await resp.json();
+      if (resp.ok && data.success) {
+        toast({ title: "Success", description: "Feedback and student statuses updated successfully." });
+        setFeedbackModalOpen(false);
+      } else {
+        toast({ title: "Error", description: data.error || "Failed to save feedback.", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "An error occurred while saving feedback.", variant: "destructive" });
+    } finally {
+      setSavingFeedback(false);
+    }
+  };
+
+  // Fetch history when history dropdown is fully selected or mainTab is mentoring
   useEffect(() => {
-    if (!historyDropdowns.isFullySelected) {
+    if (mainTab === "class" && !historyDropdowns.isFullySelected) {
       setHistoryClasses([]);
       return;
     }
@@ -814,21 +1051,25 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     const fetchHistory = async () => {
       setHistoryLoading(true);
       try {
-        const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/scheduled-classes/`, {
+        const query = mainTab === "mentoring" ? "?is_mentoring=true" : "?is_mentoring=false";
+        const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/scheduled-classes/${query}`, {
           signal: ctrl.signal,
         });
         const data = await resp.json();
         if (resp.ok && data?.success && data.data) {
-          // Filter to the selected section
-          const assignment = historyDropdowns.currentAssignment;
-          const filtered: ScheduledClassRecord[] = (data.data as ScheduledClassRecord[])
-            .filter((cls) => !assignment || (
-              cls.subject === assignment.subject_name &&
-              cls.branch_id === assignment.branch_id &&
-              cls.semester_id === assignment.semester_id &&
-              cls.section_id === assignment.section_id
-            ));
-          setHistoryClasses(filtered);
+          if (mainTab === "mentoring") {
+            setHistoryClasses(data.data as ScheduledClassRecord[]);
+          } else {
+            const assignment = historyDropdowns.currentAssignment;
+            const filtered: ScheduledClassRecord[] = (data.data as ScheduledClassRecord[])
+              .filter((cls) => !assignment || (
+                cls.subject === assignment.subject_name &&
+                cls.branch_id === assignment.branch_id &&
+                cls.semester_id === assignment.semester_id &&
+                cls.section_id === assignment.section_id
+              ));
+            setHistoryClasses(filtered);
+          }
         }
       } catch (e: any) {
         if (e?.name !== "AbortError") {
@@ -841,6 +1082,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     fetchHistory();
     return () => ctrl.abort();
   }, [
+    mainTab,
     historyDropdowns.subjectId,
     historyDropdowns.branchId,
     historyDropdowns.semesterId,
@@ -869,8 +1111,17 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
       toast({ title: "Missing Field", description: "Please enter a classroom name for offline sessions.", variant: "destructive" });
       return;
     }
+
     const assignment = scheduleDropdowns.currentAssignment;
-    if (!assignment) return;
+    if (mainTab === "class" && !assignment) {
+      toast({ title: "Missing Assignment", description: "Please select subject, branch, semester, and section.", variant: "destructive" });
+      return;
+    }
+
+    if (topic.trim().length > 200) {
+      toast({ title: "Topic Too Long", description: "Topic/Agenda must be 200 characters or fewer.", variant: "destructive" });
+      return;
+    }
 
     // Date/Time validation
     const startDateTime = new Date(`${date}T${computedStartTime}`);
@@ -878,7 +1129,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     const now = new Date();
 
     if (startDateTime < now) {
-      toast({ title: "Invalid Time", description: "Class cannot be scheduled in the past.", variant: "destructive" });
+      toast({ title: "Invalid Time", description: "Session cannot be scheduled in the past.", variant: "destructive" });
       return;
     }
     if (endDateTime <= startDateTime) {
@@ -890,22 +1141,28 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     setError(null);
 
     try {
+      const payload: any = {
+        topic,
+        description,
+        date,
+        start_time: computedStartTime,
+        end_time: computedEndTime,
+        meeting_type: meetingType,
+        classroom_room: classroomRoom,
+        is_mentoring: mainTab === "mentoring",
+      };
+
+      if (mainTab === "class" && assignment) {
+        payload.subject_id = assignment.subject_id;
+        payload.branch_id = assignment.branch_id;
+        payload.semester_id = assignment.semester_id;
+        payload.section_id = assignment.section_id;
+      }
+
       const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/scheduled-classes/create/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject_id: assignment.subject_id,
-          branch_id: assignment.branch_id,
-          semester_id: assignment.semester_id,
-          section_id: assignment.section_id,
-          topic,
-          description,
-          date,
-          start_time: computedStartTime,
-          end_time: computedEndTime,
-          meeting_type: meetingType,
-          classroom_room: classroomRoom,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await resp.json();
@@ -914,13 +1171,13 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
         // Optimistically prepend new class to immediate history list
         const newRecord: ScheduledClassRecord = {
           id: data.id,
-          subject: assignment.subject_name,
-          subject_code: assignment.subject_code || "",
-          branch_id: assignment.branch_id,
-          semester_id: assignment.semester_id,
-          section_id: assignment.section_id,
+          subject: assignment?.subject_name || (mainTab === "mentoring" ? "Mentoring Session" : ""),
+          subject_code: assignment?.subject_code || (mainTab === "mentoring" ? "MENTOR" : ""),
+          branch_id: assignment?.branch_id || 0,
+          semester_id: assignment?.semester_id || 0,
+          section_id: assignment?.section_id || 0,
           faculty: `${user?.first_name || ""} ${user?.last_name || ""}`.trim(),
-          topic: data.topic,
+          topic: data.topic || topic,
           description,
           date,
           start_time: computedStartTime,
@@ -929,12 +1186,18 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
           classroom_room: meetingType === "offline" ? classroomRoom : null,
           meeting_link: data.meeting_link || null,
           status: "scheduled",
+          is_mentoring: mainTab === "mentoring",
         };
         setImmediateHistory((prev) => [newRecord, ...prev].slice(0, 5));
+        if (mainTab === "mentoring") {
+          setHistoryClasses((prev) => [newRecord, ...prev]);
+        }
 
         Swal.fire({
-          title: "Class Scheduled!",
-          text: "Google Meet link generated. Students notified!",
+          title: mainTab === "mentoring" ? "Mentoring Session Scheduled!" : "Class Scheduled!",
+          text: mainTab === "mentoring"
+            ? "Google Meet link generated. Proctor students notified!"
+            : "Google Meet link generated. Students notified!",
           icon: "success",
           confirmButtonText: "Awesome",
           confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
@@ -947,8 +1210,8 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
         handleDialogClose();
       } else {
-        const msg = data.error || "Failed to schedule class.";
-        if (msg.includes("already scheduled a class")) {
+        const msg = data?.error || data?.detail || "Failed to schedule class.";
+        if (msg.includes("already scheduled") || msg.includes("during this time slot")) {
           Swal.fire({
             title: "Scheduling Conflict",
             text: msg,
@@ -966,9 +1229,11 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
           toast({ title: "Scheduling Failed", description: msg, variant: "destructive" });
         }
       }
-    } catch {
-      setError("A network error occurred. Please try again.");
-      toast({ title: "Network Error", description: "Could not reach server.", variant: "destructive" });
+    } catch (err: any) {
+      console.error("Scheduling error:", err);
+      const errMsg = err?.message || "An error occurred while scheduling.";
+      setError(errMsg);
+      toast({ title: "Scheduling Error", description: errMsg, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
@@ -1027,35 +1292,63 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* ── Schedule Class Dialog Modal ──────────────────────────────────── */}
+      {/* ── Schedule Class / Mentoring Dialog Modal ───────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) handleDialogClose(); }}>
         <DialogContent className="w-[90%] max-h-[80vh] sm:max-w-[540px] overflow-y-auto custom-scrollbar rounded-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg">
               <CalendarDays className="w-5 h-5 text-primary" />
-              Schedule Class
+              {mainTab === "mentoring" ? "Schedule Mentoring" : "Schedule Class"}
             </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              {mainTab === "mentoring"
+                ? "Schedule a dedicated proctor mentoring session with Google Meet for your assigned students."
+                : "Fill in class details to schedule an online or in-person lecture."}
+            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 pt-1">
-            {/* Class Assignment Dropdowns */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">Class Assignment Details *</label>
-              <DropdownGroup dropdowns={scheduleDropdowns} theme={theme} className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full" />
-            </div>
+            {/* Target Attendees / Class Assignment Dropdowns */}
+            {mainTab === "mentoring" ? (
+              <div className="p-3.5 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 rounded-xl flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <p className="text-[11px] font-bold text-purple-900 dark:text-purple-200 uppercase tracking-wider">Target Attendees (Auto Selected)</p>
+                  <p className="text-sm font-bold text-purple-700 dark:text-purple-300">My Proctor Students</p>
+                </div>
+                <span className="text-[10px] font-bold bg-purple-200 dark:bg-purple-900/80 text-purple-800 dark:text-purple-200 px-2.5 py-1 rounded-full">
+                  Proctor Agenda
+                </span>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-muted-foreground">Class Assignment Details *</label>
+                <DropdownGroup dropdowns={scheduleDropdowns} theme={theme} className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full" />
+              </div>
+            )}
 
             {/* Topic */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
-                Class Topic / Title <span className="text-destructive">*</span>
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-muted-foreground">
+                  {mainTab === "mentoring" ? "Mentoring Session Topic / Agenda" : "Class Topic / Title"} <span className="text-destructive">*</span>
+                </label>
+                <span className={`text-[10px] font-medium ${
+                  topic.length >= 190 ? "text-amber-600 dark:text-amber-400 font-bold" : "text-muted-foreground"
+                }`}>
+                  {topic.length} / 200 characters
+                </span>
+              </div>
               <Input
                 required
                 type="text"
-                placeholder="e.g., Introduction to Neural Networks"
+                maxLength={200}
+                placeholder={mainTab === "mentoring" ? "e.g., Academic Progress & Career Mentoring Session" : "e.g., Introduction to Neural Networks"}
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
               />
+              <p className="text-[10px] text-muted-foreground">
+                Max 200 characters limit.
+              </p>
             </div>
 
             {/* Date + Times */}
@@ -1077,16 +1370,16 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                           'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
                       )}
                     >
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <span className="truncate text-xs">
-                        {date ? format(new Date(date), "dd-MM-yyyy") : "dd-mm-yyyy"}
+                        {date ? format(new Date(`${date}T00:00:00`), "dd-MM-yyyy") : "dd-mm-yyyy"}
                       </span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 rounded-xl shadow-xl" align="start">
                     <ShadcnCalendar
                       mode="single"
-                      selected={date ? new Date(date) : undefined}
+                      selected={date ? new Date(`${date}T00:00:00`) : undefined}
                       onSelect={(d) => {
                         setDate(d ? format(d, "yyyy-MM-dd") : "");
                         setIsCalendarOpen(false);
@@ -1186,7 +1479,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground">Description (Optional)</label>
               <Textarea
-                placeholder="Provide context, lecture notes, or pre-requisite reading..."
+                placeholder="Provide context, agenda notes, or pre-requisite instructions..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="h-24 resize-none custom-scrollbar"
@@ -1210,7 +1503,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                     Scheduling…
                   </>
                 ) : (
-                  "Save & Schedule"
+                  mainTab === "mentoring" ? "Schedule Mentoring" : "Save & Schedule"
                 )}
               </Button>
             </DialogFooter>
@@ -1218,63 +1511,94 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* ── Section 2: Class History ─────────────────────────────────────── */}
+      {/* ── Main Tab Navigation Bar ──────────────────────────────────────── */}
+      <div className="w-full grid grid-cols-2 gap-1.5 p-1 bg-muted/60 dark:bg-muted/30 border border-border/60 rounded-xl shadow-sm">
+        <button
+          type="button"
+          onClick={() => setMainTab("class")}
+          className={`w-full justify-center flex items-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 ${
+            mainTab === "class"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>Schedule Class</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMainTab("mentoring")}
+          className={`w-full justify-center flex items-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 ${
+            mainTab === "mentoring"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+          }`}
+        >
+          <Video className="w-4 h-4" />
+          <span>Schedule Mentoring</span>
+        </button>
+      </div>
+
+      {/* ── Section 2: Class / Mentoring History ──────────────────────────── */}
       <Card className={selectorCardCls}>
         <CardHeader id="schedule-class-header" className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b mb-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between w-full">
-                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Class History</CardTitle>
-                {historyClasses.length > 0 && (
+              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                {mainTab === "mentoring" ? "Proctor Mentoring History" : "Class History"}
+              </CardTitle>
+              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                {mainTab === "mentoring"
+                  ? "View and manage proctor mentoring sessions for your assigned students."
+                  : "Select a subject to view scheduled classes history"}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 flex-nowrap">
+              <Button
+                onClick={handleScheduleButtonClick}
+                className="bg-primary hover:bg-primary/90 text-white h-9 px-4 transition-all flex-1 sm:flex-initial text-sm"
+              >
+                <Plus className="w-4 h-4 mr-2 shrink-0" />
+                <span>{mainTab === "mentoring" ? "Schedule Mentoring" : "Schedule Class"}</span>
+              </Button>
+              {historyClasses.length > 0 && (
+                <>
                   <Button
                     onClick={handleExportPDF}
                     disabled={exportingPDF}
                     size="icon"
                     variant="outline"
-                    className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                    className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-primary/40 text-primary hover:bg-primary/10 rounded-lg shadow-none"
+                    title="Export PDF"
                   >
                     {exportingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
                   </Button>
-                )}
-              </div>
-              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                Select a subject to view scheduled classes history
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-              <Button
-                onClick={handleScheduleButtonClick}
-                className="bg-primary hover:bg-primary/90 text-white h-9 px-4 transition-all w-full sm:w-auto text-sm"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Schedule Class
-              </Button>
-              {historyClasses.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExportPDF}
-                  disabled={exportingPDF}
-                  className="hidden sm:inline-flex bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all w-full sm:w-auto"
-                >
-                  {exportingPDF ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      Exporting...
-                    </>
-                  ) : (
-                    "Export PDF"
-                  )}
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportPDF}
+                    disabled={exportingPDF}
+                    className="hidden sm:inline-flex bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all w-auto"
+                  >
+                    {exportingPDF ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Exporting...
+                      </>
+                    ) : (
+                      "Export PDF"
+                    )}
+                  </Button>
+                </>
               )}
             </div>
           </div>
         </CardHeader>
         <CardContent className="pt-5 space-y-4">
-          <DropdownGroup dropdowns={historyDropdowns} theme={theme} />
+          {mainTab === "class" && <DropdownGroup dropdowns={historyDropdowns} theme={theme} />}
 
           {/* History list */}
-          {historyDropdowns.isFullySelected && (
+          {(mainTab === "mentoring" || historyDropdowns.isFullySelected) && (
             <div className="mt-4 space-y-4">
               {filteredImmediateHistory.length > 0 && (
                 <div className="space-y-2 mb-4">
@@ -1285,39 +1609,52 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                     </h3>
                   </div>
                   {filteredImmediateHistory.map((cls) => (
-                    <ClassHistoryCard key={`immediate-${cls.id}`} cls={cls} theme={theme} currentTime={currentTime} />
+                    <ClassHistoryCard
+                      key={`immediate-${cls.id}`}
+                      cls={cls}
+                      theme={theme}
+                      currentTime={currentTime}
+                      onViewFeedback={openFeedbackModal}
+                      onExportCSV={handleExportMentoringCSV}
+                    />
                   ))}
                 </div>
               )}
 
               {historyLoading ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
-                  <Loader2 className="w-4 h-4 animate-spin" /> Loading class history…
+                  <Loader2 className="w-4 h-4 animate-spin" /> Loading session history…
                 </div>
               ) : historyClasses.length > 0 ? (
                 <div className="space-y-4">
                   <p className="text-xs text-muted-foreground font-medium mb-2">
-                    Showing recent {historyClasses.length} scheduled class{historyClasses.length !== 1 ? "es" : ""}
+                    Showing recent {historyClasses.length} session{historyClasses.length !== 1 ? "s" : ""}
                   </p>
                   <div className="space-y-2">
                     {historyClasses.map((cls) => (
-                      <ClassHistoryCard key={cls.id} cls={cls} theme={theme} currentTime={currentTime} />
+                      <ClassHistoryCard
+                        key={cls.id}
+                        cls={cls}
+                        theme={theme}
+                        currentTime={currentTime}
+                        onViewFeedback={openFeedbackModal}
+                        onExportCSV={handleExportMentoringCSV}
+                      />
                     ))}
                   </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-10 text-center space-y-2">
                   <CalendarDays className="w-10 h-10 text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">No scheduled classes found for this section.</p>
-                  <p className="text-xs text-muted-foreground/70">
-                    Use the "Schedule a New Class" section above to create one.
+                  <p className="text-sm text-muted-foreground">
+                    {mainTab === "mentoring" ? "No scheduled proctor mentoring sessions found." : "No scheduled classes found for this section."}
                   </p>
                 </div>
               )}
             </div>
           )}
 
-          {!historyDropdowns.isFullySelected && !historyLoading && (
+          {mainTab === "class" && !historyDropdowns.isFullySelected && !historyLoading && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1337,6 +1674,142 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
         </CardContent>
       </Card>
 
+      {/* ── Mentoring Feedback View / Update Dialog ─────────────────────── */}
+      <Dialog open={feedbackModalOpen} onOpenChange={setFeedbackModalOpen}>
+        <DialogContent className="w-[90%] sm:max-w-[650px] max-h-[85vh] overflow-y-auto custom-scrollbar rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <CalendarDays className="w-5 h-5 text-primary" />
+              Student Feedback & Attendance Status
+            </DialogTitle>
+            <DialogDescription>
+              {selectedMentoringClass?.topic} ({selectedMentoringClass?.date})
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground">General Meeting Notes / Overall Feedback</label>
+              <Textarea
+                placeholder="Enter summary or action items for all proctor students..."
+                value={generalFeedbackText}
+                onChange={(e) => setGeneralFeedbackText(e.target.value)}
+                rows={3}
+                className="text-xs"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Assigned Proctor Students {loadingFeedback ? "" : `(${studentFeedbackList.length})`}
+                </h4>
+                {loadingFeedback && (
+                  <span className="text-[10px] text-muted-foreground animate-pulse">Loading roster...</span>
+                )}
+              </div>
+              {loadingFeedback ? (
+                <div className="border rounded-xl divide-y max-h-[320px] overflow-hidden bg-background">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="p-3 space-y-2.5 animate-pulse">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-1">
+                          <div className="h-4 w-36 bg-muted rounded-md" />
+                          <div className="h-3 w-24 bg-muted/60 rounded-md" />
+                        </div>
+                        <div className="h-7 w-[110px] bg-muted rounded-md shrink-0" />
+                      </div>
+                      <div className="h-8 w-full bg-muted/50 rounded-md" />
+                    </div>
+                  ))}
+                </div>
+              ) : studentFeedbackList.length > 0 ? (
+                <div className="border rounded-xl divide-y max-h-[320px] overflow-y-auto custom-scrollbar">
+                  {studentFeedbackList.map((st, idx) => (
+                    <StudentFeedbackRow
+                      key={st.id || st.student_id || idx}
+                      st={st}
+                      idx={idx}
+                      onStatusChange={handleStudentStatusChange}
+                      onFeedbackChange={handleStudentFeedbackChange}
+                      onViewFeedback={setViewingStudentFeedback}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground py-2">No assigned proctor students found for this session.</p>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full sm:w-auto text-emerald-700 dark:text-emerald-400 border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 gap-1.5"
+              onClick={() => selectedMentoringClass && handleExportMentoringCSV(selectedMentoringClass)}
+            >
+              <FileDownIcon className="w-4 h-4" />
+              <span>Export CSV</span>
+            </Button>
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <Button variant="outline" size="sm" onClick={() => setFeedbackModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleSaveFeedback} disabled={savingFeedback}>
+                {savingFeedback ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Save Feedback
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── View Individual Student Feedback Details Modal ─────────────────── */}
+      <Dialog open={!!viewingStudentFeedback} onOpenChange={(open) => { if (!open) setViewingStudentFeedback(null); }}>
+        <DialogContent className="w-[90%] sm:max-w-[480px] max-h-[85vh] overflow-y-auto custom-scrollbar rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold">
+              <Eye className="w-4 h-4 text-primary" />
+              Student Feedback Details
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              {viewingStudentFeedback?.student_name} ({viewingStudentFeedback?.usn})
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2 text-xs">
+            <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/20 border border-border/40">
+              <span className="text-muted-foreground font-medium">Attendance Status</span>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                viewingStudentFeedback?.attendance_status === 'attended'
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                  : viewingStudentFeedback?.attendance_status === 'absent'
+                  ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+                  : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+              }`}>
+                {viewingStudentFeedback?.attendance_status || 'Pending'}
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Submitted Student Feedback
+              </label>
+              <div className="p-3.5 rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/80 dark:border-purple-800/40 text-sm text-foreground break-words whitespace-pre-wrap leading-relaxed max-h-[220px] overflow-y-auto custom-scrollbar font-sans">
+                "{viewingStudentFeedback?.feedback || "No feedback content provided."}"
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setViewingStudentFeedback(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
