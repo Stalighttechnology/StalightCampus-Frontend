@@ -329,7 +329,7 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
                   }
                 </div>
                 <p className={`leave-card-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Review and approve leave requests from Wardens
+                  Review and approve leave requests from assigned staff members
                 </p>
               </div>
               <div className="flex flex-row items-center gap-2 w-full md:w-auto">

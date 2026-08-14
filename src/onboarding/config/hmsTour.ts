@@ -137,9 +137,9 @@ export const hmsTour: Step[] = [
   },
   {
     target: '#sidebar-manage-warden-leaves',
-    title: 'Warden Leaves',
+    title: 'Leave Requests',
     content:
-      'Review and manage leave requests submitted by Wardens.',
+      'Review and manage leave requests submitted by assigned staff members.',
     placement: 'right' as const,
     disableBeacon: false,
     route: '/hms/manage-warden-leaves',

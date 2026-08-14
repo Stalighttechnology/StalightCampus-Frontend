@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import ScheduledLocationTracker from "../faculty/ScheduledLocationTracker";
 import DashboardLayout from "../common/DashboardLayout";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import FacultyStats from "../faculty/FacultyStats";
@@ -250,6 +251,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
           {error}
         </div>
       }
+      <ScheduledLocationTracker />
       {renderContent()}
     </DashboardLayout>
     </>);

@@ -6,7 +6,7 @@ import LibraryOverview from "../library/LibraryOverview";
 import LibraryBooksCatalog from "../library/LibraryBooksCatalog";
 import LibraryCirculation from "../library/LibraryCirculation";
 import LibraryFineManagement from "../library/LibraryFineManagement";
-import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
+import ApplyLeaveDepartmentAdmin from "../faculty/ApplyLeave";
 import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import Profile from "../common/Profile";
 import FacultyAttendance from "../faculty/FacultyAttendance";

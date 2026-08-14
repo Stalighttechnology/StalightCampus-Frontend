@@ -24,7 +24,10 @@ interface UnifiedLeave {
   title?: string;
   faculty_name: string;
   department: string;
-  faculty_type: 'principal' | 'coe' | 'fees_manager';
+  faculty_type: string;
+  leave_type?: string;
+  start_time?: string | null;
+  end_time?: string | null;
   start_date: string;
   end_date: string;
   reason: string;
@@ -311,9 +314,10 @@ const ManageAdminLeavesDean = () => {
                     <table className="w-full text-sm text-left border-collapse">
                       <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
                         <tr>
-                          <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Name</th>
+                          <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Applicant</th>
+                          <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</th>
                           <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Department</th>
-                          <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
+                          <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period & Time</th>
                           <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
                           <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
                           <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Action</th>
@@ -322,9 +326,33 @@ const ManageAdminLeavesDean = () => {
                       <tbody>
                         {pendingLeaves.map((leave) => (
                           <tr key={leave.id} className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
-                            <td className="py-3 px-2 md:px-4 font-medium">{leave.faculty_name}</td>
+                            <td className="py-3 px-2 md:px-4 font-medium">
+                              <div>{leave.faculty_name}</div>
+                              <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
+                                {leave.faculty_type?.replace('_', ' ')}
+                              </span>
+                            </td>
+                            <td className="py-3 px-2 md:px-4">
+                              <div className="font-medium text-sm">{leave.title || 'Leave Request'}</div>
+                              {leave.leave_type === 'short_permission' ? (
+                                <span className={`inline-block mt-0.5 text-[10px] font-medium px-1.5 py-0.2 rounded ${theme === 'dark' ? 'bg-purple-950/40 text-purple-300' : 'bg-purple-50 text-purple-700'}`}>
+                                  Short Permission
+                                </span>
+                              ) : (
+                                <span className={`inline-block mt-0.5 text-[10px] font-medium px-1.5 py-0.2 rounded ${theme === 'dark' ? 'bg-blue-950/40 text-blue-300' : 'bg-blue-50 text-blue-700'}`}>
+                                  Standard Leave
+                                </span>
+                              )}
+                            </td>
                             <td className="py-3 px-2 md:px-4">{leave.faculty_type === 'principal' ? 'Administration' : leave.department}</td>
-                            <td className="py-3 px-2 md:px-4">{leave.start_date} <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {leave.end_date}</td>
+                            <td className="py-3 px-2 md:px-4">
+                              <div>{leave.start_date} {leave.start_date !== leave.end_date && <><span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {leave.end_date}</>}</div>
+                              {leave.start_time && leave.end_time && (
+                                <div className="text-xs font-semibold text-primary mt-0.5">
+                                  {leave.start_time} - {leave.end_time}
+                                </div>
+                              )}
+                            </td>
                             <td className="py-3 px-2 md:px-4">
                               <Button
                                 variant="outline"

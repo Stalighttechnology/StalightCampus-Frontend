@@ -10,7 +10,7 @@ import COEProfile from "../coe/COEProfile";
 import COEQPApprovals from "../coe/COEQPApprovals";
 import PublishResults from "../coe/PublishResults";
 import PublishResultsRevalMakeup from "../coe/PublishResultsRevalMakeup";
-import ApplyLeave from "../coe/ApplyLeave";
+import ApplyLeave from "../faculty/ApplyLeave";
 import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import MakeupRequests from "../coe/MakeupRequests";
 import RevaluationRequests from "../coe/RevaluationRequests";

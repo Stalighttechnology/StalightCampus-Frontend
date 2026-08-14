@@ -21,7 +21,7 @@ import AdminCOAttainment from "../common/AdminCOAttainment";
 import { useToast } from "../../hooks/use-toast";
 import AdminAttendance from "../admin/AdminAttendance";
 import AdminFacultyAttendanceView from "../admin/AdminFacultyAttendanceView";
-import ApplyLeaveAdmin from "../admin/ApplyLeaveAdmin";
+import ApplyLeaveAdmin from "../faculty/ApplyLeave";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import StudentInfoScanner from "../hod/StudentInfoScanner";
@@ -29,6 +29,7 @@ import GoogleSetup from "../admin/GoogleSetup";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 import BillingManagement from "../org_admin/BillingManagement";
 import CampusLocationManager from "../dean/CampusLocationManager";
+import CampusMonitoring from "../admin/CampusMonitoring";
 import AlumniDirectory from "../common/AlumniDirectory";
 import PrincipalTimetableSettings from "../admin/PrincipalTimetableSettings";
 import DeanFinance from "../dean/DeanFinance";
@@ -227,6 +228,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <CampusLocationManager />
+          </div>);
+
+      case "campus-monitoring":
+        return (
+          <div>
+            <CampusMonitoring />
           </div>);
 
       case "google-setup":
