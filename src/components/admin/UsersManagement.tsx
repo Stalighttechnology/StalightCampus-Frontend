@@ -71,10 +71,29 @@ const getStatusBadge = (status: string, theme: string) => {
     return <span className={`${baseClass} ${theme === 'dark' ? 'bg-red-900 text-red-300' : 'bg-red-500 text-white'}`}>Inactive</span>;
 };
 
+const displayRoleMap: Record<string, string> = {
+  "student": "Student",
+  "hod": "Head of Department",
+  "teacher": "Teacher",
+  "coe": "COE",
+  "fees_manager": "Fees Manager",
+  "principal": "Principal",
+  "org_admin": "Org Admin",
+  "hms_admin": "HMS",
+  "warden": "Warden",
+  "dean": "Dean",
+  "placement_officer": "Placement Officer",
+  "transport_admin": "Transport Admin",
+  "library_admin": "Library Admin",
+  "admission_manager": "Admission Manager",
+  "counsellor": "Admission Counsellor"
+};
+
 const getRoleBadge = (role: string, theme: string) => {
+  const displayRole = displayRoleMap[role] || role;
   return (
     <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800'}`}>
-      {translateTerminology(role)}
+      {translateTerminology(displayRole)}
     </span>);
 };
 
@@ -92,7 +111,8 @@ const ALL_ROLES = [
   "Placement Officer",
   "Transport Admin",
   "Library Admin",
-  "Admission Manager"
+  "Admission Manager",
+  "Admission Counsellor"
 ];
 
 const BASIC_PLAN_ROLES = [
@@ -101,7 +121,8 @@ const BASIC_PLAN_ROLES = [
   "Head of Department",
   "Teacher",
   "Student",
-  "Dean"
+  "Dean",
+  "Admission Counsellor"
 ];
 
 const PRO_PLAN_ROLES = [
@@ -112,7 +133,8 @@ const PRO_PLAN_ROLES = [
   "Student",
   "Dean",
   "COE",
-  "Fees Manager"
+  "Fees Manager",
+  "Admission Counsellor"
 ];
 
 const roleMap: Record<string, string> = {
@@ -129,7 +151,8 @@ const roleMap: Record<string, string> = {
   "Placement Officer": "placement_officer",
   "Transport Admin": "transport_admin",
   "Library Admin": "library_admin",
-  "Admission Manager": "admission_manager"
+  "Admission Manager": "admission_manager",
+  "Admission Counsellor": "counsellor"
 };
 
 const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
