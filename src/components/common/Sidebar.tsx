@@ -493,7 +493,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Proctor Students", page: "proctor-students" },
       { name: "Manage Student Leave", page: "student-leave" },
       { name: "Announcements for Students", page: "faculty-announcement-management" },
-      { name: "Schedule Class", page: "schedule-class" },
+      { name: "Schedule Class/Mentoring", page: "schedule-class" },
       { name: "Generate Statistics", page: "statistics" },
       { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "My Attendance", page: "faculty-attendance" },
