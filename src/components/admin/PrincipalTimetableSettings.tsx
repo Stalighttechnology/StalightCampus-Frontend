@@ -535,30 +535,54 @@ export default function PrincipalTimetableSettings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4 pb-6 space-y-6">
-            <div className="flex flex-wrap border-b border-border/50">
+            <div className={`p-1.5 rounded-2xl flex flex-col sm:flex-row w-full gap-1.5 ${theme === 'dark' ? 'bg-muted/40 border border-border/60' : 'bg-slate-100/90 border border-slate-200/80'}`}>
               <button
-                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'timetable' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                type="button"
+                className={`w-full sm:flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center sm:justify-center gap-2 ${
+                  activeTab === 'timetable'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
+                }`}
                 onClick={() => setActiveTab('timetable')}
               >
-                Timetable Slots
+                <Clock className="w-4 h-4" />
+                <span>Timetable Slots</span>
               </button>
               <button
-                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'qp-workflow' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                type="button"
+                className={`w-full sm:flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center sm:justify-center gap-2 ${
+                  activeTab === 'qp-workflow'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
+                }`}
                 onClick={() => setActiveTab('qp-workflow')}
               >
-                Question Paper Workflow
+                <ShieldCheck className="w-4 h-4" />
+                <span>Question Paper Workflow</span>
               </button>
               <button
-                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'leave-policy' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                type="button"
+                className={`w-full sm:flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center sm:justify-center gap-2 ${
+                  activeTab === 'leave-policy'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
+                }`}
                 onClick={() => setActiveTab('leave-policy')}
               >
-                Short Permission & Leave Policy
+                <CalendarCheck2 className="w-4 h-4" />
+                <span>Short Permission & Leave Policy</span>
               </button>
               <button
-                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'attendance-workflow' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                type="button"
+                className={`w-full sm:flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center sm:justify-center gap-2 ${
+                  activeTab === 'attendance-workflow'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
+                }`}
                 onClick={() => setActiveTab('attendance-workflow')}
               >
-                Attendance Workflow
+                <Users className="w-4 h-4" />
+                <span>Attendance Workflow</span>
               </button>
             </div>
 
@@ -1034,22 +1058,155 @@ export default function PrincipalTimetableSettings() {
                     </div>
 
                     <div className="space-y-4">
-                      {checkinWindows.map((window, idx) => (
-                        <div key={idx} className="flex gap-4 items-center">
-                          <Label>Check-in {idx + 1}</Label>
-                          <Input type="time" value={window.start} onChange={e => {
-                            const newArr = [...checkinWindows];
-                            newArr[idx].start = e.target.value;
-                            setCheckinWindows(newArr);
-                          }} className="w-32" />
-                          <span>to</span>
-                          <Input type="time" value={window.end} onChange={e => {
-                            const newArr = [...checkinWindows];
-                            newArr[idx].end = e.target.value;
-                            setCheckinWindows(newArr);
-                          }} className="w-32" />
-                        </div>
-                      ))}
+                      {checkinWindows.map((window, idx) => {
+                        const startParsed = parseTimeTo12h(window.start);
+                        const endParsed = parseTimeTo12h(window.end);
+
+                        return (
+                          <div 
+                            key={idx} 
+                            className={`p-4 rounded-xl border transition-all ${
+                              theme === 'dark' 
+                                ? 'bg-card/70 border-border/80 text-foreground' 
+                                : 'bg-white border-gray-200 text-gray-900 shadow-sm'
+                            }`}
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                                  #{idx + 1}
+                                </div>
+                                <div>
+                                  <Label className="text-sm font-semibold">Check-in Window {idx + 1}</Label>
+                                  <p className="text-xs text-muted-foreground">Required attendance check-in timeframe</p>
+                                </div>
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-3">
+                                {/* Start Time Selectors */}
+                                <div className="space-y-1">
+                                  <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Start Time</span>
+                                  <div className="flex items-center gap-1">
+                                    <Select
+                                      value={startParsed.hour}
+                                      onValueChange={(val) => {
+                                        const new24 = formatTime24h(val, startParsed.minute, startParsed.period);
+                                        const newArr = [...checkinWindows];
+                                        newArr[idx].start = new24;
+                                        setCheckinWindows(newArr);
+                                      }}
+                                    >
+                                      <SelectTrigger className={`w-16 h-9 text-xs font-medium ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50 border-gray-300'}`}>
+                                        <SelectValue placeholder="HH" />
+                                      </SelectTrigger>
+                                      <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                        {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
+                                      </SelectContent>
+                                    </Select>
+                                    <span className="text-muted-foreground font-semibold px-0.5">:</span>
+                                    <Select
+                                      value={startParsed.minute}
+                                      onValueChange={(val) => {
+                                        const new24 = formatTime24h(startParsed.hour, val, startParsed.period);
+                                        const newArr = [...checkinWindows];
+                                        newArr[idx].start = new24;
+                                        setCheckinWindows(newArr);
+                                      }}
+                                    >
+                                      <SelectTrigger className={`w-16 h-9 text-xs font-medium ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50 border-gray-300'}`}>
+                                        <SelectValue placeholder="MM" />
+                                      </SelectTrigger>
+                                      <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                        {["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(m => (
+                                          <SelectItem key={m} value={m}>{m}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <Select
+                                      value={startParsed.period}
+                                      onValueChange={(val) => {
+                                        const new24 = formatTime24h(startParsed.hour, startParsed.minute, val);
+                                        const newArr = [...checkinWindows];
+                                        newArr[idx].start = new24;
+                                        setCheckinWindows(newArr);
+                                      }}
+                                    >
+                                      <SelectTrigger className={`w-20 h-9 text-xs font-medium ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50 border-gray-300'}`}>
+                                        <SelectValue placeholder="AM/PM" />
+                                      </SelectTrigger>
+                                      <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                        <SelectItem value="AM">AM</SelectItem>
+                                        <SelectItem value="PM">PM</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+
+                                <span className="text-xs font-semibold text-muted-foreground self-end pb-2 px-1">to</span>
+
+                                {/* End Time Selectors */}
+                                <div className="space-y-1">
+                                  <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">End Time</span>
+                                  <div className="flex items-center gap-1">
+                                    <Select
+                                      value={endParsed.hour}
+                                      onValueChange={(val) => {
+                                        const new24 = formatTime24h(val, endParsed.minute, endParsed.period);
+                                        const newArr = [...checkinWindows];
+                                        newArr[idx].end = new24;
+                                        setCheckinWindows(newArr);
+                                      }}
+                                    >
+                                      <SelectTrigger className={`w-16 h-9 text-xs font-medium ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50 border-gray-300'}`}>
+                                        <SelectValue placeholder="HH" />
+                                      </SelectTrigger>
+                                      <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                        {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
+                                      </SelectContent>
+                                    </Select>
+                                    <span className="text-muted-foreground font-semibold px-0.5">:</span>
+                                    <Select
+                                      value={endParsed.minute}
+                                      onValueChange={(val) => {
+                                        const new24 = formatTime24h(endParsed.hour, val, endParsed.period);
+                                        const newArr = [...checkinWindows];
+                                        newArr[idx].end = new24;
+                                        setCheckinWindows(newArr);
+                                      }}
+                                    >
+                                      <SelectTrigger className={`w-16 h-9 text-xs font-medium ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50 border-gray-300'}`}>
+                                        <SelectValue placeholder="MM" />
+                                      </SelectTrigger>
+                                      <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                        {["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(m => (
+                                          <SelectItem key={m} value={m}>{m}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <Select
+                                      value={endParsed.period}
+                                      onValueChange={(val) => {
+                                        const new24 = formatTime24h(endParsed.hour, endParsed.minute, val);
+                                        const newArr = [...checkinWindows];
+                                        newArr[idx].end = new24;
+                                        setCheckinWindows(newArr);
+                                      }}
+                                    >
+                                      <SelectTrigger className={`w-20 h-9 text-xs font-medium ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50 border-gray-300'}`}>
+                                        <SelectValue placeholder="AM/PM" />
+                                      </SelectTrigger>
+                                      <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                        <SelectItem value="AM">AM</SelectItem>
+                                        <SelectItem value="PM">PM</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
 
                     <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-gray-50/80 border-gray-100'} mt-4`}>
