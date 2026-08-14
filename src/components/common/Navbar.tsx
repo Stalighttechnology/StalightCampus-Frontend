@@ -23,7 +23,7 @@ interface User {
 }
 
 interface NavbarProps {
-  role: "admin" | "principal" | "hod" | "faculty" | "student" | "fees_manager" | "coe" | "developer" | "superadmin";
+  role: string;
   user?: User;
   onNotificationClick?: () => void;
   setPage: (page: string) => void;
@@ -372,7 +372,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
             {theme === 'dark' ? <FiSun size={18} /> : <FiMoon size={18} />}
           </Button>
 
-          {['student', 'parent', 'faculty', 'hod', 'admin', 'principal', 'coe', 'dean', 'hms', 'hms_admin', 'fees_manager', 'transport_admin', 'org_admin', 'warden', 'driver', 'library_admin'].includes(role || '') && (
+          {['student', 'parent', 'faculty', 'hod', 'admin', 'principal', 'coe', 'dean', 'hms', 'hms_admin', 'fees_manager', 'transport_admin', 'org_admin', 'warden', 'driver', 'library_admin', 'admission_manager', 'counsellor'].includes(role || '') && (
             <Popover open={isNotificationsOpen} onOpenChange={(open) => { setIsNotificationsOpen(open); if (open) markNotificationsRead(); }}>
               <PopoverTrigger asChild>
                 <Button
@@ -486,7 +486,9 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                           'org_admin': '/org-admin/announcement-management',
                           'warden': '/warden/announcement-management',
                           'driver': '/driver/announcements',
-                          'library_admin': '/library-admin/announcements'
+                          'library_admin': '/library-admin/announcements',
+                          'admission_manager': '/admission-manager/announcements',
+                          'counsellor': '/counsellor/announcements'
                         };
                         navigate(paths[role || ''] || '/announcements');
                         setIsNotificationsOpen(false);

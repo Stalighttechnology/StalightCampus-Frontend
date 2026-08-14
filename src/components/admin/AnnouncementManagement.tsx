@@ -75,18 +75,19 @@ const AdminAnnouncementManagement = () => {
   const [totalMyCount, setTotalMyCount] = useState(0);
   const [totalReceivedCount, setTotalReceivedCount] = useState(0);
   const [unreadReceivedCount, setUnreadReceivedCount] = useState(0);
-  const [activeTab, setActiveTab] = useState("my");
+  const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+  const parsedUser = userStr ? JSON.parse(userStr) : null;
+  const superadminRole = localStorage.getItem("superadmin_role");
+  
+  const user = parsedUser || (superadminRole ? { role: superadminRole } : null);
+
+  const [activeTab, setActiveTab] = useState(user?.role === 'counsellor' ? "received" : "my");
   const [showArchive, setShowArchive] = useState(false);
   const pageSize = 10;
 
   const { theme } = useTheme();
   const { hostels, fetchHostelsOnly } = useHMSContext();
 
-  const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
-  const parsedUser = userStr ? JSON.parse(userStr) : null;
-  const superadminRole = localStorage.getItem("superadmin_role");
-  
-  const user = parsedUser || (superadminRole ? { role: superadminRole } : null);
   const orgPlan = user?.org_plan || "basic";
   const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
   const isHMSUser = user?.role === 'hms_admin' || user?.role === 'warden';
@@ -490,7 +491,7 @@ const AdminAnnouncementManagement = () => {
     setSelectedHostelId("all");
   };
 
-  const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "driver", "warden"];
+  const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "counsellor", "driver", "warden"];
   const BASIC_ROLES = ["student", "hod", "faculty", "principal", "org_admin", "dean", "driver", "warden"];
 
   const getTargetRolesForUser = (userRole: string) => {
@@ -513,6 +514,8 @@ const AdminAnnouncementManagement = () => {
         return ["student", "warden"];
       case "transport_admin":
         return ["student", "driver"];
+      case "admission_manager":
+        return ["counsellor"];
       default:
         return ["student", "hod", "faculty", "principal", "placement_officer", "warden"];
     }
@@ -529,277 +532,279 @@ const AdminAnnouncementManagement = () => {
         <p className={`text-sm sm:text-md mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Create and manage system announcements</p>
       </div>
       <div className="announce-actions">
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogTrigger asChild>
-            <Button
-              onClick={() => resetForm()}
-              className={`gap-2 ${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
+        {user?.role !== 'counsellor' && (
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button
+                onClick={() => resetForm()}
+                className={`gap-2 ${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
 
-              <Plus className="w-4 h-4" />
-              New Announcement
-            </Button>
-          </DialogTrigger>
-          <DialogContent
-            onPointerDownOutside={(e) => e.preventDefault()}
-            className="mobile-modal max-w-xl max-h-[80vh] overflow-y-auto custom-scrollbar [&>button]:border-none [&>button]:outline-none [&>button]:focus:ring-0">
+                <Plus className="w-4 h-4" />
+                New Announcement
+              </Button>
+            </DialogTrigger>
+            <DialogContent
+              onPointerDownOutside={(e) => e.preventDefault()}
+              className="mobile-modal max-w-xl max-h-[80vh] overflow-y-auto custom-scrollbar [&>button]:border-none [&>button]:outline-none [&>button]:focus:ring-0">
 
-            <DialogHeader>
-              <DialogTitle>
-                {editingId ? "Edit Announcement" : "Create Announcement"}
-              </DialogTitle>
-              <DialogDescription>
-                {editingId ?
-                  "Update the announcement details below" :
-                  "Create a new announcement visible to selected roles"}
-              </DialogDescription>
-            </DialogHeader>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingId ? "Edit Announcement" : "Create Announcement"}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingId ?
+                    "Update the announcement details below" :
+                    "Create a new announcement visible to selected roles"}
+                </DialogDescription>
+              </DialogHeader>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
-                  <span className={`text-[10px] ${formData.title.length >= 150 ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
-                    {formData.title.length}/150
-                  </span>
-                </div>
-                <Input
-                  id="title"
-                  placeholder="Announcement title"
-                  maxLength={150}
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  } />
-
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="message">Message <span className="text-red-500">*</span></Label>
-                  <span className={`text-[10px] ${formData.message.length >= 1000 ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
-                    {formData.message.length}/1000
-                  </span>
-                </div>
-                <Textarea
-                  id="message"
-                  placeholder="Announcement message"
-                  maxLength={1000}
-                  value={formData.message}
-                  onChange={(e) =>
-                    setFormData({ ...formData, message: e.target.value })
-                  }
-                  rows={6}
-                  className="resize-none max-h-24 overflow-auto custom-scrollbar" />
-
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="priority">Priority</Label>
-                  <Select
-                    value={formData.priority}
-                    onValueChange={(value: any) =>
-                      setFormData({ ...formData, priority: value })
-                    }>
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
+                    <span className={`text-[10px] ${formData.title.length >= 150 ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+                      {formData.title.length}/150
+                    </span>
+                  </div>
+                  <Input
+                    id="title"
+                    placeholder="Announcement title"
+                    maxLength={150}
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    } />
 
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="expires_at">Expires At</Label>
-                  <Popover open={expiresOpen} onOpenChange={setExpiresOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}>
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="message">Message <span className="text-red-500">*</span></Label>
+                    <span className={`text-[10px] ${formData.message.length >= 1000 ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+                      {formData.message.length}/1000
+                    </span>
+                  </div>
+                  <Textarea
+                    id="message"
+                    placeholder="Announcement message"
+                    maxLength={1000}
+                    value={formData.message}
+                    onChange={(e) =>
+                      setFormData({ ...formData, message: e.target.value })
+                    }
+                    rows={6}
+                    className="resize-none max-h-24 overflow-auto custom-scrollbar" />
 
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {formData.expires_at ?
-                          (() => {
-                            try {
-                              return format(new Date(formData.expires_at), 'PPP');
-                            } catch (e) {
-                              return formData.expires_at;
-                            }
-                          })() :
-
-                          <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select date</span>
-                        }
-                      </Button>
-                    </PopoverTrigger>
-
-                    <PopoverContent className={theme === 'dark' ? 'w-auto p-0 bg-background text-foreground border-border shadow-lg' : 'w-auto p-0 bg-white text-gray-900 border-gray-200 shadow-lg'}>
-                      <div className="p-2">
-                        <Calendar
-                          mode="single"
-                          selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
-                          onSelect={(date: Date | undefined) => {
-                            if (date) {
-                              setFormData({ ...formData, expires_at: format(date, 'yyyy-MM-dd') });
-                            } else {
-                              setFormData({ ...formData, expires_at: '' });
-                            }
-                            setExpiresOpen(false);
-                          }}
-                          disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
-                          className={theme === 'dark' ? 'rounded-md bg-background text-foreground' : 'rounded-md bg-white text-gray-900'} />
-
-                      </div>
-                    </PopoverContent>
-                  </Popover>
                 </div>
-              </div>
 
-              {isHMSUser ? (
-                <div className="space-y-2">
-                  <Label>Scope / Hostel</Label>
-                  <Select
-                    value={selectedHostelId}
-                    onValueChange={(val) => {
-                      setSelectedHostelId(val);
-                      // Always keep is_global=true for HMS users — the DB constraint
-                      // requires branch when is_global=false, but the model has no hostel FK.
-                      // Backend already restricts delivery to hosteler students/wardens only.
-                      setFormData({ ...formData, is_global: true, branch: null });
-                    }}
-                  >
-                    <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
-                      <SelectValue placeholder="Select Hostel" />
-                    </SelectTrigger>
-                    <SelectContent className={`max-h-[200px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}`}>
-                      <SelectItem value="all">All Hostels</SelectItem>
-                      {hostels.map((h: any) => (
-                        <SelectItem key={h.id} value={String(h.id)}>
-                          {h.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[11px] text-muted-foreground">
-                    Announcements are delivered to hostel students &amp; wardens only.
-                  </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="priority">Priority</Label>
+                    <Select
+                      value={formData.priority}
+                      onValueChange={(value: any) =>
+                        setFormData({ ...formData, priority: value })
+                      }>
+
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="expires_at">Expires At</Label>
+                    <Popover open={expiresOpen} onOpenChange={setExpiresOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}>
+
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {formData.expires_at ?
+                            (() => {
+                              try {
+                                return format(new Date(formData.expires_at), 'PPP');
+                              } catch (e) {
+                                return formData.expires_at;
+                              }
+                            })() :
+
+                            <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select date</span>
+                          }
+                        </Button>
+                      </PopoverTrigger>
+
+                      <PopoverContent className={theme === 'dark' ? 'w-auto p-0 bg-background text-foreground border-border shadow-lg' : 'w-auto p-0 bg-white text-gray-900 border-gray-200 shadow-lg'}>
+                        <div className="p-2">
+                          <Calendar
+                            mode="single"
+                            selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
+                            onSelect={(date: Date | undefined) => {
+                              if (date) {
+                                setFormData({ ...formData, expires_at: format(date, 'yyyy-MM-dd') });
+                              } else {
+                                setFormData({ ...formData, expires_at: '' });
+                              }
+                              setExpiresOpen(false);
+                            }}
+                            disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
+                            className={theme === 'dark' ? 'rounded-md bg-background text-foreground' : 'rounded-md bg-white text-gray-900'} />
+
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label>Scope / Department</Label>
-                  <Select
-                    value={formData.is_global ? "all" : String(formData.branch || "")}
-                    onValueChange={(val) => {
-                      if (val === "all") {
+
+                {isHMSUser ? (
+                  <div className="space-y-2">
+                    <Label>Scope / Hostel</Label>
+                    <Select
+                      value={selectedHostelId}
+                      onValueChange={(val) => {
+                        setSelectedHostelId(val);
+                        // Always keep is_global=true for HMS users — the DB constraint
+                        // requires branch when is_global=false, but the model has no hostel FK.
+                        // Backend already restricts delivery to hosteler students/wardens only.
                         setFormData({ ...formData, is_global: true, branch: null });
-                      } else {
-                        setFormData({ ...formData, is_global: false, branch: Number(val) });
-                      }
-                    }}
-                  >
-                    <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
-                      <SelectValue placeholder="Select Department Scope" />
-                    </SelectTrigger>
-                    <SelectContent className={`max-h-[200px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}`}>
-                      <SelectItem value="all">All Departments (Global)</SelectItem>
-                      {branches.map((b) => (
-                        <SelectItem key={b.id} value={String(b.id)}>
-                          {b.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+                      }}
+                    >
+                      <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
+                        <SelectValue placeholder="Select Hostel" />
+                      </SelectTrigger>
+                      <SelectContent className={`max-h-[200px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}`}>
+                        <SelectItem value="all">All Hostels</SelectItem>
+                        {hostels.map((h: any) => (
+                          <SelectItem key={h.id} value={String(h.id)}>
+                            {h.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[11px] text-muted-foreground">
+                      Announcements are delivered to hostel students &amp; wardens only.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>Scope / Department</Label>
+                    <Select
+                      value={formData.is_global ? "all" : String(formData.branch || "")}
+                      onValueChange={(val) => {
+                        if (val === "all") {
+                          setFormData({ ...formData, is_global: true, branch: null });
+                        } else {
+                          setFormData({ ...formData, is_global: false, branch: Number(val) });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
+                        <SelectValue placeholder="Select Department Scope" />
+                      </SelectTrigger>
+                      <SelectContent className={`max-h-[200px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}`}>
+                        <SelectItem value="all">All Departments (Global)</SelectItem>
+                        {branches.map((b) => (
+                          <SelectItem key={b.id} value={String(b.id)}>
+                            {b.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label>Target Roles <span className="text-red-500">*</span></Label>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Label>Target Roles <span className="text-red-500">*</span></Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className={`h-6 text-xs px-2 ${theme === 'dark' ? 'text-primary hover:bg-primary/20' : 'text-primary hover:bg-primary/10'}`}
+                      onClick={() => {
+                        if (formData.target_roles?.length === roles.length) {
+                          setFormData({ ...formData, target_roles: [] });
+                        } else {
+                          setFormData({ ...formData, target_roles: [...roles] });
+                        }
+                      }}
+                    >
+                      {formData.target_roles?.length === roles.length ? "Deselect All" : "Select All"}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {roles.map((role) => {
+                      const isSelected = formData.target_roles?.includes(role) || false;
+                      return (
+                        <div
+                          key={role}
+                          role="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setFormData({
+                                ...formData,
+                                target_roles: (formData.target_roles || []).filter((r) => r !== role)
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                target_roles: [...(formData.target_roles || []), role]
+                              });
+                            }
+                          }}
+                          className={`flex items-center gap-3 p-3 rounded-lg border text-sm font-medium transition-all duration-200 cursor-pointer select-none ${isSelected
+                            ? theme === 'dark'
+                              ? 'bg-primary/20 border-primary text-primary-foreground shadow-sm'
+                              : 'bg-primary/10 border-primary text-primary shadow-sm'
+                            : theme === 'dark'
+                              ? 'bg-card border-border hover:bg-accent text-muted-foreground'
+                              : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'
+                            }`}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => { }}
+                            className="pointer-events-none"
+                          />
+                          <span className="capitalize">{translateTerminology(role.replace('_', ' '))}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end pt-4">
                   <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className={`h-6 text-xs px-2 ${theme === 'dark' ? 'text-primary hover:bg-primary/20' : 'text-primary hover:bg-primary/10'}`}
-                    onClick={() => {
-                      if (formData.target_roles?.length === roles.length) {
-                        setFormData({ ...formData, target_roles: [] });
-                      } else {
-                        setFormData({ ...formData, target_roles: [...roles] });
-                      }
-                    }}
-                  >
-                    {formData.target_roles?.length === roles.length ? "Deselect All" : "Select All"}
+                    variant="outline"
+                    onClick={() => setShowCreateDialog(false)}
+                    className="w-full sm:w-auto">
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCreateOrUpdate}
+                    disabled={submitting}
+                    className={`w-full sm:w-auto ${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
+                    {submitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2 inline-block" />
+                        {editingId ? "Updating..." : "Creating..."}
+                      </>
+                    ) : (
+                      <>{editingId ? "Update" : "Create"} Announcement</>
+                    )}
                   </Button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {roles.map((role) => {
-                    const isSelected = formData.target_roles?.includes(role) || false;
-                    return (
-                      <div
-                        key={role}
-                        role="button"
-                        onClick={() => {
-                          if (isSelected) {
-                            setFormData({
-                              ...formData,
-                              target_roles: (formData.target_roles || []).filter((r) => r !== role)
-                            });
-                          } else {
-                            setFormData({
-                              ...formData,
-                              target_roles: [...(formData.target_roles || []), role]
-                            });
-                          }
-                        }}
-                        className={`flex items-center gap-3 p-3 rounded-lg border text-sm font-medium transition-all duration-200 cursor-pointer select-none ${isSelected
-                          ? theme === 'dark'
-                            ? 'bg-primary/20 border-primary text-primary-foreground shadow-sm'
-                            : 'bg-primary/10 border-primary text-primary shadow-sm'
-                          : theme === 'dark'
-                            ? 'bg-card border-border hover:bg-accent text-muted-foreground'
-                            : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'
-                          }`}
-                      >
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => { }}
-                          className="pointer-events-none"
-                        />
-                        <span className="capitalize">{translateTerminology(role.replace('_', ' '))}</span>
-                      </div>
-                    );
-                  })}
-                </div>
               </div>
-
-              <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCreateDialog(false)}
-                  className="w-full sm:w-auto">
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreateOrUpdate}
-                  disabled={submitting}
-                  className={`w-full sm:w-auto ${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
-                  {submitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin mr-2 inline-block" />
-                      {editingId ? "Updating..." : "Creating..."}
-                    </>
-                  ) : (
-                    <>{editingId ? "Update" : "Create"} Announcement</>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </CardHeader>
   );
@@ -888,6 +893,8 @@ const AdminAnnouncementManagement = () => {
               showExpired={showArchive}
               setShowExpired={setShowArchive}
               hideReceivedTab={false}
+              hideMyTab={user?.role === 'counsellor'}
+              showActions={user?.role !== 'counsellor'}
             />
           )}
         </Card>
