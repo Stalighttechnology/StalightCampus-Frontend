@@ -214,6 +214,9 @@ const LeaveManagement = () => {
   // Handle approve
   const handleApprove = async (index: number) => {
     const leave = leaveRequests[index];
+    const isShortPermission = leave.leave_type === 'short_permission';
+    const typeLabel = isShortPermission ? 'Short Permission' : 'Leave';
+
     const payload = {
       action: "update" as const,
       branch_id: branchId,
@@ -222,11 +225,11 @@ const LeaveManagement = () => {
     };
 
     const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'You are about to approve this leave request. Are you sure you want to proceed?',
+      title: `Approve ${typeLabel}?`,
+      text: `You are about to approve this ${typeLabel.toLowerCase()} request. Are you sure you want to proceed?`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, approve it!',
+      confirmButtonText: `Yes, approve ${typeLabel.toLowerCase()}`,
       cancelButtonText: 'No, cancel',
       customClass: {
         confirmButton: 'bg-green-600 text-white',
@@ -236,41 +239,43 @@ const LeaveManagement = () => {
 
     if (!result.isConfirmed) return;
 
-    // Debug log
     try {
       const res = await manageLeaves(payload, "PATCH");
       if (res.success) {
         // Update local list without re-fetching
         setLeaveRequests((prev) => prev.map((item, idx) => item.id === leave.id ? { ...item, status: 'Approved' } : item));
-        Swal.fire('Approved!', 'The leave request has been approved.', 'success');
+        Swal.fire(`${typeLabel} Approved!`, `The ${typeLabel.toLowerCase()} request has been approved.`, 'success');
       } else {
-        setErrors([res.message || "Failed to approve leave"]);
-        Swal.fire('Error!', res.message || 'Failed to approve the leave request.', 'error');
+        setErrors([res.message || `Failed to approve ${typeLabel.toLowerCase()}`]);
+        Swal.fire('Error!', res.message || `Failed to approve the ${typeLabel.toLowerCase()} request.`, 'error');
       }
     } catch (err) {
 
-      setErrors(["Failed to approve leave"]);
-      Swal.fire('Error!', 'Failed to approve the leave request.', 'error');
+      setErrors([`Failed to approve ${typeLabel.toLowerCase()}`]);
+      Swal.fire('Error!', `Failed to approve the ${typeLabel.toLowerCase()} request.`, 'error');
     }
   };
 
   // Handle reject
   const handleReject = async (index: number) => {
     const leave = leaveRequests[index];
+    const isShortPermission = leave.leave_type === 'short_permission';
+    const typeLabel = isShortPermission ? 'Short Permission' : 'Leave';
+
     const payload = {
       action: "update" as const,
       branch_id: branchId,
       leave_id: leave.id,
       status: "REJECTED" as const
     };
-    // Debug log
+    
     Swal.fire({
-      title: 'Are you sure?',
-      text: 'You are about to reject this leave request. Are you sure you want to proceed?',
+      title: `Reject ${typeLabel}?`,
+      text: `You are about to reject this ${typeLabel.toLowerCase()} request. Are you sure you want to proceed?`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, reject it!',
-      cancelButtonText: 'No, keep it',
+      confirmButtonText: `Yes, reject ${typeLabel.toLowerCase()}`,
+      cancelButtonText: 'No, cancel',
       customClass: {
         confirmButton: 'bg-red-600 text-white',
         cancelButton: 'bg-gray-300 text-black'

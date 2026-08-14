@@ -130,9 +130,13 @@ const ManageAdminLeavesDean = () => {
     const actionText = isApprove ? 'Approve' : 'Reject';
     const confirmColor = isApprove ? '#10B981' : '#EF4444';
 
+    const targetLeave = pendingLeaves.find(l => l.id === leaveId) || recentLeaves.find(l => l.id === leaveId);
+    const isShortPermission = targetLeave?.leave_type === 'short_permission';
+    const typeLabel = isShortPermission ? 'Short Permission' : 'Leave';
+
     const confirmResult = await MySwal.fire({
-      title: `${actionText} Leave Request?`,
-      text: `Are you sure you want to ${actionText.toLowerCase()} this leave request?`,
+      title: `${actionText} ${typeLabel}?`,
+      text: `Are you sure you want to ${actionText.toLowerCase()} this ${typeLabel.toLowerCase()} request?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: `Yes, ${actionText}`,
@@ -166,7 +170,7 @@ const ManageAdminLeavesDean = () => {
 
         MySwal.fire({
           title: 'Success!',
-          text: `Leave request has been ${action.toLowerCase()} successfully.`,
+          text: `${typeLabel} request has been ${action.toLowerCase()} successfully.`,
           icon: 'success',
           timer: 2000,
           showConfirmButton: false,
@@ -176,7 +180,7 @@ const ManageAdminLeavesDean = () => {
       } else {
         MySwal.fire({
           title: 'Error',
-          text: response.message || "Failed to update leave request.",
+          text: response.message || `Failed to update ${typeLabel.toLowerCase()} request.`,
           icon: 'error',
           background: theme === 'dark' ? '#1e293b' : '#ffffff',
           color: theme === 'dark' ? '#f8fafc' : '#0f172a',
@@ -185,7 +189,7 @@ const ManageAdminLeavesDean = () => {
     } catch (err) {
       MySwal.fire({
         title: 'Error',
-        text: "Failed to update leave request due to a network or server error.",
+        text: `Failed to update ${typeLabel.toLowerCase()} request due to a network or server error.`,
         icon: 'error',
         background: theme === 'dark' ? '#1e293b' : '#ffffff',
         color: theme === 'dark' ? '#f8fafc' : '#0f172a',

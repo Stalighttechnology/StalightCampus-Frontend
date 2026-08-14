@@ -166,9 +166,13 @@ const DriverLeavesManagement = () => {
   }, [selectedMonth, statusFilter]);
 
   const handleApprove = async (id: number) => {
+    const leaveItem = leaveRequests.find((l) => l.id === id);
+    const isShortPermission = leaveItem?.leave_type === 'short_permission';
+    const typeLabel = isShortPermission ? 'Short Permission' : 'Leave';
+
     const result = await Swal.fire({
-      title: 'Approve Leave?',
-      text: "Are you sure you want to approve this leave request?",
+      title: `Approve ${typeLabel}?`,
+      text: `Are you sure you want to approve this ${typeLabel.toLowerCase()} request?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#22c55e',
@@ -198,18 +202,18 @@ const DriverLeavesManagement = () => {
         );
         Swal.fire({
           icon: 'success',
-          title: 'Leave Approved!',
-          text: 'The leave request has been approved successfully.',
+          title: `${typeLabel} Approved!`,
+          text: `The ${typeLabel.toLowerCase()} request has been approved successfully.`,
           background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
           color: theme === 'dark' ? '#E4E4E7' : '#000000',
           confirmButtonColor: '#22c55e'
         });
       } else {
-        setError(response.message || "Failed to approve leave");
+        setError(response.message || `Failed to approve ${typeLabel.toLowerCase()}`);
         toast({
           variant: "destructive",
           title: "Error",
-          description: response.message || "Failed to approve leave"
+          description: response.message || `Failed to approve ${typeLabel.toLowerCase()}`
         });
       }
     } catch (err) {
@@ -226,9 +230,13 @@ const DriverLeavesManagement = () => {
   };
 
   const handleReject = async (id: number) => {
+    const leaveItem = leaveRequests.find((l) => l.id === id);
+    const isShortPermission = leaveItem?.leave_type === 'short_permission';
+    const typeLabel = isShortPermission ? 'Short Permission' : 'Leave';
+
     const result = await Swal.fire({
-      title: 'Reject Leave?',
-      text: "Are you sure you want to reject this leave request?",
+      title: `Reject ${typeLabel}?`,
+      text: `Are you sure you want to reject this ${typeLabel.toLowerCase()} request?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',

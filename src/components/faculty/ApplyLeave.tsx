@@ -362,7 +362,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
               {/* Leave Type Selector (Segmented Tab Switcher with bg-primary selected color) */}
               <div className="space-y-2">
-                <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Application Type *</Label>
+                <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Application Type <span className="text-red-500">*</span></Label>
                 <div className={`p-1 rounded-xl flex gap-1 ${theme === 'dark' ? 'bg-muted/40 border border-border/60' : 'bg-slate-100 border border-slate-200'}`}>
                   <button
                     type="button"
@@ -391,7 +391,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
               {/* Title */}
               <div className="space-y-2">
-                <Label htmlFor="title" className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title for Leave *</Label>
+                <Label htmlFor="title" className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title for Leave <span className="text-red-500">*</span></Label>
                 <Input
                   id="title"
                   type="text"
@@ -417,7 +417,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               {/* Date Selection */}
               {leaveType === 'casual' ? (
                 <div className="space-y-2">
-                  <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range *</Label>
+                  <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range <span className="text-red-500">*</span></Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -459,7 +459,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               ) : (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Permission Date *</Label>
+                    <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Permission Date <span className="text-red-500">*</span></Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
@@ -494,7 +494,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   {/* Time Slots Selection */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold">Start Time *</Label>
+                      <Label className="text-xs font-semibold">Start Time <span className="text-red-500">*</span></Label>
                       <div className="flex gap-1 items-center">
                         <Select value={startTimeParts.hour} onValueChange={(v) => setStartTimeParts({ ...startTimeParts, hour: v })}>
                           <SelectTrigger className={`w-full h-9 text-xs ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
@@ -526,7 +526,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold">End Time *</Label>
+                      <Label className="text-xs font-semibold">End Time <span className="text-red-500">*</span></Label>
                       <div className="flex gap-1 items-center">
                         <Select value={endTimeParts.hour} onValueChange={(v) => setEndTimeParts({ ...endTimeParts, hour: v })}>
                           <SelectTrigger className={`w-full h-9 text-xs ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
@@ -562,7 +562,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
               {/* Reason */}
               <div className="space-y-2">
-                <Label htmlFor="reason" className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason for Leave *</Label>
+                <Label htmlFor="reason" className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason for Leave <span className="text-red-500">*</span></Label>
                 <Textarea
                   id="reason"
                   value={reason}
