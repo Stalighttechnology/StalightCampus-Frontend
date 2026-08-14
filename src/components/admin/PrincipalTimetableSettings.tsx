@@ -76,6 +76,7 @@ export default function PrincipalTimetableSettings() {
 
   const [approvalChain, setApprovalChain] = useState<string[]>(['hod', 'principal', 'coe']);
   const [chainLoading, setChainLoading] = useState(true);
+  const [chainSaving, setChainSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'timetable' | 'qp-workflow' | 'attendance-workflow' | 'leave-policy'>('timetable');
 
   // Leave & Short Permission Policy state
@@ -105,6 +106,7 @@ export default function PrincipalTimetableSettings() {
   const [checkinWindows, setCheckinWindows] = useState<{ start: string, end: string }[]>([]);
   const [strictCheckinWindow, setStrictCheckinWindow] = useState<boolean>(true);
   const [attendanceConfigLoading, setAttendanceConfigLoading] = useState(true);
+  const [attendanceSaving, setAttendanceSaving] = useState(false);
 
   const PRESETS: Record<string, string[]> = {
     "Standard": ["hod", "principal", "coe"],
@@ -183,6 +185,7 @@ export default function PrincipalTimetableSettings() {
 
   const handleSaveApprovalChain = async () => {
     try {
+      setChainSaving(true);
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/qp-approval-chain/`, {
         method: 'POST',
         headers: { "Content-Type": "application/json" },
@@ -195,6 +198,8 @@ export default function PrincipalTimetableSettings() {
       }
     } catch (err) {
       toast({ title: "Error", description: "Failed to save workflow", variant: "destructive" });
+    } finally {
+      setChainSaving(false);
     }
   };
 
@@ -254,6 +259,7 @@ export default function PrincipalTimetableSettings() {
 
   const handleSaveAttendanceConfig = async () => {
     try {
+      setAttendanceSaving(true);
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/attendance-workflow/`, {
         method: 'POST',
         headers: { "Content-Type": "application/json" },
@@ -270,6 +276,8 @@ export default function PrincipalTimetableSettings() {
       }
     } catch (err) {
       toast({ title: "Error", description: "Failed to save workflow", variant: "destructive" });
+    } finally {
+      setAttendanceSaving(false);
     }
   };
 
@@ -976,8 +984,8 @@ export default function PrincipalTimetableSettings() {
                     </div>
 
                     <div className="flex justify-end pt-2">
-                      <Button onClick={handleSaveApprovalChain} className="shadow-sm">
-                        <Save className="w-4 h-4 mr-2" /> Save Workflow
+                      <Button onClick={handleSaveApprovalChain} disabled={chainSaving} className="shadow-sm">
+                        <Save className="w-4 h-4 mr-2" /> {chainSaving ? 'Saving...' : 'Save Workflow'}
                       </Button>
                     </div>
                   </div>
@@ -1060,8 +1068,8 @@ export default function PrincipalTimetableSettings() {
                     </div>
 
                     <div className="flex justify-end pt-2">
-                      <Button onClick={handleSaveAttendanceConfig} className="shadow-sm">
-                        <Save className="w-4 h-4 mr-2" /> Save Workflow
+                      <Button onClick={handleSaveAttendanceConfig} disabled={attendanceSaving} className="shadow-sm">
+                        <Save className="w-4 h-4 mr-2" /> {attendanceSaving ? 'Saving...' : 'Save Workflow'}
                       </Button>
                     </div>
                   </div>
