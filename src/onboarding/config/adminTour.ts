@@ -128,21 +128,12 @@ export const adminTour: Step[] = [
   },
   {
     target: '#sidebar-hod-leaves',
-    title: 'HOD Leaves',
+    title: 'Leave Requests',
     content:
-      'Review, approve, or reject leave applications submitted by Department Heads.',
+      'Review, approve, or reject leave applications submitted by staff members.',
     placement: 'right' as const,
     disableBeacon: false,
     route: '/admin/hod-leaves',
-  },
-  {
-    target: '#sidebar-department-admin-leaves',
-    title: 'Department Admin Leaves',
-    content:
-      'Review and manage leave requests submitted by other administrative staff.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/admin/department-admin-leaves',
   },
   {
     target: '#sidebar-hod-attendance',

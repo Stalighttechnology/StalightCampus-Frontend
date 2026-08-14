@@ -11,7 +11,6 @@ import BulkUpload from "../admin/BulkUpload";
 import BranchesManagement from "../admin/BranchesManagement";
 import BatchManagement from "../admin/BatchManagement";
 import HODLeavesManagement from "../admin/HODLeavesManagement";
-import DepartmentAdminLeavesManagement from "../admin/DepartmentAdminLeavesManagement";
 import UsersManagement from "../admin/UsersManagement";
 import AdminProfile from "../admin/AdminProfile";
 import AdminQPApprovals from "../admin/AdminQPApprovals";
@@ -160,12 +159,6 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <HODLeavesManagement setError={setError} toast={toast} />
-          </div>);
-          
-      case "department-admin-leaves":
-        return (
-          <div>
-            <DepartmentAdminLeavesManagement setError={setError} toast={toast} />
           </div>);
 
       case "hod-attendance":

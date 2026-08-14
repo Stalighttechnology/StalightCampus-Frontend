@@ -284,7 +284,13 @@ page?: number)
     if (method === 'GET') {
       const params = new URLSearchParams();
       if (page) params.append('page', page.toString());
-      if (data?.status_type) params.append('status_type', data.status_type);
+      if (data) {
+        Object.keys(data).forEach((key) => {
+          if (data[key] !== undefined && data[key] !== null) {
+            params.append(key, data[key].toString());
+          }
+        });
+      }
       if (params.toString()) url += `?${params.toString()}`;
     }
 

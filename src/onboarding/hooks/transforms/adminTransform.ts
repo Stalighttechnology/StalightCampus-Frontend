@@ -111,18 +111,6 @@ export function adminTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
-  if (target === '#sidebar-department-admin-leaves') {
-    return [
-      {
-        ...step,
-        target: '#dept-admin-leaves-header-section',
-        title: 'Leave Requests',
-        content:
-          "Review and approve leave requests from Department",
-        placement: isMobile ? step.placement : 'bottom',
-      },
-    ];
-  }
 
   if (target === '#sidebar-hod-attendance') {
     return [

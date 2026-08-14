@@ -72,6 +72,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
   const [totalCount, setTotalCount] = useState(0);
   const { theme } = useTheme();
   const [statusFilter, setStatusFilter] = useState("All");
+  const [roleFilter, setRoleFilter] = useState("All");
 
   const filteredLeaveRequests = Array.isArray(leaveRequests) ? leaveRequests : [];
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
@@ -104,6 +105,9 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
       }
       if (statusFilter !== "All") {
         params.status = statusFilter;
+      }
+      if (roleFilter !== "All") {
+        params.role = roleFilter;
       }
       const response = await manageHODLeaves(params);
 
@@ -170,11 +174,11 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
 
   useEffect(() => {
     fetchLeaves(selectedMonth, currentPage);
-  }, [selectedMonth, currentPage, statusFilter]);
+  }, [selectedMonth, currentPage, statusFilter, roleFilter]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedMonth, statusFilter]);
+  }, [selectedMonth, statusFilter, roleFilter]);
 
   const handleApprove = async (id: number) => {
     const result = await Swal.fire({
@@ -435,6 +439,27 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                     </PopoverContent>
                   </Popover>
                 </div>
+
+                {/* Role Filter */}
+                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                  <SelectTrigger className={`w-[140px] h-9 text-xs sm:text-sm font-medium ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                    <SelectValue placeholder="All Roles" />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900'}>
+                    <SelectItem value="All">All Roles</SelectItem>
+                    <SelectItem value="hod">Head of Department (HOD)</SelectItem>
+                    <SelectItem value="dean">Dean</SelectItem>
+                    <SelectItem value="coe">COE</SelectItem>
+                    <SelectItem value="fees_manager">Fees Manager</SelectItem>
+                    <SelectItem value="hms_admin">HMS Admin</SelectItem>
+                    <SelectItem value="warden">Hostel Warden</SelectItem>
+                    <SelectItem value="transport_admin">Transport Admin</SelectItem>
+                    <SelectItem value="driver">Driver</SelectItem>
+                    <SelectItem value="library_admin">Library Admin</SelectItem>
+                    <SelectItem value="counsellor">Counsellor</SelectItem>
+                    <SelectItem value="admission_manager">Admission Manager</SelectItem>
+                  </SelectContent>
+                </Select>
 
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="leave-filter-select min-w-[100px] w-auto px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 shadow-sm font-medium text-sm">

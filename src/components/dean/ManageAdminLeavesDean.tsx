@@ -13,6 +13,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "../ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { SkeletonTable, SkeletonList, SkeletonPageHeader } from "../ui/skeleton";
 import { Alert, AlertDescription } from "../ui/alert";
 import { normalizePaginatedResponse } from "../../utils/normalizePagination";
@@ -57,6 +64,7 @@ const ManageAdminLeavesDean = () => {
   const [selectedLeave, setSelectedLeave] = useState<UnifiedLeave | null>(null);
   const [showReasonDialog, setShowReasonDialog] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'All' | 'Approved' | 'Pending' | 'Rejected'>('All');
+  const [roleFilter, setRoleFilter] = useState<string>('All');
   const [showFilter, setShowFilter] = useState(false);
   const filterRef = useRef<HTMLDivElement | null>(null);
 
@@ -65,7 +73,9 @@ const ManageAdminLeavesDean = () => {
     const fetchPending = async () => {
       setPendingLoading(true);
       try {
-        const response = await manageAllLeaves({ status_type: 'PENDING' }, 'GET', pendingPage);
+        const params: any = { status_type: 'PENDING' };
+        if (roleFilter !== 'All') params.role = roleFilter;
+        const response = await manageAllLeaves(params, 'GET', pendingPage);
         if (response.success) {
           const normalized = normalizePaginatedResponse(response, 'data');
           setPendingLeaves(normalized.items);
@@ -82,14 +92,16 @@ const ManageAdminLeavesDean = () => {
       }
     };
     fetchPending();
-  }, [pendingPage]);
+  }, [pendingPage, roleFilter]);
 
   // Fetch recent leaves
   useEffect(() => {
     const fetchRecent = async () => {
       setRecentLoading(true);
       try {
-        const response = await manageAllLeaves({ status_type: 'PROCESSED' }, 'GET', recentPage);
+        const params: any = { status_type: 'PROCESSED' };
+        if (roleFilter !== 'All') params.role = roleFilter;
+        const response = await manageAllLeaves(params, 'GET', recentPage);
         if (response.success) {
           const normalized = normalizePaginatedResponse(response, 'data');
           setRecentLeaves(normalized.items);
@@ -106,7 +118,12 @@ const ManageAdminLeavesDean = () => {
       }
     };
     fetchRecent();
-  }, [recentPage]);
+  }, [recentPage, roleFilter]);
+
+  useEffect(() => {
+    setPendingPage(1);
+    setRecentPage(1);
+  }, [roleFilter]);
 
   const handleAction = async (leaveId: number, action: 'APPROVED' | 'REJECTED') => {
     const isApprove = action === 'APPROVED';
@@ -439,32 +456,55 @@ const ManageAdminLeavesDean = () => {
         {/* Recent Leave History (Past 7 Days) */}
         <Card className={`flex-1 ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader id="dean-recent-leaves">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <CardTitle className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Recent Leave History
               </CardTitle>
-              <div className="relative" ref={filterRef}>
-                <Button
-                  onClick={() => setShowFilter(v => !v)}
-                  className="bg-primary hover:bg-primary/90 text-white flex items-center gap-2 px-2.5 sm:px-4 h-9 shadow-sm"
-                  aria-label="Filter recent leaves"
-                >
-                  <FilterIcon className="w-4 h-4" />
-                  <span className="hidden sm:inline">Filter</span>
-                </Button>
-                {showFilter && (
-                  <div className={`absolute right-0 mt-2 w-36 rounded shadow-lg z-10 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
-                    {['All', 'Approved', 'Pending', 'Rejected'].map((status) => (
-                      <div
-                        key={status}
-                        onClick={() => { setStatusFilter(status as any); setShowFilter(false); }}
-                        className={`${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-100'} px-4 py-2 cursor-pointer ${statusFilter === status ? 'font-semibold' : ''}`}
-                      >
-                        {status}
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <div className="flex items-center gap-2.5 self-end sm:self-auto">
+                {/* Role Filter */}
+                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                  <SelectTrigger className={`w-[140px] h-9 text-xs sm:text-sm font-medium ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                    <SelectValue placeholder="All Roles" />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900'}>
+                    <SelectItem value="All">All Roles</SelectItem>
+                    <SelectItem value="principal">Principal</SelectItem>
+                    <SelectItem value="coe">COE</SelectItem>
+                    <SelectItem value="fees_manager">Fees Manager</SelectItem>
+                    <SelectItem value="hod">Head of Department (HOD)</SelectItem>
+                    <SelectItem value="hms_admin">HMS Admin</SelectItem>
+                    <SelectItem value="warden">Hostel Warden</SelectItem>
+                    <SelectItem value="transport_admin">Transport Admin</SelectItem>
+                    <SelectItem value="driver">Driver</SelectItem>
+                    <SelectItem value="library_admin">Library Admin</SelectItem>
+                    <SelectItem value="counsellor">Counsellor</SelectItem>
+                    <SelectItem value="admission_manager">Admission Manager</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <div className="relative" ref={filterRef}>
+                  <Button
+                    onClick={() => setShowFilter(v => !v)}
+                    className="bg-primary hover:bg-primary/90 text-white flex items-center gap-2 px-2.5 sm:px-4 h-9 shadow-sm"
+                    aria-label="Filter recent leaves"
+                  >
+                    <FilterIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline">Filter</span>
+                  </Button>
+                  {showFilter && (
+                    <div className={`absolute right-0 mt-2 w-36 rounded shadow-lg z-10 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                      {['All', 'Approved', 'Pending', 'Rejected'].map((status) => (
+                        <div
+                          key={status}
+                          onClick={() => { setStatusFilter(status as any); setShowFilter(false); }}
+                          className={`${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-100'} px-4 py-2 cursor-pointer ${statusFilter === status ? 'font-semibold' : ''}`}
+                        >
+                          {status}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </CardHeader>
