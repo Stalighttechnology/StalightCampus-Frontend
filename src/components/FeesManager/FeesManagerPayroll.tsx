@@ -1818,30 +1818,39 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
           <div className="space-y-4 my-2">
             <div>
               <label className="text-xs font-semibold text-slate-400 block mb-1">Employee <span className="text-red-500">*</span></label>
-              <select
+              <Select
                 value={newAdjustment.employee_id}
-                onChange={(e) => setNewAdjustment({ ...newAdjustment, employee_id: e.target.value })}
-                className={`w-full rounded-md p-2 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}
+                onValueChange={(val) => setNewAdjustment({ ...newAdjustment, employee_id: val })}
               >
-                <option value="">Select Employee</option>
-                {adjustmentEmployees.map((emp) => (
-                  <option key={emp.employee_id} value={emp.employee_id}>{emp.name} ({emp.role})</option>
-                ))}
-              </select>
+                <SelectTrigger className={`w-full rounded-md p-2 h-9 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}>
+                  <SelectValue placeholder="Select Employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {adjustmentEmployees.map((emp) => (
+                    <SelectItem key={emp.employee_id} value={emp.employee_id}>
+                      {emp.name} ({emp.role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-slate-400 block mb-1">Type <span className="text-red-500">*</span></label>
-                <select
+                <Select
                   value={newAdjustment.type}
-                  onChange={(e) => setNewAdjustment({ ...newAdjustment, type: e.target.value })}
-                  className={`w-full rounded-md p-2 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}
+                  onValueChange={(val) => setNewAdjustment({ ...newAdjustment, type: val })}
                 >
-                  <option value="bonus">Bonus</option>
-                  <option value="deduction">Deduction</option>
-                  <option value="arrears">Arrears</option>
-                  <option value="other">Other</option>
-                </select>
+                  <SelectTrigger className={`w-full rounded-md p-2 h-9 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}>
+                    <SelectValue placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bonus">Bonus</SelectItem>
+                    <SelectItem value="deduction">Deduction</SelectItem>
+                    <SelectItem value="arrears">Arrears</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-400 block mb-1">Amount (₹) <span className="text-red-500">*</span></label>
@@ -1858,27 +1867,37 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-slate-400 block mb-1">Apply Month</label>
-                <select
-                  value={newAdjustment.apply_month}
-                  onChange={(e) => setNewAdjustment({ ...newAdjustment, apply_month: Number(e.target.value) })}
-                  className={`w-full rounded-md p-2 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}
+                <Select
+                  value={newAdjustment.apply_month ? newAdjustment.apply_month.toString() : ""}
+                  onValueChange={(val) => setNewAdjustment({ ...newAdjustment, apply_month: Number(val) })}
                 >
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en-US', { month: 'long' })}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className={`w-full rounded-md p-2 h-9 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}>
+                    <SelectValue placeholder="Select Month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <SelectItem key={i + 1} value={(i + 1).toString()}>
+                        {new Date(0, i).toLocaleString('en-US', { month: 'long' })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-400 block mb-1">Apply Year</label>
-                <select
-                  value={newAdjustment.apply_year}
-                  onChange={(e) => setNewAdjustment({ ...newAdjustment, apply_year: Number(e.target.value) })}
-                  className={`w-full rounded-md p-2 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}
+                <Select
+                  value={newAdjustment.apply_year ? newAdjustment.apply_year.toString() : ""}
+                  onValueChange={(val) => setNewAdjustment({ ...newAdjustment, apply_year: Number(val) })}
                 >
-                  <option value="2025">2025</option>
-                  <option value="2026">2026</option>
-                  <option value="2027">2027</option>
-                </select>
+                  <SelectTrigger className={`w-full rounded-md p-2 h-9 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}>
+                    <SelectValue placeholder="Select Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2025">2025</SelectItem>
+                    <SelectItem value="2026">2026</SelectItem>
+                    <SelectItem value="2027">2027</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div>
