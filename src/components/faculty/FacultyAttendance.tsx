@@ -49,6 +49,7 @@ const FacultyAttendance = () => {
   const [historyLoading, setHistoryLoading] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [nextCheckTime, setNextCheckTime] = useState<string | null>(null);
   const { theme } = useTheme();
 
   const [historyStartDate, setHistoryStartDate] = useState<Date | undefined>(undefined);
@@ -86,6 +87,12 @@ const FacultyAttendance = () => {
         } else if ((response as any).is_today_holiday) {
           setAttendanceStatus("holiday");
         }
+        
+        if ((response as any).next_check_time) {
+          setNextCheckTime((response as any).next_check_time);
+        } else {
+          setNextCheckTime(null);
+        }
       }
     } catch (error) {
       toast.error("Failed to load attendance data");
@@ -120,6 +127,12 @@ const FacultyAttendance = () => {
             setNotes(todayRec.notes || "");
           } else if ((response as any).is_today_holiday) {
             setAttendanceStatus("holiday");
+          }
+          
+          if ((response as any).next_check_time) {
+            setNextCheckTime((response as any).next_check_time);
+          } else {
+            setNextCheckTime(null);
           }
           setLoading(false);
         }
@@ -215,6 +228,37 @@ const FacultyAttendance = () => {
     return false;
   };
 
+  const getNextCheckinWindowText = () => {
+    if (!todayRecord || !todayRecord.checkin_windows || todayRecord.checkin_windows.length === 0) return null;
+    if (attendanceStatus === 'absent' || todayRecord.check_out_time) return null;
+
+    const now = new Date();
+    const currentH = now.getHours();
+    const currentM = now.getMinutes();
+    const nowTimeStr = `${currentH.toString().padStart(2, '0')}:${currentM.toString().padStart(2, '0')}`;
+    
+    const formatTime = (timeStr: string) => {
+        const [h, m] = timeStr.split(':');
+        let hour = parseInt(h);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        hour = hour % 12 || 12;
+        return `${hour}:${m} ${ampm}`;
+    };
+
+    for (let i = 0; i < todayRecord.checkin_windows.length; i++) {
+        const w = todayRecord.checkin_windows[i];
+        if (w.start && nowTimeStr < w.start) {
+            return `Next check in is at ${formatTime(w.start)}`;
+        } else if (w.start && w.end && nowTimeStr >= w.start && nowTimeStr <= w.end) {
+            const timestamps = todayRecord.checkin_timestamps || [];
+            if (i < timestamps.length && timestamps[i] !== "Missed" && timestamps[i] !== null) {
+                continue;
+            }
+            return `Check in window closes at ${formatTime(w.end)}`;
+        }
+    }
+    return null;
+  };
 
   const handleTempStartDateChange = (date: Date | undefined) => {
     setTempStartDate(date);
@@ -642,21 +686,24 @@ const FacultyAttendance = () => {
               <div className="flex items-center space-x-4">
                 
                 {/* Check In / Check Out Button */}
-                {(!shouldShowCheckOut() || !todayRecord?.check_out_time) && attendanceStatus !== "absent" && (
+                {attendanceStatus !== "absent" && (
                   <motion.button
                     onClick={() => handleToggleAttendance("present", shouldShowCheckOut() ? "check_out" : "check_in")}
-                    disabled={isSubmitting || !!(todayRecord?.check_in_time && todayRecord?.check_out_time) || (!shouldShowCheckOut() && !isCheckInAllowed())}
+                    disabled={isSubmitting || !!todayRecord?.check_out_time || (!shouldShowCheckOut() && !isCheckInAllowed())}
                     className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'present' ?
                       'bg-blue-500 text-white animate-pulse' :
-                      (shouldShowCheckOut() && !todayRecord?.check_out_time) ?
+                      (todayRecord?.check_out_time) ?
+                        (theme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-400') :
+                      (shouldShowCheckOut()) ?
                         'bg-orange-500 text-white scale-110' :
                         theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
                     }
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: todayRecord?.check_out_time ? 1 : 1.05 }}
+                    whileTap={{ scale: todayRecord?.check_out_time ? 1 : 0.95 }}
                   >
                     {markingStatus === 'present' ?
                       <Loader2 className="w-8 h-8 animate-spin" /> :
+                      (todayRecord?.check_out_time) ? <CheckCircle className="w-8 h-8" /> :
                       (shouldShowCheckOut()) ? <Clock className="w-8 h-8" /> : <CheckCircle className="w-8 h-8" />
                     }
                   </motion.button>
@@ -686,11 +733,11 @@ const FacultyAttendance = () => {
 
               {/* Button Labels */}
               <div className="flex items-center space-x-8 text-sm font-medium">
-                {(!shouldShowCheckOut() || !todayRecord?.check_out_time) && attendanceStatus !== "absent" && (
+                {attendanceStatus !== "absent" && (
                   <motion.span
-                    className={markingStatus === 'present' ? 'text-blue-500' : (shouldShowCheckOut()) ? 'text-orange-600' : 'text-gray-500'}
+                    className={markingStatus === 'present' ? 'text-blue-500' : todayRecord?.check_out_time ? 'text-gray-400' : (shouldShowCheckOut()) ? 'text-orange-600' : 'text-gray-500'}
                   >
-                    {markingStatus === 'present' ? 'Processing...' : (shouldShowCheckOut()) ? 'Check Out' : 'Check In'}
+                    {markingStatus === 'present' ? 'Processing...' : todayRecord?.check_out_time ? 'Checked Out' : (shouldShowCheckOut()) ? 'Check Out' : 'Check In'}
                   </motion.span>
                 )}
                 {!(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && (
@@ -701,6 +748,13 @@ const FacultyAttendance = () => {
                   </motion.span>
                 )}
               </div>
+              
+              {getNextCheckinWindowText() && (
+                <div className={`mt-2 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${theme === 'dark' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                  <Clock className="w-3.5 h-3.5" />
+                  {getNextCheckinWindowText()}
+                </div>
+              )}
               
               {todayRecord?.check_in_time && !todayRecord?.check_out_time && (
                 <div className="mt-2">
