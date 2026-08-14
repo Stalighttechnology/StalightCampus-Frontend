@@ -4,12 +4,19 @@ import { fetchWithTokenRefresh } from "@/utils/authService";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonStatsGrid, SkeletonList, SkeletonPageHeader } from "../ui/skeleton";
 import { Alert, AlertDescription } from "../ui/alert";
-import { FaUserTie, FaUserCheck, FaUserSlash, FaUserShield } from "react-icons/fa";
-import { AlertCircle } from "lucide-react";
+import { FaUserTie, FaUserSlash, FaUserShield } from "react-icons/fa";
+import { AlertCircle, CheckCircle, XCircle, Clock } from "lucide-react";
 import DashboardCard from "../common/DashboardCard";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
 import { translateTerminology } from "../../utils/institutionConfig";
+
+const formatTotalHours = (decimalHours: number): string => {
+  const hrs = Math.floor(decimalHours);
+  const mins = Math.round((decimalHours - hrs) * 60);
+  return `${hrs.toString().padStart(2, '0')}h ${mins.toString().padStart(2, '0')}m`;
+};
 
 const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
   const { theme } = useTheme();
@@ -20,6 +27,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
   const [adminPage, setAdminPage] = useState(1);
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
   const fetchData = async (hp = hodPage, ap = adminPage) => {
     setLoading(true);
@@ -109,13 +117,13 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                 icon={<FaUserSlash className={theme === 'dark' ? 'text-red-400 text-3xl' : 'text-red-500 text-3xl'} />}
               />
               <DashboardCard
-                title={translateTerminology("Admins Present")}
+                title={translateTerminology("Principals Present")}
                 value={adminPresentCount}
-                description={translateTerminology(`Admin presence ${isMonthly ? 'in period' : '(today)'}`)}
+                description={translateTerminology(`Principal presence ${isMonthly ? 'in period' : '(today)'}`)}
                 icon={<FaUserShield className={theme === 'dark' ? 'text-indigo-400 text-3xl' : 'text-indigo-500 text-3xl'} />}
               />
               <DashboardCard
-                title={translateTerminology("Admins Absent")}
+                title={translateTerminology("Principals Absent")}
                 value={isMonthly ? '—' : adminAbsentCount}
                 description={isMonthly ? '(not tracked)' : 'Absent today'}
                 icon={<FaUserSlash className={theme === 'dark' ? 'text-gray-400 text-3xl' : 'text-gray-500 text-3xl'} />}
@@ -142,19 +150,18 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                         ) : (
                           <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                             <div className="mb-1">{h.status === 'present' ? 'Present' : h.status === 'absent' ? 'Absent' : h.status === 'holiday' ? 'Holiday' : 'Not Marked'}</div>
-                            {h.check_in_time || h.check_out_time ? (
-                              <div className="flex flex-col gap-0.5 mt-1">
-                                {h.check_in_time && <div><span className="font-semibold">In:</span> {new Date(h.check_in_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>}
-                                {h.check_out_time && <div><span className="font-semibold">Out:</span> {new Date(h.check_out_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>}
-                                {h.total_hours && <div className="text-[10px] mt-0.5 py-0.5 px-1 bg-gray-200/50 rounded-sm inline-block w-fit dark:bg-gray-700/50">Total: {h.total_hours} hrs</div>}
-                              </div>
-                            ) : h.marked_at ? (
-                              `Marked: ${new Date(h.marked_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
-                            ) : null}
                           </div>
                         )}
                       </div>
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 flex items-center gap-2">
+                        {!isMonthly && h.status === 'present' && (
+                          <button
+                            onClick={() => setSelectedRecord(h)}
+                            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-primary text-white hover:bg-primary/90'}`}
+                          >
+                            View
+                          </button>
+                        )}
                         {isMonthly ? (
                           <div className="text-xs flex gap-2">
                             <span className={`px-2 py-1 rounded-full font-semibold ${theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'}`}>
@@ -226,7 +233,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
 
             <Card className={`flex flex-col shadow ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-xl sm:text-lg font-semibold">{translateTerminology("Admins")} — {isMonthly ? 'In Period' : 'Today'}</CardTitle>
+                <CardTitle className="text-xl sm:text-lg font-semibold">{translateTerminology("Principals")} — {isMonthly ? 'In Period' : 'Today'}</CardTitle>
               </CardHeader>
               <CardContent className="flex-1">
                 <div className="grid grid-cols-1 gap-3">
@@ -237,21 +244,17 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                         <div className="min-w-0 flex-1 mr-2">
                           <div className="font-medium break-words">{a.name}</div>
                           <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{a.email || a.mobile || ''}</div>
-                          {!isMonthly && (a.check_in_time || a.check_out_time) && (
-                            <div className={`text-xs mt-1.5 flex flex-col gap-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                              {a.check_in_time && <div><span className="font-semibold">In:</span> {new Date(a.check_in_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>}
-                              {a.check_out_time && <div><span className="font-semibold">Out:</span> {new Date(a.check_out_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>}
-                              {a.total_hours && <div className="text-[10px] mt-0.5 py-0.5 px-1 bg-gray-200/50 rounded-sm inline-block w-fit dark:bg-gray-700/50">Total: {a.total_hours} hrs</div>}
-                            </div>
-                          )}
-                          {!isMonthly && !a.check_in_time && !a.check_out_time && a.marked_at && (
-                             <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                                Marked: {new Date(a.marked_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                             </div>
-                          )}
                         </div>
-                        <div className="flex-shrink-0">
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${isPresent
+                        <div className="flex-shrink-0 flex items-center gap-2">
+                          {!isMonthly && (a.status === 'present' || a.is_present) && (
+                            <button
+                              onClick={() => setSelectedRecord(a)}
+                              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-primary text-white hover:bg-primary/90'}`}
+                            >
+                              View
+                            </button>
+                          )}
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${(a.status === 'present' || a.is_present)
                               ? (theme === 'dark' ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-100 text-indigo-800')
                               : a.status === 'absent'
                               ? (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
@@ -259,7 +262,7 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                               ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-800')
                               : (theme === 'dark' ? 'bg-yellow-900/30 text-yellow-400' : 'bg-yellow-100 text-yellow-800')
                             }`}>
-                            {isPresent ? (isMonthly ? 'Active in Period' : 'Present') : (isMonthly ? 'Inactive' : a.status === 'absent' ? 'Absent' : a.status === 'holiday' ? 'Holiday' : 'Not Marked')}
+                            {(a.status === 'present' || a.is_present) ? (isMonthly ? 'Active in Period' : 'Present') : (isMonthly ? 'Inactive' : a.status === 'absent' ? 'Absent' : a.status === 'holiday' ? 'Holiday' : 'Not Marked')}
                           </span>
                         </div>
                       </div>
@@ -311,6 +314,84 @@ const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
             </Card>
           </div>
         </>
+      )}
+
+      {/* Attendance Details Dialog */}
+      {selectedRecord && (
+        <Dialog open={!!selectedRecord} onOpenChange={(open) => { if (!open) setSelectedRecord(null); }}>
+          <DialogContent className={`w-[90%] max-w-[360px] p-0 border-0 rounded-2xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-slate-900 text-white' : 'bg-white text-gray-900'}`}>
+            <div className={`p-5 ${theme === 'dark' ? 'bg-slate-800' : 'bg-primary/5'} border-b ${theme === 'dark' ? 'border-white/10' : 'border-primary/10'}`}>
+              <DialogTitle className="text-lg font-bold">{selectedRecord.name}</DialogTitle>
+              <p className={`text-sm mt-1 font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Today's Attendance Details</p>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="text-green-500 bg-green-500/10 p-3 rounded-xl font-bold flex items-center gap-2 text-base">
+                <CheckCircle className="w-5 h-5" /> Present
+              </div>
+
+              {selectedRecord.checkin_timestamps && selectedRecord.checkin_timestamps.length > 0 ? (
+                <div className={`space-y-2 p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                  {selectedRecord.checkin_timestamps.map((ts: any, idx: number) => (
+                    <div key={idx} className={`flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0 ${theme === 'dark' ? 'border-white/5' : 'border-gray-200'}`}>
+                      <span className="font-semibold text-gray-500">Check-in {idx + 1}</span>
+                      <div className="flex items-center gap-2">
+                        {ts === 'Missed' ? (
+                          <span className="text-red-500 font-bold">Missed</span>
+                        ) : ts ? (
+                          <>
+                            <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              {new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            </span>
+                            {selectedRecord.delays && selectedRecord.delays[idx] > 0 && (
+                              <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded">+{selectedRecord.delays[idx]}m</span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-gray-400 italic">Pending</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {selectedRecord.check_out_time && (
+                    <div className={`flex items-center justify-between font-bold pt-2 border-t mt-2 ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
+                      <span className="text-gray-500">Check Out</span>
+                      <span>{new Date(selectedRecord.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (selectedRecord.check_in_time || selectedRecord.check_out_time) && (
+                <div className={`space-y-2 p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                  {selectedRecord.check_in_time && (
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-gray-500">Check In</span>
+                      <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        {new Date(selectedRecord.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                      </span>
+                    </div>
+                  )}
+                  {selectedRecord.check_out_time && (
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-gray-500">Check Out</span>
+                      <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        {new Date(selectedRecord.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {selectedRecord.total_hours && (
+                <div className="flex items-center justify-between font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-4 py-3 rounded-xl border border-blue-500/20">
+                  <span>Total Worked</span>
+                  <span>{formatTotalHours(Number(selectedRecord.total_hours))}</span>
+                </div>
+              )}
+            </div>
+            <div className={`p-4 border-t ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50/50'}`}>
+              <Button variant="outline" className="w-full" onClick={() => setSelectedRecord(null)}>Close</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

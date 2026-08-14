@@ -9,6 +9,7 @@ import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { useToast } from "../../hooks/use-toast";
 import { Checkbox } from "../../components/ui/checkbox";
+import { Switch } from "../../components/ui/switch";
 import { useTheme } from "../../context/ThemeContext";
 import {
   Select,
@@ -75,7 +76,12 @@ export default function PrincipalTimetableSettings() {
 
   const [approvalChain, setApprovalChain] = useState<string[]>(['hod', 'principal', 'coe']);
   const [chainLoading, setChainLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'timetable' | 'qp-workflow'>('timetable');
+  const [activeTab, setActiveTab] = useState<'timetable' | 'qp-workflow' | 'attendance-workflow'>('timetable');
+
+  const [periodicCheckinCount, setPeriodicCheckinCount] = useState<number>(1);
+  const [checkinWindows, setCheckinWindows] = useState<{start: string, end: string}[]>([]);
+  const [strictCheckinWindow, setStrictCheckinWindow] = useState<boolean>(true);
+  const [attendanceConfigLoading, setAttendanceConfigLoading] = useState(true);
 
   const PRESETS: Record<string, string[]> = {
     "Standard": ["hod", "principal", "coe"],
@@ -133,6 +139,25 @@ export default function PrincipalTimetableSettings() {
     }
   };
 
+  const fetchAttendanceConfig = async () => {
+    try {
+      setAttendanceConfigLoading(true);
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/attendance-workflow/`);
+      if (res.ok) {
+        const data = await res.json();
+        setPeriodicCheckinCount(data.periodic_checkin_count || 1);
+        setCheckinWindows(data.checkin_windows || []);
+        if (data.strict_checkin_window !== undefined) {
+          setStrictCheckinWindow(data.strict_checkin_window);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAttendanceConfigLoading(false);
+    }
+  };
+
   const handleSaveApprovalChain = async () => {
     try {
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/qp-approval-chain/`, {
@@ -150,9 +175,31 @@ export default function PrincipalTimetableSettings() {
     }
   };
 
+  const handleSaveAttendanceConfig = async () => {
+    try {
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/attendance-workflow/`, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          periodic_checkin_count: periodicCheckinCount,
+          checkin_windows: checkinWindows,
+          strict_checkin_window: strictCheckinWindow
+        })
+      });
+      if (res.ok) {
+        toast({ title: "Success", description: "Attendance workflow saved" });
+      } else {
+        toast({ title: "Error", description: "Failed to save workflow", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to save workflow", variant: "destructive" });
+    }
+  };
+
   useEffect(() => {
     fetchSlots();
     fetchApprovalChain();
+    fetchAttendanceConfig();
   }, []);
 
   useEffect(() => {
@@ -401,6 +448,12 @@ export default function PrincipalTimetableSettings() {
               onClick={() => setActiveTab('qp-workflow')}
             >
               Question Paper Workflow
+            </button>
+            <button
+              className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'attendance-workflow' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+              onClick={() => setActiveTab('attendance-workflow')}
+            >
+              Attendance Workflow
             </button>
           </div>
 
@@ -680,6 +733,90 @@ export default function PrincipalTimetableSettings() {
 
                   <div className="flex justify-end pt-2">
                     <Button onClick={handleSaveApprovalChain} className="shadow-sm">
+                      <Save className="w-4 h-4 mr-2" /> Save Workflow
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'attendance-workflow' && (
+            <div className="space-y-6 pt-2">
+              <div className="flex items-center gap-3 pb-2 border-b border-border/40">
+                <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Staff Attendance Workflow</h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Configure periodic check-ins and required time windows.
+                  </p>
+                </div>
+              </div>
+
+              {attendanceConfigLoading ? (
+                <SkeletonTable rows={2} cols={1} />
+              ) : (
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">Daily Check-ins Required</Label>
+                    <Select value={periodicCheckinCount.toString()} onValueChange={(v) => {
+                      const count = parseInt(v);
+                      setPeriodicCheckinCount(count);
+                      setCheckinWindows(prev => {
+                        const newArr = [...prev];
+                        while(newArr.length < count) newArr.push({start: "09:00", end: "10:00"});
+                        return newArr.slice(0, count);
+                      });
+                    }}>
+                      <SelectTrigger className={`w-full max-w-xs ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5].map(n => (
+                          <SelectItem key={n} value={n.toString()}>{n} Check-in{n > 1 ? 's' : ''}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {checkinWindows.map((window, idx) => (
+                      <div key={idx} className="flex gap-4 items-center">
+                        <Label>Check-in {idx + 1}</Label>
+                        <Input type="time" value={window.start} onChange={e => {
+                          const newArr = [...checkinWindows];
+                          newArr[idx].start = e.target.value;
+                          setCheckinWindows(newArr);
+                        }} className="w-32" />
+                        <span>to</span>
+                        <Input type="time" value={window.end} onChange={e => {
+                          const newArr = [...checkinWindows];
+                          newArr[idx].end = e.target.value;
+                          setCheckinWindows(newArr);
+                        }} className="w-32" />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-gray-50/80 border-gray-100'} mt-4`}>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-semibold">Strict Window Time</Label>
+                        <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          If enabled, faculty cannot check-in after their window ends. If disabled, late check-ins are permitted and marked as delayed.
+                        </p>
+                      </div>
+                      <Switch 
+                        checked={strictCheckinWindow} 
+                        onCheckedChange={setStrictCheckinWindow} 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <Button onClick={handleSaveAttendanceConfig} className="shadow-sm">
                       <Save className="w-4 h-4 mr-2" /> Save Workflow
                     </Button>
                   </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
-import { Calendar, Users, CheckCircle, XCircle, Clock, FileDown, CalendarIcon, CalendarX, ClipboardX, Loader2 } from "lucide-react";
+import { Calendar, Users, CheckCircle, XCircle, Clock, FileDown, CalendarIcon, CalendarX, ClipboardX, Loader2, Building2 } from "lucide-react";
 import { getFacultyAttendanceToday, getFacultyAttendanceRecords } from "../../utils/hod_api";
 import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { useTheme } from "../../context/ThemeContext";
@@ -108,6 +108,8 @@ const FacultyAttendanceView: React.FC = () => {
   });
   const [selectedFaculty, setSelectedFaculty] = useState<FacultySummary | null>(null);
   const [facultyAttendanceDetails, setFacultyAttendanceDetails] = useState<FacultyAttendanceRecord[]>([]);
+  const [selectedDateDetailsStr, setSelectedDateDetailsStr] = useState<string | null>(null);
+  const [selectedTodayRecord, setSelectedTodayRecord] = useState<any>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [todayPagination, setTodayPagination] = useState({
     page: 1,
@@ -483,8 +485,22 @@ const FacultyAttendanceView: React.FC = () => {
   };
 
   const handlePageChange = (newPage: number) => {
-    setTodayPagination((prev) => ({ ...prev, page: newPage }));
+    if (newPage >= 1 && newPage <= todayPagination.total_pages) {
+      setTodayPagination(prev => ({ ...prev, page: newPage }));
+    }
   };
+
+  const formatTotalHours = (hours: any) => {
+    if (!hours) return null;
+    const num = typeof hours === 'string' && hours.includes('h') ? NaN : parseFloat(hours);
+    if (isNaN(num)) return hours;
+    const totalSeconds = num * 3600;
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    return `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m`;
+  };
+
+  const handleApplyFilters = () => {};
 
   const handleRecordsPageChange = (newPage: number) => {
     setRecordsPagination((prev) => ({ ...prev, page: newPage }));
@@ -638,8 +654,8 @@ const FacultyAttendanceView: React.FC = () => {
                       <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                         <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
                         <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Status</th>
-                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Time Details</th>
-                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} min-w-[200px]`}>Notes</th>
+                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Summary</th>
+                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Actions</th>
                       </tr>
                     </thead>
                     <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
@@ -666,81 +682,34 @@ const FacultyAttendanceView: React.FC = () => {
                             <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                               <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status === 'not_marked' ? 'Not Marked' : record.status.charAt(0).toUpperCase() + record.status.slice(1)}</span>
                             </td>
-                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                              {record.check_in_time && (
-                                <div className="text-xs mb-0.5">In: {new Date(record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
-                              )}
-                              {record.check_out_time && (
-                                <div className="text-xs mb-0.5">Out: {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
-                              )}
-                              {record.total_hours && (
-                                <div className="text-xs font-semibold text-primary mb-1">Total: {record.total_hours} hrs</div>
-                              )}
-                              {!record.check_in_time && record.marked_at ? (
-                                <div className="mb-1">{new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</div>
-                              ) : !record.check_in_time && !record.marked_at ? (
-                                <div className="mb-1">Not marked</div>
-                              ) : null}
-                              {record.location ?
-                                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                                  {record.location.inside ?
-                                    <>On campus • {record.location.distance_meters !== null && record.location.distance_meters !== undefined ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</> :
-
-                                    <span className="text-amber-600 dark:text-amber-400 font-medium">Outside campus • {record.location.distance_meters !== null && record.location.distance_meters !== undefined ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</span>
-                                  }
-                                  {record.location.campus_name ? ` • ${record.location.campus_name}` : ''}
-                                </div> :
-
-                                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Location not recorded</div>
-                              }
-                            </td>
-                            <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} min-w-[200px] break-words`}>
-                              {record.notes?.includes('[Off-Campus Check-in]') ? (
-                                <div className="space-y-1">
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
-                                    Off-Campus Duty
+                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} meta-text`}>
+                              <div className="flex flex-col gap-1">
+                                {record.total_hours ? (
+                                  <span className="font-semibold text-primary">{formatTotalHours(record.total_hours)}</span>
+                                ) : record.check_in_time ? (
+                                  <span>In: {new Date(record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                                ) : record.marked_at ? (
+                                  <span>Marked at {new Date(record.marked_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                                ) : (
+                                  <span className="italic text-gray-400">No time recorded</span>
+                                )}
+                                {record.location?.inside !== undefined && (
+                                  <span className={`text-xs ${record.location.inside ? '' : 'text-amber-500 font-medium'}`}>
+                                    {record.location.inside ? 'On campus' : 'Off campus'}
                                   </span>
-                                  <div className="font-medium text-foreground">
-                                    {(() => {
-                                      const fullReason = record.notes.replace('[Off-Campus Check-in] Reason:', '').trim();
-                                      if (fullReason.length > 35) {
-                                        return (
-                                          <span className="flex items-center flex-wrap gap-1">
-                                            <span>{fullReason.slice(0, 32)}...</span>
-                                            <button
-                                              onClick={() => Swal.fire({
-                                                title: "Off-Campus Duty Reason",
-                                                text: fullReason,
-                                                icon: "info",
-                                                confirmButtonText: "Close",
-                                                confirmButtonColor: "#3b82f6",
-                                                background: theme === "dark" ? "#1c1c1e" : "#ffffff",
-                                                color: theme === "dark" ? "#E4E4E7" : "#000000",
-                                              })}
-                                              className="text-xs text-blue-500 hover:underline font-bold"
-                                            >
-                                              (View)
-                                            </button>
-                                          </span>
-                                        );
-                                      }
-                                      return fullReason;
-                                    })()}
-                                  </div>
-                                  {record.location?.latitude && record.location?.longitude && (
-                                    <a
-                                      href={`https://www.google.com/maps?q=${record.location.latitude},${record.location.longitude}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1 text-xs text-blue-500 hover:underline mt-1 font-medium"
-                                    >
-                                      📍 View Location on Map
-                                    </a>
-                                  )}
-                                </div>
-                              ) : (
-                                record.notes || '-'
-                              )}
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8 hover:bg-primary/10 hover:text-primary transition-colors"
+                                onClick={() => setSelectedTodayRecord(record)}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                View Details
+                              </Button>
                             </td>
                           </tr>
                         )
@@ -797,6 +766,175 @@ const FacultyAttendanceView: React.FC = () => {
             </Card>
           </>
         }
+
+        <Dialog open={!!selectedTodayRecord} onOpenChange={(open) => {
+          if (!open) setSelectedTodayRecord(null);
+        }}>
+          <DialogContent className={`sm:max-w-[425px] overflow-hidden p-0 border-0 ${theme === 'dark' ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
+            {selectedTodayRecord && (
+              <div className="flex flex-col h-full">
+                <div className={`p-6 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                      {selectedTodayRecord.faculty_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h2 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        {selectedTodayRecord.faculty_name}
+                      </h2>
+                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        Attendance Details
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  {/* Status Badge */}
+                  <div className="flex justify-between items-center">
+                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Status</span>
+                    <span className={`${getStatusBadge(selectedTodayRecord.status)} text-sm px-3 py-1 rounded-full font-bold`}>
+                      {selectedTodayRecord.status === 'not_marked' ? 'Not Marked' : selectedTodayRecord.status.charAt(0).toUpperCase() + selectedTodayRecord.status.slice(1)}
+                    </span>
+                  </div>
+
+                  {/* Time & Periodic Check-ins */}
+                  {(selectedTodayRecord.checkin_timestamps?.length > 0 || selectedTodayRecord.check_in_time) && (
+                    <div className="space-y-4">
+                      <h3 className={`text-sm font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Timeline</h3>
+                      <div className={`space-y-3 p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                        
+                        {selectedTodayRecord.checkin_timestamps?.length > 0 ? (
+                          <>
+                            {selectedTodayRecord.checkin_timestamps.map((ts: any, idx: number) => (
+                              <div key={idx} className={`flex items-center justify-between pb-3 ${idx < selectedTodayRecord.checkin_timestamps.length - 1 ? (theme === 'dark' ? 'border-b border-white/10' : 'border-b border-gray-200') : ''}`}>
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${ts === 'Missed' ? 'bg-red-500/10 text-red-500' : ts ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500'}`}>
+                                    {idx + 1}
+                                  </div>
+                                  <span className="font-semibold text-gray-500">Check-in</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {ts === "Missed" ? (
+                                    <span className="text-red-500 font-bold bg-red-500/10 px-2 py-0.5 rounded">Missed</span>
+                                  ) : ts ? (
+                                    <>
+                                      <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                        {new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                      </span>
+                                      {selectedTodayRecord.delays && selectedTodayRecord.delays[idx] > 0 && (
+                                        <span className="text-xs font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full">
+                                          +{selectedTodayRecord.delays[idx]}m
+                                        </span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <span className="text-gray-400 italic">Pending</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                            {selectedTodayRecord.check_out_time && (
+                              <div className={`flex items-center justify-between font-bold pt-3 border-t ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'}`}>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-blue-500/10 text-blue-500">
+                                    Out
+                                  </div>
+                                  <span className="font-semibold text-gray-500">Check Out</span>
+                                </div>
+                                <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {new Date(selectedTodayRecord.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                </span>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {selectedTodayRecord.check_in_time && (
+                              <div className="flex justify-between items-center">
+                                <span className="font-semibold text-gray-500">Check In</span> 
+                                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {new Date(selectedTodayRecord.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                </span>
+                              </div>
+                            )}
+                            {selectedTodayRecord.check_out_time && (
+                              <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-200 dark:border-white/10">
+                                <span className="font-semibold text-gray-500">Check Out</span> 
+                                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {new Date(selectedTodayRecord.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                </span>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Total Hours */}
+                  {selectedTodayRecord.total_hours && (
+                    <div className="flex items-center justify-between font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-4 py-3 rounded-xl border border-blue-500/20">
+                      <span>Total Worked</span>
+                      <span>{formatTotalHours(selectedTodayRecord.total_hours)}</span>
+                    </div>
+                  )}
+
+                  {/* Location & Notes */}
+                  <div className="space-y-4">
+                    <h3 className={`text-sm font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Details</h3>
+                    <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'} space-y-3`}>
+                      
+                      <div className="flex gap-2">
+                        <Building2 className={`w-4 h-4 mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                        <div>
+                          <p className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            {selectedTodayRecord.location?.inside ? 'On Campus' : 'Off Campus'}
+                            {selectedTodayRecord.location?.distance_meters && ` • ${Math.round(selectedTodayRecord.location.distance_meters)}m`}
+                          </p>
+                          {selectedTodayRecord.location?.campus_name && (
+                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {selectedTodayRecord.location.campus_name}
+                            </p>
+                          )}
+                          {selectedTodayRecord.location?.latitude && selectedTodayRecord.location?.longitude && (
+                            <a
+                              href={`https://www.google.com/maps?q=${selectedTodayRecord.location.latitude},${selectedTodayRecord.location.longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-blue-500 hover:underline mt-1 font-medium"
+                            >
+                              📍 View Map
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {selectedTodayRecord.notes && (
+                        <div className="pt-3 border-t border-gray-200 dark:border-white/10 flex gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><line x1="9" y1="9" x2="10" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+                          <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {selectedTodayRecord.notes.replace('[Off-Campus Check-in] Reason:', 'Off-Campus Duty: ').trim()}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {!selectedTodayRecord.notes && !selectedTodayRecord.location && (
+                        <p className={`text-sm italic ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>No additional details provided.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className={`p-4 border-t mt-auto ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50/50'}`}>
+                  <Button variant="outline" className="w-full" onClick={() => setSelectedTodayRecord(null)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {activeTab === 'records' && !isLoading &&
           <>
@@ -1118,9 +1256,10 @@ const FacultyAttendanceView: React.FC = () => {
                     const isAbsent = record?.status?.toLowerCase() === 'absent';
 
                     return (
-                      <div
+                      <button
                         key={dateStr}
-                        className={`relative group p-4 rounded-2xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md ${isPresent ?
+                        onClick={() => setSelectedDateDetailsStr(dateStr)}
+                        className={`relative group p-4 rounded-2xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md w-full focus:outline-none focus:ring-2 focus:ring-primary/50 ${isPresent ?
                           'bg-green-500/10 border-green-500/30 text-green-600' :
                           isAbsent ?
                             'bg-red-500/10 border-red-500/30 text-red-600' :
@@ -1171,7 +1310,7 @@ const FacultyAttendanceView: React.FC = () => {
                             </>
                           )}
                         </div>
-                      </div>);
+                      </button>);
 
                   });
                 })()}
@@ -1187,6 +1326,141 @@ const FacultyAttendanceView: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {selectedDateDetailsStr && (() => {
+        const dateObj = new Date(selectedDateDetailsStr);
+        const dateStr = selectedDateDetailsStr;
+        const record = facultyAttendanceDetails.find((r) => r.date === dateStr);
+        const todayStr = new Date().toLocaleDateString('sv-SE');
+        const isFuture = dateStr > todayStr;
+        const isSunday = dateObj.getDay() === 0;
+        const isNonWorkingDay = isSunday;
+        const isPresent = record?.status?.toLowerCase() === 'present';
+
+        return (
+          <Dialog open={!!selectedDateDetailsStr} onOpenChange={(open) => {
+            if (!open) setSelectedDateDetailsStr(null);
+          }}>
+            <DialogContent className={`w-[90%] max-w-[360px] p-0 border-0 rounded-2xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-slate-900 text-white' : 'bg-white text-gray-900'}`}>
+              <div className={`p-5 ${theme === 'dark' ? 'bg-slate-800' : 'bg-primary/5'} border-b ${theme === 'dark' ? 'border-white/10' : 'border-primary/10'}`}>
+                <DialogTitle className="text-lg font-bold">
+                  {dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                </DialogTitle>
+                <p className={`text-sm mt-1 font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Attendance Record Details
+                </p>
+              </div>
+
+              <div className="p-5">
+                {record && (
+                  <div className="space-y-4">
+                    <div className={`${isPresent ? 'text-green-500 bg-green-500/10' : 'text-red-500 bg-red-500/10'} p-3 rounded-xl font-bold flex items-center gap-2 text-base`}>
+                      {isPresent ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />} 
+                      {record.status === 'not_marked' ? 'Not Marked' : record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                    </div>
+                    
+                    {record.checkin_timestamps && record.checkin_timestamps.length > 0 ? (
+                      <div className={`space-y-2 p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                        {record.checkin_timestamps.map((ts: any, idx: number) => (
+                          <div key={idx} className={`flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0 ${theme === 'dark' ? 'border-white/5' : 'border-gray-200'}`}>
+                            <span className="font-semibold text-gray-500">Check-in {idx + 1}</span>
+                            <div className="flex items-center gap-2">
+                              {ts === "Missed" ? (
+                                <span className="text-red-500 font-bold">Missed</span>
+                              ) : ts ? (
+                                <>
+                                  <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                    {new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                  </span>
+                                  {record.delays && record.delays[idx] > 0 && (
+                                    <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded shadow-sm">
+                                      +{record.delays[idx]}m
+                                    </span>
+                                  )}
+                                </>
+                              ) : (
+                                <span className="text-gray-400 italic font-medium">Pending</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        {record.check_out_time && (
+                          <div className={`flex items-center justify-between font-bold pt-2 border-t mt-2 ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
+                            <span className="text-gray-500">Check Out</span> 
+                            <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (record.check_in_time || record.check_out_time) && (
+                      <div className={`space-y-2 p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                        {record.check_in_time && (
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-gray-500">Check In</span> 
+                            <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              {new Date(record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            </span>
+                          </div>
+                        )}
+                        {record.check_out_time && (
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-gray-500">Check Out</span> 
+                            <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {record.total_hours && (
+                      <div className="flex items-center justify-between font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-4 py-3 rounded-xl border border-blue-500/20">
+                        <span>Total Worked</span>
+                        <span>{formatTotalHours(record.total_hours)}</span>
+                      </div>
+                    )}
+
+                    {record.notes?.includes('[Off-Campus Check-in]') && (
+                      <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 font-semibold leading-relaxed">
+                        <span className="block text-xs uppercase tracking-wider font-black mb-1 opacity-70">Off-Campus Duty</span>
+                        {record.notes.replace('[Off-Campus Check-in] Reason:', '').trim()}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {!record && !isFuture && !isNonWorkingDay && (
+                  <div className="text-red-500 font-bold flex flex-col items-center justify-center gap-2 p-6 bg-red-500/10 rounded-xl border border-red-500/20 text-center">
+                    <XCircle className="w-10 h-10 opacity-80" /> 
+                    <span>Auto-marked Absent</span>
+                  </div>
+                )}
+                
+                {isNonWorkingDay && (
+                  <div className={`font-bold flex flex-col items-center justify-center gap-2 p-6 rounded-xl border text-center ${theme === 'dark' ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+                    <Calendar className="w-10 h-10 opacity-50" /> 
+                    <span>Non-Working Day</span>
+                  </div>
+                )}
+                
+                {!record && isFuture && (
+                  <div className={`font-bold flex flex-col items-center justify-center gap-2 p-6 rounded-xl border text-center ${theme === 'dark' ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+                    <Clock className="w-10 h-10 opacity-50" /> 
+                    <span>Future Date</span>
+                  </div>
+                )}
+              </div>
+
+              <div className={`p-4 border-t ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50/50'}`}>
+                <Button variant="outline" className="w-full font-bold" onClick={() => setSelectedDateDetailsStr(null)}>
+                  Close
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </>);
 
 };

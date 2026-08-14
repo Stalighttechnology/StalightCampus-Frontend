@@ -746,7 +746,7 @@ const DeanFacultyProfile = ({
                       />
                       <DashboardCard
                         title="Absent Days"
-                        value={profile.attendance_summary?.absent_days ?? 0}
+                        value={profile.attendance_summary?.effective_absent ?? 0}
                         icon={<UserX className="w-5 h-5" />}
                       />
                       <DashboardCard

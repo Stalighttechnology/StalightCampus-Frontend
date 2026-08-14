@@ -19,8 +19,15 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
+const formatTotalHours = (decimalHours: number): string => {
+  const hrs = Math.floor(decimalHours);
+  const mins = Math.round((decimalHours - hrs) * 60);
+  return `${hrs.toString().padStart(2, '0')}h ${mins.toString().padStart(2, '0')}m`;
+};
+
 const FacultyAttendance = () => {
   const [attendanceStatus, setAttendanceStatus] = useState<"present" | "absent" | "holiday" | "weekly_off" | null>(null);
+  const [selectedRecordDetails, setSelectedRecordDetails] = useState<any>(null);
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [markingStatus, setMarkingStatus] = useState<"present" | "absent" | null>(null);
@@ -152,6 +159,62 @@ const FacultyAttendance = () => {
     setHistoryPage(1);
     setEndCalendarOpen(false);
   };
+
+  const isCheckInAllowed = () => {
+    if (!todayRecord || !todayRecord.checkin_windows || todayRecord.checkin_windows.length === 0) return true;
+    const now = new Date();
+    const currentH = now.getHours();
+    const currentM = now.getMinutes();
+    const nowTimeStr = `${currentH.toString().padStart(2, '0')}:${currentM.toString().padStart(2, '0')}`;
+    
+    let insideAnyWindow = false;
+    let windowIdx = -1;
+    for (let i = 0; i < todayRecord.checkin_windows.length; i++) {
+        const w = todayRecord.checkin_windows[i];
+        if (w.start && w.end) {
+            if (nowTimeStr >= w.start && nowTimeStr <= w.end) {
+                insideAnyWindow = true;
+                windowIdx = i;
+                break;
+            }
+        }
+    }
+    
+    if (!insideAnyWindow) {
+        const allHaveTimes = todayRecord.checkin_windows.every(w => w.start && w.end);
+        if (allHaveTimes) return false;
+        const timestamps = todayRecord.checkin_timestamps || [];
+        if (timestamps.length < (todayRecord.periodic_checkin_count || 1)) return true;
+        return false;
+    }
+    
+    const timestamps = todayRecord.checkin_timestamps || [];
+    if (windowIdx < timestamps.length && timestamps[windowIdx] !== "Missed" && timestamps[windowIdx] !== null) {
+        return false;
+    }
+    return true;
+  };
+
+  const shouldShowCheckOut = () => {
+    if (!todayRecord) return false;
+    const checkinCount = todayRecord.checkin_timestamps?.length ?? (todayRecord.check_in_time ? 1 : 0);
+    const requiredCount = todayRecord.periodic_checkin_count || 1;
+    if (checkinCount >= requiredCount) return true;
+    
+    if (todayRecord.checkin_windows && todayRecord.checkin_windows.length > 0) {
+      const allPassed = todayRecord.checkin_windows.every(w => {
+        if (!w.end) return false;
+        const now = new Date();
+        const currentH = now.getHours();
+        const currentM = now.getMinutes();
+        const nowTimeStr = `${currentH.toString().padStart(2, '0')}:${currentM.toString().padStart(2, '0')}`;
+        return nowTimeStr > w.end;
+      });
+      if (allPassed) return true;
+    }
+    return false;
+  };
+
 
   const handleTempStartDateChange = (date: Date | undefined) => {
     setTempStartDate(date);
@@ -579,13 +642,13 @@ const FacultyAttendance = () => {
               <div className="flex items-center space-x-4">
                 
                 {/* Check In / Check Out Button */}
-                {(!todayRecord?.check_in_time || !todayRecord?.check_out_time) && attendanceStatus !== "absent" && (
+                {(!shouldShowCheckOut() || !todayRecord?.check_out_time) && attendanceStatus !== "absent" && (
                   <motion.button
-                    onClick={() => handleToggleAttendance("present", todayRecord?.check_in_time ? "check_out" : "check_in")}
-                    disabled={isSubmitting || !!(todayRecord?.check_in_time && todayRecord?.check_out_time)}
+                    onClick={() => handleToggleAttendance("present", shouldShowCheckOut() ? "check_out" : "check_in")}
+                    disabled={isSubmitting || !!(todayRecord?.check_in_time && todayRecord?.check_out_time) || (!shouldShowCheckOut() && !isCheckInAllowed())}
                     className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'present' ?
                       'bg-blue-500 text-white animate-pulse' :
-                      (todayRecord?.check_in_time && !todayRecord?.check_out_time) ?
+                      (shouldShowCheckOut() && !todayRecord?.check_out_time) ?
                         'bg-orange-500 text-white scale-110' :
                         theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
                     }
@@ -594,13 +657,13 @@ const FacultyAttendance = () => {
                   >
                     {markingStatus === 'present' ?
                       <Loader2 className="w-8 h-8 animate-spin" /> :
-                      todayRecord?.check_in_time ? <Clock className="w-8 h-8" /> : <CheckCircle className="w-8 h-8" />
+                      (shouldShowCheckOut()) ? <Clock className="w-8 h-8" /> : <CheckCircle className="w-8 h-8" />
                     }
                   </motion.button>
                 )}
 
                 {/* Absent Button (only if not checked in) */}
-                {!todayRecord?.check_in_time && (
+                {!(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && (
                   <motion.button
                     onClick={() => handleToggleAttendance("absent")}
                     disabled={isSubmitting || !!attendanceStatus}
@@ -623,14 +686,14 @@ const FacultyAttendance = () => {
 
               {/* Button Labels */}
               <div className="flex items-center space-x-8 text-sm font-medium">
-                {(!todayRecord?.check_in_time || !todayRecord?.check_out_time) && attendanceStatus !== "absent" && (
+                {(!shouldShowCheckOut() || !todayRecord?.check_out_time) && attendanceStatus !== "absent" && (
                   <motion.span
-                    className={markingStatus === 'present' ? 'text-blue-500' : todayRecord?.check_in_time ? 'text-orange-600' : 'text-gray-500'}
+                    className={markingStatus === 'present' ? 'text-blue-500' : (shouldShowCheckOut()) ? 'text-orange-600' : 'text-gray-500'}
                   >
-                    {markingStatus === 'present' ? 'Processing...' : todayRecord?.check_in_time ? 'Check Out' : 'Check In'}
+                    {markingStatus === 'present' ? 'Processing...' : (shouldShowCheckOut()) ? 'Check Out' : 'Check In'}
                   </motion.span>
                 )}
-                {!todayRecord?.check_in_time && (
+                {!(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && (
                   <motion.span
                     className={markingStatus === 'absent' ? 'text-blue-500' : attendanceStatus === 'absent' ? 'text-red-600' : 'text-gray-500'}
                   >
@@ -638,9 +701,26 @@ const FacultyAttendance = () => {
                   </motion.span>
                 )}
               </div>
+              
+              {todayRecord?.check_in_time && !todayRecord?.check_out_time && (
+                <div className="mt-2">
+                  <button
+                    onClick={() => handleToggleAttendance("present", "check_out")}
+                    disabled={isSubmitting}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
+                      ${theme === 'dark'
+                        ? 'border-orange-500/50 text-orange-400 hover:bg-orange-500/10'
+                        : 'border-orange-400 text-orange-600 hover:bg-orange-50'
+                      }`}
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    Early / Half-Day Checkout
+                  </button>
+                </div>
+              )}
 
               {/* Off-Campus Duty Button — shown only when not yet checked in */}
-              {!todayRecord?.check_in_time && attendanceStatus !== 'absent' && (
+              {!(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && attendanceStatus !== 'absent' && (
                 <div className="mt-2">
                   <button
                     onClick={handleOffCampusDuty}
@@ -658,12 +738,35 @@ const FacultyAttendance = () => {
               )}
 
               {/* Attendance Details (Times & Hours) */}
-              {todayRecord?.check_in_time && (
+              {(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && (
                 <div className={`mt-4 p-4 rounded-lg w-full max-w-sm text-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-500">Check In:</span>
-                    <span className="font-semibold">{format(new Date(todayRecord.check_in_time), 'hh:mm a')}</span>
-                  </div>
+                  {todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0 ? (
+                    <div className="space-y-2 mb-2">
+                      <div className="font-semibold text-sm border-b pb-1 text-left">Periodic Check-ins:</div>
+                      {todayRecord.checkin_timestamps.map((ts, idx) => (
+                        <div key={idx} className="flex justify-between text-sm items-center">
+                          <span className="text-gray-500">Check-in {idx + 1}:</span>
+                          {ts === "Missed" ? (
+                            <span className="text-red-500 font-semibold">Missed</span>
+                          ) : ts ? (
+                            <div className="flex items-center">
+                              <span className="font-semibold">{format(new Date(ts), 'hh:mm a')}</span>
+                              {todayRecord.delays && todayRecord.delays[idx] > 0 && (
+                                <span className="ml-1 text-[10px] text-orange-500 bg-orange-100 px-1 rounded-sm">+{todayRecord.delays[idx]}m</span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 italic">Pending</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : todayRecord?.check_in_time ? (
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-gray-500">Check In:</span>
+                      <span className="font-semibold">{format(new Date(todayRecord.check_in_time), 'hh:mm a')}</span>
+                    </div>
+                  ) : null}
                   {todayRecord?.check_out_time && (
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-gray-500">Check Out:</span>
@@ -673,7 +776,16 @@ const FacultyAttendance = () => {
                   {todayRecord?.total_hours && (
                     <div className="flex justify-between text-sm font-bold border-t border-gray-300 pt-2 mt-2">
                       <span>Total Hours:</span>
-                      <span className="text-primary">{todayRecord.total_hours} hrs</span>
+                      <span className="text-primary">
+                        {(() => {
+                          const num = parseFloat(todayRecord.total_hours);
+                          if (isNaN(num)) return todayRecord.total_hours;
+                          const totalSeconds = num * 3600;
+                          const h = Math.floor(totalSeconds / 3600);
+                          const m = Math.floor((totalSeconds % 3600) / 60);
+                          return `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m`;
+                        })()}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -823,16 +935,13 @@ const FacultyAttendance = () => {
                           </p>
                         </div>
                       </div>
-                      <div className={`text-sm text-right ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {record.check_in_time && (
-                          <div className="text-xs">In: {format(new Date(record.check_in_time), 'hh:mm a')}</div>
-                        )}
-                        {record.check_out_time && (
-                          <div className="text-xs">Out: {format(new Date(record.check_out_time), 'hh:mm a')}</div>
-                        )}
-                        {!record.check_in_time && record.marked_at && (
-                          <div>{new Date(record.marked_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
-                        )}
+                      <div className="text-sm text-right">
+                        <button
+                          onClick={() => setSelectedRecordDetails(record)}
+                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-primary text-white hover:bg-primary/90'}`}
+                        >
+                          View
+                        </button>
                       </div>
                     </div>
                     {record.notes && (
@@ -851,11 +960,6 @@ const FacultyAttendance = () => {
                             </span>
                           ) : record.notes}
                         </div>
-                      </div>
-                    )}
-                    {record.total_hours && (
-                      <div className="mt-2 text-xs font-semibold text-right text-primary">
-                        Total: {record.total_hours} hrs
                       </div>
                     )}
                   </motion.div>
@@ -1082,16 +1186,13 @@ const FacultyAttendance = () => {
                           </p>
                         </div>
                       </div>
-                      <div className={`text-sm text-right ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {record.check_in_time && (
-                          <div className="text-xs">In: {format(new Date(record.check_in_time), 'hh:mm a')}</div>
-                        )}
-                        {record.check_out_time && (
-                          <div className="text-xs">Out: {format(new Date(record.check_out_time), 'hh:mm a')}</div>
-                        )}
-                        {!record.check_in_time && record.marked_at && (
-                          <div>{new Date(record.marked_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
-                        )}
+                      <div className="text-sm text-right">
+                        <button
+                          onClick={() => setSelectedRecordDetails(record)}
+                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-primary text-white hover:bg-primary/90'}`}
+                        >
+                          View
+                        </button>
                       </div>
                     </div>
                     {record.notes && (
@@ -1110,11 +1211,6 @@ const FacultyAttendance = () => {
                             </span>
                           ) : record.notes}
                         </div>
-                      </div>
-                    )}
-                    {record.total_hours && (
-                      <div className="mt-2 text-xs font-semibold text-right text-primary">
-                        Total: {record.total_hours} hrs
                       </div>
                     )}
                   </div>
@@ -1167,6 +1263,114 @@ const FacultyAttendance = () => {
           )}
         </Card>
       </div>
+      {selectedRecordDetails && (() => {
+        const dateObj = new Date(selectedRecordDetails.date + "T00:00:00");
+        const todayStr = new Date().toLocaleDateString('sv-SE');
+        const isFuture = selectedRecordDetails.date > todayStr;
+        const isPresent = selectedRecordDetails.status?.toLowerCase() === 'present';
+        const isAbsent = selectedRecordDetails.status?.toLowerCase() === 'absent';
+        
+        return (
+          <Dialog open={!!selectedRecordDetails} onOpenChange={(open) => {
+            if (!open) setSelectedRecordDetails(null);
+          }}>
+            <DialogContent className={`w-[90%] max-w-[360px] p-0 border-0 rounded-2xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-slate-900 text-white' : 'bg-white text-gray-900'}`}>
+              <div className={`p-5 ${theme === 'dark' ? 'bg-slate-800' : 'bg-primary/5'} border-b ${theme === 'dark' ? 'border-white/10' : 'border-primary/10'}`}>
+                <DialogTitle className="text-lg font-bold">
+                  {dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                </DialogTitle>
+                <p className={`text-sm mt-1 font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Attendance Record Details
+                </p>
+              </div>
+
+              <div className="p-5">
+                <div className="space-y-4">
+                  <div className={`${isPresent ? 'text-green-500 bg-green-500/10' : isAbsent ? 'text-red-500 bg-red-500/10' : 'text-gray-500 bg-gray-500/10'} p-3 rounded-xl font-bold flex items-center gap-2 text-base`}>
+                    {isPresent ? <CheckCircle className="w-5 h-5" /> : isAbsent ? <XCircle className="w-5 h-5" /> : <Clock className="w-5 h-5" />} 
+                    {selectedRecordDetails.status === 'not_marked' ? 'Not Marked' : selectedRecordDetails.status.charAt(0).toUpperCase() + selectedRecordDetails.status.slice(1)}
+                  </div>
+                  
+                  {selectedRecordDetails.checkin_timestamps && selectedRecordDetails.checkin_timestamps.length > 0 ? (
+                    <div className={`space-y-2 p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                      {selectedRecordDetails.checkin_timestamps.map((ts: any, idx: number) => (
+                        <div key={idx} className={`flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0 ${theme === 'dark' ? 'border-white/5' : 'border-gray-200'}`}>
+                          <span className="font-semibold text-gray-500">Check-in {idx + 1}</span>
+                          <div className="flex items-center gap-2">
+                            {ts === "Missed" ? (
+                              <span className="text-red-500 font-bold">Missed</span>
+                            ) : ts ? (
+                              <>
+                                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                </span>
+                                {selectedRecordDetails.delays && selectedRecordDetails.delays[idx] > 0 && (
+                                  <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded shadow-sm">
+                                    +{selectedRecordDetails.delays[idx]}m
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-gray-400 italic font-medium">Pending</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {selectedRecordDetails.check_out_time && (
+                        <div className={`flex items-center justify-between font-bold pt-2 border-t mt-2 ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
+                          <span className="text-gray-500">Check Out</span> 
+                          <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            {new Date(selectedRecordDetails.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (selectedRecordDetails.check_in_time || selectedRecordDetails.check_out_time) && (
+                    <div className={`space-y-2 p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                      {selectedRecordDetails.check_in_time && (
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-gray-500">Check In</span> 
+                          <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            {new Date(selectedRecordDetails.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                          </span>
+                        </div>
+                      )}
+                      {selectedRecordDetails.check_out_time && (
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-gray-500">Check Out</span> 
+                          <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            {new Date(selectedRecordDetails.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {selectedRecordDetails.total_hours && (
+                    <div className="flex items-center justify-between font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-4 py-3 rounded-xl border border-blue-500/20">
+                      <span>Total Worked</span>
+                      <span>{formatTotalHours(selectedRecordDetails.total_hours)}</span>
+                    </div>
+                  )}
+
+                  {selectedRecordDetails.notes?.includes('[Off-Campus Check-in]') && (
+                    <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 font-semibold leading-relaxed">
+                      <span className="block text-xs uppercase tracking-wider font-black mb-1 opacity-70">Off-Campus Duty</span>
+                      {selectedRecordDetails.notes.replace('[Off-Campus Check-in] Reason:', '').trim()}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className={`p-4 border-t ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50/50'}`}>
+                <Button variant="outline" className="w-full font-bold" onClick={() => setSelectedRecordDetails(null)}>
+                  Close
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </div>);
 
 };

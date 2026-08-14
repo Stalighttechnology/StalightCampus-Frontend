@@ -287,7 +287,7 @@ const DeanAttendanceFilters = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="hod">{translateTerminology("HOD")}</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="admin">Principal</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -298,10 +298,10 @@ const DeanAttendanceFilters = () => {
                     </label>
                     <Select disabled={!selectedRole} open={isPersonSelectOpen} onOpenChange={setIsPersonSelectOpen} value={selectedPersonId || ""} onValueChange={(value) => setSelectedPersonId(value)}>
                       <SelectTrigger className={`w-full ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
-                        <SelectValue placeholder={!selectedRole ? "Select role first" : (selectedRole === "hod" ? translateTerminology("Select HOD") : "Select Admin")} />
+                        <SelectValue placeholder={!selectedRole ? "Select role first" : (selectedRole === "hod" ? translateTerminology("Select HOD") : "Select Principal")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All {selectedRole === "hod" ? translateTerminology("HODs") : "Admins"}</SelectItem>
+                        <SelectItem value="all">All {selectedRole === "hod" ? translateTerminology("HODs") : "Principals"}</SelectItem>
                         {selectedRole === "hod" && hodList.map((h: any) => (
                           <SelectItem key={h.id} value={h.id}>
                             {h.name}
@@ -467,7 +467,7 @@ const DeanAttendanceFilters = () => {
             <Card className={`mt-4 shadow ${theme === "dark" ? "bg-card border border-border" : "bg-white border border-gray-200"} overflow-hidden`}>
               <CardHeader className="px-6 py-4 border-b border-border flex flex-row justify-between items-center gap-4">
                 <CardTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {selectedRole === "hod" ? translateTerminology("HOD") : "Admin"} Attendance Summary
+                  {selectedRole === "hod" ? translateTerminology("HOD") : "Principal"} Attendance Summary
                 </CardTitle>
                 <div className="flex items-center gap-2 shrink-0">
                   {/* Mobile Export PDF Icon Button */}
@@ -507,7 +507,7 @@ const DeanAttendanceFilters = () => {
                     <thead className={`sticky top-0 whitespace-nowrap ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
                       <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                         <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          {selectedRole === "hod" ? translateTerminology("HOD") : "Admin"}
+                          {selectedRole === "hod" ? translateTerminology("HOD") : "Principal"}
                         </th>
                         <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
                         <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</th>
@@ -753,11 +753,64 @@ const DeanAttendanceFilters = () => {
                           {statusLabel}
                         </div>
 
-                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-slate-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/10 scale-90 group-hover:scale-100">
-                          <div className="font-bold">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
-                          <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1`}>
+                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 translate-y-[-100%] px-3 py-2 bg-slate-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 shadow-xl border border-white/10 scale-90 group-hover:scale-100 min-w-[130px]">
+                          <div className="font-bold mb-1">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
+                          <div className={`font-semibold mb-1 ${isPresent ? 'text-green-300' : 'text-red-300'}`}>
                             {isPresent ? "Present" : "Absent"}
                           </div>
+                          {isPresent && record && (() => {
+                            const hasPeriodicCheckins = record.checkin_timestamps && record.checkin_timestamps.length > 0;
+                            return (
+                              <div className="space-y-0.5 mt-1 border-t border-white/10 pt-1">
+                                {hasPeriodicCheckins ? record.checkin_timestamps.map((ts: any, idx: number) => (
+                                  <div key={idx} className="flex items-center justify-between gap-2 whitespace-nowrap">
+                                    <span className="text-gray-400">CI {idx + 1}:</span>
+                                    {ts === 'Missed' ? (
+                                      <span className="text-red-400 font-bold">Missed</span>
+                                    ) : ts ? (
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-white font-bold">
+                                          {new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                        </span>
+                                        {record.delays && record.delays[idx] > 0 && (
+                                          <span className="text-orange-400 font-black">+{record.delays[idx]}m</span>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <span className="text-gray-500">Pending</span>
+                                    )}
+                                  </div>
+                                )) : (
+                                  <>
+                                    {record.check_in_time && (
+                                      <div className="flex justify-between gap-2 whitespace-nowrap">
+                                        <span className="text-gray-400">In:</span>
+                                        <span className="text-white font-bold">{new Date(record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                                      </div>
+                                    )}
+                                    {record.check_out_time && (
+                                      <div className="flex justify-between gap-2 whitespace-nowrap">
+                                        <span className="text-gray-400">Out:</span>
+                                        <span className="text-white font-bold">{new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                                {record.total_hours && (
+                                  <div className="flex justify-between gap-2 whitespace-nowrap border-t border-white/10 pt-0.5 mt-0.5">
+                                    <span className="text-gray-400">Total:</span>
+                                    <span className="text-blue-300 font-black">
+                                      {(() => {
+                                        const h = Math.floor(Number(record.total_hours));
+                                        const m = Math.round((Number(record.total_hours) - h) * 60);
+                                        return `${h}h ${m}m`;
+                                      })()}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
                       </div>
                     );
