@@ -455,15 +455,18 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900'}>
                     <SelectItem value="All">All Roles</SelectItem>
+                    <SelectItem value="teacher">Faculty / Teacher</SelectItem>
                     <SelectItem value="hod">Head of Department (HOD)</SelectItem>
                     <SelectItem value="dean">Dean</SelectItem>
                     <SelectItem value="coe">COE</SelectItem>
                     <SelectItem value="fees_manager">Fees Manager</SelectItem>
                     <SelectItem value="hms_admin">HMS Admin</SelectItem>
                     <SelectItem value="warden">Hostel Warden</SelectItem>
+                    <SelectItem value="caretaker">Hostel Caretaker</SelectItem>
                     <SelectItem value="transport_admin">Transport Admin</SelectItem>
                     <SelectItem value="driver">Driver</SelectItem>
                     <SelectItem value="library_admin">Library Admin</SelectItem>
+                    <SelectItem value="placement_officer">Placement Officer</SelectItem>
                     <SelectItem value="counsellor">Counsellor</SelectItem>
                     <SelectItem value="admission_manager">Admission Manager</SelectItem>
                   </SelectContent>

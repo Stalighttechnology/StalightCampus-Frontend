@@ -62,8 +62,42 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [leaveType, setLeaveType] = useState<'casual' | 'short_permission'>('casual');
   const [permissionDate, setPermissionDate] = useState<Date | undefined>();
-  const [startTimeParts, setStartTimeParts] = useState({ hour: "09", minute: "00", period: "AM" });
-  const [endTimeParts, setEndTimeParts] = useState({ hour: "11", minute: "00", period: "AM" });
+  // Helper to get default initial times based on exact current clock
+  const getInitialTimes = () => {
+    const now = new Date();
+    let currentHour24 = now.getHours();
+    let currentMinute = now.getMinutes();
+
+    // Round minute to nearest 5-minute interval
+    let roundedMinute = Math.ceil(currentMinute / 5) * 5;
+    if (roundedMinute >= 60) {
+      roundedMinute = 0;
+      currentHour24 = (currentHour24 + 1) % 24;
+    }
+
+    const startHour24 = currentHour24;
+    const endHour24 = (startHour24 + 2) % 24;
+
+    const toParts = (h24: number, m: number) => {
+      const period = h24 >= 12 ? 'PM' : 'AM';
+      let h12 = h24 % 12;
+      if (h12 === 0) h12 = 12;
+      return {
+        hour: h12.toString().padStart(2, '0'),
+        minute: m.toString().padStart(2, '0'),
+        period
+      };
+    };
+
+    return {
+      start: toParts(startHour24, roundedMinute),
+      end: toParts(endHour24, roundedMinute)
+    };
+  };
+
+  const initialTimes = getInitialTimes();
+  const [startTimeParts, setStartTimeParts] = useState(initialTimes.start);
+  const [endTimeParts, setEndTimeParts] = useState(initialTimes.end);
   const [leaveQuota, setLeaveQuota] = useState<{
     total_standard_leaves: number;
     used_standard_leaves: number;
@@ -169,6 +203,40 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         await MySwal.fire({
           title: 'Missing Information',
           text: 'Please provide a valid title, branch, permission date, time slot, and reason.',
+          icon: 'warning',
+          confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+          background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+        });
+        return;
+      }
+
+      // Validate Time range
+      const start24 = formatTime24h(startTimeParts.hour, startTimeParts.minute, startTimeParts.period);
+      const end24 = formatTime24h(endTimeParts.hour, endTimeParts.minute, endTimeParts.period);
+      const [sH, sM] = start24.split(':').map(Number);
+      const [eH, eM] = end24.split(':').map(Number);
+      const startMinutes = sH * 60 + sM;
+      const endMinutes = eH * 60 + eM;
+
+      if (endMinutes <= startMinutes) {
+        await MySwal.fire({
+          title: 'Invalid Time Slot',
+          text: 'End time must be later than start time.',
+          icon: 'warning',
+          confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+          background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+        });
+        return;
+      }
+
+      const durationHours = (endMinutes - startMinutes) / 60;
+      const maxAllowedHours = leaveQuota?.short_permission_max_hours || 2;
+      if (durationHours > maxAllowedHours) {
+        await MySwal.fire({
+          title: 'Maximum Duration Exceeded',
+          text: `Short permission cannot exceed ${maxAllowedHours} hour(s). You selected ${durationHours.toFixed(1)} hours.`,
           icon: 'warning',
           confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
           background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
@@ -377,7 +445,15 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setLeaveType('short_permission')}
+                    onClick={() => {
+                      setLeaveType('short_permission');
+                      const liveTimes = getInitialTimes();
+                      setStartTimeParts(liveTimes.start);
+                      setEndTimeParts(liveTimes.end);
+                      if (!permissionDate) {
+                        setPermissionDate(new Date());
+                      }
+                    }}
                     className={`flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-all ${
                       leaveType === 'short_permission'
                         ? 'bg-primary text-white shadow-md'
@@ -492,20 +568,47 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </div>
 
                   {/* Time Slots Selection */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold">Start Time <span className="text-red-500">*</span></Label>
-                      <div className="flex gap-1 items-center">
-                        <Select value={startTimeParts.hour} onValueChange={(v) => setStartTimeParts({ ...startTimeParts, hour: v })}>
+                      <div className="flex items-center justify-between h-5">
+                        <Label className="text-xs font-semibold">Start Time <span className="text-red-500">*</span></Label>
+                      </div>
+                      <div className="flex gap-1.5 items-center">
+                        <Select 
+                          value={startTimeParts.hour} 
+                          onValueChange={(v) => {
+                            const newStart = { ...startTimeParts, hour: v };
+                            setStartTimeParts(newStart);
+                            // Auto-fetch/adjust end time (+2 hours)
+                            const s24 = formatTime24h(v, newStart.minute, newStart.period);
+                            const [sH] = s24.split(':').map(Number);
+                            const maxH = leaveQuota?.short_permission_max_hours || 2;
+                            const endH24 = (sH + maxH) % 24;
+                            const period = endH24 >= 12 ? 'PM' : 'AM';
+                            let h12 = endH24 % 12;
+                            if (h12 === 0) h12 = 12;
+                            setEndTimeParts({
+                              hour: h12.toString().padStart(2, '0'),
+                              minute: newStart.minute,
+                              period
+                            });
+                          }}
+                        >
                           <SelectTrigger className={`w-full h-9 text-xs ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
                             <SelectValue placeholder="HH" />
                           </SelectTrigger>
-                          <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                          <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
                             {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
                           </SelectContent>
                         </Select>
-                        <span className="text-muted-foreground font-semibold">:</span>
-                        <Select value={startTimeParts.minute} onValueChange={(v) => setStartTimeParts({ ...startTimeParts, minute: v })}>
+                        <span className="text-muted-foreground font-semibold px-0.5">:</span>
+                        <Select 
+                          value={startTimeParts.minute} 
+                          onValueChange={(v) => {
+                            setStartTimeParts({ ...startTimeParts, minute: v });
+                            setEndTimeParts(prev => ({ ...prev, minute: v }));
+                          }}
+                        >
                           <SelectTrigger className={`w-full h-9 text-xs ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
                             <SelectValue placeholder="MM" />
                           </SelectTrigger>
@@ -513,8 +616,26 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
                           </SelectContent>
                         </Select>
-                        <Select value={startTimeParts.period} onValueChange={(v) => setStartTimeParts({ ...startTimeParts, period: v })}>
-                          <SelectTrigger className={`w-20 h-9 text-xs ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
+                        <Select 
+                          value={startTimeParts.period} 
+                          onValueChange={(v) => {
+                            const newStart = { ...startTimeParts, period: v };
+                            setStartTimeParts(newStart);
+                            const s24 = formatTime24h(newStart.hour, newStart.minute, v);
+                            const [sH] = s24.split(':').map(Number);
+                            const maxH = leaveQuota?.short_permission_max_hours || 2;
+                            const endH24 = (sH + maxH) % 24;
+                            const period = endH24 >= 12 ? 'PM' : 'AM';
+                            let h12 = endH24 % 12;
+                            if (h12 === 0) h12 = 12;
+                            setEndTimeParts({
+                              hour: h12.toString().padStart(2, '0'),
+                              minute: newStart.minute,
+                              period
+                            });
+                          }}
+                        >
+                          <SelectTrigger className={`w-20 h-9 text-xs flex-shrink-0 ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
                             <SelectValue placeholder="AM/PM" />
                           </SelectTrigger>
                           <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
@@ -526,14 +647,62 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold">End Time <span className="text-red-500">*</span></Label>
-                      <div className="flex gap-1 items-center">
-                        <Select value={endTimeParts.hour} onValueChange={(v) => setEndTimeParts({ ...endTimeParts, hour: v })}>
+                      <div className="flex items-center justify-between h-5">
+                        <Label className="text-xs font-semibold">End Time <span className="text-red-500">*</span></Label>
+                        {(() => {
+                          const s24 = formatTime24h(startTimeParts.hour, startTimeParts.minute, startTimeParts.period);
+                          const e24 = formatTime24h(endTimeParts.hour, endTimeParts.minute, endTimeParts.period);
+                          const [sH, sM] = s24.split(':').map(Number);
+                          const [eH, eM] = e24.split(':').map(Number);
+                          const startM = sH * 60 + sM;
+                          const endM = eH * 60 + eM;
+                          const diff = (endM - startM) / 60;
+                          const maxH = leaveQuota?.short_permission_max_hours || 2;
+                          if (endM <= startM) {
+                            return <span className="text-[11px] text-amber-500 font-medium">Must be after start</span>;
+                          } else if (diff > maxH) {
+                            return <span className="text-[11px] text-red-500 font-medium">Exceeds {maxH}h limit ({diff.toFixed(1)}h)</span>;
+                          } else {
+                            return <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Duration: {diff.toFixed(1)}h (max {maxH}h)</span>;
+                          }
+                        })()}
+                      </div>
+                      <div className="flex gap-1.5 items-center">
+                        <Select 
+                          value={endTimeParts.hour} 
+                          onValueChange={(v) => {
+                            setEndTimeParts({ ...endTimeParts, hour: v });
+                          }}
+                        >
                           <SelectTrigger className={`w-full h-9 text-xs ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
                             <SelectValue placeholder="HH" />
                           </SelectTrigger>
-                          <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                            {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
+                          <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                            {hoursOptions.map(h => {
+                              // Check if any minute with this hour and period can produce a valid end time <= max hours
+                              const s24 = formatTime24h(startTimeParts.hour, startTimeParts.minute, startTimeParts.period);
+                              const [sH, sM] = s24.split(':').map(Number);
+                              const startM = sH * 60 + sM;
+                              const maxH = leaveQuota?.short_permission_max_hours || 2;
+                              const maxM = startM + maxH * 60;
+
+                              const candidate24 = formatTime24h(h, endTimeParts.minute, endTimeParts.period);
+                              const [cH, cM] = candidate24.split(':').map(Number);
+                              const candM = cH * 60 + cM;
+                              const isPastStart = candM > startM;
+                              const isWithinLimit = candM <= maxM;
+                              const isDimmed = !isPastStart || !isWithinLimit;
+
+                              return (
+                                <SelectItem 
+                                  key={h} 
+                                  value={h}
+                                  className={isDimmed ? "opacity-40 text-muted-foreground line-through" : ""}
+                                >
+                                  {h}
+                                </SelectItem>
+                              );
+                            })}
                           </SelectContent>
                         </Select>
                         <span className="text-muted-foreground font-semibold">:</span>
@@ -542,7 +711,28 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             <SelectValue placeholder="MM" />
                           </SelectTrigger>
                           <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                            {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
+                            {minutesOptions.map(m => {
+                              const s24 = formatTime24h(startTimeParts.hour, startTimeParts.minute, startTimeParts.period);
+                              const [sH, sM] = s24.split(':').map(Number);
+                              const startM = sH * 60 + sM;
+                              const maxH = leaveQuota?.short_permission_max_hours || 2;
+                              const maxM = startM + maxH * 60;
+
+                              const candidate24 = formatTime24h(endTimeParts.hour, m, endTimeParts.period);
+                              const [cH, cM] = candidate24.split(':').map(Number);
+                              const candM = cH * 60 + cM;
+                              const isDimmed = candM <= startM || candM > maxM;
+
+                              return (
+                                <SelectItem 
+                                  key={m} 
+                                  value={m}
+                                  className={isDimmed ? "opacity-40 text-muted-foreground line-through" : ""}
+                                >
+                                  {m}
+                                </SelectItem>
+                              );
+                            })}
                           </SelectContent>
                         </Select>
                         <Select value={endTimeParts.period} onValueChange={(v) => setEndTimeParts({ ...endTimeParts, period: v })}>

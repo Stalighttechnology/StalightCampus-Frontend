@@ -852,9 +852,11 @@ export default function PrincipalTimetableSettings() {
                           { roleKey: 'counsellor', label: 'Counsellor Leaves', defaultApprover: 'principal' },
                           { roleKey: 'hms_admin', label: 'HMS Admin Leaves', defaultApprover: 'principal' },
                           { roleKey: 'warden', label: 'Hostel Warden Leaves', defaultApprover: 'hms_admin' },
+                          { roleKey: 'caretaker', label: 'Hostel Caretaker Leaves', defaultApprover: 'hms_admin' },
                           { roleKey: 'transport_admin', label: 'Transport Admin Leaves', defaultApprover: 'principal' },
                           { roleKey: 'driver', label: 'Driver Leaves', defaultApprover: 'transport_admin' },
                           { roleKey: 'library_admin', label: 'Library Admin Leaves', defaultApprover: 'principal' },
+                          { roleKey: 'placement_officer', label: 'Placement Officer Leaves', defaultApprover: 'principal' },
                           { roleKey: 'admission_manager', label: 'Admission Manager Leaves', defaultApprover: 'principal' }
                         ].map((item) => (
                           <div key={item.roleKey} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
