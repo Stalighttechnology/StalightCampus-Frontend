@@ -527,30 +527,54 @@ export default function PrincipalTimetableSettings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4 pb-6 space-y-6">
-            <div className="flex flex-wrap border-b border-border/50">
+            <div className={`p-1.5 rounded-2xl flex flex-col sm:flex-row w-full gap-1.5 ${theme === 'dark' ? 'bg-muted/40 border border-border/60' : 'bg-slate-100/90 border border-slate-200/80'}`}>
               <button
-                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'timetable' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                type="button"
+                className={`w-full sm:flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center sm:justify-center gap-2 ${
+                  activeTab === 'timetable'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
+                }`}
                 onClick={() => setActiveTab('timetable')}
               >
-                Timetable Slots
+                <Clock className="w-4 h-4" />
+                <span>Timetable Slots</span>
               </button>
               <button
-                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'qp-workflow' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                type="button"
+                className={`w-full sm:flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center sm:justify-center gap-2 ${
+                  activeTab === 'qp-workflow'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
+                }`}
                 onClick={() => setActiveTab('qp-workflow')}
               >
-                Question Paper Workflow
+                <ShieldCheck className="w-4 h-4" />
+                <span>Question Paper Workflow</span>
               </button>
               <button
-                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'leave-policy' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                type="button"
+                className={`w-full sm:flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center sm:justify-center gap-2 ${
+                  activeTab === 'leave-policy'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
+                }`}
                 onClick={() => setActiveTab('leave-policy')}
               >
-                Short Permission & Leave Policy
+                <CalendarCheck2 className="w-4 h-4" />
+                <span>Short Permission & Leave Policy</span>
               </button>
               <button
-                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'attendance-workflow' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                type="button"
+                className={`w-full sm:flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center sm:justify-center gap-2 ${
+                  activeTab === 'attendance-workflow'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
+                }`}
                 onClick={() => setActiveTab('attendance-workflow')}
               >
-                Attendance Workflow
+                <Users className="w-4 h-4" />
+                <span>Attendance Workflow</span>
               </button>
             </div>
 
