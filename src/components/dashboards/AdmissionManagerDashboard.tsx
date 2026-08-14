@@ -16,6 +16,7 @@ import AdmissionCommunication from "../admission/AdmissionCommunication";
 import AdmissionReports from "../admission/AdmissionReports";
 import CounsellorManagement from "../admission/CounsellorManagement";
 import Profile from "../common/Profile";
+import ApplyLeave from "../faculty/ApplyLeave";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
@@ -75,6 +76,8 @@ const AdmissionManagerDashboard = ({ user }: DashboardProps) => {
         return <HolidayCalendar readOnly showLeaves userRole="admission_manager" />;
       case "profile":
         return <Profile role="admission_manager" user={user} />;
+      case "apply-leave":
+        return <ApplyLeave />;
       case "my-attendance":
         return <FacultyAttendance />;
       case "schedule-meeting":

@@ -4,6 +4,7 @@ import DashboardLayout from "../common/DashboardLayout";
 import AdmissionDashboard from "../admission/AdmissionDashboard";
 import LeadPipeline from "../admission/LeadPipeline";
 import Profile from "../common/Profile";
+import ApplyLeave from "../faculty/ApplyLeave";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import FacultyPayroll from "../faculty/FacultyPayroll";
 import AdmissionApplications from "../admission/AdmissionApplications";
@@ -43,6 +44,8 @@ const CounsellorDashboard = ({ user }: DashboardProps) => {
         return <AdmissionApplications />;
       case "admission-documents":
         return <AdmissionDocuments />;
+      case "apply-leave":
+        return <ApplyLeave />;
       case "holiday-calendar":
         return <HolidayCalendar readOnly showLeaves userRole="counsellor" />;
       case "profile":

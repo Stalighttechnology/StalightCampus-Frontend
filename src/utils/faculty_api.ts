@@ -209,6 +209,9 @@ export interface ApplyLeaveRequest {
   start_date: string;
   end_date: string;
   reason: string;
+  leave_type?: string;
+  start_time?: string;
+  end_time?: string;
 }
 
 interface ApplyLeaveResponse {
@@ -415,13 +418,26 @@ interface GetAttendanceRecordsWithSummaryResponse {
   };
 }
 
-interface GetApplyLeaveBootstrapResponse {
+export interface LeaveQuota {
+  total_standard_leaves: number;
+  used_standard_leaves: number;
+  remaining_standard_leaves: number;
+  monthly_short_permission_limit: number;
+  used_short_permissions_this_month: number;
+  remaining_short_permissions_this_month: number;
+  short_permission_max_hours: number;
+  approver_role: string;
+  approver_label: string;
+}
+
+export interface GetApplyLeaveBootstrapResponse {
   success: boolean;
   message?: string;
   data?: {
     assignments: FacultyAssignment[];
     leave_requests: FacultyLeaveRequest[];
     branches: {id: number;name: string;}[];
+    leave_quota?: LeaveQuota;
   };
 }
 
@@ -537,6 +553,9 @@ export interface FacultyLeaveRequest {
   branch: string;
   start_date: string;
   end_date: string;
+  leave_type?: string;
+  start_time?: string | null;
+  end_time?: string | null;
   reason: string;
   status: string;
   applied_on: string;

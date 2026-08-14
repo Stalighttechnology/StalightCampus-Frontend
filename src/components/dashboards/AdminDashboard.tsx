@@ -21,7 +21,7 @@ import AdminCOAttainment from "../common/AdminCOAttainment";
 import { useToast } from "../../hooks/use-toast";
 import AdminAttendance from "../admin/AdminAttendance";
 import AdminFacultyAttendanceView from "../admin/AdminFacultyAttendanceView";
-import ApplyLeaveAdmin from "../admin/ApplyLeaveAdmin";
+import ApplyLeaveAdmin from "../faculty/ApplyLeave";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import StudentInfoScanner from "../hod/StudentInfoScanner";

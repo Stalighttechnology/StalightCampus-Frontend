@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, GripVertical, Clock, AlertTriangle, Save, ShieldCheck, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Edit2, GripVertical, Clock, AlertTriangle, Save, ShieldCheck, ChevronRight, CalendarCheck2, Users, Sliders } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -75,7 +75,30 @@ export default function PrincipalTimetableSettings() {
 
   const [approvalChain, setApprovalChain] = useState<string[]>(['hod', 'principal', 'coe']);
   const [chainLoading, setChainLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'timetable' | 'qp-workflow'>('timetable');
+  const [activeTab, setActiveTab] = useState<'timetable' | 'qp-workflow' | 'leave-policy'>('timetable');
+
+  // Leave & Short Permission Policy state
+  const [leavePolicyLoading, setLeavePolicyLoading] = useState(false);
+  const [leavePolicySaving, setLeavePolicySaving] = useState(false);
+  const [leavePolicy, setLeavePolicy] = useState<{
+    monthly_short_permission_limit: number | string;
+    total_standard_leaves: number | string;
+    short_permission_max_hours: number | string;
+    leave_approval_routing: Record<string, string>;
+  }>({
+    monthly_short_permission_limit: 2,
+    total_standard_leaves: 12,
+    short_permission_max_hours: 2,
+    leave_approval_routing: {
+      teacher: 'hod',
+      hod: 'principal',
+      principal: 'dean',
+      coe: 'dean',
+      fees_manager: 'dean',
+      driver: 'transport_admin',
+      warden: 'hms_admin'
+    } as Record<string, string>
+  });
 
   const PRESETS: Record<string, string[]> = {
     "Standard": ["hod", "principal", "coe"],
@@ -150,9 +173,64 @@ export default function PrincipalTimetableSettings() {
     }
   };
 
+  const fetchLeavePolicy = async () => {
+    try {
+      setLeavePolicyLoading(true);
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/leave-policy-settings/`);
+      if (res.ok) {
+        const data = await res.json();
+        setLeavePolicy({
+          monthly_short_permission_limit: data.monthly_short_permission_limit ?? 2,
+          total_standard_leaves: data.total_standard_leaves ?? 12,
+          short_permission_max_hours: data.short_permission_max_hours ?? 2,
+          leave_approval_routing: data.leave_approval_routing || {
+            teacher: 'hod',
+            hod: 'principal',
+            principal: 'dean',
+            coe: 'dean',
+            fees_manager: 'dean',
+            driver: 'transport_admin',
+            warden: 'hms_admin'
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch leave policy', err);
+    } finally {
+      setLeavePolicyLoading(false);
+    }
+  };
+
+  const handleSaveLeavePolicy = async () => {
+    try {
+      setLeavePolicySaving(true);
+      const payload = {
+        ...leavePolicy,
+        monthly_short_permission_limit: leavePolicy.monthly_short_permission_limit === '' ? 2 : Number(leavePolicy.monthly_short_permission_limit),
+        total_standard_leaves: leavePolicy.total_standard_leaves === '' ? 12 : Number(leavePolicy.total_standard_leaves),
+        short_permission_max_hours: leavePolicy.short_permission_max_hours === '' ? 2 : Number(leavePolicy.short_permission_max_hours)
+      };
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/leave-policy-settings/`, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        toast({ title: "Success", description: "Leave policy & workflow saved successfully" });
+      } else {
+        toast({ title: "Error", description: "Failed to save leave policy", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to save leave policy", variant: "destructive" });
+    } finally {
+      setLeavePolicySaving(false);
+    }
+  };
+
   useEffect(() => {
     fetchSlots();
     fetchApprovalChain();
+    fetchLeavePolicy();
   }, []);
 
   useEffect(() => {
@@ -380,6 +458,19 @@ export default function PrincipalTimetableSettings() {
   };
 
   return (
+    <>
+      <style>{`
+        /* Hide number input spinner arrows */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+          -webkit-appearance: none !important; 
+          margin: 0 !important; 
+        }
+        input[type=number] {
+          -moz-appearance: textfield !important;
+        }
+      `}</style>
+
     <div className="space-y-6 w-full">
       <Card className={`border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <CardHeader className="pb-3 border-b border-border/50">
@@ -389,7 +480,7 @@ export default function PrincipalTimetableSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-4 pb-6 space-y-6">
-          <div className="flex border-b border-border/50">
+          <div className="flex flex-wrap border-b border-border/50">
             <button
               className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'timetable' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
               onClick={() => setActiveTab('timetable')}
@@ -401,6 +492,12 @@ export default function PrincipalTimetableSettings() {
               onClick={() => setActiveTab('qp-workflow')}
             >
               Question Paper Workflow
+            </button>
+            <button
+              className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'leave-policy' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+              onClick={() => setActiveTab('leave-policy')}
+            >
+              Short Permission & Leave Policy
             </button>
           </div>
 
@@ -607,6 +704,151 @@ export default function PrincipalTimetableSettings() {
             </div>
           )}
 
+          {activeTab === 'leave-policy' && (
+            <div className="space-y-6 pt-2">
+              <div className="flex items-center gap-3 pb-2 border-b border-border/40">
+                <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <CalendarCheck2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Short Permission & Leave Policy Configuration</h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Customize short period permissions per month, standard leaves limit, and configure approval routing.
+                  </p>
+                </div>
+              </div>
+
+              {leavePolicyLoading ? (
+                <SkeletonTable rows={3} cols={2} />
+              ) : (
+                <div className="space-y-6">
+                  {/* Quota Settings Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className={`border ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'}`}>
+                      <CardContent className="p-4 space-y-2">
+                        <Label className="text-sm font-semibold">Short Permissions / Month</Label>
+                        <p className="text-xs text-muted-foreground">Max short period permission requests per faculty each month.</p>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          value={leavePolicy.monthly_short_permission_limit}
+                          onChange={(e) => {
+                            const clean = e.target.value.replace(/[^0-9]/g, '');
+                            setLeavePolicy({ ...leavePolicy, monthly_short_permission_limit: clean });
+                          }}
+                          placeholder="e.g. 2"
+                          className={`mt-2 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <Card className={`border ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'}`}>
+                      <CardContent className="p-4 space-y-2">
+                        <Label className="text-sm font-semibold">Total Standard Leaves</Label>
+                        <p className="text-xs text-muted-foreground">Standard leaves limit allowed per faculty per year.</p>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          value={leavePolicy.total_standard_leaves}
+                          onChange={(e) => {
+                            const clean = e.target.value.replace(/[^0-9]/g, '');
+                            setLeavePolicy({ ...leavePolicy, total_standard_leaves: clean });
+                          }}
+                          placeholder="e.g. 12"
+                          className={`mt-2 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <Card className={`border ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'}`}>
+                      <CardContent className="p-4 space-y-2">
+                        <Label className="text-sm font-semibold">Max Duration (Hours)</Label>
+                        <p className="text-xs text-muted-foreground">Maximum duration allowed for a single short permission.</p>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          value={leavePolicy.short_permission_max_hours}
+                          onChange={(e) => {
+                            const clean = e.target.value.replace(/[^0-9]/g, '');
+                            setLeavePolicy({ ...leavePolicy, short_permission_max_hours: clean });
+                          }}
+                          placeholder="e.g. 2"
+                          className={`mt-2 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Role-Based Approval Routing */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-primary" />
+                      <Label className="text-sm font-semibold">Role-Based Leave Approval Routing</Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Define which authority approves leave and permission requests for each staff role.
+                    </p>
+
+                    <div className={`rounded-xl border divide-y ${theme === 'dark' ? 'bg-background border-border divide-border' : 'bg-slate-50/50 border-gray-200 divide-gray-100'}`}>
+                      {[
+                        { roleKey: 'teacher', label: 'Faculty / Teacher Leaves', defaultApprover: 'hod' },
+                        { roleKey: 'hod', label: `${translateTerminology('HOD')} Leaves`, defaultApprover: 'principal' },
+                        { roleKey: 'dean', label: 'Dean Leaves', defaultApprover: 'principal' },
+                        { roleKey: 'coe', label: 'COE Leaves', defaultApprover: 'dean' },
+                        { roleKey: 'fees_manager', label: 'Fees Manager Leaves', defaultApprover: 'dean' },
+                        { roleKey: 'counsellor', label: 'Counsellor Leaves', defaultApprover: 'principal' },
+                        { roleKey: 'hms_admin', label: 'HMS Admin Leaves', defaultApprover: 'principal' },
+                        { roleKey: 'warden', label: 'Hostel Warden Leaves', defaultApprover: 'hms_admin' },
+                        { roleKey: 'transport_admin', label: 'Transport Admin Leaves', defaultApprover: 'principal' },
+                        { roleKey: 'driver', label: 'Driver Leaves', defaultApprover: 'transport_admin' },
+                        { roleKey: 'library_admin', label: 'Library Admin Leaves', defaultApprover: 'principal' },
+                        { roleKey: 'admission_manager', label: 'Admission Manager Leaves', defaultApprover: 'principal' }
+                      ].map((item) => (
+                        <div key={item.roleKey} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <span className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{item.label}</span>
+                            <p className="text-xs text-muted-foreground">Requests will be forwarded to the selected approver</p>
+                          </div>
+                          <div className="w-full sm:w-60">
+                            <Select
+                              value={leavePolicy.leave_approval_routing?.[item.roleKey] || item.defaultApprover}
+                              onValueChange={(val) => {
+                                setLeavePolicy({
+                                  ...leavePolicy,
+                                  leave_approval_routing: {
+                                    ...(leavePolicy.leave_approval_routing || {}),
+                                    [item.roleKey]: val
+                                  }
+                                });
+                              }}
+                            >
+                              <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
+                                <SelectValue placeholder="Select approver" />
+                              </SelectTrigger>
+                              <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                <SelectItem value="hod">{translateTerminology('HOD')}</SelectItem>
+                                <SelectItem value="principal">Principal</SelectItem>
+                                <SelectItem value="dean">Dean</SelectItem>
+                                <SelectItem value="transport_admin">Transport Admin</SelectItem>
+                                <SelectItem value="hms_admin">HMS Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <Button onClick={handleSaveLeavePolicy} disabled={leavePolicySaving} className="shadow-sm">
+                      <Save className="w-4 h-4 mr-2" /> {leavePolicySaving ? 'Saving...' : 'Save Leave Policy'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'qp-workflow' && (
             <div className="space-y-6 pt-2">
               <div className="flex items-center gap-3 pb-2 border-b border-border/40">
@@ -690,5 +932,6 @@ export default function PrincipalTimetableSettings() {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }

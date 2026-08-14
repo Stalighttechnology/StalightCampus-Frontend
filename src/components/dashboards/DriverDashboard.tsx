@@ -5,7 +5,7 @@ import DashboardLayout from "../common/DashboardLayout";
 import DriverDashboardContent from "../transport/driver/DriverDashboard";
 import DriverTripHistory from "../transport/driver/DriverTripHistory";
 import DriverComplaints from "../transport/driver/DriverComplaints";
-import ApplyLeaveDriver from "../transport/driver/ApplyLeave";
+import ApplyLeaveDriver from "../faculty/ApplyLeave";
 import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import Profile from "../common/Profile";
 import FacultyAttendance from "../faculty/FacultyAttendance";

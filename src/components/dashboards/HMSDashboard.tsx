@@ -16,7 +16,7 @@ import IssueTracking from "../hms/IssueTracking";
 import HMSProfile from "../hms/HMSProfile";
 import StudentMealManagement from "../hms/StudentMealManagement";
 import HmsVisitorLogs from "../hms/HmsVisitorLogs";
-import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
+import ApplyLeaveDepartmentAdmin from "../faculty/ApplyLeave";
 import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import WardenLeaveManagement from "../hms/WardenLeaveManagement";
 import FacultyAttendance from "../faculty/FacultyAttendance";

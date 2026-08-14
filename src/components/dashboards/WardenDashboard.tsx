@@ -10,7 +10,7 @@ import WardenHostelOverview from "../warden/WardenHostelOverview";
 import WardenProfile from "../warden/WardenProfile";
 import WardenVisitorLogs from "../warden/WardenVisitorLogs";
 import WardenGatePassManagement from "../warden/WardenGatePassManagement";
-import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
+import ApplyLeaveDepartmentAdmin from "../faculty/ApplyLeave";
 import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import { HMSProvider, useHMSContext } from "../../context/HMSContext";

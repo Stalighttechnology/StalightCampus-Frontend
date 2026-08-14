@@ -53,7 +53,7 @@ import InvoiceManagement from './InvoiceManagement';
 import PaymentMonitoring from './PaymentMonitoring';
 import Reports from './Reports';
 import StudentFeeReports from './StudentFeeReports';
-import FeesManagerLeave from './FeesManagerLeave';
+import FeesManagerLeave from '../faculty/ApplyLeave';
 import FeesManagerProfile from './FeesManagerProfile';
 import PaymentSettings from './PaymentSettings';
 import FacultyAttendance from '../faculty/FacultyAttendance';

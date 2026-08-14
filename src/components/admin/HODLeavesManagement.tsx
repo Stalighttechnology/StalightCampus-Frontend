@@ -29,8 +29,13 @@ import { SkeletonTable } from "../ui/skeleton";
 
 interface LeaveRequest {
   id: number;
+  title: string;
   name: string;
+  role: string;
   department: string;
+  leave_type: string;
+  start_time?: string | null;
+  end_time?: string | null;
   from: string;
   to: string;
   reason: string;
@@ -117,10 +122,15 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
         const leaveData = Array.isArray(dataSource.leaves) ?
           dataSource.leaves.map((leave: any) => ({
             id: leave.id,
-            name: (leave.hod?.first_name || leave.hod?.last_name)
+            title: leave.title || (leave.leave_type === 'short_permission' ? 'Short Permission' : 'Leave Request'),
+            name: leave.applicant_name || ((leave.hod?.first_name || leave.hod?.last_name)
               ? `${leave.hod?.first_name || ""} ${leave.hod?.last_name || ""}`.trim()
-              : leave.hod?.username || leave.hod_name || "N/A",
+              : leave.hod?.username || leave.hod_name || "N/A"),
+            role: leave.role || "staff",
             department: leave.branch || "N/A",
+            leave_type: leave.leave_type || "casual",
+            start_time: leave.start_time,
+            end_time: leave.end_time,
             from: leave.start_date || "N/A",
             to: leave.end_date || "N/A",
             reason: leave.reason || "N/A",
@@ -133,11 +143,10 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
         setLeaveRequests(leaveData);
 
         // Set pagination info if available
-        const count = response.count || dataSource && dataSource.count;
-        if (count !== undefined) {
-          setTotalPages(Math.ceil(count / 10)); // Assuming page_size is 10
-          setTotalCount(count);
-        }
+        const total = typeof response.count === 'number' ? response.count : (typeof dataSource?.count === 'number' ? dataSource.count : (response.total_pages ? response.total_pages * 10 : (dataSource?.total_pages ? dataSource.total_pages * 10 : leaveData.length)));
+        const pages = typeof response.total_pages === 'number' ? response.total_pages : (typeof dataSource?.total_pages === 'number' ? dataSource.total_pages : Math.ceil(total / 10));
+        setTotalPages(Math.max(1, pages));
+        setTotalCount(total);
       } else {
         setError(dataSource?.message || response?.message || "Failed to fetch leave requests");
         toast({
@@ -334,7 +343,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                 }
               </div>
               <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
-                {translateTerminology("Review and approve leave requests from Heads of Departments")}
+                {translateTerminology("Review and approve leave and permission requests routed to you for approval")}
               </CardDescription>
             </div>
             <div className="leave-filter-container flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
@@ -451,17 +460,42 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="font-semibold text-base break-all">{leave.name}</div>
-                          <div className="text-xs text-muted-foreground font-medium">{leave.department}</div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
+                              {leave.role?.replace('_', ' ')}
+                            </span>
+                            <span className="text-xs text-muted-foreground font-medium">{leave.department}</span>
+                          </div>
                         </div>
                         <div className="shrink-0">{getStatusBadge(leave.status, theme)}</div>
                       </div>
 
-                      <div className="mt-3 space-y-3">
-                        <div className={`p-2.5 rounded-lg border text-sm flex items-center gap-2 ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50/50 border-gray-100'}`}>
-                          <CalendarIcon className="w-4 h-4 text-primary/60" />
-                          <span className="font-medium text-foreground">{formatDateString(leave.from)}</span>
-                          <span className="text-muted-foreground">to</span>
-                          <span className="font-medium text-foreground">{formatDateString(leave.to)}</span>
+                      <div className="mt-2.5">
+                        <div className="text-sm font-semibold text-foreground">{leave.title}</div>
+                        {leave.leave_type === 'short_permission' && (
+                          <span className={`inline-block mt-0.5 text-[10px] font-medium px-1.5 py-0.2 rounded ${theme === 'dark' ? 'bg-purple-950/40 text-purple-300' : 'bg-purple-50 text-purple-700'}`}>
+                            Short Permission
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="mt-2.5 space-y-3">
+                        <div className={`p-2.5 rounded-lg border text-sm flex flex-col gap-1 ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50/50 border-gray-100'}`}>
+                          <div className="flex items-center gap-2">
+                            <CalendarIcon className="w-4 h-4 text-primary/60" />
+                            <span className="font-medium text-foreground">{formatDateString(leave.from)}</span>
+                            {leave.from !== leave.to && (
+                              <>
+                                <span className="text-muted-foreground">to</span>
+                                <span className="font-medium text-foreground">{formatDateString(leave.to)}</span>
+                              </>
+                            )}
+                          </div>
+                          {leave.start_time && leave.end_time && (
+                            <div className="text-xs font-semibold text-primary pl-6">
+                              {leave.start_time} - {leave.end_time}
+                            </div>
+                          )}
                         </div>
 
                         <Button
@@ -521,8 +555,9 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
               <table className="hidden md:table w-full text-sm text-left border-collapse">
                 <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-border bg-card shadow-sm' : 'border-gray-200 bg-gray-50 shadow-sm'}`}>
                   <tr>
-                    <th className={`py-3 px-2 md:px-4 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{translateTerminology("HOD")}</th>
-                    <th className={`py-3 px-4 md:px-12 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
+                    <th className={`py-3 px-2 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Applicant</th>
+                    <th className={`py-3 px-2 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</th>
+                    <th className={`py-3 px-4 md:px-6 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period & Time</th>
                     <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
                     <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
                     <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Action</th>
@@ -535,12 +570,34 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                         key={leave.id}
                         className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
 
-                        <td className="py-4 px-2 md:px-4 text-center">
+                        <td className="py-4 px-2 md:px-4 text-left">
                           <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.name}</div>
-                          <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.department}</div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
+                              {leave.role?.replace('_', ' ')}
+                            </span>
+                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.department}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-2 md:px-4 text-left">
+                          <div className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</div>
+                          {leave.leave_type === 'short_permission' ? (
+                            <span className={`inline-block mt-0.5 text-[11px] font-medium px-1.5 py-0.2 rounded ${theme === 'dark' ? 'bg-purple-950/40 text-purple-300 border border-purple-800/40' : 'bg-purple-50 text-purple-700 border border-purple-200'}`}>
+                              Short Permission
+                            </span>
+                          ) : (
+                            <span className={`inline-block mt-0.5 text-[11px] font-medium px-1.5 py-0.2 rounded ${theme === 'dark' ? 'bg-blue-950/40 text-blue-300' : 'bg-blue-50 text-blue-700'}`}>
+                              Standard Leave
+                            </span>
+                          )}
                         </td>
                         <td className={`py-4 px-2 md:px-4 text-sm text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                          {formatDateString(leave.from)} <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {formatDateString(leave.to)}
+                          <div>{formatDateString(leave.from)} {leave.from !== leave.to && <><span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {formatDateString(leave.to)}</>}</div>
+                          {leave.start_time && leave.end_time && (
+                            <div className="text-xs font-semibold text-primary mt-0.5">
+                              {leave.start_time} - {leave.end_time}
+                            </div>
+                          )}
                         </td>
                         <td className="py-4 px-2 md:px-4 text-sm text-center">
                           <button
@@ -588,7 +645,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                     ) :
 
                     <tr>
-                      <td colSpan={5} className="py-20 px-4">
+                      <td colSpan={6} className="py-20 px-4">
                         <div className="flex flex-col items-center justify-center">
                           <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                             <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
