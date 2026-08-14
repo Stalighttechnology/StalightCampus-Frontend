@@ -64,6 +64,7 @@ interface AnnouncementSectionsProps {
   showExpired?: boolean;
   setShowExpired?: (val: boolean) => void;
   hideReceivedTab?: boolean;
+  hideMyTab?: boolean;
   onResolveEmergency?: (incidentId: number) => void;
 }
 
@@ -170,7 +171,7 @@ const formatRoleName = (role: string) => {
 
 const renderTargetRoles = (targetRoles: string[]) => {
   if (!targetRoles || targetRoles.length === 0) return null;
-  const ALL_POSSIBLE_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager"];
+  const ALL_POSSIBLE_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "counsellor"];
 
   if (targetRoles.length >= ALL_POSSIBLE_ROLES.length - 1) {
     return (
@@ -201,7 +202,7 @@ const renderTargetRoles = (targetRoles: string[]) => {
 
 const renderTargetRolesMobile = (targetRoles: string[]) => {
   if (!targetRoles || targetRoles.length === 0) return null;
-  const ALL_POSSIBLE_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager"];
+  const ALL_POSSIBLE_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "counsellor"];
 
   if (targetRoles.length >= ALL_POSSIBLE_ROLES.length - 1) {
     return (
@@ -248,6 +249,7 @@ export const AnnouncementSections = ({
   showExpired: propShowExpired,
   setShowExpired: propSetShowExpired,
   hideReceivedTab = false,
+  hideMyTab = false,
   onResolveEmergency,
 }: AnnouncementSectionsProps) => {
   const { theme } = useTheme();
@@ -368,6 +370,15 @@ export const AnnouncementSections = ({
                 {myPagination && myPagination.count > 0 && (
                   <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold bg-primary/10 text-primary border-none">
                     {myPagination.count}
+                  </Badge>
+                )}
+              </div>
+            ) : hideMyTab ? (
+              <div className="flex items-center gap-2 mt-5">
+                <h3 className="text-lg font-semibold">Received Announcements</h3>
+                {receivedPagination && receivedPagination.unreadCount !== undefined && receivedPagination.unreadCount > 0 && (
+                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold bg-primary text-white border-none shadow-sm">
+                    {receivedPagination.unreadCount}
                   </Badge>
                 )}
               </div>

@@ -21,6 +21,8 @@ import { TutorialController } from "../../onboarding/components/TutorialControll
 import { HolidayCalendar } from "../admin/HolidayCalendar";
 import ScheduleMeeting from "../common/ScheduleMeeting";
 
+import AnnouncementManagement from "../admin/AnnouncementManagement";
+
 interface DashboardProps {
   user: any;
   setPage: (page: string) => void;
@@ -47,6 +49,8 @@ const AdmissionManagerDashboard = ({ user }: DashboardProps) => {
       case "admission-dashboard":
       case "":
         return <AdmissionDashboard />;
+      case "announcements":
+        return <AnnouncementManagement />;
       case "campus-builder":
         return <CampusPageBuilder />;
       case "admission-enquiries":

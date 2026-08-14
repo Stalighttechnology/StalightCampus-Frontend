@@ -668,6 +668,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
     admission_manager: [
       { name: "Dashboard", page: "admission-dashboard" },
+      { name: "Announcements", page: "announcements" },
       { name: "Courses", page: "admission-courses" },
       { name: "Enquiries", page: "admission-enquiries" },
       { name: "Applications", page: "admission-applications" },
@@ -686,6 +687,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
     counsellor: [
       { name: "Dashboard", page: "admission-dashboard" },
+      { name: "Announcements", page: "announcements" },
       { name: "Enquiries", page: "admission-enquiries" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "Calendar", page: "holiday-calendar" },
