@@ -92,7 +92,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const { user } = useAuth();
   const userRole = user?.role || '';
   const showBranchField = userRole === 'teacher' || userRole === 'hod' || userRole === 'faculty';
-  const today = new Date();
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
   const [leaveList, setLeaveList] = useState<LeaveRequestDisplay[]>([]);
 
   // Fetch branches and leave history
@@ -258,24 +259,6 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           appliedOn: new Date().toLocaleString()
         };
         setLeaveList((prev) => [newLeave, ...prev]);
-
-        // Update quota counts optimistically
-        if (leaveQuota) {
-          if (leaveType === 'short_permission') {
-            setLeaveQuota({
-              ...leaveQuota,
-              used_short_permissions_this_month: leaveQuota.used_short_permissions_this_month + 1,
-              remaining_short_permissions_this_month: Math.max(0, leaveQuota.remaining_short_permissions_this_month - 1)
-            });
-          } else {
-            const daysCount = (new Date(endDateStr).getTime() - new Date(startDateStr).getTime()) / (1000 * 3600 * 24) + 1;
-            setLeaveQuota({
-              ...leaveQuota,
-              used_standard_leaves: leaveQuota.used_standard_leaves + daysCount,
-              remaining_standard_leaves: Math.max(0, leaveQuota.remaining_standard_leaves - daysCount)
-            });
-          }
-        }
       } else {
         throw new Error(res.message || 'Failed to apply for leave');
       }
@@ -467,7 +450,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         mode="range"
                         selected={dateRange}
                         onSelect={handleDateRangeChange}
-                        disabled={(date) => date < today}
+                        disabled={(date) => date < startOfToday}
                         initialFocus
                         className={theme === 'dark' ? 'rounded-md bg-background text-foreground [&_.rdp-day:hover]:bg-accent [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed' : 'rounded-md bg-white text-gray-900 [&_.rdp-day:hover]:bg-gray-100 [&_.rdp-day_selected]:bg-blue-600 [&_.rdp-day_selected]:text-white [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed'} />
                     </PopoverContent>
@@ -500,7 +483,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           mode="single"
                           selected={permissionDate}
                           onSelect={(d) => setPermissionDate(d)}
-                          disabled={(date) => date < today}
+                          disabled={(date) => date < startOfToday}
                           initialFocus
                           className={theme === 'dark' ? 'rounded-md bg-background text-foreground' : 'rounded-md bg-white text-gray-900'}
                         />

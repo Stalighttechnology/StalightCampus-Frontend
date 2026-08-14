@@ -13,7 +13,7 @@ import SubjectManagement from "../hod/SubjectManagement";
 import FacultyAssignments from "../hod/FacultyAssignments";
 import Timetable from "../hod/Timetable";
 import LeaveManagement from "../hod/LeaveManagement";
-import ApplyLeave from "../hod/ApplyLeave";
+import ApplyLeave from "../faculty/ApplyLeave";
 import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import AttendanceView from "../hod/AttendanceView";
 import MarksView from "../hod/MarksView";

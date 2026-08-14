@@ -845,7 +845,7 @@ export default function PrincipalTimetableSettings() {
                       <div className={`rounded-xl border divide-y ${theme === 'dark' ? 'bg-background border-border divide-border' : 'bg-slate-50/50 border-gray-200 divide-gray-100'}`}>
                         {[
                           { roleKey: 'teacher', label: 'Faculty / Teacher Leaves', defaultApprover: 'hod' },
-                          { roleKey: 'hod', label: `${translateTerminology('HOD')} Leaves`, defaultApprover: 'principal' },
+                          { roleKey: 'hod', label: 'Head of Department (HOD) Leaves', defaultApprover: 'principal' },
                           { roleKey: 'dean', label: 'Dean Leaves', defaultApprover: 'principal' },
                           { roleKey: 'coe', label: 'COE Leaves', defaultApprover: 'dean' },
                           { roleKey: 'fees_manager', label: 'Fees Manager Leaves', defaultApprover: 'dean' },
@@ -879,7 +879,7 @@ export default function PrincipalTimetableSettings() {
                                   <SelectValue placeholder="Select approver" />
                                 </SelectTrigger>
                                 <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                                  <SelectItem value="hod">{translateTerminology('HOD')}</SelectItem>
+                                  <SelectItem value="hod">Head of Department (HOD)</SelectItem>
                                   <SelectItem value="principal">Principal</SelectItem>
                                   <SelectItem value="dean">Dean</SelectItem>
                                   <SelectItem value="transport_admin">Transport Admin</SelectItem>
