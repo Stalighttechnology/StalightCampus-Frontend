@@ -702,6 +702,42 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
   };
 
+  const branchName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
+  const deptName = (user?.department || '').toString().toLowerCase();
+  const isNonTeachingBranch = branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
+
+  if (role === 'faculty' && isNonTeachingBranch) {
+    menuItems['faculty'] = [
+      { name: "Dashboard", page: "dashboard" },
+      { name: "Apply Leave", page: "apply-leave" },
+      { name: "My Attendance", page: "faculty-attendance" },
+      { name: "Announcements", page: "faculty-announcement-management" },
+      { name: "Calendar", page: "holiday-calendar" },
+      { name: "Schedule Meeting", page: "schedule-meeting" },
+      { name: "My Salary & Payroll", page: "my-payroll" },
+      { name: "Reimbursements & Claims", page: "reimbursements" },
+      { name: "Staff Tasks", page: "staff-tasks" },
+      { name: "Profile", page: "faculty-profile" },
+    ];
+  }
+
+  if (role === 'hod' && isNonTeachingBranch) {
+    menuItems['hod'] = [
+      { name: "Dashboard", page: "dashboard" },
+      { name: "Manage Staff Leaves", page: "leaves" },
+      { name: "Staff Attendance", page: "faculty-attendance" },
+      { name: "Staff Tasks", page: "staff-tasks" },
+      { name: "Announcements", page: "hod-announcement-management" },
+      { name: "Schedule Meeting", page: "schedule-meeting" },
+      { name: "Apply Leave", page: "apply-leaves" },
+      { name: "My Attendance", page: "my-attendance" },
+      { name: "Calendar", page: "holiday-calendar" },
+      { name: "My Salary & Payroll", page: "my-payroll" },
+      { name: "Reimbursements & Claims", page: "reimbursements" },
+      { name: "Profile", page: "hod-profile" },
+    ];
+  }
+
   if (user?.role === 'hod') {
     if (role === 'faculty') {
       menuItems['faculty'] = menuItems['faculty'].filter(item => item.page !== 'apply-leave' && item.page !== 'faculty-attendance' && item.page !== 'reimbursements' && item.page !== 'my-payroll' && item.page !== 'staff-tasks');

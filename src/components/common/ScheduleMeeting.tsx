@@ -465,8 +465,14 @@ export default function ScheduleMeeting() {
             </CardDescription>
           </div>
           
-          {!['warden', 'library_admin', 'transport_admin'].includes(userRole || '') && (
-            <Dialog open={showDialog} onOpenChange={setShowDialog}>
+          {(() => {
+            const bName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
+            const dName = (user?.department || '').toString().toLowerCase();
+            const isNonTeachingBranch = bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');
+            const isRestricted = isNonTeachingBranch || ['warden', 'library_admin', 'transport_admin'].includes(userRole || '');
+            
+            return !isRestricted && (
+              <Dialog open={showDialog} onOpenChange={setShowDialog}>
               <DialogTrigger asChild>
                 <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white shadow-sm h-9 font-semibold">
                   <Plus className="h-4 w-4 mr-2" />
@@ -704,7 +710,8 @@ export default function ScheduleMeeting() {
                 </DialogContent>
               )}
             </Dialog>
-          )}
+            );
+          })()}
         </CardHeader>
         
         <CardContent className="p-4 sm:p-6 pb-6">

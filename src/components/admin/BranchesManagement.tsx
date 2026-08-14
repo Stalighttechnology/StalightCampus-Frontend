@@ -20,7 +20,7 @@ import {
 } from
   "../ui/select";
 import { SkeletonTable } from "../ui/skeleton";
-import { PencilIcon, TrashIcon, PlusIcon, UserPlus2Icon, FileDownIcon, Loader2 } from "lucide-react";
+import { PencilIcon, TrashIcon, PlusIcon, UserPlus2Icon, FileDownIcon, Loader2, Building2, CheckCircle2, Info } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { manageBranches, manageUsers, getBranchesWithHODs } from "../../utils/admin_api";
@@ -67,8 +67,44 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
   const [newHodId, setNewHodId] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isNonTeachingModalOpen, setIsNonTeachingModalOpen] = useState(false);
+  const [isCreatingNonTeaching, setIsCreatingNonTeaching] = useState(false);
   const normalize = (str: string) => str.toLowerCase().trim();
   const { theme } = useTheme();
+
+  const hasNonTeachingBranch = branches.some(b => 
+    (b.name || '').toLowerCase().includes('non-teaching') || 
+    (b.name || '').toLowerCase().includes('non teaching')
+  );
+
+  const handleCreateNonTeachingBranch = async () => {
+    setIsCreatingNonTeaching(true);
+    try {
+      const response = await manageBranches(
+        {
+          name: "Non-Teaching Staff",
+          branch_code: "NTS",
+          total_semesters: 1
+        },
+        undefined,
+        "POST"
+      );
+      const hasResults = response && typeof response === 'object' && 'results' in response;
+      const dataSource = hasResults ? (response as any).results : response as any;
+
+      if (dataSource && dataSource.success) {
+        setIsNonTeachingModalOpen(false);
+        toast({ title: "Success", description: "Non-Teaching Staff branch created successfully!" });
+        fetchData(1);
+      } else {
+        toast({ variant: "destructive", title: "Error", description: response?.message || "Failed to create branch" });
+      }
+    } catch (err) {
+      toast({ variant: "destructive", title: "Error", description: "Network error" });
+    } finally {
+      setIsCreatingNonTeaching(false);
+    }
+  };
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -556,6 +592,17 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                       <PlusIcon className="w-4 h-4" /> {translateTerminology("Add Branch")}
                     </Button>
 
+                    {!hasNonTeachingBranch && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex items-center justify-center gap-1 w-auto border-purple-500 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                        onClick={() => setIsNonTeachingModalOpen(true)}
+                        disabled={loading}>
+                        <Building2 className="w-4 h-4" /> Add Non-Teaching Staff Branch
+                      </Button>
+                    )}
+
                     <Button
                       size="sm"
                       className="flex items-center justify-center gap-1 w-auto"
@@ -1014,6 +1061,58 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                 className="flex-1"
               >
                 {loading ? "Deleting..." : translateTerminology("Delete Branch")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isNonTeachingModalOpen} onOpenChange={setIsNonTeachingModalOpen}>
+          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground max-w-[90vw] sm:max-w-md rounded-xl' : 'bg-white text-gray-900 max-w-[90vw] sm:max-w-md rounded-xl'}>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl font-semibold">
+                <Building2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                Create Non-Teaching Staff Branch
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              <div className="p-3.5 rounded-xl border border-purple-500/30 bg-purple-500/10 text-purple-900 dark:text-purple-200 text-xs sm:text-sm space-y-2">
+                <div className="flex items-center gap-2 font-semibold text-purple-700 dark:text-purple-300">
+                  <Info className="w-4 h-4" />
+                  Why create this branch?
+                </div>
+                <p className="leading-relaxed">
+                  Assign non-academic employees (office staff, lab assistants, accountants, clerks, hosteller/transport staff) to this branch. 
+                </p>
+                <ul className="list-disc list-inside space-y-1 opacity-90 pl-1">
+                  <li>Gives staff immediate portal access (leaves, attendance, tasks, salary)</li>
+                  <li>Hides academic tools (marks, syllabus, timetables) for a clean dashboard</li>
+                  <li>Integrates with payroll and absent-marking cron jobs out-of-the-box</li>
+                </ul>
+              </div>
+
+              <div className="space-y-2 text-xs sm:text-sm">
+                <div className="flex justify-between items-center p-2.5 rounded-lg border bg-muted/30">
+                  <span className="font-medium text-muted-foreground">Branch Name:</span>
+                  <span className="font-semibold text-foreground">Non-Teaching Staff</span>
+                </div>
+                <div className="flex justify-between items-center p-2.5 rounded-lg border bg-muted/30">
+                  <span className="font-medium text-muted-foreground">Branch Code:</span>
+                  <span className="font-semibold text-foreground">NTS</span>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="flex gap-3">
+              <Button variant="ghost" onClick={() => setIsNonTeachingModalOpen(false)} disabled={isCreatingNonTeaching} className="flex-1">
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleCreateNonTeachingBranch} 
+                disabled={isCreatingNonTeaching}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium gap-2">
+                {isCreatingNonTeaching ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                {isCreatingNonTeaching ? "Creating..." : "Confirm & Create"}
               </Button>
             </DialogFooter>
           </DialogContent>
