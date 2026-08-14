@@ -25,7 +25,10 @@ import {
   ChevronRight,
   AlertCircle,
   FileText,
-  Loader2
+  Loader2,
+  CheckCircle,
+  XCircle,
+  CalendarX
 } from
   'lucide-react';
 import { format } from "date-fns";
@@ -92,6 +95,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
   const [holidayDates, setHolidayDates] = useState<string[]>([]);
   const [selectedStaffJoinDate, setSelectedStaffJoinDate] = useState<string | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [selectedDateDetailsStr, setSelectedDateDetailsStr] = useState<string | null>(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -373,14 +377,17 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-green-600">Present</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-red-600">Absent</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Percentage</TableHead>
+                  <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-orange-600">Delay (m)</TableHead>
+                  <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-red-600">Missed</TableHead>
+                  <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-blue-600">Hours</TableHead>
                   <TableHead className="px-6 py-4 text-right pr-6 text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ?
                   <TableRow>
-                    <TableCell colSpan={8} className="p-0">
-                      <SkeletonTable rows={10} cols={8} />
+                    <TableCell colSpan={11} className="p-0">
+                      <SkeletonTable rows={10} cols={11} />
                     </TableCell>
                   </TableRow> :
                   attendanceData.length > 0 ?
@@ -420,6 +427,15 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                             </div>
                           </div>
                         </TableCell>
+                        <TableCell className="text-center font-mono text-sm text-orange-600">
+                          {item.total_delay_minutes || 0}
+                        </TableCell>
+                        <TableCell className="text-center font-mono text-sm text-red-600">
+                          {item.total_missed || 0}
+                        </TableCell>
+                        <TableCell className="text-center font-mono text-sm text-blue-600 font-semibold">
+                          {item.total_hours || '00:00'}
+                        </TableCell>
                         <TableCell className="text-right pr-6">
                           <Button
                             variant="ghost"
@@ -435,7 +451,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                     ) :
                     !selectedRole || !startDate || !endDate ?
                       <TableRow>
-                        <TableCell colSpan={8} className="h-72 text-center">
+                        <TableCell colSpan={11} className="h-72 text-center">
                           <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
                             <div className="bg-primary/10 p-4 rounded-full">
                               <Filter className="h-8 w-8 text-primary" />
@@ -449,7 +465,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                       </TableRow> :
 
                       <TableRow>
-                        <TableCell colSpan={8} className="h-72 text-center">
+                        <TableCell colSpan={11} className="h-72 text-center">
                           <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
                             <div className="bg-muted p-4 rounded-full">
                               <Users className="h-8 w-8 text-muted-foreground" />
@@ -555,18 +571,19 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                         const isAbsent = !isNonWorkingDay && (record?.status === 'absent' || (!record && !isPresent));
 
                         return (
-                          <div
+                          <button
                             key={idx}
+                            onClick={() => setSelectedDateDetailsStr(dateStr)}
                             className={cn(
-                              "flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-xl border transition-all duration-300 shadow-sm",
-                              isPresent ? "bg-green-500/10 border-green-500/30 text-green-700 shadow-green-500/5" :
-                                isAbsent ? "bg-red-500/10 border-red-500/30 text-red-700 shadow-red-500/5" :
+                              "flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-xl border transition-all duration-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 hover:scale-105",
+                              isPresent ? "bg-green-500/10 border-green-500/30 text-green-700 shadow-green-500/5 hover:border-green-500" :
+                                isAbsent ? "bg-red-500/10 border-red-500/30 text-red-700 shadow-red-500/5 hover:border-red-500" :
                                   isNonWorkingDay ? "bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-400" :
-                                    "bg-muted/30 border-border/50 text-muted-foreground opacity-30"
+                                    "bg-muted/30 border-border/50 text-muted-foreground opacity-30 hover:border-primary/20"
                             )}
                           >
                             <span className={cn(
-                              "text-[9px] sm:text-[10px] font-semibold uppercase tracking-tighter opacity-70",
+                              "text-[9px] sm:text-[10px] font-semibold uppercase tracking-tighter opacity-70 detail-day-weekday",
                               (isPresent || isAbsent || isNonWorkingDay) && "opacity-100"
                             )}>
                               {format(date, "EEE")}
@@ -575,10 +592,10 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                               {format(date, "d")}
                             </span>
                             <div className={cn(
-                              "w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full mt-1",
-                              isPresent ? "bg-green-500" : isAbsent ? "bg-red-500" : isNonWorkingDay ? "bg-slate-300 dark:bg-slate-600" : "bg-muted-foreground/30"
+                              "w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full mt-1 detail-status-badge",
+                              isPresent ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : isAbsent ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]" : isNonWorkingDay ? "bg-slate-300 dark:bg-slate-600" : "bg-muted-foreground/30"
                             )} />
-                          </div>
+                          </button>
                         );
                       })}
                   </div>
@@ -612,8 +629,139 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
           </div>
         </DialogContent>
       </Dialog>
-    </div>);
 
+      {/* Secondary Dialog for Date Details in Reports */}
+      {selectedDateDetailsStr && (() => {
+        const dateObj = new Date(selectedDateDetailsStr);
+        const dateStr = selectedDateDetailsStr;
+        const record = detailedAttendance.find((r) => {
+          const rDate = typeof r.date === 'string' ? r.date : format(new Date(r.date), "yyyy-MM-dd");
+          return rDate === dateStr;
+        });
+        
+        const todayStr = new Date().toLocaleDateString('sv-SE');
+        const isFuture = dateStr > todayStr;
+        const isSunday = dateObj.getDay() === 0;
+        const isHoliday = holidayDates.includes(dateStr);
+        const isNonWorkingDay = isSunday || isHoliday;
+        const isPresent = record?.status === 'present';
+        
+        // Use document.documentElement.classList to check theme safely in Reports
+        const isDark = document.documentElement.classList.contains('dark');
+
+        return (
+          <Dialog open={!!selectedDateDetailsStr} onOpenChange={(open) => {
+            if (!open) setSelectedDateDetailsStr(null);
+          }}>
+            <DialogContent className={`w-[90%] max-w-[360px] p-0 border-0 rounded-2xl overflow-hidden shadow-2xl ${isDark ? 'bg-slate-900 text-white' : 'bg-white text-gray-900'}`}>
+              <div className={`p-5 ${isDark ? 'bg-slate-800' : 'bg-primary/5'} border-b ${isDark ? 'border-white/10' : 'border-primary/10'}`}>
+                <DialogTitle className="text-lg font-bold">
+                  {dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                </DialogTitle>
+                <div className={`mt-1 font-medium text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Attendance Record Details
+                </div>
+              </div>
+
+              <div className="p-5">
+                {record && (
+                  <div className="space-y-4">
+                    <div className={`${isPresent ? 'text-green-500 bg-green-500/10' : 'text-red-500 bg-red-500/10'} p-3 rounded-xl font-bold flex items-center gap-2 text-base`}>
+                      {isPresent ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />} 
+                      {record.status === 'not_marked' ? 'Not Marked' : record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                    </div>
+                    
+                    {record.checkin_timestamps && record.checkin_timestamps.length > 0 ? (
+                      <div className={`space-y-2 p-4 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                        {record.checkin_timestamps.map((ts: any, idx: number) => (
+                          <div key={idx} className={`flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0 ${isDark ? 'border-white/5' : 'border-gray-200'}`}>
+                            <span className="font-semibold text-gray-500">Check-in {idx + 1}</span>
+                            <div className="flex items-center gap-2">
+                              {ts === "Missed" ? (
+                                <span className="text-red-500 font-bold">Missed</span>
+                              ) : ts ? (
+                                <>
+                                  <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                    {new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                  </span>
+                                  {record.delays && record.delays[idx] > 0 && (
+                                    <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded shadow-sm">
+                                      +{record.delays[idx]}m
+                                    </span>
+                                  )}
+                                </>
+                              ) : (
+                                <span className="text-gray-400 italic font-medium">Pending</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        {record.check_out_time && (
+                          <div className={`flex items-center justify-between font-bold pt-2 border-t mt-2 ${isDark ? 'border-white/10' : 'border-gray-300'}`}>
+                            <span className="text-gray-500">Check Out</span> 
+                            <span className={`${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (record.check_in_time || record.check_out_time) && (
+                      <div className={`space-y-2 p-4 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                        {record.check_in_time && (
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-gray-500">Check In</span> 
+                            <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              {new Date(record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            </span>
+                          </div>
+                        )}
+                        {record.check_out_time && (
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-gray-500">Check Out</span> 
+                            <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {record.total_hours && (
+                      <div className="flex items-center justify-between font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-4 py-3 rounded-xl border border-blue-500/20">
+                        <span>Total Worked</span>
+                        <span>{record.total_hours}</span>
+                      </div>
+                    )}
+
+                    {record.notes?.includes('[Off-Campus Check-in]') && (
+                      <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 font-semibold leading-relaxed">
+                        <span className="block text-xs uppercase tracking-wider font-black mb-1 opacity-70">Off-Campus Duty</span>
+                        {record.notes.replace('[Off-Campus Check-in] Reason:', '').trim()}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {!record && !isFuture && !isNonWorkingDay && (
+                  <div className="text-red-500 font-bold flex flex-col items-center justify-center gap-2 p-6 bg-red-500/10 rounded-xl border border-red-500/20 text-center">
+                    <XCircle className="w-10 h-10 opacity-80" /> 
+                    <span>Auto-marked Absent</span>
+                  </div>
+                )}
+                
+                {isNonWorkingDay && (
+                  <div className={`font-bold flex flex-col items-center justify-center gap-2 p-6 rounded-xl border text-center ${isDark ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+                    <CalendarX className="w-10 h-10 opacity-50" /> 
+                    <span>{isHoliday ? 'Holiday' : 'Sunday'}</span>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
+    </div>
+  );
 };
 
 export default Reports;

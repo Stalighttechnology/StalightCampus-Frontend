@@ -1733,6 +1733,10 @@ export interface FacultyAttendanceRecord {
   total_hours?: string | null;
   notes: string;
   location?: AttendanceLocation | null;
+  checkin_timestamps?: string[] | null;
+  delays?: number[] | null;
+  periodic_checkin_count?: number;
+  checkin_windows?: {start: string, end: string}[] | null;
 }
 
 export interface AttendanceLocation {

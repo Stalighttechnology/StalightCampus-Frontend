@@ -748,7 +748,9 @@ export const STAFF_ROLES = [
 { value: 'hms_admin', label: 'HMS Admin' },
 { value: 'library_admin', label: 'Library Admin' },
 { value: 'transport_admin', label: 'Transport Admin' },
-{ value: 'placement_officer', label: 'Placement Officer' }];
+{ value: 'placement_officer', label: 'Placement Officer' },
+{ value: 'counsellor', label: 'Admission Counsellor' },
+{ value: 'admission_manager', label: 'Admission Manager' }];
 
 // Payroll Management API Helpers
 export const getPayrollSettings = async () => {

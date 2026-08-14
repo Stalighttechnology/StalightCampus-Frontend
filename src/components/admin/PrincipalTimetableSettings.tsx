@@ -9,6 +9,7 @@ import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { useToast } from "../../hooks/use-toast";
 import { Checkbox } from "../../components/ui/checkbox";
+import { Switch } from "../../components/ui/switch";
 import { useTheme } from "../../context/ThemeContext";
 import {
   Select,
@@ -75,7 +76,7 @@ export default function PrincipalTimetableSettings() {
 
   const [approvalChain, setApprovalChain] = useState<string[]>(['hod', 'principal', 'coe']);
   const [chainLoading, setChainLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'timetable' | 'qp-workflow' | 'leave-policy'>('timetable');
+  const [activeTab, setActiveTab] = useState<'timetable' | 'qp-workflow' | 'attendance-workflow' | 'leave-policy'>('timetable');
 
   // Leave & Short Permission Policy state
   const [leavePolicyLoading, setLeavePolicyLoading] = useState(false);
@@ -99,6 +100,11 @@ export default function PrincipalTimetableSettings() {
       warden: 'hms_admin'
     } as Record<string, string>
   });
+
+  const [periodicCheckinCount, setPeriodicCheckinCount] = useState<number>(1);
+  const [checkinWindows, setCheckinWindows] = useState<{ start: string, end: string }[]>([]);
+  const [strictCheckinWindow, setStrictCheckinWindow] = useState<boolean>(true);
+  const [attendanceConfigLoading, setAttendanceConfigLoading] = useState(true);
 
   const PRESETS: Record<string, string[]> = {
     "Standard": ["hod", "principal", "coe"],
@@ -153,6 +159,25 @@ export default function PrincipalTimetableSettings() {
       console.error(err);
     } finally {
       setChainLoading(false);
+    }
+  };
+
+  const fetchAttendanceConfig = async () => {
+    try {
+      setAttendanceConfigLoading(true);
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/attendance-workflow/`);
+      if (res.ok) {
+        const data = await res.json();
+        setPeriodicCheckinCount(data.periodic_checkin_count || 1);
+        setCheckinWindows(data.checkin_windows || []);
+        if (data.strict_checkin_window !== undefined) {
+          setStrictCheckinWindow(data.strict_checkin_window);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAttendanceConfigLoading(false);
     }
   };
 
@@ -227,10 +252,32 @@ export default function PrincipalTimetableSettings() {
     }
   };
 
+  const handleSaveAttendanceConfig = async () => {
+    try {
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/attendance-workflow/`, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          periodic_checkin_count: periodicCheckinCount,
+          checkin_windows: checkinWindows,
+          strict_checkin_window: strictCheckinWindow
+        })
+      });
+      if (res.ok) {
+        toast({ title: "Success", description: "Attendance workflow saved" });
+      } else {
+        toast({ title: "Error", description: "Failed to save workflow", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to save workflow", variant: "destructive" });
+    }
+  };
+
   useEffect(() => {
     fetchSlots();
     fetchApprovalChain();
     fetchLeavePolicy();
+    fetchAttendanceConfig();
   }, []);
 
   useEffect(() => {
@@ -471,467 +518,557 @@ export default function PrincipalTimetableSettings() {
         }
       `}</style>
 
-    <div className="space-y-6 w-full">
-      <Card className={`border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-        <CardHeader className="pb-3 border-b border-border/50">
-          <CardTitle className="text-xl sm:text-2xl font-semibold">Workflow Configuration</CardTitle>
-          <CardDescription className="text-muted-foreground text-sm">
-            Manage timetable slots and question paper approval workflows
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-4 pb-6 space-y-6">
-          <div className="flex flex-wrap border-b border-border/50">
-            <button
-              className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'timetable' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-              onClick={() => setActiveTab('timetable')}
-            >
-              Timetable Slots
-            </button>
-            <button
-              className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'qp-workflow' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-              onClick={() => setActiveTab('qp-workflow')}
-            >
-              Question Paper Workflow
-            </button>
-            <button
-              className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'leave-policy' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-              onClick={() => setActiveTab('leave-policy')}
-            >
-              Short Permission & Leave Policy
-            </button>
-          </div>
-
-          {activeTab === 'timetable' && (
-            <div className="space-y-6">
-              <div id="principal-timetable-settings-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
-                <div>
-                  <h3 className="text-lg font-semibold">Timetable Configuration</h3>
-                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    Configure the daily class periods and breaks for your institution.
-                  </p>
-                </div>
-                <div className="w-full sm:w-auto">
-                  <Button onClick={() => handleOpen()} className="w-full sm:w-auto shadow-sm">
-                    <Plus className="w-4 h-4 mr-2" /> Add Slot
-                  </Button>
-                </div>
-              </div>
-
-              <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogContent className={`w-[90%] max-w-[90%] md:max-w-xl rounded-2xl ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}`}>
-                  <DialogHeader>
-                    <DialogTitle className="text-lg font-semibold">
-                      {editingSlot ? 'Edit Slot' : 'Create New Slot'}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="slot-name">Slot Name (e.g., Period 1, Lunch Break)</Label>
-                      <Input
-                        id="slot-name"
-                        required
-                        value={formData.name}
-                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                        className={theme === 'dark' ? 'bg-background border-border' : ''}
-                        placeholder="Enter slot name..."
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Start Time</Label>
-                        <div className="flex gap-1.5 items-center">
-                          <Select value={startTimeParts.hour} onValueChange={(v) => updateStartTime('hour', v)}>
-                            <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
-                              <SelectValue placeholder="HH" />
-                            </SelectTrigger>
-                            <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                              {hoursOptions.map(h => (
-                                <SelectItem key={h} value={h}>{h}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <span className="text-muted-foreground font-semibold">:</span>
-                          <Select value={startTimeParts.minute} onValueChange={(v) => updateStartTime('minute', v)}>
-                            <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
-                              <SelectValue placeholder="MM" />
-                            </SelectTrigger>
-                            <SelectContent className={`max-h-[200px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                              {minutesOptions.map(m => (
-                                <SelectItem key={m} value={m}>{m}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Select value={startTimeParts.period} onValueChange={(v) => updateStartTime('period', v)}>
-                            <SelectTrigger className={`w-28 ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
-                              <SelectValue placeholder="AM/PM" />
-                            </SelectTrigger>
-                            <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                              <SelectItem value="AM">AM</SelectItem>
-                              <SelectItem value="PM">PM</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>End Time</Label>
-                        <div className="flex gap-1.5 items-center">
-                          <Select value={endTimeParts.hour} onValueChange={(v) => updateEndTime('hour', v)}>
-                            <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
-                              <SelectValue placeholder="HH" />
-                            </SelectTrigger>
-                            <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                              {hoursOptions.map(h => (
-                                <SelectItem key={h} value={h}>{h}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <span className="text-muted-foreground font-semibold">:</span>
-                          <Select value={endTimeParts.minute} onValueChange={(v) => updateEndTime('minute', v)}>
-                            <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
-                              <SelectValue placeholder="MM" />
-                            </SelectTrigger>
-                            <SelectContent className={`max-h-[200px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                              {minutesOptions.map(m => (
-                                <SelectItem key={m} value={m}>{m}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Select value={endTimeParts.period} onValueChange={(v) => updateEndTime('period', v)}>
-                            <SelectTrigger className={`w-28 ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
-                              <SelectValue placeholder="AM/PM" />
-                            </SelectTrigger>
-                            <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                              <SelectItem value="AM">AM</SelectItem>
-                              <SelectItem value="PM">PM</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2 pt-2">
-                      <Checkbox
-                        id="is_break"
-                        checked={formData.is_break}
-                        onCheckedChange={(c: boolean) => setFormData({ ...formData, is_break: c })}
-                      />
-                      <Label htmlFor="is_break" className="cursor-pointer select-none">This is a break/lunch period</Label>
-                    </div>
-
-                    <div className="pt-4 flex justify-end gap-2">
-                      <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-                      <Button type="submit">Save Slot</Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-
-              {loading ? (
-                <SkeletonTable rows={5} cols={5} />
-              ) : slots.length === 0 ? (
-                <div className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 text-center ${theme === 'dark' ? 'border-border bg-muted/5' : 'border-gray-200 bg-gray-50/30'
-                  }`}>
-                  <div className={`rounded-full p-4 mb-4 ${theme === 'dark' ? 'bg-muted/40 text-muted-foreground' : 'bg-gray-100/80 text-gray-500'}`}>
-                    <Clock className="w-8 h-8" />
-                  </div>
-                  <h3 className={`text-lg font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    No slots configured yet.
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1 mb-6 max-w-xs">
-                    Set up periods and breaks to organize class schedules for your institution.
-                  </p>
-                  <Button onClick={() => handleOpen()} size="sm" className="shadow-sm">
-                    <Plus className="w-4 h-4 mr-2" /> Configure your first slot
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {slots.map((slot) => (
-                    <Card
-                      key={slot.id}
-                      className={`border shadow-sm transition-all duration-150 hover:shadow-md ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'
-                        } ${slot.is_break
-                          ? 'border-l-4 border-l-orange-500'
-                          : ''
-                        }`}
-                    >
-                      <CardContent className="p-4 flex items-center justify-between">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                              {slot.name}
-                            </p>
-                            {slot.is_break && (
-                              <span className={`text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full border ${theme === 'dark'
-                                ? 'bg-orange-950/40 text-orange-400 border-orange-900/60'
-                                : 'bg-orange-100 text-orange-800 border-orange-200'
-                                }`}>
-                                Break
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            {formatTimeTo12hString(slot.start_time)} - {formatTimeTo12hString(slot.end_time)}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center space-x-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpen(slot)}
-                            className={`h-9 w-9 hover:bg-muted ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-900'}`}
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className={`h-9 w-9 text-red-500 hover:text-red-600 ${theme === 'dark' ? 'hover:bg-red-950/20' : 'hover:bg-red-50'}`}
-                            onClick={() => handleDelete(slot.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+      <div className="space-y-6 w-full">
+        <Card className={`border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+          <CardHeader className="pb-3 border-b border-border/50">
+            <CardTitle className="text-xl sm:text-2xl font-semibold">Workflow Configuration</CardTitle>
+            <CardDescription className="text-muted-foreground text-sm">
+              Manage timetable slots and question paper approval workflows
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-4 pb-6 space-y-6">
+            <div className="flex flex-wrap border-b border-border/50">
+              <button
+                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'timetable' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setActiveTab('timetable')}
+              >
+                Timetable Slots
+              </button>
+              <button
+                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'qp-workflow' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setActiveTab('qp-workflow')}
+              >
+                Question Paper Workflow
+              </button>
+              <button
+                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'leave-policy' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setActiveTab('leave-policy')}
+              >
+                Short Permission & Leave Policy
+              </button>
+              <button
+                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'attendance-workflow' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setActiveTab('attendance-workflow')}
+              >
+                Attendance Workflow
+              </button>
             </div>
-          )}
 
-          {activeTab === 'leave-policy' && (
-            <div className="space-y-6 pt-2">
-              <div className="flex items-center gap-3 pb-2 border-b border-border/40">
-                <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                  <CalendarCheck2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Short Permission & Leave Policy Configuration</h3>
-                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    Customize short period permissions per month, standard leaves limit, and configure approval routing.
-                  </p>
-                </div>
-              </div>
-
-              {leavePolicyLoading ? (
-                <SkeletonTable rows={3} cols={2} />
-              ) : (
-                <div className="space-y-6">
-                  {/* Quota Settings Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card className={`border ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'}`}>
-                      <CardContent className="p-4 space-y-2">
-                        <Label className="text-sm font-semibold">Short Permissions / Month</Label>
-                        <p className="text-xs text-muted-foreground">Max short period permission requests per faculty each month.</p>
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          value={leavePolicy.monthly_short_permission_limit}
-                          onChange={(e) => {
-                            const clean = e.target.value.replace(/[^0-9]/g, '');
-                            setLeavePolicy({ ...leavePolicy, monthly_short_permission_limit: clean });
-                          }}
-                          placeholder="e.g. 2"
-                          className={`mt-2 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
-                        />
-                      </CardContent>
-                    </Card>
-
-                    <Card className={`border ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'}`}>
-                      <CardContent className="p-4 space-y-2">
-                        <Label className="text-sm font-semibold">Total Standard Leaves</Label>
-                        <p className="text-xs text-muted-foreground">Standard leaves limit allowed per faculty per year.</p>
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          value={leavePolicy.total_standard_leaves}
-                          onChange={(e) => {
-                            const clean = e.target.value.replace(/[^0-9]/g, '');
-                            setLeavePolicy({ ...leavePolicy, total_standard_leaves: clean });
-                          }}
-                          placeholder="e.g. 12"
-                          className={`mt-2 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
-                        />
-                      </CardContent>
-                    </Card>
-
-                    <Card className={`border ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'}`}>
-                      <CardContent className="p-4 space-y-2">
-                        <Label className="text-sm font-semibold">Max Duration (Hours)</Label>
-                        <p className="text-xs text-muted-foreground">Maximum duration allowed for a single short permission.</p>
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          value={leavePolicy.short_permission_max_hours}
-                          onChange={(e) => {
-                            const clean = e.target.value.replace(/[^0-9]/g, '');
-                            setLeavePolicy({ ...leavePolicy, short_permission_max_hours: clean });
-                          }}
-                          placeholder="e.g. 2"
-                          className={`mt-2 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
-                        />
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Role-Based Approval Routing */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-primary" />
-                      <Label className="text-sm font-semibold">Role-Based Leave Approval Routing</Label>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Define which authority approves leave and permission requests for each staff role.
+            {activeTab === 'timetable' && (
+              <div className="space-y-6">
+                <div id="principal-timetable-settings-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
+                  <div>
+                    <h3 className="text-lg font-semibold">Timetable Configuration</h3>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      Configure the daily class periods and breaks for your institution.
                     </p>
+                  </div>
+                  <div className="w-full sm:w-auto">
+                    <Button onClick={() => handleOpen()} className="w-full sm:w-auto shadow-sm">
+                      <Plus className="w-4 h-4 mr-2" /> Add Slot
+                    </Button>
+                  </div>
+                </div>
 
-                    <div className={`rounded-xl border divide-y ${theme === 'dark' ? 'bg-background border-border divide-border' : 'bg-slate-50/50 border-gray-200 divide-gray-100'}`}>
-                      {[
-                        { roleKey: 'teacher', label: 'Faculty / Teacher Leaves', defaultApprover: 'hod' },
-                        { roleKey: 'hod', label: `${translateTerminology('HOD')} Leaves`, defaultApprover: 'principal' },
-                        { roleKey: 'dean', label: 'Dean Leaves', defaultApprover: 'principal' },
-                        { roleKey: 'coe', label: 'COE Leaves', defaultApprover: 'dean' },
-                        { roleKey: 'fees_manager', label: 'Fees Manager Leaves', defaultApprover: 'dean' },
-                        { roleKey: 'counsellor', label: 'Counsellor Leaves', defaultApprover: 'principal' },
-                        { roleKey: 'hms_admin', label: 'HMS Admin Leaves', defaultApprover: 'principal' },
-                        { roleKey: 'warden', label: 'Hostel Warden Leaves', defaultApprover: 'hms_admin' },
-                        { roleKey: 'transport_admin', label: 'Transport Admin Leaves', defaultApprover: 'principal' },
-                        { roleKey: 'driver', label: 'Driver Leaves', defaultApprover: 'transport_admin' },
-                        { roleKey: 'library_admin', label: 'Library Admin Leaves', defaultApprover: 'principal' },
-                        { roleKey: 'admission_manager', label: 'Admission Manager Leaves', defaultApprover: 'principal' }
-                      ].map((item) => (
-                        <div key={item.roleKey} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div>
-                            <span className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{item.label}</span>
-                            <p className="text-xs text-muted-foreground">Requests will be forwarded to the selected approver</p>
-                          </div>
-                          <div className="w-full sm:w-60">
-                            <Select
-                              value={leavePolicy.leave_approval_routing?.[item.roleKey] || item.defaultApprover}
-                              onValueChange={(val) => {
-                                setLeavePolicy({
-                                  ...leavePolicy,
-                                  leave_approval_routing: {
-                                    ...(leavePolicy.leave_approval_routing || {}),
-                                    [item.roleKey]: val
-                                  }
-                                });
-                              }}
-                            >
-                              <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
-                                <SelectValue placeholder="Select approver" />
+                <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                  <DialogContent className={`w-[90%] max-w-[90%] md:max-w-xl rounded-2xl ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}`}>
+                    <DialogHeader>
+                      <DialogTitle className="text-lg font-semibold">
+                        {editingSlot ? 'Edit Slot' : 'Create New Slot'}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="slot-name">Slot Name (e.g., Period 1, Lunch Break)</Label>
+                        <Input
+                          id="slot-name"
+                          required
+                          value={formData.name}
+                          onChange={e => setFormData({ ...formData, name: e.target.value })}
+                          className={theme === 'dark' ? 'bg-background border-border' : ''}
+                          placeholder="Enter slot name..."
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Start Time</Label>
+                          <div className="flex gap-1.5 items-center">
+                            <Select value={startTimeParts.hour} onValueChange={(v) => updateStartTime('hour', v)}>
+                              <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
+                                <SelectValue placeholder="HH" />
                               </SelectTrigger>
                               <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                                <SelectItem value="hod">{translateTerminology('HOD')}</SelectItem>
-                                <SelectItem value="principal">Principal</SelectItem>
-                                <SelectItem value="dean">Dean</SelectItem>
-                                <SelectItem value="transport_admin">Transport Admin</SelectItem>
-                                <SelectItem value="hms_admin">HMS Admin</SelectItem>
+                                {hoursOptions.map(h => (
+                                  <SelectItem key={h} value={h}>{h}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <span className="text-muted-foreground font-semibold">:</span>
+                            <Select value={startTimeParts.minute} onValueChange={(v) => updateStartTime('minute', v)}>
+                              <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
+                                <SelectValue placeholder="MM" />
+                              </SelectTrigger>
+                              <SelectContent className={`max-h-[200px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                {minutesOptions.map(m => (
+                                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Select value={startTimeParts.period} onValueChange={(v) => updateStartTime('period', v)}>
+                              <SelectTrigger className={`w-28 ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
+                                <SelectValue placeholder="AM/PM" />
+                              </SelectTrigger>
+                              <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                <SelectItem value="AM">AM</SelectItem>
+                                <SelectItem value="PM">PM</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
 
-                  <div className="flex justify-end pt-2">
-                    <Button onClick={handleSaveLeavePolicy} disabled={leavePolicySaving} className="shadow-sm">
-                      <Save className="w-4 h-4 mr-2" /> {leavePolicySaving ? 'Saving...' : 'Save Leave Policy'}
+                        <div className="space-y-2">
+                          <Label>End Time</Label>
+                          <div className="flex gap-1.5 items-center">
+                            <Select value={endTimeParts.hour} onValueChange={(v) => updateEndTime('hour', v)}>
+                              <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
+                                <SelectValue placeholder="HH" />
+                              </SelectTrigger>
+                              <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                {hoursOptions.map(h => (
+                                  <SelectItem key={h} value={h}>{h}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <span className="text-muted-foreground font-semibold">:</span>
+                            <Select value={endTimeParts.minute} onValueChange={(v) => updateEndTime('minute', v)}>
+                              <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
+                                <SelectValue placeholder="MM" />
+                              </SelectTrigger>
+                              <SelectContent className={`max-h-[200px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                {minutesOptions.map(m => (
+                                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Select value={endTimeParts.period} onValueChange={(v) => updateEndTime('period', v)}>
+                              <SelectTrigger className={`w-28 ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
+                                <SelectValue placeholder="AM/PM" />
+                              </SelectTrigger>
+                              <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                <SelectItem value="AM">AM</SelectItem>
+                                <SelectItem value="PM">PM</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2 pt-2">
+                        <Checkbox
+                          id="is_break"
+                          checked={formData.is_break}
+                          onCheckedChange={(c: boolean) => setFormData({ ...formData, is_break: c })}
+                        />
+                        <Label htmlFor="is_break" className="cursor-pointer select-none">This is a break/lunch period</Label>
+                      </div>
+
+                      <div className="pt-4 flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+                        <Button type="submit">Save Slot</Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+
+                {loading ? (
+                  <SkeletonTable rows={5} cols={5} />
+                ) : slots.length === 0 ? (
+                  <div className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 text-center ${theme === 'dark' ? 'border-border bg-muted/5' : 'border-gray-200 bg-gray-50/30'
+                    }`}>
+                    <div className={`rounded-full p-4 mb-4 ${theme === 'dark' ? 'bg-muted/40 text-muted-foreground' : 'bg-gray-100/80 text-gray-500'}`}>
+                      <Clock className="w-8 h-8" />
+                    </div>
+                    <h3 className={`text-lg font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      No slots configured yet.
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1 mb-6 max-w-xs">
+                      Set up periods and breaks to organize class schedules for your institution.
+                    </p>
+                    <Button onClick={() => handleOpen()} size="sm" className="shadow-sm">
+                      <Plus className="w-4 h-4 mr-2" /> Configure your first slot
                     </Button>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'qp-workflow' && (
-            <div className="space-y-6 pt-2">
-              <div className="flex items-center gap-3 pb-2 border-b border-border/40">
-                <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Question Paper Approval Workflow</h3>
-                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    Configure the sequence of approvers for Question Papers submitted by faculty.
-                  </p>
-                </div>
-              </div>
-
-              {chainLoading ? (
-                <SkeletonTable rows={2} cols={1} />
-              ) : (
-                <div className="space-y-6">
-                  {/* Presets */}
+                ) : (
                   <div className="space-y-3">
-                    <Label className="text-sm font-medium">Quick Presets</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {Object.entries(PRESETS).map(([presetName, presetChain]) => (
-                        <Button
-                          key={presetName}
-                          variant={JSON.stringify(approvalChain) === JSON.stringify(presetChain) ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setApprovalChain(presetChain)}
-                          className={theme === 'dark' && JSON.stringify(approvalChain) !== JSON.stringify(presetChain) ? 'border-border' : ''}
-                        >
-                          {presetName}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Chain Builder */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">Custom Workflow</Label>
-                    <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background border-border' : 'bg-gray-50 border-gray-200'}`}>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-sm font-medium text-muted-foreground">
-                          Faculty (Submits)
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
-
-                        {approvalChain.map((role, index) => (
-                          <React.Fragment key={`${role}-${index}`}>
-                            <div className="flex items-center gap-1">
-                              <div className={`px-3 py-1.5 rounded-full border text-sm font-medium ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-700'}`}>
-                                {AVAILABLE_ROLES.find(r => r.value === role)?.label || translateTerminology(role.toUpperCase())}
-                              </div>
+                    {slots.map((slot) => (
+                      <Card
+                        key={slot.id}
+                        className={`border shadow-sm transition-all duration-150 hover:shadow-md ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'
+                          } ${slot.is_break
+                            ? 'border-l-4 border-l-orange-500'
+                            : ''
+                          }`}
+                      >
+                        <CardContent className="p-4 flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {slot.name}
+                              </p>
+                              {slot.is_break && (
+                                <span className={`text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full border ${theme === 'dark'
+                                  ? 'bg-orange-950/40 text-orange-400 border-orange-900/60'
+                                  : 'bg-orange-100 text-orange-800 border-orange-200'
+                                  }`}>
+                                  Break
+                                </span>
+                              )}
                             </div>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                              <Clock className="w-3.5 h-3.5" />
+                              {formatTimeTo12hString(slot.start_time)} - {formatTimeTo12hString(slot.end_time)}
+                            </p>
+                          </div>
 
-                            {index < approvalChain.length - 1 && (
-                              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                            )}
-                            {index === approvalChain.length - 1 && (
-                              <div className="flex items-center gap-2 ml-2">
-                                <ChevronRight className="w-4 h-4 text-green-500" />
-                                <div className="px-3 py-1.5 rounded-full bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-xs font-semibold text-green-700 dark:text-green-400">
-                                  Approved ✅
-                                </div>
-                              </div>
-                            )}
-                          </React.Fragment>
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpen(slot)}
+                              className={`h-9 w-9 hover:bg-muted ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-900'}`}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={`h-9 w-9 text-red-500 hover:text-red-600 ${theme === 'dark' ? 'hover:bg-red-950/20' : 'hover:bg-red-50'}`}
+                              onClick={() => handleDelete(slot.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'leave-policy' && (
+              <div className="space-y-6 pt-2">
+                <div className="flex items-center gap-3 pb-2 border-b border-border/40">
+                  <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <CalendarCheck2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Short Permission & Leave Policy Configuration</h3>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      Customize short period permissions per month, standard leaves limit, and configure approval routing.
+                    </p>
+                  </div>
+                </div>
+
+                {leavePolicyLoading ? (
+                  <SkeletonTable rows={3} cols={2} />
+                ) : (
+                  <div className="space-y-6">
+                    {/* Quota Settings Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card className={`border ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'}`}>
+                        <CardContent className="p-4 space-y-2">
+                          <Label className="text-sm font-semibold">Short Permissions / Month</Label>
+                          <p className="text-xs text-muted-foreground">Max short period permission requests per faculty each month.</p>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={leavePolicy.monthly_short_permission_limit}
+                            onChange={(e) => {
+                              const clean = e.target.value.replace(/[^0-9]/g, '');
+                              setLeavePolicy({ ...leavePolicy, monthly_short_permission_limit: clean });
+                            }}
+                            placeholder="e.g. 2"
+                            className={`mt-2 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      <Card className={`border ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'}`}>
+                        <CardContent className="p-4 space-y-2">
+                          <Label className="text-sm font-semibold">Total Standard Leaves</Label>
+                          <p className="text-xs text-muted-foreground">Standard leaves limit allowed per faculty per year.</p>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={leavePolicy.total_standard_leaves}
+                            onChange={(e) => {
+                              const clean = e.target.value.replace(/[^0-9]/g, '');
+                              setLeavePolicy({ ...leavePolicy, total_standard_leaves: clean });
+                            }}
+                            placeholder="e.g. 12"
+                            className={`mt-2 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      <Card className={`border ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'}`}>
+                        <CardContent className="p-4 space-y-2">
+                          <Label className="text-sm font-semibold">Max Duration (Hours)</Label>
+                          <p className="text-xs text-muted-foreground">Maximum duration allowed for a single short permission.</p>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={leavePolicy.short_permission_max_hours}
+                            onChange={(e) => {
+                              const clean = e.target.value.replace(/[^0-9]/g, '');
+                              setLeavePolicy({ ...leavePolicy, short_permission_max_hours: clean });
+                            }}
+                            placeholder="e.g. 2"
+                            className={`mt-2 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Role-Based Approval Routing */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-primary" />
+                        <Label className="text-sm font-semibold">Role-Based Leave Approval Routing</Label>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Define which authority approves leave and permission requests for each staff role.
+                      </p>
+
+                      <div className={`rounded-xl border divide-y ${theme === 'dark' ? 'bg-background border-border divide-border' : 'bg-slate-50/50 border-gray-200 divide-gray-100'}`}>
+                        {[
+                          { roleKey: 'teacher', label: 'Faculty / Teacher Leaves', defaultApprover: 'hod' },
+                          { roleKey: 'hod', label: `${translateTerminology('HOD')} Leaves`, defaultApprover: 'principal' },
+                          { roleKey: 'dean', label: 'Dean Leaves', defaultApprover: 'principal' },
+                          { roleKey: 'coe', label: 'COE Leaves', defaultApprover: 'dean' },
+                          { roleKey: 'fees_manager', label: 'Fees Manager Leaves', defaultApprover: 'dean' },
+                          { roleKey: 'counsellor', label: 'Counsellor Leaves', defaultApprover: 'principal' },
+                          { roleKey: 'hms_admin', label: 'HMS Admin Leaves', defaultApprover: 'principal' },
+                          { roleKey: 'warden', label: 'Hostel Warden Leaves', defaultApprover: 'hms_admin' },
+                          { roleKey: 'transport_admin', label: 'Transport Admin Leaves', defaultApprover: 'principal' },
+                          { roleKey: 'driver', label: 'Driver Leaves', defaultApprover: 'transport_admin' },
+                          { roleKey: 'library_admin', label: 'Library Admin Leaves', defaultApprover: 'principal' },
+                          { roleKey: 'admission_manager', label: 'Admission Manager Leaves', defaultApprover: 'principal' }
+                        ].map((item) => (
+                          <div key={item.roleKey} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                              <span className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{item.label}</span>
+                              <p className="text-xs text-muted-foreground">Requests will be forwarded to the selected approver</p>
+                            </div>
+                            <div className="w-full sm:w-60">
+                              <Select
+                                value={leavePolicy.leave_approval_routing?.[item.roleKey] || item.defaultApprover}
+                                onValueChange={(val) => {
+                                  setLeavePolicy({
+                                    ...leavePolicy,
+                                    leave_approval_routing: {
+                                      ...(leavePolicy.leave_approval_routing || {}),
+                                      [item.roleKey]: val
+                                    }
+                                  });
+                                }}
+                              >
+                                <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
+                                  <SelectValue placeholder="Select approver" />
+                                </SelectTrigger>
+                                <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                  <SelectItem value="hod">{translateTerminology('HOD')}</SelectItem>
+                                  <SelectItem value="principal">Principal</SelectItem>
+                                  <SelectItem value="dean">Dean</SelectItem>
+                                  <SelectItem value="transport_admin">Transport Admin</SelectItem>
+                                  <SelectItem value="hms_admin">HMS Admin</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex justify-end pt-2">
-                    <Button onClick={handleSaveApprovalChain} className="shadow-sm">
-                      <Save className="w-4 h-4 mr-2" /> Save Workflow
-                    </Button>
+                    <div className="flex justify-end pt-2">
+                      <Button onClick={handleSaveLeavePolicy} disabled={leavePolicySaving} className="shadow-sm">
+                        <Save className="w-4 h-4 mr-2" /> {leavePolicySaving ? 'Saving...' : 'Save Leave Policy'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'qp-workflow' && (
+              <div className="space-y-6 pt-2">
+                <div className="flex items-center gap-3 pb-2 border-b border-border/40">
+                  <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Question Paper Approval Workflow</h3>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      Configure the sequence of approvers for Question Papers submitted by faculty.
+                    </p>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+
+                {chainLoading ? (
+                  <SkeletonTable rows={2} cols={1} />
+                ) : (
+                  <div className="space-y-6">
+                    {/* Presets */}
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Quick Presets</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(PRESETS).map(([presetName, presetChain]) => (
+                          <Button
+                            key={presetName}
+                            variant={JSON.stringify(approvalChain) === JSON.stringify(presetChain) ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setApprovalChain(presetChain)}
+                            className={theme === 'dark' && JSON.stringify(approvalChain) !== JSON.stringify(presetChain) ? 'border-border' : ''}
+                          >
+                            {presetName}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Chain Builder */}
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Custom Workflow</Label>
+                      <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background border-border' : 'bg-gray-50 border-gray-200'}`}>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-sm font-medium text-muted-foreground">
+                            Faculty (Submits)
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+
+                          {approvalChain.map((role, index) => (
+                            <React.Fragment key={`${role}-${index}`}>
+                              <div className="flex items-center gap-1">
+                                <div className={`px-3 py-1.5 rounded-full border text-sm font-medium ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-700'}`}>
+                                  {AVAILABLE_ROLES.find(r => r.value === role)?.label || translateTerminology(role.toUpperCase())}
+                                </div>
+                              </div>
+
+                              {index < approvalChain.length - 1 && (
+                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                              )}
+                              {index === approvalChain.length - 1 && (
+                                <div className="flex items-center gap-2 ml-2">
+                                  <ChevronRight className="w-4 h-4 text-green-500" />
+                                  <div className="px-3 py-1.5 rounded-full bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-xs font-semibold text-green-700 dark:text-green-400">
+                                    Approved ✅
+                                  </div>
+                                </div>
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                      <Button onClick={handleSaveApprovalChain} className="shadow-sm">
+                        <Save className="w-4 h-4 mr-2" /> Save Workflow
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'attendance-workflow' && (
+              <div className="space-y-6 pt-2">
+                <div className="flex items-center gap-3 pb-2 border-b border-border/40">
+                  <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Staff Attendance Workflow</h3>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      Configure periodic check-ins and required time windows.
+                    </p>
+                  </div>
+                </div>
+
+                {attendanceConfigLoading ? (
+                  <SkeletonTable rows={2} cols={1} />
+                ) : (
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Daily Check-ins Required</Label>
+                      <Select value={periodicCheckinCount.toString()} onValueChange={(v) => {
+                        const count = parseInt(v);
+                        setPeriodicCheckinCount(count);
+                        setCheckinWindows(prev => {
+                          const newArr = [...prev];
+                          while (newArr.length < count) newArr.push({ start: "09:00", end: "10:00" });
+                          return newArr.slice(0, count);
+                        });
+                      }}>
+                        <SelectTrigger className={`w-full max-w-xs ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5].map(n => (
+                            <SelectItem key={n} value={n.toString()}>{n} Check-in{n > 1 ? 's' : ''}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-4">
+                      {checkinWindows.map((window, idx) => (
+                        <div key={idx} className="flex gap-4 items-center">
+                          <Label>Check-in {idx + 1}</Label>
+                          <Input type="time" value={window.start} onChange={e => {
+                            const newArr = [...checkinWindows];
+                            newArr[idx].start = e.target.value;
+                            setCheckinWindows(newArr);
+                          }} className="w-32" />
+                          <span>to</span>
+                          <Input type="time" value={window.end} onChange={e => {
+                            const newArr = [...checkinWindows];
+                            newArr[idx].end = e.target.value;
+                            setCheckinWindows(newArr);
+                          }} className="w-32" />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-gray-50/80 border-gray-100'} mt-4`}>
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label className="text-sm font-semibold">Strict Window Time</Label>
+                          <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            If enabled, faculty cannot check-in after their window ends. If disabled, late check-ins are permitted and marked as delayed.
+                          </p>
+                        </div>
+                        <Switch
+                          checked={strictCheckinWindow}
+                          onCheckedChange={setStrictCheckinWindow}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                      <Button onClick={handleSaveAttendanceConfig} className="shadow-sm">
+                        <Save className="w-4 h-4 mr-2" /> Save Workflow
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </>
   );
 }
