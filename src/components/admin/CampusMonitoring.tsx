@@ -218,22 +218,22 @@ export default function CampusMonitoring() {
         <TabsContent value="live" className="space-y-6 outline-none">
           
           {/* Top Control Sub-header for Live Dashboard (Only visible in Live Radar tab) */}
-          <div className="flex items-center justify-between bg-card p-3 rounded-xl border border-border shadow-sm">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="flex items-center gap-1.5 py-1 text-xs">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card p-3 rounded-xl border border-border shadow-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="flex items-center gap-1.5 py-1 text-xs whitespace-nowrap">
                 <Wifi className="w-3.5 h-3.5 text-green-500 animate-pulse" />
                 Live WebSockets
               </Badge>
-              <Badge variant="destructive" className="py-1 text-xs">
+              <Badge variant="destructive" className="py-1 text-xs whitespace-nowrap">
                 {liveAlerts.length} Outside Campus
               </Badge>
             </div>
 
             {/* Radar vs Table Toggle */}
-            <div className="flex items-center bg-muted p-1 rounded-lg border border-border/50">
+            <div className="flex items-center bg-muted p-1 rounded-lg border border-border/50 w-full sm:w-auto">
               <button
                 onClick={() => setViewMode('radar')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                   viewMode === 'radar' 
                     ? 'bg-background text-primary shadow-sm' 
                     : 'text-muted-foreground hover:text-foreground'
@@ -243,7 +243,7 @@ export default function CampusMonitoring() {
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                   viewMode === 'table' 
                     ? 'bg-background text-primary shadow-sm' 
                     : 'text-muted-foreground hover:text-foreground'
@@ -418,52 +418,54 @@ export default function CampusMonitoring() {
                     No faculty detected outside campus today.
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Time</TableHead>
-                        <TableHead>Faculty</TableHead>
-                        <TableHead>Contact</TableHead>
-                        <TableHead className="text-right">Distance</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {liveAlerts.map((alert: any) => (
-                        <TableRow 
-                          key={alert.id} 
-                          onClick={() => setSelectedFaculty(alert)}
-                          className="cursor-pointer"
-                        >
-                          <TableCell className="font-semibold text-red-500 text-xs sm:text-sm">
-                            {new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2.5">
-                              <Avatar className="w-8 h-8 border border-red-400">
-                                <AvatarImage src={alert.profile_picture} />
-                                <AvatarFallback className="bg-red-500 text-white text-xs">
-                                  {alert.faculty_name?.charAt(0)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="font-semibold text-xs sm:text-sm">{alert.faculty_name}</div>
-                                <div className="text-[11px] text-muted-foreground">{alert.faculty_designation || "Faculty"}</div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
-                            <div>{alert.faculty_email}</div>
-                            {alert.faculty_mobile && <div className="text-primary font-mono">{alert.faculty_mobile}</div>}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Badge variant="destructive" className="text-[10px]">
-                              {alert.distance_meters ? `${Math.round(alert.distance_meters)}m away` : 'Out of bounds'}
-                            </Badge>
-                          </TableCell>
+                  <div className="overflow-x-auto w-full">
+                    <Table className="w-full min-w-[500px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[110px]">Time</TableHead>
+                          <TableHead className="min-w-[150px]">Faculty</TableHead>
+                          <TableHead className="min-w-[160px]">Contact</TableHead>
+                          <TableHead className="text-right w-[110px]">Distance</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {liveAlerts.map((alert: any) => (
+                          <TableRow 
+                            key={alert.id} 
+                            onClick={() => setSelectedFaculty(alert)}
+                            className="cursor-pointer"
+                          >
+                            <TableCell className="font-semibold text-red-500 text-xs whitespace-nowrap">
+                              {new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <Avatar className="w-8 h-8 border border-red-400 shrink-0">
+                                  <AvatarImage src={alert.profile_picture} />
+                                  <AvatarFallback className="bg-red-500 text-white text-xs font-bold">
+                                    {alert.faculty_name?.charAt(0)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0">
+                                  <div className="font-semibold text-xs sm:text-sm truncate">{alert.faculty_name}</div>
+                                  <div className="text-[11px] text-muted-foreground truncate">{alert.faculty_designation || "Faculty"}</div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                              <div>{alert.faculty_email}</div>
+                              {alert.faculty_mobile && <div className="text-primary font-mono">{alert.faculty_mobile}</div>}
+                            </TableCell>
+                            <TableCell className="text-right whitespace-nowrap">
+                              <Badge variant="destructive" className="text-[10px] whitespace-nowrap inline-flex items-center justify-center rounded-full px-2.5 py-0.5 font-semibold shrink-0">
+                                {alert.distance_meters ? `${Math.round(alert.distance_meters)}m away` : 'Out of bounds'}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -514,58 +516,60 @@ export default function CampusMonitoring() {
                   <p className="font-medium">No alerts found in this date range.</p>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date & Time</TableHead>
-                      <TableHead>Faculty</TableHead>
-                      <TableHead>Event Type</TableHead>
-                      <TableHead className="text-right">Details</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reports.map((alert: any) => (
-                      <TableRow 
-                        key={alert.id} 
-                        onClick={() => setSelectedFaculty(alert)}
-                        className="cursor-pointer"
-                      >
-                        <TableCell className="text-xs font-medium">
-                          {new Date(alert.timestamp).toLocaleDateString()} <br/>
-                          <span className="text-red-500 font-semibold">{new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2.5">
-                            <Avatar className="w-7 h-7 border border-border">
-                              <AvatarImage src={alert.profile_picture} />
-                              <AvatarFallback className="text-[10px] bg-muted font-bold">
-                                {alert.faculty_name?.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium text-xs sm:text-sm">{alert.faculty_name}</div>
-                              <div className="text-[11px] text-muted-foreground">{alert.faculty_email}</div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {alert.is_resolved ? (
-                            <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-200 bg-emerald-50">
-                              Returned / Resolved
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-[10px] text-red-500 border-red-200 bg-red-50">
-                              Active Exit
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right text-xs">
-                          {getFormattedDistance(alert)}
-                        </TableCell>
+                <div className="overflow-x-auto w-full">
+                  <Table className="w-full min-w-[550px]">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[120px]">Date & Time</TableHead>
+                        <TableHead className="min-w-[160px]">Faculty</TableHead>
+                        <TableHead className="w-[140px]">Event Type</TableHead>
+                        <TableHead className="text-right w-[110px]">Details</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {reports.map((alert: any) => (
+                        <TableRow 
+                          key={alert.id} 
+                          onClick={() => setSelectedFaculty(alert)}
+                          className="cursor-pointer"
+                        >
+                          <TableCell className="text-xs font-medium whitespace-nowrap">
+                            {new Date(alert.timestamp).toLocaleDateString()} <br/>
+                            <span className="text-red-500 font-semibold">{new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <Avatar className="w-7 h-7 border border-border shrink-0">
+                                <AvatarImage src={alert.profile_picture} />
+                                <AvatarFallback className="text-[10px] bg-muted font-bold">
+                                  {alert.faculty_name?.charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="min-w-0">
+                                <div className="font-medium text-xs sm:text-sm truncate">{alert.faculty_name}</div>
+                                <div className="text-[11px] text-muted-foreground truncate">{alert.faculty_email}</div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {alert.is_resolved ? (
+                              <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-200 bg-emerald-50 whitespace-nowrap inline-flex items-center justify-center rounded-full px-2.5 py-0.5 font-semibold shrink-0">
+                                Returned / Resolved
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] text-red-500 border-red-200 bg-red-50 whitespace-nowrap inline-flex items-center justify-center rounded-full px-2.5 py-0.5 font-semibold shrink-0">
+                                Active Exit
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right text-xs whitespace-nowrap font-medium">
+                            {getFormattedDistance(alert)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
             {totalPages > 1 && (
