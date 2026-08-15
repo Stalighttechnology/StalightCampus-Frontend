@@ -780,181 +780,199 @@ const FacultyAttendance = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-6 pb-0">
-            {/* Animated Toggle Buttons */}
-            <div className="flex flex-col items-center space-y-4">
-              <div className="flex items-center space-x-4">
+            {attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off' ? (
+              <div className="flex flex-col items-center py-6 space-y-3">
+                <div className={`p-4 rounded-full ${
+                  attendanceStatus === 'holiday'
+                    ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700')
+                    : (theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700')
+                }`}>
+                  <CalendarIcon className="w-10 h-10" />
+                </div>
+                <span className="text-xl font-bold capitalize">
+                  {attendanceStatus === 'holiday' ? 'Institutional Holiday' : 'Weekly Off'}
+                </span>
+                <p className="text-xs text-muted-foreground text-center max-w-xs">
+                  No attendance check-in is required today. Enjoy your day off!
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center space-y-4">
+                <div className="flex items-center space-x-4">
+                  
+                  {/* Check In / Check Out Button */}
+                  {attendanceStatus !== "absent" && (
+                    <motion.button
+                      onClick={() => handleToggleAttendance("present", shouldShowCheckOut() ? "check_out" : "check_in")}
+                      disabled={isSubmitting || !!todayRecord?.check_out_time || (!shouldShowCheckOut() && !isCheckInAllowed())}
+                      className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'present' ?
+                        'bg-blue-500 text-white animate-pulse' :
+                        (todayRecord?.check_out_time) ?
+                          (theme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-400') :
+                        (shouldShowCheckOut()) ?
+                          'bg-orange-500 text-white scale-110' :
+                          theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
+                      }
+                      whileHover={{ scale: todayRecord?.check_out_time ? 1 : 1.05 }}
+                      whileTap={{ scale: todayRecord?.check_out_time ? 1 : 0.95 }}
+                    >
+                      {markingStatus === 'present' ?
+                        <Loader2 className="w-8 h-8 animate-spin" /> :
+                        (todayRecord?.check_out_time) ? <CheckCircle className="w-8 h-8" /> :
+                        (shouldShowCheckOut()) ? <Clock className="w-8 h-8" /> : <CheckCircle className="w-8 h-8" />
+                      }
+                    </motion.button>
+                  )}
+
+                  {/* Absent Button (only if not checked in) */}
+                  {!(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && (
+                    <motion.button
+                      onClick={() => handleToggleAttendance("absent")}
+                      disabled={isSubmitting || !!attendanceStatus}
+                      className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'absent' ?
+                        'bg-blue-500 text-white animate-pulse' :
+                        attendanceStatus === 'absent' ?
+                          'bg-red-500 text-white scale-110' :
+                          theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
+                      }
+                      whileHover={{ scale: attendanceStatus === 'absent' || markingStatus === 'absent' ? 1.1 : 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {markingStatus === 'absent' ?
+                        <Loader2 className="w-8 h-8 animate-spin" /> :
+                        <XCircle className="w-8 h-8" />
+                      }
+                    </motion.button>
+                  )}
+                </div>
+
+                {/* Button Labels */}
+                <div className="flex items-center space-x-8 text-sm font-medium">
+                  {attendanceStatus !== "absent" && (
+                    <motion.span
+                      className={markingStatus === 'present' ? 'text-blue-500' : todayRecord?.check_out_time ? 'text-gray-400' : (shouldShowCheckOut()) ? 'text-orange-600' : 'text-gray-500'}
+                    >
+                      {markingStatus === 'present' ? 'Processing...' : todayRecord?.check_out_time ? 'Checked Out' : (shouldShowCheckOut()) ? 'Check Out' : 'Check In'}
+                    </motion.span>
+                  )}
+                  {!(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && (
+                    <motion.span
+                      className={markingStatus === 'absent' ? 'text-blue-500' : attendanceStatus === 'absent' ? 'text-red-600' : 'text-gray-500'}
+                    >
+                      {markingStatus === 'absent' ? 'Marking...' : 'Absent'}
+                    </motion.span>
+                  )}
+                </div>
                 
-                {/* Check In / Check Out Button */}
-                {attendanceStatus !== "absent" && (
-                  <motion.button
-                    onClick={() => handleToggleAttendance("present", shouldShowCheckOut() ? "check_out" : "check_in")}
-                    disabled={isSubmitting || !!todayRecord?.check_out_time || (!shouldShowCheckOut() && !isCheckInAllowed())}
-                    className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'present' ?
-                      'bg-blue-500 text-white animate-pulse' :
-                      (todayRecord?.check_out_time) ?
-                        (theme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-400') :
-                      (shouldShowCheckOut()) ?
-                        'bg-orange-500 text-white scale-110' :
-                        theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
-                    }
-                    whileHover={{ scale: todayRecord?.check_out_time ? 1 : 1.05 }}
-                    whileTap={{ scale: todayRecord?.check_out_time ? 1 : 0.95 }}
-                  >
-                    {markingStatus === 'present' ?
-                      <Loader2 className="w-8 h-8 animate-spin" /> :
-                      (todayRecord?.check_out_time) ? <CheckCircle className="w-8 h-8" /> :
-                      (shouldShowCheckOut()) ? <Clock className="w-8 h-8" /> : <CheckCircle className="w-8 h-8" />
-                    }
-                  </motion.button>
-                )}
-
-                {/* Absent Button (only if not checked in) */}
-                {!(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && (
-                  <motion.button
-                    onClick={() => handleToggleAttendance("absent")}
-                    disabled={isSubmitting || !!attendanceStatus}
-                    className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'absent' ?
-                      'bg-blue-500 text-white animate-pulse' :
-                      attendanceStatus === 'absent' ?
-                        'bg-red-500 text-white scale-110' :
-                        theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
-                    }
-                    whileHover={{ scale: attendanceStatus === 'absent' || markingStatus === 'absent' ? 1.1 : 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {markingStatus === 'absent' ?
-                      <Loader2 className="w-8 h-8 animate-spin" /> :
-                      <XCircle className="w-8 h-8" />
-                    }
-                  </motion.button>
-                )}
-              </div>
-
-              {/* Button Labels */}
-              <div className="flex items-center space-x-8 text-sm font-medium">
-                {attendanceStatus !== "absent" && (
-                  <motion.span
-                    className={markingStatus === 'present' ? 'text-blue-500' : todayRecord?.check_out_time ? 'text-gray-400' : (shouldShowCheckOut()) ? 'text-orange-600' : 'text-gray-500'}
-                  >
-                    {markingStatus === 'present' ? 'Processing...' : todayRecord?.check_out_time ? 'Checked Out' : (shouldShowCheckOut()) ? 'Check Out' : 'Check In'}
-                  </motion.span>
-                )}
-                {!(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && (
-                  <motion.span
-                    className={markingStatus === 'absent' ? 'text-blue-500' : attendanceStatus === 'absent' ? 'text-red-600' : 'text-gray-500'}
-                  >
-                    {markingStatus === 'absent' ? 'Marking...' : 'Absent'}
-                  </motion.span>
-                )}
-              </div>
-              
-              {getNextCheckinWindowText() && (
-                <div className={`mt-2 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${theme === 'dark' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
-                  <Clock className="w-3.5 h-3.5" />
-                  {getNextCheckinWindowText()}
-                </div>
-              )}
-              
-              {todayRecord?.check_in_time && !todayRecord?.check_out_time && (
-                <div className="mt-2">
-                  <button
-                    onClick={() => handleToggleAttendance("present", "check_out")}
-                    disabled={isSubmitting}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
-                      ${theme === 'dark'
-                        ? 'border-orange-500/50 text-orange-400 hover:bg-orange-500/10'
-                        : 'border-orange-400 text-orange-600 hover:bg-orange-50'
-                      }`}
-                  >
+                {getNextCheckinWindowText() && (
+                  <div className={`mt-2 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${theme === 'dark' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
                     <Clock className="w-3.5 h-3.5" />
-                    Early / Half-Day Checkout
-                  </button>
-                </div>
-              )}
+                    {getNextCheckinWindowText()}
+                  </div>
+                )}
+                
+                {todayRecord?.check_in_time && !todayRecord?.check_out_time && (
+                  <div className="mt-2">
+                    <button
+                      onClick={() => handleToggleAttendance("present", "check_out")}
+                      disabled={isSubmitting}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
+                        ${theme === 'dark'
+                          ? 'border-orange-500/50 text-orange-400 hover:bg-orange-500/10'
+                          : 'border-orange-400 text-orange-600 hover:bg-orange-50'
+                        }`}
+                    >
+                      <Clock className="w-3.5 h-3.5" />
+                      Early / Half-Day Checkout
+                    </button>
+                  </div>
+                )}
 
-              {/* Off-Campus Duty Button — shown only when not yet checked in */}
-              {!(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && (!todayRecord?.marked_at || attendanceStatus !== 'absent') && (
-                <div className="mt-2">
-                  <button
-                    onClick={handleOffCampusDuty}
-                    disabled={isSubmitting}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
-                      ${theme === 'dark'
-                        ? 'border-amber-500/50 text-amber-400 hover:bg-amber-500/10'
-                        : 'border-amber-400 text-amber-600 hover:bg-amber-50'
-                      }`}
-                  >
-                    <MapPin className="w-3.5 h-3.5" />
-                    Off-Campus Duty? Declare Here
-                  </button>
-                </div>
-              )}
+                {/* Off-Campus Duty Button — shown only when not yet checked in */}
+                {!(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && (!todayRecord?.marked_at || attendanceStatus !== 'absent') && (
+                  <div className="mt-2">
+                    <button
+                      onClick={handleOffCampusDuty}
+                      disabled={isSubmitting}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
+                        ${theme === 'dark'
+                          ? 'border-amber-500/50 text-amber-400 hover:bg-amber-500/10'
+                          : 'border-amber-400 text-amber-600 hover:bg-amber-50'
+                        }`}
+                    >
+                      <MapPin className="w-3.5 h-3.5" />
+                      Off-Campus Duty? Declare Here
+                    </button>
+                  </div>
+                )}
 
-              {/* Periodic Check-ins & Attendance Summary Box */}
-              {((todayRecord?.checkin_windows && todayRecord.checkin_windows.length > 0) || todayRecord?.check_in_time) && (
-                <div className={`mt-4 p-4 rounded-lg w-full max-w-sm text-center ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-gray-100 border border-gray-200'}`}>
-                  {todayRecord?.checkin_windows && todayRecord.checkin_windows.length > 0 ? (
-                    <div className="space-y-2 mb-2">
-                      <div className="font-semibold text-sm border-b pb-1 text-left flex justify-between items-center">
-                        <span>Periodic Check-ins</span>
-                        <span className="text-[10px] font-normal text-muted-foreground">({todayRecord.periodic_checkin_count || todayRecord.checkin_windows.length} Required)</span>
+                {/* Periodic Check-ins & Attendance Summary Box */}
+                {((todayRecord?.checkin_windows && todayRecord.checkin_windows.length > 0) || todayRecord?.check_in_time) && (
+                  <div className={`mt-4 p-4 rounded-lg w-full max-w-sm text-center ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-gray-100 border border-gray-200'}`}>
+                    {todayRecord?.checkin_windows && todayRecord.checkin_windows.length > 0 ? (
+                      <div className="space-y-2 mb-2">
+                        <div className="font-semibold text-sm border-b pb-1 text-left flex justify-between items-center">
+                          <span>Periodic Check-ins</span>
+                          <span className="text-[10px] font-normal text-muted-foreground">({todayRecord.periodic_checkin_count || todayRecord.checkin_windows.length} Required)</span>
+                        </div>
+                        {todayRecord.checkin_windows.map((win, idx) => {
+                          const ts = todayRecord.checkin_timestamps?.[idx];
+                          const delay = todayRecord.delays?.[idx];
+                          const now = new Date();
+                          const nowStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                          const isWindowPassed = win.end && nowStr > win.end;
+                          const isMissed = ts === "Missed" || (!ts && isWindowPassed);
+
+                          return (
+                            <div key={idx} className="flex justify-between text-sm items-center py-0.5">
+                              <span className="text-gray-500 font-medium">Check-in {idx + 1}:</span>
+                              {ts && ts !== "Missed" ? (
+                                <div className="flex items-center gap-1 font-semibold text-green-600 dark:text-green-400">
+                                  <span>{format(new Date(ts), 'hh:mm a')}</span>
+                                  {delay && delay > 0 ? (
+                                    <span className="text-[10px] text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400 px-1 py-0.5 rounded font-mono">+{delay}m</span>
+                                  ) : null}
+                                </div>
+                              ) : isMissed ? (
+                                <span className="text-red-500 font-bold">Missed</span>
+                              ) : (
+                                <span className="text-gray-400 italic">Pending</span>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                      {todayRecord.checkin_windows.map((win, idx) => {
-                        const ts = todayRecord.checkin_timestamps?.[idx];
-                        const delay = todayRecord.delays?.[idx];
-                        const now = new Date();
-                        const nowStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-                        const isWindowPassed = win.end && nowStr > win.end;
-                        const isMissed = ts === "Missed" || (!ts && isWindowPassed);
-
-                        return (
-                          <div key={idx} className="flex justify-between text-sm items-center py-0.5">
-                            <span className="text-gray-500 font-medium">Check-in {idx + 1}:</span>
-                            {ts && ts !== "Missed" ? (
-                              <div className="flex items-center gap-1 font-semibold text-green-600 dark:text-green-400">
-                                <span>{format(new Date(ts), 'hh:mm a')}</span>
-                                {delay && delay > 0 ? (
-                                  <span className="text-[10px] text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400 px-1 py-0.5 rounded font-mono">+{delay}m</span>
-                                ) : null}
-                              </div>
-                            ) : isMissed ? (
-                              <span className="text-red-500 font-bold">Missed</span>
-                            ) : (
-                              <span className="text-gray-400 italic">Pending</span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : todayRecord?.check_in_time ? (
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-500">Check In:</span>
-                      <span className="font-semibold">{format(new Date(todayRecord.check_in_time), 'hh:mm a')}</span>
-                    </div>
-                  ) : null}
-                  {todayRecord?.check_out_time && (
-                    <div className="flex justify-between text-sm mb-2 border-t border-gray-200 dark:border-gray-700 pt-2">
-                      <span className="text-gray-500">Check Out:</span>
-                      <span className="font-semibold">{format(new Date(todayRecord.check_out_time), 'hh:mm a')}</span>
-                    </div>
-                  )}
-                  {todayRecord?.total_hours && (
-                    <div className="flex justify-between text-sm font-bold border-t border-gray-300 dark:border-gray-700 pt-2 mt-2">
-                      <span>Total Worked:</span>
-                      <span className="text-primary font-mono">
-                        {(() => {
-                          const num = parseFloat(todayRecord.total_hours);
-                          if (isNaN(num)) return todayRecord.total_hours;
-                          const totalSeconds = num * 3600;
-                          const h = Math.floor(totalSeconds / 3600);
-                          const m = Math.floor((totalSeconds % 3600) / 60);
-                          return `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m`;
-                        })()}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
+                    ) : todayRecord?.check_in_time ? (
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="text-gray-500">Check In:</span>
+                        <span className="font-semibold">{format(new Date(todayRecord.check_in_time), 'hh:mm a')}</span>
+                      </div>
+                    ) : null}
+                    {todayRecord?.check_out_time && (
+                      <div className="flex justify-between text-sm mb-2 border-t border-gray-200 dark:border-gray-700 pt-2">
+                        <span className="text-gray-500">Check Out:</span>
+                        <span className="font-semibold">{format(new Date(todayRecord.check_out_time), 'hh:mm a')}</span>
+                      </div>
+                    )}
+                    {todayRecord?.total_hours && (
+                      <div className="flex justify-between text-sm font-bold border-t border-gray-300 dark:border-gray-700 pt-2 mt-2">
+                        <span>Total Worked:</span>
+                        <span className="text-primary font-mono">
+                          {(() => {
+                            const num = parseFloat(todayRecord.total_hours);
+                            if (isNaN(num)) return todayRecord.total_hours;
+                            const totalSeconds = num * 3600;
+                            const h = Math.floor(totalSeconds / 3600);
+                            const m = Math.floor((totalSeconds % 3600) / 60);
+                            return `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m`;
+                          })()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
 
               {/* Progress Message */}
@@ -999,7 +1017,6 @@ const FacultyAttendance = () => {
                 }
               </AnimatePresence>
 
-            </div>
           </CardContent>
         </div>
         <CardContent className="pt-4 space-y-6">
