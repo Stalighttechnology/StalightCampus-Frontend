@@ -89,7 +89,15 @@ export default function CampusMonitoring() {
       if (data.success) {
         setActiveSession(data.session);
         setCampuses(data.campuses || []);
-        setLiveAlerts(data.alerts || []);
+        const rawAlerts = data.alerts || [];
+        const seen = new Set();
+        const uniqueAlerts = rawAlerts.filter((alert: any) => {
+          const key = alert.faculty_id || alert.faculty_email;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        setLiveAlerts(uniqueAlerts);
       }
     } catch (err) {
       console.error("Failed to fetch active session", err);

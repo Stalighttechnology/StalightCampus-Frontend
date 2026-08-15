@@ -4,6 +4,8 @@ import { API_ENDPOINT } from "../../utils/config";
 import { Geolocation } from "@capacitor/geolocation";
 import { Capacitor } from "@capacitor/core";
 
+import { App as CapApp } from "@capacitor/app";
+
 // Helper function to calculate distance in meters between two lat/lng points (Haversine formula)
 function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000; // Radius of Earth in meters
@@ -50,6 +52,16 @@ export default function ScheduledLocationTracker() {
         
         if (!isMounted || !data.success || !data.campuses || data.campuses.length === 0) {
           console.warn("No active campus locations found for geofence tracking.", data);
+          return;
+        }
+
+        // Rule 1 (Present only) & Rule 2 (No tracking after 7 PM)
+        if (data.tracking_allowed === false) {
+          if (data.is_after_7pm) {
+            console.log("⏰ Past 7:00 PM: Geofence tracking disabled for the evening.");
+          } else if (data.is_present_today === false) {
+            console.log("🚫 Faculty is absent or has not marked present today: Geofence tracking disabled.");
+          }
           return;
         }
 
@@ -173,8 +185,23 @@ export default function ScheduledLocationTracker() {
 
     startGeofenceTracker();
 
+    let appStateListener: any = null;
+    if (Capacitor.isNativePlatform()) {
+      CapApp.addListener('appStateChange', (state) => {
+        if (state.isActive) {
+          console.log("📱 App resumed: Re-syncing active campus geofence boundary...");
+          startGeofenceTracker();
+        }
+      }).then((listener) => {
+        appStateListener = listener;
+      });
+    }
+
     return () => {
       isMounted = false;
+      if (appStateListener) {
+        appStateListener.remove();
+      }
       if (intervalIdRef.current) {
         clearInterval(intervalIdRef.current);
       }
