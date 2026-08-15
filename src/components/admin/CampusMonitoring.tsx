@@ -714,7 +714,7 @@ export default function CampusMonitoring() {
                     onClick={() => handleResolveAlert(selectedFaculty.id)}
                     className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition-colors shadow-sm"
                   >
-                    <CheckCircle className="w-3.5 h-3.5" /> Mark Returned
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Mark Returned
                   </Button>
                 )}
                 {selectedFaculty.faculty_mobile ? (

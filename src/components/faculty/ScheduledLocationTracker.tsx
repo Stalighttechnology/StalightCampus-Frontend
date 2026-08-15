@@ -6,9 +6,6 @@ import { Geolocation } from "@capacitor/geolocation";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 
-// Register BackgroundGeolocation plugin for persistent Android Foreground Service location monitoring
-const BackgroundGeolocation = registerPlugin<any>("BackgroundGeolocation");
-
 // Helper function to calculate distance in meters between two lat/lng points (Haversine formula)
 function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000; // Radius of Earth in meters
@@ -99,6 +96,25 @@ export default function ScheduledLocationTracker() {
           return;
         }
 
+        // Register Native Cross-Platform Geofence API (Android GeofencingClient & iOS Core Location CLCircularRegion)
+        if (Capacitor.isNativePlatform()) {
+          try {
+            const token = localStorage.getItem('access_token');
+            const CampusGeofence = registerPlugin<any>("CampusGeofence");
+            await CampusGeofence.addGeofence({
+              latitude: centerLat,
+              longitude: centerLng,
+              radius: radiusMeters,
+              campusId: campus.id?.toString() || "CAMPUS_1",
+              serverUrl: `${API_ENDPOINT}/faculty/location/scheduled-ping/`,
+              authToken: token || ""
+            });
+            console.log(`✅ Native ${Capacitor.getPlatform().toUpperCase()} System Geofence API registered successfully.`);
+          } catch (geoErr) {
+            console.warn("Native Geofence registration notice:", geoErr);
+          }
+        }
+
         console.log(`✅ Geofence active for ${campus.name}: Center (${centerLat}, ${centerLng}), Radius: ${radiusMeters}m`);
 
         // Function to evaluate current GPS position against campus boundary
@@ -135,23 +151,8 @@ export default function ScheduledLocationTracker() {
           } else {
             // User is inside campus boundary — reset exit flag so next exit is caught cleanly
             if (hasReportedExitRef.current) {
-              console.log("✅ User returned inside campus boundary. Informing backend...");
+              console.log("✅ User returned inside campus boundary.");
               hasReportedExitRef.current = false;
-              
-              try {
-                await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/location/scheduled-ping/`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    latitude: latitude,
-                    longitude: longitude,
-                    event: "ENTER",
-                    scheduled_time: new Date().toISOString()
-                  })
-                });
-              } catch (enterErr) {
-                console.error("Failed to post location enter ping:", enterErr);
-              }
             }
           }
         };
@@ -177,40 +178,19 @@ export default function ScheduledLocationTracker() {
 
         // 3. Start Continuous GPS Position Watch
         if (Capacitor.isNativePlatform()) {
-          try {
-            // Use BackgroundGeolocation Foreground Service on Android/iOS to maintain location tracking even if force-closed/killed
-            const watcherId = await BackgroundGeolocation.addWatcher(
-              {
-                backgroundTitle: "Stalight Campus Active",
-                backgroundMessage: "Campus location monitoring is active.",
-                requestPermissions: true,
-                stale: false,
-                distanceFilter: 10
-              },
-              (location: any, error: any) => {
-                if (error) {
-                  console.warn("BackgroundGeolocation error:", error);
-                  return;
-                }
-                if (location && location.latitude && location.longitude) {
-                  processPosition(location.latitude, location.longitude);
-                }
+          const watchId = await Geolocation.watchPosition(
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 3000 },
+            (position, err) => {
+              if (err) {
+                console.error("Error in Capacitor watchPosition:", err);
+                return;
               }
-            );
-            watchIdRef.current = watcherId;
-          } catch (bgErr) {
-            console.warn("BackgroundGeolocation failed, falling back to Geolocation.watchPosition:", bgErr);
-            const watchId = await Geolocation.watchPosition(
-              { enableHighAccuracy: true, timeout: 15000, maximumAge: 3000 },
-              (position, err) => {
-                if (err) return;
-                if (position && position.coords) {
-                  processPosition(position.coords.latitude, position.coords.longitude);
-                }
+              if (position && position.coords) {
+                processPosition(position.coords.latitude, position.coords.longitude);
               }
-            );
-            watchIdRef.current = watchId;
-          }
+            }
+          );
+          watchIdRef.current = watchId;
         } else {
           if (navigator.geolocation) {
             const navWatchId = navigator.geolocation.watchPosition(
