@@ -79,11 +79,38 @@ const FacultyAttendance = () => {
       if (response.success && response.data) {
         setRecentRecords(response.data.slice(0, 7));
         const today = new Date().toLocaleDateString('sv-SE');
-        const todayRec = response.data.find((r) => r.date === today) || null;
-        setTodayRecord(todayRec);
-        if (todayRec) {
-          setAttendanceStatus(todayRec.status as "present" | "absent" | "holiday" | "weekly_off");
-          setNotes(todayRec.notes || "");
+        const orgCheckinWindows = (response as any).checkin_windows || [];
+        const orgPeriodicCount = (response as any).periodic_checkin_count || 1;
+        const orgStrictWindow = (response as any).strict_checkin_window ?? true;
+
+        const foundTodayRec = response.data.find((r) => r.date === today) || null;
+        const finalTodayRec: FacultyAttendanceRecord = foundTodayRec
+          ? {
+              ...foundTodayRec,
+              checkin_windows: (foundTodayRec.checkin_windows && foundTodayRec.checkin_windows.length > 0) ? foundTodayRec.checkin_windows : orgCheckinWindows,
+              periodic_checkin_count: foundTodayRec.periodic_checkin_count || orgPeriodicCount,
+              strict_checkin_window: foundTodayRec.strict_checkin_window ?? orgStrictWindow,
+            }
+          : {
+              id: `today-${today}`,
+              date: today,
+              status: (response as any).is_today_holiday ? 'holiday' : 'absent',
+              marked_at: '',
+              check_in_time: null,
+              check_out_time: null,
+              total_hours: null,
+              notes: '',
+              checkin_timestamps: [],
+              delays: [],
+              periodic_checkin_count: orgPeriodicCount,
+              checkin_windows: orgCheckinWindows,
+              strict_checkin_window: orgStrictWindow,
+            };
+
+        setTodayRecord(finalTodayRec);
+        if (foundTodayRec) {
+          setAttendanceStatus(foundTodayRec.status as "present" | "absent" | "holiday" | "weekly_off");
+          setNotes(foundTodayRec.notes || "");
         } else if ((response as any).is_today_holiday) {
           setAttendanceStatus("holiday");
         }
@@ -120,11 +147,38 @@ const FacultyAttendance = () => {
           setRecentRecords(recent);
 
           const today = new Date().toLocaleDateString('sv-SE');
-          const todayRec = response.data.find((r: any) => r.date === today) || null;
-          setTodayRecord(todayRec);
-          if (todayRec) {
-            setAttendanceStatus(todayRec.status as "present" | "absent" | "holiday" | "weekly_off");
-            setNotes(todayRec.notes || "");
+          const orgCheckinWindows = (response as any).checkin_windows || [];
+          const orgPeriodicCount = (response as any).periodic_checkin_count || 1;
+          const orgStrictWindow = (response as any).strict_checkin_window ?? true;
+
+          const foundTodayRec = response.data.find((r: any) => r.date === today) || null;
+          const finalTodayRec: FacultyAttendanceRecord = foundTodayRec
+            ? {
+                ...foundTodayRec,
+                checkin_windows: (foundTodayRec.checkin_windows && foundTodayRec.checkin_windows.length > 0) ? foundTodayRec.checkin_windows : orgCheckinWindows,
+                periodic_checkin_count: foundTodayRec.periodic_checkin_count || orgPeriodicCount,
+                strict_checkin_window: foundTodayRec.strict_checkin_window ?? orgStrictWindow,
+              }
+            : {
+                id: `today-${today}`,
+                date: today,
+                status: (response as any).is_today_holiday ? 'holiday' : 'absent',
+                marked_at: '',
+                check_in_time: null,
+                check_out_time: null,
+                total_hours: null,
+                notes: '',
+                checkin_timestamps: [],
+                delays: [],
+                periodic_checkin_count: orgPeriodicCount,
+                checkin_windows: orgCheckinWindows,
+                strict_checkin_window: orgStrictWindow,
+              };
+
+          setTodayRecord(finalTodayRec);
+          if (foundTodayRec) {
+            setAttendanceStatus(foundTodayRec.status as "present" | "absent" | "holiday" | "weekly_off");
+            setNotes(foundTodayRec.notes || "");
           } else if ((response as any).is_today_holiday) {
             setAttendanceStatus("holiday");
           }
@@ -173,8 +227,23 @@ const FacultyAttendance = () => {
     setEndCalendarOpen(false);
   };
 
+  const getOrdinal = (n: number) => {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
+
   const isCheckInAllowed = () => {
     if (!todayRecord || !todayRecord.checkin_windows || todayRecord.checkin_windows.length === 0) return true;
+    
+    // If strict window is explicitly disabled, late check-in is permitted
+    if (todayRecord.strict_checkin_window === false) {
+      const timestamps = todayRecord.checkin_timestamps || [];
+      const requiredCount = todayRecord.periodic_checkin_count || 1;
+      if (timestamps.length >= requiredCount) return false;
+      return true;
+    }
+
     const now = new Date();
     const currentH = now.getHours();
     const currentM = now.getMinutes();
@@ -210,10 +279,21 @@ const FacultyAttendance = () => {
 
   const shouldShowCheckOut = () => {
     if (!todayRecord) return false;
-    const checkinCount = todayRecord.checkin_timestamps?.length ?? (todayRecord.check_in_time ? 1 : 0);
-    const requiredCount = todayRecord.periodic_checkin_count || 1;
-    if (checkinCount >= requiredCount) return true;
+
+    const requiredCount = todayRecord.periodic_checkin_count || (todayRecord.checkin_windows?.length) || 1;
     
+    // Count actual completed check-ins (excluding "Missed")
+    let completedCheckins = 0;
+    if (todayRecord.checkin_timestamps && todayRecord.checkin_timestamps.length > 0) {
+      completedCheckins = todayRecord.checkin_timestamps.filter(ts => ts && ts !== "Missed").length;
+    } else if (todayRecord.check_in_time) {
+      completedCheckins = 1;
+    }
+
+    // If faculty completed all required periodic check-ins, show main Check Out
+    if (completedCheckins >= requiredCount) return true;
+    
+    // If all check-in window end times have passed for today, show main Check Out
     if (todayRecord.checkin_windows && todayRecord.checkin_windows.length > 0) {
       const allPassed = todayRecord.checkin_windows.every(w => {
         if (!w.end) return false;
@@ -225,12 +305,13 @@ const FacultyAttendance = () => {
       });
       if (allPassed) return true;
     }
+
     return false;
   };
 
   const getNextCheckinWindowText = () => {
     if (!todayRecord || !todayRecord.checkin_windows || todayRecord.checkin_windows.length === 0) return null;
-    if (attendanceStatus === 'absent' || todayRecord.check_out_time) return null;
+    if (todayRecord.check_out_time) return null;
 
     const now = new Date();
     const currentH = now.getHours();
@@ -238,25 +319,43 @@ const FacultyAttendance = () => {
     const nowTimeStr = `${currentH.toString().padStart(2, '0')}:${currentM.toString().padStart(2, '0')}`;
     
     const formatTime = (timeStr: string) => {
+        if (!timeStr) return '';
         const [h, m] = timeStr.split(':');
-        let hour = parseInt(h);
+        let hour = parseInt(h, 10);
         const ampm = hour >= 12 ? 'PM' : 'AM';
         hour = hour % 12 || 12;
         return `${hour}:${m} ${ampm}`;
     };
 
-    for (let i = 0; i < todayRecord.checkin_windows.length; i++) {
-        const w = todayRecord.checkin_windows[i];
+    const windows = todayRecord.checkin_windows;
+    const timestamps = todayRecord.checkin_timestamps || [];
+
+    for (let i = 0; i < windows.length; i++) {
+        const w = windows[i];
+        const ordinal = getOrdinal(i + 1);
+        
+        // If this window was already checked in (timestamp recorded and not Missed/null), skip
+        if (i < timestamps.length && timestamps[i] && timestamps[i] !== "Missed") {
+            continue;
+        }
+
         if (w.start && nowTimeStr < w.start) {
-            return `Next check in is at ${formatTime(w.start)}`;
+            return `Next: ${ordinal} Check-in is at ${formatTime(w.start)}`;
         } else if (w.start && w.end && nowTimeStr >= w.start && nowTimeStr <= w.end) {
-            const timestamps = todayRecord.checkin_timestamps || [];
-            if (i < timestamps.length && timestamps[i] !== "Missed" && timestamps[i] !== null) {
-                continue;
+            return `${ordinal} Check-in window active (Closes at ${formatTime(w.end)})`;
+        } else if (w.end && nowTimeStr > w.end) {
+            if (todayRecord.strict_checkin_window === false && i === timestamps.length) {
+                return `${ordinal} Check-in window passed (Late Check-in allowed)`;
             }
-            return `Check in window closes at ${formatTime(w.end)}`;
+            continue;
         }
     }
+
+    const lastWindow = windows[windows.length - 1];
+    if (lastWindow && lastWindow.end && nowTimeStr > lastWindow.end) {
+        return `All daily check-in windows have ended for today`;
+    }
+
     return null;
   };
 
@@ -774,7 +873,7 @@ const FacultyAttendance = () => {
               )}
 
               {/* Off-Campus Duty Button — shown only when not yet checked in */}
-              {!(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && attendanceStatus !== 'absent' && (
+              {!(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && (!todayRecord?.marked_at || attendanceStatus !== 'absent') && (
                 <div className="mt-2">
                   <button
                     onClick={handleOffCampusDuty}
@@ -791,29 +890,41 @@ const FacultyAttendance = () => {
                 </div>
               )}
 
-              {/* Attendance Details (Times & Hours) */}
-              {(todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && (
-                <div className={`mt-4 p-4 rounded-lg w-full max-w-sm text-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                  {todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0 ? (
+              {/* Periodic Check-ins & Attendance Summary Box */}
+              {((todayRecord?.checkin_windows && todayRecord.checkin_windows.length > 0) || todayRecord?.check_in_time) && (
+                <div className={`mt-4 p-4 rounded-lg w-full max-w-sm text-center ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-gray-100 border border-gray-200'}`}>
+                  {todayRecord?.checkin_windows && todayRecord.checkin_windows.length > 0 ? (
                     <div className="space-y-2 mb-2">
-                      <div className="font-semibold text-sm border-b pb-1 text-left">Periodic Check-ins:</div>
-                      {todayRecord.checkin_timestamps.map((ts, idx) => (
-                        <div key={idx} className="flex justify-between text-sm items-center">
-                          <span className="text-gray-500">Check-in {idx + 1}:</span>
-                          {ts === "Missed" ? (
-                            <span className="text-red-500 font-semibold">Missed</span>
-                          ) : ts ? (
-                            <div className="flex items-center">
-                              <span className="font-semibold">{format(new Date(ts), 'hh:mm a')}</span>
-                              {todayRecord.delays && todayRecord.delays[idx] > 0 && (
-                                <span className="ml-1 text-[10px] text-orange-500 bg-orange-100 px-1 rounded-sm">+{todayRecord.delays[idx]}m</span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-gray-400 italic">Pending</span>
-                          )}
-                        </div>
-                      ))}
+                      <div className="font-semibold text-sm border-b pb-1 text-left flex justify-between items-center">
+                        <span>Periodic Check-ins</span>
+                        <span className="text-[10px] font-normal text-muted-foreground">({todayRecord.periodic_checkin_count || todayRecord.checkin_windows.length} Required)</span>
+                      </div>
+                      {todayRecord.checkin_windows.map((win, idx) => {
+                        const ts = todayRecord.checkin_timestamps?.[idx];
+                        const delay = todayRecord.delays?.[idx];
+                        const now = new Date();
+                        const nowStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                        const isWindowPassed = win.end && nowStr > win.end;
+                        const isMissed = ts === "Missed" || (!ts && isWindowPassed);
+
+                        return (
+                          <div key={idx} className="flex justify-between text-sm items-center py-0.5">
+                            <span className="text-gray-500 font-medium">Check-in {idx + 1}:</span>
+                            {ts && ts !== "Missed" ? (
+                              <div className="flex items-center gap-1 font-semibold text-green-600 dark:text-green-400">
+                                <span>{format(new Date(ts), 'hh:mm a')}</span>
+                                {delay && delay > 0 ? (
+                                  <span className="text-[10px] text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400 px-1 py-0.5 rounded font-mono">+{delay}m</span>
+                                ) : null}
+                              </div>
+                            ) : isMissed ? (
+                              <span className="text-red-500 font-bold">Missed</span>
+                            ) : (
+                              <span className="text-gray-400 italic">Pending</span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : todayRecord?.check_in_time ? (
                     <div className="flex justify-between text-sm mb-2">
@@ -822,15 +933,15 @@ const FacultyAttendance = () => {
                     </div>
                   ) : null}
                   {todayRecord?.check_out_time && (
-                    <div className="flex justify-between text-sm mb-2">
+                    <div className="flex justify-between text-sm mb-2 border-t border-gray-200 dark:border-gray-700 pt-2">
                       <span className="text-gray-500">Check Out:</span>
                       <span className="font-semibold">{format(new Date(todayRecord.check_out_time), 'hh:mm a')}</span>
                     </div>
                   )}
                   {todayRecord?.total_hours && (
-                    <div className="flex justify-between text-sm font-bold border-t border-gray-300 pt-2 mt-2">
-                      <span>Total Hours:</span>
-                      <span className="text-primary">
+                    <div className="flex justify-between text-sm font-bold border-t border-gray-300 dark:border-gray-700 pt-2 mt-2">
+                      <span>Total Worked:</span>
+                      <span className="text-primary font-mono">
                         {(() => {
                           const num = parseFloat(todayRecord.total_hours);
                           if (isNaN(num)) return todayRecord.total_hours;
@@ -863,7 +974,7 @@ const FacultyAttendance = () => {
 
               {/* Status Indicator */}
               <AnimatePresence mode="wait">
-                {attendanceStatus &&
+                {attendanceStatus && (todayRecord?.marked_at || todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.some(ts => ts && ts !== 'Missed')) || attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off') &&
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -910,7 +1021,7 @@ const FacultyAttendance = () => {
 
           {/* Attendance Details */}
           <AnimatePresence>
-            {todayRecord &&
+            {todayRecord && (todayRecord.marked_at || todayRecord.check_in_time || (todayRecord.checkin_timestamps && todayRecord.checkin_timestamps.some(ts => ts && ts !== 'Missed')) || todayRecord.status === 'holiday' || todayRecord.status === 'weekly_off') &&
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
