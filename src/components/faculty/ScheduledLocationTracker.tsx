@@ -1,10 +1,13 @@
 import { useEffect, useRef } from "react";
+import { useAuth } from "../../context/AuthContext";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { Geolocation } from "@capacitor/geolocation";
-import { Capacitor } from "@capacitor/core";
-
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
+
+// Register BackgroundGeolocation plugin for persistent Android Foreground Service location monitoring
+const BackgroundGeolocation = registerPlugin<any>("BackgroundGeolocation");
 
 // Helper function to calculate distance in meters between two lat/lng points (Haversine formula)
 function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -22,12 +25,33 @@ function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2:
 }
 
 export default function ScheduledLocationTracker() {
+  const { isAuthenticated, user } = useAuth();
   const hasReportedExitRef = useRef(false);
   const watchIdRef = useRef<string | number | null>(null);
   const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let isMounted = true;
+
+    const stopWatchers = () => {
+      if (watchIdRef.current !== null) {
+        if (Capacitor.isNativePlatform()) {
+          Geolocation.clearWatch({ id: watchIdRef.current as string });
+        } else if (navigator.geolocation && typeof watchIdRef.current === 'number') {
+          navigator.geolocation.clearWatch(watchIdRef.current);
+        }
+        watchIdRef.current = null;
+      }
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current);
+        intervalIdRef.current = null;
+      }
+    };
+
+    if (!isAuthenticated || !user || !['teacher', 'faculty', 'hod'].includes(user?.role || '')) {
+      stopWatchers();
+      return;
+    }
 
     const startGeofenceTracker = async () => {
       try {
@@ -153,19 +177,40 @@ export default function ScheduledLocationTracker() {
 
         // 3. Start Continuous GPS Position Watch
         if (Capacitor.isNativePlatform()) {
-          const watchId = await Geolocation.watchPosition(
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 3000 },
-            (position, err) => {
-              if (err) {
-                console.error("Error in Capacitor watchPosition:", err);
-                return;
+          try {
+            // Use BackgroundGeolocation Foreground Service on Android/iOS to maintain location tracking even if force-closed/killed
+            const watcherId = await BackgroundGeolocation.addWatcher(
+              {
+                backgroundTitle: "Stalight Campus Active",
+                backgroundMessage: "Campus location monitoring is active.",
+                requestPermissions: true,
+                stale: false,
+                distanceFilter: 10
+              },
+              (location: any, error: any) => {
+                if (error) {
+                  console.warn("BackgroundGeolocation error:", error);
+                  return;
+                }
+                if (location && location.latitude && location.longitude) {
+                  processPosition(location.latitude, location.longitude);
+                }
               }
-              if (position && position.coords) {
-                processPosition(position.coords.latitude, position.coords.longitude);
+            );
+            watchIdRef.current = watcherId;
+          } catch (bgErr) {
+            console.warn("BackgroundGeolocation failed, falling back to Geolocation.watchPosition:", bgErr);
+            const watchId = await Geolocation.watchPosition(
+              { enableHighAccuracy: true, timeout: 15000, maximumAge: 3000 },
+              (position, err) => {
+                if (err) return;
+                if (position && position.coords) {
+                  processPosition(position.coords.latitude, position.coords.longitude);
+                }
               }
-            }
-          );
-          watchIdRef.current = watchId;
+            );
+            watchIdRef.current = watchId;
+          }
         } else {
           if (navigator.geolocation) {
             const navWatchId = navigator.geolocation.watchPosition(
