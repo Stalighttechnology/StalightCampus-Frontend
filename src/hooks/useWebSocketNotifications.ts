@@ -121,10 +121,12 @@ export const useWebSocketNotifications = () => {
                         queryClient.invalidateQueries({ queryKey: ['studentNotifications'] });
                         queryClient.invalidateQueries({ queryKey: ['notifications'] });
                         queryClient.invalidateQueries({ queryKey: ['announcements'] });
+                        queryClient.invalidateQueries({ queryKey: ['campusMonitoring'] });
                         if (!isSelf) {
                             queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
                         }
                         window.dispatchEvent(new CustomEvent('refresh-announcements'));
+                        window.dispatchEvent(new CustomEvent('refresh-campus-monitoring'));
                     }
                 } catch (err) {
                     console.error('Error parsing websocket message', err);
