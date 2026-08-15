@@ -1,3 +1,4 @@
+import StaffTaskTracker from "../common/StaffTaskTracker";
 import FacultyPayroll from "../faculty/FacultyPayroll";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -88,6 +89,8 @@ const AdmissionManagerDashboard = ({ user }: DashboardProps) => {
         return <ScheduleMeeting />;
       case "my-payroll":
         return <FacultyPayroll />;
+      case "staff-tasks":
+        return <StaffTaskTracker />;
       default:
         return <AdmissionDashboard />;
     }

@@ -2,7 +2,7 @@ import React, { useState, useEffect, forwardRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Clock, CheckCircle2, Plus, ArrowRight, User, ChevronLeft, ChevronRight, Search, ClipboardX } from 'lucide-react';
+import { AlertCircle, Clock, CheckCircle2, Plus, ArrowRight, User, ChevronLeft, ChevronRight, Search, ClipboardX, MessageSquare, History, ChevronDown, ChevronUp, XCircle, PauseCircle, HelpCircle, CheckSquare } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { staffTaskApi, StaffTask } from '../../api/staff_task_api';
 import Swal from 'sweetalert2';
@@ -86,7 +86,7 @@ const StaffTaskTracker = () => {
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
-    task_type: 'general',
+    task_type: 'task',
     priority: 'medium',
     assigned_to: '',
     assigned_to_name: '',
@@ -148,8 +148,17 @@ const StaffTaskTracker = () => {
   const [branchSearchTerm, setBranchSearchTerm] = useState("");
   const [branches, setBranches] = useState<{ id: number, name: string }[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>("");
+  const [targetRole, setTargetRole] = useState<string>("");
+  const requiresBranch = ['faculty', 'teacher', 'hod'].includes(targetRole);
 
-  const statusWeight = { 'pending': 1, 'in_progress': 2, 'completed': 3 };
+  const statusWeight: { [key: string]: number } = {
+    'pending': 1,
+    'in_progress': 2,
+    'under_review': 3,
+    'on_hold': 4,
+    'completed': 5,
+    'cancelled': 6
+  };
   const priorityWeight = { 'high': 1, 'medium': 2, 'low': 3 };
 
   const sortTasks = (a: StaffTask, b: StaffTask) => {
@@ -200,18 +209,12 @@ const StaffTaskTracker = () => {
 
   const fetchBranches = async () => {
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/teacher-assignments/?page=1&page_size=1`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-          "Content-Type": "application/json"
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/staff-tasks/branches/`);
+      if (response.ok) {
+        const result = await response.json();
+        if (result && result.branches) {
+          setBranches(result.branches);
         }
-      });
-      const result = await response.json();
-      if (result && result.branches) {
-        setBranches(result.branches);
-      } else if (result && result.results && result.results.branches) {
-        setBranches(result.results.branches);
       }
     } catch (e) {
       console.error('Failed to fetch branches', e);
@@ -229,15 +232,12 @@ const StaffTaskTracker = () => {
 
   useEffect(() => {
     if (isDialogOpen) {
-      // Only principal needs branch selection UI
-      if (role === 'principal' && branches.length === 0) {
+      if (branches.length === 0) {
         fetchBranches();
       }
 
-      const canAssign = ['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '');
-      if (canAssign) {
-        // Principal must select branch first (unless global search), others can fetch directly
-        if (role === 'principal' && !selectedBranch && !appliedSearch) {
+      if (targetRole) {
+        if (requiresBranch && !selectedBranch && !appliedSearch) {
           setSubordinates([]);
           setSubTotalPages(1);
           return;
@@ -245,22 +245,24 @@ const StaffTaskTracker = () => {
         fetchSubordinates();
       }
     }
-  }, [isDialogOpen, subPage, appliedSearch, selectedBranch, role]);
+  }, [isDialogOpen, subPage, appliedSearch, targetRole, selectedBranch]);
 
   const fetchSubordinates = async () => {
+    if (!targetRole) return;
     setSubLoading(true);
     try {
       const data = await staffTaskApi.getSubordinates({
         page: subPage,
-        page_size: 10,
+        page_size: 20,
         search: appliedSearch,
-        branch_id: selectedBranch || undefined
+        target_role: targetRole,
+        branch_id: requiresBranch && selectedBranch ? selectedBranch : undefined
       });
 
       setSubordinates(data.results || []);
-      setSubTotalPages(Math.ceil((data.count || 1) / 10));
+      setSubTotalPages(Math.ceil((data.count || 1) / 20));
     } catch (error) {
-      console.error('Failed to fetch subordinates', error);
+      console.error('Failed to fetch recipients', error);
     } finally {
       setSubLoading(false);
     }
@@ -270,7 +272,13 @@ const StaffTaskTracker = () => {
 
   const handleCreateTask = async () => {
     if (!newTask.title || !newTask.assigned_to || !newTask.due_date) {
-      Swal.fire({ icon: 'error', title: 'Oops...', text: 'Please fill in all required fields!' });
+      Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please enter a title, choose a recipient, and pick a due date.' });
+      return;
+    }
+
+    const parsedAssignedTo = parseInt(newTask.assigned_to, 10);
+    if (isNaN(parsedAssignedTo)) {
+      Swal.fire({ icon: 'error', title: 'Invalid Recipient', text: 'Please select a valid staff member from the list.' });
       return;
     }
 
@@ -278,21 +286,21 @@ const StaffTaskTracker = () => {
       const createdTask = await staffTaskApi.createTask({
         title: newTask.title,
         description: newTask.description,
-        task_type: newTask.task_type,
-        priority: newTask.priority as 'low' | 'medium' | 'high',
-        assigned_to: parseInt(newTask.assigned_to),
+        task_type: newTask.task_type || 'task',
+        priority: (newTask.priority || 'medium') as 'low' | 'medium' | 'high',
+        assigned_to: parsedAssignedTo,
         due_date: new Date(newTask.due_date).toISOString()
       });
 
       setIsDialogOpen(false);
-      setNewTask({ title: '', description: '', task_type: 'general', priority: 'medium', assigned_to: '', assigned_to_name: '', due_date: '' });
+      setNewTask({ title: '', description: '', task_type: 'task', priority: 'medium', assigned_to: '', assigned_to_name: '', due_date: '' });
       setSelectedDate(undefined);
       const currentTime = getCurrentTime();
       setSelectedHour(currentTime.hour);
       setSelectedMinute(currentTime.minute);
       setSelectedPeriod(currentTime.period);
 
-      // Optimistic UI update instead of fetching all tasks again
+      // Optimistic UI update
       if (createdTask.assigned_to === currentUserId) {
         setMyTasks(prev => [createdTask, ...prev].sort(sortTasks));
       } else {
@@ -301,65 +309,112 @@ const StaffTaskTracker = () => {
 
       Swal.fire({
         icon: 'success',
-        title: 'Task Assigned!',
-        text: 'The task has been successfully assigned.',
+        title: createdTask.task_type === 'issue' ? 'Issue / Ticket Raised!' : 'Task Assigned!',
+        text: createdTask.task_type === 'issue' ? 'The issue ticket has been raised successfully.' : 'The task has been successfully assigned.',
         timer: 2000,
         showConfirmButton: false
       });
-    } catch (error) {
-      Swal.fire({ icon: 'error', title: 'Failed to create task' });
+    } catch (error: any) {
+      console.error('Failed to create task', error);
+      Swal.fire({ icon: 'error', title: 'Failed to Create Task / Raise Issue', text: error?.message || 'Check required fields and try again.' });
     }
   };
 
-  const handleUpdateStatus = async (taskId: number, newStatus: string) => {
-    if (newStatus === 'in_progress') {
-      const result = await Swal.fire({
-        title: 'Start Task?',
-        text: 'Are you ready to start working on this task?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, start it!',
-        cancelButtonText: 'Cancel',
-        confirmButtonColor: '#3b82f6',
-      });
-      if (!result.isConfirmed) return;
-    } else if (newStatus === 'completed') {
-      const result = await Swal.fire({
-        title: 'Mark as Completed?',
-        text: 'Are you sure you want to mark this task as completed?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, complete it!',
-        cancelButtonText: 'Cancel',
-        confirmButtonColor: '#10b981',
-      });
-      if (!result.isConfirmed) return;
-    }
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [expandedHistory, setExpandedHistory] = useState<{ [key: number]: boolean }>({});
 
-    // Optimistic UI update
+  const handleUpdateStatus = async (taskId: number, newStatus: string) => {
+    const statusLabels: { [key: string]: string } = {
+      pending: 'Pending',
+      in_progress: 'In Progress',
+      under_review: 'Under Review',
+      on_hold: 'On Hold',
+      completed: 'Completed',
+      cancelled: 'Cancelled'
+    };
+
+    const targetLabel = statusLabels[newStatus] || newStatus;
+
+    const { value: noteText, isConfirmed } = await Swal.fire({
+      title: `Update Status to "${targetLabel}"`,
+      html: `
+        <div style="text-align: left; font-size: 13px; color: #64748b; margin-bottom: 8px;">
+          Add progress notes, work remarks, or blocker details (optional):
+        </div>
+        <textarea id="swal-status-note" class="swal2-textarea" placeholder="Type status notes here..." style="margin: 0; width: 100%; height: 90px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 8px;"></textarea>
+      `,
+      icon: newStatus === 'completed' ? 'success' : newStatus === 'cancelled' ? 'warning' : 'info',
+      showCancelButton: true,
+      confirmButtonText: 'Save Status',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: newStatus === 'completed' ? '#10b981' : newStatus === 'cancelled' ? '#ef4444' : '#3b82f6',
+      preConfirm: () => {
+        return (document.getElementById('swal-status-note') as HTMLTextAreaElement)?.value || '';
+      }
+    });
+
+    if (!isConfirmed) return;
+
     const previousMyTasks = [...myTasks];
     const previousAssignedTasks = [...assignedTasks];
 
     const newCompletedAt = newStatus === 'completed' ? new Date().toISOString() : undefined;
-    setMyTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus, completed_at: newCompletedAt } : t).sort(sortTasks));
-    setAssignedTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus, completed_at: newCompletedAt } : t).sort(sortTasks));
+    const userName = (user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username) || 'User';
+
+    const updateTaskItem = (t: StaffTask): StaffTask => {
+      if (t.id !== taskId) return t;
+      const history = Array.isArray(t.status_history) ? [...t.status_history] : [];
+      history.push({
+        status: newStatus,
+        note: noteText || '',
+        updated_by: userName,
+        timestamp: new Date().toISOString()
+      });
+      return {
+        ...t,
+        status: newStatus,
+        notes: noteText || t.notes,
+        status_history: history,
+        completed_at: newCompletedAt
+      };
+    };
+
+    setMyTasks(prev => prev.map(updateTaskItem).sort(sortTasks));
+    setAssignedTasks(prev => prev.map(updateTaskItem).sort(sortTasks));
 
     try {
-      await staffTaskApi.updateTaskStatus(taskId, newStatus);
+      const updated = await staffTaskApi.updateTaskStatus(taskId, newStatus, noteText);
+      setMyTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updated } : t).sort(sortTasks));
+      setAssignedTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updated } : t).sort(sortTasks));
 
-      if (newStatus === 'completed') {
-        Swal.fire({
-          icon: 'success',
-          title: 'Task Completed!',
-          text: 'Great job! The task is marked as complete.',
-          timer: 2000,
-          showConfirmButton: false
-        });
-      }
+      Swal.fire({
+        icon: 'success',
+        title: 'Status Updated!',
+        text: `Task status updated to ${targetLabel}.`,
+        timer: 1500,
+        showConfirmButton: false
+      });
     } catch (error) {
-      setMyTasks(previousMyTasks); // Revert on error
+      setMyTasks(previousMyTasks);
       setAssignedTasks(previousAssignedTasks);
-      Swal.fire({ icon: 'error', title: 'Failed to update task' });
+      Swal.fire({ icon: 'error', title: 'Failed to update task status' });
+    }
+  };
+
+  const renderStatusBadge = (status: string) => {
+    switch (status) {
+      case 'in_progress':
+        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-400 border-blue-200 border text-[10px] px-2 py-0.5 capitalize">In Progress</Badge>;
+      case 'under_review':
+        return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-400 border-purple-200 border text-[10px] px-2 py-0.5 capitalize">Under Review</Badge>;
+      case 'on_hold':
+        return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400 border-amber-200 border text-[10px] px-2 py-0.5 capitalize">On Hold</Badge>;
+      case 'completed':
+        return <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200 border text-[10px] px-2 py-0.5 capitalize">Completed</Badge>;
+      case 'cancelled':
+        return <Badge className="bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-400 border-rose-200 border text-[10px] px-2 py-0.5 capitalize">Cancelled</Badge>;
+      default:
+        return <Badge className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 border text-[10px] px-2 py-0.5 capitalize">Pending</Badge>;
     }
   };
 
@@ -382,35 +437,34 @@ const StaffTaskTracker = () => {
 
   const TaskCard = ({ task, isReceived }: { task: StaffTask, isReceived: boolean }) => {
     const dueStatus = getDueDateStatus(task);
-
-    const borderClass = getBorderColor(task);
+    const isHistoryOpen = !!expandedHistory[task.id];
+    const historyList = Array.isArray(task.status_history) ? task.status_history : [];
 
     return (
-      <Card className={`mb-4 ${borderClass ? `border-l-4 ${borderClass}` : ''} shadow-sm hover:shadow-md transition-shadow`}>
+      <Card className="mb-4 shadow-sm hover:shadow-md transition-all border-border bg-card">
         <CardContent className="p-4">
           <div className="flex flex-col gap-2.5">
             <div className="flex items-start justify-between gap-3">
               <h4 className="font-semibold text-base sm:text-lg text-foreground leading-snug break-words flex-1">
                 {task.title}
               </h4>
-              <Badge
-                variant={task.status === 'completed' ? 'default' : task.status === 'in_progress' ? 'secondary' : 'outline'}
-                className={cn(
-                  "capitalize shrink-0 text-[10px] px-2 py-0.5",
-                  task.status === 'completed' && "bg-green-600 hover:bg-green-700",
-                  task.status === 'in_progress' && "bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200",
-                  task.status === 'pending' && "bg-slate-100 text-slate-600 border-slate-200"
-                )}
-              >
-                {task.status.replace('_', ' ')}
-              </Badge>
+              {renderStatusBadge(task.status)}
             </div>
 
             <div className="flex flex-wrap items-center gap-1.5">
               {task.priority === 'high' && <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-900 text-[10px] h-5 border whitespace-nowrap">High Priority</Badge>}
               {task.priority === 'medium' && <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-900 text-[10px] h-5 border whitespace-nowrap">Medium Priority</Badge>}
-              {task.priority === 'low' && <Badge variant="secondary" className="bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 text-[10px] h-5 border whitespace-nowrap">Low Priority</Badge>}
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 uppercase tracking-wider whitespace-nowrap">{task.task_type}</Badge>
+              {task.task_type === 'issue' ? (
+                <Badge className="bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/70 dark:text-rose-300 dark:border-rose-800 text-[10px] h-5 border font-semibold whitespace-nowrap flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3 text-rose-600 dark:text-rose-400" /> ISSUE
+                </Badge>
+              ) : task.task_type === 'task' ? (
+                <Badge className="bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/70 dark:text-blue-300 dark:border-blue-800 text-[10px] h-5 border font-semibold whitespace-nowrap flex items-center gap-1">
+                  <CheckSquare className="w-3 h-3 text-blue-600 dark:text-blue-400" /> TASK
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 uppercase tracking-wider whitespace-nowrap">{task.task_type}</Badge>
+              )}
             </div>
 
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-relaxed break-words">{task.description}</p>
@@ -427,23 +481,74 @@ const StaffTaskTracker = () => {
             </div>
           </div>
 
-          {isReceived && task.status !== 'completed' && (
-            <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-border">
-              {task.status === 'pending' && (
-                <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(task.id, 'in_progress')} className="w-full sm:w-auto">
-                  Start Task
-                </Button>
-              )}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleUpdateStatus(task.id, 'completed')}
-                className="w-full sm:w-auto border-green-500 text-green-700 bg-green-50 hover:bg-green-100 hover:text-green-800 dark:border-green-500 dark:text-green-400 dark:bg-green-500/10 dark:hover:bg-green-500/20 dark:hover:text-green-300"
-              >
-                <CheckCircle2 className="w-4 h-4 mr-2" /> Mark Completed
-              </Button>
+          {/* Progress Remarks & Notes */}
+          {task.notes && (
+            <div className="mt-3 p-2.5 rounded-md bg-muted/40 border border-border/60 text-xs space-y-1">
+              <div className="flex items-center gap-1.5 font-medium text-foreground">
+                <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                <span>Latest Progress Notes:</span>
+              </div>
+              <p className="text-muted-foreground pl-5 whitespace-pre-wrap">{task.notes}</p>
             </div>
           )}
+
+          {/* Collapsible Status Audit Timeline */}
+          {historyList.length > 0 && (
+            <div className="mt-3">
+              <button
+                onClick={() => setExpandedHistory(prev => ({ ...prev, [task.id]: !prev[task.id] }))}
+                className="flex items-center gap-1.5 text-xs text-primary font-medium hover:underline focus:outline-none"
+              >
+                <History className="w-3.5 h-3.5" />
+                <span>{isHistoryOpen ? 'Hide Work Log' : `View Work Log (${historyList.length} updates)`}</span>
+                {isHistoryOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+
+              {isHistoryOpen && (
+                <div className="mt-2 p-3 rounded-lg bg-muted/30 border border-border/80 text-xs space-y-2.5 max-h-48 overflow-y-auto custom-scrollbar">
+                  {historyList.slice().reverse().map((h, i) => (
+                    <div key={i} className="border-b border-border/40 pb-2 last:border-0 last:pb-0 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-foreground">{h.updated_by || 'User'}</span>
+                          <span className="text-muted-foreground">changed status to</span>
+                          {renderStatusBadge(h.status)}
+                        </div>
+                        {h.timestamp && (
+                          <span className="text-[10px] text-muted-foreground/80 shrink-0">
+                            {new Date(h.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                          </span>
+                        )}
+                      </div>
+                      {h.note && (
+                        <p className="text-muted-foreground text-[11px] bg-background/80 p-1.5 rounded border border-border/40 italic">
+                          "{h.note}"
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Status Update Action Controls */}
+          <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-border">
+            <span className="text-xs font-medium text-muted-foreground mr-1">Update Status:</span>
+            <Select value={task.status} onValueChange={(val) => handleUpdateStatus(task.id, val)}>
+              <SelectTrigger className="h-8 text-xs w-[150px] bg-background">
+                <SelectValue placeholder="Change status..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="under_review">Under Review</SelectItem>
+                <SelectItem value="on_hold">On Hold</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
     );
@@ -458,10 +563,11 @@ const StaffTaskTracker = () => {
             <p className="text-muted-foreground text-sm sm:text-sm">Manage and track internal faculty and academic tasks.</p>
           </div>
 
-          {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && (
+          {['org_admin', 'superadmin', 'dean', 'principal', 'hod', 'faculty', 'teacher', 'coe', 'fees_manager', 'admission_manager', 'hms', 'library_admin', 'transport_admin'].includes(role || '') && (
             <Dialog open={isDialogOpen} onOpenChange={(open) => {
               setIsDialogOpen(open);
               if (!open) {
+                setTargetRole("");
                 setSearchTerm("");
                 setAppliedSearch("");
                 setSubPage(1);
@@ -474,7 +580,7 @@ const StaffTaskTracker = () => {
               }
             }}>
               <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto"><Plus className="w-4 h-4 mr-2" /> Assign New Task</Button>
+                <Button className="w-full sm:w-auto"><Plus className="w-4 h-4 mr-2" /> Assign Task / Raise Issue</Button>
               </DialogTrigger>
               <DialogContent
                 className="w-[90vw] sm:w-full sm:max-w-[450px] h-[80vh] sm:h-auto max-h-[80vh] sm:max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl"
@@ -482,16 +588,33 @@ const StaffTaskTracker = () => {
                 onPointerDownOutside={(e) => e.preventDefault()}
               >
                 <DialogHeader>
-                  <DialogTitle>Assign Task</DialogTitle>
+                  <DialogTitle>Assign Task / Raise Issue</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="title">Task Title <span className="text-destructive">*</span></Label>
-                    <Input id="title" value={newTask.title} onChange={e => setNewTask({ ...newTask, title: e.target.value })} />
+                    <Label htmlFor="title">Title <span className="text-destructive">*</span></Label>
+                    <Input id="title" placeholder="Enter title or issue summary..." value={newTask.title} onChange={e => setNewTask({ ...newTask, title: e.target.value })} />
                   </div>
+
+                  <div className="grid gap-2">
+                    <Label>Category / Nature <span className="text-destructive">*</span></Label>
+                    <Select value={newTask.task_type || 'task'} onValueChange={(val) => setNewTask({ ...newTask, task_type: val })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="task">Task</SelectItem>
+                        <SelectItem value="issue">Issue / Ticket</SelectItem>
+                        <SelectItem value="general">General</SelectItem>
+                        <SelectItem value="academic">Academic</SelectItem>
+                        <SelectItem value="administrative">Administrative</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="grid gap-2">
                     <Label htmlFor="desc">Description</Label>
-                    <Textarea id="desc" value={newTask.description} onChange={e => setNewTask({ ...newTask, description: e.target.value })} className="resize-none h-[100px] overflow-y-auto custom-scrollbar" />
+                    <Textarea id="desc" placeholder="Details or problem description..." value={newTask.description} onChange={e => setNewTask({ ...newTask, description: e.target.value })} className="resize-none h-[100px] overflow-y-auto custom-scrollbar" />
                   </div>
 
                   <div className="grid gap-2">
@@ -508,17 +631,47 @@ const StaffTaskTracker = () => {
                     </Select>
                   </div>
 
-                  {/* Branch selector only for principal */}
-                  {role === 'principal' && (
+                  {/* Step 1: Select Target Role */}
+                  <div className="grid gap-2">
+                    <Label>Target Role <span className="text-destructive">*</span></Label>
+                    <Select
+                      value={targetRole}
+                      onValueChange={(val) => {
+                        setTargetRole(val);
+                        setSubPage(1);
+                        setSelectedBranch("");
+                        setNewTask({ ...newTask, assigned_to: '', assigned_to_name: '' });
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose role to assign/report to..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hod">HOD</SelectItem>
+                        <SelectItem value="faculty">Faculty Member / Teacher</SelectItem>
+                        <SelectItem value="principal">Principal</SelectItem>
+                        <SelectItem value="dean">Dean</SelectItem>
+                        <SelectItem value="coe">Controller of Examinations (COE)</SelectItem>
+                        <SelectItem value="fees_manager">Fees Manager</SelectItem>
+                        <SelectItem value="admission_manager">Admission Manager</SelectItem>
+                        <SelectItem value="hms">Hostel Manager (HMS)</SelectItem>
+                        <SelectItem value="library_admin">Library Admin</SelectItem>
+                        <SelectItem value="transport_admin">Transport Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Step 2: Conditional Branch selector only for Faculty and HOD */}
+                  {requiresBranch && (
                     <div className="grid gap-2">
-                      <Label>{translateTerminology("Select Branch First")} <span className="text-destructive">*</span></Label>
+                      <Label>{translateTerminology("Select Branch / Department")} <span className="text-destructive">*</span></Label>
                       <Select value={selectedBranch} onValueChange={(val) => {
                         setSelectedBranch(val);
                         setSubPage(1);
                         setNewTask({ ...newTask, assigned_to: '', assigned_to_name: '' });
                       }}>
                         <SelectTrigger>
-                          <SelectValue placeholder={translateTerminology("Select a branch")} />
+                          <SelectValue placeholder={translateTerminology("Select branch / department...")} />
                         </SelectTrigger>
                         <CustomSelectContent
                           header={
@@ -526,7 +679,7 @@ const StaffTaskTracker = () => {
                               <div className="relative">
                                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
-                                  placeholder="Search..."
+                                  placeholder="Search branch..."
                                   className="pl-8 pr-12 h-9"
                                   value={branchSearchTerm}
                                   onChange={(e) => setBranchSearchTerm(e.target.value)}
@@ -558,6 +711,7 @@ const StaffTaskTracker = () => {
                     </div>
                   )}
 
+                  {/* Step 3: Recipient Staff Selection */}
                   <div className="grid gap-2">
                     <Label>Assign To <span className="text-destructive">*</span></Label>
                     <Select
@@ -568,13 +722,15 @@ const StaffTaskTracker = () => {
                           setNewTask({ ...newTask, assigned_to: val, assigned_to_name: staff.name });
                         }
                       }}
-                      disabled={role === 'principal' && !selectedBranch && !appliedSearch}
+                      disabled={!targetRole || (requiresBranch && !selectedBranch && !appliedSearch)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={
-                          role === 'principal' && !selectedBranch && !appliedSearch
-                            ? translateTerminology("Select a branch first...")
-                            : "Choose staff member..."
+                          !targetRole
+                            ? "Select target role first..."
+                            : requiresBranch && !selectedBranch && !appliedSearch
+                              ? translateTerminology("Select branch first...")
+                              : "Choose staff member..."
                         }>
                           {newTask.assigned_to_name ? newTask.assigned_to_name : "Choose staff member..."}
                         </SelectValue>
@@ -642,14 +798,16 @@ const StaffTaskTracker = () => {
                       >
                         {subLoading ? (
                           <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>
-                        ) : subordinates.length === 0 ? (
+                        ) : subordinates.filter(sub => sub.id !== currentUserId && sub.id !== Number(currentUserId)).length === 0 ? (
                           <div className="p-4 text-center text-sm text-muted-foreground">No staff found.</div>
                         ) : (
-                          subordinates.map(sub => (
-                            <SelectItem key={sub.id} value={sub.id.toString()}>
-                              {sub.name} <span className="text-xs text-muted-foreground ml-2 capitalize">({translateTerminology(sub.role)})</span>
-                            </SelectItem>
-                          ))
+                          subordinates
+                            .filter(sub => sub.id !== currentUserId && sub.id !== Number(currentUserId))
+                            .map(sub => (
+                              <SelectItem key={sub.id} value={sub.id.toString()}>
+                                {sub.name} <span className="text-xs text-muted-foreground ml-2 capitalize">({translateTerminology(sub.role)})</span>
+                              </SelectItem>
+                            ))
                         )}
                       </CustomSelectContent>
                     </Select>
@@ -739,8 +897,8 @@ const StaffTaskTracker = () => {
       </CardHeader>
       <CardContent className="space-y-6 pt-4">
 
-        {/* Tab Navigation if user can assign tasks */}
-        {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && role !== 'org_admin' && (
+        {/* Tab Navigation if user can assign tasks / raise issues */}
+        {['org_admin', 'superadmin', 'dean', 'principal', 'hod', 'faculty', 'teacher', 'coe', 'fees_manager', 'admission_manager', 'hms', 'library_admin', 'transport_admin'].includes(role || '') && role !== 'org_admin' && (
           <div className="flex space-x-1 p-1 rounded-lg bg-muted border border-border overflow-x-auto mb-6 w-full">
             <button
               onClick={() => setActiveTaskTab('assigned_to_me')}
@@ -758,14 +916,33 @@ const StaffTaskTracker = () => {
                   : 'text-muted-foreground hover:text-foreground'
                 }`}
             >
-              Assigned Tasks
+              Assigned Tasks & Raised Issues
             </button>
           </div>
         )}
 
+        {/* Status Filter Dropdown (shadcn/ui) */}
+        <div className="flex items-center gap-3 mb-6">
+          <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">Filter Status:</Label>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[200px] h-9 bg-background">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
+              <SelectItem value="under_review">Under Review</SelectItem>
+              <SelectItem value="on_hold">On Hold</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="w-full">
           {/* Received Tasks */}
-          {role !== 'org_admin' && (!['superadmin', 'dean', 'principal', 'hod'].includes(role || '') || activeTaskTab === 'assigned_to_me') && (
+          {role !== 'org_admin' && (!['superadmin', 'dean', 'principal', 'hod', 'faculty', 'teacher', 'coe', 'fees_manager', 'admission_manager', 'hms', 'library_admin', 'transport_admin'].includes(role || '') || activeTaskTab === 'assigned_to_me') && (
             <Card className="shadow-sm border-border w-full">
               <CardHeader className="pb-3 border-b border-border/50 bg-muted/20">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -776,19 +953,19 @@ const StaffTaskTracker = () => {
               <CardContent className="p-4 bg-muted/10 min-h-[400px] flex flex-col">
                 {myTasksLoading ? (
                   <div className="text-center p-8 text-muted-foreground border border-dashed rounded-md bg-background flex-1">Loading tasks...</div>
-                ) : myTasks.length === 0 ? (
+                ) : myTasks.filter(t => statusFilter === 'all' || t.status === statusFilter).length === 0 ? (
                   <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-border rounded-xl bg-background/50 text-center flex-1 space-y-3">
                     <div className="p-4 rounded-full bg-muted">
                       <ClipboardX className="w-10 h-10 text-muted-foreground" />
                     </div>
                     <div className="max-w-sm">
                       <p className="text-base font-semibold text-foreground">No Tasks Found</p>
-                      <p className="text-sm text-muted-foreground mt-1">No tasks assigned to you at the moment.</p>
+                      <p className="text-sm text-muted-foreground mt-1">No tasks assigned to you matching this filter.</p>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4 flex-1">
-                    {myTasks.map(task => <TaskCard key={task.id} task={task} isReceived={true} />)}
+                    {myTasks.filter(t => statusFilter === 'all' || t.status === statusFilter).map(task => <TaskCard key={task.id} task={task} isReceived={true} />)}
                   </div>
                 )}
               </CardContent>
@@ -828,30 +1005,30 @@ const StaffTaskTracker = () => {
           )}
 
           {/* Assigned Tasks */}
-          {['org_admin', 'superadmin', 'dean', 'principal', 'hod'].includes(role || '') && (role === 'org_admin' || activeTaskTab === 'assigned_by_me') && (
+          {['org_admin', 'superadmin', 'dean', 'principal', 'hod', 'faculty', 'teacher', 'coe', 'fees_manager', 'admission_manager', 'hms', 'library_admin', 'transport_admin'].includes(role || '') && (role === 'org_admin' || activeTaskTab === 'assigned_by_me') && (
             <Card className="shadow-sm border-border w-full">
               <CardHeader className="pb-3 border-b border-border/50 bg-primary/5">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <ArrowRight className="w-5 h-5 text-primary" />
-                  Assigned Tasks
+                  Assigned Tasks & Raised Issues
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 bg-muted/10 min-h-[400px] flex flex-col">
                 {assignedTasksLoading ? (
                   <div className="text-center p-8 text-muted-foreground border border-dashed rounded-md bg-background flex-1">Loading tasks...</div>
-                ) : assignedTasks.length === 0 ? (
+                ) : assignedTasks.filter(t => statusFilter === 'all' || t.status === statusFilter).length === 0 ? (
                   <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-border rounded-xl bg-background/50 text-center flex-1 space-y-3">
                     <div className="p-4 rounded-full bg-muted">
                       <ClipboardX className="w-10 h-10 text-muted-foreground" />
                     </div>
                     <div className="max-w-sm">
                       <p className="text-base font-semibold text-foreground">No Tasks Assigned</p>
-                      <p className="text-sm text-muted-foreground mt-1">You haven't assigned any tasks to staff yet.</p>
+                      <p className="text-sm text-muted-foreground mt-1">No assigned tasks matching this filter.</p>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4 flex-1">
-                    {assignedTasks.map(task => <TaskCard key={task.id} task={task} isReceived={false} />)}
+                    {assignedTasks.filter(t => statusFilter === 'all' || t.status === statusFilter).map(task => <TaskCard key={task.id} task={task} isReceived={false} />)}
                   </div>
                 )}
               </CardContent>

@@ -12,6 +12,7 @@ import Profile from "../common/Profile";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
+import StaffTaskTracker from "../common/StaffTaskTracker";
 import ScheduleMeeting from "../common/ScheduleMeeting";
 import StudentAnnouncements from "../student/StudentAnnouncements";
 
@@ -63,6 +64,8 @@ const LibraryAdminDashboard = ({ user }: DashboardProps) => {
         return <ScheduleMeeting />;
       case "my-payroll":
         return <FacultyPayroll />;
+      case "staff-tasks":
+        return <StaffTaskTracker />;
       default:
         return <LibraryOverview />;
     }

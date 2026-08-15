@@ -61,6 +61,7 @@ import AnnouncementManagement from '../admin/AnnouncementManagement';
 import { HolidayCalendar } from '../admin/HolidayCalendar';
 import FeesManagerPayroll from './FeesManagerPayroll';
 import ScheduleMeeting from '../common/ScheduleMeeting';
+import StaffTaskTracker from '../common/StaffTaskTracker';
 import FacultyPayroll from '../faculty/FacultyPayroll';
 
 interface DashboardStats {
@@ -400,6 +401,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
       case 'payroll': return <FeesManagerPayroll user={user} />;
       case 'schedule-meeting': return <ScheduleMeeting />;
       case 'my-payroll': return <FacultyPayroll user={user} />;
+      case 'staff-tasks': return <StaffTaskTracker />;
       default: return renderDashboard();
     }
   };

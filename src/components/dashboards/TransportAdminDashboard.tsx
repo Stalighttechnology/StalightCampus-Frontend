@@ -18,6 +18,7 @@ import DriverLeavesManagement from "../transport/admin/LeaveManagement";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
 import { TutorialController } from "../../onboarding/components/TutorialController";
+import StaffTaskTracker from "../common/StaffTaskTracker";
 import ScheduleMeeting from "../common/ScheduleMeeting";
 
 interface DashboardProps {
@@ -76,6 +77,8 @@ const TransportAdminDashboard = ({ user }: DashboardProps) => {
         return <ScheduleMeeting />;
       case "my-payroll":
         return <FacultyPayroll />;
+      case "staff-tasks":
+        return <StaffTaskTracker />;
       default:
         return <TransportOverview />;
     }

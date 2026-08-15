@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Building2 } from "lucide-react";
 import { HolidayCalendar } from "../admin/HolidayCalendar";
+import StaffTaskTracker from "../common/StaffTaskTracker";
 import ScheduleMeeting from "../common/ScheduleMeeting";
 
 interface HMSDashboardProps {
@@ -122,6 +123,8 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
         return <ScheduleMeeting />;
       case "my-payroll":
         return <FacultyPayroll />;
+      case "staff-tasks":
+        return <StaffTaskTracker />;
       default:
         return <HMSOverview />;
     }

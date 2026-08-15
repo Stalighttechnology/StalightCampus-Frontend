@@ -1,3 +1,4 @@
+import StaffTaskTracker from "../common/StaffTaskTracker";
 import FacultyPayroll from "../faculty/FacultyPayroll";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -71,7 +72,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'announcement-management': 'announcement-management',
       'profile': 'profile',
       'co-attainment': 'co-attainment',
-      'schedule-meeting': 'schedule-meeting'
+      'schedule-meeting': 'schedule-meeting',
+      'staff-tasks': 'staff-tasks'
     };
 
     return pathMap[lastPart] || 'dashboard';
@@ -115,7 +117,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'profile': '/coe/profile',
       'fee-settings': '/coe/fee-settings',
       'co-attainment': '/coe/co-attainment',
-      'schedule-meeting': '/coe/schedule-meeting'
+      'schedule-meeting': '/coe/schedule-meeting',
+      'staff-tasks': '/coe/staff-tasks'
     };
 
     navigate(pathMap[page] || '/coe/dashboard');
@@ -174,12 +177,14 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
         return <FacultyAttendance />;
       case 'announcement-management':
         return <AnnouncementManagement />;
-            case "holiday-calendar":
+      case "holiday-calendar":
         return <HolidayCalendar readOnly showLeaves userRole="coe" />;
       case "schedule-meeting":
         return <ScheduleMeeting />;
       case "my-payroll":
         return <FacultyPayroll />;
+      case "staff-tasks":
+        return <StaffTaskTracker />;
       default:
         return <COEDashboardStats />;
     }
