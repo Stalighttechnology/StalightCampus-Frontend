@@ -173,9 +173,10 @@ export default function CampusMonitoring() {
 
   const getRadarPosition = (index: number, total: number) => {
     const angle = (index / Math.max(total, 1)) * 2 * Math.PI - Math.PI / 2;
-    const distanceRadius = 36; // radius percentage from center
-    const x = 50 + distanceRadius * Math.cos(angle);
-    const y = 50 + distanceRadius * Math.sin(angle);
+    // Vary radial distance across 3 concentric orbit rings (30%, 36%, 42%) so nodes never collide or overlap
+    const orbitRadius = 30 + (index % 3) * 6;
+    const x = 50 + orbitRadius * Math.cos(angle);
+    const y = 50 + orbitRadius * Math.sin(angle);
     return { left: `${x}%`, top: `${y}%` };
   };
 
@@ -548,12 +549,18 @@ export default function CampusMonitoring() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="text-[10px] text-red-500 border-red-200 bg-red-50">
-                            Geofence Exit
-                          </Badge>
+                          {alert.is_resolved ? (
+                            <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-200 bg-emerald-50">
+                              Returned / Resolved
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] text-red-500 border-red-200 bg-red-50">
+                              Active Exit
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell className="text-right text-xs">
-                          {alert.distance_meters ? `${Math.round(alert.distance_meters)}m away` : 'Out of bounds'}
+                          {getFormattedDistance(alert)}
                         </TableCell>
                       </TableRow>
                     ))}

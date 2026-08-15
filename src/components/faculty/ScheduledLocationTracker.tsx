@@ -166,13 +166,17 @@ export default function ScheduledLocationTracker() {
             }
           );
           watchIdRef.current = watchId;
-        } else if (navigator.geolocation) {
-          const navWatchId = navigator.geolocation.watchPosition(
-            (pos) => processPosition(pos.coords.latitude, pos.coords.longitude),
-            (err) => console.warn("Browser Geolocation watch error:", err),
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 3000 }
-          );
-          watchIdRef.current = navWatchId;
+        } else {
+          if (navigator.geolocation) {
+            const navWatchId = navigator.geolocation.watchPosition(
+              (pos) => processPosition(pos.coords.latitude, pos.coords.longitude),
+              (err) => console.warn("Browser Geolocation watch error:", err),
+              { enableHighAccuracy: true, timeout: 15000, maximumAge: 3000 }
+            );
+            watchIdRef.current = navWatchId;
+          }
+          // On Web Browser / Desktop testing: Add 15s polling failsafe since laptops do not physically move
+          intervalIdRef.current = setInterval(checkCurrentLocation, 15000);
         }
 
         // Native OS Geofencing handles location movement automatically via watchPosition
