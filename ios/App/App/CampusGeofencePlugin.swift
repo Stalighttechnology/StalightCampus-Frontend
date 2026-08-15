@@ -17,6 +17,20 @@ public class CampusGeofencePlugin: CAPPlugin, CLLocationManagerDelegate {
         }
     }
 
+    @objc func requestGeofencePermissions(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            guard let lm = self.locationManager else {
+                call.resolve(["granted": false])
+                return
+            }
+            let status = CLLocationManager.authorizationStatus()
+            if status == .notDetermined {
+                lm.requestAlwaysAuthorization()
+            }
+            call.resolve(["granted": status == .authorizedAlways || status == .authorizedWhenInUse])
+        }
+    }
+
     @objc func addGeofence(_ call: CAPPluginCall) {
         guard let latitude = call.getDouble("latitude"),
               let longitude = call.getDouble("longitude") else {
@@ -33,6 +47,10 @@ public class CampusGeofencePlugin: CAPPlugin, CLLocationManagerDelegate {
             guard let lm = self.locationManager else {
                 call.reject("LocationManager not initialized")
                 return
+            }
+
+            if CLLocationManager.authorizationStatus() == .notDetermined {
+                lm.requestAlwaysAuthorization()
             }
 
             if CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) {

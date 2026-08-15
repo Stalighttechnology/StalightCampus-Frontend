@@ -254,15 +254,8 @@ const AppContent = () => {
     window.addEventListener("popstate", handlePopState);
 
     if (Capacitor.isNativePlatform()) {
-      // Notify Capgo update is ready and hide splash screen
-      CapacitorUpdater.notifyAppReady()
-        .then(() => SplashScreen.hide())
-        .catch((e) => {
-          console.error(e);
-          SplashScreen.hide();
-        });
-
-      // Request all permissions sequentially on app startup
+      // Request all permissions sequentially — must run AFTER splash is hidden
+      // so dialogs are not covered by the splash screen overlay.
       const requestAllPermissions = async () => {
         try {
           // 1. Push Notifications
@@ -275,12 +268,23 @@ const AppContent = () => {
         } catch (e) { console.warn('Camera permission error:', e); }
 
         try {
-          // 3. Location
-          await Geolocation.requestPermissions();
+          // 3. Location — explicit permission types required for Android to show dialog
+          await Geolocation.requestPermissions({ permissions: ['location', 'coarseLocation'] });
         } catch (e) { console.warn('Location permission error:', e); }
       };
 
-      requestAllPermissions();
+      // Notify Capgo update is ready, hide splash screen, THEN request permissions
+      // so the permission dialogs are always visible to the user.
+      CapacitorUpdater.notifyAppReady()
+        .then(async () => {
+          await SplashScreen.hide();
+          await requestAllPermissions();
+        })
+        .catch(async (e) => {
+          console.error(e);
+          await SplashScreen.hide();
+          await requestAllPermissions();
+        });
 
       // Listen for custom scheme deep links
       CapApp.addListener('appUrlOpen', (event) => {
