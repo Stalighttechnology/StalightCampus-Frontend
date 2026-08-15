@@ -98,10 +98,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
              }).then(res => res.json());
              
              if (profileRes.success && profileRes.profile) {
+                const storedUserObj = storedUserRaw ? (() => { try { return JSON.parse(storedUserRaw); } catch { return {}; } })() : {};
+                const mergedUser = {
+                   ...storedUserObj,
+                   ...profileRes.profile,
+                   plan: profileRes.profile.plan || profileRes.profile.plan_type || storedUserObj?.plan || storedUserObj?.plan_type || 'advance',
+                };
                 setRole(profileRes.profile.role);
-                setUser(profileRes.profile);
+                setUser(mergedUser);
                 sessionStorage.setItem("role", profileRes.profile.role);
-                sessionStorage.setItem("user", JSON.stringify(profileRes.profile));
+                sessionStorage.setItem("user", JSON.stringify(mergedUser));
              } else {
                 if (storedRole && storedUserRaw) {
                    try {

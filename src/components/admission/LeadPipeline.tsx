@@ -3,15 +3,15 @@ import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User as UserIcon, AlertCircle, Clock, Plus, FileText, Upload, CheckCircle, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { Skeleton } from '../ui/skeleton';
 import LeadDetailsView from './LeadDetailsView';
-import { User as UserIcon, AlertCircle, Clock, Plus } from 'lucide-react';
 import { useAuth } from "../../context/AuthContext";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import Swal from 'sweetalert2';
+import { getR2PresignedUrl, uploadFileToR2 } from '../../utils/common_api';
 
 const STAGES = [
   { id: 'new', label: 'New Enquiry' },
@@ -91,6 +91,108 @@ const LeadPipeline: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newLead, setNewLead] = useState({ name: '', email: '', phone: '', city: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [docModalOpen, setDocModalOpen] = useState(false);
+  const [docModalLead, setDocModalLead] = useState<any>(null);
+  const [docModalApp, setDocModalApp] = useState<any>(null);
+  const [fetchingApp, setFetchingApp] = useState(false);
+  const [uploadingDocKey, setUploadingDocKey] = useState<string | null>(null);
+
+  const openDocumentVerificationModal = async (lead: any) => {
+    setDocModalLead(lead);
+    setFetchingApp(true);
+    setDocModalOpen(true);
+    try {
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/?search=${encodeURIComponent(lead.email || lead.name)}`);
+      if (res.ok) {
+        const data = await res.json();
+        const list = data?.results || (Array.isArray(data) ? data : []);
+        const found = list.find((a: any) => a.enquiry?.id === lead.id || a.enquiry_details?.email === lead.email) || list[0] || null;
+        setDocModalApp(found);
+      } else {
+        setDocModalApp(null);
+      }
+    } catch (err) {
+      console.error(err);
+      setDocModalApp(null);
+    } finally {
+      setFetchingApp(false);
+    }
+  };
+
+  const handleDocumentUploadInPipeline = async (docKey: string, file: File) => {
+    if (!docModalApp?.id) {
+      toast.error("No active application form found for this applicant.");
+      return;
+    }
+
+    const isPhotoOrSign = docKey === 'photo' || docKey === 'signature';
+    const maxSizeBytes = isPhotoOrSign ? 2 * 1024 * 1024 : 5 * 1024 * 1024; // 2MB for photo/sign, 5MB for certificates
+    const maxSizeStr = isPhotoOrSign ? "2MB" : "5MB";
+
+    if (file.size > maxSizeBytes) {
+      toast.error(`File "${file.name}" exceeds the maximum allowed size of ${maxSizeStr}. Please select a smaller file.`);
+      return;
+    }
+
+    try {
+      setUploadingDocKey(docKey);
+      const res = await getR2PresignedUrl(file.name, file.type, 'admission_documents');
+      let finalFileUrl = "";
+      if (res.success && res.data?.url) {
+        const uploaded = await uploadFileToR2(file, res.data.url, file.type);
+        if (!uploaded) {
+          toast.error(`Failed to upload ${file.name}`);
+          setUploadingDocKey(null);
+          return;
+        }
+        finalFileUrl = res.data.file_url;
+      } else {
+        toast.error(res.message || "Failed to generate upload URL");
+        setUploadingDocKey(null);
+        return;
+      }
+
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/${docModalApp.id}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [docKey]: finalFileUrl })
+      });
+
+      if (response.ok) {
+        toast.success("Document uploaded successfully!");
+        setDocModalApp((prev: any) => prev ? ({ ...prev, [docKey]: finalFileUrl }) : null);
+      } else {
+        toast.error("Failed to update application document.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error uploading document.");
+    } finally {
+      setUploadingDocKey(null);
+    }
+  };
+
+  const completeDocumentVerification = async () => {
+    if (!docModalLead) return;
+    try {
+      await moveLead(docModalLead.id, 'documents_verified');
+      if (docModalApp?.id) {
+        await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/${docModalApp.id}/update_status/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'documents_verified' })
+        });
+      }
+      toast.success("Documents verified successfully & Lead moved to Docs Verified!");
+      setDocModalOpen(false);
+      setDocModalLead(null);
+      setDocModalApp(null);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to verify documents.");
+    }
+  };
 
   const handleAddLead = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -284,6 +386,10 @@ const LeadPipeline: React.FC = () => {
                           return;
                         }
                       }
+                      if (stage.id === 'documents_verified') {
+                        openDocumentVerificationModal(lead);
+                        return;
+                      }
                       moveLead(leadId, stage.id);
                     }
                   }
@@ -375,6 +481,107 @@ const LeadPipeline: React.FC = () => {
           })}
         </div>
       </CardContent>
+
+      {/* Document Verification & Upload Modal */}
+      <Dialog open={docModalOpen} onOpenChange={setDocModalOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto custom-scrollbar">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="text-lg font-semibold flex items-center justify-between">
+              <span>Document Verification: {docModalLead?.name}</span>
+            </DialogTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Upload missing required applicant documents before verifying and moving to Docs Verified stage.
+            </p>
+          </DialogHeader>
+
+          {fetchingApp ? (
+            <div className="p-8 text-center text-muted-foreground flex items-center justify-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin text-primary" /> Loading applicant documents...
+            </div>
+          ) : (
+            <div className="space-y-6 pt-4">
+              <div className="grid grid-cols-2 gap-4 text-xs bg-muted/20 p-3 rounded-lg border border-border">
+                <div><strong className="text-muted-foreground">Applicant:</strong> {docModalLead?.name}</div>
+                <div><strong className="text-muted-foreground">Email:</strong> {docModalLead?.email || 'N/A'}</div>
+                <div><strong className="text-muted-foreground">Phone:</strong> {docModalLead?.phone || 'N/A'}</div>
+                <div><strong className="text-muted-foreground">Course:</strong> {docModalLead?.course_name || 'N/A'}</div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Required Documents Checklist</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    { label: '10th Marks Card', key: 'marks_card_10th' },
+                    { label: '12th Marks Card', key: 'marks_card_12th' },
+                    { label: 'Transfer Certificate', key: 'transfer_certificate' },
+                    { label: 'Aadhaar Card', key: 'aadhaar_card' },
+                    { label: 'Applicant Photo', key: 'photo' },
+                    { label: 'Applicant Signature', key: 'signature' },
+                  ].map((docItem) => {
+                    const fileUrl = docModalApp?.[docItem.key];
+                    const isUploading = uploadingDocKey === docItem.key;
+
+                    return (
+                      <div key={docItem.key} className="p-3 border border-border rounded-lg bg-card flex flex-col justify-between gap-2 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold">{docItem.label}</span>
+                          {fileUrl ? (
+                            <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 font-semibold px-1.5 py-0.5 rounded">Uploaded</span>
+                          ) : (
+                            <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 font-semibold px-1.5 py-0.5 rounded">Missing</span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1 border-t border-border/50">
+                          {fileUrl ? (
+                            <a
+                              href={fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-primary hover:underline flex items-center gap-1 font-medium"
+                            >
+                              <FileText className="w-3 h-3" /> Preview
+                            </a>
+                          ) : (
+                            <span className="text-muted-foreground italic">Not provided</span>
+                          )}
+
+                          <label className={`cursor-pointer inline-flex items-center gap-1 font-semibold text-blue-600 hover:underline ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                            {isUploading ? (
+                              <span className="flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Uploading...</span>
+                            ) : (
+                              <span className="flex items-center gap-1"><Upload className="w-3 h-3" /> {fileUrl ? 'Replace' : 'Upload File'}</span>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
+                              className="hidden"
+                              disabled={isUploading}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleDocumentUploadInPipeline(docItem.key, file);
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <DialogFooter className="pt-4 border-t border-border">
+                <Button variant="outline" onClick={() => setDocModalOpen(false)}>Cancel</Button>
+                <Button onClick={completeDocumentVerification} className="bg-green-600 hover:bg-green-700 text-white">
+                  <CheckCircle className="w-4 h-4 mr-2" /> Complete Verification & Move Stage
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <LeadDetailsView 
         leadId={selectedLeadId}
