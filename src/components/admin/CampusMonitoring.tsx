@@ -180,6 +180,21 @@ export default function CampusMonitoring() {
     return { left: `${x}%`, top: `${y}%` };
   };
 
+  const handleResolveAlert = async (alertId: number) => {
+    try {
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/monitoring/resolve-alert/${alertId}/`, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSelectedFaculty(null);
+        fetchActiveSession();
+      }
+    } catch (err) {
+      console.error("Error resolving alert");
+    }
+  };
+
   return (
     <div className={`p-4 sm:p-6 max-w-7xl mx-auto space-y-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       
@@ -693,6 +708,15 @@ export default function CampusMonitoring() {
               </div>
 
               <div className="flex items-center gap-3 pt-2">
+                {!selectedFaculty.is_resolved && (
+                  <Button 
+                    size="sm"
+                    onClick={() => handleResolveAlert(selectedFaculty.id)}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition-colors shadow-sm"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5" /> Mark Returned
+                  </Button>
+                )}
                 {selectedFaculty.faculty_mobile ? (
                   <a 
                     href={`tel:${selectedFaculty.faculty_mobile}`}
