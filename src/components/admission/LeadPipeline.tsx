@@ -20,7 +20,6 @@ const STAGES = [
   { id: 'application_started', label: 'Application Started' },
   { id: 'documents_pending', label: 'Docs Pending' },
   { id: 'documents_verified', label: 'Docs Verified' },
-  { id: 'fee_pending', label: 'Fee Pending' },
   { id: 'admission_confirmed', label: 'Confirmed' },
   { id: 'rejected', label: 'Rejected' }
 ];
@@ -35,10 +34,10 @@ const isValidTransition = (currentStatus: string, newStatus: string): { valid: b
     return { valid: false, reason: 'Confirmed admissions can only be enrolled via the Applications tab.' };
   }
 
-  // 2. Fee Pending can only go to admission_confirmed
+  // 2. Fee Pending can transition to admission_confirmed or documents_verified
   if (currentStatus === 'fee_pending') {
-    if (newStatus === 'admission_confirmed') return { valid: true };
-    return { valid: false, reason: 'Leads with pending fees can only transition to Confirmed.' };
+    if (['admission_confirmed', 'documents_verified'].includes(newStatus)) return { valid: true };
+    return { valid: false, reason: 'Leads with pending fees can only transition to Confirmed or Docs Verified.' };
   }
 
   // 4. Enquiry-based stages can only go to other enquiry stages, application_started, or rejected
@@ -358,7 +357,7 @@ const LeadPipeline: React.FC = () => {
           onDrop={stopScrolling}
         >
           {STAGES.map((stage) => {
-            const stageLeads = leads.filter(l => l.status === stage.id);
+            const stageLeads = leads.filter(l => l.status === stage.id || (stage.id === 'documents_verified' && l.status === 'fee_pending'));
             return (
               <div
                 key={stage.id}

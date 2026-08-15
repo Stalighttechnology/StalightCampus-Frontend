@@ -512,7 +512,7 @@ export default function AdmissionApplications() {
               <div className="space-y-4 pt-4 border-t border-border">
                 <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground pb-2">Actions</h3>
                 {(() => {
-                  const appStages = ['new', 'contacted', 'interested', 'application_started', 'documents_pending', 'documents_verified', 'fee_pending', 'admission_confirmed', 'enrolled', 'rejected'];
+                  const appStages = ['new', 'contacted', 'interested', 'application_started', 'documents_pending', 'documents_verified', 'admission_confirmed', 'enrolled', 'rejected'];
                   const currentStatus = selectedApp?.enquiry_details?.status;
                   const isRejected = currentStatus === 'rejected';
                   const currentIndex = appStages.indexOf(currentStatus);

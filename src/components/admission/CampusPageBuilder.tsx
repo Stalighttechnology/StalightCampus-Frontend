@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, GripVertical, Trash2, Save, MoveUp, MoveDown, Copy, Check, Layout, Settings, Image as ImageIcon, FormInput, Menu, Baseline, PieChart, Eye, MonitorPlay, MessageSquare, LayoutTemplate } from 'lucide-react';
+import { Plus, GripVertical, Trash2, Save, MoveUp, MoveDown, Copy, Check, Layout, Settings, Image as ImageIcon, FormInput, Menu, Baseline, PieChart, Eye, MonitorPlay, MessageSquare, LayoutTemplate, ExternalLink, FileText, CheckCircle, Code } from 'lucide-react';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { toast } from 'sonner';
@@ -221,17 +221,30 @@ const CampusPageBuilder: React.FC = () => {
             <LayoutTemplate className="w-5 h-5" /> Campus CMS
           </h1>
           <nav className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-            {SIDEBAR_TABS.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap ${
-                  activeTab === tab.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                {tab.icon} {tab.label}
-              </button>
-            ))}
+            <button
+              onClick={() => setActiveTab('builder')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap ${
+                activeTab === 'builder' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`}
+            >
+              <LayoutTemplate size={14} /> Page Builder
+            </button>
+            <button
+              onClick={() => setActiveTab('theme')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap ${
+                activeTab === 'theme' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`}
+            >
+              <Baseline size={14} /> Theme & Style
+            </button>
+            <button
+              onClick={() => setActiveTab('embed')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap ${
+                activeTab === 'embed' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`}
+            >
+              <ExternalLink size={14} /> Embed & Integration
+            </button>
           </nav>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between min-[1250px]:justify-end gap-3 w-full min-[1250px]:w-auto pt-2 min-[1250px]:pt-0 border-t min-[1250px]:border-t-0 border-border min-[1250px]:self-center">
@@ -537,6 +550,152 @@ const CampusPageBuilder: React.FC = () => {
                     </button>
                   ))}
                 </div>
+              </div>
+            </div>
+          </div>
+        ) : activeTab === 'embed' ? (
+          <div className="flex-1 flex overflow-y-auto justify-center bg-muted/10 p-4 sm:p-8">
+            <div className="w-full max-w-none bg-card rounded-2xl shadow-xl border border-border p-6 sm:p-8 h-fit space-y-8">
+              <div>
+                <h2 className="text-2xl font-semibold flex items-center gap-2 text-foreground">
+                  <ExternalLink className="text-primary" /> Website Integration & Embeddable Lead Form
+                </h2>
+                <p className="text-muted-foreground mt-1">
+                  Embed your Stalight Campus enquiry form directly onto your college website so new leads automatically flow into your CRM Lead Pipeline.
+                </p>
+
+                {/* 3-Step Setup Guide */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-muted/40 p-4 rounded-xl border border-border text-xs mt-4">
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center text-xs shrink-0">1</span>
+                    <div>
+                      <strong className="text-foreground block font-semibold mb-0.5">Copy Embed Code</strong>
+                      Click "Copy Code" on Widget A (Quick Contact) or Widget B (Application Wizard).
+                    </div>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center text-xs shrink-0">2</span>
+                    <div>
+                      <strong className="text-foreground block font-semibold mb-0.5">Paste on College Site</strong>
+                      Paste into any website builder (WordPress, Wix, HTML, React, Webflow).
+                    </div>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center text-xs shrink-0">3</span>
+                    <div>
+                      <strong className="text-foreground block font-semibold mb-0.5">Automatic CRM Sync</strong>
+                      Leads & documents instantly land in your Admission Manager Lead Pipeline!
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Option 1A: Quick Contact / Enquiry Widget */}
+              <div className="space-y-4 p-6 border border-primary/20 bg-primary/5 rounded-xl">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-primary/20 pb-4">
+                  <div>
+                    <h3 className="font-semibold text-lg text-primary flex items-center gap-2">
+                      Widget A: Quick Contact / Enquiry Form (Contact Us Button)
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Lightweight enquiry form for sidebar or contact sections. Captures leads with dynamic course selection.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      const embedCode = `<iframe src="${window.location.origin}/admissions/${encodeURIComponent(orgName || orgId || 'campus')}?embed=true&mode=contact" width="100%" height="520" frameborder="0" style="border:0; border-radius:12px; overflow:hidden;" allowfullscreen></iframe>`;
+                      navigator.clipboard.writeText(embedCode);
+                      toast.success('Quick Contact form embed code copied!');
+                    }}
+                    className="gap-2 shrink-0 text-xs h-9"
+                  >
+                    <FileText size={14} />
+                    Copy Contact Form Code
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Quick Contact Embed Code</label>
+                  <pre className="p-4 bg-muted/80 text-foreground font-mono text-xs rounded-lg overflow-x-auto border border-border whitespace-pre-wrap">
+{`<iframe
+  src="${window.location.origin}/admissions/${encodeURIComponent(orgName || orgId || 'campus')}?embed=true&mode=contact"
+  width="100%"
+  height="520"
+  frameborder="0"
+  style="border:0; border-radius:12px; overflow:hidden;"
+  allowfullscreen
+></iframe>`}
+                  </pre>
+                </div>
+              </div>
+
+              {/* Option 1B: Full Application Wizard Embed (Apply Now) */}
+              <div className="space-y-4 p-6 border border-blue-500/20 bg-blue-500/5 rounded-xl dark:bg-blue-950/20">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-blue-500/20 pb-4">
+                  <div>
+                    <h3 className="font-semibold text-lg text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                      Widget B: Full Admission Application Wizard (Apply Now Button)
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Multi-step application wizard for website "Apply Now" pages. Includes live course selection, personal details, and document upload handling (10th/12th marks cards, TC, Aadhaar, photo).
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      const embedCode = `<iframe src="${window.location.origin}/admissions/${encodeURIComponent(orgName || orgId || 'campus')}?embed=true&mode=apply" width="100%" height="750" frameborder="0" style="border:0; border-radius:12px; overflow:hidden;" allowfullscreen></iframe>`;
+                      navigator.clipboard.writeText(embedCode);
+                      toast.success('Full Application Wizard embed code copied!');
+                    }}
+                    className="gap-2 shrink-0 text-xs h-9 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <FileText size={14} />
+                    Copy Application Wizard Code
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Application Wizard Embed Code</label>
+                  <pre className="p-4 bg-muted/80 text-foreground font-mono text-xs rounded-lg overflow-x-auto border border-border whitespace-pre-wrap">
+{`<iframe
+  src="${window.location.origin}/admissions/${encodeURIComponent(orgName || orgId || 'campus')}?embed=true&mode=apply"
+  width="100%"
+  height="750"
+  frameborder="0"
+  style="border:0; border-radius:12px; overflow:hidden;"
+  allowfullscreen
+></iframe>`}
+                  </pre>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 text-xs text-muted-foreground">
+                  <div className="p-3 bg-background border border-border rounded-lg">
+                    <strong className="text-foreground block mb-1">1. Live Course Catalog</strong>
+                    Auto-fetches active courses and seat availability directly from your campus backend.
+                  </div>
+                  <div className="p-3 bg-background border border-border rounded-lg">
+                    <strong className="text-foreground block mb-1">2. Secure Document Uploads</strong>
+                    Students upload marks cards, identity proof, and photos directly to cloud storage.
+                  </div>
+                  <div className="p-3 bg-background border border-border rounded-lg">
+                    <strong className="text-foreground block mb-1">3. Automated Applications</strong>
+                    Submits full student profiles into your Admission Applications & Document Verification dashboard.
+                  </div>
+                </div>
+              </div>
+
+              {/* Option 2: Direct REST API (Upcoming) */}
+              <div className="space-y-3 p-6 border border-border bg-muted/20 rounded-xl opacity-80">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-base text-foreground flex items-center gap-2">
+                    Option 2: Custom Webhook & REST API Integration
+                  </h3>
+                  <span className="bg-primary/10 text-primary border border-primary/20 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    Upcoming Feature
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Direct custom REST API endpoints for developer integrations, webhooks, and third-party CRM form connectors will be available in an upcoming platform release.
+                </p>
               </div>
             </div>
           </div>

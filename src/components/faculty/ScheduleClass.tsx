@@ -623,15 +623,58 @@ const StudentFeedbackRow = React.memo(({
           <span className="font-semibold text-foreground text-sm">{st.student_name}</span>
           <span className="text-muted-foreground ml-2 font-mono text-xs">({st.usn})</span>
         </div>
-        <select
+        <Select
           value={st.attendance_status || "pending"}
-          onChange={(e) => onStatusChange(idx, e.target.value)}
-          className="h-7 px-2 text-xs rounded-md border border-input bg-background text-foreground font-medium focus:outline-none focus:ring-1 focus:ring-primary shrink-0 cursor-pointer"
+          onValueChange={(val) => onStatusChange(idx, val)}
         >
-          <option value="attended">Attended</option>
-          <option value="absent">Absent</option>
-          <option value="pending">Pending</option>
-        </select>
+          <SelectTrigger className="h-8 w-[170px] text-xs bg-background font-medium shrink-0">
+            <SelectValue placeholder="Select Status" />
+          </SelectTrigger>
+          <SelectContent className="w-[190px]">
+            <SelectItem value="resolved">
+              <span className="flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                Resolved / Solved
+              </span>
+            </SelectItem>
+            <SelectItem value="partially_resolved">
+              <span className="flex items-center gap-1.5 font-medium text-amber-600 dark:text-amber-400">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                Partially Resolved
+              </span>
+            </SelectItem>
+            <SelectItem value="needs_followup">
+              <span className="flex items-center gap-1.5 font-medium text-purple-600 dark:text-purple-400">
+                <span className="w-2 h-2 rounded-full bg-purple-500" />
+                Needs Follow-Up
+              </span>
+            </SelectItem>
+            <SelectItem value="escalated">
+              <span className="flex items-center gap-1.5 font-medium text-rose-600 dark:text-rose-400">
+                <span className="w-2 h-2 rounded-full bg-rose-500" />
+                Escalated
+              </span>
+            </SelectItem>
+            <SelectItem value="attended">
+              <span className="flex items-center gap-1.5 font-medium text-blue-600 dark:text-blue-400">
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                Attended
+              </span>
+            </SelectItem>
+            <SelectItem value="absent">
+              <span className="flex items-center gap-1.5 font-medium text-red-600 dark:text-red-400">
+                <span className="w-2 h-2 rounded-full bg-red-500" />
+                Absent
+              </span>
+            </SelectItem>
+            <SelectItem value="pending">
+              <span className="flex items-center gap-1.5 font-medium text-slate-500">
+                <span className="w-2 h-2 rounded-full bg-slate-400" />
+                Pending
+              </span>
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {st.feedback ? (
@@ -659,7 +702,7 @@ const StudentFeedbackRow = React.memo(({
       <Input
         type="text"
         placeholder="Faculty note / specific feedback for this student..."
-        defaultValue={st.feedback || ""}
+        defaultValue={st.faculty_note || ""}
         onBlur={(e) => onFeedbackChange(idx, e.target.value)}
         className="h-8 text-xs w-full"
       />
@@ -792,6 +835,12 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
   }, [immediateHistory, historyDropdowns.currentAssignment]);
 
   const [historyClasses, setHistoryClasses] = useState<ScheduledClassRecord[]>([]);
+
+  const displayedHistoryClasses = useMemo(() => {
+    const immediateIds = new Set(filteredImmediateHistory.map((imm) => imm.id));
+    return historyClasses.filter((cls) => !immediateIds.has(cls.id));
+  }, [historyClasses, filteredImmediateHistory]);
+
   const [historyLoading, setHistoryLoading] = useState(false);
   const [exportingPDF, setExportingPDF] = useState(false);
 
@@ -951,11 +1000,11 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     });
   }, []);
 
-  const handleStudentFeedbackChange = useCallback((idx: number, feedback: string) => {
+  const handleStudentFeedbackChange = useCallback((idx: number, faculty_note: string) => {
     setStudentFeedbackList((prev) => {
       const copy = [...prev];
       if (copy[idx]) {
-        copy[idx] = { ...copy[idx], feedback };
+        copy[idx] = { ...copy[idx], faculty_note };
       }
       return copy;
     });
@@ -1189,9 +1238,6 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
           is_mentoring: mainTab === "mentoring",
         };
         setImmediateHistory((prev) => [newRecord, ...prev].slice(0, 5));
-        if (mainTab === "mentoring") {
-          setHistoryClasses((prev) => [newRecord, ...prev]);
-        }
 
         Swal.fire({
           title: mainTab === "mentoring" ? "Mentoring Session Scheduled!" : "Class Scheduled!",
@@ -1625,23 +1671,27 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
                   <Loader2 className="w-4 h-4 animate-spin" /> Loading session history…
                 </div>
-              ) : historyClasses.length > 0 ? (
+              ) : (filteredImmediateHistory.length > 0 || displayedHistoryClasses.length > 0) ? (
                 <div className="space-y-4">
-                  <p className="text-xs text-muted-foreground font-medium mb-2">
-                    Showing recent {historyClasses.length} session{historyClasses.length !== 1 ? "s" : ""}
-                  </p>
-                  <div className="space-y-2">
-                    {historyClasses.map((cls) => (
-                      <ClassHistoryCard
-                        key={cls.id}
-                        cls={cls}
-                        theme={theme}
-                        currentTime={currentTime}
-                        onViewFeedback={openFeedbackModal}
-                        onExportCSV={handleExportMentoringCSV}
-                      />
-                    ))}
-                  </div>
+                  {displayedHistoryClasses.length > 0 && (
+                    <>
+                      <p className="text-xs text-muted-foreground font-medium mb-2">
+                        Showing recent {displayedHistoryClasses.length + filteredImmediateHistory.length} session{(displayedHistoryClasses.length + filteredImmediateHistory.length) !== 1 ? "s" : ""}
+                      </p>
+                      <div className="space-y-2">
+                        {displayedHistoryClasses.map((cls) => (
+                          <ClassHistoryCard
+                            key={cls.id}
+                            cls={cls}
+                            theme={theme}
+                            currentTime={currentTime}
+                            onViewFeedback={openFeedbackModal}
+                            onExportCSV={handleExportMentoringCSV}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-10 text-center space-y-2">
