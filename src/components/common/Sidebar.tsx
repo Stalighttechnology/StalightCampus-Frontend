@@ -338,7 +338,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
-  const orgPlan = user?.org_plan || "basic";
+  const orgPlan = user?.plan || user?.plan_type || user?.org_plan || "basic";
 
   const userTier = PLAN_TIERS[(orgPlan || 'basic').toLowerCase()] || 1;
   const advanceRoles = ['transport_admin', 'driver', 'library_admin', 'admission_manager', 'hms', 'warden', 'counsellor'];

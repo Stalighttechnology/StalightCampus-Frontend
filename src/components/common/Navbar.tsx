@@ -220,7 +220,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
   };
   const userStr = sessionStorage.getItem("user");
   const userData = userStr ? JSON.parse(userStr) : null;
-  const orgPlan = (userData?.org_plan || "basic").toLowerCase();
+  const orgPlan = (userData?.plan || userData?.plan_type || userData?.org_plan || (user as any)?.plan || (user as any)?.org_plan || "basic").toLowerCase();
 
   // Determine avatar source: prefer `user` prop, then localStorage cached user.
   const rawAvatar = user?.profile_picture || user?.profile_image || userData?.profile_picture || userData?.profile_image || userData?.profile_picture_url || user?.profile_picture_url || null;

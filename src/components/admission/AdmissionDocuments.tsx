@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
-import { Loader2, FileText, CheckCircle, ExternalLink, Upload } from 'lucide-react';
+import { Loader2, FileText, CheckCircle, ExternalLink, Upload, Phone, Mail, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { SkeletonCard } from '../ui/skeleton';
 import Swal from 'sweetalert2';
@@ -18,6 +18,13 @@ export default function AdmissionDocuments() {
   const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending');
   const [currentPage, setCurrentPage] = useState(1);
   const [uploadingDocState, setUploadingDocState] = useState<{ appId: number; docKey: string } | null>(null);
+  const [expandedAppIds, setExpandedAppIds] = useState<number[]>([]);
+
+  const toggleExpand = (appId: number) => {
+    setExpandedAppIds(prev =>
+      prev.includes(appId) ? prev.filter(id => id !== appId) : [...prev, appId]
+    );
+  };
 
   const handleDocumentUpload = async (docKey: string, file: File, appId: number) => {
     const isPhotoOrSign = docKey === 'photo' || docKey === 'signature';
@@ -272,98 +279,157 @@ export default function AdmissionDocuments() {
                 <p>{activeTab === 'pending' ? 'All applicant documents have been verified.' : 'No verified applications found.'}</p>
               </div>
             ) : (
-              paginatedApplications.map(app => (
-                <Card key={app.id} className="border-border shadow-sm">
-                  <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-border mb-4">
-                    <div>
-                      <CardTitle className="text-base font-semibold">{app.enquiry_details?.name}</CardTitle>
-                      <p className="text-xs text-muted-foreground mt-1">App ID: #{app.id} • Course: {app.enquiry_details?.course_name}</p>
-                    </div>
-                    {isAppVerified(app) ? (
-                      <span className="text-xs bg-green-100 text-green-700 font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                        <CheckCircle className="w-4 h-4" /> Verified
-                      </span>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        onClick={() => handleVerify(app.id)}
-                        className={`shadow-sm w-full sm:w-auto ${theme === 'dark' ?
-                          'text-green-400 border-green-400 hover:bg-green-900/20' :
-                          'text-green-700 border-green-600 hover:bg-green-100'}`}
-                        size="sm"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" /> Mark as Verified
-                      </Button>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-2">
-                      {[
-                        { label: '10th Marks Card', key: 'marks_card_10th' },
-                        { label: '12th Marks Card', key: 'marks_card_12th' },
-                        { label: 'Transfer Certificate', key: 'transfer_certificate' },
-                        { label: 'Aadhaar Card', key: 'aadhaar_card' },
-                        { label: 'Applicant Photo', key: 'photo' },
-                        { label: 'Applicant Signature', key: 'signature' },
-                      ].map(docItem => {
-                        const fileUrl = app[docItem.key];
-                        const isUploading = uploadingDocState?.appId === app.id && uploadingDocState?.docKey === docItem.key;
+              paginatedApplications.map(app => {
+                const docKeys = ['marks_card_10th', 'marks_card_12th', 'transfer_certificate', 'aadhaar_card', 'photo', 'signature'];
+                const uploadedCount = docKeys.filter(k => !!app[k]).length;
+                const isExpanded = expandedAppIds.includes(app.id);
 
-                        return (
-                          <div key={docItem.key} className="p-4 bg-muted/20 border border-border rounded-lg flex flex-col justify-between gap-3">
-                            <div>
-                              <div className="flex items-center justify-between mb-2">
-                                <p className="text-xs font-semibold uppercase text-muted-foreground">{docItem.label}</p>
-                                {fileUrl ? (
-                                  <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 font-semibold px-1.5 py-0.5 rounded">Uploaded</span>
-                                ) : (
-                                  <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 font-semibold px-1.5 py-0.5 rounded">Missing</span>
-                                )}
+                return (
+                  <Card key={app.id} className="border-border shadow-sm">
+                    <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-border">
+                      <div>
+                        <CardTitle className="text-base font-semibold">{app.enquiry_details?.name}</CardTitle>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground mt-1">
+                          <span>App ID: #{app.id}</span>
+                          <span>•</span>
+                          <span>Course: <strong className="text-foreground">{app.enquiry_details?.course_name || 'N/A'}</strong></span>
+                          {app.enquiry_details?.phone && (
+                            <>
+                              <span>•</span>
+                              <a
+                                href={`tel:${app.enquiry_details.phone}`}
+                                className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium hover:underline"
+                                title="Call Phone Number"
+                              >
+                                <Phone className="w-3 h-3" /> {app.enquiry_details.phone}
+                              </a>
+                            </>
+                          )}
+                          {app.enquiry_details?.email && (
+                            <>
+                              <span>•</span>
+                              <a
+                                href={`mailto:${app.enquiry_details.email}`}
+                                className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium hover:underline"
+                                title="Send Email"
+                              >
+                                <Mail className="w-3 h-3" /> {app.enquiry_details.email}
+                              </a>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleExpand(app.id)}
+                          className="text-xs flex items-center justify-center gap-1.5 shadow-sm border-border"
+                        >
+                          {isExpanded ? (
+                            <>
+                              <ChevronUp className="w-4 h-4 text-primary" />
+                              <span>Hide Documents</span>
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="w-4 h-4 text-primary" />
+                              <span>View & Upload Docs ({uploadedCount}/6)</span>
+                            </>
+                          )}
+                        </Button>
+
+                        {isAppVerified(app) ? (
+                          <span className="text-xs bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 font-semibold px-3 py-1.5 rounded flex items-center justify-center gap-1.5">
+                            <CheckCircle className="w-4 h-4" /> Verified
+                          </span>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            onClick={() => handleVerify(app.id)}
+                            className={`shadow-sm w-full sm:w-auto ${theme === 'dark' ?
+                              'text-green-400 border-green-400 hover:bg-green-900/20' :
+                              'text-green-700 border-green-600 hover:bg-green-100'}`}
+                            size="sm"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2" /> Mark as Verified
+                          </Button>
+                        )}
+                      </div>
+                    </CardHeader>
+
+                    {isExpanded && (
+                      <CardContent className="pt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                          {[
+                            { label: '10th Marks Card', key: 'marks_card_10th' },
+                            { label: '12th Marks Card', key: 'marks_card_12th' },
+                            { label: 'Transfer Certificate', key: 'transfer_certificate' },
+                            { label: 'Aadhaar Card', key: 'aadhaar_card' },
+                            { label: 'Applicant Photo', key: 'photo' },
+                            { label: 'Applicant Signature', key: 'signature' },
+                          ].map(docItem => {
+                            const fileUrl = app[docItem.key];
+                            const isUploading = uploadingDocState?.appId === app.id && uploadingDocState?.docKey === docItem.key;
+
+                            return (
+                              <div key={docItem.key} className="p-4 bg-muted/20 border border-border rounded-lg flex flex-col justify-between gap-3">
+                                <div>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <p className="text-xs font-semibold uppercase text-muted-foreground">{docItem.label}</p>
+                                    {fileUrl ? (
+                                      <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 font-semibold px-1.5 py-0.5 rounded">Uploaded</span>
+                                    ) : (
+                                      <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 font-semibold px-1.5 py-0.5 rounded">Missing</span>
+                                    )}
+                                  </div>
+
+                                  {fileUrl ? (
+                                    <a
+                                      href={fileUrl}
+                                      onClick={(e) => handlePreview(e, fileUrl)}
+                                      className="text-blue-500 hover:underline flex items-center gap-2 text-sm font-medium cursor-pointer"
+                                    >
+                                      <FileText className="w-4 h-4" /> View {docItem.label} <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                  ) : (
+                                    <span className="text-muted-foreground text-xs italic flex items-center gap-1">
+                                      <XCircle className="w-3.5 h-3.5 text-amber-500" /> No document uploaded
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="pt-2 border-t border-border/50 flex justify-end">
+                                  <label className={`cursor-pointer inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                    {isUploading ? (
+                                      <span className="flex items-center gap-1"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...</span>
+                                    ) : (
+                                      <span className="flex items-center gap-1"><Upload className="w-3.5 h-3.5" /> {fileUrl ? 'Replace File' : 'Upload Document'}</span>
+                                    )}
+                                    <input
+                                      type="file"
+                                      accept="image/*,application/pdf"
+                                      className="hidden"
+                                      disabled={isUploading}
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          handleDocumentUpload(docItem.key, file, app.id);
+                                        }
+                                      }}
+                                    />
+                                  </label>
+                                </div>
                               </div>
-
-                              {fileUrl ? (
-                                <a
-                                  href={fileUrl}
-                                  onClick={(e) => handlePreview(e, fileUrl)}
-                                  className="text-blue-500 hover:underline flex items-center gap-2 text-sm font-medium cursor-pointer"
-                                >
-                                  <FileText className="w-4 h-4" /> View {docItem.label} <ExternalLink className="w-3 h-3" />
-                                </a>
-                              ) : (
-                                <span className="text-muted-foreground text-xs italic flex items-center gap-1">
-                                  <XCircle className="w-3.5 h-3.5 text-amber-500" /> No document uploaded
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="pt-2 border-t border-border/50 flex justify-end">
-                              <label className={`cursor-pointer inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                                {isUploading ? (
-                                  <span className="flex items-center gap-1"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...</span>
-                                ) : (
-                                  <span className="flex items-center gap-1"><Upload className="w-3.5 h-3.5" /> {fileUrl ? 'Replace File' : 'Upload Document'}</span>
-                                )}
-                                <input
-                                  type="file"
-                                  accept="image/*,application/pdf"
-                                  className="hidden"
-                                  disabled={isUploading}
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                      handleDocumentUpload(docItem.key, file, app.id);
-                                    }
-                                  }}
-                                />
-                              </label>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    )}
+                  </Card>
+                );
+              })
             )}
           </div>
         </CardContent>
