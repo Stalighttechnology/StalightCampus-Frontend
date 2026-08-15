@@ -618,16 +618,16 @@ const StudentFeedbackRow = React.memo(({
 }: StudentFeedbackRowProps) => {
   return (
     <div className="p-3 space-y-2 text-xs">
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <span className="font-semibold text-foreground text-sm">{st.student_name}</span>
-          <span className="text-muted-foreground ml-2 font-mono text-xs">({st.usn})</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="min-w-0 flex-1 flex flex-wrap items-center gap-1.5">
+          <span className="font-semibold text-foreground text-sm truncate">{st.student_name}</span>
+          <span className="text-muted-foreground font-mono text-xs">({st.usn})</span>
         </div>
         <Select
           value={st.attendance_status || "pending"}
           onValueChange={(val) => onStatusChange(idx, val)}
         >
-          <SelectTrigger className="h-8 w-[170px] text-xs bg-background font-medium shrink-0">
+          <SelectTrigger className="h-8 w-full sm:w-[170px] text-xs bg-background font-medium shrink-0">
             <SelectValue placeholder="Select Status" />
           </SelectTrigger>
           <SelectContent className="w-[190px]">
@@ -1340,7 +1340,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
       {/* ── Schedule Class / Mentoring Dialog Modal ───────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) handleDialogClose(); }}>
-        <DialogContent className="w-[90%] max-h-[80vh] sm:max-w-[540px] overflow-y-auto custom-scrollbar rounded-xl">
+        <DialogContent className="w-[95%] max-w-[95vw] sm:max-w-[540px] max-h-[90vh] overflow-y-auto custom-scrollbar rounded-2xl p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg">
               <CalendarDays className="w-5 h-5 text-primary" />
@@ -1726,14 +1726,14 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
       {/* ── Mentoring Feedback View / Update Dialog ─────────────────────── */}
       <Dialog open={feedbackModalOpen} onOpenChange={setFeedbackModalOpen}>
-        <DialogContent className="w-[90%] sm:max-w-[650px] max-h-[85vh] overflow-y-auto custom-scrollbar rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg">
-              <CalendarDays className="w-5 h-5 text-primary" />
-              Student Feedback & Attendance Status
+        <DialogContent className="w-[95%] max-w-[95vw] sm:max-w-[650px] max-h-[90vh] overflow-y-auto custom-scrollbar rounded-2xl p-4 sm:p-6">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold leading-snug">
+              <CalendarDays className="w-5 h-5 text-primary shrink-0" />
+              <span className="break-words">Student Feedback & Attendance Status</span>
             </DialogTitle>
-            <DialogDescription>
-              {selectedMentoringClass?.topic} ({selectedMentoringClass?.date})
+            <DialogDescription className="text-xs break-words leading-normal">
+              {selectedMentoringClass?.topic} {selectedMentoringClass?.date ? `(${selectedMentoringClass.date})` : ""}
             </DialogDescription>
           </DialogHeader>
 
@@ -1792,22 +1792,22 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
             </div>
           </div>
 
-          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between items-center gap-2">
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between items-stretch sm:items-center gap-2 pt-2 border-t border-border/40">
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="w-full sm:w-auto text-emerald-700 dark:text-emerald-400 border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 gap-1.5"
+              className="w-full sm:w-auto text-emerald-700 dark:text-emerald-400 border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 gap-1.5 justify-center"
               onClick={() => selectedMentoringClass && handleExportMentoringCSV(selectedMentoringClass)}
             >
               <FileDownIcon className="w-4 h-4" />
               <span>Export CSV</span>
             </Button>
             <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-              <Button variant="outline" size="sm" onClick={() => setFeedbackModalOpen(false)}>
+              <Button variant="outline" size="sm" onClick={() => setFeedbackModalOpen(false)} className="flex-1 sm:flex-initial">
                 Cancel
               </Button>
-              <Button size="sm" onClick={handleSaveFeedback} disabled={savingFeedback}>
+              <Button size="sm" onClick={handleSaveFeedback} disabled={savingFeedback} className="flex-1 sm:flex-initial">
                 {savingFeedback ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Save Feedback
               </Button>
@@ -1818,7 +1818,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
       {/* ── View Individual Student Feedback Details Modal ─────────────────── */}
       <Dialog open={!!viewingStudentFeedback} onOpenChange={(open) => { if (!open) setViewingStudentFeedback(null); }}>
-        <DialogContent className="w-[90%] sm:max-w-[480px] max-h-[85vh] overflow-y-auto custom-scrollbar rounded-2xl">
+        <DialogContent className="w-[95%] max-w-[95vw] sm:max-w-[480px] max-h-[90vh] overflow-y-auto custom-scrollbar rounded-2xl p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base font-semibold">
               <Eye className="w-4 h-4 text-primary" />
