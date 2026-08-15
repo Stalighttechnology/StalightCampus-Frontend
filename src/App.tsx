@@ -18,6 +18,8 @@ import { Browser } from '@capacitor/browser';
 import { Monitor, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import ScheduledLocationTracker from "./components/faculty/ScheduledLocationTracker";
+
 // Lazy loaded components
 const NotFound = lazy(() => import("./components/common/NotFound"));
 const PaymentSuccess = lazy(() => import("./components/common/PaymentSuccess"));
@@ -266,11 +268,6 @@ const AppContent = () => {
           // 2. Camera
           await Camera.requestPermissions({ permissions: ['camera', 'photos'] });
         } catch (e) { console.warn('Camera permission error:', e); }
-
-        try {
-          // 3. Location — explicit permission types required for Android to show dialog
-          await Geolocation.requestPermissions({ permissions: ['location', 'coarseLocation'] });
-        } catch (e) { console.warn('Location permission error:', e); }
       };
 
       // Notify Capgo update is ready, hide splash screen, THEN request permissions
@@ -807,6 +804,7 @@ const AppContent = () => {
       <Sonner />
       <NetworkStatus />
       <FeaturePopup />
+      <ScheduledLocationTracker />
       {/* Exit App Premium Bottom Sheet Modal — native mobile only */}
       {showExitDialog && Capacitor.isNativePlatform() && (
         <div 

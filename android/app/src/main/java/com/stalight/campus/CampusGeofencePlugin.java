@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.util.Log;
 
+import android.os.Build;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
@@ -19,6 +20,9 @@ import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 
+import android.content.pm.PackageManager;
+import androidx.core.content.ContextCompat;
+
 @CapacitorPlugin(
     name = "CampusGeofence",
     permissions = {
@@ -27,6 +31,12 @@ import com.google.android.gms.location.LocationServices;
             strings = {
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
+            }
+        ),
+        @Permission(
+            alias = "backgroundLocation",
+            strings = {
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
             }
         )
     }
@@ -47,7 +57,11 @@ public class CampusGeofencePlugin extends Plugin {
 
     @PluginMethod
     public void requestGeofencePermissions(PluginCall call) {
-        if (getPermissionState("location") != PermissionState.GRANTED) {
+        boolean foregroundGranted = ContextCompat.checkSelfPermission(
+                getContext(), Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED;
+
+        if (!foregroundGranted) {
             requestPermissionForAlias("location", call, "locationCallback");
         } else {
             JSObject ret = new JSObject();
@@ -58,12 +72,72 @@ public class CampusGeofencePlugin extends Plugin {
 
     @PermissionCallback
     private void locationCallback(PluginCall call) {
-        if (getPermissionState("location") == PermissionState.GRANTED) {
+        boolean foregroundGranted = ContextCompat.checkSelfPermission(
+                getContext(), Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED;
+
+        if (foregroundGranted) {
             JSObject ret = new JSObject();
             ret.put("granted", true);
             call.resolve(ret);
         } else {
             call.reject("Location permission is required for campus geofence monitoring.");
+        }
+    }
+
+    @PluginMethod
+    public void requestBackgroundPermission(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            boolean backgroundGranted = ContextCompat.checkSelfPermission(
+                    getContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED;
+
+            if (!backgroundGranted) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    launchBackgroundLocationSettings(call);
+                } else {
+                    requestPermissionForAlias("backgroundLocation", call, "backgroundCallback");
+                }
+            } else {
+                JSObject ret = new JSObject();
+                ret.put("granted", true);
+                call.resolve(ret);
+            }
+        } else {
+            JSObject ret = new JSObject();
+            ret.put("granted", true);
+            call.resolve(ret);
+        }
+    }
+
+    private void launchBackgroundLocationSettings(PluginCall call) {
+        try {
+            Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            android.net.Uri uri = android.net.Uri.fromParts("package", getContext().getPackageName(), null);
+            intent.setData(uri);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            
+            JSObject ret = new JSObject();
+            ret.put("settingsOpened", true);
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject("Could not open settings: " + e.getMessage());
+        }
+    }
+
+    @PermissionCallback
+    private void backgroundCallback(PluginCall call) {
+        boolean backgroundGranted = ContextCompat.checkSelfPermission(
+                getContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED;
+
+        if (backgroundGranted) {
+            JSObject ret = new JSObject();
+            ret.put("granted", true);
+            call.resolve(ret);
+        } else {
+            call.reject("Background location permission (Allow all the time) is required for background geofence alerts.");
         }
     }
 
