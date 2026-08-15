@@ -134,6 +134,35 @@ export default function CampusMonitoring() {
   }, [startDate, endDate]);
 
   // Polar coordinate positions for plotting faculty nodes on the radar UI
+  const getFormattedDistance = (facultyAlert: any) => {
+    if (!facultyAlert) return 'Outside Geofence';
+    if (facultyAlert.distance_meters && facultyAlert.distance_meters > 0) {
+      return `${Math.round(facultyAlert.distance_meters)} meters`;
+    }
+    
+    const alertLat = facultyAlert.latitude;
+    const alertLng = facultyAlert.longitude;
+    const campusLat = campuses[0]?.latitude;
+    const campusLng = campuses[0]?.longitude;
+
+    if (alertLat && alertLng && campusLat && campusLng) {
+      const R = 6371000; // Earth radius in meters
+      const dLat = (alertLat - campusLat) * (Math.PI / 180);
+      const dLon = (alertLng - campusLng) * (Math.PI / 180);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(campusLat * (Math.PI / 180)) *
+          Math.cos(alertLat * (Math.PI / 180)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const dist = Math.round(R * c);
+      return `${dist} meters`;
+    }
+    
+    return 'Outside Geofence';
+  };
+
   const getRadarPosition = (index: number, total: number) => {
     const angle = (index / Math.max(total, 1)) * 2 * Math.PI - Math.PI / 2;
     const distanceRadius = 36; // radius percentage from center
@@ -639,7 +668,7 @@ export default function CampusMonitoring() {
                     <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> Distance Est.
                   </span>
                   <span className="font-semibold text-xs text-amber-600">
-                    {selectedFaculty.distance_meters ? `${Math.round(selectedFaculty.distance_meters)} meters` : 'Outside Geofence'}
+                    {getFormattedDistance(selectedFaculty)}
                   </span>
                 </div>
               </div>

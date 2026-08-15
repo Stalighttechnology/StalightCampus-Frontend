@@ -1,84 +1,192 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { Geolocation } from "@capacitor/geolocation";
-import { PushNotifications } from "@capacitor/push-notifications";
 import { Capacitor } from "@capacitor/core";
 
+// Helper function to calculate distance in meters between two lat/lng points (Haversine formula)
+function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000; // Radius of Earth in meters
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 export default function ScheduledLocationTracker() {
-  const [isReady, setIsReady] = useState(false);
+  const hasReportedExitRef = useRef(false);
+  const watchIdRef = useRef<string | number | null>(null);
+  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Only native platforms support background push notifications to wake the app
-    if (!Capacitor.isNativePlatform()) {
-      console.log("ScheduledLocationTracker: Running in web, push notification wakes are disabled.");
-      return;
-    }
+    let isMounted = true;
 
-    const setupPushListener = async () => {
+    const startGeofenceTracker = async () => {
       try {
-        // Request permissions just in case
-        let permStatus = await PushNotifications.checkPermissions();
-        if (permStatus.receive === 'prompt') {
-          permStatus = await PushNotifications.requestPermissions();
+        console.log("📍 Initializing Faculty Geofence Location Tracker...");
+
+        // 1. Request Geolocation Permissions Explicitly
+        if (Capacitor.isNativePlatform()) {
+          try {
+            let permStatus = await Geolocation.checkPermissions();
+            if (permStatus.location !== 'granted') {
+              console.log("Requesting Location Permissions for Geofence Tracking...");
+              await Geolocation.requestPermissions();
+            }
+          } catch (e) {
+            console.warn("Failed to request native Geolocation permissions:", e);
+          }
         }
 
-        if (permStatus.receive !== 'granted') {
-          console.warn("Push permissions not granted, background location pings won't work.");
+        // 2. Fetch Active Campus Boundaries from Backend
+        const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/monitoring/active/`);
+        const data = await res.json();
+        
+        if (!isMounted || !data.success || !data.campuses || data.campuses.length === 0) {
+          console.warn("No active campus locations found for geofence tracking.", data);
           return;
         }
 
-        // Listen for silent data-only messages to trigger location pings
-        await PushNotifications.addListener('pushNotificationReceived', async (notification) => {
-          const data = notification.data;
-          
-          if (data && data.action === 'PING_LOCATION' && data.scheduled_time) {
-            console.log(`Silent push received: Waking up to send ping for ${data.scheduled_time}`);
-            await executePing(data.scheduled_time);
+        const campus = data.campuses[0];
+        const centerLat = campus.latitude;
+        const centerLng = campus.longitude;
+        const radiusMeters = campus.radius_meters || 500;
+
+        if (!centerLat || !centerLng) {
+          console.warn("Active campus location missing center coordinates.");
+          return;
+        }
+
+        console.log(`✅ Geofence active for ${campus.name}: Center (${centerLat}, ${centerLng}), Radius: ${radiusMeters}m`);
+
+        // Function to evaluate current GPS position against campus boundary
+        const processPosition = async (latitude: number, longitude: number) => {
+          const distance = calculateDistanceMeters(latitude, longitude, centerLat, centerLng);
+          const isOutside = distance > radiusMeters;
+
+          console.log(`📍 Current Position: (${latitude}, ${longitude}) - Distance from campus: ${Math.round(distance)}m (Radius: ${radiusMeters}m)`);
+
+          if (isOutside) {
+            if (!hasReportedExitRef.current) {
+              console.warn(`🚨 GEOFENCE EXIT DETECTED! Distance: ${Math.round(distance)}m > ${radiusMeters}m. Dispatching alert to backend...`);
+              hasReportedExitRef.current = true;
+              
+              try {
+                const alertRes = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/location/scheduled-ping/`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    latitude: latitude,
+                    longitude: longitude,
+                    event: "EXIT",
+                    distance_meters: distance,
+                    scheduled_time: new Date().toISOString()
+                  })
+                });
+                const alertData = await alertRes.json();
+                console.log("✅ Alert API Response:", alertData);
+              } catch (alertErr) {
+                console.error("Failed to post location exit alert:", alertErr);
+                hasReportedExitRef.current = false; // Allow retry on error
+              }
+            }
+          } else {
+            // User is inside campus boundary — reset exit flag so next exit is caught cleanly
+            if (hasReportedExitRef.current) {
+              console.log("✅ User returned inside campus boundary. Informing backend...");
+              hasReportedExitRef.current = false;
+              
+              try {
+                await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/location/scheduled-ping/`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    latitude: latitude,
+                    longitude: longitude,
+                    event: "ENTER",
+                    scheduled_time: new Date().toISOString()
+                  })
+                });
+              } catch (enterErr) {
+                console.error("Failed to post location enter ping:", enterErr);
+              }
+            }
           }
-        });
-        
-        setIsReady(true);
-        console.log("Location ping push listener registered.");
+        };
+
+        // Check position function helper
+        const checkCurrentLocation = async () => {
+          try {
+            const pos = await Geolocation.getCurrentPosition({
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+            if (pos && pos.coords) {
+              await processPosition(pos.coords.latitude, pos.coords.longitude);
+            }
+          } catch (err) {
+            console.warn("Could not fetch location:", err);
+          }
+        };
+
+        // Initial Position Check
+        await checkCurrentLocation();
+
+        // 3. Start Continuous GPS Position Watch
+        if (Capacitor.isNativePlatform()) {
+          const watchId = await Geolocation.watchPosition(
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 3000 },
+            (position, err) => {
+              if (err) {
+                console.error("Error in Capacitor watchPosition:", err);
+                return;
+              }
+              if (position && position.coords) {
+                processPosition(position.coords.latitude, position.coords.longitude);
+              }
+            }
+          );
+          watchIdRef.current = watchId;
+        } else if (navigator.geolocation) {
+          const navWatchId = navigator.geolocation.watchPosition(
+            (pos) => processPosition(pos.coords.latitude, pos.coords.longitude),
+            (err) => console.warn("Browser Geolocation watch error:", err),
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 3000 }
+          );
+          watchIdRef.current = navWatchId;
+        }
+
+        // Native OS Geofencing handles location movement automatically via watchPosition
+        // Zero periodic timers or frequent server calls are made
+
       } catch (error) {
-        console.error("Failed to setup push listener for location pings:", error);
+        console.error("Failed to start geofence tracker:", error);
       }
     };
 
-    setupPushListener();
+    startGeofenceTracker();
 
     return () => {
-      if (isReady) {
-        PushNotifications.removeAllListeners();
+      isMounted = false;
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current);
+      }
+      if (watchIdRef.current !== null) {
+        if (typeof watchIdRef.current === 'string') {
+          Geolocation.clearWatch({ id: watchIdRef.current }).catch(console.error);
+        } else if (typeof watchIdRef.current === 'number' && navigator.geolocation) {
+          navigator.geolocation.clearWatch(watchIdRef.current);
+        }
       }
     };
-  }, [isReady]);
+  }, []);
 
-  const executePing = async (scheduledTimeStr: string) => {
-    try {
-      // Force a fresh, high accuracy coordinate fetch
-      const coordinates = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      });
-
-      // Send to backend
-      await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/location/scheduled-ping/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          latitude: coordinates.coords.latitude,
-          longitude: coordinates.coords.longitude,
-          scheduled_time: scheduledTimeStr
-        })
-      });
-
-      console.log(`Scheduled location ping sent successfully for ${scheduledTimeStr}`);
-    } catch (error) {
-      console.error(`Failed to send scheduled ping for ${scheduledTimeStr}:`, error);
-    }
-  };
-
-  return null; // This is a headless component
+  return null; // Headless background component
 }
