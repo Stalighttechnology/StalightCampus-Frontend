@@ -43,6 +43,10 @@ public class CampusGeofencePlugin: CAPPlugin, CLLocationManagerDelegate {
         self.serverUrl = call.getString("serverUrl")
         self.authToken = call.getString("authToken")
 
+        UserDefaults.standard.set(self.serverUrl, forKey: "StalightCampusGeofenceServerUrl")
+        UserDefaults.standard.set(self.authToken, forKey: "StalightCampusGeofenceAuthToken")
+        UserDefaults.standard.synchronize()
+
         DispatchQueue.main.async {
             guard let lm = self.locationManager else {
                 call.reject("LocationManager not initialized")
@@ -96,7 +100,11 @@ public class CampusGeofencePlugin: CAPPlugin, CLLocationManagerDelegate {
     }
 
     private func sendGeofencePing(event: String, region: CLRegion) {
-        guard let urlStr = self.serverUrl, let url = URL(string: urlStr) else { return }
+        let savedServerUrl = UserDefaults.standard.string(forKey: "StalightCampusGeofenceServerUrl")
+        let savedAuthToken = UserDefaults.standard.string(forKey: "StalightCampusGeofenceAuthToken")
+
+        let urlStr = savedServerUrl ?? self.serverUrl
+        guard let urlStr = urlStr, let url = URL(string: urlStr) else { return }
 
         var bgTask: UIBackgroundTaskIdentifier = .invalid
         bgTask = UIApplication.shared.beginBackgroundTask(withName: "StalightCampusGeofencePing") {
@@ -107,14 +115,19 @@ public class CampusGeofencePlugin: CAPPlugin, CLLocationManagerDelegate {
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 5.0)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let token = self.authToken, !token.isEmpty {
+        let token = savedAuthToken ?? self.authToken
+        if let token = token, !token.isEmpty {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
+        let location = self.locationManager?.location
+        let lat = location?.coordinate.latitude ?? (region as? CLCircularRegion)?.center.latitude ?? 0.0
+        let lng = location?.coordinate.longitude ?? (region as? CLCircularRegion)?.center.longitude ?? 0.0
+
         let body: [String: Any] = [
             "event": event,
-            "latitude": (region as? CLCircularRegion)?.center.latitude ?? 0.0,
-            "longitude": (region as? CLCircularRegion)?.center.longitude ?? 0.0
+            "latitude": lat,
+            "longitude": lng
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 

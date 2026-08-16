@@ -36,6 +36,21 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
             String serverUrl = intent.getStringExtra("server_url");
             String authToken = intent.getStringExtra("auth_token");
+
+            if (serverUrl == null || serverUrl.isEmpty() || authToken == null || authToken.isEmpty()) {
+                try {
+                    android.content.SharedPreferences prefs = context.getSharedPreferences("StalightCampusGeofence", android.content.Context.MODE_PRIVATE);
+                    if (serverUrl == null || serverUrl.isEmpty()) {
+                        serverUrl = prefs.getString("server_url", "");
+                    }
+                    if (authToken == null || authToken.isEmpty()) {
+                        authToken = prefs.getString("auth_token", "");
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to read geofence settings from SharedPreferences", e);
+                }
+            }
+
             double lat = geofencingEvent.getTriggeringLocation() != null ? geofencingEvent.getTriggeringLocation().getLatitude() : 0.0;
             double lng = geofencingEvent.getTriggeringLocation() != null ? geofencingEvent.getTriggeringLocation().getLongitude() : 0.0;
 

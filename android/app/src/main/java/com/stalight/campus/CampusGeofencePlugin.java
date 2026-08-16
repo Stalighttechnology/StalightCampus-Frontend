@@ -160,6 +160,16 @@ public class CampusGeofencePlugin extends Plugin {
         lastServerUrl = serverUrl;
         lastAuthToken = authToken;
 
+        try {
+            getContext().getSharedPreferences("StalightCampusGeofence", android.content.Context.MODE_PRIVATE)
+                    .edit()
+                    .putString("server_url", serverUrl)
+                    .putString("auth_token", authToken)
+                    .apply();
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to save geofence settings to SharedPreferences", e);
+        }
+
         Geofence geofence = new Geofence.Builder()
                 .setRequestId("CAMPUS_GEOFENCE_" + campusId)
                 .setCircularRegion(latitude, longitude, radius.floatValue())

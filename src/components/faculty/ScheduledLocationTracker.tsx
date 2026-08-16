@@ -87,7 +87,7 @@ export default function ScheduledLocationTracker() {
         // The native OS fires EXIT/ENTER events and posts directly to the backend,
         // even when the app is killed/backgrounded.
         if (Capacitor.isNativePlatform()) {
-          const token = localStorage.getItem('access_token');
+          const token = data.geofence_token || localStorage.getItem('access_token');
           const CampusGeofence = registerPlugin<any>("CampusGeofence");
 
           try {
@@ -155,7 +155,7 @@ export default function ScheduledLocationTracker() {
 
               if (CampusGeofence.requestBackgroundPermission) {
                 await CampusGeofence.requestBackgroundPermission();
-              } else {
+              } else if (Capacitor.getPlatform() === 'android') {
                 console.warn("⚠️ CampusGeofence.requestBackgroundPermission is undefined. Rebuild the app in Android Studio.");
                 toast.error("Developer warning: Please clean and rebuild the app in Android Studio to apply the updated Java geofence plugin.");
               }
@@ -213,6 +213,26 @@ export default function ScheduledLocationTracker() {
                 } catch (alertErr) {
                   console.error("Failed to post initial location exit alert:", alertErr);
                   hasReportedExitRef.current = false;
+                }
+              } else if (!isOutside) {
+                // Reset flag and send an ENTER ping to ensure any stale alerts from missed network notifications are resolved
+                hasReportedExitRef.current = false;
+                try {
+                  const alertRes = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/location/scheduled-ping/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      event: 'ENTER',
+                      latitude: pos.coords.latitude,
+                      longitude: pos.coords.longitude,
+                      distance_meters: distance,
+                      scheduled_time: new Date().toISOString()
+                    })
+                  });
+                  const alertData = await alertRes.json();
+                  console.log("📍 Initial inside check: synced ENTER event to resolve stale alerts:", alertData);
+                } catch (alertErr) {
+                  console.error("Failed to post initial location enter alert resolution:", alertErr);
                 }
               }
             }
