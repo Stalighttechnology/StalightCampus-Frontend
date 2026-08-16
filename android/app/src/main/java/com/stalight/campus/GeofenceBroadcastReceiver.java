@@ -51,8 +51,28 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                 }
             }
 
-            double lat = geofencingEvent.getTriggeringLocation() != null ? geofencingEvent.getTriggeringLocation().getLatitude() : 0.0;
-            double lng = geofencingEvent.getTriggeringLocation() != null ? geofencingEvent.getTriggeringLocation().getLongitude() : 0.0;
+            double lat = 0.0;
+            double lng = 0.0;
+            if (geofencingEvent.getTriggeringLocation() != null) {
+                lat = geofencingEvent.getTriggeringLocation().getLatitude();
+                lng = geofencingEvent.getTriggeringLocation().getLongitude();
+            } else {
+                try {
+                    android.location.LocationManager lm = (android.location.LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+                    if (lm != null) {
+                        android.location.Location loc = lm.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER);
+                        if (loc == null) {
+                            loc = lm.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER);
+                        }
+                        if (loc != null) {
+                            lat = loc.getLatitude();
+                            lng = loc.getLongitude();
+                        }
+                    }
+                } catch (SecurityException se) {
+                    Log.w(TAG, "Could not get last known location from LocationManager", se);
+                }
+            }
 
             if (serverUrl != null && !serverUrl.isEmpty()) {
                 sendPingToServerAsync(serverUrl, authToken, transitionType, lat, lng, pendingResult);
