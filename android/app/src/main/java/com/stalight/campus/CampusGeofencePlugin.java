@@ -174,11 +174,12 @@ public class CampusGeofencePlugin extends Plugin {
                 .setRequestId("CAMPUS_GEOFENCE_" + campusId)
                 .setCircularRegion(latitude, longitude, radius.floatValue())
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                .setNotificationResponsiveness(0)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
                 .build();
 
         GeofencingRequest geofencingRequest = new GeofencingRequest.Builder()
-                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER | GeofencingRequest.INITIAL_TRIGGER_EXIT)
                 .addGeofence(geofence)
                 .build();
 

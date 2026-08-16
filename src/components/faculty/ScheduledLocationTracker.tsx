@@ -137,21 +137,10 @@ export default function ScheduledLocationTracker() {
 
             await waitForTourToFinish();
 
-            // Check native geofence permissions status
-            let permissionsGranted = false;
-            try {
-              const permState = await CampusGeofence.checkPermissions();
-              // For iOS, background location is tied to CLLocationManager always authorization.
-              // For Android Q+, both location (foreground) and backgroundLocation aliases must be granted.
-              const isForegroundGranted = permState.location === 'granted';
-              const isBackgroundGranted = permState.backgroundLocation === 'granted';
-              permissionsGranted = isForegroundGranted && isBackgroundGranted;
-            } catch (err) {
-              console.warn("Could not check native geofence permissions:", err);
-            }
+            // Prominent disclosure modal — only show on initial setup if not already accepted
+            const hasAcceptedDisclosure = localStorage.getItem('has_accepted_geofence_disclosure') === 'true';
 
-            if (!permissionsGranted) {
-              // Always show prominent disclosure modal before prompting/redirecting if background permissions are missing
+            if (!hasAcceptedDisclosure) {
               await new Promise<void>((resolve) => {
                 onAcceptRef.current = () => resolve();
                 setShowDisclosure(true);
@@ -166,9 +155,6 @@ export default function ScheduledLocationTracker() {
 
               if (CampusGeofence.requestBackgroundPermission) {
                 await CampusGeofence.requestBackgroundPermission();
-              } else if (Capacitor.getPlatform() === 'android') {
-                console.warn("⚠️ CampusGeofence.requestBackgroundPermission is undefined. Rebuild the app in Android Studio.");
-                toast.error("Developer warning: Please clean and rebuild the app in Android Studio to apply the updated Java geofence plugin.");
               }
             }
 
@@ -191,9 +177,9 @@ export default function ScheduledLocationTracker() {
           // not when the app starts outside it.
           try {
             const pos = await Geolocation.getCurrentPosition({
-              enableHighAccuracy: false, // Don't block on hard GPS satellite lock
+              enableHighAccuracy: true,
               timeout: 10000,
-              maximumAge: 300000 // Allow up to 5 minutes old cached location
+              maximumAge: 0 // Fresh GPS reading, never use stale 5-minute cache
             });
 
             if (pos?.coords && isMounted) {
@@ -315,8 +301,12 @@ export default function ScheduledLocationTracker() {
         // 15s polling safety net for desktop
         intervalIdRef.current = setInterval(checkCurrentLocationWeb, 15000);
 
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to start geofence tracker:", error);
+        const errMsg = error?.message || String(error);
+        if (errMsg.includes("Background location permission") || errMsg.includes("permission")) {
+          localStorage.removeItem('has_accepted_geofence_disclosure');
+        }
       }
     };
 
@@ -368,6 +358,7 @@ export default function ScheduledLocationTracker() {
             <button
               onClick={() => {
                 setShowDisclosure(false);
+                localStorage.setItem('has_accepted_geofence_disclosure', 'true');
                 if (onAcceptRef.current) {
                   onAcceptRef.current();
                 }
