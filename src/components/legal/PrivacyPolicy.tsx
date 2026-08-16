@@ -3,9 +3,9 @@ import {
   Shield, ArrowLeft, Mail, ChevronDown, ChevronUp,
   UserCheck, GraduationCap, ScanFace, HeartPulse,
   CreditCard, Cookie, Share2, Database, Lock,
-  Users, Eye, RefreshCw, Baby
+  Users, Eye, RefreshCw, Baby, MapPin
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 type ColorKey = 'blue' | 'purple' | 'teal' | 'amber';
 
@@ -155,6 +155,43 @@ const sections = [
           </p>
         ),
       },
+      {
+        id: 'location-data',
+        icon: MapPin,
+        title: 'Location Information',
+        summary: 'Background & precise location for geofencing and safety alerts.',
+        content: (
+          <>
+            <p className="text-sm mb-3">
+              Stalight Campus may access and collect precise location information when you grant the app the required location permissions.
+            </p>
+            <p className="text-sm mb-3">
+              For authorized faculty and staff members who enable campus geofence monitoring, Stalight Campus may access location information in the background, including when the app is closed or not actively in use. This allows the app to detect when an authorized user enters or leaves a configured campus boundary and generate real-time out-of-bounds safety alerts for the institution.
+            </p>
+            <p className="text-sm mb-3">
+              Location information may include precise geographic coordinates, location event type (such as entry or exit), and the date and time associated with the event.
+            </p>
+            <p className="text-sm mb-3">
+              Location data is securely transmitted to Stalight Technologies' servers over encrypted HTTPS connections and is associated with the authenticated user's account and organization to provide the campus monitoring and safety functionality.
+            </p>
+            <p className="text-sm mb-3">
+              Location information may be accessed by authorized personnel of the educational institution for legitimate campus monitoring, safety, and operational purposes. Stalight Technologies does not sell location information and does not share it with advertisers or data brokers.
+            </p>
+            <p className="text-sm mb-3">
+              Location information is not used for advertising or cross-application tracking.
+            </p>
+            <p className="text-sm mb-3">
+              Users can control or withdraw location permissions through their device settings. Disabling location permissions may prevent campus geofence monitoring and other location-dependent features from functioning.
+            </p>
+            <p className="text-sm mb-3">
+              Location information is retained only for as long as necessary to provide the relevant campus monitoring, safety, operational, and audit functionality, or as required by applicable legal obligations. When it is no longer required, it is deleted or anonymized in accordance with Stalight Technologies' data retention practices.
+            </p>
+            <p className="text-sm leading-relaxed">
+              Stalight Technologies uses appropriate technical and organizational safeguards to protect location information against unauthorized access, disclosure, alteration, or loss.
+            </p>
+          </>
+        ),
+      },
     ],
   },
   {
@@ -287,6 +324,10 @@ const sections = [
               <li className="flex gap-3"><span className="mt-0.5 text-amber-600 shrink-0">•</span><span>Request correction of inaccurate personal data.</span></li>
               <li className="flex gap-3"><span className="mt-0.5 text-amber-600 shrink-0">•</span><span>Request deletion of non-essential personal data (e.g., profile pictures, contact details) by contacting your institution's administrator or emailing us directly.</span></li>
             </ul>
+            <p className="mt-4 text-sm font-semibold text-gray-800">Account Deletion Mechanism</p>
+            <p className="text-sm mb-3">
+              If you wish to delete your account and remove your personal login and authentication data, you may request deletion by visiting our dedicated <Link to="/account-deletion" className="text-primary font-medium hover:underline">Account Deletion Request Page</Link> or emailing us at <a href="mailto:support@stalight.in" className="text-primary font-medium hover:underline">support@stalight.in</a>. Upon receipt and validation of your request, we will delete your user profile, credentials, and non-essential personal information from our active databases within 30 days.
+            </p>
             <p className="mt-3 text-xs text-gray-400">
               All deletion requests must be routed through your institution's administration or submitted via email to our support address below.
             </p>
