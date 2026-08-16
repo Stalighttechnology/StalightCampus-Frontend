@@ -171,6 +171,24 @@ export default function CampusMonitoring() {
     return 'Outside Geofence';
   };
 
+  const getExcursionDuration = (facultyAlert: any) => {
+    if (!facultyAlert) return '-';
+    if (!facultyAlert.is_resolved || !facultyAlert.resolved_at) return 'Still Outside';
+    
+    const start = new Date(facultyAlert.timestamp).getTime();
+    const end = new Date(facultyAlert.resolved_at).getTime();
+    const diffMs = end - start;
+    if (diffMs <= 0) return '1 min';
+    
+    const diffMins = Math.round(diffMs / 60000);
+    if (diffMins < 60) {
+      return `${diffMins} min${diffMins > 1 ? 's' : ''}`;
+    }
+    const diffHours = Math.floor(diffMins / 60);
+    const remainingMins = diffMins % 60;
+    return `${diffHours} hr${diffHours > 1 ? 's' : ''} ${remainingMins} min${remainingMins > 1 ? 's' : ''}`;
+  };
+
   const getRadarPosition = (index: number, total: number) => {
     const angle = (index / Math.max(total, 1)) * 2 * Math.PI - Math.PI / 2;
     // Vary radial distance across 3 concentric orbit rings (30%, 36%, 42%) so nodes never collide or overlap
@@ -535,10 +553,11 @@ export default function CampusMonitoring() {
                   <Table className="w-full min-w-[550px]">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[120px]">Date & Time</TableHead>
-                        <TableHead className="min-w-[160px]">Faculty</TableHead>
-                        <TableHead className="w-[140px]">Event Type</TableHead>
-                        <TableHead className="text-right w-[110px]">Details</TableHead>
+                        <TableHead className="w-[150px]">Time Range</TableHead>
+                        <TableHead className="min-w-[150px]">Faculty</TableHead>
+                        <TableHead className="w-[120px]">Status</TableHead>
+                        <TableHead className="w-[100px]">Duration</TableHead>
+                        <TableHead className="text-right w-[100px]">Details</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -548,9 +567,16 @@ export default function CampusMonitoring() {
                           onClick={() => setSelectedFaculty(alert)}
                           className="cursor-pointer"
                         >
-                          <TableCell className="text-xs font-medium whitespace-nowrap">
-                            {new Date(alert.timestamp).toLocaleDateString()} <br/>
-                            <span className="text-red-500 font-semibold">{new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                          <TableCell className="text-[11px] font-medium whitespace-nowrap">
+                            <span className="font-semibold">{new Date(alert.timestamp).toLocaleDateString()}</span>
+                            <div className="flex flex-col gap-0.5 mt-0.5 text-[10px] text-muted-foreground">
+                              <span>Exit: <span className="text-red-500 font-semibold">{new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</span></span>
+                              {alert.is_resolved && alert.resolved_at ? (
+                                <span>Entry: <span className="text-emerald-600 font-semibold">{new Date(alert.resolved_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</span></span>
+                              ) : (
+                                <span className="text-red-500 font-semibold">Still Outside</span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2.5 min-w-0">
@@ -569,13 +595,16 @@ export default function CampusMonitoring() {
                           <TableCell className="whitespace-nowrap">
                             {alert.is_resolved ? (
                               <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-200 bg-emerald-50 whitespace-nowrap inline-flex items-center justify-center rounded-full px-2.5 py-0.5 font-semibold shrink-0">
-                                Returned / Resolved
+                                Returned
                               </Badge>
                             ) : (
                               <Badge variant="outline" className="text-[10px] text-red-500 border-red-200 bg-red-50 whitespace-nowrap inline-flex items-center justify-center rounded-full px-2.5 py-0.5 font-semibold shrink-0">
                                 Active Exit
                               </Badge>
                             )}
+                          </TableCell>
+                          <TableCell className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                            {getExcursionDuration(alert)}
                           </TableCell>
                           <TableCell className="text-right text-xs whitespace-nowrap font-medium">
                             {getFormattedDistance(alert)}

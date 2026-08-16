@@ -56,6 +56,17 @@ export default function ScheduledLocationTracker() {
         const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/monitoring/active/`);
         const data = await res.json();
 
+        // Synchronize the local hasReportedExitRef with the actual database alert state returned from the server.
+        // This ensures the frontend doesn't get out-of-sync when background enter/exit transitions happen while the app is closed.
+        if (data.alerts && user) {
+          const userId = user.id || user.user_id;
+          const hasActiveAlertOnServer = data.alerts.some(
+            (alert: any) => String(alert.faculty_id) === String(userId)
+          );
+          hasReportedExitRef.current = !!hasActiveAlertOnServer;
+          console.log(`📍 Geofence exit state synced from server: ${hasReportedExitRef.current}`);
+        }
+
         if (!isMounted || !data.success || !data.campuses || data.campuses.length === 0) {
           console.warn("No active campus locations found for geofence tracking.", data);
           return;
