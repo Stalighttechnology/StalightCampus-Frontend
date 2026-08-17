@@ -21,17 +21,22 @@ interface CampusPageRendererProps {
   isOpen: boolean;
   isPreviewMode?: boolean;
   onApplyClick?: () => void;
+  preloadedCourses?: any[];
 }
 
-const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName, orgSlug, isOpen, isPreviewMode = false, onApplyClick }) => {
+const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName, orgSlug, isOpen, isPreviewMode = false, onApplyClick, preloadedCourses }) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   // Enquiry form state
   const [enquiryForm, setEnquiryForm] = useState({ name: '', phone: '', email: '', course_interested: '', message: '' });
   const [enquiryStatus, setEnquiryStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
-  const [courses, setCourses] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>(preloadedCourses || []);
 
   useEffect(() => {
+    if (preloadedCourses && preloadedCourses.length > 0) {
+      setCourses(preloadedCourses);
+      return;
+    }
     const fetchCourses = async () => {
       try {
         const res = await axios.get(`${API_ENDPOINT}/admission/public/${orgSlug}/`);
@@ -43,7 +48,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
     if (orgSlug) {
       fetchCourses();
     }
-  }, [orgSlug]);
+  }, [orgSlug, preloadedCourses]);
 
   const fadeUp = {
     hidden: { opacity: 0, y: 30 },

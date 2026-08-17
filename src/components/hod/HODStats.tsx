@@ -8,6 +8,13 @@ import {
   XCircle,
   UserPlus,
   ClipboardList,
+  CheckSquare,
+  Video,
+  ListTodo,
+  Receipt,
+  CreditCard,
+  User,
+  Bell
 } from "lucide-react";
 import {
   LineChart,
@@ -356,6 +363,59 @@ const handleApprove = async (index: number) => {
         </ul>
       )}
 
+      {(() => {
+        const bName = (branchName || user?.branch_name || user?.branch || '').toString().toLowerCase();
+        const dName = ((user as any)?.department || '').toString().toLowerCase();
+        const isNonTeachingHOD = bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');
+
+        if (!isNonTeachingHOD) return null;
+
+        const quickActions = [
+          { title: "Manage Staff Leaves", desc: "Review and approve/reject staff leave requests", icon: <Calendar className="w-6 h-6 text-blue-500" />, page: "leaves" },
+          { title: "Staff Attendance", desc: "View daily attendance logs of staff members", icon: <CheckSquare className="w-6 h-6 text-indigo-500" />, page: "faculty-attendance" },
+          { title: "Staff Tasks", desc: "Assign and track work tasks for staff", icon: <ListTodo className="w-6 h-6 text-purple-500" />, page: "staff-tasks" },
+          { title: "Announcements", desc: "Send announcements to your team and view notices", icon: <Bell className="w-6 h-6 text-amber-500" />, page: "hod-announcement-management" },
+          { title: "Schedule Meeting", desc: "Organize and manage team meetings", icon: <Video className="w-6 h-6 text-emerald-500" />, page: "schedule-meeting" },
+          { title: "Apply Leave", desc: "Submit your own leave request", icon: <Calendar className="w-6 h-6 text-sky-500" />, page: "apply-leaves" },
+          { title: "My Attendance", desc: "Check your personal attendance history", icon: <CheckCircle className="w-6 h-6 text-teal-500" />, page: "my-attendance" },
+          { title: "My Salary & Payroll", desc: "View your salary details and payslips", icon: <CreditCard className="w-6 h-6 text-rose-500" />, page: "my-payroll" },
+          { title: "Reimbursements & Claims", desc: "Submit expense reimbursement claims", icon: <Receipt className="w-6 h-6 text-cyan-500" />, page: "reimbursements" },
+          { title: "My Profile", desc: "Manage personal profile details", icon: <User className="w-6 h-6 text-gray-500" />, page: "hod-profile" },
+        ];
+
+        return (
+          <div className="space-y-6">
+            <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm`}>
+              <h2 className="text-xl sm:text-2xl font-semibold mb-1">Non-Teaching HOD Portal</h2>
+              <p className="text-sm text-muted-foreground mb-6">Manage staff leaves, track attendance, assign tasks, and send team announcements.</p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {quickActions.map((act) => (
+                  <div 
+                    key={act.page} 
+                    onClick={() => setPage(act.page)}
+                    className={`p-4 rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] border ${theme === 'dark' ? 'bg-card/50 hover:bg-card border-border' : 'bg-gray-50/50 hover:bg-white border-gray-200'} shadow-sm hover:shadow-md`}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 rounded-xl bg-background border shadow-xs">{act.icon}</div>
+                      <h3 className="font-semibold text-base">{act.title}</h3>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{act.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Hide academic charts/cards for Non-Teaching HOD */}
+      {(() => {
+        const bName = (branchName || user?.branch_name || user?.branch || '').toString().toLowerCase();
+        const dName = ((user as any)?.department || '').toString().toLowerCase();
+        return bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');
+      })() ? null : (
+      <>
       {/* Stats Cards */}
       <div id="hod-stats-cards" className={`grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
         {[
@@ -711,6 +771,8 @@ const handleApprove = async (index: number) => {
             </div>
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );

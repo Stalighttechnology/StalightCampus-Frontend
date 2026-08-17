@@ -406,7 +406,35 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               <div className="flex flex-col gap-1">
                 <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
                 <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Your request will be routed to your <span className="font-semibold text-primary">{leaveQuota?.approver_label || translateTerminology("Head of Department (HOD)")}</span> for approval.
+                  {(() => {
+                    const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+                    const parsedUser = userStr ? JSON.parse(userStr) : null;
+                    const selectedBranchName = (selectedBranch && branches.find((b: any) => b.id.toString() === selectedBranch.toString())?.name) || '';
+                    const bName = (
+                      user?.branch_name || 
+                      user?.branch || 
+                      parsedUser?.branch_name || 
+                      parsedUser?.branch || 
+                      selectedBranchName || 
+                      ''
+                    ).toString().toLowerCase();
+                    const dName = (
+                      (user as any)?.department || 
+                      parsedUser?.department || 
+                      ''
+                    ).toString().toLowerCase();
+
+                    const isNonTeachingBranch = bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');
+                    const isPrincipalApprover = isNonTeachingBranch || 
+                      leaveQuota?.approver_role === 'principal' || 
+                      (leaveQuota?.approver_label && leaveQuota.approver_label.toLowerCase().includes('principal'));
+
+                    const approver = isPrincipalApprover 
+                      ? "Principal" 
+                      : (leaveQuota?.approver_label || translateTerminology("Head of Department (HOD)"));
+
+                    return <>Your request will be routed to <span className="font-semibold text-primary">{approver}</span> for approval.</>;
+                  })()}
                 </p>
                 {leaveQuota && (
                   <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">

@@ -1737,6 +1737,7 @@ export interface FacultyAttendanceRecord {
   delays?: number[] | null;
   periodic_checkin_count?: number;
   checkin_windows?: {start: string, end: string}[] | null;
+  strict_checkin_window?: boolean;
 }
 
 export interface AttendanceLocation {

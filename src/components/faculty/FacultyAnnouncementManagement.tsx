@@ -83,7 +83,13 @@ const FacultyAnnouncementManagement = () => {
   const [totalMyCount, setTotalMyCount] = useState(0);
   const [totalReceivedCount, setTotalReceivedCount] = useState(0);
   const [unreadReceivedCount, setUnreadReceivedCount] = useState(0);
-  const [activeTab, setActiveTab] = useState("my");
+  const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const branchName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
+  const deptName = (user?.department || '').toString().toLowerCase();
+  const isNonTeaching = branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
+
+  const [activeTab, setActiveTab] = useState(isNonTeaching ? "received" : "my");
   const [showArchive, setShowArchive] = useState(false);
   const [assignedSections, setAssignedSections] = useState<any[]>([]);
   const pageSize = 10;
@@ -446,22 +452,23 @@ const FacultyAnnouncementManagement = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
                     <div className="flex-1 min-w-0">
                       <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        Announcements for Students
+                        {isNonTeaching ? "Announcements & Notices" : "Announcements for Students"}
                       </CardTitle>
                       <p className={`text-sm sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                        Create and manage announcements for your Students
+                        {isNonTeaching ? "Read latest campus notifications and updates" : "Create and manage announcements for your Students"}
                       </p>
                     </div>
-                    <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                      <DialogTrigger asChild>
-                        <Button
-                          onClick={() => resetForm()}
-                          className="gap-2 bg-primary text-white hover:bg-primary/90 transition-colors w-full sm:w-auto">
-                          
-                          <Plus className="w-4 h-4" />
-                          New Announcement
-                        </Button>
-                      </DialogTrigger>
+                    {!isNonTeaching && (
+                      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+                        <DialogTrigger asChild>
+                          <Button
+                            onClick={() => resetForm()}
+                            className="gap-2 bg-primary text-white hover:bg-primary/90 transition-colors w-full sm:w-auto">
+                            
+                            <Plus className="w-4 h-4" />
+                            New Announcement
+                          </Button>
+                        </DialogTrigger>
                       <DialogContent
                         onPointerDownOutside={(e) => e.preventDefault()}
                         onInteractOutside={(e) => e.preventDefault()}
@@ -653,8 +660,9 @@ const FacultyAnnouncementManagement = () => {
                           </Button>
                         </div>
                       </div>
-                    </DialogContent>
-                  </Dialog>
+                      </DialogContent>
+                    </Dialog>
+                    )}
                   </div>
                 </CardHeader>
               }
@@ -678,6 +686,7 @@ const FacultyAnnouncementManagement = () => {
               onTabChange={setActiveTab}
               showExpired={showArchive}
               setShowExpired={setShowArchive}
+              hideMyTab={isNonTeaching}
             />}
         </Card>
     </div>

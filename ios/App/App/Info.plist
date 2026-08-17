@@ -36,9 +36,11 @@
 	<key>NSCameraUsageDescription</key>
 	<string>This app requires camera access to take profile photos and capture attachments.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Stalight Campus uses your location to support attendance tracking and campus-related features.</string>
+	<string>Stalight Campus uses your location to monitor the configured campus boundary and detect campus entry or exit events even when the app is not in use, enabling real-time out-of-bounds safety alerts.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Stalight Campus uses your location to monitor the configured campus boundary and detect campus entry or exit events even when the app is not in use, enabling real-time out-of-bounds safety alerts.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Stalight Campus uses your location to support attendance tracking and campus-related features.</string>
+	<string>Stalight Campus uses your location to monitor the configured campus boundary and provide campus geofence features.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app allows users to save photos to their library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

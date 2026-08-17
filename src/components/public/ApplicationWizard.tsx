@@ -247,16 +247,16 @@ const ApplicationWizard: React.FC<ApplicationWizardProps> = ({ isModal = false, 
       <div className={isModal ? "space-y-4" : "bg-card text-card-foreground p-6 md:p-10 rounded-3xl shadow-2xl border border-border"}>
         {!isModal && <h2 className="text-3xl font-bold mb-8 text-center">Admission Application</h2>}
         
-        <div className={`flex justify-between relative px-4 ${isModal ? 'mb-10' : 'mb-12'}`}>
-          <div className="absolute top-1/2 left-0 w-full h-1 bg-muted -z-10 -translate-y-1/2"></div>
+        <div className={`flex justify-between relative px-2 sm:px-4 ${isModal ? 'mb-6' : 'mb-8'}`}>
+          <div className="absolute top-4 left-6 right-6 h-0.5 bg-muted -z-10"></div>
           {['Enquiry', 'Personal', 'Academic', 'Documents'].map((label, i) => {
             const s = i + 1;
             return (
-              <div key={s} className="flex flex-col items-center gap-2 relative">
-                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs md:text-sm font-bold shadow-sm transition-colors ${step >= s ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+              <div key={s} className="flex flex-col items-center gap-1">
+                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs font-bold shadow-sm transition-colors ${step >= s ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                   {s}
                 </div>
-                <span className="text-[10px] md:text-xs font-medium text-muted-foreground absolute top-9 md:top-11 whitespace-nowrap">{label}</span>
+                <span className="text-[10px] sm:text-xs font-medium text-muted-foreground text-center truncate max-w-[65px] sm:max-w-none">{label}</span>
               </div>
             );
           })}

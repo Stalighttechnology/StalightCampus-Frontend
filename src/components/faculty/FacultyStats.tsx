@@ -16,7 +16,11 @@ import {
   UserCheck,
   Bell,
   Settings,
-
+  Calendar,
+  Video,
+  ListTodo,
+  Receipt,
+  CreditCard,
   TrendingUp,
   Activity
 } from
@@ -257,6 +261,48 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
   }
   if (error) {
     return <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground' : 'bg-red-100 text-red-700'}`}>{error}</div>;
+  }
+
+  const branchName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
+  const deptName = (user?.department || '').toString().toLowerCase();
+  const isNonTeaching = branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
+
+  if (isNonTeaching) {
+    const quickActions = [
+      { title: "My Attendance", desc: "View and track attendance history", icon: <CheckSquare className="w-6 h-6 text-indigo-500" />, page: "faculty-attendance" },
+      { title: "Apply Leave", desc: "Request leave and check approval status", icon: <Calendar className="w-6 h-6 text-blue-500" />, page: "apply-leave" },
+      { title: "Announcements", desc: "Read latest campus notifications", icon: <Bell className="w-6 h-6 text-amber-500" />, page: "faculty-announcement-management" },
+      { title: "Schedule Meeting", desc: "View online meeting schedules", icon: <Video className="w-6 h-6 text-emerald-500" />, page: "schedule-meeting" },
+      { title: "Staff Tasks", desc: "Check and update assigned tasks", icon: <ListTodo className="w-6 h-6 text-purple-500" />, page: "staff-tasks" },
+      { title: "Reimbursements & Claims", desc: "Submit expense claims", icon: <Receipt className="w-6 h-6 text-rose-500" />, page: "reimbursements" },
+      { title: "My Salary & Payroll", desc: "View payslips and salary details", icon: <CreditCard className="w-6 h-6 text-teal-500" />, page: "my-payroll" },
+      { title: "My Profile", desc: "Manage personal information", icon: <User className="w-6 h-6 text-cyan-500" />, page: "faculty-profile" },
+    ];
+
+    return (
+      <div className="space-y-6">
+        <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm`}>
+          <h2 className="text-xl sm:text-2xl font-semibold mb-1">Non-Teaching Staff Portal</h2>
+          <p className="text-sm text-muted-foreground mb-6">Access staff tools, submit leave requests, view tasks, and check payroll.</p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {quickActions.map((act) => (
+              <Card 
+                key={act.page} 
+                onClick={() => setActivePage(act.page)}
+                className={`p-4 cursor-pointer transition-all duration-200 hover:scale-[1.02] border ${theme === 'dark' ? 'bg-card/50 hover:bg-card border-border' : 'bg-gray-50/50 hover:bg-white border-gray-200'} shadow-sm hover:shadow-md`}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-xl bg-background border shadow-xs">{act.icon}</div>
+                  <h3 className="font-semibold text-base">{act.title}</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">{act.desc}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

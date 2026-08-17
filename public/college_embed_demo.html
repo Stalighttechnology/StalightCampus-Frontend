@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Starlight Institute of Technology - Admissions 2026</title>
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #6d28d9;
+      --primary-hover: #5b21b6;
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    /* Navigation */
+    header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-b: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 1rem 2rem;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .logo span {
+      color: var(--accent);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-main);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(109, 40, 217, 0.4);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 4rem 2rem;
+      text-align: center;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 1rem;
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 {
+      font-size: 2.75rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 1rem;
+      background: linear-gradient(180deg, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.125rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+
+    /* Widget Container Sections */
+    .section-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .section-title h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-title p {
+      color: var(--text-muted);
+    }
+
+    .widget-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+
+    @media (min-width: 1024px) {
+      .widget-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .widget-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .widget-header {
+      margin-bottom: 1.25rem;
+      border-b: 1px solid var(--border);
+      padding-bottom: 1rem;
+    }
+
+    .widget-header h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .widget-header p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* iframe Container */
+    .iframe-wrapper {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    iframe {
+      width: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* Notice Banner */
+    .setup-banner {
+      background: rgba(109, 40, 217, 0.15);
+      border: 1px dashed var(--primary);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .setup-banner strong {
+      color: var(--accent);
+    }
+
+    .setup-banner code {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: monospace;
+      color: #e2e8f0;
+    }
+
+    footer {
+      border-t: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-top: 4rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navigation -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="logo">
+        🎓 Starlight <span>Institute</span>
+      </a>
+      <div class="nav-links">
+        <a href="#enquiry-section">Enquiry</a>
+        <a href="#apply-section">Online Application</a>
+        <a href="#apply-section" class="btn">Apply Now 2026</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="badge">✨ Admissions Open for Academic Year 2026-2027</div>
+    <h1>Shape Your Future with World-Class Education</h1>
+    <p>Empowering students with industry-aligned engineering, management, and technology programs. Apply online today.
+    </p>
+  </section>
+
+  <!-- Setup Guidance Banner -->
+  <div class="section-container">
+    <div class="setup-banner">
+      💡 <strong>College Setup Guide:</strong> Below are the embedded Stalight Campus widgets. To connect your own
+      institution, replace <code>YOUR_ORGANIZATION_SLUG</code> in the <code>iframe src</code> with your college's unique
+      slug from the Stalight Campus Admin Panel.
+    </div>
+
+    <!-- Widgets Section -->
+    <div class="widget-grid">
+
+      <!-- Option A: Quick Contact / Enquiry Widget -->
+      <div class="widget-card" id="enquiry-section">
+        <div class="widget-header">
+          <h3>📩 Quick Enquiry Form (Contact Us)</h3>
+          <p>Ideal for website contact pages and sidebar widgets. Leads land directly in your CRM Lead Pipeline.</p>
+        </div>
+
+        <div class="iframe-wrapper">
+          <iframe 
+            src="http://localhost:5173/admissions/demo?embed=true&mode=contact" 
+            width="100%" 
+            height="480" 
+            frameborder="0" 
+            style="border:0; border-radius:12px; overflow:hidden;" 
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+
+      <!-- Option B: Full Application Wizard Widget -->
+      <div class="widget-card" id="apply-section">
+        <div class="widget-header">
+          <h3>📝 Complete Admission Application Portal</h3>
+          <p>Multi-step wizard for website "Apply Now" pages. Includes live course catalog & Cloud R2 document uploads.</p>
+        </div>
+
+        <div class="iframe-wrapper">
+          <iframe 
+            src="http://localhost:5173/admissions/demo?embed=true&mode=apply" 
+            width="100%" 
+            height="600" 
+            frameborder="0" 
+            style="border:0; border-radius:12px; overflow:hidden;" 
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2026 Starlight Institute of Technology. Powered by <strong>Stalight Campus Admissions CRM</strong>.</p>
+  <script>
+    // Dynamically set iframe src based on actual domain origin
+    // If opened via local static file or Live Server (e.g. port 5500), fallback to Vite dev port 5173
+    let appBaseUrl = window.location.origin;
+    if (window.location.port !== '5173' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      appBaseUrl = 'http://localhost:5173';
+    }
+    
+    const enquiryIframe = document.querySelector('#enquiry-section iframe');
+    const applyIframe = document.querySelector('#apply-section iframe');
+    if (enquiryIframe) enquiryIframe.src = appBaseUrl + '/admissions/demo?embed=true&mode=contact';
+    if (applyIframe) applyIframe.src = appBaseUrl + '/admissions/demo?embed=true&mode=apply';
+  </script>
+</body>
+
+</html>

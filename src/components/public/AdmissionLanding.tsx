@@ -4,10 +4,83 @@ import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GraduationCap, ArrowRight, MapPin, Phone, Mail } from 'lucide-react';
+import { GraduationCap, ArrowRight, MapPin, Phone, Mail, CheckCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CampusPageRenderer from './CampusPageRenderer';
 import ApplicationWizard from './ApplicationWizard';
+
+const EmbeddedQuickEnquiry: React.FC<{ orgSlug: string; courses: any[]; onApplyClick: () => void }> = ({ orgSlug, courses, onApplyClick }) => {
+  const [form, setForm] = useState({ name: '', phone: '', email: '', course_interested: '', message: '' });
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('submitting');
+    try {
+      await axios.post(`${API_ENDPOINT}/admission/public/${orgSlug}/enquiry/`, form);
+      setStatus('success');
+    } catch (err) {
+      console.error(err);
+      setStatus('error');
+    }
+  };
+
+  if (status === 'success') {
+    return (
+      <div className="py-8 text-center space-y-4">
+        <div className="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
+          <CheckCircle className="w-8 h-8" />
+        </div>
+        <h3 className="text-xl font-bold text-foreground">Enquiry Submitted!</h3>
+        <p className="text-sm text-muted-foreground">Thank you! Our admissions counseling team will get back to you shortly.</p>
+        <Button variant="outline" size="sm" onClick={onApplyClick} className="mt-2 text-xs">
+          Want to complete full application now? Click here
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-foreground block mb-1">Full Name</label>
+          <input required type="text" placeholder="John Doe" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full p-2.5 text-sm border border-input rounded-xl bg-background text-foreground" />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-foreground block mb-1">Phone Number</label>
+          <input required type="tel" placeholder="+91 9876543210" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value.replace(/[^0-9+]/g, '') })} className="w-full p-2.5 text-sm border border-input rounded-xl bg-background text-foreground" />
+        </div>
+      </div>
+      <div>
+        <label className="text-xs font-medium text-foreground block mb-1">Email Address</label>
+        <input required type="email" placeholder="john@example.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full p-2.5 text-sm border border-input rounded-xl bg-background text-foreground" />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-foreground block mb-1">Interested Course (Optional)</label>
+        <Select value={form.course_interested} onValueChange={val => setForm({ ...form, course_interested: val })}>
+          <SelectTrigger className="w-full p-2.5 text-sm border border-input rounded-xl bg-background">
+            <SelectValue placeholder="Select a course" />
+          </SelectTrigger>
+          <SelectContent className="max-h-[200px] overflow-y-auto">
+            {courses.map(c => (
+              <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <label className="text-xs font-medium text-foreground block mb-1">Message / Question</label>
+        <textarea required placeholder="Any specific questions regarding admissions..." value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} className="w-full p-2.5 text-sm border border-input rounded-xl bg-background text-foreground min-h-[70px]" />
+      </div>
+      {status === 'error' && <p className="text-xs text-red-500 font-medium">Failed to submit enquiry. Please try again.</p>}
+      <Button type="submit" className="w-full py-2.5 text-sm font-semibold rounded-xl" disabled={status === 'submitting'}>
+        {status === 'submitting' ? 'Submitting...' : 'Submit Enquiry'}
+      </Button>
+    </form>
+  );
+};
 
 const AdmissionLanding: React.FC = () => {
   const { org_slug } = useParams<{ org_slug: string }>();
@@ -88,6 +161,30 @@ const AdmissionLanding: React.FC = () => {
     visible: { transition: { staggerChildren: 0.1 } }
   };
 
+  const searchParams = new URLSearchParams(window.location.search);
+  const isEmbed = searchParams.get('embed') === 'true';
+  const embedMode = searchParams.get('mode') || 'contact';
+
+  if (isEmbed) {
+    return (
+      <div className="w-full min-h-screen bg-background p-2 sm:p-4 border-none shadow-none flex flex-col justify-start" style={getThemeStyle()}>
+        <div className="w-full bg-card p-3 sm:p-5 rounded-xl border border-border/60 shadow-sm">
+          {embedMode === 'apply' || isApplyModalOpen ? (
+            <ApplicationWizard isModal orgSlug={org_slug} preloadedCourses={data.courses} />
+          ) : (
+            <div className="space-y-3">
+              <div className="border-b border-border pb-2.5">
+                <h2 className="text-lg font-bold text-foreground">Admission Enquiry</h2>
+                <p className="text-xs text-muted-foreground">Fill in your details below to get instant course info & fee details from {data.name}.</p>
+              </div>
+              <EmbeddedQuickEnquiry orgSlug={org_slug || ''} courses={data.courses || []} onApplyClick={() => setIsApplyModalOpen(true)} />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden selection:bg-primary/30" style={getThemeStyle()}>
       <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-sm transition-all duration-300">
@@ -165,6 +262,7 @@ const AdmissionLanding: React.FC = () => {
             isOpen={isOpen} 
             isPreviewMode={false} 
             onApplyClick={() => setIsApplyModalOpen(true)}
+            preloadedCourses={data.courses || []}
           />
         )}
       </main>

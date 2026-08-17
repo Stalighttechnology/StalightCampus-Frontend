@@ -338,7 +338,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
-  const orgPlan = user?.org_plan || "basic";
+  const orgPlan = user?.plan || user?.plan_type || user?.org_plan || "basic";
 
   const userTier = PLAN_TIERS[(orgPlan || 'basic').toLowerCase()] || 1;
   const advanceRoles = ['transport_admin', 'driver', 'library_admin', 'admission_manager', 'hms', 'warden', 'counsellor'];
@@ -361,6 +361,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Payment Settings", page: "payment-settings" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
+      { name: "Staff Tasks", page: "staff-tasks" },
       { name: "Leave", page: "leave" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "Calendar", page: "holiday-calendar" },
@@ -553,6 +554,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Fee Settings", page: "fee-settings" },
       { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
+      { name: "Staff Tasks", page: "staff-tasks" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "Calendar", page: "holiday-calendar" },
@@ -597,6 +599,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Staff", page: "staff" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
+      { name: "Staff Tasks", page: "staff-tasks" },
       { name: "Leave Requests", page: "manage-warden-leaves" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
@@ -632,6 +635,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Complaints", page: "transport-incidents" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Meetings", page: "schedule-meeting" },
+      { name: "Staff Tasks", page: "staff-tasks" },
       { name: "Leave Requests", page: "manage-leaves" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
@@ -659,6 +663,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Circulation", page: "library-circulation" },
       { name: "Fine Management", page: "library-fines" },
       { name: "Meetings", page: "schedule-meeting" },
+      { name: "Staff Tasks", page: "staff-tasks" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "Calendar", page: "holiday-calendar" },
@@ -677,14 +682,15 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Documents", page: "admission-documents" },
       { name: "Counsellors", page: "counsellor-management" },
       { name: "Communication", page: "admission-communication" },
-      { name: "Reports", page: "admission-reports" },
-      { name: "Campus Page Management", page: "campus-builder" },
-      { name: "Schedule Meeting", page: "schedule-meeting" },
-      { name: "Apply Leave", page: "apply-leave" },
-      { name: "My Attendance", page: "my-attendance" },
-      { name: "Calendar", page: "holiday-calendar" },
-      { name: "My Salary & Payroll", page: "my-payroll" },
-      { name: "Profile", page: "profile" },
+      {name: "Reports", page: "admission-reports"},
+      {name: "Campus Page Management", page: "campus-builder"},
+      {name: "Schedule Meeting", page: "schedule-meeting"},
+      {name: "Staff Tasks", page: "staff-tasks"},
+      {name: "Apply Leave", page: "apply-leave"},
+      {name: "My Attendance", page: "my-attendance"},
+      {name: "Calendar", page: "holiday-calendar"},
+      {name: "My Salary & Payroll", page: "my-payroll"},
+      {name: "Profile", page: "profile"},
     ],
     counsellor: [
       { name: "Dashboard", page: "admission-dashboard" },
@@ -701,6 +707,42 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Profile", page: "profile" },
     ],
   };
+
+  const branchName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
+  const deptName = (user?.department || '').toString().toLowerCase();
+  const isNonTeachingBranch = branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
+
+  if (role === 'faculty' && isNonTeachingBranch) {
+    menuItems['faculty'] = [
+      { name: "Dashboard", page: "dashboard" },
+      { name: "Apply Leave", page: "apply-leave" },
+      { name: "My Attendance", page: "faculty-attendance" },
+      { name: "Announcements", page: "faculty-announcement-management" },
+      { name: "Calendar", page: "holiday-calendar" },
+      { name: "Schedule Meeting", page: "schedule-meeting" },
+      { name: "My Salary & Payroll", page: "my-payroll" },
+      { name: "Reimbursements & Claims", page: "reimbursements" },
+      { name: "Staff Tasks", page: "staff-tasks" },
+      { name: "Profile", page: "faculty-profile" },
+    ];
+  }
+
+  if (role === 'hod' && isNonTeachingBranch) {
+    menuItems['hod'] = [
+      { name: "Dashboard", page: "dashboard" },
+      { name: "Manage Staff Leaves", page: "leaves" },
+      { name: "Staff Attendance", page: "faculty-attendance" },
+      { name: "Staff Tasks", page: "staff-tasks" },
+      { name: "Announcements", page: "hod-announcement-management" },
+      { name: "Schedule Meeting", page: "schedule-meeting" },
+      { name: "Apply Leave", page: "apply-leaves" },
+      { name: "My Attendance", page: "my-attendance" },
+      { name: "Calendar", page: "holiday-calendar" },
+      { name: "My Salary & Payroll", page: "my-payroll" },
+      { name: "Reimbursements & Claims", page: "reimbursements" },
+      { name: "Profile", page: "hod-profile" },
+    ];
+  }
 
   if (user?.role === 'hod') {
     if (role === 'faculty') {

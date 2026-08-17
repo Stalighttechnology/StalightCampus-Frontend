@@ -15,6 +15,8 @@ import {
   MapPin,
   MessageSquare,
   CheckCircle2,
+  BookOpen,
+  Eye,
 } from "lucide-react";
 import {
   Card,
@@ -57,7 +59,7 @@ interface ScheduledClassItem {
   status: string;
   is_mentoring?: boolean;
   general_feedback?: string | null;
-  student_feedback?: { attendance_status: string; feedback: string | null } | null;
+  student_feedback?: { attendance_status: string; feedback: string | null; faculty_note?: string | null } | null;
 }
 
 interface ClassScheduleProps {
@@ -83,6 +85,7 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
   const { toast } = useToast();
   const { theme } = useTheme();
 
+  const [mainTab, setMainTab] = useState<"class" | "mentoring">("class");
   const [classes, setClasses] = useState<ScheduledClassItem[]>([]);
   const [selectedFeedbackItem, setSelectedFeedbackItem] = useState<ScheduledClassItem | null>(null);
   const [myFeedbackInput, setMyFeedbackInput] = useState("");
@@ -213,6 +216,9 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
 
   const filteredClasses = classes
     .filter((item) => {
+      const isMentoringMatch = mainTab === "mentoring" ? Boolean(item.is_mentoring) : !item.is_mentoring;
+      if (!isMentoringMatch) return false;
+
       const matchesSearch =
         (item.subject && item.subject.toLowerCase().includes(debouncedSearchQuery.toLowerCase())) ||
         (item.topic && item.topic.toLowerCase().includes(debouncedSearchQuery.toLowerCase())) ||
@@ -247,14 +253,46 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
       className={`w-full max-w-full overflow-hidden space-y-6 ${theme === "dark" ? "bg-background text-foreground" : "bg-gray-50 text-gray-900"
         }`}
     >
+      {/* ── Main Tab Navigation Bar ──────────────────────────────────────── */}
+      <div className="w-full grid grid-cols-2 gap-1.5 p-1 bg-muted/60 dark:bg-muted/30 border border-border/60 rounded-xl shadow-sm">
+        <button
+          type="button"
+          onClick={() => { setMainTab("class"); setCurrentPage(1); }}
+          className={`w-full justify-center flex items-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 ${
+            mainTab === "class"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>Class Schedules</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => { setMainTab("mentoring"); setCurrentPage(1); }}
+          className={`w-full justify-center flex items-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 ${
+            mainTab === "mentoring"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+          }`}
+        >
+          <Video className="w-4 h-4" />
+          <span>Mentoring Schedules</span>
+        </button>
+      </div>
+
       <Card id="class-schedule-card" className={`${cardCls} max-w-full overflow-hidden`}>
         {/* ── Card Header ──────────────────────────────────────────────── */}
         <CardHeader id="class-schedule-header" className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border/50 mb-3">
           <div className="flex items-center gap-2">
             <div>
-              <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Class Schedules</CardTitle>
+              <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                {mainTab === "mentoring" ? "Mentoring Schedules" : "Class Schedules"}
+              </CardTitle>
               <CardDescription className="text-sm text-muted-foreground mt-1">
-                Your upcoming and live sessions. Join Meet sessions directly when available.
+                {mainTab === "mentoring"
+                  ? "View your proctor mentoring sessions and status updates from your faculty."
+                  : "Your upcoming and live class sessions. Join Meet sessions directly when available."}
               </CardDescription>
             </div>
           </div>
@@ -355,6 +393,52 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
                             Proctor Mentoring
                           </span>
                         )}
+                        {item.is_mentoring && item.student_feedback?.attendance_status && (() => {
+                          const st = item.student_feedback.attendance_status;
+                          if (st === "resolved") {
+                            return (
+                              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-300/50">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Resolved / Solved
+                              </span>
+                            );
+                          }
+                          if (st === "partially_resolved") {
+                            return (
+                              <span className="text-[10px] font-semibold text-amber-700 bg-amber-100 dark:bg-amber-950/60 dark:text-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1 border border-amber-300/50">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Partially Resolved
+                              </span>
+                            );
+                          }
+                          if (st === "needs_followup") {
+                            return (
+                              <span className="text-[10px] font-semibold text-purple-700 bg-purple-100 dark:bg-purple-950/60 dark:text-purple-300 px-2 py-0.5 rounded-full flex items-center gap-1 border border-purple-300/50">
+                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500" /> Needs Follow-Up
+                              </span>
+                            );
+                          }
+                          if (st === "escalated") {
+                            return (
+                              <span className="text-[10px] font-semibold text-rose-700 bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300 px-2 py-0.5 rounded-full flex items-center gap-1 border border-rose-300/50">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Escalated
+                              </span>
+                            );
+                          }
+                          if (st === "attended") {
+                            return (
+                              <span className="text-[10px] font-semibold text-blue-700 bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 px-2 py-0.5 rounded-full flex items-center gap-1 border border-blue-300/50">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Attended
+                              </span>
+                            );
+                          }
+                          if (st === "absent") {
+                            return (
+                              <span className="text-[10px] font-semibold text-red-700 bg-red-100 dark:bg-red-950/60 dark:text-red-300 px-2 py-0.5 rounded-full flex items-center gap-1 border border-red-300/50">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Absent
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
                         {classState === "live" && (
                           <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/20 dark:border-emerald-900/40 px-2 py-0.5 rounded-full animate-pulse">
                             <PlayCircle className="w-3 h-3" /> Live
@@ -401,6 +485,29 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
                       <p className="text-xs text-muted-foreground italic break-words line-clamp-2">
                         "{item.description}"
                       </p>
+                    )}
+
+                    {/* Row 3.5: Faculty Remark / Note */}
+                    {item.is_mentoring && item.student_feedback?.faculty_note && (
+                      <div className="bg-purple-50/80 dark:bg-purple-950/40 p-2.5 rounded-lg border border-purple-200 dark:border-purple-800/60 flex items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300 flex items-center gap-1">
+                            <MessageSquare className="w-3 h-3 shrink-0" /> Faculty Remark / Guidance
+                          </span>
+                          <p className="text-xs text-foreground font-medium italic break-words line-clamp-1 mt-0.5">
+                            "{item.student_feedback.faculty_note}"
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-[11px] gap-1 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/50 shrink-0 font-semibold shadow-none"
+                          onClick={() => openFeedbackDialog(item)}
+                        >
+                          <Eye className="w-3 h-3" /> View
+                        </Button>
+                      </div>
                     )}
 
                     {/* Row 4: Meet link + actions */}
@@ -459,23 +566,23 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
                             <Button
                               variant="outline"
                               size="sm"
-                              disabled={!isEnded || hasFeedback}
+                              disabled={!isEnded && !hasFeedback}
                               className={`h-8 text-xs gap-1 shrink-0 transition-all ${
                                 hasFeedback
-                                  ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 cursor-not-allowed opacity-90"
+                                  ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 shadow-sm"
                                   : !isEnded
                                   ? "text-muted-foreground border-border/50 opacity-50 cursor-not-allowed"
                                   : "border-primary/40 text-primary hover:bg-primary/10 shadow-sm"
                               }`}
                               title={
                                 hasFeedback
-                                  ? "Feedback already submitted"
+                                  ? "View your submitted feedback for this session"
                                   : !isEnded
                                   ? "Feedback will be enabled once the meeting ends"
                                   : "Submit feedback for this mentoring session"
                               }
                               onClick={() => {
-                                if (isEnded && !hasFeedback) {
+                                if (isEnded || hasFeedback) {
                                   openFeedbackDialog(item);
                                 }
                               }}
@@ -508,23 +615,23 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
                           <Button
                             variant="outline"
                             size="sm"
-                            disabled={!isEnded || hasFeedback}
+                            disabled={!isEnded && !hasFeedback}
                             className={`text-xs h-7 px-2.5 gap-1 transition-all shrink-0 ${
                               hasFeedback
-                                ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 cursor-not-allowed opacity-90"
+                                ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 shadow-sm"
                                 : !isEnded
                                 ? "text-muted-foreground border-border/50 opacity-50 cursor-not-allowed"
                                 : "border-primary/40 text-primary hover:bg-primary/10 shadow-sm"
                             }`}
                             title={
                               hasFeedback
-                                ? "Feedback already submitted"
+                                ? "View your submitted feedback for this session"
                                 : !isEnded
                                 ? "Feedback will be enabled once the meeting ends"
                                 : "Submit feedback for this mentoring session"
                             }
                             onClick={() => {
-                              if (isEnded && !hasFeedback) {
+                              if (isEnded || hasFeedback) {
                                 openFeedbackDialog(item);
                               }
                             }}
@@ -606,36 +713,63 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
           </DialogHeader>
 
           <div className="space-y-4 py-2 text-xs">
+            {selectedFeedbackItem?.student_feedback?.faculty_note && (
+              <div>
+                <h4 className="font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <MessageSquare className="w-3.5 h-3.5" /> Faculty Remark / Specific Guidance For You
+                </h4>
+                <p className="text-sm bg-purple-50/80 dark:bg-purple-950/40 p-3 rounded-lg border border-purple-200 dark:border-purple-800/60 text-foreground font-medium italic">
+                  "{selectedFeedbackItem.student_feedback.faculty_note}"
+                </p>
+              </div>
+            )}
+
             {selectedFeedbackItem?.general_feedback && (
               <div>
-                <h4 className="font-semibold text-muted-foreground uppercase tracking-wider mb-1">Faculty Meeting Notes / Remarks</h4>
+                <h4 className="font-semibold text-muted-foreground uppercase tracking-wider mb-1">General Meeting Notes / Remarks</h4>
                 <p className="text-sm bg-muted/30 p-3 rounded-lg border border-border/50 text-foreground">
                   {selectedFeedbackItem.general_feedback}
                 </p>
               </div>
             )}
 
-            <div className="space-y-1.5">
-              <h4 className="font-semibold text-muted-foreground uppercase tracking-wider">Your Feedback / Meeting Comments</h4>
-              <Textarea
-                placeholder="Share your thoughts, progress update, or comments regarding this meeting..."
-                value={myFeedbackInput}
-                onChange={(e) => setMyFeedbackInput(e.target.value)}
-                rows={4}
-                className="text-xs"
-              />
-              <p className="text-[11px] text-muted-foreground italic">Your feedback will be automatically submitted to your proctor / faculty member.</p>
-            </div>
+            {selectedFeedbackItem?.student_feedback?.feedback ? (
+              <div className="space-y-1.5">
+                <h4 className="font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Your Submitted Feedback (Locked)
+                </h4>
+                <div className="p-3 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 text-xs text-foreground italic break-words">
+                  "{selectedFeedbackItem.student_feedback.feedback}"
+                </div>
+                <p className="text-[11px] text-muted-foreground italic">
+                  Feedback for this meeting session has been submitted and is locked.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <h4 className="font-semibold text-muted-foreground uppercase tracking-wider">Your Feedback / Meeting Comments</h4>
+                <Textarea
+                  placeholder="Share your thoughts, progress update, or comments regarding this meeting..."
+                  value={myFeedbackInput}
+                  onChange={(e) => setMyFeedbackInput(e.target.value)}
+                  rows={4}
+                  className="text-xs"
+                />
+                <p className="text-[11px] text-muted-foreground italic">Your feedback will be automatically submitted to your proctor / faculty member.</p>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="flex gap-2">
             <Button variant="outline" onClick={() => setSelectedFeedbackItem(null)}>
-              Cancel
+              {selectedFeedbackItem?.student_feedback?.feedback ? "Close" : "Cancel"}
             </Button>
-            <Button onClick={handleStudentSubmitFeedback} disabled={isSubmittingFeedback}>
-              {isSubmittingFeedback ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Submit Feedback
-            </Button>
+            {!selectedFeedbackItem?.student_feedback?.feedback && (
+              <Button onClick={handleStudentSubmitFeedback} disabled={isSubmittingFeedback}>
+                {isSubmittingFeedback ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Submit Feedback
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
-import { Loader2, UserCheck, FileText, CheckCircle, XCircle, Search } from 'lucide-react';
+import { Loader2, UserCheck, FileText, CheckCircle, XCircle, Search, Upload, Plus } from 'lucide-react';
 import { SkeletonTable } from '../ui/skeleton';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -12,6 +12,7 @@ import Swal from 'sweetalert2';
 import { downloadFile } from '../../utils/downloadHelper';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { getR2PresignedUrl, uploadFileToR2 } from '../../utils/common_api';
 
 export default function AdmissionApplications() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -31,6 +32,56 @@ export default function AdmissionApplications() {
   const [enrollSectionId, setEnrollSectionId] = useState("");
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [isEnrolling, setIsEnrolling] = useState(false);
+  const [uploadingDocKey, setUploadingDocKey] = useState<string | null>(null);
+
+  const handleDocumentUpload = async (docKey: string, file: File, appId: number) => {
+    const isPhotoOrSign = docKey === 'photo' || docKey === 'signature';
+    const maxSizeBytes = isPhotoOrSign ? 2 * 1024 * 1024 : 5 * 1024 * 1024; // 2MB for photo/sign, 5MB for certificates
+    const maxSizeStr = isPhotoOrSign ? "2MB" : "5MB";
+
+    if (file.size > maxSizeBytes) {
+      toast.error(`File "${file.name}" exceeds the maximum allowed size of ${maxSizeStr}. Please select a smaller file.`);
+      return;
+    }
+
+    try {
+      setUploadingDocKey(docKey);
+      const res = await getR2PresignedUrl(file.name, file.type, 'admission_documents');
+      let finalFileUrl = "";
+      if (res.success && res.data?.url) {
+        const uploaded = await uploadFileToR2(file, res.data.url, file.type);
+        if (!uploaded) {
+          toast.error(`Failed to upload ${file.name}`);
+          setUploadingDocKey(null);
+          return;
+        }
+        finalFileUrl = res.data.file_url;
+      } else {
+        toast.error(res.message || "Failed to generate upload URL");
+        setUploadingDocKey(null);
+        return;
+      }
+
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/${appId}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [docKey]: finalFileUrl })
+      });
+
+      if (response.ok) {
+        toast.success("Document uploaded successfully!");
+        setSelectedApp((prev: any) => prev ? ({ ...prev, [docKey]: finalFileUrl }) : null);
+        setApplications(apps => apps.map(app => app.id === appId ? { ...app, [docKey]: finalFileUrl } : app));
+      } else {
+        toast.error("Failed to update application with uploaded document.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error uploading document.");
+    } finally {
+      setUploadingDocKey(null);
+    }
+  };
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -392,7 +443,10 @@ export default function AdmissionApplications() {
               
               {/* Uploaded Documents Section */}
               <div className="space-y-4 pt-4 border-t border-border">
-                <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground pb-2">Uploaded Documents</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">Uploaded Documents</h3>
+                  <span className="text-xs text-muted-foreground">Counselor/Manager can upload missing documents below</span>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {[
                     { label: 'Passport Photo', key: 'photo' },
@@ -403,30 +457,62 @@ export default function AdmissionApplications() {
                     { label: 'Aadhaar Card', key: 'aadhaar_card' },
                   ].map((doc) => {
                     const fileUrl = selectedApp[doc.key];
-                    if (!fileUrl) return null;
+                    const isUploading = uploadingDocKey === doc.key;
+
                     return (
-                      <div key={doc.key} className="flex items-center justify-between p-2.5 border border-border rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
-                        <span className="text-xs font-medium truncate max-w-[130px]" title={doc.label}>{doc.label}</span>
-                        <a 
-                          href={fileUrl} 
-                          onClick={(e) => handlePreview(e, fileUrl)}
-                          className="text-xs text-primary font-semibold hover:underline shrink-0 cursor-pointer"
-                        >
-                          View File
-                        </a>
+                      <div key={doc.key} className="flex flex-col justify-between p-2.5 border border-border rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors gap-2">
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-xs font-semibold truncate max-w-[140px]" title={doc.label}>{doc.label}</span>
+                          {fileUrl ? (
+                            <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 font-semibold px-1.5 py-0.5 rounded">Uploaded</span>
+                          ) : (
+                            <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 font-semibold px-1.5 py-0.5 rounded">Missing</span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between w-full pt-1 border-t border-border/50 text-xs">
+                          {fileUrl ? (
+                            <a 
+                              href={fileUrl} 
+                              onClick={(e) => handlePreview(e, fileUrl)}
+                              className="text-xs text-primary font-semibold hover:underline cursor-pointer flex items-center gap-1"
+                            >
+                              <FileText className="w-3 h-3" /> View File
+                            </a>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">No file</span>
+                          )}
+
+                          <label className={`cursor-pointer inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 hover:underline ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                            {isUploading ? (
+                              <span className="flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Uploading...</span>
+                            ) : (
+                              <span className="flex items-center gap-1"><Upload className="w-3 h-3" /> {fileUrl ? 'Replace' : 'Upload'}</span>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
+                              className="hidden"
+                              disabled={isUploading}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleDocumentUpload(doc.key, file, selectedApp.id);
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
                       </div>
                     );
                   })}
-                  {!['photo', 'signature', 'marks_card_10th', 'marks_card_12th', 'transfer_certificate', 'aadhaar_card'].some(k => selectedApp[k]) && (
-                    <p className="text-xs text-muted-foreground col-span-full">No documents uploaded.</p>
-                  )}
                 </div>
               </div>
 
               <div className="space-y-4 pt-4 border-t border-border">
                 <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground pb-2">Actions</h3>
                 {(() => {
-                  const appStages = ['new', 'contacted', 'interested', 'application_started', 'documents_pending', 'documents_verified', 'fee_pending', 'admission_confirmed', 'enrolled', 'rejected'];
+                  const appStages = ['new', 'contacted', 'interested', 'application_started', 'documents_pending', 'documents_verified', 'admission_confirmed', 'enrolled', 'rejected'];
                   const currentStatus = selectedApp?.enquiry_details?.status;
                   const isRejected = currentStatus === 'rejected';
                   const currentIndex = appStages.indexOf(currentStatus);

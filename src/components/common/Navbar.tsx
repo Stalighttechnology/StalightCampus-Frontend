@@ -220,7 +220,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
   };
   const userStr = sessionStorage.getItem("user");
   const userData = userStr ? JSON.parse(userStr) : null;
-  const orgPlan = (userData?.org_plan || "basic").toLowerCase();
+  const orgPlan = (userData?.plan || userData?.plan_type || userData?.org_plan || (user as any)?.plan || (user as any)?.org_plan || "basic").toLowerCase();
 
   // Determine avatar source: prefer `user` prop, then localStorage cached user.
   const rawAvatar = user?.profile_picture || user?.profile_image || userData?.profile_picture || userData?.profile_image || userData?.profile_picture_url || user?.profile_picture_url || null;
@@ -285,7 +285,13 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
             </span>
           </motion.div>
           <p className={`text-[9px] uppercase tracking-wider font-medium truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-            {role === "admin" || role === "principal" ? "Principal" : translateTerminology(role).replace('_', ' ')} Portal
+            {(() => {
+              const bName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
+              const dName = ((user as any)?.department || '').toString().toLowerCase();
+              const isNonTeaching = bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');
+              if (isNonTeaching) return "Non-Teaching Staff Portal";
+              return `${role === "admin" || role === "principal" ? "Principal" : translateTerminology(role).replace('_', ' ')} Portal`;
+            })()}
           </p>
         </div>
       </div>
@@ -523,7 +529,14 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                   {user?.first_name ? `${user.first_name} ` : "User"}
                 </div>
                 <div className="text-[10px] opacity-60">
-                  {(role === "admin" || role === "principal") ? "Principal" : translateTerminology(role)}
+                  {(() => {
+                    const bName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
+                    const dName = (user?.department || '').toString().toLowerCase();
+                    const isNonTeaching = bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');
+                    if (role === "admin" || role === "principal") return "Principal";
+                    if (isNonTeaching) return "Non-Teaching Staff";
+                    return translateTerminology(role);
+                  })()}
                 </div>
               </div>
               <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-xs shadow-inner overflow-hidden">
