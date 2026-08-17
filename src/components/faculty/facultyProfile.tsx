@@ -18,14 +18,14 @@ import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getFacultyProfile, manageProfile } from "../../utils/faculty_api";
 import { useTheme } from "@/context/ThemeContext";
-import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "../../utils/sweetalert";
+import { showSuccessAlert, showErrorAlert, showConfirmAlert, showInfoAlert } from "../../utils/sweetalert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Eye, EyeOff , Trash} from 'lucide-react';
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { API_ENDPOINT } from "../../utils/config";
 import { Camera, Upload } from 'lucide-react';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import LoginActivity from '../common/LoginActivity';
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
@@ -373,6 +373,25 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     }
   };
 
+  const handleOpenAlwaysLocationSettings = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const CampusGeofence = registerPlugin<any>("CampusGeofence");
+        if (CampusGeofence.openLocationSettings) {
+          await CampusGeofence.openLocationSettings();
+        } else if (CampusGeofence.requestBackgroundPermission) {
+          await CampusGeofence.requestBackgroundPermission();
+        }
+      } catch (err: any) {
+        console.error("Failed to open location settings:", err);
+        showErrorAlert("Error", "Could not open location settings page: " + (err?.message || String(err)));
+      }
+    } else {
+      showInfoAlert("Browser Sandbox", "Location settings can only be opened on a real iOS or Android device.");
+    }
+  };
+
+
   if (loading) {
     return <SkeletonCard className="w-full h-[600px]" />;
   }
@@ -574,17 +593,36 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           <div className="animate-in fade-in duration-300">
             <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Settings</h3>
             
-            <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
-              <div className="space-y-0.5">
-                <Label className="text-base font-medium">Push Notifications</Label>
-                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Receive real-time alerts for attendance, leaves, exams, and more.
-                </p>
+            <div className="space-y-6">
+              <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+                <div className="space-y-0.5">
+                  <Label className="text-base font-medium">Push Notifications</Label>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Receive real-time alerts for attendance, leaves, exams, and more.
+                  </p>
+                </div>
+                <Switch
+                  checked={notificationsEnabled}
+                  onCheckedChange={(checked) => handleNotificationToggle(checked, setNotificationsEnabled)}
+                />
               </div>
-              <Switch
-                checked={notificationsEnabled}
-                onCheckedChange={(checked) => handleNotificationToggle(checked, setNotificationsEnabled)}
-              />
+
+              {/* Always-On Geofence Location Settings */}
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+                <div className="space-y-0.5">
+                  <Label className="text-base font-medium">Always-On Location Monitoring</Label>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Enables background geofence transition alerts when entering or leaving the campus. Requires "Always Allow" location permission to operate correctly.
+                  </p>
+                </div>
+                <Button
+                  onClick={handleOpenAlwaysLocationSettings}
+                  variant="outline"
+                  className="bg-primary text-white hover:bg-primary/95 border-none w-full sm:w-auto text-xs py-2 px-3 h-9"
+                >
+                  Configure Always Allow
+                </Button>
+              </div>
             </div>
           </div>
         );

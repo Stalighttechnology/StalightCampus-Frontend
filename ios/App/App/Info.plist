@@ -48,6 +48,13 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
+		<!-- REQUIRED: enables CLCircularRegion geofence delivery after app kill/force-close.
+		     Without this key, iOS never relaunches the app for geofence events and
+		     never sets launchOptions[.location] in didFinishLaunchingWithOptions. -->
+		<string>location</string>
+		<!-- Allows iOS to schedule deferred background wakeups (e.g. to retry a
+		     failed geofence ping when connectivity is restored). -->
+		<string>fetch</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

@@ -14,32 +14,85 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+/**
+ * GeofenceBroadcastReceiver
+ *
+ * Receives ENTER / EXIT intents fired by the Android OS / Google Play Services
+ * GeofencingClient — even when the app is killed or force-closed.
+ *
+ * Architecture: native-only, OS-managed geofencing (no foreground service).
+ *
+ * Google Play Services whitelists geofence broadcast receivers for a brief
+ * network execution window, which is sufficient for a short authenticated
+ * HTTPS POST to the Django backend.
+ *
+ * Safe execution pattern:
+ *   goAsync() called immediately → background thread performs HTTP POST →
+ *   pendingResult.finish() always called in the finally block.
+ *
+ * ⚠️  Android Background Execution Note:
+ *   goAsync() extends the BroadcastReceiver execution window to approximately
+ *   10 seconds (Android 8+). Connect + read timeouts are set conservatively
+ *   at 5 s each. GMS geofence events are network-whitelisted by the OS so
+ *   Doze does not block the HTTP call for these specific broadcasts.
+ *   If the POST cannot complete in ~10 s (e.g. very slow server), the event
+ *   will be silently dropped. The backend's select_for_update idempotency
+ *   layer prevents any harm from a late duplicate delivery.
+ *
+ * ⚠️  Reboot Behaviour:
+ *   Android GMS clears all registered geofences on device reboot. The faculty
+ *   member must open the app after a reboot to re-register the geofence.
+ *   This is the expected trade-off when running without a BootCompleteReceiver
+ *   or foreground service.
+ */
 public class GeofenceBroadcastReceiver extends BroadcastReceiver {
+
     private static final String TAG = "CampusGeofenceReceiver";
+
+    // Conservative timeouts that fit inside the goAsync() ~10 s window.
+    private static final int CONNECT_TIMEOUT_MS = 5_000;
+    private static final int READ_TIMEOUT_MS    = 5_000;
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        // ── MUST be called synchronously on the main thread before any I/O ────
         final PendingResult pendingResult = goAsync();
-        
-        GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
-        if (geofencingEvent == null || geofencingEvent.hasError()) {
-            Log.e(TAG, "GeofencingEvent error code: " + (geofencingEvent != null ? geofencingEvent.getErrorCode() : "null"));
-            pendingResult.finish();
-            return;
-        }
 
-        int geofenceTransition = geofencingEvent.getGeofenceTransition();
-        if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT || geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-            String transitionType = (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) ? "EXIT" : "ENTER";
-            
-            Log.i(TAG, "📍 Native Android System Geofence Event: " + transitionType);
+        try {
+            // ── 1. Validate the geofence event ──────────────────────────────
+            GeofencingEvent event = GeofencingEvent.fromIntent(intent);
+            if (event == null || event.hasError()) {
+                Log.e(TAG, "GeofencingEvent error: "
+                        + (event != null ? event.getErrorCode() : "null event"));
+                pendingResult.finish();
+                return;
+            }
 
+            int transition = event.getGeofenceTransition();
+            if (transition != Geofence.GEOFENCE_TRANSITION_EXIT
+                    && transition != Geofence.GEOFENCE_TRANSITION_ENTER) {
+                // Ignore DWELL and unknown transitions.
+                pendingResult.finish();
+                return;
+            }
+
+            final String transitionType = (transition == Geofence.GEOFENCE_TRANSITION_EXIT)
+                    ? "EXIT" : "ENTER";
+            Log.i(TAG, "📍 Native Android geofence event: " + transitionType);
+
+            // ── 2. Resolve server URL + auth token ──────────────────────────
+            // Try PendingIntent extras first (set when the geofence was registered).
+            // Fall back to SharedPreferences for the killed-app path where extras
+            // may have been stripped by the OS during delivery.
             String serverUrl = intent.getStringExtra("server_url");
             String authToken = intent.getStringExtra("auth_token");
 
-            if (serverUrl == null || serverUrl.isEmpty() || authToken == null || authToken.isEmpty()) {
+            if (serverUrl == null || serverUrl.isEmpty()
+                    || authToken == null || authToken.isEmpty()) {
                 try {
-                    android.content.SharedPreferences prefs = context.getSharedPreferences("StalightCampusGeofence", android.content.Context.MODE_PRIVATE);
+                    android.content.SharedPreferences prefs =
+                            context.getSharedPreferences(
+                                    "StalightCampusGeofence", Context.MODE_PRIVATE);
                     if (serverUrl == null || serverUrl.isEmpty()) {
                         serverUrl = prefs.getString("server_url", "");
                     }
@@ -47,78 +100,73 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                         authToken = prefs.getString("auth_token", "");
                     }
                 } catch (Exception e) {
-                    Log.e(TAG, "Failed to read geofence settings from SharedPreferences", e);
+                    Log.e(TAG, "SharedPreferences read failed", e);
                 }
             }
 
-            double lat = 0.0;
-            double lng = 0.0;
-            if (geofencingEvent.getTriggeringLocation() != null) {
-                lat = geofencingEvent.getTriggeringLocation().getLatitude();
-                lng = geofencingEvent.getTriggeringLocation().getLongitude();
-            } else {
-                try {
-                    android.location.LocationManager lm = (android.location.LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-                    if (lm != null) {
-                        android.location.Location loc = lm.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER);
-                        if (loc == null) {
-                            loc = lm.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER);
-                        }
-                        if (loc != null) {
-                            lat = loc.getLatitude();
-                            lng = loc.getLongitude();
-                        }
-                    }
-                } catch (SecurityException se) {
-                    Log.w(TAG, "Could not get last known location from LocationManager", se);
-                }
-            }
-
-            if (serverUrl != null && !serverUrl.isEmpty()) {
-                sendPingToServerAsync(serverUrl, authToken, transitionType, lat, lng, pendingResult);
-            } else {
+            if (serverUrl == null || serverUrl.isEmpty()) {
+                Log.e(TAG, "No server URL available — geofence ping dropped.");
                 pendingResult.finish();
+                return;
             }
-        } else {
-            pendingResult.finish();
-        }
-    }
 
-    private void sendPingToServerAsync(final String serverUrl, final String authToken, final String event, final double lat, final double lng, final PendingResult pendingResult) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+            // ── 3. Resolve triggering coordinates ───────────────────────────
+            double lat = 0.0, lng = 0.0;
+            if (event.getTriggeringLocation() != null) {
+                lat = event.getTriggeringLocation().getLatitude();
+                lng = event.getTriggeringLocation().getLongitude();
+            }
+
+            // ── 4. Execute HTTPS POST on a background thread ────────────────
+            // pendingResult.finish() is called in the finally block of the
+            // thread — guaranteed even on exception or timeout.
+            final String finalServerUrl = serverUrl;
+            final String finalAuthToken  = authToken;
+            final double finalLat        = lat;
+            final double finalLng        = lng;
+
+            new Thread(() -> {
+                HttpURLConnection conn = null;
                 try {
-                    URL url = new URL(serverUrl);
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    URL url = new URL(finalServerUrl);
+                    conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
-                    conn.setConnectTimeout(5000);
-                    conn.setReadTimeout(5000);
+                    conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
+                    conn.setReadTimeout(READ_TIMEOUT_MS);
                     conn.setRequestProperty("Content-Type", "application/json; utf-8");
-                    if (authToken != null && !authToken.isEmpty()) {
-                        conn.setRequestProperty("Authorization", "Bearer " + authToken);
+                    if (!finalAuthToken.isEmpty()) {
+                        conn.setRequestProperty("Authorization", "Bearer " + finalAuthToken);
                     }
                     conn.setDoOutput(true);
 
-                    JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("event", event);
-                    jsonParam.put("latitude", lat);
-                    jsonParam.put("longitude", lng);
+                    JSONObject body = new JSONObject();
+                    body.put("event",     transitionType);
+                    body.put("latitude",  finalLat);
+                    body.put("longitude", finalLng);
 
                     try (OutputStream os = conn.getOutputStream()) {
-                        byte[] input = jsonParam.toString().getBytes("utf-8");
+                        byte[] input = body.toString().getBytes("utf-8");
                         os.write(input, 0, input.length);
                     }
 
                     int responseCode = conn.getResponseCode();
-                    Log.i(TAG, "Geofence ping response code: " + responseCode);
-                    conn.disconnect();
+                    Log.i(TAG, "✅ Geofence ping sent ("
+                            + transitionType + ") — HTTP " + responseCode);
+
                 } catch (Exception e) {
-                    Log.e(TAG, "Error sending geofence ping to server", e);
+                    Log.e(TAG, "❌ Failed to send geofence ping: " + e.getMessage(), e);
                 } finally {
+                    if (conn != null) conn.disconnect();
+                    // Always release the async slot — must be called on every code path.
                     pendingResult.finish();
                 }
-            }
-        }).start();
+            }, "GeofencePingThread").start();
+
+        } catch (Exception e) {
+            // Catch-all: ensures pendingResult is always released even if thread
+            // creation itself fails (extremely rare, e.g. OOM on boot).
+            Log.e(TAG, "Unexpected error in onReceive: " + e.getMessage(), e);
+            pendingResult.finish();
+        }
     }
 }

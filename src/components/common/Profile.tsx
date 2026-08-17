@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { fetchWithTokenRefresh } from "../../utils/authService";
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
@@ -283,6 +283,25 @@ const Profile = ({ role, user }: ProfileProps) => {
     }
   };
 
+  const handleOpenAlwaysLocationSettings = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const CampusGeofence = registerPlugin<any>("CampusGeofence");
+        if (CampusGeofence.openLocationSettings) {
+          await CampusGeofence.openLocationSettings();
+        } else if (CampusGeofence.requestBackgroundPermission) {
+          await CampusGeofence.requestBackgroundPermission();
+        }
+      } catch (err: any) {
+        console.error("Failed to open location settings:", err);
+        showErrorAlert("Error", "Could not open location settings page: " + (err?.message || String(err)));
+      }
+    } else {
+      showInfoAlert("Browser Sandbox", "Location settings can only be opened on a real iOS or Android device.");
+    }
+  };
+
+
   const getInitials = () => {
     return `${(profile.first_name || user?.first_name || "").charAt(0)}${(profile.last_name || user?.last_name || "").charAt(0)}`.toUpperCase();
   };
@@ -372,6 +391,25 @@ const Profile = ({ role, user }: ProfileProps) => {
                   onCheckedChange={(checked) => handleNotificationToggle(checked, setNotificationsEnabled)}
                 />
               </div>
+
+              {/* Always-On Geofence Location Settings (Only for HOD, Dean, COE, Faculty, and other staff roles) */}
+              {!['student', 'parent'].includes(role) && (
+                <div className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+                  <div className="space-y-0.5">
+                    <Label className="text-base font-medium">Always-On Location Monitoring</Label>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      Enables background geofence transition alerts when entering or leaving the campus. Requires "Always Allow" location permission to operate correctly.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleOpenAlwaysLocationSettings}
+                    variant="outline"
+                    className="bg-primary text-white hover:bg-primary/95 border-none w-full sm:w-auto"
+                  >
+                    Configure Always Allow
+                  </Button>
+                </div>
+              )}
 
               {role === 'student' && (
                 <div>

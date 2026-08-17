@@ -24,10 +24,14 @@ public class CampusGeofencePlugin: CAPPlugin, CLLocationManagerDelegate {
                 return
             }
             let status = CLLocationManager.authorizationStatus()
-            if status == .notDetermined {
+            // Request "Always" for both undetermined AND "When In Use" states.
+            // If the user previously granted only "When In Use", we must explicitly
+            // call requestAlwaysAuthorization() again — iOS will show the upgrade
+            // prompt. Without this, geofence events are NOT delivered in background.
+            if status == .notDetermined || status == .authorizedWhenInUse {
                 lm.requestAlwaysAuthorization()
             }
-            call.resolve(["granted": status == .authorizedAlways || status == .authorizedWhenInUse])
+            call.resolve(["granted": status == .authorizedAlways])
         }
     }
 
@@ -53,7 +57,10 @@ public class CampusGeofencePlugin: CAPPlugin, CLLocationManagerDelegate {
                 return
             }
 
-            if CLLocationManager.authorizationStatus() == .notDetermined {
+            // Always request "Always" authorization — covers both first-time setup
+            // (.notDetermined) and users who previously only granted "When In Use".
+            let currentStatus = CLLocationManager.authorizationStatus()
+            if currentStatus == .notDetermined || currentStatus == .authorizedWhenInUse {
                 lm.requestAlwaysAuthorization()
             }
 
@@ -84,6 +91,22 @@ public class CampusGeofencePlugin: CAPPlugin, CLLocationManagerDelegate {
                 }
             }
             call.resolve(["success": true])
+        }
+    }
+
+    @objc func openLocationSettings(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
+                call.reject("Could not create settings URL")
+                return
+            }
+            if UIApplication.shared.canOpenURL(settingsUrl) {
+                UIApplication.shared.open(settingsUrl, options: [:], completionHandler: { (success) in
+                    call.resolve(["success": success])
+                })
+            } else {
+                call.reject("Cannot open Settings app")
+            }
         }
     }
 

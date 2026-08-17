@@ -156,6 +156,8 @@ export default function ScheduledLocationTracker() {
               if (CampusGeofence.requestBackgroundPermission) {
                 await CampusGeofence.requestBackgroundPermission();
               }
+
+              localStorage.setItem('has_accepted_geofence_disclosure', 'true');
             }
 
             await CampusGeofence.addGeofence({

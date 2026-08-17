@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Network Security Configuration
+    ================================
+    Production: all traffic MUST use HTTPS (TLS).
+    Development: cleartext HTTP is permitted only for localhost / 127.0.0.1
+                 (needed for the Capacitor dev server and Django on :8000).
+
+    This replaces the broad android:usesCleartextTraffic="true" that was
+    previously set on the <application> element, which allowed HTTP to
+    any host in any build variant.
+-->
+<network-security-config>
+
+    <!-- Allow cleartext only to local development addresses -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <!-- Local network development access (adjust range as needed) -->
+        <domain includeSubdomains="false">192.168.0.0</domain>
+        <domain includeSubdomains="false">192.168.29.217</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+
+    <!-- All other traffic (including the production Django backend at
+         campusapi.stalight.in) must use HTTPS. -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+</network-security-config>

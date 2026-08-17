@@ -93,11 +93,10 @@ public class CampusGeofencePlugin extends Plugin {
             ) == PackageManager.PERMISSION_GRANTED;
 
             if (!backgroundGranted) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    launchBackgroundLocationSettings(call);
-                } else {
-                    requestPermissionForAlias("backgroundLocation", call, "backgroundCallback");
-                }
+                // On Android 11+ (R), requesting background location requires requesting it
+                // separately from foreground. The system automatically prompts the user,
+                // explains the permission, and opens the Location Permission settings page.
+                requestPermissionForAlias("backgroundLocation", call, "backgroundCallback");
             } else {
                 JSObject ret = new JSObject();
                 ret.put("granted", true);
@@ -110,7 +109,11 @@ public class CampusGeofencePlugin extends Plugin {
         }
     }
 
-    private void launchBackgroundLocationSettings(PluginCall call) {
+    /**
+     * Fallback method to open the App Details settings screen.
+     */
+    @PluginMethod
+    public void openLocationSettings(PluginCall call) {
         try {
             Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             android.net.Uri uri = android.net.Uri.fromParts("package", getContext().getPackageName(), null);
@@ -119,7 +122,7 @@ public class CampusGeofencePlugin extends Plugin {
             getContext().startActivity(intent);
             
             JSObject ret = new JSObject();
-            ret.put("settingsOpened", true);
+            ret.put("success", true);
             call.resolve(ret);
         } catch (Exception e) {
             call.reject("Could not open settings: " + e.getMessage());
@@ -165,6 +168,13 @@ public class CampusGeofencePlugin extends Plugin {
                     .edit()
                     .putString("server_url", serverUrl)
                     .putString("auth_token", authToken)
+                    // campus_* keys retained in SharedPreferences so that
+                    // GeofenceBroadcastReceiver can fall back to them if the
+                    // PendingIntent extras are stripped during delivery (killed-app path).
+                    .putLong("campus_latitude",  Double.doubleToRawLongBits(latitude))
+                    .putLong("campus_longitude", Double.doubleToRawLongBits(longitude))
+                    .putFloat("campus_radius",   radius.floatValue())
+                    .putString("campus_id",      campusId)
                     .apply();
         } catch (Exception e) {
             Log.e(TAG, "Failed to save geofence settings to SharedPreferences", e);
