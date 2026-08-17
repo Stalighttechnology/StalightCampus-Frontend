@@ -1,5 +1,6 @@
 import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { useRef, useState, useEffect } from "react";
+import { Checkbox } from "../ui/checkbox";
 import {
   Card,
   CardContent,
@@ -85,6 +86,9 @@ const StudentManagement = () => {
     cycleFilter: "",
     selectedStudent: null as Student | null,
     confirmDelete: false,
+    confirmBulkDelete: false,
+    isDeleting: false,
+    selectedStudentUsns: [] as string[],
     editDialog: false,
     addStudentModal: false,
     editForm: { usn: "", name: "", email: "", section: "", semester: "", cycle: "", phone: "", mode_of_admission: "" },
@@ -326,7 +330,7 @@ const StudentManagement = () => {
         mode_of_admission: s.mode_of_admission
       }));
       const totalPages = (studentRes as ManageStudentsResponse).total_pages || Math.ceil(count / pageSize);
-      updateState({ students, totalStudents: count, currentPage: page, totalPages });
+      updateState({ students, totalStudents: count, currentPage: page, totalPages, selectedStudentUsns: [] });
     } catch (err) {
       updateState({ uploadErrors: [...state.uploadErrors, "Failed to fetch students"] });
     }
@@ -1078,7 +1082,7 @@ const StudentManagement = () => {
       if (res.success) {
         // Optimistically remove student from local state
         const filtered = state.students.filter((s) => s.usn !== state.selectedStudent!.usn);
-        updateState({ students: filtered, confirmDelete: false, uploadErrors: [], currentPage: 1 });
+        updateState({ students: filtered, confirmDelete: false, uploadErrors: [], currentPage: 1, selectedStudentUsns: state.selectedStudentUsns.filter(usn => usn !== state.selectedStudent!.usn) });
         showSuccessAlert("Success", "Student deleted successfully.");
       } else {
         Swal.fire({
@@ -1093,6 +1097,47 @@ const StudentManagement = () => {
         icon: "error",
         title: "Error",
         text: "Failed to delete student",
+        confirmButtonColor: "#9147e0"
+      });
+    }
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    updateState({ isDeleting: true });
+    try {
+      const res = await manageStudents({
+        action: "bulk_delete",
+        branch_id: state.branchId,
+        student_ids: state.selectedStudentUsns
+      } as any, "POST");
+
+      if (res.success) {
+        const filtered = state.students.filter((s) => !state.selectedStudentUsns.includes(s.usn));
+        updateState({
+          students: filtered,
+          confirmBulkDelete: false,
+          isDeleting: false,
+          selectedStudentUsns: [],
+          uploadErrors: [],
+          currentPage: 1
+        });
+        showSuccessAlert("Success", res.message || "Selected students deleted successfully.");
+      } else {
+        updateState({ isDeleting: false });
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: res.message || "Error deleting students",
+          confirmButtonColor: "#9147e0"
+        });
+      }
+    } catch (err) {
+      updateState({ isDeleting: false });
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to delete students",
         confirmButtonColor: "#9147e0"
       });
     }
@@ -1541,6 +1586,16 @@ const StudentManagement = () => {
                 <CardDescription className="text-sm text-muted-foreground mt-1">View, search, and manage enrolled students in your department.</CardDescription>
               </div>
               <div className="flex w-auto gap-2">
+                {state.selectedStudentUsns.length > 0 && (
+                  <Button
+                    onClick={() => updateState({ confirmBulkDelete: true })}
+                    className="flex items-center justify-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700 whitespace-nowrap h-10 w-auto"
+                    disabled={state.isLoading}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete Selected ({state.selectedStudentUsns.length})
+                  </Button>
+                )}
                 {/* Bulk Upload Button */}
                 <Button
                   onClick={() => updateState({ addStudentModal: true })}
@@ -1717,7 +1772,7 @@ const StudentManagement = () => {
             </div>
           ) : state.isLoading ? (
             <div className="py-4">
-              <SkeletonTable rows={10} cols={7} />
+              <SkeletonTable rows={10} cols={8} />
             </div>
           ) : (
             <>
@@ -1725,6 +1780,20 @@ const StudentManagement = () => {
                 <table className="min-w-full text-sm md:text-base text-left">
                   <thead className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-gray-100 text-gray-900 border-gray-300'}>
                     <tr className="border-b">
+                      <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium w-10">
+                        <Checkbox
+                          checked={paginatedFilteredStudents.length > 0 && paginatedFilteredStudents.every(s => state.selectedStudentUsns.includes(s.usn))}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              const newSelected = Array.from(new Set([...state.selectedStudentUsns, ...paginatedFilteredStudents.map(s => s.usn)]));
+                              updateState({ selectedStudentUsns: newSelected });
+                            } else {
+                              const newSelected = state.selectedStudentUsns.filter(usn => !paginatedFilteredStudents.some(s => s.usn === usn));
+                              updateState({ selectedStudentUsns: newSelected });
+                            }
+                          }}
+                        />
+                      </th>
                       <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">{translateTerminology("USN")}</th>
                       <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Name</th>
                       <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Email</th>
@@ -1740,6 +1809,18 @@ const StudentManagement = () => {
                   <tbody className={theme === 'dark' ? 'divide-y divide-border' : 'divide-y divide-gray-200'}>
                     {paginatedFilteredStudents.map((student) =>
                       <tr key={student.usn} className={`${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'} align-middle`}>
+                        <td className="py-3 px-3 md:px-4 text-sm md:text-base w-10">
+                          <Checkbox
+                            checked={state.selectedStudentUsns.includes(student.usn)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                updateState({ selectedStudentUsns: [...state.selectedStudentUsns, student.usn] });
+                              } else {
+                                updateState({ selectedStudentUsns: state.selectedStudentUsns.filter(usn => usn !== student.usn) });
+                              }
+                            }}
+                          />
+                        </td>
                         <td className="py-3 px-3 md:px-4 text-sm md:text-base">{student.usn}</td>
                         <td className="py-3 px-3 md:px-4 text-sm md:text-base whitespace-nowrap">{student.name}</td>
                         <td className="py-3 px-3 md:px-4 text-sm md:text-base">{student.email}</td>
@@ -2121,6 +2202,38 @@ const StudentManagement = () => {
             </Button>
             <Button variant="destructive" onClick={handleDelete} className="flex-shrink-0 bg-[#ef4444] hover:bg-[#dc2626] text-white border-transparent">
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={state.confirmBulkDelete} onOpenChange={() => !state.isDeleting && updateState({ confirmBulkDelete: false })}>
+        <DialogContent
+          onPointerDownOutside={(e) => state.isDeleting && e.preventDefault()}
+          onEscapeKeyDown={(e) => state.isDeleting && e.preventDefault()}
+          className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-[92%] sm:w-auto max-w-sm mx-auto rounded-2xl sm:rounded-md p-4`}>
+          <DialogHeader>
+            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Delete Selected Students</DialogTitle>
+          </DialogHeader>
+          <div className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
+            Are you sure you want to delete <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{state.selectedStudentUsns.length}</strong> selected students? This action cannot be undone.
+          </div>
+          <DialogFooter className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              disabled={state.isDeleting}
+              onClick={() => updateState({ confirmBulkDelete: false })}
+              className={`text-foreground ${theme === 'dark' ? 'bg-card border-border hover:bg-accent' : 'bg-white border-gray-300 hover:bg-gray-100'}`}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={state.isDeleting}
+              onClick={handleBulkDelete}
+              className="flex-shrink-0 bg-[#ef4444] hover:bg-[#dc2626] text-white border-transparent flex items-center justify-center gap-1.5"
+            >
+              {state.isDeleting && <Loader2 className="w-4 h-4 animate-spin" />}
+              {state.isDeleting ? "Deleting..." : "Delete All"}
             </Button>
           </DialogFooter>
         </DialogContent>

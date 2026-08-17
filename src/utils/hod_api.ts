@@ -192,7 +192,7 @@ interface ManageSectionsResponse {
 }
 
 interface ManageStudentsRequest {
-  action: "create" | "update" | "delete" | "bulk_update" | "register_subjects" | "bulk_register_subjects" | "bulk_unregister_subjects";
+  action: "create" | "update" | "delete" | "bulk_delete" | "bulk_update" | "register_subjects" | "bulk_register_subjects" | "bulk_unregister_subjects";
   student_id?: string;
   usn?: string;
   name?: string;
