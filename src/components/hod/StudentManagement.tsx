@@ -866,13 +866,14 @@ const StudentManagement = () => {
             uploadErrors: [],
             droppedFileName: null,
             selectedFile: null,
-            currentPage: 1, // Reset to first page to show the new students
-            isLoading: false,
-            addStudentModal: false
+            currentPage: 1,
+            isLoading: false
+            // Modal stays open so user can see the result summary
           });
-          if (createdCount > 0) {
-            showSuccessAlert("Success", `${createdCount} student${createdCount !== 1 ? 's' : ''} added successfully.`);
-          }
+          const parts: string[] = [];
+          if (createdCount > 0) parts.push(`${createdCount} student${createdCount !== 1 ? 's' : ''} added`);
+          if (updatedCount > 0) parts.push(`${updatedCount} student${updatedCount !== 1 ? 's' : ''} updated`);
+          if (parts.length > 0) showSuccessAlert("Success", parts.join(', ') + '.');
           if (fileInputRef.current) fileInputRef.current.value = "";
           // Note: Removed automatic refresh after bulk upload to avoid GET after POST
         } else {
