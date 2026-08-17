@@ -792,20 +792,22 @@ const StudentManagement = () => {
 
             const cycle = String(entry.cycle || entry.Cycle || "").trim().toUpperCase();
 
-            // Validate cycle for semesters 1 and 2 - use UI selected cycle if available
+            // Validate cycle for semesters 1 and 2 - use UI selected cycle if available (engineering/medical only)
             const semesterNumber = getSemesterNumber(state.bulkForm.semester);
             const selectedCycle = state.bulkForm.cycle;
 
-            if (semesterNumber <= 2) {
-              // Use cycle from UI selection, or from CSV if provided
-              const finalCycle = selectedCycle || cycle;
-              if (!finalCycle || !['P', 'C'].includes(finalCycle)) {
-                errors.push(`Row ${row}: Cycle (P or C) is required for semester ${semesterNumber}. Please select cycle above or include in CSV.`);
+            if (getInstitutionType() !== 'school') {
+              if (semesterNumber <= 2) {
+                // Use cycle from UI selection, or from CSV if provided
+                const finalCycle = selectedCycle || cycle;
+                if (!finalCycle || !['P', 'C'].includes(finalCycle)) {
+                  errors.push(`Row ${row}: Cycle (P or C) is required for semester ${semesterNumber}. Please select cycle above or include in CSV.`);
+                  return null;
+                }
+              } else if (cycle) {
+                errors.push(`Row ${row}: Cycle can only be set for semesters 1 and 2`);
                 return null;
               }
-            } else if (cycle) {
-              errors.push(`Row ${row}: Cycle can only be set for semesters 1 and 2`);
-              return null;
             }
 
             return {
@@ -1834,7 +1836,7 @@ const StudentManagement = () => {
           {/* Semester & Section Select */}
           <div className="mb-4">
             <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              Select Batch, Semester, and Section
+              {getInstitutionType() === 'school' ? "Select Batch, Class, and Section" : "Select Batch, Semester, and Section"}
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {/* Batch Dropdown */}
@@ -1894,8 +1896,8 @@ const StudentManagement = () => {
                   <SelectValue
                     placeholder={
                       state.semesters.length === 0 ?
-                        "No semesters available" :
-                        "Choose Semester"
+                        `No ${translateTerminology("semesters").toLowerCase()} available` :
+                        translateTerminology("Choose Semester")
                     } />
 
                 </SelectTrigger>
@@ -1906,7 +1908,7 @@ const StudentManagement = () => {
                       value={`${s.number}th Semester`}
                       className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
 
-                      Semester {s.number}
+                      {getSemesterName(s.number)}
                     </SelectItem>
                   )}
                 </SelectContent>
@@ -1928,7 +1930,7 @@ const StudentManagement = () => {
                   <SelectValue
                     placeholder={
                       state.manualSections.length === 0 || !state.bulkForm.semester ?
-                        "Select semester first" :
+                        translateTerminology("Select semester first") :
                         "Choose Section"
                     } />
 
@@ -1961,15 +1963,27 @@ const StudentManagement = () => {
                 <SelectTrigger id="bulk-mode-select-trigger" className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
                   <SelectValue placeholder="Mode of Admission" />
                 </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                  <SelectItem value="KCET">KCET</SelectItem>
-                  <SelectItem value="COMEDK">COMEDK</SelectItem>
-                  <SelectItem value="JEE Main">JEE Main</SelectItem>
-                  <SelectItem value="NEET">NEET</SelectItem>
-                  <SelectItem value="Merit">Merit</SelectItem>
-                  <SelectItem value="Management">Management</SelectItem>
-                  <SelectItem value="NRI">NRI</SelectItem>
-                  <SelectItem value="Lateral Entry">Lateral Entry</SelectItem>
+                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
+                  {getInstitutionType() === 'school' ? (
+                    <>
+                      <SelectItem value="Regular">Regular</SelectItem>
+                      <SelectItem value="Management">Management</SelectItem>
+                      <SelectItem value="Merit">Merit</SelectItem>
+                      <SelectItem value="RTE">RTE</SelectItem>
+                      <SelectItem value="Transfer">Transfer</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="KCET">KCET</SelectItem>
+                      <SelectItem value="COMEDK">COMEDK</SelectItem>
+                      <SelectItem value="JEE Main">JEE Main</SelectItem>
+                      <SelectItem value="NEET">NEET</SelectItem>
+                      <SelectItem value="Merit">Merit</SelectItem>
+                      <SelectItem value="Management">Management</SelectItem>
+                      <SelectItem value="NRI">NRI</SelectItem>
+                      <SelectItem value="Lateral Entry">Lateral Entry</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
 
@@ -1983,7 +1997,7 @@ const StudentManagement = () => {
                   <SelectTrigger id="bulk-cycle-select-trigger" className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
                     <SelectValue placeholder="Select Cycle" />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     <SelectItem value="P" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
                       P Cycle (Physics)
                     </SelectItem>
@@ -2063,12 +2077,16 @@ const StudentManagement = () => {
             <ul className="list-disc pl-6 space-y-1">
               <li>Use the provided template for proper data formatting</li>
               <li>
-                Required columns: <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>usn</strong> and <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>name</strong>
+                Required columns: <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{getInstitutionType() === 'school' ? "Roll No (or usn)" : "usn"}</strong> and <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>name</strong>
               </li>
               <li>
                 Optional columns: <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>email</strong> and <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>phone</strong>
               </li>
-              <li>Semester, Section, Mode of Admission, and Cycle (for semesters 1-2) are selected above, not in the file</li>
+              <li>
+                {getInstitutionType() === 'school' 
+                  ? "Class, Section, and Mode of Admission are selected above, not in the file"
+                  : "Semester, Section, Mode of Admission, and Cycle (for semesters 1-2) are selected above, not in the file"}
+              </li>
               <li>Maximum 500 records per file</li>
               <li>
                 <a
