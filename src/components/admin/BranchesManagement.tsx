@@ -1,4 +1,4 @@
-import { translateTerminology, getTerm } from "@/utils/institutionConfig";
+import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Input } from "../ui/input";
@@ -94,10 +94,10 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
 
       if (dataSource && dataSource.success) {
         setIsNonTeachingModalOpen(false);
-        toast({ title: "Success", description: "Non-Teaching Staff branch created successfully!" });
+        toast({ title: "Success", description: getInstitutionType() === 'school' ? "Non-Teaching Staff class created successfully!" : "Non-Teaching Staff branch created successfully!" });
         fetchData(1);
       } else {
-        toast({ variant: "destructive", title: "Error", description: response?.message || "Failed to create branch" });
+        toast({ variant: "destructive", title: "Error", description: response?.message || (getInstitutionType() === 'school' ? "Failed to create class" : "Failed to create branch") });
       }
     } catch (err) {
       toast({ variant: "destructive", title: "Error", description: "Network error" });
@@ -599,7 +599,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                         className="flex items-center justify-center gap-1 w-auto border-purple-500 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
                         onClick={() => setIsNonTeachingModalOpen(true)}
                         disabled={loading}>
-                        <Building2 className="w-4 h-4" /> Add Non-Teaching Staff Branch
+                        <Building2 className="w-4 h-4" /> {getInstitutionType() === 'school' ? "Add Non-Teaching Staff Class" : "Add Non-Teaching Staff Branch"}
                       </Button>
                     )}
 
@@ -871,7 +871,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                   className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} ${Number(editData?.total_semesters) > 20 ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                 />
                 {Number(editData?.total_semesters) > 20 && (
-                  <p className="text-xs text-red-500 font-medium">Maximum allowed semesters is 20.</p>
+                  <p className="text-xs text-red-500 font-medium">Maximum allowed {getInstitutionType() === 'school' ? 'classes' : 'semesters'} is 20.</p>
                 )}
               </div>
               <div className="space-y-2">
@@ -912,7 +912,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
               <div className="space-y-2">
                 <label className="text-sm font-semibold">{translateTerminology("Branch Name")}</label>
                 <Input
-                  placeholder="e.g. Computer Science"
+                  placeholder={getInstitutionType() === 'school' ? "e.g. Science or Arts" : "e.g. Computer Science"}
                   value={newBranch.name}
                   onChange={(e) => setNewBranch({ ...newBranch, name: e.target.value })} />
 
@@ -920,7 +920,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
               <div className="space-y-2">
                 <label className="text-sm font-semibold">{translateTerminology("Branch Code")}</label>
                 <Input
-                  placeholder="e.g. CSE"
+                  placeholder={getInstitutionType() === 'school' ? "e.g. SCI or ARTS" : "e.g. CSE"}
                   value={newBranch.branch_code}
                   onChange={(e) => setNewBranch({ ...newBranch, branch_code: e.target.value })} />
 
@@ -1071,7 +1071,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl font-semibold">
                 <Building2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                Create Non-Teaching Staff Branch
+                {getInstitutionType() === 'school' ? "Create Non-Teaching Staff Class" : "Create Non-Teaching Staff Branch"}
               </DialogTitle>
             </DialogHeader>
 
@@ -1079,10 +1079,10 @@ const fetchData = async (page: number = 1, search: string = filter) => {
               <div className="p-3.5 rounded-xl border border-purple-500/30 bg-purple-500/10 text-purple-900 dark:text-purple-200 text-xs sm:text-sm space-y-2">
                 <div className="flex items-center gap-2 font-semibold text-purple-700 dark:text-purple-300">
                   <Info className="w-4 h-4" />
-                  Why create this branch?
+                  Why create this {getInstitutionType() === 'school' ? "class" : "branch"}?
                 </div>
                 <p className="leading-relaxed">
-                  Assign non-academic employees (office staff, lab assistants, accountants, clerks, hosteller/transport staff) to this branch. 
+                  Assign non-academic employees (office staff, lab assistants, accountants, clerks, hosteller/transport staff) to this {getInstitutionType() === 'school' ? "class" : "branch"}. 
                 </p>
                 <ul className="list-disc list-inside space-y-1 opacity-90 pl-1">
                   <li>Gives staff immediate portal access (leaves, attendance, tasks, salary)</li>
@@ -1093,11 +1093,11 @@ const fetchData = async (page: number = 1, search: string = filter) => {
 
               <div className="space-y-2 text-xs sm:text-sm">
                 <div className="flex justify-between items-center p-2.5 rounded-lg border bg-muted/30">
-                  <span className="font-medium text-muted-foreground">Branch Name:</span>
+                  <span className="font-medium text-muted-foreground">{getInstitutionType() === 'school' ? "Class Name:" : "Branch Name:"}</span>
                   <span className="font-semibold text-foreground">Non-Teaching Staff</span>
                 </div>
                 <div className="flex justify-between items-center p-2.5 rounded-lg border bg-muted/30">
-                  <span className="font-medium text-muted-foreground">Branch Code:</span>
+                  <span className="font-medium text-muted-foreground">{getInstitutionType() === 'school' ? "Class Code:" : "Branch Code:"}</span>
                   <span className="font-semibold text-foreground">NTS</span>
                 </div>
               </div>

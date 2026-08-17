@@ -138,6 +138,8 @@ export const translateTerminology = (content: any): any => {
     { pattern: /\bProctor\b/g, key: "proctor" },
     { pattern: /\bProctors\b/g, key: "proctor" },
     { pattern: /\bMentoring\b/g, key: "mentoring" },
+    { pattern: /\bSemesters\b/gi, key: "semesters" },
+    { pattern: /\bSemester\b/gi, key: "semester" },
     { pattern: /\bElective\b/g, key: "electives" },
     { pattern: /\bElectives\b/g, key: "electives" },
     { pattern: /\bCO Attainment\b/g, key: "coAttainment" },
