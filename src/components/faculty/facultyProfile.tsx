@@ -32,6 +32,7 @@ import { uploadFileViaBackendProxy } from "../../utils/common_api";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Progress } from "../ui/progress";
 import GoogleIntegrationTab from "../common/GoogleIntegrationTab";
+import { useAuth } from "@/context/AuthContext";
 
 const GoogleLogo = ({ className = "w-4 h-4 mr-2 shrink-0" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -43,6 +44,15 @@ const GoogleLogo = ({ className = "w-4 h-4 mr-2 shrink-0" }: { className?: strin
 );
 
 const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
+  const { user: authUser } = useAuth();
+  const user = props?.user || authUser || (() => {
+    try {
+      const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+      return userStr ? JSON.parse(userStr) : null;
+    } catch {
+      return null;
+    }
+  })();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",

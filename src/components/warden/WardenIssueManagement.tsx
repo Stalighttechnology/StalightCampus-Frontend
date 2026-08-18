@@ -97,6 +97,7 @@ const WardenIssueManagement = () => {
   const [loading, setLoading] = useState(true);
   const [selectedIssue, setSelectedIssue] = useState<DetailedIssue | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [updatingIssueId, setUpdatingIssueId] = useState<number | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -272,32 +273,51 @@ const WardenIssueManagement = () => {
     });
   };
 
+  const filteredIssues = issues.filter(issue => {
+    if (categoryFilter === 'all') return true;
+    const title = (issue.title || '').toLowerCase().trim();
+    if (categoryFilter === 'Internet') {
+      return title.includes('internet');
+    }
+    if (categoryFilter === 'Plumbing') {
+      return title.includes('plumbing');
+    }
+    if (categoryFilter === 'Electrical') {
+      return title.includes('electrical');
+    }
+    if (categoryFilter === 'Other') {
+      return !title.includes('internet') && !title.includes('plumbing') && !title.includes('electrical');
+    }
+    return true;
+  });
+
   return (
-    <div className="space-y-6">
-      <div id="warden-issues-container" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-4">
+      {/* Quick Stats */}
+      <div id="warden-issues-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardCard
           title="Total Issues"
-          value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats?.total ?? 0}
-          description="Managed by you"
-          icon={<MessageSquare className="w-5 h-5 text-purple-500" />} />
+          value={statsLoading ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : stats?.total ?? 0}
+          description="Total raised this month"
+          icon={<MessageSquare className="w-5 h-5" />} />
         
         <DashboardCard
           title="Pending"
-          value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats?.pending ?? 0}
-          description="New requests"
-          icon={<AlertTriangle className="w-5 h-5 text-amber-500" />} />
+          value={statsLoading ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : stats?.pending ?? 0}
+          description="Awaiting warden review"
+          icon={<AlertTriangle className="w-5 h-5" />} />
         
         <DashboardCard
           title="In Progress"
-          value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : (stats?.in_progress ?? 0) + (stats?.waiting_for_workers ?? 0)}
-          description="Being resolved"
-          icon={<Clock className="w-5 h-5 text-blue-500" />} />
+          value={statsLoading ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : (stats?.in_progress ?? 0) + (stats?.waiting_for_workers ?? 0)}
+          description="Being handled"
+          icon={<Clock className="w-5 h-5" />} />
         
         <DashboardCard
-          title="Completed"
-          value={statsLoading ? <div className="h-6 w-12 bg-muted animate-pulse rounded" /> : stats?.completed ?? 0}
-          description="Resolved cases"
-          icon={<CheckCircle className="w-5 h-5 text-green-500" />} />
+          title="Resolved"
+          value={statsLoading ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : stats?.completed ?? 0}
+          description="Marked as completed"
+          icon={<CheckCircle className="w-5 h-5" />} />
       </div>
 
       <div className="mt-6">
@@ -311,7 +331,23 @@ const WardenIssueManagement = () => {
                   <CardDescription>Manage and view student complaints.</CardDescription>
                 </div>
                 
-                <div className="flex items-center gap-3 w-full sm:w-auto justify-end sm:justify-start">
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end sm:justify-start">
+                  {/* Category Filter */}
+                  <div className="w-full sm:w-[140px] shrink-0">
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="bg-background border-primary/10 hover:border-primary/30 transition-colors h-9 text-xs font-semibold rounded-xl w-full">
+                        <SelectValue placeholder="All Issues" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-border/50">
+                        <SelectItem value="all">All Issues</SelectItem>
+                        <SelectItem value="Internet">Internet</SelectItem>
+                        <SelectItem value="Plumbing">Plumbing</SelectItem>
+                        <SelectItem value="Electrical">Electrical</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="relative flex-1 sm:flex-none" ref={filterRef}>
                     <Button
                       variant="outline"
@@ -390,11 +426,11 @@ const WardenIssueManagement = () => {
                 <div className="p-4 space-y-4">
                     {[1, 2, 3].map((i) => <div key={i} className="h-20 bg-muted/40 animate-pulse rounded-lg" />)}
                   </div> :
-                issues.length === 0 ?
+                filteredIssues.length === 0 ?
                 <div className={`flex flex-col items-center justify-center py-12 px-4 m-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
                   <CheckCircle className="w-10 h-10 text-primary opacity-30 mb-3" />
                   <h3 className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No issues found</h3>
-                  <p className={`text-xs text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>There are currently no complaints or issues matching this status.</p>
+                  <p className={`text-xs text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>There are currently no complaints or issues matching this filter.</p>
                 </div> :
 
                 <div>
@@ -414,7 +450,7 @@ const WardenIssueManagement = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
-                        {issues.map((issue) => {
+                        {filteredIssues.map((issue) => {
                           const config = STATUS_CONFIG[issue.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
                           return (
                             <tr key={issue.id} className="hover:bg-muted/30 transition-colors">
@@ -462,7 +498,7 @@ const WardenIssueManagement = () => {
 
                   {/* Mobile View Cards */}
                   <div className="md:hidden divide-y-0 sm:divide-y divide-border/30 p-3 sm:p-0 space-y-3 sm:space-y-0">
-                    {issues.map((issue) => {
+                    {filteredIssues.map((issue) => {
                       const config = STATUS_CONFIG[issue.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
                       const isSelected = selectedIssue?.id === issue.id;
                       return (

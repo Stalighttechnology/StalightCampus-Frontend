@@ -209,7 +209,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       case "chat":
         return <Chat role="faculty" />;
       case "faculty-profile":
-        return <FacultyProfile />;
+        return <FacultyProfile user={currentUser} />;
       case "statistics":
         return <GenerateStatistics />;
       case "scan-student-info":

@@ -10,6 +10,13 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,24 +40,32 @@ const RaiseIssueModal = ({
   const { toast } = useToast();
   
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: ''
-  });
+  const [issueType, setIssueType] = useState<string>('Internet');
+  const [customTitle, setCustomTitle] = useState('');
+  const [description, setDescription] = useState('');
+
+  const handleClose = () => {
+    setIssueType('Internet');
+    setCustomTitle('');
+    setDescription('');
+    onClose();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.trim()) {
+    const finalTitle = issueType === 'Other' ? customTitle.trim() : issueType;
+
+    if (!finalTitle) {
       toast({
         title: 'Validation Error',
-        description: 'Please enter an issue title',
+        description: issueType === 'Other' ? 'Please enter an issue title' : 'Please select an issue type',
         variant: 'destructive'
       });
       return;
     }
 
-    if (!formData.description.trim()) {
+    if (!description.trim()) {
       toast({
         title: 'Validation Error',
         description: 'Please enter issue description',
@@ -62,8 +77,8 @@ const RaiseIssueModal = ({
     setLoading(true);
     try {
       const response = await raiseIssue({
-        title: formData.title,
-        description: formData.description,
+        title: finalTitle,
+        description: description.trim(),
         room: roomId
       });
 
@@ -72,7 +87,9 @@ const RaiseIssueModal = ({
           title: 'Issue Submitted',
           description: 'Your request has been logged successfully.',
         });
-        setFormData({ title: '', description: '' });
+        setIssueType('Internet');
+        setCustomTitle('');
+        setDescription('');
         onClose();
         onSuccess?.();
       } else {
@@ -94,7 +111,7 @@ const RaiseIssueModal = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="w-[90%] sm:max-w-[450px] p-0 overflow-hidden shadow-2xl border max-h-[90vh] flex flex-col bg-background rounded-xl">
         <DialogHeader className="p-6 pb-4 border-b shrink-0 bg-muted/10">
           <DialogTitle className="text-xl font-semibold">Raise an Issue</DialogTitle>
@@ -118,15 +135,33 @@ const RaiseIssueModal = ({
 
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label htmlFor="title" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Issue Title</Label>
-              <Input
-                id="title"
-                placeholder="e.g. Water Tap Leakage, Light Not Working"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="h-9 focus-visible:ring-primary text-xs"
-              />
+              <Label htmlFor="issue-type" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Issue Type</Label>
+              <Select value={issueType} onValueChange={(val) => setIssueType(val)}>
+                <SelectTrigger id="issue-type" className="h-9 focus:ring-primary text-xs bg-background">
+                  <SelectValue placeholder="Select issue category" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-border/50">
+                  <SelectItem value="Internet">Internet</SelectItem>
+                  <SelectItem value="Plumbing">Plumbing</SelectItem>
+                  <SelectItem value="Electrical">Electrical</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {issueType === 'Other' && (
+              <div className="space-y-1 animate-in fade-in-50 duration-200">
+                <Label htmlFor="title" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Issue Title</Label>
+                <Input
+                  id="title"
+                  placeholder="e.g. Water Tap Leakage, Light Not Working"
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                  className="h-9 focus-visible:ring-primary text-xs"
+                  autoFocus
+                />
+              </div>
+            )}
 
             <div className="space-y-1">
               <Label htmlFor="description" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Description</Label>
@@ -134,8 +169,8 @@ const RaiseIssueModal = ({
                 id="description"
                 placeholder="Please describe the issue in detail so our team can fix it faster..."
                 rows={3}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 className="resize-none focus-visible:ring-primary text-xs"
               />
             </div>

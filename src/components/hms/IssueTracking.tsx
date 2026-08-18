@@ -110,6 +110,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
   const [selectedIssue, setSelectedIssue] = useState<DetailedIssue | null>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [updatingIssueId, setUpdatingIssueId] = useState<number | null>(null);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -344,6 +345,24 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
 
   }
 
+  const filteredIssues = issues.filter(issue => {
+    if (categoryFilter === 'all') return true;
+    const title = (issue.title || '').toLowerCase().trim();
+    if (categoryFilter === 'Internet') {
+      return title.includes('internet');
+    }
+    if (categoryFilter === 'Plumbing') {
+      return title.includes('plumbing');
+    }
+    if (categoryFilter === 'Electrical') {
+      return title.includes('electrical');
+    }
+    if (categoryFilter === 'Other') {
+      return !title.includes('internet') && !title.includes('plumbing') && !title.includes('electrical');
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-4">
       {/* Quick Stats */}
@@ -446,6 +465,22 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
                     )}
                   </div>
 
+                  {/* Category Filter */}
+                  <div className="w-full sm:w-[140px] shrink-0 text-left">
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="bg-background border-primary/10 hover:border-primary/30 transition-colors h-9 text-xs font-semibold rounded-xl w-full">
+                        <SelectValue placeholder="All Issues" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-border/50">
+                        <SelectItem value="all">All Issues</SelectItem>
+                        <SelectItem value="Internet">Internet</SelectItem>
+                        <SelectItem value="Plumbing">Plumbing</SelectItem>
+                        <SelectItem value="Electrical">Electrical</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="flex items-center gap-3 w-full sm:w-auto">
                     {/* Filter Status Button */}
                     <div className="relative flex-1 sm:flex-none shrink-0" ref={filterRef}>
@@ -528,11 +563,11 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
                 <div className="p-4 space-y-4">
                     {[1, 2, 3].map((i) => <div key={i} className="h-20 bg-muted/40 animate-pulse rounded-lg" />)}
                   </div> :
-                issues.length === 0 ?
+                filteredIssues.length === 0 ?
                 <div className={`flex flex-col items-center justify-center py-12 px-4 m-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
                   <CheckCircle className="w-10 h-10 text-primary opacity-30 mb-3" />
                   <h3 className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No issues found</h3>
-                  <p className={`text-xs text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>There are currently no complaints or issues matching this status.</p>
+                  <p className={`text-xs text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>There are currently no complaints or issues matching this filter.</p>
                 </div> :
 
                 <div>
@@ -552,7 +587,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
-                        {issues.map((issue) => {
+                        {filteredIssues.map((issue) => {
                           const config = STATUS_CONFIG[issue.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
                           return (
                             <tr key={issue.id} className="hover:bg-muted/30 transition-colors">
@@ -600,7 +635,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
 
                   {/* Mobile View Cards */}
                   <div className="md:hidden divide-y-0 sm:divide-y divide-border/30 p-3 sm:p-0 space-y-3 sm:space-y-0">
-                    {issues.map((issue) => {
+                    {filteredIssues.map((issue) => {
                       const config = STATUS_CONFIG[issue.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
                       const isSelected = selectedIssue?.id === issue.id;
                       return (
