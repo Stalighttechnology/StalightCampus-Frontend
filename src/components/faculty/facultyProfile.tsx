@@ -159,7 +159,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
       case "email":
         if (
-        !/^[a-zA-Z0-9._%+-]+@[a-zA-Z][a-zA-Z0-9-]*\.[a-zA-Z]{2,}$/.test(
+        !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(
           newValue
         ))
         {
