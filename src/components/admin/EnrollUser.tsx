@@ -68,7 +68,7 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
       if (name === "email") {
         const trimmedValue = value.trim();
         // Strong email regex
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z][a-zA-Z0-9-]*\.[a-zA-Z]{2,}$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
         if (!trimmedValue) {
           setEmailError("Email is required.");
@@ -109,7 +109,7 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
     }
 
     // Block submission if email or phone is invalid
-    if (emailError || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z][a-zA-Z0-9-]*\.[a-zA-Z]{2,}$/.test(formData.email)) {
+    if (emailError || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)) {
       setError("Please enter a valid email address.");
       Swal.fire({
         title: "Error",
