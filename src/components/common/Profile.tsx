@@ -284,13 +284,17 @@ const Profile = ({ role, user }: ProfileProps) => {
   };
 
   const handleOpenAlwaysLocationSettings = async () => {
+    // Opens Android Location Settings so the user can set "Allow all the time".
+    // This is a user-initiated action from the Profile settings screen.
+    // We only call openLocationSettings (navigates to OS settings page — no
+    // permission dialog is shown by the app). requestBackgroundPermission is
+    // intentionally NOT called here; the ScheduledLocationTracker handles the
+    // full disclosure → permission flow when geofencing initialises.
     if (Capacitor.isNativePlatform()) {
       try {
         const CampusGeofence = registerPlugin<any>("CampusGeofence");
         if (CampusGeofence.openLocationSettings) {
           await CampusGeofence.openLocationSettings();
-        } else if (CampusGeofence.requestBackgroundPermission) {
-          await CampusGeofence.requestBackgroundPermission();
         }
       } catch (err: any) {
         console.error("Failed to open location settings:", err);
