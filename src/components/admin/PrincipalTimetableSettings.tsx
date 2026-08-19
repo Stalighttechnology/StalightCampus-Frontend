@@ -109,6 +109,7 @@ export default function PrincipalTimetableSettings() {
   const [attendanceSaving, setAttendanceSaving] = useState(false);
 
   const PRESETS: Record<string, string[]> = {
+    "Common": ["hod", "coe", "principal"],
     "Standard": ["hod", "principal", "coe"],
     "Short": ["hod", "principal"],
     "Extended": ["hod", "principal", "coe", "dean"],
