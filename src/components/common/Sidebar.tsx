@@ -42,7 +42,7 @@ import {
   FilePlus, CheckSquare, Award, ScanLine, ShieldCheck, Target, ListChecks,
   CalendarCheck, Megaphone, ListTodo, RefreshCcw, FileQuestion, PieChart,
   Clock, LineChart, List, Activity, MonitorPlay, BookCopy, PenTool, DoorOpen,
-  UtensilsCrossed, ClipboardSignature, Ticket, BusFront, Map, Navigation, History, Library, Repeat, FileCode, CheckCircle2, TrendingUp, ArrowLeftRight
+  UtensilsCrossed, ClipboardSignature, Ticket, BusFront, Map, Navigation, History, Library, Repeat, FileCode, CheckCircle2, TrendingUp, ArrowLeftRight, Link
 } from "lucide-react";
 import { useIsMobile } from "../../hooks/use-mobile";
 import {
@@ -333,6 +333,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "act-as-teacher": <UserCheck size={20} />,
       "return-to-hod": <LogOut size={20} />,
       "alumni-directory": <GraduationCap size={20} />,
+      "external-links": <Link size={20} />,
     };
     return iconMap[page] || <LayoutDashboard size={20} />;
   };
@@ -760,6 +761,18 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       );
     });
   }
+
+  // Programmatically inject External Links right before the Profile item for all roles
+  Object.keys(menuItems).forEach((key) => {
+    if (menuItems[key] && !menuItems[key].some(item => item.page === 'external-links')) {
+      const profileIndex = menuItems[key].findIndex(item => item.page.includes('profile'));
+      if (profileIndex !== -1) {
+        menuItems[key].splice(profileIndex, 0, { name: "External Links", page: "external-links" });
+      } else {
+        menuItems[key].push({ name: "External Links", page: "external-links" });
+      }
+    }
+  });
 
   // Automatically scroll active sidebar item into view
   useEffect(() => {

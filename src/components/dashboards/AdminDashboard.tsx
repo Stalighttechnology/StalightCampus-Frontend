@@ -35,6 +35,7 @@ import PrincipalTimetableSettings from "../admin/PrincipalTimetableSettings";
 import DeanFinance from "../dean/DeanFinance";
 import Reports from "../FeesManager/Reports";
 import ComplianceReports from "../admin/ComplianceReports";
+import ExternalLinksPage from "../admin/ExternalLinksPage";
 
 import {
   Users,
@@ -266,6 +267,8 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return <StaffTaskTracker />;
       case "compliance-reports":
         return <ComplianceReports />;
+      case "external-links":
+        return <ExternalLinksPage userRole={user?.role || "principal"} />;
       default:
         return <Navigate to="/not-found" replace />;
     }

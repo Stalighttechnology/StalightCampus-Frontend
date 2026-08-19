@@ -10,7 +10,7 @@ import {
 } from "../ui/select";
 import { cn } from "../../lib/utils";
 import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
-import { Search, Loader2, Download, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { Search, Loader2, Download, ArrowUpCircle, ArrowDownCircle, Eye } from "lucide-react";
 import { downloadFile } from "../../utils/downloadHelper";
 import { Input } from "../ui/input";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -24,7 +24,7 @@ import {
   DialogTitle
 } from
   "../ui/dialog";
-import { manageUsers, manageUserAction, getBranchesWithHODs } from "../../utils/admin_api";
+import { manageUsers, manageUserAction, getBranchesWithHODs, manageAdminProfile } from "../../utils/admin_api";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
 import { PLAN_TIERS } from "../../utils/planGating";
@@ -178,6 +178,39 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [pageSize] = useState(10); // Fixed page size for consistency
   const normalize = (str: string) => str.toLowerCase().trim();
   const { theme } = useTheme();
+
+  // Profile viewing state
+  const [viewingUser, setViewingUser] = useState<User | null>(null);
+  const [viewProfileData, setViewProfileData] = useState<any | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+  const handleViewProfile = async (user: User) => {
+    setViewingUser(user);
+    setViewProfileData(null);
+    setLoadingProfile(true);
+    setIsViewModalOpen(true);
+    try {
+      const response = await manageAdminProfile({ user_id: user.id }, 'GET');
+      if (response.success && response.profile) {
+        setViewProfileData(response.profile);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: response.message || "Failed to load user profile."
+        });
+      }
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: err.message || "Failed to fetch user profile."
+      });
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
   const [downloadingCSV, setDownloadingCSV] = useState(false);
 
   const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
@@ -892,11 +925,23 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                onClick={() => handleViewProfile(user)}
+                                disabled={loading}
+                                className={theme === 'dark' ?
+                                  'p-2 rounded hover:bg-accent' :
+                                  'p-2 rounded hover:bg-gray-100'}
+                                title="View Profile">
+                                <Eye className={theme === 'dark' ? 'w-5 h-5 text-teal-400' : 'w-5 h-5 text-teal-500'} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={() => handleEdit(user)}
                                 disabled={loading}
                                 className={theme === 'dark' ?
                                   'p-2 rounded hover:bg-accent' :
-                                  'p-2 rounded hover:bg-gray-100'}>
+                                  'p-2 rounded hover:bg-gray-100'}
+                                title="Edit User">
                                 <Pencil1Icon className={theme === 'dark' ? 'w-5 h-5 text-primary' : 'w-5 h-5 text-blue-500'} />
                               </Button>
                               <Button
@@ -906,7 +951,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                                 disabled={loading}
                                 className={theme === 'dark' ?
                                   'p-2 rounded hover:bg-accent' :
-                                  'p-2 rounded hover:bg-gray-100'}>
+                                  'p-2 rounded hover:bg-gray-100'}
+                                title="Delete User">
                                 <TrashIcon className={theme === 'dark' ? 'w-5 h-5 text-destructive' : 'w-5 h-5 text-red-500'} />
                               </Button>
                             </div>
@@ -1106,6 +1152,191 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                 </Button>
               </>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View User Profile Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent
+          className={
+            theme === 'dark' ?
+              'bg-card border border-border text-foreground w-[95%] max-w-[500px] sm:max-w-lg rounded-lg mx-auto p-6 max-h-[85vh] overflow-y-auto' :
+              'bg-white border border-gray-200 text-gray-900 w-[95%] max-w-[500px] sm:max-w-lg rounded-lg mx-auto p-6 max-h-[85vh] overflow-y-auto'
+          }>
+          <DialogHeader className="pb-3 border-b border-border">
+            <DialogTitle className={theme === 'dark' ? 'text-foreground flex items-center gap-2' : 'text-gray-900 flex items-center gap-2'}>
+              <Eye className="h-5 w-5 text-teal-500" />
+              User Profile Details
+            </DialogTitle>
+          </DialogHeader>
+
+          {loadingProfile ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-slate-500 text-sm">Fetching user profile...</p>
+            </div>
+          ) : viewingUser ? (
+            <div className="space-y-4 pt-4 text-sm">
+              <div className="flex flex-col items-center gap-3 pb-4 border-b border-border">
+                {viewProfileData?.profile_picture ? (
+                  <img
+                    src={viewProfileData.profile_picture}
+                    alt={viewingUser.name}
+                    className="w-20 h-20 rounded-full object-cover border-2 border-primary/20 shadow-sm"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center text-2xl font-bold border border-primary/10">
+                    {viewingUser.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="text-center">
+                  <h3 className="font-bold text-lg text-foreground">{viewingUser.name}</h3>
+                  {viewProfileData?.designation && (
+                    <span className="text-xs font-semibold text-primary block mt-0.5">
+                      {viewProfileData.designation}
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground font-medium px-2.5 py-0.5 rounded-full bg-accent mt-1.5 inline-block">
+                    {viewingUser.role.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Email Address</span>
+                  <span className="text-foreground select-all block truncate">{viewingUser.email}</span>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Mobile Number</span>
+                  <span className="text-foreground">
+                    {viewProfileData?.mobile_number || viewingUser.mobile || "—"}
+                  </span>
+                </div>
+                {viewingUser.role === 'student' && viewingUser.extra?.usn && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">{translateTerminology("USN")}</span>
+                    <span className="text-foreground">{viewingUser.extra.usn}</span>
+                  </div>
+                )}
+                {viewingUser.department && viewingUser.department !== "N/A" && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Department</span>
+                    <span className="text-foreground">{viewingUser.department}</span>
+                  </div>
+                )}
+                {viewingUser.extra?.branch && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Branch</span>
+                    <span className="text-foreground">{viewingUser.extra.branch}</span>
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Status</span>
+                  <span className="text-foreground">{viewingUser.status}</span>
+                </div>
+
+                {viewingUser.role === 'student' && (
+                  <>
+                    {viewProfileData?.student_details?.course && (
+                      <div className="space-y-1">
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Course</span>
+                        <span className="text-foreground">{viewProfileData.student_details.course}</span>
+                      </div>
+                    )}
+                    {viewProfileData?.student_details?.proctor_name && (
+                      <div className="space-y-1">
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Proctor / Mentor</span>
+                        <span className="text-foreground">{viewProfileData.student_details.proctor_name}</span>
+                      </div>
+                    )}
+                    {viewProfileData?.student_details?.parent_name && (
+                      <div className="space-y-1">
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Parent's Name</span>
+                        <span className="text-foreground">{viewProfileData.student_details.parent_name}</span>
+                      </div>
+                    )}
+                    {viewProfileData?.student_details?.parent_contact && (
+                      <div className="space-y-1">
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Parent's Phone</span>
+                        <span className="text-foreground select-all">{viewProfileData.student_details.parent_contact}</span>
+                      </div>
+                    )}
+                    {viewProfileData?.student_details?.blood_group && (
+                      <div className="space-y-1">
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Blood Group</span>
+                        <span className="text-foreground">{viewProfileData.student_details.blood_group}</span>
+                      </div>
+                    )}
+                    {viewProfileData?.student_details?.mode_of_admission && (
+                      <div className="space-y-1">
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Admission Mode</span>
+                        <span className="text-foreground">{viewProfileData.student_details.mode_of_admission}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {['teacher', 'hod'].includes(viewingUser.role) && viewProfileData?.teaching_assignments?.length > 0 && (
+                <div className="space-y-2 pt-3 border-t border-border mt-2">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Active Teaching Assignments</span>
+                  <div className="overflow-x-auto rounded-xl border border-border bg-accent/10">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="border-b border-border bg-accent/30 text-muted-foreground font-semibold">
+                          <th className="p-2">Subject</th>
+                          <th className="p-2">Sem / Sec</th>
+                          <th className="p-2">Branch</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {viewProfileData.teaching_assignments.map((assoc: any) => (
+                          <tr key={assoc.id} className="border-b border-border last:border-0 hover:bg-accent/25">
+                            <td className="p-2 font-medium text-foreground">{assoc.subject}</td>
+                            <td className="p-2 text-foreground">{assoc.semester} - {assoc.section}</td>
+                            <td className="p-2 text-foreground">{assoc.branch}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {viewProfileData?.address && (
+                <div className="space-y-1 pt-2">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Residential Address</span>
+                  <p className="text-muted-foreground leading-relaxed bg-accent/30 p-2.5 rounded-xl border border-border">
+                    {viewProfileData.address}
+                  </p>
+                </div>
+              )}
+
+              {viewProfileData?.bio && (
+                <div className="space-y-1 pt-2">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Biography</span>
+                  <p className="text-muted-foreground leading-relaxed bg-accent/30 p-2.5 rounded-xl border border-border">
+                    {viewProfileData.bio}
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-6 text-muted-foreground">
+              No user selected.
+            </div>
+          )}
+
+          <DialogFooter className="pt-4 border-t border-border mt-4">
+            <Button
+              type="button"
+              onClick={() => setIsViewModalOpen(false)}
+              className="w-full bg-primary hover:bg-primary/90 text-white rounded-lg"
+            >
+              Close Details
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
