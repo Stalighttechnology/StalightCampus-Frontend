@@ -474,6 +474,10 @@ const StaffTaskTracker = () => {
                 <Badge className="bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/70 dark:text-amber-300 dark:border-amber-800 text-[10px] h-5 border font-semibold whitespace-nowrap">
                   Institutional Maturity
                 </Badge>
+              ) : task.task_type === 'research_innovation' ? (
+                <Badge className="bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950/70 dark:text-purple-300 dark:border-purple-800 text-[10px] h-5 border font-semibold whitespace-nowrap">
+                  Research & Innovation
+                </Badge>
               ) : task.task_type === 'academic' ? (
                 <Badge className="bg-cyan-100 text-cyan-800 border-cyan-300 dark:bg-cyan-950/70 dark:text-cyan-300 dark:border-cyan-800 text-[10px] h-5 border font-semibold whitespace-nowrap">
                   Academic
@@ -628,6 +632,7 @@ const StaffTaskTracker = () => {
                         <SelectItem value="academic_excellence">Academic Excellence</SelectItem>
                         <SelectItem value="student_success">Student Success</SelectItem>
                         <SelectItem value="institutional_maturity">Institutional Maturity</SelectItem>
+                        <SelectItem value="research_innovation">Research & Innovation</SelectItem>
                         <SelectItem value="general">General</SelectItem>
                         <SelectItem value="academic">Academic</SelectItem>
                         <SelectItem value="administrative">Administrative</SelectItem>
