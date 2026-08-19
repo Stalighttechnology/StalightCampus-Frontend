@@ -42,7 +42,7 @@ import {
   FilePlus, CheckSquare, Award, ScanLine, ShieldCheck, Target, ListChecks,
   CalendarCheck, Megaphone, ListTodo, RefreshCcw, FileQuestion, PieChart,
   Clock, LineChart, List, Activity, MonitorPlay, BookCopy, PenTool, DoorOpen,
-  UtensilsCrossed, ClipboardSignature, Ticket, BusFront, Map, Navigation, History, Library, Repeat, FileCode, CheckCircle2, TrendingUp
+  UtensilsCrossed, ClipboardSignature, Ticket, BusFront, Map, Navigation, History, Library, Repeat, FileCode, CheckCircle2, TrendingUp, ArrowLeftRight
 } from "lucide-react";
 import { useIsMobile } from "../../hooks/use-mobile";
 import {
@@ -220,6 +220,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "bulk-upload": <UploadCloud size={20} />,
       branches: <GitBranch size={20} />,
       "teacher-assignments": <Briefcase size={20} />,
+      "student-transfer": <ArrowLeftRight size={20} />,
       notifications: <Bell size={20} />,
       "hod-leaves": <FileWarning size={20} />,
       users: <Users size={20} />,
@@ -374,6 +375,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: getTerm("branches"), page: "branches" },
       { name: "Batches", page: "batches" },
       { name: "Faculty Assignments", page: "teacher-assignments" },
+      { name: "Branch Transfer", page: "student-transfer" },
       { name: "Enroll Staff", page: "enroll-user" },
       { name: "Users", page: "users" },
       { name: "Bulk Upload Faculty", page: "bulk-upload" },

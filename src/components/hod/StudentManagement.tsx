@@ -1732,10 +1732,10 @@ const StudentManagement = () => {
                   </SelectContent>
                 </Select>
 
-                {/* Cycle dropdown — only for Semester 1 (and not school) */}
+                {/* Cycle dropdown — only for Semesters 1 and 2 (and not school) */}
                 {getInstitutionType() !== 'school' &&
                   state.semesterFilter !== "" &&
-                  state.semesters.find(s => s.id === state.semesterFilter)?.number === 1 && (
+                  state.semesters.find(s => s.id === state.semesterFilter)?.number <= 2 && (
                   <Select
                     value={state.cycleFilter || "all"}
                     onValueChange={(value) =>

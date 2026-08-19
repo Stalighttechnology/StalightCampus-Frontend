@@ -1261,3 +1261,30 @@ export interface MarkDeveloperAttendanceRequest {
   device_info?: any;
   off_campus_reason?: string;
 }
+
+export const transferStudents = async (data: { student_ids: number[]; target_branch_id: number; target_semester_id: number; target_section_id?: number }) => {
+  return fetchWithTokenRefresh(`${API_ENDPOINT}/admin/student-transfer/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+};
+
+export const getAdminStudents = async (params: { branch_id?: number | string; semester_id?: number | string; batch_id?: number | string; section_id?: number | string; search?: string; page?: number; page_size?: number }) => {
+  const query = new URLSearchParams();
+  if (params.branch_id) query.append("branch_id", params.branch_id.toString());
+  if (params.semester_id) query.append("semester_id", params.semester_id.toString());
+  if (params.batch_id) query.append("batch_id", params.batch_id.toString());
+  if (params.section_id) query.append("section_id", params.section_id.toString());
+  if (params.search) query.append("search", params.search);
+  if (params.page) query.append("page", params.page.toString());
+  if (params.page_size) query.append("page_size", params.page_size.toString());
+  return fetchWithTokenRefresh(`${API_ENDPOINT}/admin/students/?${query.toString()}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};

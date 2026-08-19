@@ -15,6 +15,7 @@ import UsersManagement from "../admin/UsersManagement";
 import AdminProfile from "../admin/AdminProfile";
 import AdminQPApprovals from "../admin/AdminQPApprovals";
 import TeacherBranchAssignment from "../admin/TeacherBranchAssignment";
+import StudentBranchTransfer from "../admin/StudentBranchTransfer";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
 import AdminCOAttainment from "../common/AdminCOAttainment";
 import { useToast } from "../../hooks/use-toast";
@@ -138,6 +139,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <TeacherBranchAssignment setError={setError} toast={toast} />
+          </div>);
+
+      case "student-transfer":
+        return (
+          <div>
+            <StudentBranchTransfer />
           </div>);
           
       case "co-attainment":
