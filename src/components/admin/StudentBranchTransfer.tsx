@@ -6,8 +6,9 @@ import { Input } from '../ui/input';
 import { Checkbox } from '../ui/checkbox';
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { useToast } from '../../hooks/use-toast';
-import { Search, ChevronLeft, ChevronRight, GraduationCap, ArrowRightLeft, Users, Filter } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, GraduationCap, ArrowRightLeft, Users, Filter, History } from 'lucide-react';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { API_ENDPOINT } from '../../utils/config';
 import { useTheme } from '../../context/ThemeContext';
@@ -27,6 +28,20 @@ interface Branch { id: number; name: string; }
 interface SemesterOption { id: number; number: number; }
 interface SectionOption { id: number; name: string; }
 interface BatchOption { id: number; name: string; start_year?: number; end_year?: number; }
+
+interface TransferHistory {
+  id: number;
+  student_usn: string;
+  student_name: string;
+  source_branch: string;
+  source_semester: string;
+  source_section: string;
+  target_branch: string;
+  target_semester: string;
+  target_section: string;
+  transferred_by: string;
+  transfer_date: string;
+}
 
 const StudentBranchTransfer = () => {
   const { toast } = useToast();
@@ -73,6 +88,46 @@ const StudentBranchTransfer = () => {
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState<boolean>(false);
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
   const [transferring, setTransferring] = useState<boolean>(false);
+
+  // ─── History Tab States ──────────────────────────────────────────────────────
+  const [historyBatchId, setHistoryBatchId] = useState<string>('');
+  const [historySearch, setHistorySearch] = useState<string>('');
+  const [historyRecords, setHistoryRecords] = useState<TransferHistory[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
+  const [historyPage, setHistoryPage] = useState<number>(1);
+  const [historyTotalPages, setHistoryTotalPages] = useState<number>(1);
+
+  const fetchHistory = useCallback(async (page: number = 1, search: string = historySearch) => {
+    if (!historyBatchId) return;
+    setLoadingHistory(true);
+    try {
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('page_size', '10');
+      if (historyBatchId !== 'all') params.append('batch_id', historyBatchId);
+      if (search) params.append('search', search);
+
+      const res = await fetchWithTokenRefresh(
+        `${API_ENDPOINT}/admin/transfer-history/?${params.toString()}`,
+        { method: 'GET' }
+      ).then((r: Response) => r.json());
+
+      setHistoryRecords(res?.results || []);
+      setHistoryTotalPages(res?.total_pages || 1);
+      setHistoryPage(res?.current_page || page);
+    } catch (e) {
+      toast({ title: 'Error', description: 'Failed to fetch history', variant: 'destructive' });
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [historyBatchId, historySearch, toast]);
+
+  useEffect(() => {
+    if (historyBatchId) {
+      const delay = setTimeout(() => fetchHistory(1, historySearch), 400);
+      return () => clearTimeout(delay);
+    }
+  }, [historyBatchId, historySearch, fetchHistory]);
 
   // ─── Load branches and batches on mount ──────────────────────────────────────
   useEffect(() => {
@@ -356,8 +411,19 @@ const StudentBranchTransfer = () => {
         </div>
       </div>
 
-      {/* Filter + Table Card */}
-      <Card className={isDark ? 'border-slate-700 bg-slate-900' : ''}>
+      <Tabs defaultValue="transfer" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="transfer" className="flex items-center gap-2">
+            <Users className="h-4 w-4" /> Transfer Students
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex items-center gap-2">
+            <History className="h-4 w-4" /> Transfer Records
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="transfer" className="m-0 focus-visible:ring-0">
+          {/* Filter + Table Card */}
+          <Card className={isDark ? 'border-slate-700 bg-slate-900' : ''}>
         <CardHeader className="pb-3 border-b border-border/50 mb-4">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
             <Filter className="h-4 w-4 text-primary" />
@@ -556,6 +622,131 @@ const StudentBranchTransfer = () => {
           )}
         </CardContent>
       </Card>
+      </TabsContent>
+
+      <TabsContent value="history" className="m-0 focus-visible:ring-0">
+        <Card className={isDark ? 'border-slate-700 bg-slate-900' : ''}>
+          <CardHeader className="pb-3 border-b border-border/50 mb-4">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <History className="h-4 w-4 text-primary" />
+              Transfer History Records
+            </CardTitle>
+            <CardDescription>View past student branch transfers for a specific batch.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* History Filters */}
+            <div className="flex flex-col lg:flex-row gap-4 mb-6 justify-between items-start lg:items-center">
+              <div className="w-full lg:w-64">
+                <Select value={historyBatchId} onValueChange={(v) => { setHistoryBatchId(v); setHistoryPage(1); }}>
+                  <SelectTrigger id="history-batch-select" className={historyBatchId ? 'border-primary' : ''}>
+                    <SelectValue placeholder="Select Batch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Batches</SelectItem>
+                    {batches.map(b => (
+                      <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {historyBatchId && (
+                <div className="relative w-full lg:w-72">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="history-search"
+                    placeholder="Search by name or USN..."
+                    value={historySearch}
+                    onChange={e => setHistorySearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* History Table */}
+            {!historyBatchId ? (
+              <div className="py-16 text-center border-2 border-dashed rounded-lg border-muted/60">
+                <div className="flex flex-col items-center gap-3">
+                  <Filter className="h-10 w-10 text-muted-foreground opacity-30" />
+                  <div>
+                    <p className="font-medium text-muted-foreground">Select a Batch</p>
+                    <p className="text-sm text-muted-foreground mt-1">Please select a batch above to view transfer records.</p>
+                  </div>
+                </div>
+              </div>
+            ) : loadingHistory ? (
+              <div className="border rounded-lg overflow-x-auto">
+                <SkeletonTable rows={5} columns={6} />
+              </div>
+            ) : (
+              <div className={`border rounded-lg overflow-x-auto ${isDark ? 'border-slate-700' : 'border-gray-200'} animate-in fade-in duration-300`}>
+                <table className="w-full text-sm text-left">
+                  <thead className={`font-medium text-xs uppercase tracking-wide whitespace-nowrap ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-gray-50 text-gray-500'}`}>
+                    <tr>
+                      <th className="p-4">Student</th>
+                      <th className="p-4">From</th>
+                      <th className="p-4">To</th>
+                      <th className="p-4">Transferred By</th>
+                      <th className="p-4">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-gray-100'}`}>
+                    {historyRecords.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="p-12 text-center">
+                          <p className="text-muted-foreground">No transfer records found.</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      historyRecords.map(record => (
+                        <tr key={record.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/60' : 'hover:bg-gray-50/80'}`}>
+                          <td className="p-4">
+                            <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{record.student_name}</p>
+                            <p className="font-mono text-xs text-muted-foreground mt-0.5">{record.student_usn}</p>
+                          </td>
+                          <td className="p-4">
+                            <Badge variant="outline" className="mb-1 text-xs">{record.source_branch}</Badge>
+                            <p className="text-xs text-muted-foreground">{record.source_semester}, {record.source_section}</p>
+                          </td>
+                          <td className="p-4">
+                            <Badge className="mb-1 text-xs">{record.target_branch}</Badge>
+                            <p className="text-xs text-muted-foreground">{record.target_semester}, {record.target_section}</p>
+                          </td>
+                          <td className="p-4 text-xs">{record.transferred_by}</td>
+                          <td className="p-4 text-xs whitespace-nowrap">
+                            {new Date(record.transfer_date).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* History Pagination */}
+            {historyBatchId && historyTotalPages > 1 && (
+              <div className="flex justify-between items-center mt-4">
+                <span className="text-sm text-muted-foreground">Page {historyPage} of {historyTotalPages}</span>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm"
+                    onClick={() => fetchHistory(historyPage - 1)}
+                    disabled={historyPage === 1 || loadingHistory}>
+                    <ChevronLeft className="h-4 w-4 mr-1" /> Prev
+                  </Button>
+                  <Button variant="outline" size="sm"
+                    onClick={() => fetchHistory(historyPage + 1)}
+                    disabled={historyPage === historyTotalPages || loadingHistory}>
+                    Next <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+      </Tabs>
 
       {/* ─── Transfer Dialog ──────────────────────────────────────────── */}
       <Dialog 
