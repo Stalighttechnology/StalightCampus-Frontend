@@ -1354,91 +1354,101 @@ export default function PrincipalTimetableSettings() {
                   <SkeletonTable rows={2} cols={1} />
                 ) : (
                   <div className="space-y-6">
-                    {/* Staff Category Tabs */}
-                    <div className="flex flex-wrap items-center gap-2 border-b border-border/60 pb-3">
-                      {[
-                        { id: 'teaching', label: 'Teaching Staff', sub: 'Faculty, HODs, Deans' },
-                        { id: 'non_teaching', label: 'Non-Teaching Staff', sub: 'Lab Asst, Caretakers, Drivers' },
-                        { id: 'admin_branch', label: 'Administration Branch', sub: 'Office, Principal, Admin Staff' },
-                      ].map(cat => {
-                        const active = selectedCategoryTab === cat.id;
-                        return (
-                          <button
-                            key={cat.id}
-                            type="button"
-                            onClick={() => setSelectedCategoryTab(cat.id as any)}
-                            className={`flex flex-col text-left px-4 py-2.5 rounded-xl transition-all border ${
-                              active
-                                ? theme === 'dark'
-                                  ? 'bg-primary/20 border-primary text-primary font-semibold shadow-sm'
-                                  : 'bg-primary/10 border-primary/50 text-primary font-semibold shadow-sm'
-                                : theme === 'dark'
-                                  ? 'bg-card border-border/60 text-muted-foreground hover:text-foreground hover:bg-card/80'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                            }`}
-                          >
-                            <span className="text-sm font-medium">{cat.label}</span>
-                            <span className="text-[10px] opacity-75 font-normal">{cat.sub}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Active Category Config Box */}
-                    <CategoryWorkflowTabContent
-                      catKey={selectedCategoryTab}
-                      catConfig={categoryWorkflows[selectedCategoryTab]}
-                      theme={theme}
-                      onUpdateConfig={(newCatConfig) => {
-                        setCategoryWorkflows(prev => ({
-                          ...prev,
-                          [selectedCategoryTab]: newCatConfig
-                        }));
-                      }}
-                    />
-
-                    {/* Allow Web Attendance Toggle */}
-                    <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-amber-50/60 border-amber-200/60'}`}>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold">Allow Web / Desktop Attendance Marking</span>
-                            {!allowWebAttendance && (
-                              <span className="text-[10px] font-bold uppercase tracking-wide bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">Hidden for all staff</span>
-                            )}
+                    {/* --- GLOBAL SETTINGS --- */}
+                    <div className="space-y-4 pb-6 border-b border-border/60">
+                      <h3 className="text-sm font-bold tracking-wide uppercase text-muted-foreground mb-4">Global Configuration</h3>
+                      
+                      {/* Allow Web Attendance Toggle */}
+                      <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-amber-50/60 border-amber-200/60'}`}>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold">Allow Web / Desktop Attendance Marking</span>
+                              {!allowWebAttendance && (
+                                <span className="text-[10px] font-bold uppercase tracking-wide bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">Hidden for all staff</span>
+                              )}
+                            </div>
+                            <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              When disabled, the "My Attendance" page will be completely hidden from the sidebar for all staff roles (Faculty, HOD, Dean, Admin, etc.). Staff will only be able to mark attendance via the mobile app or any other configured method.
+                            </p>
                           </div>
-                          <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            When disabled, the "My Attendance" page will be completely hidden from the sidebar for all staff roles (Faculty, HOD, Dean, Admin, etc.). Staff will only be able to mark attendance via the mobile app or any other configured method.
-                          </p>
+                          <Switch
+                            checked={allowWebAttendance}
+                            onCheckedChange={setAllowWebAttendance}
+                          />
                         </div>
-                        <Switch
-                          checked={allowWebAttendance}
-                          onCheckedChange={setAllowWebAttendance}
-                        />
+                      </div>
+                      
+                      {/* Weekend Policy Setting */}
+                      <div className={`p-4 rounded-xl border mt-4 ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-blue-50/60 border-blue-200/60'}`}>
+                        <div className="flex flex-col gap-3">
+                          <div className="space-y-0.5">
+                            <Label className="text-sm font-semibold">Weekend Holiday Policy</Label>
+                            <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              Select which Saturdays are considered holidays. Sundays are always compulsory holidays. The calendar will automatically block attendance marking for the selected days.
+                            </p>
+                          </div>
+                          <Select value={weekendPolicy} onValueChange={setWeekendPolicy}>
+                            <SelectTrigger className={`w-full sm:w-[350px] text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                              <SelectValue placeholder="Select Weekend Policy" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="sundays_only">Sundays Only (Compulsory)</SelectItem>
+                              <SelectItem value="first_third_saturdays">1st & 3rd Saturdays + Sundays</SelectItem>
+                              <SelectItem value="second_fourth_saturdays">2nd & 4th Saturdays + Sundays</SelectItem>
+                              <SelectItem value="all_saturdays">All Saturdays & Sundays</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
-                    
-                    {/* Weekend Policy Setting */}
-                    <div className={`p-4 rounded-xl border mt-4 ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-blue-50/60 border-blue-200/60'}`}>
-                      <div className="flex flex-col gap-3">
-                        <div className="space-y-0.5">
-                          <Label className="text-sm font-semibold">Weekend Holiday Policy</Label>
-                          <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            Select which Saturdays are considered holidays. Sundays are always compulsory holidays. The calendar will automatically block attendance marking for the selected days.
-                          </p>
-                        </div>
-                        <Select value={weekendPolicy} onValueChange={setWeekendPolicy}>
-                          <SelectTrigger className={`w-full sm:w-[350px] text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                            <SelectValue placeholder="Select Weekend Policy" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="sundays_only">Sundays Only (Compulsory)</SelectItem>
-                            <SelectItem value="first_third_saturdays">1st & 3rd Saturdays + Sundays</SelectItem>
-                            <SelectItem value="second_fourth_saturdays">2nd & 4th Saturdays + Sundays</SelectItem>
-                            <SelectItem value="all_saturdays">All Saturdays & Sundays</SelectItem>
-                          </SelectContent>
-                        </Select>
+
+                    {/* --- CATEGORY SETTINGS --- */}
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-bold tracking-wide uppercase text-muted-foreground mb-2">Category-Specific Workflows</h3>
+                      
+                      {/* Staff Category Tabs */}
+                      <div className="flex flex-wrap items-center gap-2 border-b border-border/60 pb-3">
+                        {[
+                          { id: 'teaching', label: 'Teaching Staff', sub: 'Faculty, HODs, Deans' },
+                          { id: 'non_teaching', label: 'Non-Teaching Staff', sub: 'Lab Asst, Caretakers, Drivers' },
+                          { id: 'admin_branch', label: 'Administration Branch', sub: 'Office, Principal, Admin Staff' },
+                        ].map(cat => {
+                          const active = selectedCategoryTab === cat.id;
+                          return (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => setSelectedCategoryTab(cat.id as any)}
+                              className={`flex flex-col text-left px-4 py-2.5 rounded-xl transition-all border ${
+                                active
+                                  ? theme === 'dark'
+                                    ? 'bg-primary/20 border-primary text-primary font-semibold shadow-sm'
+                                    : 'bg-primary/10 border-primary/50 text-primary font-semibold shadow-sm'
+                                  : theme === 'dark'
+                                    ? 'bg-card border-border/60 text-muted-foreground hover:text-foreground hover:bg-card/80'
+                                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                              }`}
+                            >
+                              <span className="text-sm font-medium">{cat.label}</span>
+                              <span className="text-[10px] opacity-75 font-normal">{cat.sub}</span>
+                            </button>
+                          );
+                        })}
                       </div>
+  
+                      {/* Active Category Config Box */}
+                      <CategoryWorkflowTabContent
+                        catKey={selectedCategoryTab}
+                        catConfig={categoryWorkflows[selectedCategoryTab]}
+                        theme={theme}
+                        onUpdateConfig={(newCatConfig) => {
+                          setCategoryWorkflows(prev => ({
+                            ...prev,
+                            [selectedCategoryTab]: newCatConfig
+                          }));
+                        }}
+                      />
                     </div>
 
                     <div className="flex justify-end pt-2">
