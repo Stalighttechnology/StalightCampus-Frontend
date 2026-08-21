@@ -2,6 +2,7 @@ import StaffTaskTracker from "../common/StaffTaskTracker";
 import FacultyPayroll from "../faculty/FacultyPayroll";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
+import ExternalLinksPage from "../admin/ExternalLinksPage";
 import DashboardLayout from "../common/DashboardLayout";
 import AdmissionDashboard from "../admission/AdmissionDashboard";
 import CampusPageBuilder from "../admission/CampusPageBuilder";
@@ -91,6 +92,8 @@ const AdmissionManagerDashboard = ({ user }: DashboardProps) => {
         return <FacultyPayroll />;
       case "staff-tasks":
         return <StaffTaskTracker />;
+      case "external-links":
+        return <ExternalLinksPage userRole={user?.role || "student"} />;
       default:
         return <AdmissionDashboard />;
     }

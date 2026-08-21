@@ -1,6 +1,7 @@
 import FacultyPayroll from "../faculty/FacultyPayroll";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
+import ExternalLinksPage from "../admin/ExternalLinksPage";
 import DashboardLayout from "../common/DashboardLayout";
 import DriverDashboardContent from "../transport/driver/DriverDashboard";
 import DriverTripHistory from "../transport/driver/DriverTripHistory";
@@ -57,6 +58,8 @@ const DriverDashboard = ({ user }: DashboardProps) => {
         return <Profile role="driver" user={user} />;
       case "my-payroll":
         return <FacultyPayroll />;
+      case "external-links":
+        return <ExternalLinksPage userRole={user?.role || "student"} />;
       default:
         return <DriverDashboardContent />;
     }

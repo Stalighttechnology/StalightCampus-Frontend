@@ -63,6 +63,7 @@ import FeesManagerPayroll from './FeesManagerPayroll';
 import ScheduleMeeting from '../common/ScheduleMeeting';
 import StaffTaskTracker from '../common/StaffTaskTracker';
 import FacultyPayroll from '../faculty/FacultyPayroll';
+import ExternalLinksPage from "../admin/ExternalLinksPage";
 
 interface DashboardStats {
   total_students: number;
@@ -402,6 +403,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
       case 'schedule-meeting': return <ScheduleMeeting />;
       case 'my-payroll': return <FacultyPayroll user={user} />;
       case 'staff-tasks': return <StaffTaskTracker />;
+      case "external-links": return <ExternalLinksPage userRole={user?.role || "fees_manager"} />;
       default: return renderDashboard();
     }
   };

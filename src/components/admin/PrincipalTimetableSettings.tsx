@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Plus, Trash2, Edit2, GripVertical, Clock, AlertTriangle, Save, ShieldCheck, ChevronRight, CalendarCheck2, Users, Sliders } from "lucide-react";
+import { Plus, Trash2, Edit2, GripVertical, Clock, AlertTriangle, Save, ShieldCheck, ChevronRight, CalendarCheck2, Users, Sliders, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -106,6 +106,12 @@ const DEFAULT_CATEGORY_WORKFLOWS: Record<string, any> = {
     periodic_count: 1,
     periodic_windows: [{ start: '09:00', end: '09:30' }]
   }
+};
+
+const DEFAULT_STAFF_CATEGORY_MAPPING: Record<string, string[]> = {
+  teaching: ['teacher', 'hod', 'dean'],
+  non_teaching: ['caretaker', 'driver', 'warden', 'library_admin', 'transport_admin', 'hms_admin'],
+  admin_branch: ['principal', 'org_admin', 'admission_manager', 'fees_manager', 'coe', 'placement_officer', 'counsellor'],
 };
 
 function CategoryWorkflowTabContent({
@@ -406,6 +412,7 @@ export default function PrincipalTimetableSettings() {
   const [strictCheckinWindow, setStrictCheckinWindow] = useState<boolean>(true);
   const [allowWebAttendance, setAllowWebAttendance] = useState<boolean>(true);
   const [weekendPolicy, setWeekendPolicy] = useState<string>('sundays_only');
+  const [staffCategoryMapping, setStaffCategoryMapping] = useState<Record<string, string[]>>(DEFAULT_STAFF_CATEGORY_MAPPING);
   const [selectedCategoryTab, setSelectedCategoryTab] = useState<'teaching' | 'non_teaching' | 'admin_branch'>('teaching');
   const [categoryWorkflows, setCategoryWorkflows] = useState<Record<string, any>>(DEFAULT_CATEGORY_WORKFLOWS);
   const [attendanceConfigLoading, setAttendanceConfigLoading] = useState(true);
@@ -419,10 +426,22 @@ export default function PrincipalTimetableSettings() {
   };
 
   const AVAILABLE_ROLES = [
+    { value: 'teacher', label: 'Teacher' },
     { value: 'hod', label: translateTerminology('HOD') },
     { value: 'dean', label: 'Dean' },
     { value: 'principal', label: 'Principal' },
     { value: 'coe', label: 'COE' },
+    { value: 'org_admin', label: 'Org Admin' },
+    { value: 'admission_manager', label: 'Admission Manager' },
+    { value: 'fees_manager', label: 'Fees Manager' },
+    { value: 'placement_officer', label: 'Placement Officer' },
+    { value: 'counsellor', label: 'Counsellor' },
+    { value: 'hms_admin', label: 'HMS Admin' },
+    { value: 'caretaker', label: 'Caretaker' },
+    { value: 'driver', label: 'Driver' },
+    { value: 'warden', label: 'Warden' },
+    { value: 'library_admin', label: 'Library Admin' },
+    { value: 'transport_admin', label: 'Transport Admin' },
   ];
 
   const [startTimeParts, setStartTimeParts] = useState({ hour: "09", minute: "00", period: "AM" });
@@ -484,6 +503,12 @@ export default function PrincipalTimetableSettings() {
         }
         if (data.weekend_policy !== undefined) {
           setWeekendPolicy(data.weekend_policy);
+        }
+        const mapping = data.staff_category_mapping;
+        if (mapping && Object.keys(mapping).length > 0) {
+          setStaffCategoryMapping(mapping);
+        } else {
+          setStaffCategoryMapping(DEFAULT_STAFF_CATEGORY_MAPPING);
         }
         if (data.category_attendance_workflows) {
           setCategoryWorkflows(prev => ({
@@ -574,6 +599,36 @@ export default function PrincipalTimetableSettings() {
   };
 
   const handleSaveAttendanceConfig = async () => {
+    const mappedRoles = Object.values(staffCategoryMapping).flat();
+    const unmappedRoles = AVAILABLE_ROLES.filter(r => !mappedRoles.includes(r.value));
+    
+    if (unmappedRoles.length > 0) {
+      const unmappedLabels = unmappedRoles.map(r => r.label).join(', ');
+      await MySwal.fire({
+        title: 'Action Required',
+        html: `<div style="text-align:left; font-size:14px;">
+          Please assign the following roles to a category before saving:<br/><br/>
+          <b>${unmappedLabels}</b>
+        </div>`,
+        icon: 'warning',
+        confirmButtonText: 'Okay',
+        confirmButtonColor: '#f59e0b',
+      });
+      return;
+    }
+
+    const result = await MySwal.fire({
+      title: 'Save Workflow Settings?',
+      html: `<span>Are you sure you want to save the attendance configuration?</span>`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Save',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#10b981',
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       setAttendanceSaving(true);
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/attendance-workflow/`, {
@@ -585,6 +640,7 @@ export default function PrincipalTimetableSettings() {
           strict_checkin_window: strictCheckinWindow,
           allow_web_attendance: allowWebAttendance,
           weekend_policy: weekendPolicy,
+          staff_category_mapping: staffCategoryMapping,
           category_attendance_workflows: categoryWorkflows
         })
       });
@@ -1400,12 +1456,116 @@ export default function PrincipalTimetableSettings() {
                             </SelectContent>
                           </Select>
                         </div>
+                        <div className="flex justify-end pt-4">
+                          <Button size="sm" onClick={handleSaveAttendanceConfig} disabled={attendanceSaving} className="h-8">
+                            <Save className="w-3.5 h-3.5 mr-2" /> {attendanceSaving ? 'Saving...' : 'Save Changes'}
+                          </Button>
+                        </div>
                       </div>
-                    </div>
+                      </div>
 
-                    {/* --- CATEGORY SETTINGS --- */}
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-bold tracking-wide uppercase text-muted-foreground mb-2">Category-Specific Workflows</h3>
+                      {/* Staff Role Categorization */}
+                      <div className={`p-4 rounded-xl border mt-4 ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-gray-50 border-gray-200'}`}>
+                        <div className="flex flex-col gap-4">
+                          <div className="space-y-0.5">
+                            <Label className="text-sm font-semibold">Staff Role Categorization</Label>
+                            <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              Map staff roles to attendance workflow categories. All roles must be explicitly mapped to a category before saving.
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {[
+                              { key: 'teaching', label: 'Teaching Workflow' },
+                              { key: 'non_teaching', label: 'Non-Teaching Workflow' },
+                              { key: 'admin_branch', label: 'Administrative Workflow' },
+                            ].map((col) => (
+                              <div key={col.key} className={`p-3 rounded-lg border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} space-y-3`}>
+                                <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground border-b pb-2">{col.label}</div>
+                                <div className="space-y-2">
+                                  {/* List roles mapped to this category */}
+                                  {(staffCategoryMapping[col.key] || []).map((mappedRole) => {
+                                    const roleDef = AVAILABLE_ROLES.find(r => r.value === mappedRole) || { label: mappedRole, value: mappedRole };
+                                    return (
+                                      <div key={mappedRole} className="flex items-center justify-between bg-primary/5 text-primary text-xs px-2 py-1.5 rounded">
+                                        <span>{roleDef.label}</span>
+                                        <button 
+                                          type="button" 
+                                          onClick={async () => {
+                                            const result = await MySwal.fire({
+                                              title: 'Remove Role?',
+                                              html: `<span>Remove <b>${roleDef.label}</b> from <b>${col.label}</b>?<br/><small style="color:#888">You must assign it to another category before saving.</small></span>`,
+                                              icon: 'warning',
+                                              showCancelButton: true,
+                                              confirmButtonText: 'Yes, Remove',
+                                              cancelButtonText: 'Cancel',
+                                              confirmButtonColor: '#ef4444',
+                                            });
+                                            if (result.isConfirmed) {
+                                              const newMapping = { ...staffCategoryMapping };
+                                              newMapping[col.key] = newMapping[col.key].filter(r => r !== mappedRole);
+                                              setStaffCategoryMapping(newMapping);
+                                            }
+                                          }}
+                                          className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                    );
+                                  })}
+                                  
+                                  {/* Add Role Dropdown */}
+                                  <Select 
+                                    value="" 
+                                    onValueChange={async (val) => {
+                                      if (!val) return;
+                                      const roleDef = AVAILABLE_ROLES.find(r => r.value === val);
+                                      const roleLabel = roleDef?.label ?? val;
+                                      const result = await MySwal.fire({
+                                        title: 'Add Role?',
+                                        html: `<span>Move <b>${roleLabel}</b> to <b>${col.label}</b>?<br/><small style="color:#888">It will be removed from its current category if already assigned.</small></span>`,
+                                        icon: 'question',
+                                        showCancelButton: true,
+                                        confirmButtonText: 'Yes, Move',
+                                        cancelButtonText: 'Cancel',
+                                        confirmButtonColor: '#6366f1',
+                                      });
+                                      if (result.isConfirmed) {
+                                        const newMapping = { ...staffCategoryMapping };
+                                        // Remove from other categories first
+                                        Object.keys(newMapping).forEach(k => {
+                                          newMapping[k] = (newMapping[k] || []).filter(r => r !== val);
+                                        });
+                                        // Add to new category
+                                        newMapping[col.key] = [...(newMapping[col.key] || []), val];
+                                        setStaffCategoryMapping(newMapping);
+                                      }
+                                    }}
+                                  >
+                                    <SelectTrigger className="w-full text-xs h-7">
+                                      <SelectValue placeholder="+ Add Role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {AVAILABLE_ROLES.filter(r => !Object.values(staffCategoryMapping).flat().includes(r.value)).map(role => (
+                                        <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex justify-end pt-4">
+                            <Button size="sm" onClick={handleSaveAttendanceConfig} disabled={attendanceSaving} className="h-8">
+                              <Save className="w-3.5 h-3.5 mr-2" /> {attendanceSaving ? 'Saving...' : 'Save Changes'}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* --- CATEGORY SETTINGS --- */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-bold tracking-wide uppercase text-muted-foreground mb-2">Category-Specific Workflows</h3>
                       
                       {/* Staff Category Tabs */}
                       <div className="flex flex-wrap items-center gap-2 border-b border-border/60 pb-3">
@@ -1449,13 +1609,13 @@ export default function PrincipalTimetableSettings() {
                           }));
                         }}
                       />
+                      <div className="flex justify-end pt-4">
+                        <Button size="sm" onClick={handleSaveAttendanceConfig} disabled={attendanceSaving} className="h-8">
+                          <Save className="w-3.5 h-3.5 mr-2" /> {attendanceSaving ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                      </div>
                     </div>
 
-                    <div className="flex justify-end pt-2">
-                      <Button onClick={handleSaveAttendanceConfig} disabled={attendanceSaving} className="shadow-sm">
-                        <Save className="w-4 h-4 mr-2" /> {attendanceSaving ? 'Saving...' : 'Save Workflow Settings'}
-                      </Button>
-                    </div>
                   </div>
                 )}
               </div>

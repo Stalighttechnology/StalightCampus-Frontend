@@ -1,6 +1,7 @@
 import FacultyPayroll from "../faculty/FacultyPayroll";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import ExternalLinksPage from "../admin/ExternalLinksPage";
 import DashboardLayout from "../common/DashboardLayout";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import AdminStats from "../admin/AdminStats";
@@ -120,6 +121,8 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
         return <StaffTaskTracker />;
       case "compliance-reports":
         return <ComplianceReports />;
+      case "external-links":
+        return <ExternalLinksPage userRole={user?.role || "student"} />;
       default:
         return <AdminStats setError={setError} onNavigate={handlePageChange} />;
     }

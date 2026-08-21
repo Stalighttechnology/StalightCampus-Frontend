@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import ExternalLinksPage from "../admin/ExternalLinksPage";
 import DashboardLayout from "../common/DashboardLayout";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import FacultyStats from "../faculty/FacultyStats";
@@ -232,6 +233,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
         return <FacultyPayroll user={user} />;
       case "staff-tasks":
         return <StaffTaskTracker />;
+      case "external-links":
+        return <ExternalLinksPage userRole={user?.role || "student"} />;
       default:
         return <FacultyStats setActivePage={handlePageChange} />;
     }

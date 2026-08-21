@@ -3,6 +3,7 @@ import FacultyPayroll from "../faculty/FacultyPayroll";
 
 import { useState, useEffect, Component, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import ExternalLinksPage from "../admin/ExternalLinksPage";
 import DashboardLayout from "../common/DashboardLayout";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import HODStats from "../hod/HODStats";
@@ -326,6 +327,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         return <FacultyPayroll />;
       case "staff-tasks":
         return <StaffTaskTracker />;
+      case "external-links":
+        return <ExternalLinksPage userRole={user?.role || "student"} />;
       default:
         return <HODStats setError={setError} setPage={handlePageChange} />;
     }

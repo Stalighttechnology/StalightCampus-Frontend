@@ -2,6 +2,7 @@ import FacultyPayroll from "../faculty/FacultyPayroll";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
+import ExternalLinksPage from "../admin/ExternalLinksPage";
 import DashboardLayout from "../common/DashboardLayout";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import HMSOverview from "../hms/HMSOverview";
@@ -125,6 +126,8 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
         return <FacultyPayroll />;
       case "staff-tasks":
         return <StaffTaskTracker />;
+      case "external-links":
+        return <ExternalLinksPage userRole={user?.role || "student"} />;
       default:
         return <HMSOverview />;
     }

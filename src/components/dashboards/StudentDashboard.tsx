@@ -1,5 +1,6 @@
 import { useState, useEffect, Suspense, lazy } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import ExternalLinksPage from "../admin/ExternalLinksPage";
 import DashboardLayout from "../common/DashboardLayout";
 import Chat from "../common/Chat";
 import { logoutUser } from "../../utils/authService";
@@ -161,6 +162,8 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
         return <StudentLibraryPage />;
       case "class-schedule":
         return <ClassSchedule user={user} setError={setError} />;
+      case "external-links":
+        return <ExternalLinksPage userRole={user?.role || "student"} />;
       default:
         return <StudentDashboardOverview setPage={handlePageChange} user={user} />;
     }

@@ -2,6 +2,7 @@ import FacultyPayroll from "../faculty/FacultyPayroll";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
+import ExternalLinksPage from "../admin/ExternalLinksPage";
 import DashboardLayout from "../common/DashboardLayout";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import WardenDashboardOverview from "../warden/WardenDashboard";
@@ -99,6 +100,8 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
         return <ScheduleMeeting />;
       case "my-payroll":
         return <FacultyPayroll />;
+      case "external-links":
+        return <ExternalLinksPage userRole={user?.role || "student"} />;
       default:
         return <WardenDashboardOverview />;
     }

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
+import ExternalLinksPage from "../admin/ExternalLinksPage";
 import DashboardLayout from "../common/DashboardLayout";
 import AdmissionDashboard from "../admission/AdmissionDashboard";
 import LeadPipeline from "../admission/LeadPipeline";
@@ -58,6 +59,8 @@ const CounsellorDashboard = ({ user }: DashboardProps) => {
         return <FacultyAttendance />;
       case "my-payroll":
         return <FacultyPayroll />;
+      case "external-links":
+        return <ExternalLinksPage userRole={user?.role || "student"} />;
       default:
         return <AdmissionDashboard />;
     }

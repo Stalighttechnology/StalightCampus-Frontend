@@ -2,6 +2,7 @@ import FacultyPayroll from "../faculty/FacultyPayroll";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import { useState, useEffect, Component, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import ExternalLinksPage from "../admin/ExternalLinksPage";
 import DashboardLayout from "../common/DashboardLayout";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import DeanStats from "../dean/DeanStats";
@@ -150,6 +151,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <StaffTaskTracker />;
       case "compliance-reports":
         return <ComplianceReports />;
+      case "external-links":
+        return <ExternalLinksPage userRole={user?.role || "student"} />;
       default:
         return <div>Welcome, Dean.</div>;
     }
