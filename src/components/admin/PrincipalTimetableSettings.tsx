@@ -405,6 +405,7 @@ export default function PrincipalTimetableSettings() {
   const [checkinWindows, setCheckinWindows] = useState<{ start: string, end: string }[]>([]);
   const [strictCheckinWindow, setStrictCheckinWindow] = useState<boolean>(true);
   const [allowWebAttendance, setAllowWebAttendance] = useState<boolean>(true);
+  const [weekendPolicy, setWeekendPolicy] = useState<string>('sundays_only');
   const [selectedCategoryTab, setSelectedCategoryTab] = useState<'teaching' | 'non_teaching' | 'admin_branch'>('teaching');
   const [categoryWorkflows, setCategoryWorkflows] = useState<Record<string, any>>(DEFAULT_CATEGORY_WORKFLOWS);
   const [attendanceConfigLoading, setAttendanceConfigLoading] = useState(true);
@@ -480,6 +481,9 @@ export default function PrincipalTimetableSettings() {
         }
         if (data.allow_web_attendance !== undefined) {
           setAllowWebAttendance(data.allow_web_attendance);
+        }
+        if (data.weekend_policy !== undefined) {
+          setWeekendPolicy(data.weekend_policy);
         }
         if (data.category_attendance_workflows) {
           setCategoryWorkflows(prev => ({
@@ -580,6 +584,7 @@ export default function PrincipalTimetableSettings() {
           checkin_windows: checkinWindows,
           strict_checkin_window: strictCheckinWindow,
           allow_web_attendance: allowWebAttendance,
+          weekend_policy: weekendPolicy,
           category_attendance_workflows: categoryWorkflows
         })
       });
@@ -1410,6 +1415,29 @@ export default function PrincipalTimetableSettings() {
                           checked={allowWebAttendance}
                           onCheckedChange={setAllowWebAttendance}
                         />
+                      </div>
+                    </div>
+                    
+                    {/* Weekend Policy Setting */}
+                    <div className={`p-4 rounded-xl border mt-4 ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-blue-50/60 border-blue-200/60'}`}>
+                      <div className="flex flex-col gap-3">
+                        <div className="space-y-0.5">
+                          <Label className="text-sm font-semibold">Weekend Holiday Policy</Label>
+                          <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            Select which Saturdays are considered holidays. Sundays are always compulsory holidays. The calendar will automatically block attendance marking for the selected days.
+                          </p>
+                        </div>
+                        <Select value={weekendPolicy} onValueChange={setWeekendPolicy}>
+                          <SelectTrigger className={`w-full sm:w-[350px] text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                            <SelectValue placeholder="Select Weekend Policy" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="sundays_only">Sundays Only (Compulsory)</SelectItem>
+                            <SelectItem value="first_third_saturdays">1st & 3rd Saturdays + Sundays</SelectItem>
+                            <SelectItem value="second_fourth_saturdays">2nd & 4th Saturdays + Sundays</SelectItem>
+                            <SelectItem value="all_saturdays">All Saturdays & Sundays</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 

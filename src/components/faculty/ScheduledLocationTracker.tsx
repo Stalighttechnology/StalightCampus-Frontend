@@ -235,11 +235,15 @@ export default function ScheduledLocationTracker() {
           return;
         }
 
-        // Rule 1 (Present only) & Rule 2 (No tracking after 7 PM)
+        // Rule 1 (Present only) & Rule 2 (No tracking after 6 PM) & Rule 3 (Fully Checked Out)
         if (data.tracking_allowed === false) {
-          if (data.is_after_7pm) {
+          if (data.is_after_6pm) {
             console.log(
-              "⏰ Past 7:00 PM: Geofence tracking disabled for the evening."
+              "⏰ Past 6:00 PM: Geofence tracking disabled for the evening."
+            );
+          } else if (data.is_fully_checked_out) {
+            console.log(
+              "✅ Fully Checked Out: Geofence tracking disabled for the rest of the day."
             );
           } else if (data.is_present_today === false) {
             console.log(
