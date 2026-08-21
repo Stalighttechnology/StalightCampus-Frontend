@@ -462,8 +462,32 @@ const StaffTaskTracker = () => {
                 <Badge className="bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/70 dark:text-blue-300 dark:border-blue-800 text-[10px] h-5 border font-semibold whitespace-nowrap flex items-center gap-1">
                   <CheckSquare className="w-3 h-3 text-blue-600 dark:text-blue-400" /> TASK
                 </Badge>
+              ) : task.task_type === 'academic_excellence' ? (
+                <Badge className="bg-indigo-100 text-indigo-800 border-indigo-300 dark:bg-indigo-950/70 dark:text-indigo-300 dark:border-indigo-800 text-[10px] h-5 border font-semibold whitespace-nowrap">
+                  Academic Excellence
+                </Badge>
+              ) : task.task_type === 'student_success' ? (
+                <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/70 dark:text-emerald-300 dark:border-emerald-800 text-[10px] h-5 border font-semibold whitespace-nowrap">
+                  Student Success
+                </Badge>
+              ) : task.task_type === 'institutional_maturity' ? (
+                <Badge className="bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/70 dark:text-amber-300 dark:border-amber-800 text-[10px] h-5 border font-semibold whitespace-nowrap">
+                  Institutional Maturity
+                </Badge>
+              ) : task.task_type === 'research_innovation' ? (
+                <Badge className="bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950/70 dark:text-purple-300 dark:border-purple-800 text-[10px] h-5 border font-semibold whitespace-nowrap">
+                  Research & Innovation
+                </Badge>
+              ) : task.task_type === 'academic' ? (
+                <Badge className="bg-cyan-100 text-cyan-800 border-cyan-300 dark:bg-cyan-950/70 dark:text-cyan-300 dark:border-cyan-800 text-[10px] h-5 border font-semibold whitespace-nowrap">
+                  Academic
+                </Badge>
+              ) : task.task_type === 'administrative' ? (
+                <Badge className="bg-slate-100 text-slate-800 border-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 text-[10px] h-5 border font-semibold whitespace-nowrap">
+                  Administrative
+                </Badge>
               ) : (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 uppercase tracking-wider whitespace-nowrap">{task.task_type}</Badge>
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 uppercase tracking-wider whitespace-nowrap">{task.task_type.replace('_', ' ')}</Badge>
               )}
             </div>
 
@@ -605,6 +629,10 @@ const StaffTaskTracker = () => {
                       <SelectContent>
                         <SelectItem value="task">Task</SelectItem>
                         <SelectItem value="issue">Issue / Ticket</SelectItem>
+                        <SelectItem value="academic_excellence">Academic Excellence</SelectItem>
+                        <SelectItem value="student_success">Student Success</SelectItem>
+                        <SelectItem value="institutional_maturity">Institutional Maturity</SelectItem>
+                        <SelectItem value="research_innovation">Research & Innovation</SelectItem>
                         <SelectItem value="general">General</SelectItem>
                         <SelectItem value="academic">Academic</SelectItem>
                         <SelectItem value="administrative">Administrative</SelectItem>
