@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { Plus, Trash2, Edit2, GripVertical, Clock, AlertTriangle, Save, ShieldCheck, ChevronRight, CalendarCheck2, Users, Sliders } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -65,6 +66,304 @@ const formatTimeTo12hString = (timeStr: string) => {
   return `${hour}:${minute} ${period}`;
 };
 
+const DEFAULT_CATEGORY_WORKFLOWS: Record<string, any> = {
+  teaching: {
+    mode: 'half_day_split',
+    strict_window: true,
+    full_day: { check_in: { start: '09:00', end: '09:30' }, check_out: { start: '17:00', end: '17:30' } },
+    half_day_split: {
+      first_half_in: { start: '09:00', end: '09:30' },
+      first_half_out: { start: '12:30', end: '13:00' },
+      second_half_in: { start: '13:30', end: '14:00' },
+      second_half_out: { start: '17:00', end: '17:30' },
+    },
+    periodic_count: 1,
+    periodic_windows: [{ start: '09:00', end: '09:30' }]
+  },
+  non_teaching: {
+    mode: 'full_day',
+    strict_window: true,
+    full_day: { check_in: { start: '08:30', end: '09:00' }, check_out: { start: '16:30', end: '17:00' } },
+    half_day_split: {
+      first_half_in: { start: '08:30', end: '09:00' },
+      first_half_out: { start: '12:00', end: '12:30' },
+      second_half_in: { start: '13:00', end: '13:30' },
+      second_half_out: { start: '16:30', end: '17:00' },
+    },
+    periodic_count: 1,
+    periodic_windows: [{ start: '08:30', end: '09:00' }]
+  },
+  admin_branch: {
+    mode: 'full_day',
+    strict_window: true,
+    full_day: { check_in: { start: '09:00', end: '09:30' }, check_out: { start: '17:30', end: '18:00' } },
+    half_day_split: {
+      first_half_in: { start: '09:00', end: '09:30' },
+      first_half_out: { start: '13:00', end: '13:30' },
+      second_half_in: { start: '14:00', end: '14:30' },
+      second_half_out: { start: '17:30', end: '18:00' },
+    },
+    periodic_count: 1,
+    periodic_windows: [{ start: '09:00', end: '09:30' }]
+  }
+};
+
+function CategoryWorkflowTabContent({
+  catKey,
+  catConfig,
+  theme,
+  onUpdateConfig,
+}: {
+  catKey: string;
+  catConfig: any;
+  theme: string;
+  onUpdateConfig: (newCatConfig: any) => void;
+}) {
+  const currentConfig = catConfig || DEFAULT_CATEGORY_WORKFLOWS[catKey] || DEFAULT_CATEGORY_WORKFLOWS.teaching;
+  const mode = currentConfig.mode || 'half_day_split';
+
+  const updateWindow = (modeKey: string, fieldKey: string, startOrEnd: 'start' | 'end', val: string) => {
+    onUpdateConfig({
+      ...currentConfig,
+      [modeKey]: {
+        ...(currentConfig[modeKey] || {}),
+        [fieldKey]: {
+          ...((currentConfig[modeKey] && currentConfig[modeKey][fieldKey]) || { start: '09:00', end: '09:30' }),
+          [startOrEnd]: val
+        }
+      }
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Workflow Mode Selector */}
+      <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/40 border-border/80' : 'bg-slate-50/70 border-gray-200'} space-y-4`}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <Label className="text-sm font-semibold">Attendance Workflow Mode</Label>
+            <p className="text-xs text-muted-foreground">Select daily check-in & check-out structure for this staff category.</p>
+          </div>
+          <Select
+            value={mode}
+            onValueChange={(val) => onUpdateConfig({ ...currentConfig, mode: val })}
+          >
+            <SelectTrigger className={`w-full sm:w-64 text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+              <SelectValue placeholder="Select Mode" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="half_day_split">Half-Day Split (1st & 2nd Half In/Out - 4 Checkpoints)</SelectItem>
+              <SelectItem value="full_day">Standard Full-Day (1 Check-In & 1 Check-Out)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Half-Day Split Controls */}
+      {mode === 'half_day_split' && (
+        <div className="space-y-4">
+          <div className="text-xs font-bold text-primary uppercase tracking-wider">Session 1 (First Half)</div>
+          
+          {/* 1st Half In */}
+          <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#1</div>
+                <div>
+                  <Label className="text-sm font-semibold">First Half Check-In Window</Label>
+                  <p className="text-xs text-muted-foreground">Morning check-in timeframe</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground font-medium">Start:</span>
+                <Input
+                  type="time"
+                  value={currentConfig.half_day_split?.first_half_in?.start || "09:00"}
+                  onChange={(e) => updateWindow('half_day_split', 'first_half_in', 'start', e.target.value)}
+                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
+                />
+                <span className="text-muted-foreground font-medium ml-2">End:</span>
+                <Input
+                  type="time"
+                  value={currentConfig.half_day_split?.first_half_in?.end || "09:30"}
+                  onChange={(e) => updateWindow('half_day_split', 'first_half_in', 'end', e.target.value)}
+                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 1st Half Out */}
+          <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#2</div>
+                <div>
+                  <Label className="text-sm font-semibold">First Half Check-Out Window</Label>
+                  <p className="text-xs text-muted-foreground">Lunch / mid-day departure window</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground font-medium">Start:</span>
+                <Input
+                  type="time"
+                  value={currentConfig.half_day_split?.first_half_out?.start || "12:30"}
+                  onChange={(e) => updateWindow('half_day_split', 'first_half_out', 'start', e.target.value)}
+                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
+                />
+                <span className="text-muted-foreground font-medium ml-2">End:</span>
+                <Input
+                  type="time"
+                  value={currentConfig.half_day_split?.first_half_out?.end || "13:00"}
+                  onChange={(e) => updateWindow('half_day_split', 'first_half_out', 'end', e.target.value)}
+                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="text-xs font-bold text-primary uppercase tracking-wider pt-2">Session 2 (Second Half)</div>
+
+          {/* 2nd Half In */}
+          <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#3</div>
+                <div>
+                  <Label className="text-sm font-semibold">Second Half Check-In Window</Label>
+                  <p className="text-xs text-muted-foreground">Post-lunch check-in timeframe</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground font-medium">Start:</span>
+                <Input
+                  type="time"
+                  value={currentConfig.half_day_split?.second_half_in?.start || "13:30"}
+                  onChange={(e) => updateWindow('half_day_split', 'second_half_in', 'start', e.target.value)}
+                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
+                />
+                <span className="text-muted-foreground font-medium ml-2">End:</span>
+                <Input
+                  type="time"
+                  value={currentConfig.half_day_split?.second_half_in?.end || "14:00"}
+                  onChange={(e) => updateWindow('half_day_split', 'second_half_in', 'end', e.target.value)}
+                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 2nd Half Out */}
+          <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#4</div>
+                <div>
+                  <Label className="text-sm font-semibold">Second Half Check-Out Window</Label>
+                  <p className="text-xs text-muted-foreground">Evening final departure window</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground font-medium">Start:</span>
+                <Input
+                  type="time"
+                  value={currentConfig.half_day_split?.second_half_out?.start || "17:00"}
+                  onChange={(e) => updateWindow('half_day_split', 'second_half_out', 'start', e.target.value)}
+                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
+                />
+                <span className="text-muted-foreground font-medium ml-2">End:</span>
+                <Input
+                  type="time"
+                  value={currentConfig.half_day_split?.second_half_out?.end || "17:30"}
+                  onChange={(e) => updateWindow('half_day_split', 'second_half_out', 'end', e.target.value)}
+                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full Day Mode Controls */}
+      {mode === 'full_day' && (
+        <div className="space-y-4">
+          <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#1</div>
+                <div>
+                  <Label className="text-sm font-semibold">Full Day Check-In Window</Label>
+                  <p className="text-xs text-muted-foreground">Morning arrival check-in timeframe</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground font-medium">Start:</span>
+                <Input
+                  type="time"
+                  value={currentConfig.full_day?.check_in?.start || "09:00"}
+                  onChange={(e) => updateWindow('full_day', 'check_in', 'start', e.target.value)}
+                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
+                />
+                <span className="text-muted-foreground font-medium ml-2">End:</span>
+                <Input
+                  type="time"
+                  value={currentConfig.full_day?.check_in?.end || "09:30"}
+                  onChange={(e) => updateWindow('full_day', 'check_in', 'end', e.target.value)}
+                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#2</div>
+                <div>
+                  <Label className="text-sm font-semibold">Full Day Check-Out Window</Label>
+                  <p className="text-xs text-muted-foreground">Evening departure check-out timeframe</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground font-medium">Start:</span>
+                <Input
+                  type="time"
+                  value={currentConfig.full_day?.check_out?.start || "17:00"}
+                  onChange={(e) => updateWindow('full_day', 'check_out', 'start', e.target.value)}
+                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
+                />
+                <span className="text-muted-foreground font-medium ml-2">End:</span>
+                <Input
+                  type="time"
+                  value={currentConfig.full_day?.check_out?.end || "17:30"}
+                  onChange={(e) => updateWindow('full_day', 'check_out', 'end', e.target.value)}
+                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Strict Window Switch */}
+      <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-gray-50/80 border-gray-100'}`}>
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-sm font-semibold">Strict Window Time ({catKey.replace('_', ' ').toUpperCase()})</Label>
+            <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              If enabled, staff cannot check-in or check-out after their window ends. If disabled, late check-ins/outs are permitted and marked as delayed.
+            </p>
+          </div>
+          <Switch
+            checked={currentConfig.strict_window !== false}
+            onCheckedChange={(val) => onUpdateConfig({ ...currentConfig, strict_window: val })}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PrincipalTimetableSettings() {
   const [slots, setSlots] = useState<TimetableSlot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,6 +404,9 @@ export default function PrincipalTimetableSettings() {
   const [periodicCheckinCount, setPeriodicCheckinCount] = useState<number>(1);
   const [checkinWindows, setCheckinWindows] = useState<{ start: string, end: string }[]>([]);
   const [strictCheckinWindow, setStrictCheckinWindow] = useState<boolean>(true);
+  const [allowWebAttendance, setAllowWebAttendance] = useState<boolean>(true);
+  const [selectedCategoryTab, setSelectedCategoryTab] = useState<'teaching' | 'non_teaching' | 'admin_branch'>('teaching');
+  const [categoryWorkflows, setCategoryWorkflows] = useState<Record<string, any>>(DEFAULT_CATEGORY_WORKFLOWS);
   const [attendanceConfigLoading, setAttendanceConfigLoading] = useState(true);
   const [attendanceSaving, setAttendanceSaving] = useState(false);
 
@@ -175,6 +477,15 @@ export default function PrincipalTimetableSettings() {
         setCheckinWindows(data.checkin_windows || []);
         if (data.strict_checkin_window !== undefined) {
           setStrictCheckinWindow(data.strict_checkin_window);
+        }
+        if (data.allow_web_attendance !== undefined) {
+          setAllowWebAttendance(data.allow_web_attendance);
+        }
+        if (data.category_attendance_workflows) {
+          setCategoryWorkflows(prev => ({
+            ...DEFAULT_CATEGORY_WORKFLOWS,
+            ...data.category_attendance_workflows
+          }));
         }
       }
     } catch (err) {
@@ -267,7 +578,9 @@ export default function PrincipalTimetableSettings() {
         body: JSON.stringify({
           periodic_checkin_count: periodicCheckinCount,
           checkin_windows: checkinWindows,
-          strict_checkin_window: strictCheckinWindow
+          strict_checkin_window: strictCheckinWindow,
+          allow_web_attendance: allowWebAttendance,
+          category_attendance_workflows: categoryWorkflows
         })
       });
       if (res.ok) {
@@ -1036,198 +1349,73 @@ export default function PrincipalTimetableSettings() {
                   <SkeletonTable rows={2} cols={1} />
                 ) : (
                   <div className="space-y-6">
-                    <div className="space-y-3">
-                      <Label className="text-sm font-medium">Daily Check-ins Required</Label>
-                      <Select value={periodicCheckinCount.toString()} onValueChange={(v) => {
-                        const count = parseInt(v);
-                        setPeriodicCheckinCount(count);
-                        setCheckinWindows(prev => {
-                          const newArr = [...prev];
-                          while (newArr.length < count) newArr.push({ start: "09:00", end: "10:00" });
-                          return newArr.slice(0, count);
-                        });
-                      }}>
-                        <SelectTrigger className={`w-full max-w-xs ${theme === 'dark' ? 'bg-background border-border' : ''}`}>
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[1, 2, 3, 4, 5].map(n => (
-                            <SelectItem key={n} value={n.toString()}>{n} Check-in{n > 1 ? 's' : ''}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-4">
-                      {checkinWindows.map((window, idx) => {
-                        const startParsed = parseTimeTo12h(window.start);
-                        const endParsed = parseTimeTo12h(window.end);
-
+                    {/* Staff Category Tabs */}
+                    <div className="flex flex-wrap items-center gap-2 border-b border-border/60 pb-3">
+                      {[
+                        { id: 'teaching', label: 'Teaching Staff', sub: 'Faculty, HODs, Deans' },
+                        { id: 'non_teaching', label: 'Non-Teaching Staff', sub: 'Lab Asst, Caretakers, Drivers' },
+                        { id: 'admin_branch', label: 'Administration Branch', sub: 'Office, Principal, Admin Staff' },
+                      ].map(cat => {
+                        const active = selectedCategoryTab === cat.id;
                         return (
-                          <div 
-                            key={idx} 
-                            className={`p-4 rounded-xl border transition-all ${
-                              theme === 'dark' 
-                                ? 'bg-card/70 border-border/80 text-foreground' 
-                                : 'bg-white border-gray-200 text-gray-900 shadow-sm'
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setSelectedCategoryTab(cat.id as any)}
+                            className={`flex flex-col text-left px-4 py-2.5 rounded-xl transition-all border ${
+                              active
+                                ? theme === 'dark'
+                                  ? 'bg-primary/20 border-primary text-primary font-semibold shadow-sm'
+                                  : 'bg-primary/10 border-primary/50 text-primary font-semibold shadow-sm'
+                                : theme === 'dark'
+                                  ? 'bg-card border-border/60 text-muted-foreground hover:text-foreground hover:bg-card/80'
+                                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                             }`}
                           >
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                                  #{idx + 1}
-                                </div>
-                                <div>
-                                  <Label className="text-sm font-semibold">Check-in Window {idx + 1}</Label>
-                                  <p className="text-xs text-muted-foreground">Required attendance check-in timeframe</p>
-                                </div>
-                              </div>
-
-                              <div className="flex flex-wrap items-center gap-3">
-                                {/* Start Time Selectors */}
-                                <div className="space-y-1">
-                                  <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Start Time</span>
-                                  <div className="flex items-center gap-1">
-                                    <Select
-                                      value={startParsed.hour}
-                                      onValueChange={(val) => {
-                                        const new24 = formatTime24h(val, startParsed.minute, startParsed.period);
-                                        const newArr = [...checkinWindows];
-                                        newArr[idx].start = new24;
-                                        setCheckinWindows(newArr);
-                                      }}
-                                    >
-                                      <SelectTrigger className={`w-16 h-9 text-xs font-medium ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50 border-gray-300'}`}>
-                                        <SelectValue placeholder="HH" />
-                                      </SelectTrigger>
-                                      <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                                        {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
-                                      </SelectContent>
-                                    </Select>
-                                    <span className="text-muted-foreground font-semibold px-0.5">:</span>
-                                    <Select
-                                      value={startParsed.minute}
-                                      onValueChange={(val) => {
-                                        const new24 = formatTime24h(startParsed.hour, val, startParsed.period);
-                                        const newArr = [...checkinWindows];
-                                        newArr[idx].start = new24;
-                                        setCheckinWindows(newArr);
-                                      }}
-                                    >
-                                      <SelectTrigger className={`w-16 h-9 text-xs font-medium ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50 border-gray-300'}`}>
-                                        <SelectValue placeholder="MM" />
-                                      </SelectTrigger>
-                                      <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                                        {["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(m => (
-                                          <SelectItem key={m} value={m}>{m}</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                    <Select
-                                      value={startParsed.period}
-                                      onValueChange={(val) => {
-                                        const new24 = formatTime24h(startParsed.hour, startParsed.minute, val);
-                                        const newArr = [...checkinWindows];
-                                        newArr[idx].start = new24;
-                                        setCheckinWindows(newArr);
-                                      }}
-                                    >
-                                      <SelectTrigger className={`w-20 h-9 text-xs font-medium ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50 border-gray-300'}`}>
-                                        <SelectValue placeholder="AM/PM" />
-                                      </SelectTrigger>
-                                      <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                                        <SelectItem value="AM">AM</SelectItem>
-                                        <SelectItem value="PM">PM</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                </div>
-
-                                <span className="text-xs font-semibold text-muted-foreground self-end pb-2 px-1">to</span>
-
-                                {/* End Time Selectors */}
-                                <div className="space-y-1">
-                                  <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">End Time</span>
-                                  <div className="flex items-center gap-1">
-                                    <Select
-                                      value={endParsed.hour}
-                                      onValueChange={(val) => {
-                                        const new24 = formatTime24h(val, endParsed.minute, endParsed.period);
-                                        const newArr = [...checkinWindows];
-                                        newArr[idx].end = new24;
-                                        setCheckinWindows(newArr);
-                                      }}
-                                    >
-                                      <SelectTrigger className={`w-16 h-9 text-xs font-medium ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50 border-gray-300'}`}>
-                                        <SelectValue placeholder="HH" />
-                                      </SelectTrigger>
-                                      <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                                        {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
-                                      </SelectContent>
-                                    </Select>
-                                    <span className="text-muted-foreground font-semibold px-0.5">:</span>
-                                    <Select
-                                      value={endParsed.minute}
-                                      onValueChange={(val) => {
-                                        const new24 = formatTime24h(endParsed.hour, val, endParsed.period);
-                                        const newArr = [...checkinWindows];
-                                        newArr[idx].end = new24;
-                                        setCheckinWindows(newArr);
-                                      }}
-                                    >
-                                      <SelectTrigger className={`w-16 h-9 text-xs font-medium ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50 border-gray-300'}`}>
-                                        <SelectValue placeholder="MM" />
-                                      </SelectTrigger>
-                                      <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                                        {["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(m => (
-                                          <SelectItem key={m} value={m}>{m}</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                    <Select
-                                      value={endParsed.period}
-                                      onValueChange={(val) => {
-                                        const new24 = formatTime24h(endParsed.hour, endParsed.minute, val);
-                                        const newArr = [...checkinWindows];
-                                        newArr[idx].end = new24;
-                                        setCheckinWindows(newArr);
-                                      }}
-                                    >
-                                      <SelectTrigger className={`w-20 h-9 text-xs font-medium ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50 border-gray-300'}`}>
-                                        <SelectValue placeholder="AM/PM" />
-                                      </SelectTrigger>
-                                      <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                                        <SelectItem value="AM">AM</SelectItem>
-                                        <SelectItem value="PM">PM</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                            <span className="text-sm font-medium">{cat.label}</span>
+                            <span className="text-[10px] opacity-75 font-normal">{cat.sub}</span>
+                          </button>
                         );
                       })}
                     </div>
 
-                    <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-gray-50/80 border-gray-100'} mt-4`}>
-                      <div className="flex items-center justify-between">
+                    {/* Active Category Config Box */}
+                    <CategoryWorkflowTabContent
+                      catKey={selectedCategoryTab}
+                      catConfig={categoryWorkflows[selectedCategoryTab]}
+                      theme={theme}
+                      onUpdateConfig={(newCatConfig) => {
+                        setCategoryWorkflows(prev => ({
+                          ...prev,
+                          [selectedCategoryTab]: newCatConfig
+                        }));
+                      }}
+                    />
+
+                    {/* Allow Web Attendance Toggle */}
+                    <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-amber-50/60 border-amber-200/60'}`}>
+                      <div className="flex items-start justify-between gap-4">
                         <div className="space-y-0.5">
-                          <Label className="text-sm font-semibold">Strict Window Time</Label>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold">Allow Web / Desktop Attendance Marking</span>
+                            {!allowWebAttendance && (
+                              <span className="text-[10px] font-bold uppercase tracking-wide bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">Hidden for all staff</span>
+                            )}
+                          </div>
                           <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            If enabled, faculty cannot check-in after their window ends. If disabled, late check-ins are permitted and marked as delayed.
+                            When disabled, the "My Attendance" page will be completely hidden from the sidebar for all staff roles (Faculty, HOD, Dean, Admin, etc.). Staff will only be able to mark attendance via the mobile app or any other configured method.
                           </p>
                         </div>
                         <Switch
-                          checked={strictCheckinWindow}
-                          onCheckedChange={setStrictCheckinWindow}
+                          checked={allowWebAttendance}
+                          onCheckedChange={setAllowWebAttendance}
                         />
                       </div>
                     </div>
 
                     <div className="flex justify-end pt-2">
                       <Button onClick={handleSaveAttendanceConfig} disabled={attendanceSaving} className="shadow-sm">
-                        <Save className="w-4 h-4 mr-2" /> {attendanceSaving ? 'Saving...' : 'Save Workflow'}
+                        <Save className="w-4 h-4 mr-2" /> {attendanceSaving ? 'Saving...' : 'Save Workflow Settings'}
                       </Button>
                     </div>
                   </div>

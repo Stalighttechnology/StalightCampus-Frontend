@@ -42,6 +42,10 @@ interface TodayRow {
   marked_at: string | null;
   check_in_time?: string | null;
   check_out_time?: string | null;
+  first_check_in?: string | null;
+  first_check_out?: string | null;
+  second_check_in?: string | null;
+  second_check_out?: string | null;
   total_hours?: string | null;
   notes: string | null;
   location?: {
@@ -72,6 +76,10 @@ interface RecordRow {
   marked_at: string | null;
   check_in_time?: string | null;
   check_out_time?: string | null;
+  first_check_in?: string | null;
+  first_check_out?: string | null;
+  second_check_in?: string | null;
+  second_check_out?: string | null;
   total_hours?: string | null;
   notes: string | null;
   location?: {
@@ -497,10 +505,19 @@ const AdminHODAttendance: React.FC = () => {
                                 '-'}
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-600 whitespace-normal break-words">
-                              {r.check_in_time || r.check_out_time ? (
+                              {(r.first_check_in || r.check_in_time) || (r.second_check_out || r.check_out_time) ? (
                                 <div className="space-y-1">
-                                  {r.check_in_time && <div><span className="font-semibold">In:</span> {formatTime(r.check_in_time)}</div>}
-                                  {r.check_out_time && <div><span className="font-semibold">Out:</span> {formatTime(r.check_out_time)}</div>}
+                                  {(r.first_check_in || r.check_in_time) && (
+                                    <div className="flex items-center gap-1">
+                                      <span className="font-semibold">In:</span> {formatTime(r.first_check_in || r.check_in_time)}
+                                      {r.delays?.[0] > 0 && (
+                                        <span className="text-[10px] text-orange-500 font-bold bg-orange-500/10 px-1 py-0.5 rounded">
+                                          +{r.delays[0]}m
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                  {(r.second_check_out || r.check_out_time) && <div><span className="font-semibold">Out:</span> {formatTime(r.second_check_out || r.check_out_time)}</div>}
                                   {r.total_hours && <div className="text-xs mt-1 py-0.5 px-1.5 bg-gray-100 rounded-md inline-block dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium">Total: {r.total_hours} hrs</div>}
                                 </div>
                               ) : r.marked_at ? (
@@ -535,10 +552,19 @@ const AdminHODAttendance: React.FC = () => {
                           </div>
                         </div>
                         <div className="mt-2 text-sm text-gray-600 whitespace-normal break-words">
-                          {r.check_in_time || r.check_out_time ? (
+                          {(r.first_check_in || r.check_in_time) || (r.second_check_out || r.check_out_time) ? (
                             <div className="flex flex-col gap-1">
-                              {r.check_in_time && <div><span className="font-semibold">In:</span> {formatTime(r.check_in_time)}</div>}
-                              {r.check_out_time && <div><span className="font-semibold">Out:</span> {formatTime(r.check_out_time)}</div>}
+                              {(r.first_check_in || r.check_in_time) && (
+                                <div className="flex items-center gap-1">
+                                  <span className="font-semibold">In:</span> {formatTime(r.first_check_in || r.check_in_time)}
+                                  {r.delays?.[0] > 0 && (
+                                    <span className="text-[10px] text-orange-500 font-bold bg-orange-500/10 px-1 py-0.5 rounded">
+                                      +{r.delays[0]}m
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {(r.second_check_out || r.check_out_time) && <div><span className="font-semibold">Out:</span> {formatTime(r.second_check_out || r.check_out_time)}</div>}
                               {r.total_hours && <div className="text-xs mt-1 py-0.5 px-1.5 bg-gray-100 rounded-md inline-block w-fit dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium">Total: {r.total_hours} hrs</div>}
                             </div>
                           ) : (
@@ -872,8 +898,10 @@ const AdminHODAttendance: React.FC = () => {
                               {!record && !isFuture && !isNonWorkingDay && <div className="text-red-300 mt-1 flex items-center gap-1"><XCircle className="w-3 h-3" /> Auto-marked Absent</div>}
                               {isNonWorkingDay && <div className="text-slate-300 mt-1">{isHoliday ? 'Holiday' : 'Sunday'}</div>}
                               {record && <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>{isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status}</div>}
-                              {record?.check_in_time && <div className="text-slate-300 mt-1">In: {formatTime(record.check_in_time)}</div>}
-                              {record?.check_out_time && <div className="text-slate-300 mt-0.5">Out: {formatTime(record.check_out_time)}</div>}
+                              {(record?.first_check_in || record?.check_in_time) && <div className="text-slate-300 mt-1">In: {formatTime(record.first_check_in || record.check_in_time)}</div>}
+                              {record?.first_check_out && <div className="text-slate-300 mt-0.5">1st Out: {formatTime(record.first_check_out)}</div>}
+                              {record?.second_check_in && <div className="text-slate-300 mt-0.5">2nd In: {formatTime(record.second_check_in)}</div>}
+                              {(record?.second_check_out || record?.check_out_time) && <div className="text-slate-300 mt-0.5">Out: {formatTime(record.second_check_out || record.check_out_time)}</div>}
                               {record?.total_hours && <div className="text-slate-400 mt-0.5">Total: {record.total_hours} hrs</div>}
                             </div>
                           </div>);

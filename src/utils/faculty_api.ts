@@ -1696,9 +1696,39 @@ export const getProctorStudentLeaves = async (params?: {
 };
 
 // Faculty Attendance API functions
+export type WorkflowMode = 'full_day' | 'half_day_split' | 'periodic';
+
+export interface TimeWindowSpec {
+  start: string;
+  end: string;
+}
+
+export interface CategoryWorkflowConfig {
+  mode: WorkflowMode;
+  strict_window: boolean;
+  full_day: {
+    check_in: TimeWindowSpec;
+    check_out: TimeWindowSpec;
+  };
+  half_day_split: {
+    first_half_in: TimeWindowSpec;
+    first_half_out: TimeWindowSpec;
+    second_half_in: TimeWindowSpec;
+    second_half_out: TimeWindowSpec;
+  };
+  periodic_count: number;
+  periodic_windows: TimeWindowSpec[];
+}
+
+export interface CategoryAttendanceWorkflows {
+  teaching?: CategoryWorkflowConfig;
+  non_teaching?: CategoryWorkflowConfig;
+  admin_branch?: CategoryWorkflowConfig;
+}
+
 export interface MarkFacultyAttendanceRequest {
   status?: "present" | "absent";
-  action?: "check_in" | "check_out";
+  action?: "check_in" | "check_out" | "first_half_in" | "first_half_out" | "second_half_in" | "second_half_out";
   notes?: string;
   deviceId?: string;
   latitude?: number;
@@ -1719,7 +1749,6 @@ export interface MarkFacultyAttendanceResponse {
     status: string;
     marked_at: string;
     updated?: boolean;
-    // location validation removed
   };
 }
 
@@ -1730,6 +1759,11 @@ export interface FacultyAttendanceRecord {
   marked_at: string;
   check_in_time?: string | null;
   check_out_time?: string | null;
+  first_check_in?: string | null;
+  first_check_out?: string | null;
+  second_check_in?: string | null;
+  second_check_out?: string | null;
+  staff_category?: string | null;
   total_hours?: string | null;
   notes: string;
   location?: AttendanceLocation | null;
@@ -1738,6 +1772,7 @@ export interface FacultyAttendanceRecord {
   periodic_checkin_count?: number;
   checkin_windows?: {start: string, end: string}[] | null;
   strict_checkin_window?: boolean;
+  category_attendance_workflows?: CategoryAttendanceWorkflows | null;
 }
 
 export interface AttendanceLocation {

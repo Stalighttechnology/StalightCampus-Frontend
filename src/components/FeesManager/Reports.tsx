@@ -675,7 +675,11 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                       <div className={`space-y-2 p-4 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                         {record.checkin_timestamps.map((ts: any, idx: number) => (
                           <div key={idx} className={`flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0 ${isDark ? 'border-white/5' : 'border-gray-200'}`}>
-                            <span className="font-semibold text-gray-500">Check-in {idx + 1}</span>
+                            <span className="font-semibold text-gray-500">
+                              {record.checkin_timestamps.length === 4
+                                ? (idx === 0 ? '1st Half In' : idx === 1 ? '1st Half Out' : idx === 2 ? '2nd Half In' : '2nd Half Out')
+                                : (idx === 0 ? 'Check In' : 'Check Out')}
+                            </span>
                             <div className="flex items-center gap-2">
                               {ts === "Missed" ? (
                                 <span className="text-red-500 font-bold">Missed</span>

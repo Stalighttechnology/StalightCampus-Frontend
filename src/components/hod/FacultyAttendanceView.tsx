@@ -686,8 +686,11 @@ const FacultyAttendanceView: React.FC = () => {
                               <div className="flex flex-col gap-1">
                                 {record.total_hours ? (
                                   <span className="font-semibold text-primary">{formatTotalHours(record.total_hours)}</span>
-                                ) : record.check_in_time ? (
-                                  <span>In: {new Date(record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                                ) : (record.first_check_in || record.check_in_time) ? (
+                                  <span>
+                                    In: {new Date(record.first_check_in || record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                    {(record.second_check_out || record.check_out_time) ? ` | Out: ${new Date(record.second_check_out || record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}` : ''}
+                                  </span>
                                 ) : record.marked_at ? (
                                   <span>Marked at {new Date(record.marked_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
                                 ) : (
@@ -812,7 +815,11 @@ const FacultyAttendanceView: React.FC = () => {
                                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${ts === 'Missed' ? 'bg-red-500/10 text-red-500' : ts ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500'}`}>
                                     {idx + 1}
                                   </div>
-                                  <span className="font-semibold text-gray-500">Check-in</span>
+                                  <span className="font-semibold text-gray-500">
+                                    {selectedTodayRecord.checkin_timestamps.length === 4
+                                      ? (idx === 0 ? '1st Half In' : idx === 1 ? '1st Half Out' : idx === 2 ? '2nd Half In' : '2nd Half Out')
+                                      : (idx === 0 ? 'Check In' : 'Check Out')}
+                                  </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   {ts === "Missed" ? (
@@ -850,19 +857,45 @@ const FacultyAttendanceView: React.FC = () => {
                           </>
                         ) : (
                           <>
-                            {selectedTodayRecord.check_in_time && (
+                            {(selectedTodayRecord.first_check_in || selectedTodayRecord.check_in_time) && (
                               <div className="flex justify-between items-center">
-                                <span className="font-semibold text-gray-500">Check In</span> 
-                                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                  {new Date(selectedTodayRecord.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                <span className="font-semibold text-gray-500">{selectedTodayRecord.first_check_in ? '1st Half In' : 'Check In'}</span> 
+                                <span className={`font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {new Date(selectedTodayRecord.first_check_in || selectedTodayRecord.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                  {selectedTodayRecord.delays?.[0] > 0 && (
+                                    <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded shadow-sm">
+                                      +{selectedTodayRecord.delays[0]}m
+                                    </span>
+                                  )}
                                 </span>
                               </div>
                             )}
-                            {selectedTodayRecord.check_out_time && (
+                            {selectedTodayRecord.first_check_out && (
                               <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-200 dark:border-white/10">
-                                <span className="font-semibold text-gray-500">Check Out</span> 
+                                <span className="font-semibold text-gray-500">1st Half Out</span> 
                                 <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                  {new Date(selectedTodayRecord.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                  {new Date(selectedTodayRecord.first_check_out).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                </span>
+                              </div>
+                            )}
+                            {selectedTodayRecord.second_check_in && (
+                              <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-200 dark:border-white/10">
+                                <span className="font-semibold text-gray-500">2nd Half In</span> 
+                                <span className={`font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {new Date(selectedTodayRecord.second_check_in).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                  {selectedTodayRecord.delays?.[2] > 0 && (
+                                    <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded shadow-sm">
+                                      +{selectedTodayRecord.delays[2]}m
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                            )}
+                            {(selectedTodayRecord.second_check_out || selectedTodayRecord.check_out_time) && (
+                              <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-200 dark:border-white/10">
+                                <span className="font-semibold text-gray-500">{selectedTodayRecord.second_check_out ? '2nd Half Out' : 'Check Out'}</span> 
+                                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {new Date(selectedTodayRecord.second_check_out || selectedTodayRecord.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                                 </span>
                               </div>
                             )}
@@ -1363,7 +1396,11 @@ const FacultyAttendanceView: React.FC = () => {
                       <div className={`space-y-2 p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                         {record.checkin_timestamps.map((ts: any, idx: number) => (
                           <div key={idx} className={`flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0 ${theme === 'dark' ? 'border-white/5' : 'border-gray-200'}`}>
-                            <span className="font-semibold text-gray-500">Check-in {idx + 1}</span>
+                            <span className="font-semibold text-gray-500">
+                              {record.checkin_timestamps.length === 4
+                                ? (idx === 0 ? '1st Half In' : idx === 1 ? '1st Half Out' : idx === 2 ? '2nd Half In' : '2nd Half Out')
+                                : (idx === 0 ? 'Check In' : 'Check Out')}
+                            </span>
                             <div className="flex items-center gap-2">
                               {ts === "Missed" ? (
                                 <span className="text-red-500 font-bold">Missed</span>
@@ -1393,21 +1430,47 @@ const FacultyAttendanceView: React.FC = () => {
                           </div>
                         )}
                       </div>
-                    ) : (record.check_in_time || record.check_out_time) && (
+                    ) : (record.first_check_in || record.check_in_time || record.second_check_out || record.check_out_time) && (
                       <div className={`space-y-2 p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                        {record.check_in_time && (
+                        {(record.first_check_in || record.check_in_time) && (
                           <div className="flex justify-between items-center">
-                            <span className="font-semibold text-gray-500">Check In</span> 
-                            <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                              {new Date(record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            <span className="font-semibold text-gray-500">{record.first_check_in ? '1st Half In' : 'Check In'}</span> 
+                            <span className={`font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              {new Date(record.first_check_in || record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              {record.delays?.[0] > 0 && (
+                                <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded shadow-sm">
+                                  +{record.delays[0]}m
+                                </span>
+                              )}
                             </span>
                           </div>
                         )}
-                        {record.check_out_time && (
+                        {record.first_check_out && (
                           <div className="flex justify-between items-center">
-                            <span className="font-semibold text-gray-500">Check Out</span> 
+                            <span className="font-semibold text-gray-500">1st Half Out</span> 
                             <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                              {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              {new Date(record.first_check_out).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            </span>
+                          </div>
+                        )}
+                        {record.second_check_in && (
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-gray-500">2nd Half In</span> 
+                            <span className={`font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              {new Date(record.second_check_in).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              {record.delays?.[2] > 0 && (
+                                <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded shadow-sm">
+                                  +{record.delays[2]}m
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        )}
+                        {(record.second_check_out || record.check_out_time) && (
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-gray-500">{record.second_check_out ? '2nd Half Out' : 'Check Out'}</span> 
+                            <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              {new Date(record.second_check_out || record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                             </span>
                           </div>
                         )}

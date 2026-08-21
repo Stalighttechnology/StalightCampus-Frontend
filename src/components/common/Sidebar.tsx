@@ -901,6 +901,14 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
               }
               return true;
             })
+            ?.filter(item => {
+              // Hide My Attendance page if org has disabled web attendance marking
+              const allowWebAttendance = user?.org_allow_web_attendance ?? true;
+              if (!allowWebAttendance && ['my-attendance', 'faculty-attendance'].includes(item.page)) {
+                return false;
+              }
+              return true;
+            })
             ?.map((item, index) => (
               <motion.div
                 key={item.page}
