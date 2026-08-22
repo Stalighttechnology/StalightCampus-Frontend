@@ -416,7 +416,7 @@ const SubjectManagement = () => {
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
                     <SelectItem value="regular">Regular</SelectItem>
-                    <SelectItem value="elective">{translateTerminology("Elective")}</SelectItem>
+                    <SelectItem value="elective">Elective/Labs</SelectItem>
                     <SelectItem value="open_elective">Open Elective</SelectItem>
                   </SelectContent>
                 </Select>
@@ -472,7 +472,7 @@ const SubjectManagement = () => {
                             <td className="px-4 py-3">{subject.name}</td>
                             <td className="px-4 py-3">{getSemesterNumber(subject.semester_id)}</td>
                             {getInstitutionType() !== 'school' && (
-                              <td className="px-4 py-3">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? 'Elective Subjects' : 'Open Elective Subjects'}</td>
+                              <td className="px-4 py-3">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? 'Elective/Labs' : 'Open Elective Subjects'}</td>
                             )}
                             {getInstitutionType() !== 'school' && (
                               <td className="px-4 py-3">{subject.credits ?? 0}</td>
@@ -501,7 +501,7 @@ const SubjectManagement = () => {
                           <div className="flex-1 pr-3">
                             <div className="text-xs text-gray-500 mb-1">{subject.subject_code} • {getSemesterNumber(subject.semester_id)}</div>
                             <div className="font-medium text-sm mb-1">{subject.name}</div>
-                            <div className="text-sm text-gray-500">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? translateTerminology("Elective") : 'Open Elective'} • {subject.credits ?? 0} credits</div>
+                            <div className="text-sm text-gray-500">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? 'Elective/Labs' : 'Open Elective'} • {subject.credits ?? 0} credits</div>
                           </div>
                           <div className="flex items-start gap-3">
                             <Pencil
@@ -665,7 +665,7 @@ const SubjectManagement = () => {
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                   <SelectItem value="regular">Regular</SelectItem>
-                  <SelectItem value="elective">Elective Subjects</SelectItem>
+                  <SelectItem value="elective">Elective/Labs</SelectItem>
                   <SelectItem value="open_elective">Open Elective Subjects</SelectItem>
                 </SelectContent>
               </Select>

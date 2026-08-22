@@ -582,6 +582,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Alumni Directory", page: "alumni-directory" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Staff Tasks", page: "staff-tasks" },
+      { name: "Apply Leave", page: "apply-leave" },
       { name: "Leave Requests", page: "admin-leaves" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "My Salary & Payroll", page: "my-payroll" },

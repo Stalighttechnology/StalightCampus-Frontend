@@ -36,10 +36,19 @@ interface LeaveRequest {
   leave_type: string;
   start_time?: string | null;
   end_time?: string | null;
+  is_half_day?: boolean;
+  half_day_session?: string | null;
   from: string;
   to: string;
   reason: string;
   status: string;
+  current_stage?: string;
+  alternate_faculty_name?: string | null;
+  alternate_duty_status?: string;
+  alternate_duty_remarks?: string;
+  hod_approval_status?: string;
+  intermediate_approval_status?: string;
+  principal_approval_status?: string;
 }
 
 interface HODLeavesManagementProps {
@@ -135,9 +144,18 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
             leave_type: leave.leave_type || "casual",
             start_time: leave.start_time,
             end_time: leave.end_time,
+            is_half_day: leave.is_half_day,
+            half_day_session: leave.half_day_session,
             from: leave.start_date || "N/A",
             to: leave.end_date || "N/A",
             reason: leave.reason || "N/A",
+            current_stage: leave.current_stage,
+            alternate_faculty_name: leave.alternate_faculty_name,
+            alternate_duty_status: leave.alternate_duty_status,
+            alternate_duty_remarks: leave.alternate_duty_remarks,
+            hod_approval_status: leave.hod_approval_status,
+            intermediate_approval_status: leave.intermediate_approval_status,
+            principal_approval_status: leave.principal_approval_status,
             status: leave.status === "APPROVED" ? "Approved" :
               leave.status === "REJECTED" ? "Rejected" :
                 leave.status === "PENDING" ? "Pending" :
@@ -500,7 +518,9 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                             <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
                               {leave.role?.replace('_', ' ')}
                             </span>
-                            <span className="text-xs text-muted-foreground font-medium">{leave.department}</span>
+                            {(['teacher', 'faculty', 'hod'].includes(leave.role?.toLowerCase()) && leave.department && leave.department !== 'General' && leave.department !== 'N/A') && (
+                              <span className="text-xs text-muted-foreground font-medium">{leave.department}</span>
+                            )}
                           </div>
                         </div>
                         <div className="shrink-0">{getStatusBadge(leave.status, theme)}</div>
@@ -546,28 +566,26 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                         </Button>
 
                         {leave.status === "Pending" ?
-                          <div className="leave-actions-mobile flex gap-2 w-full mt-2">
+                          <div className="grid grid-cols-2 gap-3 mt-2">
                             <Button
                               variant="outline"
-                              className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${theme === 'dark' ?
-                                'text-green-400 border-green-400 hover:bg-green-900/20' :
-                                'text-green-700 border-green-600 hover:bg-green-100'}`
-                              }
+                              className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
+                                  ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
+                                  : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                                }`}
                               onClick={() => handleApprove(leave.id)}
                               disabled={loading}>
-
-                              <CheckCircle size={15} /> Approve
+                              <CheckCircle size={16} /> Approve
                             </Button>
                             <Button
                               variant="outline"
-                              className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${theme === 'dark' ?
-                                'text-red-400 border-red-400 hover:bg-red-900/20' :
-                                'text-red-700 border-red-600 hover:bg-red-100'}`
-                              }
+                              className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
+                                  ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
+                                  : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                                }`}
                               onClick={() => handleReject(leave.id)}
                               disabled={loading}>
-
-                              <XCircle size={15} /> Reject
+                              <XCircle size={16} /> Reject
                             </Button>
                           </div> :
 
@@ -612,19 +630,36 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                             <span className="text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
                               {leave.role?.replace('_', ' ')}
                             </span>
-                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.department}</span>
+                            {(['teacher', 'faculty', 'hod'].includes(leave.role?.toLowerCase()) && leave.department && leave.department !== 'General' && leave.department !== 'N/A') && (
+                              <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.department}</span>
+                            )}
                           </div>
                         </td>
                         <td className="py-4 px-2 md:px-4 text-left">
                           <div className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</div>
-                          {leave.leave_type === 'short_permission' ? (
-                            <span className={`inline-block mt-0.5 text-[11px] font-medium px-1.5 py-0.2 rounded ${theme === 'dark' ? 'bg-purple-950/40 text-purple-300 border border-purple-800/40' : 'bg-purple-50 text-purple-700 border border-purple-200'}`}>
-                              Short Permission
+                          <div className="flex flex-col items-start gap-1 mt-1">
+                            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded w-fit ${
+                              leave.leave_type === 'short_permission' ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300' :
+                              leave.leave_type === 'earned' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' :
+                              leave.leave_type === 'rh' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300' :
+                              'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
+                            }`}>
+                              {leave.leave_type === 'casual' ? 'Casual (CL)' :
+                               leave.leave_type === 'earned' ? 'Earned (EL)' :
+                               leave.leave_type === 'rh' ? 'Holiday (RH)' :
+                               leave.leave_type === 'short_permission' ? 'Short Permission' :
+                               leave.leave_type}
                             </span>
-                          ) : (
-                            <span className={`inline-block mt-0.5 text-[11px] font-medium px-1.5 py-0.2 rounded ${theme === 'dark' ? 'bg-blue-950/40 text-blue-300' : 'bg-blue-50 text-blue-700'}`}>
-                              Standard Leave
-                            </span>
+                            {leave.is_half_day && (
+                              <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 w-fit">
+                                Half-Day ({leave.half_day_session?.toLowerCase() === 'forenoon' || leave.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
+                              </span>
+                            )}
+                          </div>
+                          {leave.alternate_faculty_name && (
+                            <div className="text-[11px] text-muted-foreground mt-1">
+                              Sub: <span className="font-medium text-foreground">{leave.alternate_faculty_name}</span> ({leave.alternate_duty_status})
+                            </div>
                           )}
                         </td>
                         <td className={`py-4 px-2 md:px-4 text-sm text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>

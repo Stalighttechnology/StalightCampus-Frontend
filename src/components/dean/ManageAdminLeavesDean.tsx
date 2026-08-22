@@ -252,10 +252,14 @@ const ManageAdminLeavesDean = () => {
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <div className="font-semibold text-base">{leave.faculty_name}</div>
-                            <div className="text-xs text-muted-foreground font-medium flex gap-1">
-                              <span>{leave.faculty_type === 'principal' ? 'Administration' : leave.department}</span>
-                              <span>•</span>
-                              <span>{leave.faculty_type.toUpperCase()}</span>
+                            <div className="text-xs text-muted-foreground font-medium flex items-center gap-1.5 mt-0.5">
+                              <span className="font-semibold uppercase tracking-wider">{leave.faculty_type?.replace('_', ' ')}</span>
+                              {(['teacher', 'faculty', 'hod'].includes(leave.faculty_type?.toLowerCase()) && leave.department && leave.department !== 'General' && leave.department !== 'Administration' && leave.department !== 'N/A') && (
+                                <>
+                                  <span>•</span>
+                                  <span>{leave.department}</span>
+                                </>
+                              )}
                             </div>
                           </div>
                           <div className="shrink-0">
@@ -365,7 +369,9 @@ const ManageAdminLeavesDean = () => {
                                 </span>
                               )}
                             </td>
-                            <td className="py-3 px-2 md:px-4">{leave.faculty_type === 'principal' ? 'Administration' : leave.department}</td>
+                            <td className="py-3 px-2 md:px-4">
+                              {(['teacher', 'faculty', 'hod'].includes(leave.faculty_type?.toLowerCase()) && leave.department && leave.department !== 'General' && leave.department !== 'Administration' && leave.department !== 'N/A') ? leave.department : '-'}
+                            </td>
                             <td className="py-3 px-2 md:px-4">
                               <div>{leave.start_date} {leave.start_date !== leave.end_date && <><span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {leave.end_date}</>}</div>
                               {leave.start_time && leave.end_time && (
@@ -598,7 +604,9 @@ const ManageAdminLeavesDean = () => {
                     {filteredRecentLeaves.map((leave) => (
                       <tr key={leave.id} className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
                         <td className="py-3 px-2 md:px-4 font-medium">{leave.faculty_name}</td>
-                        <td className="py-3 px-2 md:px-4">{leave.faculty_type === 'principal' ? 'Administration' : leave.department}</td>
+                        <td className="py-3 px-2 md:px-4">
+                          {(['teacher', 'faculty', 'hod'].includes(leave.faculty_type?.toLowerCase()) && leave.department && leave.department !== 'General' && leave.department !== 'Administration' && leave.department !== 'N/A') ? leave.department : '-'}
+                        </td>
                         <td className="py-3 px-2 md:px-4">{leave.start_date} <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {leave.end_date}</td>
                         <td className="py-3 px-2 md:px-4">
                           <Button
