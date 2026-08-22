@@ -66,13 +66,14 @@ data?: any)
   try {
     let url = `${API_ENDPOINT}/hms/${endpoint}`;
 
+    const isFormData = data instanceof FormData;
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
         Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-        "Content-Type": "application/json"
+        ...(isFormData ? {} : { "Content-Type": "application/json" })
       },
-      body: data ? JSON.stringify(data) : undefined
+      body: isFormData ? data : (data ? JSON.stringify(data) : undefined)
     });
 
     // Log cache information for debugging (only in development)

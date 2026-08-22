@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { manageOutsideStudents, getOutsideStudentFilterOptions, getFloorsByHostel, getRoomsByHostelId } from '../../utils/hms_api';
 import { useToast } from '../../hooks/use-toast';
-import { Search, Edit2, CheckCircle2, XCircle, UserCircle2, Building2, Loader2, Plus } from 'lucide-react';
+import { Search, Edit2, CheckCircle2, XCircle, UserCircle2, Building2, Loader2, Plus, Upload, Trash2, Eye, ExternalLink } from 'lucide-react';
 import { AdminPagination } from '../common/AdminPagination';
 import { SkeletonTable } from '../ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +36,9 @@ interface OutsideStudent {
   enrollment_no?: string;
   outside_course_name?: string;
   outside_year?: string;
+  outside_aadhaar_url?: string;
+  outside_consent_url?: string;
+  outside_id_proof_url?: string;
 }
 
 const getInitials = (name: string) => {
@@ -78,7 +81,9 @@ const OutsideStudentManagement: React.FC = () => {
   // Dialog States
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<OutsideStudent | null>(null);
+  const [viewingStudent, setViewingStudent] = useState<OutsideStudent | null>(null);
   const navigate = useNavigate();
 
   // Form States for Registration
@@ -92,8 +97,19 @@ const OutsideStudentManagement: React.FC = () => {
     outside_course_name: '',
     outside_year: ''
   });
+  const [aadhaarFile, setAadhaarFile] = useState<File | null>(null);
+  const [consentFile, setConsentFile] = useState<File | null>(null);
+  const [idProofFile, setIdProofFile] = useState<File | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  const courseOptions = institutionType === 'school' 
+    ? ['Science', 'Commerce', 'Arts', 'General']
+    : ['MBA', 'MCA', 'BBA', 'B.Com', 'B.Sc', 'B.A.', 'BE', 'B.Arch', 'Hostel Management', 'BCA', 'B.Tech', 'M.Tech', 'Diploma', 'Ph.D'];
+
+  const yearOptions = institutionType === 'school'
+    ? Array.from({ length: 12 }, (_, i) => `Grade ${i + 1}`)
+    : ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year', '6th Year', '7th Year', '8th Year'];
 
   const handleInputChange = (field: string, value: string) => {
     setAddFormData(prev => ({ ...prev, [field]: value }));
@@ -240,12 +256,35 @@ const OutsideStudentManagement: React.FC = () => {
       errors.phone = "Enter exactly 10 digits.";
     }
 
+    if (!addFormData.parent_name.trim()) {
+      errors.parent_name = "Parent's Name is required.";
+    }
+
+    const cleanParentPhone = addFormData.parent_contact.replace(/[\s\-\(\)]/g, '');
+    if (!addFormData.parent_contact.trim()) {
+      errors.parent_contact = "Parent's Contact Number is required.";
+    } else if (!/^\d{10}$/.test(cleanParentPhone)) {
+      errors.parent_contact = "Enter exactly 10 digits.";
+    }
+
     if (!addFormData.outside_course_name.trim()) {
       errors.outside_course_name = "Course Name is required.";
     }
 
     if (!addFormData.outside_year.trim()) {
       errors.outside_year = "Year is required.";
+    }
+
+    if (aadhaarFile && aadhaarFile.size > 5 * 1024 * 1024) {
+      errors.aadhaarFile = "File size must not exceed 5MB.";
+    }
+
+    if (consentFile && consentFile.size > 5 * 1024 * 1024) {
+      errors.consentFile = "File size must not exceed 5MB.";
+    }
+
+    if (idProofFile && idProofFile.size > 5 * 1024 * 1024) {
+      errors.idProofFile = "File size must not exceed 5MB.";
     }
 
     setFormErrors(errors);
@@ -258,16 +297,27 @@ const OutsideStudentManagement: React.FC = () => {
 
     setIsRegistering(true);
     try {
-      const payload = {
-        ...addFormData,
-        name: addFormData.name.trim(),
-        usn: addFormData.usn.trim(),
-        email: addFormData.email.trim(),
-        phone: addFormData.phone.trim(),
-        outside_course_name: addFormData.outside_course_name.trim(),
-        outside_year: addFormData.outside_year.trim()
-      };
-      const response = await manageOutsideStudents(undefined, payload, 'POST');
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', addFormData.name.trim());
+      formDataToSend.append('usn', addFormData.usn.trim());
+      formDataToSend.append('email', addFormData.email.trim());
+      formDataToSend.append('phone', addFormData.phone.trim());
+      formDataToSend.append('parent_name', addFormData.parent_name.trim());
+      formDataToSend.append('parent_contact', addFormData.parent_contact.trim());
+      formDataToSend.append('outside_course_name', addFormData.outside_course_name.trim());
+      formDataToSend.append('outside_year', addFormData.outside_year.trim());
+
+      if (aadhaarFile) {
+        formDataToSend.append('aadhaar_card', aadhaarFile);
+      }
+      if (consentFile) {
+        formDataToSend.append('parent_consent', consentFile);
+      }
+      if (idProofFile) {
+        formDataToSend.append('student_id_proof', idProofFile);
+      }
+
+      const response = await manageOutsideStudents(undefined, formDataToSend, 'POST');
       if (response.success) {
         showSuccessAlert("Registered!", `Outside Student registered successfully. Enrollment No: ${response.data?.enrollment_no || response.results?.[0]?.enrollment_no || ""}. Default password is 'stalight@123'.`);
         setIsAddDialogOpen(false);
@@ -281,6 +331,9 @@ const OutsideStudentManagement: React.FC = () => {
           outside_course_name: '',
           outside_year: ''
         });
+        setAadhaarFile(null);
+        setConsentFile(null);
+        setIdProofFile(null);
         setFormErrors({});
         fetchStudents();
         fetchCourses();
@@ -338,6 +391,11 @@ const OutsideStudentManagement: React.FC = () => {
     } finally {
       setIsLoadingRooms(false);
     }
+  };
+
+  const handleViewStudent = (student: OutsideStudent) => {
+    setViewingStudent(student);
+    setIsViewDialogOpen(true);
   };
 
   const handleEdit = (student: OutsideStudent) => {
@@ -467,94 +525,234 @@ const OutsideStudentManagement: React.FC = () => {
                   Register Outside Student
                 </Button>
               </DialogTrigger>
-              <DialogContent className="w-[90%] max-w-[90%] sm:max-w-[500px] rounded-xl" onInteractOutside={(e) => e.preventDefault()}>
-                <DialogHeader>
+              <DialogContent className="w-[90%] max-w-[90%] sm:max-w-[500px] rounded-xl flex flex-col max-h-[90vh]" onInteractOutside={(e) => e.preventDefault()}>
+                <DialogHeader className="px-1">
                   <DialogTitle>Register Outside Student</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleAddSubmit} className="space-y-4 pt-2">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full Name *</Label>
-                      <Input
-                        id="name"
-                        value={addFormData.name}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
-                        className={formErrors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
-                      />
-                      {formErrors.name && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.name}</p>}
+                <form onSubmit={handleAddSubmit} className="space-y-4 pt-2 overflow-hidden flex flex-col flex-1">
+                  <div className="flex-1 overflow-y-auto px-1 space-y-4 pb-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Full Name <span className="text-red-500">*</span></Label>
+                        <Input
+                          id="name"
+                          value={addFormData.name}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          className={formErrors.name ? "border-red-500 focus-visible:ring-red-500 rounded-xl" : "rounded-xl"}
+                        />
+                        {formErrors.name && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.name}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="usn">{translateTerminology("USN")} / Custom ID <span className="text-red-500">*</span></Label>
+                        <Input
+                          id="usn"
+                          placeholder="e.g. OUT-1001"
+                          value={addFormData.usn}
+                          onChange={(e) => handleInputChange('usn', e.target.value)}
+                          className={formErrors.usn ? "border-red-500 focus-visible:ring-red-500 rounded-xl" : "rounded-xl"}
+                        />
+                        {formErrors.usn && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.usn}</p>}
+                      </div>
                     </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email Address <span className="text-red-500">*</span></Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={addFormData.email}
+                          onChange={(e) => handleInputChange('email', e.target.value)}
+                          className={formErrors.email ? "border-red-500 focus-visible:ring-red-500 rounded-xl" : "rounded-xl"}
+                        />
+                        {formErrors.email && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.email}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number <span className="text-red-500">*</span></Label>
+                        <Input
+                          id="phone"
+                          value={addFormData.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          maxLength={10}
+                          className={formErrors.phone ? "border-red-500 focus-visible:ring-red-500 rounded-xl" : "rounded-xl"}
+                        />
+                        {formErrors.phone && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.phone}</p>}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="parent_name">Parent's Name <span className="text-red-500">*</span></Label>
+                        <Input
+                          id="parent_name"
+                          value={addFormData.parent_name}
+                          onChange={(e) => handleInputChange('parent_name', e.target.value)}
+                          className={formErrors.parent_name ? "border-red-500 focus-visible:ring-red-500 rounded-xl" : "rounded-xl"}
+                        />
+                        {formErrors.parent_name && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.parent_name}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="parent_contact">Parent's Contact Number <span className="text-red-500">*</span></Label>
+                        <Input
+                          id="parent_contact"
+                          value={addFormData.parent_contact}
+                          onChange={(e) => handleInputChange('parent_contact', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          maxLength={10}
+                          className={formErrors.parent_contact ? "border-red-500 focus-visible:ring-red-500 rounded-xl" : "rounded-xl"}
+                        />
+                        {formErrors.parent_contact && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.parent_contact}</p>}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="outside_course_name">{institutionType === 'school' ? 'Stream Name' : 'Course Name'} <span className="text-red-500">*</span></Label>
+                        <Select value={addFormData.outside_course_name} onValueChange={(val) => handleInputChange('outside_course_name', val)}>
+                          <SelectTrigger id="outside_course_name" className={formErrors.outside_course_name ? "border-red-500 focus-visible:ring-red-500 rounded-xl" : "rounded-xl"}>
+                            <SelectValue placeholder="Select Course" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl">
+                            {courseOptions.map((opt) => (
+                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {formErrors.outside_course_name && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.outside_course_name}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="outside_year">{institutionType === 'school' ? 'Class / Grade' : 'Year'} <span className="text-red-500">*</span></Label>
+                        <Select value={addFormData.outside_year} onValueChange={(val) => handleInputChange('outside_year', val)}>
+                          <SelectTrigger id="outside_year" className={formErrors.outside_year ? "border-red-500 focus-visible:ring-red-500 rounded-xl" : "rounded-xl"}>
+                            <SelectValue placeholder="Select Year" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl">
+                            {yearOptions.map((opt) => (
+                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {formErrors.outside_year && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.outside_year}</p>}
+                      </div>
+                    </div>
+
+                    {/* Aadhaar File Upload */}
                     <div className="space-y-2">
-                      <Label htmlFor="usn">{translateTerminology("USN")} / Custom ID *</Label>
-                      <Input
-                        id="usn"
-                        placeholder="e.g. OUT-1001"
-                        value={addFormData.usn}
-                        onChange={(e) => handleInputChange('usn', e.target.value)}
-                        className={formErrors.usn ? "border-red-500 focus-visible:ring-red-500" : ""}
-                      />
-                      {formErrors.usn && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.usn}</p>}
+                      <Label>Aadhaar Card / ID Proof</Label>
+                      <div className="relative border-2 border-dashed border-primary/10 rounded-xl p-3 bg-muted/5 hover:bg-muted/10 transition-colors flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <Upload className="w-4 h-4 text-primary shrink-0" />
+                          <span className="text-xs text-muted-foreground truncate font-medium">
+                            {aadhaarFile ? aadhaarFile.name : "Upload Aadhaar / ID Proof (PDF, PNG, JPG)"}
+                          </span>
+                        </div>
+                        <Input
+                          type="file"
+                          accept=".pdf,.png,.jpg,.jpeg"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null;
+                            setAadhaarFile(file);
+                            if (formErrors.aadhaarFile) setFormErrors(prev => ({ ...prev, aadhaarFile: '' }));
+                          }}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                        {aadhaarFile && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAadhaarFile(null);
+                            }}
+                            className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-500/10 transition-colors shrink-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      {formErrors.aadhaarFile && <p className="text-xs text-red-500 font-medium mt-0.5">{formErrors.aadhaarFile}</p>}
+                    </div>
+
+                    {/* Parent Consent File Upload */}
+                    <div className="space-y-2">
+                      <Label>Parent Consent Document</Label>
+                      <div className="relative border-2 border-dashed border-primary/10 rounded-xl p-3 bg-muted/5 hover:bg-muted/10 transition-colors flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <Upload className="w-4 h-4 text-primary shrink-0" />
+                          <span className="text-xs text-muted-foreground truncate font-medium">
+                            {consentFile ? consentFile.name : "Upload Parent Consent Document (PDF, PNG, JPG)"}
+                          </span>
+                        </div>
+                        <Input
+                          type="file"
+                          accept=".pdf,.png,.jpg,.jpeg"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null;
+                            setConsentFile(file);
+                            if (formErrors.consentFile) setFormErrors(prev => ({ ...prev, consentFile: '' }));
+                          }}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                        {consentFile && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConsentFile(null);
+                            }}
+                            className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-500/10 transition-colors shrink-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      {formErrors.consentFile && <p className="text-xs text-red-500 font-medium mt-0.5">{formErrors.consentFile}</p>}
+                    </div>
+
+                    {/* Student ID Proof File Upload */}
+                    <div className="space-y-2">
+                      <Label>Student ID Proof / Verification</Label>
+                      <div className="relative border-2 border-dashed border-primary/10 rounded-xl p-3 bg-muted/5 hover:bg-muted/10 transition-colors flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <Upload className="w-4 h-4 text-primary shrink-0" />
+                          <span className="text-xs text-muted-foreground truncate font-medium">
+                            {idProofFile ? idProofFile.name : "Upload Student ID Proof (PDF, PNG, JPG)"}
+                          </span>
+                        </div>
+                        <Input
+                          type="file"
+                          accept=".pdf,.png,.jpg,.jpeg"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null;
+                            setIdProofFile(file);
+                            if (formErrors.idProofFile) setFormErrors(prev => ({ ...prev, idProofFile: '' }));
+                          }}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                        {idProofFile && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIdProofFile(null);
+                            }}
+                            className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-500/10 transition-colors shrink-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      {formErrors.idProofFile && <p className="text-xs text-red-500 font-medium mt-0.5">{formErrors.idProofFile}</p>}
+                    </div>
+
+                    <div className="text-xs text-muted-foreground italic pt-1">
+                      * Hostel Enrollment No. will be automatically generated upon registration.
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={addFormData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        className={formErrors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
-                      />
-                      {formErrors.email && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.email}</p>}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number *</Label>
-                      <Input
-                        id="phone"
-                        value={addFormData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
-                        maxLength={10}
-                        className={formErrors.phone ? "border-red-500 focus-visible:ring-red-500" : ""}
-                      />
-                      {formErrors.phone && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.phone}</p>}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="outside_course_name">{institutionType === 'school' ? 'Stream Name *' : 'Course Name *'}</Label>
-                      <Input
-                        id="outside_course_name"
-                        placeholder={institutionType === 'school' ? "e.g. Science, Commerce, Arts" : "e.g. MBA, MCA, Diploma"}
-                        value={addFormData.outside_course_name}
-                        onChange={(e) => handleInputChange('outside_course_name', e.target.value)}
-                        className={formErrors.outside_course_name ? "border-red-500 focus-visible:ring-red-500" : ""}
-                      />
-                      {formErrors.outside_course_name && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.outside_course_name}</p>}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="outside_year">{institutionType === 'school' ? 'Class / Grade *' : 'Year *'}</Label>
-                      <Input
-                        id="outside_year"
-                        placeholder={institutionType === 'school' ? "e.g. Grade 10, Grade 12" : "e.g. 1st Year, 2nd Year"}
-                        value={addFormData.outside_year}
-                        onChange={(e) => handleInputChange('outside_year', e.target.value)}
-                        className={formErrors.outside_year ? "border-red-500 focus-visible:ring-red-500" : ""}
-                      />
-                      {formErrors.outside_year && <p className="text-xs text-red-500 font-medium mt-1">{formErrors.outside_year}</p>}
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-muted-foreground italic">
-                    * Hostel Enrollment No. will be automatically generated upon registration.
-                  </div>
-
-                  <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={isRegistering}>
+                  <DialogFooter className="pt-3 border-t px-1 mt-auto">
+                    <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={isRegistering} className="rounded-xl">
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={isRegistering} className="min-w-[140px]">
+                    <Button type="submit" disabled={isRegistering} className="min-w-[140px] rounded-xl">
                       {isRegistering ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -765,15 +963,26 @@ const OutsideStudentManagement: React.FC = () => {
                           </Button>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(student)}
-                            className="flex items-center gap-1.5 ml-auto"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                            Allot Room
-                          </Button>
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewStudent(student)}
+                              className="flex items-center gap-1.5 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary transition-all duration-200"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              View
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(student)}
+                              className="flex items-center gap-1.5 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary transition-all duration-200"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                              Allot Room
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -815,6 +1024,176 @@ const OutsideStudentManagement: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Outside Student View Details Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-[90vw] sm:max-w-2xl rounded-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <UserCircle2 className="w-6 h-6 text-primary" />
+              Outside Student Profile
+            </DialogTitle>
+          </DialogHeader>
+          {viewingStudent && (
+            <div className="space-y-6 pt-4">
+              {/* Header card */}
+              <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex gap-4 items-center">
+                <Avatar className="w-14 h-14 border border-primary/10">
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold text-xl">
+                    {getInitials(viewingStudent.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">{viewingStudent.name}</h3>
+                  <p className="text-xs text-muted-foreground font-mono">{viewingStudent.usn}</p>
+                  {viewingStudent.enrollment_no && (
+                    <span className="inline-block text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded mt-1">
+                      Enrollment: {viewingStudent.enrollment_no}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Academic & Contact Info */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-slate-400">Academic & Contact</h4>
+                  <div className="bg-slate-50 p-4 rounded-xl space-y-3 border border-slate-100">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">Course & Year</span>
+                      <span className="text-sm font-semibold text-slate-700">
+                        {viewingStudent.outside_course_name || '—'} ({viewingStudent.outside_year || '—'})
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">Email Address</span>
+                      <span className="text-sm font-semibold text-slate-700 break-all">{viewingStudent.user_email}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">Phone Number</span>
+                      <span className="text-sm font-semibold text-slate-700">{viewingStudent.phone}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Parent Info */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-slate-400">Parent / Guardian</h4>
+                  <div className="bg-slate-50 p-4 rounded-xl space-y-3 border border-slate-100">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">Parent's Name</span>
+                      <span className="text-sm font-semibold text-slate-700">{viewingStudent.parent_name || '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">Parent's Contact</span>
+                      <span className="text-sm font-semibold text-slate-700">{viewingStudent.parent_contact || '—'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Room & Status Info */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold uppercase tracking-wider text-slate-400">Hostel Allocation & Status</h4>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Room Details</span>
+                    {viewingStudent.room_allotted && viewingStudent.room_name ? (
+                      <span className="text-sm font-semibold text-slate-700 block">
+                        {viewingStudent.room_hostel_name} — Room {viewingStudent.room_name} (Floor {viewingStudent.room_floor})
+                      </span>
+                    ) : (
+                      <span className="text-sm font-semibold text-slate-500 block">Unallotted</span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Allocation Status</span>
+                    <span className="inline-block mt-1">
+                      {viewingStudent.room_allotted ? (
+                        <Badge className="bg-green-50 text-green-700 border-green-200">Allotted</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-slate-500">Pending</Badge>
+                      )}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Dues Status</span>
+                    <span className="inline-block mt-1">
+                      {viewingStudent.no_dues ? (
+                        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">No Dues</Badge>
+                      ) : (
+                        <Badge variant="destructive">Has Dues</Badge>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Uploaded Verification Documents */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold uppercase tracking-wider text-slate-400">Verification Documents</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Aadhaar */}
+                  <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex flex-col justify-between h-24">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Aadhaar Card</span>
+                    {viewingStudent.outside_aadhaar_url ? (
+                      <a
+                        href={viewingStudent.outside_aadhaar_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-semibold text-primary flex items-center gap-1 mt-2 hover:underline"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> View Aadhaar Proof
+                      </a>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic block mt-2">Not Uploaded</span>
+                    )}
+                  </div>
+
+                  {/* Parent Consent */}
+                  <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex flex-col justify-between h-24">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Parent Consent</span>
+                    {viewingStudent.outside_consent_url ? (
+                      <a
+                        href={viewingStudent.outside_consent_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-semibold text-primary flex items-center gap-1 mt-2 hover:underline"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> View Consent Doc
+                      </a>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic block mt-2">Not Uploaded</span>
+                    )}
+                  </div>
+
+                  {/* Student ID Proof */}
+                  <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex flex-col justify-between h-24">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Student ID Proof</span>
+                    {viewingStudent.outside_id_proof_url ? (
+                      <a
+                        href={viewingStudent.outside_id_proof_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-semibold text-primary flex items-center gap-1 mt-2 hover:underline"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> View ID Proof
+                      </a>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic block mt-2">Not Uploaded</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="mt-6 border-t border-slate-100 pt-4">
+            <Button onClick={() => setIsViewDialogOpen(false)} className="bg-slate-200 hover:bg-slate-300 text-slate-800 border-none transition-all">
+              Close Profile
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Room Allocation Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
