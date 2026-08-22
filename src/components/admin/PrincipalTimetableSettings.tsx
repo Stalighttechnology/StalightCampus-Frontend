@@ -1658,7 +1658,7 @@ export default function PrincipalTimetableSettings() {
                       <div className={`rounded-xl border divide-y ${theme === 'dark' ? 'bg-background border-border divide-border' : 'bg-slate-50/50 border-gray-200 divide-gray-100'}`}>
                         {[
                           { roleKey: 'teacher', label: 'Faculty / Teacher Leaves', defaultStages: ['hod', 'principal'] },
-                          { roleKey: 'hod', label: 'Head of Department (HOD) Leaves', defaultStages: ['principal'] },
+                          { roleKey: 'hod', label: 'Head of Department (HOD) Leaves', defaultStages: ['dean', 'principal'] },
                           { roleKey: 'dean', label: 'Dean Leaves', defaultStages: ['principal'] },
                           { roleKey: 'coe', label: 'COE Leaves', defaultStages: ['principal'] },
                           { roleKey: 'fees_manager', label: 'Fees Manager Leaves', defaultStages: ['principal'] },
@@ -1671,6 +1671,21 @@ export default function PrincipalTimetableSettings() {
                           { roleKey: 'placement_officer', label: 'Placement Officer Leaves', defaultStages: ['principal'] },
                           { roleKey: 'admission_manager', label: 'Admission Manager Leaves', defaultStages: ['principal'] }
                         ].map((item) => {
+                          const ALL_APPROVER_OPTIONS = [
+                            { value: 'hod', label: 'Head of Department (HOD)' },
+                            { value: 'principal', label: 'Principal' },
+                            { value: 'dean', label: 'Dean' },
+                            { value: 'admission_manager', label: 'Admission Manager' },
+                            { value: 'hms_admin', label: 'HMS Admin' },
+                            { value: 'transport_admin', label: 'Transport Admin' },
+                            { value: 'coe', label: 'COE' },
+                            { value: 'fees_manager', label: 'Fees Manager' }
+                          ];
+
+                          // Hide applicant's own role from approver options
+                          const availableApprovers = ALL_APPROVER_OPTIONS.filter((opt) => opt.value !== item.roleKey);
+                          const defaultFallbackApprover = availableApprovers.find(a => a.value !== 'principal')?.value || 'principal';
+
                           const rawConfig = leavePolicy.leave_approval_routing?.[item.roleKey];
                           let stages: string[] = item.defaultStages;
                           let numStages: number = item.defaultStages.length;
@@ -1679,7 +1694,7 @@ export default function PrincipalTimetableSettings() {
                             stages = rawConfig.stages.filter((s: string) => s && s !== 'alternate_duty');
                             numStages = rawConfig.num_stages || stages.length || item.defaultStages.length;
                           } else if (typeof rawConfig === 'string' && rawConfig) {
-                            if (rawConfig === 'hod') stages = ['hod', 'principal'];
+                            if (rawConfig === 'hod') stages = item.roleKey === 'hod' ? ['dean', 'principal'] : ['hod', 'principal'];
                             else if (rawConfig === 'admission_manager') stages = ['admission_manager', 'principal'];
                             else if (rawConfig === 'hms_admin') stages = ['hms_admin', 'principal'];
                             else if (rawConfig === 'transport_admin') stages = ['transport_admin', 'principal'];
@@ -1687,6 +1702,9 @@ export default function PrincipalTimetableSettings() {
                             else stages = [rawConfig];
                             numStages = stages.length;
                           }
+
+                          // Replace any accidental assignment of own role with a valid fallback
+                          stages = stages.map(stg => stg === item.roleKey ? defaultFallbackApprover : stg);
 
                           // Ensure stages array matches numStages length
                           while (stages.length < numStages) {
@@ -1696,21 +1714,47 @@ export default function PrincipalTimetableSettings() {
 
                           const handleStageCountChange = (countStr: string) => {
                             const count = parseInt(countStr, 10);
-                            let newStages = [...stages];
+                            let newStages: string[] = [];
+
                             if (count === 1) {
                               newStages = ['principal'];
                             } else if (count === 2) {
-                              newStages = item.roleKey === 'teacher' ? ['hod', 'principal'] : ['hod', 'principal'];
+                              if (item.roleKey === 'teacher') {
+                                newStages = ['hod', 'principal'];
+                              } else if (item.roleKey === 'hod') {
+                                newStages = ['dean', 'principal'];
+                              } else if (item.roleKey === 'warden') {
+                                newStages = ['hms_admin', 'principal'];
+                              } else if (item.roleKey === 'driver') {
+                                newStages = ['transport_admin', 'principal'];
+                              } else if (item.roleKey === 'counsellor') {
+                                newStages = ['admission_manager', 'principal'];
+                              } else {
+                                newStages = [defaultFallbackApprover, 'principal'];
+                              }
                             } else if (count === 3) {
-                              newStages = ['hod', 'dean', 'principal'];
+                              if (item.roleKey === 'hod') {
+                                newStages = ['dean', 'coe', 'principal'];
+                              } else if (item.roleKey === 'teacher') {
+                                newStages = ['hod', 'dean', 'principal'];
+                              } else {
+                                newStages = ['hms_admin', 'dean', 'principal'].filter(r => r !== item.roleKey);
+                                while (newStages.length < 3) {
+                                  newStages.push('principal');
+                                }
+                              }
                             }
+
+                            // Ensure applicant's own role is never in stages
+                            newStages = newStages.map(stg => stg === item.roleKey ? defaultFallbackApprover : stg);
+
                             setLeavePolicy({
                               ...leavePolicy,
                               leave_approval_routing: {
                                 ...(leavePolicy.leave_approval_routing || {}),
                                 [item.roleKey]: {
                                   num_stages: count,
-                                  stages: newStages
+                                  stages: newStages.slice(0, count)
                                 }
                               }
                             });
@@ -1769,31 +1813,34 @@ export default function PrincipalTimetableSettings() {
 
                               {/* Dynamic Dropdowns for Each Stage */}
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                                {Array.from({ length: numStages }).map((_, idx) => (
-                                  <div key={idx} className="space-y-1">
-                                    <Label className="text-[11px] font-medium text-muted-foreground">
-                                      Stage {idx + 1} Approver:
-                                    </Label>
-                                    <Select
-                                      value={stages[idx] || (idx === numStages - 1 ? 'principal' : 'hod')}
-                                      onValueChange={(val) => handleStageApproverChange(idx, val)}
-                                    >
-                                      <SelectTrigger className={`w-full h-9 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
-                                        <SelectValue placeholder={`Select stage ${idx + 1} approver`} />
-                                      </SelectTrigger>
-                                      <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                                        <SelectItem value="hod">Head of Department (HOD)</SelectItem>
-                                        <SelectItem value="principal">Principal</SelectItem>
-                                        <SelectItem value="dean">Dean</SelectItem>
-                                        <SelectItem value="admission_manager">Admission Manager</SelectItem>
-                                        <SelectItem value="hms_admin">HMS Admin</SelectItem>
-                                        <SelectItem value="transport_admin">Transport Admin</SelectItem>
-                                        <SelectItem value="coe">COE</SelectItem>
-                                        <SelectItem value="fees_manager">Fees Manager</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                ))}
+                                {Array.from({ length: numStages }).map((_, idx) => {
+                                  const currentVal = availableApprovers.some(opt => opt.value === stages[idx])
+                                    ? stages[idx]
+                                    : (idx === numStages - 1 ? 'principal' : defaultFallbackApprover);
+
+                                  return (
+                                    <div key={idx} className="space-y-1">
+                                      <Label className="text-[11px] font-medium text-muted-foreground">
+                                        Stage {idx + 1} Approver:
+                                      </Label>
+                                      <Select
+                                        value={currentVal}
+                                        onValueChange={(val) => handleStageApproverChange(idx, val)}
+                                      >
+                                        <SelectTrigger className={`w-full h-9 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
+                                          <SelectValue placeholder={`Select stage ${idx + 1} approver`} />
+                                        </SelectTrigger>
+                                        <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                          {availableApprovers.map((opt) => (
+                                            <SelectItem key={opt.value} value={opt.value}>
+                                              {opt.label}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  );
+                                })}
                               </div>
 
                               {/* Live Visual Pipeline Preview */}
