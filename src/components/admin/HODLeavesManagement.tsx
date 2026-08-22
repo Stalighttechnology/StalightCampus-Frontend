@@ -518,7 +518,9 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                             <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
                               {leave.role?.replace('_', ' ')}
                             </span>
-                            <span className="text-xs text-muted-foreground font-medium">{leave.department}</span>
+                            {(['teacher', 'faculty', 'hod'].includes(leave.role?.toLowerCase()) && leave.department && leave.department !== 'General' && leave.department !== 'N/A') && (
+                              <span className="text-xs text-muted-foreground font-medium">{leave.department}</span>
+                            )}
                           </div>
                         </div>
                         <div className="shrink-0">{getStatusBadge(leave.status, theme)}</div>
@@ -564,28 +566,26 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                         </Button>
 
                         {leave.status === "Pending" ?
-                          <div className="leave-actions-mobile flex gap-2 w-full mt-2">
+                          <div className="grid grid-cols-2 gap-3 mt-2">
                             <Button
                               variant="outline"
-                              className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${theme === 'dark' ?
-                                'text-green-400 border-green-400 hover:bg-green-900/20' :
-                                'text-green-700 border-green-600 hover:bg-green-100'}`
-                              }
+                              className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
+                                  ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
+                                  : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                                }`}
                               onClick={() => handleApprove(leave.id)}
                               disabled={loading}>
-
-                              <CheckCircle size={15} /> Approve
+                              <CheckCircle size={16} /> Approve
                             </Button>
                             <Button
                               variant="outline"
-                              className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${theme === 'dark' ?
-                                'text-red-400 border-red-400 hover:bg-red-900/20' :
-                                'text-red-700 border-red-600 hover:bg-red-100'}`
-                              }
+                              className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
+                                  ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
+                                  : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                                }`}
                               onClick={() => handleReject(leave.id)}
                               disabled={loading}>
-
-                              <XCircle size={15} /> Reject
+                              <XCircle size={16} /> Reject
                             </Button>
                           </div> :
 
@@ -630,7 +630,9 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                             <span className="text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
                               {leave.role?.replace('_', ' ')}
                             </span>
-                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.department}</span>
+                            {(['teacher', 'faculty', 'hod'].includes(leave.role?.toLowerCase()) && leave.department && leave.department !== 'General' && leave.department !== 'N/A') && (
+                              <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.department}</span>
+                            )}
                           </div>
                         </td>
                         <td className="py-4 px-2 md:px-4 text-left">

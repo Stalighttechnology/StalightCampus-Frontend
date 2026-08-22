@@ -672,7 +672,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-base text-foreground">{req.applicant_name}</span>
                             <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground capitalize font-medium">
-                              {req.applicant_role} • {req.department}
+                              {req.applicant_role?.replace('_', ' ')}
+                              {(['teacher', 'faculty', 'hod'].includes(req.applicant_role?.toLowerCase()) && req.department && req.department !== 'General' && req.department !== 'Unknown' && req.department !== 'N/A') ? ` • ${req.department}` : ''}
                             </span>
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">

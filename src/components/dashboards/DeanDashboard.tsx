@@ -1,5 +1,6 @@
 import FacultyPayroll from "../faculty/FacultyPayroll";
 import FacultyAttendance from "../faculty/FacultyAttendance";
+import ApplyLeave from "../faculty/ApplyLeave";
 import { useState, useEffect, Component, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import ExternalLinksPage from "../admin/ExternalLinksPage";
@@ -48,6 +49,8 @@ const getActivePageFromPath = (pathname: string): string => {
       'my-payroll': 'my-payroll',
       'my-attendance': 'my-attendance',
       'staff-tasks': 'staff-tasks',
+      'apply-leave': 'apply-leave',
+      'leaves': 'apply-leave',
     'dashboard': 'dashboard',
       'holiday-calendar': '/dean/holiday-calendar',
       'holiday-calendar': 'holiday-calendar',
@@ -129,6 +132,9 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <div><DeanAttendanceRecords /></div>;
       case 'profile':
         return <div><DeanProfile /></div>;
+      case 'apply-leave':
+      case 'leaves':
+        return <ApplyLeave />;
       case 'admin-leaves':
         return <ManageAdminLeavesDean />;
       case 'enroll-user':

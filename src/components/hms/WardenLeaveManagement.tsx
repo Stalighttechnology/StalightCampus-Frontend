@@ -456,10 +456,14 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="font-semibold text-base">{leave.name}</div>
-                          <div className="text-xs text-muted-foreground font-medium flex gap-1">
+                          <div className="text-xs text-muted-foreground font-medium flex items-center gap-1.5 mt-0.5">
                             <span>{leave.role === 'transport_admin' ? 'Transport Admin' : leave.role === 'library_admin' ? 'Library Admin' : leave.role === 'hms_admin' ? 'Hostel Admin' : leave.role}</span>
-                            <span>•</span>
-                            <span>{leave.department}</span>
+                            {(['teacher', 'faculty', 'hod'].includes(leave.role?.toLowerCase()) && leave.department && leave.department !== 'General' && leave.department !== 'N/A') && (
+                              <>
+                                <span>•</span>
+                                <span>{leave.department}</span>
+                              </>
+                            )}
                           </div>
                         </div>
                         <div className="shrink-0">{getStatusBadge(leave.status, theme)}</div>
@@ -548,7 +552,8 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
                         <td className="py-4 px-2 md:px-4">
                           <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.name}</div>
                           <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            {leave.role === 'transport_admin' ? 'Transport Admin' : leave.role === 'library_admin' ? 'Library Admin' : leave.role === 'hms_admin' ? 'Hostel Admin' : leave.role} • {leave.department}
+                            {leave.role === 'transport_admin' ? 'Transport Admin' : leave.role === 'library_admin' ? 'Library Admin' : leave.role === 'hms_admin' ? 'Hostel Admin' : leave.role}
+                            {(['teacher', 'faculty', 'hod'].includes(leave.role?.toLowerCase()) && leave.department && leave.department !== 'General' && leave.department !== 'N/A') ? ` • ${leave.department}` : ''}
                           </div>
                         </td>
                         <td className={`py-4 px-2 md:px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
