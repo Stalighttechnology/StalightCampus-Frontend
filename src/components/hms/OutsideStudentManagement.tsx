@@ -275,16 +275,16 @@ const OutsideStudentManagement: React.FC = () => {
       errors.outside_year = "Year is required.";
     }
 
-    if (aadhaarFile && aadhaarFile.size > 5 * 1024 * 1024) {
-      errors.aadhaarFile = "File size must not exceed 5MB.";
+    if (aadhaarFile && aadhaarFile.size > 1 * 1024 * 1024) {
+      errors.aadhaarFile = "File size must not exceed 1MB.";
     }
 
-    if (consentFile && consentFile.size > 5 * 1024 * 1024) {
-      errors.consentFile = "File size must not exceed 5MB.";
+    if (consentFile && consentFile.size > 1 * 1024 * 1024) {
+      errors.consentFile = "File size must not exceed 1MB.";
     }
 
-    if (idProofFile && idProofFile.size > 5 * 1024 * 1024) {
-      errors.idProofFile = "File size must not exceed 5MB.";
+    if (idProofFile && idProofFile.size > 1 * 1024 * 1024) {
+      errors.idProofFile = "File size must not exceed 1MB.";
     }
 
     setFormErrors(errors);
@@ -642,7 +642,7 @@ const OutsideStudentManagement: React.FC = () => {
                         <div className="flex items-center gap-2 overflow-hidden">
                           <Upload className="w-4 h-4 text-primary shrink-0" />
                           <span className="text-xs text-muted-foreground truncate font-medium">
-                            {aadhaarFile ? aadhaarFile.name : "Upload Aadhaar / ID Proof (PDF, PNG, JPG)"}
+                            {aadhaarFile ? aadhaarFile.name : "Upload Aadhaar / ID Proof (PDF, PNG, JPG) (Max 1MB)"}
                           </span>
                         </div>
                         <Input
@@ -678,7 +678,7 @@ const OutsideStudentManagement: React.FC = () => {
                         <div className="flex items-center gap-2 overflow-hidden">
                           <Upload className="w-4 h-4 text-primary shrink-0" />
                           <span className="text-xs text-muted-foreground truncate font-medium">
-                            {consentFile ? consentFile.name : "Upload Parent Consent Document (PDF, PNG, JPG)"}
+                            {consentFile ? consentFile.name : "Upload Parent Consent Document (PDF, PNG, JPG) (Max 1MB)"}
                           </span>
                         </div>
                         <Input
@@ -714,7 +714,7 @@ const OutsideStudentManagement: React.FC = () => {
                         <div className="flex items-center gap-2 overflow-hidden">
                           <Upload className="w-4 h-4 text-primary shrink-0" />
                           <span className="text-xs text-muted-foreground truncate font-medium">
-                            {idProofFile ? idProofFile.name : "Upload Student ID Proof (PDF, PNG, JPG)"}
+                            {idProofFile ? idProofFile.name : "Upload Student ID Proof (PDF, PNG, JPG) (Max 1MB)"}
                           </span>
                         </div>
                         <Input
@@ -744,7 +744,7 @@ const OutsideStudentManagement: React.FC = () => {
                     </div>
 
                     <div className="text-xs text-muted-foreground italic pt-1">
-                      * Hostel Enrollment No. will be automatically generated upon registration.
+                      * Hostel Enrollment No. will be automatically generated upon registration. (All uploaded documents must be less than 1MB)
                     </div>
                   </div>
 
