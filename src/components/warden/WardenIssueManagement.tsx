@@ -26,6 +26,7 @@ import { API_ENDPOINT } from '../../utils/config';
 import { useToast } from '../../hooks/use-toast';
 import { useTheme } from '../../context/ThemeContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -348,18 +349,18 @@ const WardenIssueManagement = () => {
                     </Select>
                   </div>
 
-                  <div className="relative flex-1 sm:flex-none" ref={filterRef}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowFilter(!showFilter)}
-                      className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white h-9 px-3.5 rounded-xl font-semibold text-xs gap-1.5"
-                    >
-                      <Filter className="w-3.5 h-3.5" /> Filter
-                    </Button>
-                    
-                    {showFilter && (
-                      <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-xl shadow-xl z-50 p-1`}>
+                  <div className="relative flex-1 sm:flex-none">
+                    <Popover open={showFilter} onOpenChange={setShowFilter}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white h-9 px-3.5 rounded-xl font-semibold text-xs gap-1.5"
+                        >
+                          <Filter className="w-3.5 h-3.5" /> Filter
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="end" className={`w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-xl shadow-xl z-50 p-1`}>
                         {[
                           { label: 'All Status', value: 'all' },
                           { label: 'Pending', value: 'pending' },
@@ -387,8 +388,8 @@ const WardenIssueManagement = () => {
                             {item.label}
                           </button>
                         ))}
-                      </div>
-                    )}
+                      </PopoverContent>
+                    </Popover>
                   </div>
 
                   {totalCount > 0 && (
