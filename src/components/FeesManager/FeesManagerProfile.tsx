@@ -44,7 +44,11 @@ const FeesManagerProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [profile, setProfile] = useState<any>(null);
-  const [formData, setFormData] = useState({ first_name: "", last_name: "", email: "", phone: "", address: "", bio: "" });
+  const [formData, setFormData] = useState({ first_name: "", last_name: "", email: "", phone: "", address: "", bio: "" ,
+    library_id: "",
+    vtu_staff_id: "",
+    aicte_id: ""
+  });
   const urlParams = new URLSearchParams(window.location.search);
   const defaultTab = urlParams.get("google_connected") !== null ? "integrations" : "details";
   const [activeTab, setActiveTab] = useState<'details' | 'activity' | 'settings' | 'help' | 'integrations'>(defaultTab as any);
@@ -93,6 +97,10 @@ const FeesManagerProfile: React.FC = () => {
           phone: p.phone_number || p.mobile_number || "",
           address: p.address || "",
           bio: p.bio || ""
+        ,
+          library_id: profileData.library_id || "",
+          vtu_staff_id: profileData.vtu_staff_id || "",
+          aicte_id: profileData.aicte_id || ""
         });
       } else {
         showErrorAlert("Error", res.message || "Failed to load profile");

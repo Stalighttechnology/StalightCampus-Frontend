@@ -56,6 +56,10 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
     address: "",
     bio: "",
     profile_picture: ""
+  ,
+    library_id: "",
+    vtu_staff_id: "",
+    aicte_id: ""
   });
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -148,7 +152,11 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               mobile_number: '',
               address: '',
               bio: ''
-            });
+            ,
+          library_id: payload.library_id || "",
+          vtu_staff_id: payload.vtu_staff_id || "",
+          aicte_id: payload.aicte_id || ""
+        });
           }
         }
       } catch (err) {
@@ -383,6 +391,23 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
   };
 
   const handleSaveProfile = async () => {
+      const idRegex = /^[a-zA-Z0-9\-_ ]*$/;
+      if (profile.library_id && !idRegex.test(profile.library_id.trim())) {
+        showErrorAlert("Error", "Library ID must be alphanumeric");
+        setLoading(false);
+        return;
+      }
+      if (profile.vtu_staff_id && !idRegex.test(profile.vtu_staff_id.trim())) {
+        showErrorAlert("Error", "VTU Staff ID must be alphanumeric");
+        setLoading(false);
+        return;
+      }
+      if (profile.aicte_id && !idRegex.test(profile.aicte_id.trim())) {
+        showErrorAlert("Error", "AICTE ID must be alphanumeric");
+        setLoading(false);
+        return;
+      }
+
     if (!validateProfile()) return;
     setLoading(true);
     setLocalError(null);

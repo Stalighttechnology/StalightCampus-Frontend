@@ -37,6 +37,10 @@ interface COEProfile {
   profile_picture?: string;
   department?: string;
   designation?: string;
+
+  library_id?: string;
+  vtu_staff_id?: string;
+  aicte_id?: string;
 }
 
 const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
@@ -74,6 +78,10 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
     email: "",
     phone_number: "",
     address: ""
+  ,
+    library_id: "",
+    vtu_staff_id: "",
+    aicte_id: ""
   });
   const [passwordData, setPasswordData] = useState({
     current_password: "",
@@ -108,6 +116,10 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
           email: profileData.email || "",
           phone_number: profileData.phone_number || profileData.mobile_number || "",
           address: profileData.address || ""
+        ,
+          library_id: profileData.library_id || "",
+          vtu_staff_id: profileData.vtu_staff_id || "",
+          aicte_id: profileData.aicte_id || ""
         });
       }
     } catch (error) {
@@ -118,6 +130,20 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   const handleUpdateProfile = async () => {
+    const idRegex = /^[a-zA-Z0-9\-_ ]*$/;
+    if (formData.library_id && !idRegex.test(formData.library_id.trim())) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Library ID must be alphanumeric' });
+      return;
+    }
+    if (formData.vtu_staff_id && !idRegex.test(formData.vtu_staff_id.trim())) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'VTU Staff ID must be alphanumeric' });
+      return;
+    }
+    if (formData.aicte_id && !idRegex.test(formData.aicte_id.trim())) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'AICTE ID must be alphanumeric' });
+      return;
+    }
+
     if (formData.phone_number) {
       const phoneDigits = formData.phone_number.replace(/\D/g, '');
       if (phoneDigits.length !== 10) {
@@ -172,6 +198,10 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
         email: profile.email || "",
         phone_number: profile.phone_number || profile.mobile_number || "",
         address: profile.address || ""
+      ,
+        library_id: profile.library_id || "",
+        vtu_staff_id: profile.vtu_staff_id || "",
+        aicte_id: profile.aicte_id || ""
       });
     }
     setEditing(false);
