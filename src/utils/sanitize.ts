@@ -2,12 +2,19 @@ import DOMPurify from 'dompurify';
 
 /**
  * Sanitize HTML content to prevent XSS attacks.
- * Only allows safe tags and attributes.
+ * Allows safe formatting tags, images, formulas, tables, and attributes.
  */
 export const sanitizeHtml = (dirty: string): string => {
   const config = {
-    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'li', 'ol', 'blockquote', 'code', 'pre'],
-    ALLOWED_ATTR: ['href', 'title', 'target', 'rel'],
+    ALLOWED_TAGS: [
+      'b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'li', 'ol', 'blockquote',
+      'code', 'pre', 'img', 'span', 'div', 'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'sub', 'sup', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'svg', 'path'
+    ],
+    ALLOWED_ATTR: [
+      'href', 'title', 'target', 'rel', 'src', 'alt', 'style', 'class', 'width', 'height', 'loading'
+    ],
+    ALLOW_DATA_ATTR: true,
     KEEP_CONTENT: true,
   };
   
