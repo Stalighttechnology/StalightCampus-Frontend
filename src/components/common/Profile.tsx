@@ -37,7 +37,10 @@ const Profile = ({ role, user }: ProfileProps) => {
     mobile_number: user?.mobile_number || "",
     address: user?.address || "",
     bio: user?.bio || "",
-    profile_picture: user?.profile_image || user?.profile_picture || ""
+    profile_picture: user?.profile_image || user?.profile_picture || "",
+    library_id: user?.library_id || "",
+    vtu_staff_id: user?.vtu_staff_id || "",
+    aicte_id: user?.aicte_id || ""
   });
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -202,6 +205,25 @@ const Profile = ({ role, user }: ProfileProps) => {
         }
       }
       
+      if (!['student', 'parent'].includes(role)) {
+        const idRegex = /^[a-zA-Z0-9\-_ ]*$/;
+        if (profile.library_id && !idRegex.test(profile.library_id.trim())) {
+          showErrorAlert("Error", "Library ID must be alphanumeric");
+          setLoading(false);
+          return;
+        }
+        if (profile.vtu_staff_id && !idRegex.test(profile.vtu_staff_id.trim())) {
+          showErrorAlert("Error", "VTU Staff ID must be alphanumeric");
+          setLoading(false);
+          return;
+        }
+        if (profile.aicte_id && !idRegex.test(profile.aicte_id.trim())) {
+          showErrorAlert("Error", "AICTE ID must be alphanumeric");
+          setLoading(false);
+          return;
+        }
+      }
+      
       const updateData: any = {
         email: profile.email,
         first_name: profile.first_name,
@@ -210,6 +232,12 @@ const Profile = ({ role, user }: ProfileProps) => {
         address: profile.address,
         bio: profile.bio
       };
+
+      if (!['student', 'parent'].includes(role)) {
+        updateData.library_id = profile.library_id;
+        updateData.vtu_staff_id = profile.vtu_staff_id;
+        updateData.aicte_id = profile.aicte_id;
+      }
 
       const endpoint =
         role === "admin" || role === "principal" ? `${API_ENDPOINT}/admin/users/` :
@@ -344,6 +372,26 @@ const Profile = ({ role, user }: ProfileProps) => {
                 <Input id="mobile_number" name="mobile_number" value={profile.mobile_number} onChange={handleChange} disabled={!editing || loading} maxLength={10} placeholder="10-digit mobile" className="text-sm h-9 sm:h-10 w-full" />
               </div>
             </div>
+
+            {!['student', 'parent'].includes(role) && (
+              <div className="pt-4 border-t mt-4">
+                <h4 className={`text-sm font-semibold mb-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Institutional IDs</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                  <div>
+                    <label htmlFor="library_id" className={`block text-xs mb-1.5 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Library ID</label>
+                    <Input id="library_id" name="library_id" value={profile.library_id} onChange={handleChange} disabled={!editing || loading} placeholder="e.g. LIB12345" className="text-sm h-9 sm:h-10 w-full" />
+                  </div>
+                  <div>
+                    <label htmlFor="vtu_staff_id" className={`block text-xs mb-1.5 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>VTU Staff ID</label>
+                    <Input id="vtu_staff_id" name="vtu_staff_id" value={profile.vtu_staff_id} onChange={handleChange} disabled={!editing || loading} placeholder="e.g. VTU98765" className="text-sm h-9 sm:h-10 w-full" />
+                  </div>
+                  <div>
+                    <label htmlFor="aicte_id" className={`block text-xs mb-1.5 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>AICTE ID</label>
+                    <Input id="aicte_id" name="aicte_id" value={profile.aicte_id} onChange={handleChange} disabled={!editing || loading} placeholder="e.g. 1-12345678" className="text-sm h-9 sm:h-10 w-full" />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         );
 

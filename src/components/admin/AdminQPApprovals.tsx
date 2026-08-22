@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter
 } from
   "../ui/dialog";
@@ -21,6 +22,7 @@ import { API_ENDPOINT } from "../../utils/config";
 import { SkeletonTable, SkeletonCard } from "../ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { sanitizeHtml } from "../../utils/sanitize";
+import QPWorkflowStepper from "../common/QPWorkflowStepper";
 
 interface QPPending {
   id: number;
@@ -258,26 +260,42 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
     const idx = approvalChain.indexOf(currentRole);
     if (idx !== -1 && idx + 1 < approvalChain.length) {
       const next = approvalChain[idx + 1];
-      if (next === 'hod') return 'HOD';
+      if (next === 'hod') return translateTerminology('HOD') || 'Head of Branch';
       if (next === 'coe') return 'COE';
+      if (next === 'principal') return 'Principal';
+      if (next === 'dean') return 'Dean';
       return next.charAt(0).toUpperCase() + next.slice(1);
     }
     return null;
   };
 
+  const getPrevRole = (currentRole: string) => {
+    const idx = approvalChain.indexOf(currentRole);
+    if (idx > 0) {
+      const prev = approvalChain[idx - 1];
+      if (prev === 'hod') return translateTerminology('HOD') || 'Head of Branch';
+      if (prev === 'coe') return 'COE';
+      if (prev === 'principal') return 'Principal';
+      if (prev === 'dean') return 'Dean';
+      return prev.charAt(0).toUpperCase() + prev.slice(1);
+    }
+    return 'Faculty';
+  };
+
   const handleApprove = async (qpId: number) => {
     const nextRole = getNextRole(role);
-    const textMsg = nextRole 
+    const isLastRole = !nextRole;
+    const textMsg = !isLastRole 
       ? `Are you sure you want to approve and forward this question paper to ${nextRole}?`
-      : 'Are you sure you want to approve and finalize this question paper?';
+      : 'Are you sure you want to finalize and approve this question paper?';
 
     const result = await MySwal.fire({
-      title: 'Confirm approval',
+      title: isLastRole ? 'Confirm Final Approval' : 'Confirm Approval',
       text: textMsg,
       icon: 'question',
       showCancelButton: true,
       showCloseButton: true,
-      confirmButtonText: 'Yes, approve',
+      confirmButtonText: isLastRole ? 'Yes, Finalize & Approve' : 'Yes, Approve & Forward',
       cancelButtonText: 'Cancel',
       allowOutsideClick: true,
       allowEscapeKey: true,
@@ -304,8 +322,8 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
       if (data.success) {
         try { MySwal.close(); } catch (e) { }
         const t = toast({
-          title: 'Approved',
-          description: data.message || 'QP approved and forwarded to COE.',
+          title: isLastRole ? 'Finalized & Approved' : 'Approved',
+          description: data.message || (isLastRole ? 'Question paper finalized and approved.' : `QP approved and forwarded to ${nextRole}.`),
           variant: 'default'
         });
         // auto-dismiss after 3s
@@ -329,16 +347,17 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
   const MySwal = withReactContent(Swal);
 
   const handleReject = async (qpId: number) => {
+    const prevRoleName = getPrevRole(role);
     const result = await MySwal.fire({
-      title: 'Confirm rejection',
-      text: 'Are you sure you want to reject this question paper and send it back to HOD?',
+      title: 'Confirm Rejection',
+      text: `Are you sure you want to reject this question paper and send it back to ${prevRoleName}?`,
       icon: 'warning',
       showCancelButton: true,
       showCloseButton: true,
       allowOutsideClick: true,
       allowEscapeKey: true,
       reverseButtons: true,
-      confirmButtonText: 'Yes, reject',
+      confirmButtonText: 'Yes, Reject & Send Back',
       cancelButtonText: 'Cancel',
       // ensure swal renders at document.body so it isn't nested under other portals
       target: document.body
@@ -364,8 +383,8 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
       if (data.success) {
         try { MySwal.close(); } catch (e) { }
         const t = toast({
-          title: 'Rejected',
-          description: data.message || 'QP rejected and sent back to HOD for review.',
+          title: 'Rejected & Sent Back',
+          description: data.message || `QP rejected and sent back to ${prevRoleName} for review.`,
           variant: 'default'
         });
         // auto-dismiss after 3s
@@ -394,6 +413,40 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
 
   }
 
+  const formatActionText = (lastAction: any, qpStatus?: string) => {
+    if (!lastAction) return null;
+    const action = (lastAction.action || '').toLowerCase();
+    const actor = lastAction.actor || 'Unknown';
+    const rawRole = (lastAction.role || '').toLowerCase();
+    let roleDisplay = rawRole.toUpperCase();
+    if (rawRole === 'hod') {
+      roleDisplay = translateTerminology('HOD') || 'Head of Branch';
+    } else if (rawRole === 'principal' || rawRole === 'admin') {
+      roleDisplay = 'Principal';
+    } else if (rawRole === 'coe') {
+      roleDisplay = 'Chief Examiner (COE)';
+    } else if (rawRole === 'dean') {
+      roleDisplay = 'Dean';
+    } else if (rawRole === 'teacher' || rawRole === 'faculty') {
+      roleDisplay = 'Faculty';
+    }
+    const dateStr = lastAction.timestamp ? ` on ${new Date(lastAction.timestamp).toLocaleDateString()}` : '';
+
+    if (action === 'finalize' || (action === 'approve' && qpStatus === 'approved')) {
+      return `Action: Finalized & Approved by ${actor} (${roleDisplay})${dateStr}`;
+    }
+    if (action === 'approve') {
+      return `Action: Approved & Forwarded by ${actor} (${roleDisplay})${dateStr}`;
+    }
+    if (action === 'reject') {
+      return `Action: Rejected & Sent Back by ${actor} (${roleDisplay})${dateStr}`;
+    }
+    if (action === 'submit' || action === 'submitted') {
+      return `Action: Submitted by ${actor} (${roleDisplay})${dateStr}`;
+    }
+    return `Action: ${lastAction.action}${lastAction.role !== 'system' ? ` by ${actor}` : ''} (${roleDisplay})${dateStr}`;
+  };
+
   const renderQPGrid = (qps: QPPending[], isHistory: boolean = false) => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {qps.map((qp) =>
@@ -403,11 +456,11 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="font-semibold text-base line-clamp-2">{qp.subject}</h3>
                 <Badge variant="outline" className={theme === 'dark' ? 'border-primary/50 text-primary' : 'border-blue-200 text-blue-700'}>
-                  {qp.test_type} {qp.set_number}
+                  {qp.test_type} {qp.set_number ? `Set ${qp.set_number}` : ''}
                 </Badge>
               </div>
 
-              <div className="space-y-1.5 mb-3">
+              <div className="space-y-1.5 mb-2">
                 <p className="text-sm flex items-center gap-2">
                   <span className="text-muted-foreground font-medium">Faculty:</span>
                   <span>{qp.faculty}</span>
@@ -424,9 +477,16 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
                 }
               </div>
 
+              {/* Workflow Stepper on Card */}
+              <div className="pt-1 pb-2 border-t border-b border-border/40 my-2">
+                <QPWorkflowStepper chain={approvalChain} currentStatus={qp.status || `pending_${role}`} />
+              </div>
+
               {qp.last_action &&
-                <div className={`mt-3 p-2 rounded text-xs ${theme === 'dark' ? 'bg-primary/30' : 'bg-primary/5 border'}`}>
-                  <p className="font-medium mb-1 capitalize">Action: {qp.last_action.action}{qp.last_action.role !== 'system' && ` by ${qp.last_action.actor || 'Unknown'}`} ({qp.last_action.role || 'N/A'}){qp.last_action.timestamp ? ` on ${new Date(qp.last_action.timestamp).toLocaleDateString()}` : ''}</p>
+                <div className={`mt-2 p-2 rounded text-xs ${theme === 'dark' ? 'bg-primary/20 border border-primary/30' : 'bg-primary/5 border border-primary/20'}`}>
+                  <p className="font-medium mb-1">
+                    {formatActionText(qp.last_action, qp.status)}
+                  </p>
                   <p className="text-muted-foreground italic line-clamp-2">
                     "{qp.last_action.comment || 'No comment provided'}"
                   </p>
@@ -448,7 +508,7 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
               <Button
                 variant="outline"
                 size="sm"
-                className={`w-full gap-1.5 ${theme === 'dark' ? 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary' : 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary'}`}
+                className={`w-full gap-1.5 font-medium ${theme === 'dark' ? 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary' : 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary'}`}
                 onClick={() => { setSelectedQP(qp); setQpDetail(null); fetchQPDetail(qp.id); setIsHistoryView(isHistory); setDialogOpen(true); }}>
                 <Eye className="w-4 h-4" />
                 {isHistory ? 'View Details' : 'Review & Action'}
@@ -463,6 +523,29 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
   return (
     <>
       <style>{`
+        .qp-content {
+          word-break: break-word;
+          overflow-wrap: anywhere;
+        }
+        .qp-content img {
+          max-width: 100% !important;
+          height: auto !important;
+          max-height: 420px;
+          object-fit: contain;
+          border-radius: 8px;
+          border: 1px solid rgba(148, 163, 184, 0.3);
+          margin-top: 10px;
+          margin-bottom: 10px;
+          display: block;
+          box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.1);
+          background-color: #ffffff;
+          padding: 6px;
+        }
+        .qp-content table {
+          max-width: 100% !important;
+          overflow-x: auto;
+          display: block;
+        }
         @media (max-width: 480px) {
           .qp-dialog-content { padding: 12px !important; }
           .qp-dialog-footer { 
@@ -620,9 +703,13 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
           }
           setDialogOpen(open);
         }}>
-          <DialogContent className={`qp-dialog-content ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[90%] rounded-lg flex flex-col max-h-[80vh]`}>
-            <DialogHeader>
-              <DialogTitle className={`text-left pr-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number}</DialogTitle>
+          <DialogContent className={`qp-dialog-content ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[760px] w-[92%] rounded-lg flex flex-col max-h-[85vh]`}>
+            <DialogHeader className="pb-2 border-b border-border/40">
+              <DialogTitle className={`text-left pr-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number ? `Set ${selectedQP?.set_number}` : ''}</DialogTitle>
+              <DialogDescription className="sr-only">Review question paper details and approval workflow progress</DialogDescription>
+              <div className="pt-2">
+                <QPWorkflowStepper chain={approvalChain} currentStatus={selectedQP?.status || `pending_${role}`} />
+              </div>
             </DialogHeader>
             <div className="overflow-auto custom-scrollbar px-4 py-2 space-y-4 flex-1">
               {detailLoading ?
@@ -631,7 +718,7 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
                   <SkeletonCard />
                 </div> :
                 qpDetail ?
-                  <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                  <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/60">
                     <h4 className="font-semibold mb-4">Question Paper Preview</h4>
                     <div className="space-y-4">
                       {qpDetail.questions.map((q: any, qIndex: number) =>
@@ -639,43 +726,65 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
                           {q.subparts.map((s: any, sIndex: number) => {
                             const key = `${qIndex}-${sIndex}`;
                             const isExpanded = !!expanded[key];
-                            const shortContent = (s.content || '').length > 160 ? (s.content || '').slice(0, 160) + '…' : s.content || '';
+                            const content = s.content || '';
+                            const textOnly = content.replace(/<[^>]*>/g, '').trim();
+                            const hasMedia = content.includes('<img') || content.includes('<table') || content.includes('<svg');
+                            const isLong = textOnly.length > 130 || hasMedia;
+
+                            let displayContent = content;
+                            if (!isExpanded && isLong) {
+                              if (hasMedia) {
+                                displayContent = textOnly.slice(0, 130) + '… (diagram/attachment attached)';
+                              } else {
+                                displayContent = content.length > 130 ? content.slice(0, 130) + '…' : content;
+                              }
+                            }
+
                             return (
-                              <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900">
-                                <div className="flex items-start gap-3">
-                                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-medium text-sm">
+                              <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900 shadow-sm overflow-hidden w-full">
+                                <div className="flex items-start gap-2.5 sm:gap-3 w-full min-w-0">
+                                  <div className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs sm:text-sm">
                                     {q.question_number}{s.subpart_label}
                                   </div>
-                                  <div className="flex-1">
-                                    <div className="flex justify-between items-start gap-4">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-start gap-2">
                                       <div
-                                        className="text-sm text-gray-900 dark:text-gray-100 mb-1 flex-1"
-                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? (s.content || '') : (shortContent || '')) }}
+                                        className="text-sm sm:text-[15px] text-gray-900 dark:text-gray-100 flex-1 min-w-0 break-words [overflow-wrap:anywhere] leading-relaxed qp-content"
+                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? content : displayContent) }}
                                       />
-                                      <div className="ml-2 flex-shrink-0">
-                                        <Badge className="text-gray-900 dark:text-gray-100 font-semibold text-sm bg-transparent">{s.max_marks}m</Badge>
+                                      <div className="flex-shrink-0 ml-1.5">
+                                        <Badge className="text-gray-900 dark:text-gray-100 font-semibold text-xs sm:text-sm bg-transparent border border-border shrink-0 whitespace-nowrap">
+                                          {s.max_marks}m
+                                        </Badge>
                                       </div>
                                     </div>
-                                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                                      <Badge className="text-gray-600 dark:text-gray-400 bg-transparent">CO: {q.co}</Badge>
-                                      <Badge className="text-gray-600 dark:text-gray-400 bg-transparent">{q.blooms_level}</Badge>
-                                      {(s.content || '').length > 160 &&
-                                        <button onClick={() => toggleExpanded(key)} className="text-sm text-primary-600 dark:text-primary-400 ml-2">
+                                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2">
+                                      <Badge variant="outline" className="text-xs text-gray-600 dark:text-gray-400 bg-transparent">CO: {q.co}</Badge>
+                                      <Badge variant="outline" className="text-xs text-gray-600 dark:text-gray-400 bg-transparent">{q.blooms_level}</Badge>
+                                      {isLong && (
+                                        <button
+                                          type="button"
+                                          onClick={() => toggleExpanded(key)}
+                                          className="text-xs text-primary font-medium hover:underline p-0 bg-transparent border-0 inline-flex items-center cursor-pointer ml-1 focus:outline-none"
+                                        >
                                           {isExpanded ? 'Show less' : 'Show more'}
                                         </button>
-                                      }
+                                      )}
                                     </div>
                                   </div>
                                 </div>
-                              </div>);
-
+                              </div>
+                            );
                           })}
                         </div>
                       )}
-                      <div className="font-semibold pt-2 border-t">
-                        Total Marks: {qpDetail.questions.reduce((total: number, q: any) =>
-                          total + q.subparts.reduce((subTotal: number, s: any) => subTotal + s.max_marks, 0), 0
-                        )}
+                      <div className="font-semibold pt-2 border-t flex items-center justify-between">
+                        <span>Total Marks:</span>
+                        <span className="text-lg font-bold text-primary">
+                          {qpDetail.questions.reduce((total: number, q: any) =>
+                            total + q.subparts.reduce((subTotal: number, s: any) => subTotal + (s.max_marks || 0), 0), 0
+                          )}
+                        </span>
                       </div>
                     </div>
                   </div> :
@@ -711,28 +820,40 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
                   <Textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
-                    placeholder="Add comment..."
+                    placeholder={!getNextRole(role) ? "Add a final comment..." : `Add a comment for ${getNextRole(role)}...`}
                     rows={3} />
                 </div>
               )}
             </div>
-            <DialogFooter className="qp-dialog-footer flex flex-col sm:flex-row gap-2">
-              <div className="action-buttons-group flex gap-2 w-full sm:w-auto">
+            <DialogFooter className="qp-dialog-footer flex flex-col sm:flex-row gap-2 pt-3 border-t border-border/40">
+              <div className="action-buttons-group flex flex-wrap gap-2 w-full sm:w-auto">
                 {!isHistoryView && (
                   <>
                     <Button
                       onClick={() => selectedQP && handleApprove(selectedQP.id)}
                       disabled={actionLoading || !!selectedQP?.has_exam_started}
-                      className={`action-btn-mobile w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}>
-                      <CheckCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
-                      <span className="whitespace-normal">Approve</span>
+                      className={`action-btn-mobile flex-1 sm:w-auto justify-center transition-none font-medium ${
+                        theme === 'dark'
+                          ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border'
+                          : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'
+                      }`}
+                    >
+                      <CheckCircle className={`w-4 h-4 mr-1.5 shrink-0 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                      <span className="whitespace-normal">
+                        {!getNextRole(role) ? 'Finalize & Approve' : 'Approve & Forward'}
+                      </span>
                     </Button>
                     <Button
                       onClick={() => selectedQP && handleReject(selectedQP.id)}
                       disabled={actionLoading || !!selectedQP?.has_exam_started}
-                      className={`action-btn-mobile w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}>
-                      <XCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
-                      <span className="whitespace-normal">Reject</span>
+                      className={`action-btn-mobile flex-1 sm:w-auto justify-center transition-none font-medium ${
+                        theme === 'dark'
+                          ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border'
+                          : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'
+                      }`}
+                    >
+                      <XCircle className={`w-4 h-4 mr-1.5 shrink-0 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                      <span className="whitespace-normal">Reject & Send Back</span>
                     </Button>
                   </>
                 )}
@@ -744,9 +865,14 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
                 )}
               </div>
               <div className="w-full sm:w-auto sm:ml-auto">
-                <Button variant="outline" onClick={() => downloadPDF()} disabled={downloadingPDF} className="download-btn-mobile bg-primary text-white hover:bg-primary/90 hover:text-white w-full sm:w-auto justify-center transition-none disabled:opacity-50">
-                  {downloadingPDF ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
-                  <span className="whitespace-normal">{downloadingPDF ? "Downloading..." : "Download"}</span>
+                <Button
+                  variant="outline"
+                  onClick={() => downloadPDF()}
+                  disabled={downloadingPDF}
+                  className="download-btn-mobile bg-primary text-white hover:bg-primary/90 hover:text-white w-full sm:w-auto justify-center transition-none disabled:opacity-50"
+                >
+                  {downloadingPDF ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Download className="w-4 h-4 mr-1.5" />}
+                  <span className="whitespace-normal">{downloadingPDF ? "Exporting..." : "Export PDF"}</span>
                 </Button>
               </div>
             </DialogFooter>

@@ -71,7 +71,10 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     office_location: "",
     office_hours: "",
     date_of_birth: "",
-    gender: ""
+    gender: "",
+    library_id: "",
+    vtu_staff_id: "",
+    aicte_id: ""
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null | 'integrations'>(null);
@@ -142,7 +145,10 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           office_location: payload.office_location || "",
           office_hours: payload.office_hours || "",
           date_of_birth: payload.date_of_birth || "",
-          gender: payload.gender || ""
+          gender: payload.gender || "",
+          library_id: payload.library_id || "",
+          vtu_staff_id: payload.vtu_staff_id || "",
+          aicte_id: payload.aicte_id || ""
         });
       } else {
         setError(res.message || "Failed to load profile");
@@ -286,6 +292,23 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       return;
     }
 
+    const idRegex = /^[a-zA-Z0-9\-_ ]*$/;
+    if (formData.library_id && !idRegex.test(formData.library_id.trim())) {
+      showErrorAlert("Error", "Library ID must be alphanumeric");
+      setIsSaving(false);
+      return;
+    }
+    if (formData.vtu_staff_id && !idRegex.test(formData.vtu_staff_id.trim())) {
+      showErrorAlert("Error", "VTU Staff ID must be alphanumeric");
+      setIsSaving(false);
+      return;
+    }
+    if (formData.aicte_id && !idRegex.test(formData.aicte_id.trim())) {
+      showErrorAlert("Error", "AICTE ID must be alphanumeric");
+      setIsSaving(false);
+      return;
+    }
+
     try {
       const res = await manageProfile({
         first_name: formData.firstName,
@@ -304,7 +327,10 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         office_location: formData.office_location || undefined,
         office_hours: formData.office_hours || undefined,
         date_of_birth: formData.date_of_birth || undefined,
-        gender: formData.gender || undefined
+        gender: formData.gender || undefined,
+        library_id: formData.library_id || undefined,
+        vtu_staff_id: formData.vtu_staff_id || undefined,
+        aicte_id: formData.aicte_id || undefined
       });
 
       // Backend may return updated profile under `profile` or `data`
@@ -330,7 +356,10 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             office_location: payload.office_location || prev.office_location,
             office_hours: payload.office_hours || prev.office_hours,
             date_of_birth: payload.date_of_birth || prev.date_of_birth,
-            gender: payload.gender || prev.gender
+            gender: payload.gender || prev.gender,
+            library_id: payload.library_id || prev.library_id,
+            vtu_staff_id: payload.vtu_staff_id || prev.vtu_staff_id,
+            aicte_id: payload.aicte_id || prev.aicte_id
           }));
         }
         setIsEditing(false);
@@ -530,6 +559,24 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               ) : (
                 <Input value={formData.gender || "—"} disabled={true} className="text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-75 disabled:cursor-not-allowed" />
               )}
+            </div>
+            
+            <div className="pt-4 border-t mt-4 col-span-1 sm:col-span-2">
+              <h4 className={`text-sm font-semibold mb-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Institutional IDs</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div>
+                  <label htmlFor="library_id" className={`block text-xs mb-1.5 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Library ID</label>
+                  <Input id="library_id" name="library_id" value={formData.library_id} onChange={(e) => handleChange("library_id", e.target.value)} disabled={!isEditing} placeholder="e.g. LIB12345" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                </div>
+                <div>
+                  <label htmlFor="vtu_staff_id" className={`block text-xs mb-1.5 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>VTU Staff ID</label>
+                  <Input id="vtu_staff_id" name="vtu_staff_id" value={formData.vtu_staff_id} onChange={(e) => handleChange("vtu_staff_id", e.target.value)} disabled={!isEditing} placeholder="e.g. VTU98765" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                </div>
+                <div>
+                  <label htmlFor="aicte_id" className={`block text-xs mb-1.5 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>AICTE ID</label>
+                  <Input id="aicte_id" name="aicte_id" value={formData.aicte_id} onChange={(e) => handleChange("aicte_id", e.target.value)} disabled={!isEditing} placeholder="e.g. 1-12345678" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                </div>
+              </div>
             </div>
           </div>);
 

@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter } from
 "../ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +22,8 @@ import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { SkeletonList, SkeletonCard } from '../ui/skeleton';
 import { sanitizeHtml } from "../../utils/sanitize";
+import { translateTerminology } from "../../utils/institutionConfig";
+import QPWorkflowStepper from "../common/QPWorkflowStepper";
 
 interface QPPending {
   id: number;
@@ -100,6 +103,52 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   const toggleExpanded = (key: string) => {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  const [approvalChain, setApprovalChain] = useState<string[]>(['hod', 'coe', 'principal']);
+
+  const fetchApprovalChain = async () => {
+    try {
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/qp-approval-chain/`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.qp_approval_chain && Array.isArray(data.qp_approval_chain) && data.qp_approval_chain.length > 0) {
+          setApprovalChain(data.qp_approval_chain);
+        }
+      }
+    } catch (error) {
+      // Keep default
+    }
+  };
+
+  const getNextRole = (currentRole: string = 'coe') => {
+    const idx = approvalChain.indexOf(currentRole);
+    if (idx !== -1 && idx + 1 < approvalChain.length) {
+      const next = approvalChain[idx + 1];
+      if (next === 'hod') return translateTerminology('HOD') || 'Head of Branch';
+      if (next === 'coe') return 'COE';
+      if (next === 'principal') return 'Principal';
+      if (next === 'dean') return 'Dean';
+      return next.charAt(0).toUpperCase() + next.slice(1);
+    }
+    return null;
+  };
+
+  const getPrevRole = (currentRole: string = 'coe') => {
+    const idx = approvalChain.indexOf(currentRole);
+    if (idx > 0) {
+      const prev = approvalChain[idx - 1];
+      if (prev === 'hod') return translateTerminology('HOD') || 'Head of Branch';
+      if (prev === 'coe') return 'COE';
+      if (prev === 'principal') return 'Principal';
+      if (prev === 'dean') return 'Dean';
+      return prev.charAt(0).toUpperCase() + prev.slice(1);
+    }
+    return 'Faculty';
+  };
+
+  useEffect(() => {
+    fetchApprovalChain();
+  }, []);
 
   useEffect(() => {
     fetchPendingQPs();
@@ -187,16 +236,22 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   const handleFinalize = async (qpId: number) => {
+    const nextRole = getNextRole('coe');
+    const isLastRole = !nextRole;
+    const textMsg = !isLastRole
+      ? `Are you sure you want to approve and forward this question paper to ${nextRole}?`
+      : 'Are you sure you want to finalize and approve this question paper?';
+
     const result = await MySwal.fire({
-      title: 'Confirm approval',
-      text: 'Are you sure you want to finalize and approve this question paper?',
+      title: isLastRole ? 'Confirm Final Approval' : 'Confirm Approval',
+      text: textMsg,
       icon: 'question',
       showCancelButton: true,
       showCloseButton: true,
       allowOutsideClick: true,
       allowEscapeKey: true,
       reverseButtons: true,
-      confirmButtonText: 'Yes, approve',
+      confirmButtonText: isLastRole ? 'Yes, Finalize & Approve' : 'Yes, Approve & Forward',
       cancelButtonText: 'Cancel',
       target: dialogContentRef.current ?? document.body
     });
@@ -218,13 +273,19 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       });
       const data = await response.json();
       if (data.success) {
-        MySwal.fire('Approved!', 'QP finalized and approved for use.', 'success');
+        MySwal.fire(
+          isLastRole ? 'Finalized & Approved!' : 'Approved!',
+          data.message || (isLastRole ? 'QP finalized and approved for use.' : `QP approved and forwarded to ${nextRole}.`),
+          'success'
+        );
         // Remove from both lists (QP could be from pending or finalized list)
         setPendingQPs((prev) => prev.filter((qp) => qp.id !== qpId));
         if (selectedQP) {
-          const approvedItem = { ...selectedQP, status: 'approved' };
-          // Update finalized list (remove old entry and insert updated one at top)
-          setFinalizedQPs((prev) => [approvedItem, ...prev.filter((q) => q.id !== qpId)]);
+          const approvedItem = { ...selectedQP, status: isLastRole ? 'approved' : `pending_${nextRole?.toLowerCase()}` };
+          // Update finalized list (remove old entry and insert updated one at top if approved)
+          if (isLastRole) {
+            setFinalizedQPs((prev) => [approvedItem, ...prev.filter((q) => q.id !== qpId)]);
+          }
         }
         setDialogOpen(false);
         setSelectedQP(null);
@@ -388,16 +449,17 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   const MySwal = withReactContent(Swal);
 
   const handleReject = async (qpId: number) => {
+    const prevRoleName = getPrevRole('coe');
     const result = await MySwal.fire({
-      title: 'Confirm rejection',
-      text: 'Are you sure you want to reject this question paper and return it to the faculty?',
+      title: 'Confirm Rejection',
+      text: `Are you sure you want to reject this question paper and send it back to ${prevRoleName}?`,
       icon: 'warning',
       showCancelButton: true,
       showCloseButton: true,
       allowOutsideClick: true,
       allowEscapeKey: true,
       reverseButtons: true,
-      confirmButtonText: 'Yes, reject',
+      confirmButtonText: 'Yes, Reject & Send Back',
       cancelButtonText: 'Cancel',
       // Render at document.body so it's not trapped under portal layers.
       target: dialogContentRef.current ?? document.body
@@ -420,7 +482,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       });
       const data = await response.json();
       if (data.success) {
-        MySwal.fire('Rejected!', data.message || 'QP rejected and returned to the faculty.', 'success');
+        MySwal.fire('Rejected!', data.message || `QP rejected and sent back to ${prevRoleName} for review.`, 'success');
         // Remove from both lists (QP could be from pending or finalized list)
         setPendingQPs((prev) => prev.filter((qp) => qp.id !== qpId));
         if (selectedQP) {
@@ -439,11 +501,44 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         MySwal.fire('Error', data.message || 'Failed to reject QP.', 'error');
       }
     } catch (error) {
-
       MySwal.fire('Network error', 'Network error while rejecting QP.', 'error');
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const formatActionText = (lastAction: any, qpStatus?: string) => {
+    if (!lastAction) return null;
+    const action = (lastAction.action || '').toLowerCase();
+    const actor = lastAction.actor || 'Unknown';
+    const rawRole = (lastAction.role || '').toLowerCase();
+    let roleDisplay = rawRole.toUpperCase();
+    if (rawRole === 'hod') {
+      roleDisplay = translateTerminology('HOD') || 'Head of Branch';
+    } else if (rawRole === 'principal' || rawRole === 'admin') {
+      roleDisplay = 'Principal';
+    } else if (rawRole === 'coe') {
+      roleDisplay = 'Chief Examiner (COE)';
+    } else if (rawRole === 'dean') {
+      roleDisplay = 'Dean';
+    } else if (rawRole === 'teacher' || rawRole === 'faculty') {
+      roleDisplay = 'Faculty';
+    }
+    const dateStr = lastAction.timestamp ? ` on ${new Date(lastAction.timestamp).toLocaleDateString()}` : '';
+
+    if (action === 'finalize' || (action === 'approve' && qpStatus === 'approved')) {
+      return `Action: Finalized & Approved by ${actor} (${roleDisplay})${dateStr}`;
+    }
+    if (action === 'approve') {
+      return `Action: Approved & Forwarded by ${actor} (${roleDisplay})${dateStr}`;
+    }
+    if (action === 'reject') {
+      return `Action: Rejected & Sent Back by ${actor} (${roleDisplay})${dateStr}`;
+    }
+    if (action === 'submit' || action === 'submitted') {
+      return `Action: Submitted by ${actor} (${roleDisplay})${dateStr}`;
+    }
+    return `Action: ${lastAction.action}${lastAction.role !== 'system' ? ` by ${actor}` : ''} (${roleDisplay})${dateStr}`;
   };
 
   if (loading) {
@@ -451,31 +546,65 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <SkeletonCard className="h-8 w-64" />
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="space-y-2">
+                <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <SkeletonList items={5} />
+            <SkeletonList items={3} />
           </CardContent>
         </Card>
-      </div>);
-
+      </div>
+    );
   }
 
   return (
     <div ref={ref} id="coe-qp-approvals-container" className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <Card id="coe-qp-approvals-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col min-h-[550px]' : 'bg-white border border-gray-200 flex flex-col min-h-[550px]'}>
-          <CardHeader className="border-b pb-4 mb-4">
-            <div id="qp-approvals-header-section" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <style>{`
+        .qp-content {
+          word-break: break-word;
+          overflow-wrap: anywhere;
+        }
+        .qp-content img {
+          max-width: 100% !important;
+          height: auto !important;
+          max-height: 420px;
+          object-fit: contain;
+          border-radius: 8px;
+          border: 1px solid rgba(148, 163, 184, 0.3);
+          margin-top: 10px;
+          margin-bottom: 10px;
+          display: block;
+          box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.1);
+          background-color: #ffffff;
+          padding: 6px;
+        }
+        .qp-content table {
+          max-width: 100% !important;
+          overflow-x: auto;
+          display: block;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.4); }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+      `}</style>
+      <Tabs defaultValue="pending" className="w-full flex flex-col flex-1" onValueChange={setActiveTab}>
+        <Card className="flex flex-col flex-1">
+          <CardHeader className="flex-shrink-0">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <CardTitle className={`text-xl sm:text-2xl font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Final Approvals</CardTitle>
-                <div className="flex items-center gap-3">
-                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and finalize question papers</p>
-                </div>
+                <CardTitle className="text-xl sm:text-2xl font-bold">Question Paper Approvals</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">Review, approve, and finalize question papers for upcoming examinations.</p>
               </div>
-              <TabsList className="grid grid-cols-2 w-full sm:w-auto">
-                <TabsTrigger value="pending" className="px-1 sm:px-4 text-xs sm:text-sm whitespace-normal h-auto py-1.5 data-[state=active]:bg-primary data-[state=active]:text-white">Pending Approvals</TabsTrigger>
-                <TabsTrigger value="finalized" className="px-1 sm:px-4 text-xs sm:text-sm whitespace-normal h-auto py-1.5 data-[state=active]:bg-primary data-[state=active]:text-white">Finalized Papers</TabsTrigger>
+              <TabsList className="grid w-full sm:w-auto grid-cols-2">
+                <TabsTrigger value="pending">Pending Approvals</TabsTrigger>
+                <TabsTrigger value="finalized">Finalized Papers</TabsTrigger>
               </TabsList>
             </div>
           </CardHeader>
@@ -489,51 +618,59 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                       </div>
                       <h3 className="text-xl font-semibold mb-2">No pending approvals</h3>
                       <p className="text-muted-foreground max-w-sm mx-auto">
-                        All question papers have been processed. New submissions will appear here for your final review and approval.
+                        All question papers have been processed. New submissions will appear here for review and approval.
                       </p>
                     </CardContent>
                  </Card> :
               <div className="space-y-4">
                   {Array.isArray(pendingQPs) && pendingQPs.map((qp) =>
-                <Card key={qp.id} className="p-4 sm:p-5">
+                <Card key={qp.id} className="p-4 sm:p-5 hover:shadow-md transition-all">
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div className="w-full">
                           <div className="flex items-center flex-wrap gap-2 mb-2">
-                            <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type} {qp.set_number}</h3>
+                            <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type} {qp.set_number ? `Set ${qp.set_number}` : ''}</h3>
                             {qp.status &&
                         (() => {
                           const s = qp.status;
-                          if (s === 'rejected') return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
-                          if (s === 'approved') return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
-                          if (s.startsWith('pending')) return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-                          return <Badge className="bg-gray-100 text-gray-800">{s}</Badge>;
+                          if (s === 'rejected') return <Badge className="bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300">Rejected</Badge>;
+                          if (s === 'approved') return <Badge className="bg-green-100 text-green-800 dark:bg-emerald-950/40 dark:text-emerald-300">Approved</Badge>;
+                          if (s.startsWith('pending')) return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">Pending</Badge>;
+                          return <Badge variant="outline">{s}</Badge>;
                         })()
                         }
                           </div>
-                          <div className="space-y-1 sm:space-y-0.5">
-                            <p className="text-[16px] sm:text-sm text-muted-foreground">Faculty: {qp.faculty}</p>
-                            <p className="text-[16px] sm:text-sm text-muted-foreground">Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
+                          <div className="space-y-1 sm:space-y-0.5 text-sm text-muted-foreground mb-2">
+                            <p>Faculty: {qp.faculty}</p>
+                            <p>Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
                             {qp.branch &&
-                        <p className="text-[16px] sm:text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
-                        }
-                            {qp.last_action ?
-                        <div className="mt-1">
-                                <p className="text-[16px] sm:text-sm text-muted-foreground capitalize">Last: {qp.last_action.action}{qp.last_action.role !== 'system' && ` by ${qp.last_action.actor || 'Unknown'}`} ({qp.last_action.role || 'N/A'}){qp.last_action.timestamp ? ` on ${new Date(qp.last_action.timestamp).toLocaleDateString()}` : ''}</p>
-                                {qp.last_action.comment ?
-                          <p className="text-[16px] sm:text-sm text-muted-foreground italic">"{qp.last_action.comment}"</p> :
-                          null}
-                              </div> :
-                        null}
+                              <p>Branch: {qp.branch.name}</p>
+                            }
                           </div>
+
+                          {/* Stepper on pending card */}
+                          <div className="pt-1 pb-2 border-t border-b border-border/40 my-2">
+                            <QPWorkflowStepper chain={approvalChain} currentStatus={qp.status || 'pending_coe'} />
+                          </div>
+
+                          {qp.last_action && (
+                            <div className={`mt-2 p-2 rounded text-xs ${theme === 'dark' ? 'bg-primary/20 border border-primary/30' : 'bg-primary/5 border border-primary/20'}`}>
+                              <p className="font-medium mb-1">
+                                {formatActionText(qp.last_action, qp.status)}
+                              </p>
+                              {qp.last_action.comment ?
+                                <p className="text-muted-foreground italic line-clamp-2">"{qp.last_action.comment}"</p> :
+                                null}
+                            </div>
+                          )}
                         </div>
-                        <div className="flex w-full sm:w-auto gap-2">
+                        <div className="flex w-full sm:w-auto gap-2 sm:self-center">
                           <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {setSelectedQP(qp);setQpDetail(null);fetchQPDetail(qp.id);setDialogOpen(true);}}
-                        className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold sm:font-normal bg-primary text-white hover:bg-primary/90 hover:text-white">
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {setSelectedQP(qp);setQpDetail(null);fetchQPDetail(qp.id);setDialogOpen(true);}}
+                            className="w-full sm:w-auto h-11 sm:h-9 text-sm font-semibold bg-primary text-white hover:bg-primary/90 hover:text-white shrink-0">
                             <Eye className="w-4 h-4 mr-1 sm:mr-2" />
-                            Review
+                            Review & Action
                           </Button>
                         </div>
                       </div>
@@ -558,14 +695,14 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                     <ChevronLeft className="w-4 h-4 mr-1" />
                     Prev
                   </Button>
-                  <span className="text-sm font-medium px-2">
-                    {pendingPage} / {pendingPagination.total_pages}
+                  <span className="text-sm font-semibold px-2">
+                    {pendingPage}
                   </span>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setPendingPage((prev) => prev + 1)}
-                    disabled={!pendingPagination.next}
+                    onClick={() => setPendingPage((prev) => Math.min(pendingPagination.total_pages, prev + 1))}
+                    disabled={pendingPage === pendingPagination.total_pages || !pendingPagination.next}
                     className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
                   >
                     Next
@@ -575,67 +712,74 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
               </CardFooter>
             )}
           </TabsContent>
-
           <TabsContent value="finalized" className="flex-1 mt-0">
             <CardContent>
               {finalizedQPs.length === 0 ?
               <Card className="border-dashed border-2 shadow-none bg-transparent">
                     <CardContent className="flex flex-col items-center justify-center py-20 text-center">
                       <div className="bg-primary/5 p-6 rounded-full mb-4">
-                        <Eye className="w-12 h-12 text-primary/40" />
+                        <CheckCircle className="w-12 h-12 text-primary/40" />
                       </div>
                       <h3 className="text-xl font-semibold mb-2">No finalized papers</h3>
                       <p className="text-muted-foreground max-w-sm mx-auto">
-                        Approved and finalized question papers will be archived here for your reference.
+                        Approved question papers will be archived here for examination management.
                       </p>
                     </CardContent>
                  </Card> :
               <div className="space-y-4">
                   {Array.isArray(finalizedQPs) && finalizedQPs.map((qp) =>
-                <Card key={`final-${qp.id}`} className="p-4 sm:p-5">
+                <Card key={qp.id} className="p-4 sm:p-5 hover:shadow-md transition-all">
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div className="w-full">
                           <div className="flex items-center flex-wrap gap-2 mb-2">
-                            <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type} {qp.set_number}</h3>
+                            <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type} {qp.set_number ? `Set ${qp.set_number}` : ''}</h3>
                             {qp.status &&
                         (() => {
                           const s = qp.status;
-                          if (s === 'rejected') return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
-                          if (s === 'approved') return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
-                          if (s.startsWith('pending')) return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-                          return <Badge className="bg-gray-100 text-gray-800">{s}</Badge>;
+                          if (s === 'rejected') return <Badge className="bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300">Rejected</Badge>;
+                          if (s === 'approved') return <Badge className="bg-green-100 text-green-800 dark:bg-emerald-950/40 dark:text-emerald-300">Approved</Badge>;
+                          if (s.startsWith('pending')) return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">Pending</Badge>;
+                          return <Badge variant="outline">{s}</Badge>;
                         })()
                         }
                           </div>
-                          <div className="space-y-1 sm:space-y-0.5">
-                            <p className="text-[16px] sm:text-sm text-muted-foreground">Faculty: {qp.faculty}</p>
-                            <p className="text-[16px] sm:text-sm text-muted-foreground">Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
+                          <div className="space-y-1 sm:space-y-0.5 text-sm text-muted-foreground mb-2">
+                            <p>Faculty: {qp.faculty}</p>
+                            <p>Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
                             {qp.branch &&
-                        <p className="text-[16px] sm:text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
-                        }
-                            {qp.last_action ?
-                        <div className="mt-1">
-                                <p className="text-[16px] sm:text-sm text-muted-foreground capitalize">Last: {qp.last_action.action}{qp.last_action.role !== 'system' && ` by ${qp.last_action.actor || 'Unknown'}`} ({qp.last_action.role || 'N/A'}){qp.last_action.timestamp ? ` on ${new Date(qp.last_action.timestamp).toLocaleDateString()}` : ''}</p>
-                                {qp.last_action.comment ?
-                          <p className="text-[16px] sm:text-sm text-muted-foreground italic">"{qp.last_action.comment}"</p> :
-                          null}
-                              </div> :
-                        null}
+                              <p>Branch: {qp.branch.name}</p>
+                            }
                           </div>
+
+                          {/* Stepper on finalized card */}
+                          <div className="pt-1 pb-2 border-t border-b border-border/40 my-2">
+                            <QPWorkflowStepper chain={approvalChain} currentStatus={qp.status || 'approved'} />
+                          </div>
+
+                          {qp.last_action && (
+                            <div className={`mt-2 p-2 rounded text-xs ${theme === 'dark' ? 'bg-primary/20 border border-primary/30' : 'bg-primary/5 border border-primary/20'}`}>
+                              <p className="font-medium mb-1">
+                                {formatActionText(qp.last_action, qp.status)}
+                              </p>
+                              {qp.last_action.comment ?
+                                <p className="text-muted-foreground italic line-clamp-2">"{qp.last_action.comment}"</p> :
+                                null}
+                            </div>
+                          )}
                         </div>
-                        <div className="flex w-full sm:w-auto gap-2">
+                        <div className="flex w-full sm:w-auto gap-2 sm:self-center">
                           <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedQP(qp);
-                          setQpDetail(null);
-                          fetchQPDetail(qp.id);
-                          setDialogOpen(true);
-                        }}
-                        className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold bg-primary text-white hover:bg-primary/90 hover:text-white sm:font-semibold">
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedQP(qp);
+                              setQpDetail(null);
+                              fetchQPDetail(qp.id);
+                              setDialogOpen(true);
+                            }}
+                            className="w-full sm:w-auto h-11 sm:h-9 text-sm font-semibold bg-primary text-white hover:bg-primary/90 hover:text-white shrink-0">
                             <Eye className="w-4 h-4 mr-1 sm:mr-2" />
-                            View
+                            View Details
                           </Button>
                         </div>
                       </div>
@@ -692,12 +836,16 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         
         <DialogContent
           ref={dialogContentRef}
-          className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} w-[90vw] max-w-[720px] h-[80vh] max-h-[80vh] rounded-lg flex flex-col`}>
+          className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} w-[92vw] max-w-[760px] h-[85vh] max-h-[85vh] rounded-lg flex flex-col`}>
           
-          <DialogHeader>
-            <DialogTitle className={`pr-8 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number}
+          <DialogHeader className="pb-2 border-b border-border/40">
+            <DialogTitle className={`text-left pr-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number ? `Set ${selectedQP?.set_number}` : ''}
             </DialogTitle>
+            <DialogDescription className="sr-only">Review question paper details and approval workflow progress</DialogDescription>
+            <div className="pt-2">
+              <QPWorkflowStepper chain={approvalChain} currentStatus={selectedQP?.status || 'pending_coe'} />
+            </div>
           </DialogHeader>
 
           <div className="overflow-auto custom-scrollbar px-4 py-2 space-y-4 flex-1">
@@ -707,45 +855,57 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <SkeletonList items={3} />
               </div> :
             qpDetail ?
-            <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+            <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/60">
                 <h4 className="font-semibold mb-4">Question Paper Preview</h4>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {qpDetail.questions.map((q: any, qIndex: number) =>
                 <div key={qIndex} className="space-y-3">
                       {q.subparts.map((s: any, sIndex: number) => {
                     const key = `${qIndex}-${sIndex}`;
                     const isExpanded = !!expanded[key];
                     const content = s.content || '';
-                    const shortContent = content.length > 160 ? content.slice(0, 160) + '...' : content;
+                    const textOnly = content.replace(/<[^>]*>/g, '').trim();
+                    const hasMedia = content.includes('<img') || content.includes('<table') || content.includes('<svg');
+                    const isLong = textOnly.length > 130 || hasMedia;
+
+                    let displayContent = content;
+                    if (!isExpanded && isLong) {
+                      if (hasMedia) {
+                        displayContent = textOnly.slice(0, 130) + '… (diagram/attachment attached)';
+                      } else {
+                        displayContent = content.length > 130 ? content.slice(0, 130) + '…' : content;
+                      }
+                    }
 
                     return (
-                      <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900">
-                            <div className="flex items-start gap-3">
-                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-medium text-sm">
+                      <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900 shadow-sm overflow-hidden w-full">
+                            <div className="flex items-start gap-2.5 sm:gap-3 w-full min-w-0">
+                              <div className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs sm:text-sm">
                                 {q.question_number}{s.subpart_label}
                               </div>
-                              <div className="flex-1">
-                                <div className="flex justify-between items-start gap-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start gap-2">
                                   <div 
-                                    className="text-sm text-gray-900 dark:text-gray-100 mb-1 flex-1"
-                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? (content || '') : (shortContent || '')) }}
+                                    className="text-sm sm:text-[15px] text-gray-900 dark:text-gray-100 flex-1 min-w-0 break-words [overflow-wrap:anywhere] leading-relaxed qp-content"
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? content : displayContent) }}
                                   />
-                                  <div className="ml-2 flex-shrink-0">
-                                    <Badge className="text-gray-900 dark:text-gray-100 font-semibold text-sm bg-transparent">{s.max_marks}m</Badge>
+                                  <div className="flex-shrink-0 ml-1.5">
+                                    <Badge className="text-gray-900 dark:text-gray-100 font-semibold text-xs sm:text-sm bg-transparent border border-border shrink-0 whitespace-nowrap">{s.max_marks}m</Badge>
                                   </div>
                                 </div>
 
-                                <div className="flex flex-wrap items-center gap-2 mt-2">
-                                  <Badge className="text-gray-600 dark:text-gray-400 bg-transparent">CO: {q.co}</Badge>
-                                  <Badge className="text-gray-600 dark:text-gray-400 bg-transparent">{q.blooms_level}</Badge>
-                                  {content.length > 160 &&
-                              <button
-                                onClick={() => toggleExpanded(key)}
-                                className="text-sm text-primary-600 dark:text-primary-400 ml-2">
-                                
+                                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2">
+                                  <Badge variant="outline" className="text-xs text-gray-600 dark:text-gray-400 bg-transparent">CO: {q.co}</Badge>
+                                  <Badge variant="outline" className="text-xs text-gray-600 dark:text-gray-400 bg-transparent">{q.blooms_level}</Badge>
+                                  {isLong && (
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleExpanded(key)}
+                                      className="text-xs text-primary font-medium hover:underline p-0 bg-transparent border-0 inline-flex items-center cursor-pointer ml-1 focus:outline-none"
+                                    >
                                       {isExpanded ? 'Show less' : 'Show more'}
                                     </button>
-                              }
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -755,10 +915,13 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </div>
                 )}
 
-                  <div className="font-semibold pt-2 border-t">
-                    Total Marks: {qpDetail.questions.reduce((total: number, q: any) =>
-                  total + q.subparts.reduce((subTotal: number, s: any) => subTotal + s.max_marks, 0), 0
-                  )}
+                  <div className="font-semibold pt-2 border-t flex items-center justify-between">
+                    <span>Total Marks:</span>
+                    <span className="text-lg font-bold text-primary">
+                      {qpDetail.questions.reduce((total: number, q: any) =>
+                        total + q.subparts.reduce((subTotal: number, s: any) => subTotal + (s.max_marks || 0), 0), 0
+                      )}
+                    </span>
                   </div>
                 </div>
               </div> :
@@ -791,32 +954,28 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
               <Textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Add a final comment..."
+                placeholder={!getNextRole('coe') ? "Add a final comment..." : `Add a comment for ${getNextRole('coe')}...`}
                 rows={3} />
             </div>
           </div>
 
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <div className="flex flex-row gap-2 w-full sm:w-auto">
-              {/* Show Finalize & Approve for all statuses EXCEPT already-approved — COE can re-approve rejected/sent-back QPs */}
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-border/40">
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              {/* Show Finalize & Approve / Approve & Forward for all statuses EXCEPT already-approved */}
               {selectedQP?.status !== 'approved' && (
                 <Button
                   onClick={() => selectedQP && handleFinalize(selectedQP.id)}
                   disabled={actionLoading || selectedQP?.has_exam_started}
-                  className={`flex-1 sm:w-auto justify-center transition-none text-xs px-2 h-10 sm:h-9 ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}
+                  className={`flex-1 sm:w-auto justify-center transition-none font-medium text-xs px-3 h-10 sm:h-9 ${
+                    theme === 'dark'
+                      ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border'
+                      : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'
+                  }`}
                 >
-                  <CheckCircle className={`w-3.5 h-3.5 mr-1 shrink-0 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
-                  {selectedQP?.status === 'pending_admin' ? (
-                    <>
-                      <span className="hidden sm:inline">Re-Approve QP</span>
-                      <span className="inline sm:hidden">Re-Approve</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="hidden sm:inline">Finalize & Approve</span>
-                      <span className="inline sm:hidden">Finalize</span>
-                    </>
-                  )}
+                  <CheckCircle className={`w-3.5 h-3.5 mr-1.5 shrink-0 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                  <span>
+                    {!getNextRole('coe') ? 'Finalize & Approve' : 'Approve & Forward'}
+                  </span>
                 </Button>
               )}
 
@@ -825,24 +984,16 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <Button
                   onClick={() => selectedQP && handleReject(selectedQP.id)}
                   disabled={actionLoading || selectedQP?.has_exam_started}
-                  className={`flex-1 sm:w-auto justify-center transition-none text-xs px-2 h-10 sm:h-9 ${
+                  className={`flex-1 sm:w-auto justify-center transition-none font-medium text-xs px-3 h-10 sm:h-9 ${
                     theme === 'dark'
                       ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border'
                       : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'
                   }`}
                 >
-                  <XCircle className={`w-3.5 h-3.5 mr-1 shrink-0 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
-                  {selectedQP?.status === 'approved' ? (
-                    <>
-                      <span className="hidden sm:inline">Revoke & Send Back</span>
-                      <span className="inline sm:hidden">Revoke</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="hidden sm:inline">Reject & Send Back</span>
-                      <span className="inline sm:hidden">Reject</span>
-                    </>
-                  )}
+                  <XCircle className={`w-3.5 h-3.5 mr-1.5 shrink-0 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                  <span>
+                    {selectedQP?.status === 'approved' ? 'Revoke & Send Back' : 'Reject & Send Back'}
+                  </span>
                 </Button>
               )}
             </div>
@@ -852,10 +1003,10 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <Button
                   onClick={downloadPDF}
                   disabled={downloadingPDF}
-                  className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
+                  className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50 h-10 sm:h-9 text-xs font-medium"
                 >
-                  {downloadingPDF ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
-                  {downloadingPDF ? "Downloading..." : "Export PDF"}
+                  {downloadingPDF ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Download className="w-4 h-4 mr-1.5" />}
+                  <span>{downloadingPDF ? "Exporting..." : "Export PDF"}</span>
                 </Button>
               </div>
             )}

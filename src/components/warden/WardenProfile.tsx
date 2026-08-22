@@ -43,6 +43,10 @@ interface Profile {
   address: string;
   bio: string;
   designation: string;
+
+  library_id?: string;
+  vtu_staff_id?: string;
+  aicte_id?: string;
 }
 
 const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (error: string | null) => void;}) => {
@@ -56,6 +60,10 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
     address: "",
     bio: "",
     designation: ""
+  ,
+    library_id: "",
+    vtu_staff_id: "",
+    aicte_id: ""
   });
   const [error, setLocalError] = useState<string | null>(null);
   const { theme } = useTheme();
@@ -161,6 +169,23 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
   };
 
   const handleSaveProfile = async () => {
+      const idRegex = /^[a-zA-Z0-9\-_ ]*$/;
+      if (profile.library_id && !idRegex.test(profile.library_id.trim())) {
+        showErrorAlert("Error", "Library ID must be alphanumeric");
+        setLoading(false);
+        return;
+      }
+      if (profile.vtu_staff_id && !idRegex.test(profile.vtu_staff_id.trim())) {
+        showErrorAlert("Error", "VTU Staff ID must be alphanumeric");
+        setLoading(false);
+        return;
+      }
+      if (profile.aicte_id && !idRegex.test(profile.aicte_id.trim())) {
+        showErrorAlert("Error", "AICTE ID must be alphanumeric");
+        setLoading(false);
+        return;
+      }
+
     setLoading(true);
     setLocalError(null);
     if (setError) setError(null);
@@ -396,7 +421,25 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
                 <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</label>
                 <Input id="designation" name="designation" value={profile.designation} onChange={handleChange} disabled={!editing || loading} placeholder="Designation" className="text-sm h-9 sm:h-10 w-full" />
             </div>
-          </div>);
+          
+            <div className="pt-4 border-t mt-4 col-span-1 sm:col-span-2">
+              <h4 className="text-sm font-semibold mb-3 text-gray-900 dark:text-foreground">Institutional IDs</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div>
+                  <label htmlFor="library_id" className="block text-xs mb-1.5 font-semibold text-gray-900 dark:text-foreground">Library ID</label>
+                  <Input id="library_id" name="library_id" value={profile.library_id} onChange={handleChange} disabled={!editing || loading} placeholder="e.g. LIB12345" className="text-sm h-9 w-full" />
+                </div>
+                <div>
+                  <label htmlFor="vtu_staff_id" className="block text-xs mb-1.5 font-semibold text-gray-900 dark:text-foreground">VTU Staff ID</label>
+                  <Input id="vtu_staff_id" name="vtu_staff_id" value={profile.vtu_staff_id} onChange={handleChange} disabled={!editing || loading} placeholder="e.g. VTU98765" className="text-sm h-9 w-full" />
+                </div>
+                <div>
+                  <label htmlFor="aicte_id" className="block text-xs mb-1.5 font-semibold text-gray-900 dark:text-foreground">AICTE ID</label>
+                  <Input id="aicte_id" name="aicte_id" value={profile.aicte_id} onChange={handleChange} disabled={!editing || loading} placeholder="e.g. 1-12345678" className="text-sm h-9 w-full" />
+                </div>
+              </div>
+            </div>
+</div>);
 
 
       

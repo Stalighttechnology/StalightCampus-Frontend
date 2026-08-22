@@ -26,6 +26,9 @@ export interface StaffTask {
   assigned_to_name: string;
   assigned_to_role: string;
   completed_at?: string;
+  attachment_url?: string | null;
+  attachment_name?: string | null;
+  attachment_size?: number | null;
 }
 
 const apiGet = async <T>(url: string): Promise<T> => {

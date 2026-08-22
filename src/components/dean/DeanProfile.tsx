@@ -55,6 +55,10 @@ const DeanProfile = () => {
     email: "",
     phone_number: "",
     address: ""
+  ,
+    library_id: "",
+    vtu_staff_id: "",
+    aicte_id: ""
   });
   const [passwordData, setPasswordData] = useState({
     current_password: "",
@@ -279,6 +283,10 @@ const DeanProfile = () => {
           email: profileData.email || "",
           phone_number: profileData.phone_number || "",
           address: profileData.address || ""
+        ,
+          library_id: profileData.library_id || "",
+          vtu_staff_id: profileData.vtu_staff_id || "",
+          aicte_id: profileData.aicte_id || ""
         });
       }
     } catch (error) {
@@ -289,6 +297,20 @@ const DeanProfile = () => {
   };
 
   const handleUpdateProfile = async () => {
+    const idRegex = /^[a-zA-Z0-9\-_ ]*$/;
+    if (formData.library_id && !idRegex.test(formData.library_id.trim())) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Library ID must be alphanumeric' });
+      return;
+    }
+    if (formData.vtu_staff_id && !idRegex.test(formData.vtu_staff_id.trim())) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'VTU Staff ID must be alphanumeric' });
+      return;
+    }
+    if (formData.aicte_id && !idRegex.test(formData.aicte_id.trim())) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'AICTE ID must be alphanumeric' });
+      return;
+    }
+
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/update/`, {
         method: 'PUT',
