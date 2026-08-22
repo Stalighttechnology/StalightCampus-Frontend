@@ -53,6 +53,22 @@ const parseTimeTo12h = (timeStr: string) => {
   return { hour, minute, period };
 };
 
+const parseAnyTime12h = (timeStr: string | undefined, defaultVal: { hour: string; minute: string; period: "AM" | "PM" }) => {
+  if (!timeStr) return defaultVal;
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (match) {
+    let hourVal = parseInt(match[1], 10);
+    if (hourVal > 12) hourVal = 12;
+    if (hourVal < 1) hourVal = 1;
+    return {
+      hour: hourVal.toString().padStart(2, "0"),
+      minute: match[2].padStart(2, "0"),
+      period: match[3].toUpperCase() as "AM" | "PM"
+    };
+  }
+  return parseTimeTo12h(timeStr) as { hour: string; minute: string; period: "AM" | "PM" };
+};
+
 const formatTime24h = (hour: string, minute: string, period: string) => {
   let h = parseInt(hour, 10);
   if (period === "PM" && h < 12) h += 12;
@@ -1365,28 +1381,280 @@ export default function PrincipalTimetableSettings() {
                             </div>
 
                             {leavePolicy.leave_policy_rules?.casual_leave?.allow_half_day !== false && (
-                              <div className="flex items-center justify-between gap-2 pt-1">
-                                <Label className="text-xs text-muted-foreground">Half-Day Session Rule:</Label>
-                                <Select
-                                  value={leavePolicy.leave_policy_rules?.casual_leave?.half_day_session || 'afternoon_only'}
-                                  onValueChange={(val) => {
-                                    setLeavePolicy(prev => ({
-                                      ...prev,
-                                      leave_policy_rules: {
-                                        ...prev.leave_policy_rules,
-                                        casual_leave: { ...prev.leave_policy_rules?.casual_leave, half_day_session: val }
-                                      }
-                                    }));
-                                  }}
-                                >
-                                  <SelectTrigger className="h-7 w-40 text-xs">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="afternoon_only">Afternoon Session Only</SelectItem>
-                                    <SelectItem value="both">Both Forenoon & Afternoon</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                              <div className="space-y-3 pt-1 border-t border-border/30">
+                                <div className="flex items-center justify-between gap-2">
+                                  <Label className="text-xs text-muted-foreground">Half-Day Session Rule:</Label>
+                                  <Select
+                                    value={leavePolicy.leave_policy_rules?.casual_leave?.half_day_session || 'afternoon_only'}
+                                    onValueChange={(val) => {
+                                      setLeavePolicy(prev => ({
+                                        ...prev,
+                                        leave_policy_rules: {
+                                          ...prev.leave_policy_rules,
+                                          casual_leave: { ...prev.leave_policy_rules?.casual_leave, half_day_session: val }
+                                        }
+                                      }));
+                                    }}
+                                  >
+                                    <SelectTrigger className="h-7 w-48 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="afternoon_only">Afternoon Session Only</SelectItem>
+                                      <SelectItem value="forenoon_only">Morning Session Only</SelectItem>
+                                      <SelectItem value="both">Both Morning & Afternoon</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="space-y-2.5">
+                                  {/* Custom Timings for Forenoon (if 'forenoon_only' or 'both') */}
+                                  {(leavePolicy.leave_policy_rules?.casual_leave?.half_day_session === 'forenoon_only' ||
+                                    leavePolicy.leave_policy_rules?.casual_leave?.half_day_session === 'both') && (
+                                    <div className="p-2.5 rounded-lg border bg-muted/20 border-border/60 space-y-2.5">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
+                                          <Clock className="w-3.5 h-3.5 text-primary" />
+                                          Morning (Forenoon) Session Window
+                                        </span>
+                                        <span className="text-[10px] text-muted-foreground font-medium">Morning Half-Day</span>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                        {/* Forenoon Start */}
+                                        {(() => {
+                                          const parts = parseAnyTime12h(
+                                            leavePolicy.leave_policy_rules?.casual_leave?.forenoon_start_time,
+                                            { hour: "09", minute: "00", period: "AM" }
+                                          );
+                                          const update = (key: "hour" | "minute" | "period", val: string) => {
+                                            const updated = { ...parts, [key]: val };
+                                            setLeavePolicy(prev => ({
+                                              ...prev,
+                                              leave_policy_rules: {
+                                                ...prev.leave_policy_rules,
+                                                casual_leave: {
+                                                  ...prev.leave_policy_rules?.casual_leave,
+                                                  forenoon_start_time: `${updated.hour}:${updated.minute} ${updated.period}`
+                                                }
+                                              }
+                                            }));
+                                          };
+                                          return (
+                                            <div className="space-y-1">
+                                              <Label className="text-[10px] font-medium text-muted-foreground">Start Time</Label>
+                                              <div className="flex gap-1 items-center">
+                                                <Select value={parts.hour} onValueChange={(v) => update("hour", v)}>
+                                                  <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                    <SelectValue placeholder="HH" />
+                                                  </SelectTrigger>
+                                                  <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                    {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
+                                                  </SelectContent>
+                                                </Select>
+                                                <span className="text-muted-foreground font-semibold text-xs">:</span>
+                                                <Select value={parts.minute} onValueChange={(v) => update("minute", v)}>
+                                                  <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                    <SelectValue placeholder="MM" />
+                                                  </SelectTrigger>
+                                                  <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                    {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
+                                                  </SelectContent>
+                                                </Select>
+                                                <Select value={parts.period} onValueChange={(v) => update("period", v)}>
+                                                  <SelectTrigger className={`h-7 px-1.5 text-xs w-16 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                    <SelectValue placeholder="AM/PM" />
+                                                  </SelectTrigger>
+                                                  <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                                    <SelectItem value="AM">AM</SelectItem>
+                                                    <SelectItem value="PM">PM</SelectItem>
+                                                  </SelectContent>
+                                                </Select>
+                                              </div>
+                                            </div>
+                                          );
+                                        })()}
+
+                                        {/* Forenoon End */}
+                                        {(() => {
+                                          const parts = parseAnyTime12h(
+                                            leavePolicy.leave_policy_rules?.casual_leave?.forenoon_end_time,
+                                            { hour: "12", minute: "00", period: "PM" }
+                                          );
+                                          const update = (key: "hour" | "minute" | "period", val: string) => {
+                                            const updated = { ...parts, [key]: val };
+                                            setLeavePolicy(prev => ({
+                                              ...prev,
+                                              leave_policy_rules: {
+                                                ...prev.leave_policy_rules,
+                                                casual_leave: {
+                                                  ...prev.leave_policy_rules?.casual_leave,
+                                                  forenoon_end_time: `${updated.hour}:${updated.minute} ${updated.period}`
+                                                }
+                                              }
+                                            }));
+                                          };
+                                          return (
+                                            <div className="space-y-1">
+                                              <Label className="text-[10px] font-medium text-muted-foreground">End Time (Cut-off)</Label>
+                                              <div className="flex gap-1 items-center">
+                                                <Select value={parts.hour} onValueChange={(v) => update("hour", v)}>
+                                                  <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                    <SelectValue placeholder="HH" />
+                                                  </SelectTrigger>
+                                                  <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                    {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
+                                                  </SelectContent>
+                                                </Select>
+                                                <span className="text-muted-foreground font-semibold text-xs">:</span>
+                                                <Select value={parts.minute} onValueChange={(v) => update("minute", v)}>
+                                                  <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                    <SelectValue placeholder="MM" />
+                                                  </SelectTrigger>
+                                                  <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                    {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
+                                                  </SelectContent>
+                                                </Select>
+                                                <Select value={parts.period} onValueChange={(v) => update("period", v)}>
+                                                  <SelectTrigger className={`h-7 px-1.5 text-xs w-16 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                    <SelectValue placeholder="AM/PM" />
+                                                  </SelectTrigger>
+                                                  <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                                    <SelectItem value="AM">AM</SelectItem>
+                                                    <SelectItem value="PM">PM</SelectItem>
+                                                  </SelectContent>
+                                                </Select>
+                                              </div>
+                                            </div>
+                                          );
+                                        })()}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Custom Timings for Afternoon (if 'afternoon_only' or 'both') */}
+                                  {(leavePolicy.leave_policy_rules?.casual_leave?.half_day_session === 'afternoon_only' ||
+                                    leavePolicy.leave_policy_rules?.casual_leave?.half_day_session === 'both' ||
+                                    !leavePolicy.leave_policy_rules?.casual_leave?.half_day_session) && (
+                                  <div className="p-2.5 rounded-lg border bg-muted/20 border-border/60 space-y-2.5">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
+                                        <Clock className="w-3.5 h-3.5 text-primary" />
+                                        Afternoon (PM) Session Window
+                                      </span>
+                                      <span className="text-[10px] text-muted-foreground font-medium">PM Half-Day</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                      {/* Afternoon Start */}
+                                      {(() => {
+                                        const parts = parseAnyTime12h(
+                                          leavePolicy.leave_policy_rules?.casual_leave?.afternoon_start_time,
+                                          { hour: "12", minute: "00", period: "PM" }
+                                        );
+                                        const update = (key: "hour" | "minute" | "period", val: string) => {
+                                          const updated = { ...parts, [key]: val };
+                                          setLeavePolicy(prev => ({
+                                            ...prev,
+                                            leave_policy_rules: {
+                                              ...prev.leave_policy_rules,
+                                              casual_leave: {
+                                                ...prev.leave_policy_rules?.casual_leave,
+                                                afternoon_start_time: `${updated.hour}:${updated.minute} ${updated.period}`
+                                              }
+                                            }
+                                          }));
+                                        };
+                                        return (
+                                          <div className="space-y-1">
+                                            <Label className="text-[10px] font-medium text-muted-foreground">Start Time (Begins)</Label>
+                                            <div className="flex gap-1 items-center">
+                                              <Select value={parts.hour} onValueChange={(v) => update("hour", v)}>
+                                                <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                  <SelectValue placeholder="HH" />
+                                                </SelectTrigger>
+                                                <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                  {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
+                                                </SelectContent>
+                                              </Select>
+                                              <span className="text-muted-foreground font-semibold text-xs">:</span>
+                                              <Select value={parts.minute} onValueChange={(v) => update("minute", v)}>
+                                                <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                  <SelectValue placeholder="MM" />
+                                                </SelectTrigger>
+                                                <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                  {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
+                                                </SelectContent>
+                                              </Select>
+                                              <Select value={parts.period} onValueChange={(v) => update("period", v)}>
+                                                <SelectTrigger className={`h-7 px-1.5 text-xs w-16 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                  <SelectValue placeholder="AM/PM" />
+                                                </SelectTrigger>
+                                                <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                                  <SelectItem value="AM">AM</SelectItem>
+                                                  <SelectItem value="PM">PM</SelectItem>
+                                                </SelectContent>
+                                              </Select>
+                                            </div>
+                                          </div>
+                                        );
+                                      })()}
+
+                                      {/* Afternoon End */}
+                                      {(() => {
+                                        const parts = parseAnyTime12h(
+                                          leavePolicy.leave_policy_rules?.casual_leave?.afternoon_end_time,
+                                          { hour: "05", minute: "00", period: "PM" }
+                                        );
+                                        const update = (key: "hour" | "minute" | "period", val: string) => {
+                                          const updated = { ...parts, [key]: val };
+                                          setLeavePolicy(prev => ({
+                                            ...prev,
+                                            leave_policy_rules: {
+                                              ...prev.leave_policy_rules,
+                                              casual_leave: {
+                                                ...prev.leave_policy_rules?.casual_leave,
+                                                afternoon_end_time: `${updated.hour}:${updated.minute} ${updated.period}`
+                                              }
+                                            }
+                                          }));
+                                        };
+                                        return (
+                                          <div className="space-y-1">
+                                            <Label className="text-[10px] font-medium text-muted-foreground">End Time (Closes)</Label>
+                                            <div className="flex gap-1 items-center">
+                                              <Select value={parts.hour} onValueChange={(v) => update("hour", v)}>
+                                                <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                  <SelectValue placeholder="HH" />
+                                                </SelectTrigger>
+                                                <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                  {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
+                                                </SelectContent>
+                                              </Select>
+                                              <span className="text-muted-foreground font-semibold text-xs">:</span>
+                                              <Select value={parts.minute} onValueChange={(v) => update("minute", v)}>
+                                                <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                  <SelectValue placeholder="MM" />
+                                                </SelectTrigger>
+                                                <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                  {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
+                                                </SelectContent>
+                                              </Select>
+                                              <Select value={parts.period} onValueChange={(v) => update("period", v)}>
+                                                <SelectTrigger className={`h-7 px-1.5 text-xs w-16 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                  <SelectValue placeholder="AM/PM" />
+                                                </SelectTrigger>
+                                                <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                                  <SelectItem value="AM">AM</SelectItem>
+                                                  <SelectItem value="PM">PM</SelectItem>
+                                                </SelectContent>
+                                              </Select>
+                                          </div>
+                                            </div>
+                                        );
+                                      })()}
+                                    </div>
+                                  </div>
+                                )}
+                                </div>
                               </div>
                             )}
                           </div>

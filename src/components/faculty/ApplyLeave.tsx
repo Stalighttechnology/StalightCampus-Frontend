@@ -8,7 +8,7 @@ import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { PopoverTrigger, Popover, PopoverContent } from '../ui/popover';
 import { CalendarIcon, UserCheck, Clock, CheckCircle2, XCircle, AlertCircle, Users, ArrowRight, ShieldCheck, Eye, ChevronRight, Check } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
@@ -36,6 +36,18 @@ type LeaveStatus = 'Pending' | 'Approved' | 'Rejected';
 
 const hoursOptions = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
 const minutesOptions = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
+
+const parseTimeToMinutes = (timeStr: string | undefined, defaultMinutes: number) => {
+  if (!timeStr) return defaultMinutes;
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+  if (!match) return defaultMinutes;
+  let h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const period = match[3] ? match[3].toUpperCase() : null;
+  if (period === 'PM' && h < 12) h += 12;
+  if (period === 'AM' && h === 12) h = 0;
+  return h * 60 + m;
+};
 
 const formatTime24h = (h12: string, m: string, period: string) => {
   let h = parseInt(h12, 10);
@@ -165,6 +177,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
           if (leave_quota) {
             setLeaveQuota(leave_quota);
+            const sessionRule = leave_quota.policy_rules?.casual_leave?.half_day_session || 'afternoon_only';
+            if (sessionRule === 'forenoon_only' || sessionRule === 'morning_only') {
+              setHalfDaySession('forenoon');
+            } else if (sessionRule === 'afternoon_only') {
+              setHalfDaySession('afternoon');
+            }
           }
 
           if (available_colleagues) {
@@ -382,6 +400,42 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         return;
       }
 
+      // Real-time Timing Enforcement for Today's Half-Day Leave
+      if (leaveType === 'casual' && isHalfDay && isSameDay(dateRange.from, new Date())) {
+        const now = new Date();
+        const currentM = now.getHours() * 60 + now.getMinutes();
+        const fnEndStr = leaveQuota?.policy_rules?.casual_leave?.forenoon_end_time || '12:00 PM';
+        const anEndStr = leaveQuota?.policy_rules?.casual_leave?.afternoon_end_time || '05:00 PM';
+        const fnEndM = parseTimeToMinutes(fnEndStr, 12 * 60);
+        const anEndM = parseTimeToMinutes(anEndStr, 17 * 60);
+
+        if (halfDaySession === 'forenoon' && currentM >= fnEndM) {
+          await MySwal.fire({
+            title: 'Session Cut-off Passed',
+            text: `Cannot apply for today's Morning half-day session as the cut-off time (${fnEndStr}) has already passed.`,
+            icon: 'warning',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#ef4444',
+            background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+            color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+          });
+          return;
+        }
+
+        if (halfDaySession === 'afternoon' && currentM >= anEndM) {
+          await MySwal.fire({
+            title: 'Session Closed for Today',
+            text: `Cannot apply for today's Afternoon half-day session as the closing time (${anEndStr}) has already passed.`,
+            icon: 'warning',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#ef4444',
+            background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+            color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+          });
+          return;
+        }
+      }
+
       // Rule 9.8 Client Pre-validations
       const startD = dateRange.from;
       const endD = dateRange.to;
@@ -536,7 +590,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   };
 
   const handleDateRangeChange = (newDateRange: DateRange | undefined) => {
-    if (newDateRange && newDateRange.from && !newDateRange.to) {
+    if (isHalfDay && newDateRange?.from) {
+      setDateRange({ from: newDateRange.from, to: newDateRange.from });
+    } else if (newDateRange && newDateRange.from && !newDateRange.to) {
       setDateRange({ from: newDateRange.from, to: newDateRange.from });
     } else {
       setDateRange(newDateRange);
@@ -620,7 +676,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               <span className="text-2xl font-bold text-primary">{leaveQuota?.cl_remaining ?? 15}</span>
               <span className="text-xs text-muted-foreground">/ {leaveQuota?.cl_annual_limit ?? leaveQuota?.cl_total ?? 15} left</span>
             </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">Used: {leaveQuota?.cl_used ?? 0} days | Half-day (PM only)</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Used: {leaveQuota?.cl_used ?? 0} days | {leaveQuota?.policy_rules?.casual_leave?.allow_half_day === false ? 'No Half-Day' : (leaveQuota?.policy_rules?.casual_leave?.half_day_session === 'forenoon_only' ? 'Half-day (Morning only)' : (leaveQuota?.policy_rules?.casual_leave?.half_day_session === 'both' ? 'Half-day (Morning / Afternoon)' : 'Half-day (Afternoon only)'))}
+            </p>
           </div>
 
           {/* EL Card */}
@@ -887,31 +945,6 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </div>
                 </div>
 
-                {/* Half-Day Option (Only for Casual Leave per 9.8 Rules) */}
-                {leaveType === 'casual' && (
-                  <div className={`p-3 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-blue-50/50 border-blue-200'}`}>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="isHalfDayCheck"
-                        checked={isHalfDay}
-                        onChange={(e) => setIsHalfDay(e.target.checked)}
-                        className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
-                      />
-                      <label htmlFor="isHalfDayCheck" className="text-xs font-medium text-foreground cursor-pointer">
-                        Apply for Half-Day CL
-                      </label>
-                    </div>
-                    {isHalfDay && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">Session:</span>
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
-                          Afternoon (PM Only per 9.8)
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {/* Title */}
                 <div className="space-y-2">
@@ -970,10 +1003,173 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </div>
                 )}
 
+                {/* Half-Day Casual Leave Section */}
+                {leaveType === 'casual' && leaveQuota?.policy_rules?.casual_leave?.allow_half_day !== false && (
+                  <div className="p-3 rounded-lg border bg-muted/20 border-border space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="half-day-toggle" className="text-xs font-semibold text-foreground cursor-pointer">
+                            Apply for Half-Day CL
+                          </Label>
+                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20">
+                            0.5 Day
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">Permit 0.5 day deduction for single-day absence</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        id="half-day-toggle"
+                        checked={isHalfDay}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setIsHalfDay(checked);
+                          if (checked && dateRange?.from) {
+                            setDateRange({ from: dateRange.from, to: dateRange.from });
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer accent-primary"
+                      />
+                    </div>
+
+                    {isHalfDay && (
+                      <div className="pt-2 border-t border-border/40 space-y-2">
+                        <Label className="text-[11px] font-semibold text-muted-foreground">
+                          Half-Day Session:
+                        </Label>
+                        {(() => {
+                          const sessionRule = leaveQuota?.policy_rules?.casual_leave?.half_day_session || 'afternoon_only';
+                          const fnStart = leaveQuota?.policy_rules?.casual_leave?.forenoon_start_time || '09:00 AM';
+                          const fnEnd = leaveQuota?.policy_rules?.casual_leave?.forenoon_end_time || '12:00 PM';
+                          const anStart = leaveQuota?.policy_rules?.casual_leave?.afternoon_start_time || '12:00 PM';
+                          const anEnd = leaveQuota?.policy_rules?.casual_leave?.afternoon_end_time || '05:00 PM';
+
+                          const isSelectedDateToday = dateRange?.from ? isSameDay(dateRange.from, new Date()) : false;
+                          const now = new Date();
+                          const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+                          const fnEndMinutes = parseTimeToMinutes(fnEnd, 12 * 60);
+                          const anEndMinutes = parseTimeToMinutes(anEnd, 17 * 60);
+
+                          const isFnPassedForToday = isSelectedDateToday && currentMinutes >= fnEndMinutes;
+                          const isAnPassedForToday = isSelectedDateToday && currentMinutes >= anEndMinutes;
+                          const allPassedForToday = isSelectedDateToday && (
+                            (sessionRule === 'forenoon_only' && isFnPassedForToday) ||
+                            (sessionRule === 'afternoon_only' && isAnPassedForToday) ||
+                            (sessionRule === 'both' && isFnPassedForToday && isAnPassedForToday)
+                          );
+
+                          if (allPassedForToday) {
+                            return (
+                              <div className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-xs space-y-1">
+                                <div className="font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                  <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                                  Half-Day Closed for Today
+                                </div>
+                                <p className="text-[11px] text-muted-foreground">
+                                  Today&apos;s configured session timings have already passed. Please select a future date to apply for Half-Day CL.
+                                </p>
+                              </div>
+                            );
+                          }
+
+                          if (sessionRule === 'both') {
+                            return (
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  type="button"
+                                  disabled={isFnPassedForToday}
+                                  onClick={() => setHalfDaySession('forenoon')}
+                                  className={`p-2.5 rounded-lg border text-xs text-left transition-all ${
+                                    isFnPassedForToday
+                                      ? 'opacity-50 cursor-not-allowed border-border/40 bg-muted/20 text-muted-foreground'
+                                      : halfDaySession === 'forenoon'
+                                      ? 'border-primary bg-primary/10 text-primary ring-1 ring-primary'
+                                      : 'border-border bg-background hover:bg-muted/30 text-muted-foreground'
+                                  }`}
+                                >
+                                  <div className="font-semibold text-foreground flex items-center justify-between">
+                                    <span>Morning Session</span>
+                                    {isFnPassedForToday && (
+                                      <span className="text-[9px] px-1 py-0.2 rounded bg-rose-500/10 text-rose-500 font-bold">Passed</span>
+                                    )}
+                                  </div>
+                                  <div className="text-[10px] text-muted-foreground mt-0.5">
+                                    {fnStart} - {fnEnd}
+                                  </div>
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={isAnPassedForToday}
+                                  onClick={() => setHalfDaySession('afternoon')}
+                                  className={`p-2.5 rounded-lg border text-xs text-left transition-all ${
+                                    isAnPassedForToday
+                                      ? 'opacity-50 cursor-not-allowed border-border/40 bg-muted/20 text-muted-foreground'
+                                      : halfDaySession === 'afternoon'
+                                      ? 'border-primary bg-primary/10 text-primary ring-1 ring-primary'
+                                      : 'border-border bg-background hover:bg-muted/30 text-muted-foreground'
+                                  }`}
+                                >
+                                  <div className="font-semibold text-foreground flex items-center justify-between">
+                                    <span>Afternoon Session</span>
+                                    {isAnPassedForToday && (
+                                      <span className="text-[9px] px-1 py-0.2 rounded bg-rose-500/10 text-rose-500 font-bold">Passed</span>
+                                    )}
+                                  </div>
+                                  <div className="text-[10px] text-muted-foreground mt-0.5">
+                                    {anStart} - {anEnd}
+                                  </div>
+                                </button>
+                              </div>
+                            );
+                          } else if (sessionRule === 'forenoon_only' || sessionRule === 'morning_only') {
+                            if (halfDaySession !== 'forenoon') {
+                              setTimeout(() => setHalfDaySession('forenoon'), 0);
+                            }
+                            return (
+                              <div className="p-2.5 rounded-lg border border-border bg-background text-xs flex items-center justify-between">
+                                <div>
+                                  <div className="font-semibold text-foreground">Morning Session Only</div>
+                                  <div className="text-[10px] text-muted-foreground">
+                                    Window: {fnStart} - Ends strictly before {fnEnd}
+                                  </div>
+                                </div>
+                                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                                  Custom Policy
+                                </span>
+                              </div>
+                            );
+                          } else {
+                            if (halfDaySession !== 'afternoon') {
+                              setTimeout(() => setHalfDaySession('afternoon'), 0);
+                            }
+                            return (
+                              <div className="p-2.5 rounded-lg border border-border bg-background text-xs flex items-center justify-between">
+                                <div>
+                                  <div className="font-semibold text-foreground">Afternoon Session Only</div>
+                                  <div className="text-[10px] text-muted-foreground">
+                                    Starts strictly from {anStart} (Window: {anStart} - {anEnd})
+                                  </div>
+                                </div>
+                                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                                  Custom Policy
+                                </span>
+                              </div>
+                            );
+                          }
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Date Selection */}
                 {leaveType !== 'short_permission' ? (
                   <div className="space-y-2">
-                    <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range <span className="text-red-500">*</span></Label>
+                    <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {isHalfDay ? 'Leave Date (Single Day)' : 'Date Range'} <span className="text-red-500">*</span>
+                    </Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
