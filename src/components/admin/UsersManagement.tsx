@@ -86,7 +86,8 @@ const displayRoleMap: Record<string, string> = {
   "transport_admin": "Transport Admin",
   "library_admin": "Library Admin",
   "admission_manager": "Admission Manager",
-  "counsellor": "Admission Counsellor"
+  "counsellor": "Admission Counsellor",
+  "driver": "Driver"
 };
 
 const getRoleBadge = (role: string, theme: string) => {
@@ -112,7 +113,8 @@ const ALL_ROLES = [
   "Transport Admin",
   "Library Admin",
   "Admission Manager",
-  "Admission Counsellor"
+  "Admission Counsellor",
+  "Driver"
 ];
 
 const BASIC_PLAN_ROLES = [
@@ -122,7 +124,8 @@ const BASIC_PLAN_ROLES = [
   "Teacher",
   "Student",
   "Dean",
-  "Admission Counsellor"
+  "Admission Counsellor",
+  "Driver"
 ];
 
 const PRO_PLAN_ROLES = [
@@ -134,7 +137,8 @@ const PRO_PLAN_ROLES = [
   "Dean",
   "COE",
   "Fees Manager",
-  "Admission Counsellor"
+  "Admission Counsellor",
+  "Driver"
 ];
 
 const roleMap: Record<string, string> = {
@@ -152,7 +156,8 @@ const roleMap: Record<string, string> = {
   "Transport Admin": "transport_admin",
   "Library Admin": "library_admin",
   "Admission Manager": "admission_manager",
-  "Admission Counsellor": "counsellor"
+  "Admission Counsellor": "counsellor",
+  "Driver": "driver"
 };
 
 const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
