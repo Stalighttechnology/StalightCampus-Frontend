@@ -94,6 +94,8 @@ const isValidTransition = (currentStatus: string, newStatus: string): { valid: b
   return { valid: true };
 };
 
+const PAGE_SIZE = 10;
+
 const LeadPipeline: React.FC = () => {
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,7 +110,6 @@ const LeadPipeline: React.FC = () => {
   const [activeFilterStage, setActiveFilterStage] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [listPage, setListPage] = useState<number>(1);
-  const PAGE_SIZE = 15;
   
   const scrollRef = useRef<{ id: number | null }>({ id: null });
   const startScrolling = (container: HTMLDivElement, direction: 'left' | 'right') => {
@@ -270,7 +271,7 @@ const LeadPipeline: React.FC = () => {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/enquiries/?no_pagination=true`);
       if (response.ok) {
         const data = await response.json();
-        setLeads(data);
+        setLeads(data || []);
       }
     } catch (err) {
       console.error(err);
@@ -280,7 +281,7 @@ const LeadPipeline: React.FC = () => {
   };
 
   const moveLead = async (leadId: number, newStatus: string) => {
-    // Optimistic update
+    // Optimistic update directly in memory
     setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: newStatus } : l));
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/enquiries/${leadId}/update_status/`, {
@@ -331,13 +332,13 @@ const LeadPipeline: React.FC = () => {
     moveLead(lead.id, targetStageId);
   };
 
-  // Helper to count leads for each stage
+  // Helper to count leads for each stage dynamically from single dataset
   const getStageCount = (stageId: string) => {
     if (stageId === 'all') return leads.length;
     return leads.filter(l => l.status === stageId || (stageId === 'documents_verified' && l.status === 'fee_pending')).length;
   };
 
-  // Filtered leads for the List View
+  // In-memory filtered leads for the List View
   const filteredLeads = useMemo(() => {
     return leads.filter(lead => {
       // Stage filter
@@ -365,7 +366,10 @@ const LeadPipeline: React.FC = () => {
     });
   }, [leads, activeFilterStage, searchQuery]);
 
-  const totalListPages = Math.ceil(filteredLeads.length / PAGE_SIZE) || 1;
+  const totalListCount = filteredLeads.length;
+  const totalListPages = Math.ceil(totalListCount / PAGE_SIZE) || 1;
+
+  // 10 items per page slice
   const paginatedLeads = useMemo(() => {
     const start = (listPage - 1) * PAGE_SIZE;
     return filteredLeads.slice(start, start + PAGE_SIZE);
@@ -382,18 +386,6 @@ const LeadPipeline: React.FC = () => {
         {stage.label}
       </Badge>
     );
-  };
-
-  const getPriorityBadge = (priority: string) => {
-    switch (priority) {
-      case 'hot':
-        return <Badge className="bg-red-100 text-red-800 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-900 text-[10px] h-5 border font-semibold">Hot</Badge>;
-      case 'warm':
-        return <Badge className="bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-900 text-[10px] h-5 border font-semibold">Warm</Badge>;
-      case 'cold':
-      default:
-        return <Badge className="bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-900 text-[10px] h-5 border font-semibold">Cold</Badge>;
-    }
   };
 
   if (loading) {
@@ -444,7 +436,7 @@ const LeadPipeline: React.FC = () => {
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             {viewMode === 'pipeline' 
               ? "Manage applicant pipeline visually with drag-and-drop sliding stages."
-              : "Filter and review applicant leads stage by stage in organized rows."}
+              : "Filter and review applicant leads stage by stage in organized rows (10 per page)."}
           </p>
         </div>
 
@@ -643,7 +635,7 @@ const LeadPipeline: React.FC = () => {
           </div>
         </CardContent>
       ) : (
-        /* ================= MODE 2: FILTERING LIST VIEW IN ROWS ================= */
+        /* ================= MODE 2: FILTERING LIST VIEW IN ROWS (10 per page + indexing) ================= */
         <CardContent className="flex-1 min-h-0 p-4 sm:p-6 flex flex-col overflow-hidden space-y-4">
           {/* Stage Filter Buttons Bar (Pills with Counts) */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1.5 custom-scrollbar shrink-0">
@@ -705,7 +697,7 @@ const LeadPipeline: React.FC = () => {
             </div>
           </div>
 
-          {/* Leads Listed in Rows */}
+          {/* Leads Listed in Rows with Indexing */}
           <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar border rounded-lg border-border bg-card">
             {paginatedLeads.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-12 text-center space-y-3">
@@ -715,7 +707,7 @@ const LeadPipeline: React.FC = () => {
                 <div>
                   <p className="text-sm font-semibold text-foreground">No Leads Found</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {searchQuery || priorityFilter !== 'all' || activeFilterStage !== 'all'
+                    {searchQuery || activeFilterStage !== 'all'
                       ? "No applicant enquiries match the active filter criteria."
                       : "No leads available yet in this view."}
                   </p>
@@ -723,15 +715,21 @@ const LeadPipeline: React.FC = () => {
               </div>
             ) : (
               <div className="divide-y divide-border">
-                {paginatedLeads.map((lead) => {
+                {paginatedLeads.map((lead, index) => {
+                  const itemIndex = (listPage - 1) * PAGE_SIZE + index + 1;
                   return (
                     <div
                       key={lead.id}
                       className="p-3.5 sm:p-4 hover:bg-muted/30 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3 group"
                     >
-                      {/* Left: Applicant Details */}
+                      {/* Left: Indexing & Applicant Details */}
                       <div className="flex items-start gap-3 min-w-0 flex-1">
-                        <div className="w-9 h-9 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-sm shrink-0 uppercase">
+                        {/* Index Number Badge */}
+                        <div className="w-8 h-8 rounded-lg bg-muted/60 border border-border text-foreground font-semibold flex items-center justify-center text-xs shrink-0 mt-0.5">
+                          #{itemIndex}
+                        </div>
+
+                        <div className="w-9 h-9 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-sm shrink-0 uppercase mt-0.5">
                           {lead.name ? lead.name.charAt(0) : 'L'}
                         </div>
 
@@ -853,11 +851,11 @@ const LeadPipeline: React.FC = () => {
             )}
           </div>
 
-          {/* List Pagination Footer */}
-          {totalListPages > 1 && (
+          {/* List Pagination Footer (10 items per page) */}
+          {totalListCount > 0 && (
             <div className="flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-muted-foreground px-2 pt-1 shrink-0">
               <div>
-                Showing {(listPage - 1) * PAGE_SIZE + 1} to {Math.min(listPage * PAGE_SIZE, filteredLeads.length)} of {filteredLeads.length} leads
+                Showing {(listPage - 1) * PAGE_SIZE + 1} to {Math.min(listPage * PAGE_SIZE, totalListCount)} of {totalListCount} leads
               </div>
               <div className="flex items-center gap-1.5">
                 <Button
@@ -876,7 +874,7 @@ const LeadPipeline: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setListPage(p => Math.min(totalListPages, p + 1))}
-                  disabled={listPage === totalListPages}
+                  disabled={listPage >= totalListPages}
                   className="h-8 px-2.5 text-xs"
                 >
                   Next <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
