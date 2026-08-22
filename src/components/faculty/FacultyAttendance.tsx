@@ -311,10 +311,10 @@ const FacultyAttendance = () => {
     };
 
     if (mode === 'half_day_split') {
-      const has1stIn  = !!(todayRecord.first_check_in || todayRecord.check_in_time);
+      const has1stIn  = !!todayRecord.first_check_in;
       const has1stOut = !!todayRecord.first_check_out;
       const has2ndIn  = !!todayRecord.second_check_in;
-      const has2ndOut = !!(todayRecord.second_check_out || todayRecord.check_out_time);
+      const has2ndOut = !!todayRecord.second_check_out;
       
       const missed1stIn = !has1stIn && checkMissed(has1stIn, 'first_half_in');
       const missed1stOut = !has1stOut && checkMissed(has1stOut, 'first_half_out');
@@ -953,10 +953,10 @@ const FacultyAttendance = () => {
                   };
                   
                   const checkpoints = mode === 'half_day_split' ? [
-                    { label: '1st Half In', time: todayRecord.first_check_in || todayRecord.check_in_time, missed: getMissed(todayRecord.first_check_in || todayRecord.check_in_time, hds?.first_half_in), delay: todayRecord.delays?.[0] },
+                    { label: '1st Half In', time: todayRecord.first_check_in, missed: getMissed(todayRecord.first_check_in, hds?.first_half_in), delay: todayRecord.delays?.[0] },
                     { label: '1st Half Out', time: todayRecord.first_check_out, missed: getMissed(todayRecord.first_check_out, hds?.first_half_out), delay: todayRecord.delays?.[1] },
                     { label: '2nd Half In', time: todayRecord.second_check_in, missed: getMissed(todayRecord.second_check_in, hds?.second_half_in), delay: todayRecord.delays?.[2] },
-                    { label: '2nd Half Out', time: todayRecord.second_check_out || todayRecord.check_out_time, missed: getMissed(todayRecord.second_check_out || todayRecord.check_out_time, hds?.second_half_out), delay: todayRecord.delays?.[3] }
+                    { label: '2nd Half Out', time: todayRecord.second_check_out, missed: getMissed(todayRecord.second_check_out, hds?.second_half_out), delay: todayRecord.delays?.[3] }
                   ] : [
                     { label: 'Check In', time: todayRecord.check_in_time, missed: getMissed(todayRecord.check_in_time, fd?.check_in), delay: todayRecord.delays?.[0] },
                     { label: 'Check Out', time: todayRecord.check_out_time, missed: getMissed(todayRecord.check_out_time, fd?.check_out), delay: todayRecord.delays?.[1] }

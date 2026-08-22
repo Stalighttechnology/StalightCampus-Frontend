@@ -338,30 +338,27 @@ const DeanFacultyProfile = ({
   const { profile, loading: profileLoading, isFetching: profileFetching } =
     useFacultyProfile(selectedFaculty, startDate, endDate, leavesPage, reloadKey, setError);
 
-  const handleExportPDF = async () => {
-    if (!selectedFaculty) return;
+  const handleExportExcel = async () => {
+    if (!selectedFaculty || !selectedBranch) return;
     setExportLoading(true);
     try {
       const params = new URLSearchParams();
       if (startDate) params.append("start_date", startDate);
       if (endDate) params.append("end_date", endDate);
+      params.append("role", "teacher");
+      params.append("export_format", "excel");
+      params.append("branch_id", selectedBranch);
+      params.append("faculty_id", selectedFaculty);
 
       const response = await fetchWithTokenRefresh(
-        `${API_ENDPOINT}/dean/faculty/${selectedFaculty}/export-pdf/?${params.toString()}`
+        `${API_ENDPOINT}/fees-manager/reports/attendance/?${params.toString()}`
       );
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        const contentDisposition = response.headers.get("Content-Disposition");
-        let filename = `Faculty_Profile_${selectedFaculty}_${new Date().toISOString().slice(0, 10)}.pdf`;
-        if (contentDisposition) {
-          const matches = /filename="?([^"]+)"?/.exec(contentDisposition);
-          if (matches && matches[1]) {
-            filename = matches[1];
-          }
-        }
+        const filename = `Faculty_Profile_${selectedFaculty}_${new Date().toISOString().slice(0, 10)}.xlsx`;
         a.download = filename;
         document.body.appendChild(a);
         a.click();
@@ -369,10 +366,10 @@ const DeanFacultyProfile = ({
         window.URL.revokeObjectURL(url);
       } else {
         const result = await response.json().catch(() => ({}));
-        setError(result.message || "Failed to export PDF");
+        Swal.fire("Error", result.message || "Failed to export Excel", "error");
       }
     } catch (err) {
-      setError("Network error while exporting PDF");
+      Swal.fire("Error", "Network error while exporting Excel", "error");
     } finally {
       setExportLoading(false);
     }
@@ -669,7 +666,7 @@ const DeanFacultyProfile = ({
 
                       {/* Desktop/Tablet Export Button */}
                       <Button
-                        onClick={handleExportPDF}
+                        onClick={handleExportExcel}
                         variant="outline"
                         className="hidden lg:flex items-center justify-center gap-2 px-4 h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md rounded-lg w-full lg:w-auto flex-1 lg:flex-initial whitespace-nowrap"
                         disabled={
@@ -689,20 +686,20 @@ const DeanFacultyProfile = ({
                         ) : (
                           <>
                             <FileText className="h-4 w-4" />
-                            Export PDF
+                            Export Excel
                           </>
                         )}
                       </Button>
                       {/* Mobile Export Icon Button */}
                       <Button
-                        onClick={handleExportPDF}
+                        onClick={handleExportExcel}
                         size="icon"
                         variant="outline"
                         className="flex lg:hidden items-center justify-center h-9 w-9 p-0 border border-input bg-background text-foreground flex-shrink-0 shadow-sm dean-mobile-icon-btn"
                         disabled={
                           !selectedBranch || !selectedFaculty || facultiesLoading || exportLoading
                         }
-                        title="Export PDF"
+                        title="Export Excel"
                       >
                         {exportLoading ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -732,12 +729,17 @@ const DeanFacultyProfile = ({
                   <div className="p-0">
                     <div
                       id="dean-faculty-stats-grid"
-                      className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-8"
+                      className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-9 gap-4 mb-8"
                     >
                       <DashboardCard
                         title="Weekly Hours"
                         value={profile.total_weekly_hours ?? 0}
                         icon={<Clock className="w-5 h-5" />}
+                      />
+                      <DashboardCard
+                        title="Total Days"
+                        value={profile.attendance_summary?.total_days ?? 0}
+                        icon={<CalendarIcon className="w-5 h-5" />}
                       />
                       <DashboardCard
                         title="Present Days"
@@ -753,6 +755,21 @@ const DeanFacultyProfile = ({
                         title="Attendance %"
                         value={typeof profile.attendance_summary?.percent_present === 'number' ? `${profile.attendance_summary.percent_present}%` : (profile.attendance_summary?.percent_present ?? "N/A")}
                         icon={<Percent className="w-5 h-5" />}
+                      />
+                      <DashboardCard
+                        title="Delay (m)"
+                        value={profile.attendance_summary?.total_delay_minutes ?? 0}
+                        icon={<Clock className="w-5 h-5" />}
+                      />
+                      <DashboardCard
+                        title="Missed"
+                        value={profile.attendance_summary?.total_missed ?? 0}
+                        icon={<UserX className="w-5 h-5" />}
+                      />
+                      <DashboardCard
+                        title="Hours"
+                        value={profile.attendance_summary?.formatted_hours ?? "0:00"}
+                        icon={<Clock className="w-5 h-5" />}
                       />
                       <DashboardCard
                         title="Leave Days"

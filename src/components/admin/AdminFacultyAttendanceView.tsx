@@ -345,37 +345,39 @@ const AdminFacultyAttendanceView: React.FC = () => {
     }
   };
 
-  const handleExportTodayPDF = async () => {
+  const handleExportTodayExcel = async () => {
     if (!selectedBranch) {
       Swal.fire("Info", "Please select a branch first", "info");
       return;
     }
     setExportingToday(true);
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/faculty-attendance-today/export-pdf/?branch_id=${selectedBranch}`);
+      const todayStr = new Date().toLocaleDateString('sv-SE');
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/reports/attendance/?role=teacher&start_date=${todayStr}&end_date=${todayStr}&export_format=excel&branch_id=${selectedBranch}`);
+      
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        const todayStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-        a.download = `Faculty_Attendance_Today_${todayStr.replace(/ /g, '_')}.pdf`;
+        const formattedDateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        a.download = `Faculty_Attendance_Today_${formattedDateStr.replace(/ /g, '_')}.xlsx`;
         document.body.appendChild(a);
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
       } else {
         const result = await response.json().catch(() => ({}));
-        Swal.fire("Error", result.message || "Failed to export PDF", "error");
+        Swal.fire("Error", result.message || "Failed to export Excel", "error");
       }
     } catch (err) {
-      Swal.fire("Error", "Network error while exporting PDF", "error");
+      Swal.fire("Error", "Network error while exporting Excel", "error");
     } finally {
       setExportingToday(false);
     }
   };
 
-  const handleExportRecordsPDF = async () => {
+  const handleExportRecordsExcel = async () => {
     if (!selectedBranch) {
       Swal.fire("Info", "Please select a branch first", "info");
       return;
@@ -388,30 +390,34 @@ const AdminFacultyAttendanceView: React.FC = () => {
     setExportingRecords(true);
     try {
       const params = new URLSearchParams({
+        role: 'teacher',
         branch_id: selectedBranch,
         start_date: dateRange.start_date,
         end_date: dateRange.end_date,
+        export_format: 'excel',
       });
       if (selectedFacultyId && selectedFacultyId !== "all") {
         params.append("faculty_id", selectedFacultyId);
       }
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/faculty-attendance-records/export-pdf/?${params}`);
+      
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/reports/attendance/?${params}`);
+      
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `Faculty_Attendance_Summary_${dateRange.start_date}_to_${dateRange.end_date}.pdf`;
+        a.download = `Faculty_Attendance_Summary_${dateRange.start_date}_to_${dateRange.end_date}.xlsx`;
         document.body.appendChild(a);
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
       } else {
         const result = await response.json().catch(() => ({}));
-        Swal.fire("Error", result.message || "Failed to export PDF", "error");
+        Swal.fire("Error", result.message || "Failed to export Excel", "error");
       }
     } catch (err) {
-      Swal.fire("Error", "Network error while exporting PDF", "error");
+      Swal.fire("Error", "Network error while exporting Excel", "error");
     } finally {
       setExportingRecords(false);
     }
@@ -787,9 +793,9 @@ const AdminFacultyAttendanceView: React.FC = () => {
                               <span>Off-Campus Duty Only</span>
                             </label>
 
-                            {/* Desktop Export PDF Button */}
+                            {/* Desktop Export Excel Button */}
                             <Button
-                            onClick={handleExportTodayPDF}
+                            onClick={handleExportTodayExcel}
                             disabled={exportingToday}
                             className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 hover:text-white transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
                           >
@@ -801,18 +807,19 @@ const AdminFacultyAttendanceView: React.FC = () => {
                             ) : (
                               <>
                                 <FileDown className="w-4 h-4" />
-                                <span>Export PDF</span>
+                                <span>Export Excel</span>
                               </>
                             )}
                           </Button>
 
-                          {/* Mobile Export PDF Icon Button */}
+                          {/* Mobile Export Excel Icon Button */}
                           <Button
-                            onClick={handleExportTodayPDF}
+                            onClick={handleExportTodayExcel}
                             disabled={exportingToday}
                             size="icon"
                             variant="outline"
                             className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background"
+                            title="Export Excel"
                           >
                             {exportingToday ? (
                               <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
@@ -1258,9 +1265,9 @@ const AdminFacultyAttendanceView: React.FC = () => {
                             Faculty Attendance Summary
                           </CardTitle>
 
-                          {/* Desktop Export Report Button */}
+                          {/* Desktop Export Excel Button */}
                           <Button
-                            onClick={handleExportRecordsPDF}
+                            onClick={handleExportRecordsExcel}
                             disabled={exportingRecords || facultySummary.length === 0 || !selectedFacultyId}
                             className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 hover:text-white transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50"
                           >
@@ -1272,14 +1279,14 @@ const AdminFacultyAttendanceView: React.FC = () => {
                             ) : (
                               <>
                                 <FileDown className="w-4 h-4" />
-                                <span>Export Report</span>
+                                <span>Export Excel</span>
                               </>
                             )}
                           </Button>
 
-                          {/* Mobile Export Report Icon Button */}
+                          {/* Mobile Export Excel Icon Button */}
                           <Button
-                            onClick={handleExportRecordsPDF}
+                            onClick={handleExportRecordsExcel}
                             disabled={exportingRecords || facultySummary.length === 0 || !selectedFacultyId}
                             size="icon"
                             variant="outline"

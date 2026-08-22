@@ -157,7 +157,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
     fetchAttendanceAudit();
   };
 
-  const downloadReport = async (format: 'pdf') => {
+  const downloadReport = async (format: 'excel') => {
     try {
       setDownloading(true);
       setLoading(true);
@@ -168,16 +168,16 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Staff_Attendance_${startDate}_to_${endDate}.pdf`;
+        a.download = `Staff_Attendance_${startDate}_to_${endDate}.xlsx`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        setError(`Failed to download PDF report`);
+        setError(`Failed to download Excel report`);
       }
     } catch (err) {
-      setError(`Error downloading PDF report`);
+      setError(`Error downloading Excel report`);
     } finally {
       setDownloading(false);
       setLoading(false);
@@ -208,7 +208,6 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
       setIsSavingRecord(true);
       const response = await updateStaffAttendanceRecord(selectedStaff.id, selectedDateDetailsStr, editPayload);
       if (response.success) {
-        Swal.fire({ title: 'Success!', text: 'Record updated successfully.', icon: 'success', confirmButtonColor: '#10b981' });
         setIsEditingRecord(false);
         // Refresh detail view data
         const refreshResponse = await getStaffDetailedAttendance(selectedStaff.id, startDate, endDate);
@@ -217,6 +216,11 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
         }
         // Refresh main list
         fetchAttendanceAudit();
+        
+        // Delay Swal to allow Radix dialog to animate out cleanly without stutter
+        setTimeout(() => {
+          Swal.fire({ title: 'Success!', text: 'Record updated successfully.', icon: 'success', confirmButtonColor: '#10b981' });
+        }, 300);
       } else {
         Swal.fire({ title: 'Error', text: response.message || 'Failed to update record', icon: 'error', confirmButtonColor: '#ef4444' });
       }
@@ -264,7 +268,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
               {/* Desktop/Tablet Export Button */}
               <Button
                 size="sm"
-                onClick={() => downloadReport('pdf')}
+                onClick={() => downloadReport('excel')}
                 disabled={loading || downloading || selectedRole === '' || startDate === '' || endDate === ''}
                 className="hidden sm:flex justify-center bg-primary text-white hover:bg-primary/90 transition-all shadow-md text-sm font-medium px-4 py-2 rounded-md items-center gap-2 h-9 disabled:opacity-50">
                 {downloading ? (
@@ -272,16 +276,16 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                 ) : (
                   <Download className="h-4 w-4 flex-shrink-0" />
                 )}
-                <span>{downloading ? 'Exporting...' : 'Export PDF'}</span>
+                <span>{downloading ? 'Exporting...' : 'Export Excel'}</span>
               </Button>
               {/* Mobile Export Icon Button */}
               <Button
-                onClick={() => downloadReport('pdf')}
+                onClick={() => downloadReport('excel')}
                 disabled={loading || downloading || selectedRole === '' || startDate === '' || endDate === ''}
                 size="icon"
                 variant="outline"
                 className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
-                title="Export PDF"
+                title="Export Excel"
               >
                 {downloading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -295,16 +299,6 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
           <CardContent className="p-6 pb-4">
             {/* Filters Section */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-muted/10 p-2 rounded-2xl border border-border/50">
-              <div className="space-y-2">
-                <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Search Staff</Label>
-                <Input
-                  placeholder="Search by name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-background rounded-xl border-border/50 h-11"
-                />
-              </div>
-
               <div className="space-y-2">
                 <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Role Type <span className="text-red-500">*</span></Label>
                 <Select value={selectedRole} onValueChange={(val) => {
@@ -410,6 +404,16 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
 
                   </PopoverContent>
                 </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Search Staff</Label>
+                <Input
+                  placeholder="Search by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-background rounded-xl border-border/50 h-11"
+                />
               </div>
             </div>
           </CardContent>

@@ -31,6 +31,7 @@ import ScheduleMeeting from "../common/ScheduleMeeting";
 import StaffTaskTracker from "../common/StaffTaskTracker";
 import AdminQPApprovals from "../admin/AdminQPApprovals";
 import ComplianceReports from "../admin/ComplianceReports";
+import Reports from "../FeesManager/Reports";
 
 interface DeanUser {
   username: string;
@@ -54,7 +55,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'profile': 'profile',
     'campus-locations': 'campus-locations',
     'attendance': 'attendance',
-    'attendance-filters': 'attendance-filters',
+    'reports': 'reports',
     'scan-student-info': 'scan-student-info',
     'exams': 'exams',
     'faculty': 'faculty',
@@ -106,8 +107,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <div><DeanStats /></div>;
       case 'attendance':
         return <div><DeanAttendance /></div>;
-      case 'attendance-filters':
-        return <div><DeanAttendanceFilters /></div>;
+      case 'reports':
+        return <div><Reports isReadOnly={true} /></div>;
       case 'campus-locations':
         return <div><CampusLocationManager /></div>;
       case 'scan-student-info':
@@ -125,8 +126,6 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <div><DeanFinance /></div>;
       case 'alerts':
         return <div><DeanAlerts /></div>;
-      case 'attendance-records':
-        return <div><DeanAttendanceRecords /></div>;
       case 'profile':
         return <div><DeanProfile /></div>;
       case 'admin-leaves':
