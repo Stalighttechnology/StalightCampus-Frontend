@@ -1460,7 +1460,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 p-4 pt-2 sm:pt-0 max-h-[520px] overflow-y-auto custom-scrollbar">
+              <CardContent className="flex-1 p-4 pt-2 sm:pt-0 overflow-y-auto custom-scrollbar">
                 <div className="overflow-x-auto thin-scrollbar">
                   {/* Mobile View */}
                   <div className="md:hidden space-y-3">
@@ -1536,13 +1536,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           >
                             <td className="py-3 px-3">
                               <div className="font-semibold text-sm">{leave.title}</div>
-                              <div className="flex items-center gap-1 mt-0.5">
-                                <span className="text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-primary/10 text-primary">
+                              <div className="flex flex-col items-start gap-1 mt-1">
+                                <span className="text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-primary/10 text-primary w-fit">
                                   {leave.leave_type?.replace('_', ' ')}
                                 </span>
                                 {leave.is_half_day && (
-                                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
-                                    Half-Day ({leave.half_day_session?.toUpperCase() || 'PM'})
+                                  <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 w-fit">
+                                    Half-Day ({leave.half_day_session?.toLowerCase() === 'forenoon' || leave.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
                                   </span>
                                 )}
                               </div>
@@ -1654,7 +1654,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       </span>
                       {selectedLeaveForFlow.is_half_day && (
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
-                          Half-Day ({selectedLeaveForFlow.half_day_session?.toUpperCase() || 'PM'})
+                          Half-Day ({selectedLeaveForFlow.half_day_session?.toLowerCase() === 'forenoon' || selectedLeaveForFlow.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
                         </span>
                       )}
                     </div>

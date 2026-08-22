@@ -637,8 +637,8 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                         </td>
                         <td className="py-4 px-2 md:px-4 text-left">
                           <div className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</div>
-                          <div className="flex flex-wrap items-center gap-1 mt-0.5">
-                            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded ${
+                          <div className="flex flex-col items-start gap-1 mt-1">
+                            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded w-fit ${
                               leave.leave_type === 'short_permission' ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300' :
                               leave.leave_type === 'earned' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' :
                               leave.leave_type === 'rh' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300' :
@@ -651,8 +651,8 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                                leave.leave_type}
                             </span>
                             {leave.is_half_day && (
-                              <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-                                Half-Day ({leave.half_day_session?.toUpperCase() || 'PM'})
+                              <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 w-fit">
+                                Half-Day ({leave.half_day_session?.toLowerCase() === 'forenoon' || leave.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
                               </span>
                             )}
                           </div>
