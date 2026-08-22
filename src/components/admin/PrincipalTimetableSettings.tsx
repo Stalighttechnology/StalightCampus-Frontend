@@ -1665,7 +1665,6 @@ export default function PrincipalTimetableSettings() {
                           { roleKey: 'counsellor', label: 'Counsellor Leaves', defaultStages: ['admission_manager', 'principal'] },
                           { roleKey: 'hms_admin', label: 'HMS Admin Leaves', defaultStages: ['principal'] },
                           { roleKey: 'warden', label: 'Hostel Warden Leaves', defaultStages: ['hms_admin', 'principal'] },
-                          { roleKey: 'caretaker', label: 'Hostel Caretaker Leaves', defaultStages: ['hms_admin', 'principal'] },
                           { roleKey: 'transport_admin', label: 'Transport Admin Leaves', defaultStages: ['principal'] },
                           { roleKey: 'driver', label: 'Driver Leaves', defaultStages: ['transport_admin', 'principal'] },
                           { roleKey: 'library_admin', label: 'Library Admin Leaves', defaultStages: ['principal'] },
