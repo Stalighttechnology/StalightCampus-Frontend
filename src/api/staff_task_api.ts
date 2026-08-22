@@ -63,14 +63,28 @@ const apiPatch = async <T>(url: string, body?: any): Promise<T> => {
   return await response.json();
 };
 
+const apiDelete = async <T>(url: string): Promise<T> => {
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}${url}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || err.message || JSON.stringify(err) || 'API Error');
+  }
+  return response.status === 204 ? ({} as T) : await response.json().catch(() => ({} as T));
+};
+
 export const staffTaskApi = {
-  getTasks: (type?: 'received' | 'assigned', page: number = 1) => {
+  getTasks: (type?: 'received' | 'assigned', page: number = 1, category?: string) => {
     const query = new URLSearchParams();
     if (type) query.append('type', type);
     query.append('page', page.toString());
+    if (category && category !== 'all') query.append('category', category);
     return apiGet<{count: number; next: string | null; previous: string | null; results: StaffTask[]}>(`/staff-tasks/?${query.toString()}`);
   },
   createTask: (data: Partial<StaffTask>) => apiPost<StaffTask>('/staff-tasks/', data),
+  updateTask: (id: number, data: Partial<StaffTask>) => apiPatch<StaffTask>(`/staff-tasks/${id}/`, data),
+  deleteTask: (id: number) => apiDelete<{ success: boolean; message?: string }>(`/staff-tasks/${id}/`),
   updateTaskStatus: (id: number, status: string, notes?: string) => apiPatch<StaffTask>(`/staff-tasks/${id}/`, { status, notes }),
   getSubordinates: (params?: { page?: number; search?: string; target_role?: string; branch_id?: string; page_size?: number }) => {
     const query = new URLSearchParams();

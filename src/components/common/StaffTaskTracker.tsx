@@ -2,7 +2,7 @@ import React, { useState, useEffect, forwardRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Clock, CheckCircle2, Plus, ArrowRight, User, ChevronLeft, ChevronRight, Search, ClipboardX, MessageSquare, History, ChevronDown, ChevronUp, XCircle, PauseCircle, HelpCircle, CheckSquare } from 'lucide-react';
+import { AlertCircle, Clock, CheckCircle2, Plus, ArrowRight, User, ChevronLeft, ChevronRight, Search, ClipboardX, MessageSquare, History, ChevronDown, ChevronUp, XCircle, PauseCircle, HelpCircle, CheckSquare, Edit2, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { staffTaskApi, StaffTask } from '../../api/staff_task_api';
 import Swal from 'sweetalert2';
@@ -171,18 +171,21 @@ const StaffTaskTracker = () => {
     return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
   };
 
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
   useEffect(() => {
     fetchMyTasks();
-  }, [myTasksPage]);
+  }, [myTasksPage, categoryFilter]);
 
   useEffect(() => {
     fetchAssignedTasks();
-  }, [assignedTasksPage]);
+  }, [assignedTasksPage, categoryFilter]);
 
   const fetchMyTasks = async () => {
     setMyTasksLoading(true);
     try {
-      const data = await staffTaskApi.getTasks('received', myTasksPage);
+      const data = await staffTaskApi.getTasks('received', myTasksPage, categoryFilter);
       setMyTasks((data.results || []).sort(sortTasks));
       setMyTasksCount(data.count || 0);
       setMyTasksTotalPages(Math.ceil((data.count || 1) / 10));
@@ -196,7 +199,7 @@ const StaffTaskTracker = () => {
   const fetchAssignedTasks = async () => {
     setAssignedTasksLoading(true);
     try {
-      const data = await staffTaskApi.getTasks('assigned', assignedTasksPage);
+      const data = await staffTaskApi.getTasks('assigned', assignedTasksPage, categoryFilter);
       setAssignedTasks((data.results || []).sort(sortTasks));
       setAssignedTasksCount(data.count || 0);
       setAssignedTasksTotalPages(Math.ceil((data.count || 1) / 10));
@@ -320,7 +323,133 @@ const StaffTaskTracker = () => {
     }
   };
 
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  // Edit State
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<StaffTask | null>(null);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    description: '',
+    task_type: 'task',
+    priority: 'medium',
+    due_date: ''
+  });
+  const [editSelectedDate, setEditSelectedDate] = useState<Date | undefined>(undefined);
+  const [editSelectedHour, setEditSelectedHour] = useState<string>("12");
+  const [editSelectedMinute, setEditSelectedMinute] = useState<string>("00");
+  const [editSelectedPeriod, setEditSelectedPeriod] = useState<string>("PM");
+
+  const openEditDialog = (task: StaffTask) => {
+    setEditingTask(task);
+    setEditForm({
+      title: task.title,
+      description: task.description || '',
+      task_type: task.task_type || 'task',
+      priority: task.priority || 'medium',
+      due_date: task.due_date
+    });
+    if (task.due_date) {
+      const d = new Date(task.due_date);
+      setEditSelectedDate(d);
+      let hours = d.getHours();
+      const period = hours >= 12 ? "PM" : "AM";
+      if (hours === 0) hours = 12;
+      else if (hours > 12) hours -= 12;
+      setEditSelectedHour(String(hours).padStart(2, '0'));
+      setEditSelectedMinute(String(d.getMinutes()).padStart(2, '0'));
+      setEditSelectedPeriod(period);
+    } else {
+      setEditSelectedDate(undefined);
+    }
+    setIsEditDialogOpen(true);
+  };
+
+  useEffect(() => {
+    if (editSelectedDate) {
+      let hourNum = parseInt(editSelectedHour, 10);
+      if (editSelectedPeriod === "PM" && hourNum < 12) {
+        hourNum += 12;
+      } else if (editSelectedPeriod === "AM" && hourNum === 12) {
+        hourNum = 0;
+      }
+
+      const combinedDate = new Date(editSelectedDate);
+      combinedDate.setHours(hourNum);
+      combinedDate.setMinutes(parseInt(editSelectedMinute, 10));
+
+      const year = combinedDate.getFullYear();
+      const month = String(combinedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(combinedDate.getDate()).padStart(2, '0');
+      const hh = String(combinedDate.getHours()).padStart(2, '0');
+      const mm = String(combinedDate.getMinutes()).padStart(2, '0');
+      setEditForm(prev => ({ ...prev, due_date: `${year}-${month}-${day}T${hh}:${mm}` }));
+    } else {
+      setEditForm(prev => ({ ...prev, due_date: '' }));
+    }
+  }, [editSelectedDate, editSelectedHour, editSelectedMinute, editSelectedPeriod]);
+
+  const handleEditSubmit = async () => {
+    if (!editingTask) return;
+    if (!editForm.title.trim()) {
+      Swal.fire({ icon: 'warning', title: 'Title is required', text: 'Please enter a task title.' });
+      return;
+    }
+    if (!editForm.due_date) {
+      Swal.fire({ icon: 'warning', title: 'Due Date is required', text: 'Please select a valid due date and time.' });
+      return;
+    }
+
+    try {
+      const updated = await staffTaskApi.updateTask(editingTask.id, {
+        title: editForm.title.trim(),
+        description: editForm.description.trim(),
+        task_type: editForm.task_type,
+        priority: editForm.priority as any,
+        due_date: editForm.due_date
+      });
+      setAssignedTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, ...updated } : t).sort(sortTasks));
+      setMyTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, ...updated } : t).sort(sortTasks));
+      setIsEditDialogOpen(false);
+      Swal.fire({
+        icon: 'success',
+        title: 'Task Updated!',
+        text: 'The task details have been updated successfully.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch (err: any) {
+      Swal.fire({ icon: 'error', title: 'Failed to update task', text: err.message || 'An error occurred.' });
+    }
+  };
+
+  const handleDeleteTask = async (task: StaffTask) => {
+    const result = await Swal.fire({
+      title: 'Delete Task?',
+      text: `Are you sure you want to delete "${task.title}"? This cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await staffTaskApi.deleteTask(task.id);
+        setAssignedTasks(prev => prev.filter(t => t.id !== task.id));
+        setAssignedTasksCount(prev => Math.max(0, prev - 1));
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'The task has been deleted.',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      } catch (err: any) {
+        Swal.fire({ icon: 'error', title: 'Failed to delete task', text: err.message || 'An error occurred.' });
+      }
+    }
+  };
+
   const [expandedHistory, setExpandedHistory] = useState<{ [key: number]: boolean }>({});
 
   const handleUpdateStatus = async (taskId: number, newStatus: string) => {
@@ -556,22 +685,48 @@ const StaffTaskTracker = () => {
             </div>
           )}
 
-          {/* Status Update Action Controls */}
-          <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-border">
-            <span className="text-xs font-medium text-muted-foreground mr-1">Update Status:</span>
-            <Select value={task.status} onValueChange={(val) => handleUpdateStatus(task.id, val)}>
-              <SelectTrigger className="h-8 text-xs w-[150px] bg-background">
-                <SelectValue placeholder="Change status..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="under_review">Under Review</SelectItem>
-                <SelectItem value="on_hold">On Hold</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Status Update Action Controls & Assigned Actions */}
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-3 border-t border-border">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground mr-1">Update Status:</span>
+              <Select value={task.status} onValueChange={(val) => handleUpdateStatus(task.id, val)}>
+                <SelectTrigger className="h-8 text-xs w-[140px] bg-background">
+                  <SelectValue placeholder="Change status..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="under_review">Under Review</SelectItem>
+                  <SelectItem value="on_hold">On Hold</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Edit & Delete ONLY for Assigned Tasks (!isReceived) */}
+            {!isReceived && (
+              <div className="flex items-center gap-1.5 ml-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openEditDialog(task)}
+                  className="h-8 px-2.5 text-xs flex items-center gap-1 text-primary hover:text-primary hover:bg-primary/10 border-border"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                  <span>Edit</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDeleteTask(task)}
+                  className="h-8 px-2.5 text-xs flex items-center gap-1 text-destructive hover:text-destructive hover:bg-destructive/10 border-border"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -949,23 +1104,50 @@ const StaffTaskTracker = () => {
           </div>
         )}
 
-        {/* Status Filter Dropdown (shadcn/ui) */}
-        <div className="flex items-center gap-3 mb-6">
-          <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">Filter Status:</Label>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[200px] h-9 bg-background">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="under_review">Under Review</SelectItem>
-              <SelectItem value="on_hold">On Hold</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* Filters Toolbar (Category & Status) */}
+        <div className="flex flex-wrap items-center gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">Filter Category:</Label>
+            <Select value={categoryFilter} onValueChange={(val) => {
+              setCategoryFilter(val);
+              setMyTasksPage(1);
+              setAssignedTasksPage(1);
+            }}>
+              <SelectTrigger className="w-[190px] sm:w-[210px] h-9 bg-background">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="task">Task</SelectItem>
+                <SelectItem value="issue">Issue / Ticket</SelectItem>
+                <SelectItem value="academic_excellence">Academic Excellence</SelectItem>
+                <SelectItem value="student_success">Student Success</SelectItem>
+                <SelectItem value="institutional_maturity">Institutional Maturity</SelectItem>
+                <SelectItem value="research_innovation">Research & Innovation</SelectItem>
+                <SelectItem value="academic">Academic</SelectItem>
+                <SelectItem value="administrative">Administrative</SelectItem>
+                <SelectItem value="general">General</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">Filter Status:</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[160px] sm:w-[180px] h-9 bg-background">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="under_review">Under Review</SelectItem>
+                <SelectItem value="on_hold">On Hold</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="w-full">
@@ -1095,6 +1277,156 @@ const StaffTaskTracker = () => {
             </Card>
           )}
         </div>
+
+        {/* Edit Task Modal Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent
+            className="w-[90vw] sm:w-full sm:max-w-[450px] h-[80vh] sm:h-auto max-h-[80vh] sm:max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl"
+            onInteractOutside={(e) => e.preventDefault()}
+            onPointerDownOutside={(e) => e.preventDefault()}
+          >
+            <DialogHeader>
+              <DialogTitle>Edit Assigned Task / Issue</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-title">Title <span className="text-destructive">*</span></Label>
+                <Input
+                  id="edit-title"
+                  placeholder="Enter title or issue summary..."
+                  value={editForm.title}
+                  onChange={e => setEditForm({ ...editForm, title: e.target.value })}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Category / Nature <span className="text-destructive">*</span></Label>
+                <Select
+                  value={editForm.task_type || 'task'}
+                  onValueChange={(val) => setEditForm({ ...editForm, task_type: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="task">Task</SelectItem>
+                    <SelectItem value="issue">Issue / Ticket</SelectItem>
+                    <SelectItem value="academic_excellence">Academic Excellence</SelectItem>
+                    <SelectItem value="student_success">Student Success</SelectItem>
+                    <SelectItem value="institutional_maturity">Institutional Maturity</SelectItem>
+                    <SelectItem value="research_innovation">Research & Innovation</SelectItem>
+                    <SelectItem value="academic">Academic</SelectItem>
+                    <SelectItem value="administrative">Administrative</SelectItem>
+                    <SelectItem value="general">General</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="edit-desc">Description</Label>
+                <Textarea
+                  id="edit-desc"
+                  placeholder="Details or problem description..."
+                  value={editForm.description}
+                  onChange={e => setEditForm({ ...editForm, description: e.target.value })}
+                  className="resize-none h-[100px] overflow-y-auto custom-scrollbar"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Priority <span className="text-destructive">*</span></Label>
+                <Select
+                  value={editForm.priority}
+                  onValueChange={(val: any) => setEditForm({ ...editForm, priority: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Due Date & Time Picker */}
+              <div className="grid gap-2">
+                <Label>Due Date & Time <span className="text-destructive">*</span></Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal bg-background text-foreground border-input",
+                        !editForm.due_date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {editForm.due_date ? format(new Date(editForm.due_date), "PPP p") : <span>Pick due date & time</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-50 bg-popover text-popover-foreground border shadow-md" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={editSelectedDate}
+                      onSelect={setEditSelectedDate}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return date < today;
+                      }}
+                      initialFocus
+                      className="bg-popover text-popover-foreground"
+                    />
+                    <div className="p-3 border-t border-border flex items-center justify-between gap-2 bg-muted/40">
+                      <span className="text-xs font-medium text-foreground">Time:</span>
+                      <div className="flex items-center gap-1.5">
+                        <Select value={editSelectedHour} onValueChange={setEditSelectedHour}>
+                          <SelectTrigger className="w-[65px] h-8 text-xs bg-background text-foreground border-input">
+                            <SelectValue placeholder="HH" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover text-popover-foreground border shadow-md">
+                            {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => (
+                              <SelectItem key={h} value={h} className="text-xs">{h}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <span className="text-xs font-bold text-muted-foreground">:</span>
+
+                        <Select value={editSelectedMinute} onValueChange={setEditSelectedMinute}>
+                          <SelectTrigger className="w-[65px] h-8 text-xs bg-background text-foreground border-input">
+                            <SelectValue placeholder="MM" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover text-popover-foreground border shadow-md">
+                            {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map(m => (
+                              <SelectItem key={m} value={m} className="text-xs">{m}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <Select value={editSelectedPeriod} onValueChange={setEditSelectedPeriod}>
+                          <SelectTrigger className="w-[70px] h-8 text-xs bg-background text-foreground border-input">
+                            <SelectValue placeholder="PM" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover text-popover-foreground border shadow-md">
+                            <SelectItem value="AM" className="text-xs">AM</SelectItem>
+                            <SelectItem value="PM" className="text-xs">PM</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleEditSubmit}>Save Changes</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
