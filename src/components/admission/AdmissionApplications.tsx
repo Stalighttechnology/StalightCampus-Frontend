@@ -26,7 +26,8 @@ import {
   Award, 
   Building2, 
   FileCheck,
-  FolderOpen
+  FolderOpen,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { SkeletonTable } from '../ui/skeleton';
 import { toast } from 'sonner';
@@ -37,6 +38,8 @@ import { Label } from '@/components/ui/label';
 import { getR2PresignedUrl, uploadFileToR2 } from '../../utils/common_api';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface FormState {
   // Step 1: Personal Details
@@ -177,6 +180,112 @@ const initialFormState: FormState = {
   place: '',
   application_date: new Date().toISOString().split('T')[0],
   course_interested_id: ''
+};
+
+// Reusable Themed Date Picker matching software theme
+interface ThemedDatePickerProps {
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+  fromYear?: number;
+  toYear?: number;
+}
+
+const ThemedDatePicker: React.FC<ThemedDatePickerProps> = ({
+  value,
+  onChange,
+  placeholder = "Pick a date",
+  fromYear = 1940,
+  toYear = new Date().getFullYear() + 2
+}) => {
+  const [open, setOpen] = useState(false);
+  
+  const parsedDate = value ? new Date(value) : undefined;
+  const isValidDate = parsedDate && !isNaN(parsedDate.getTime());
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "w-full justify-start text-left font-normal text-xs h-9 border-input bg-background hover:bg-muted/50 transition-colors",
+            !isValidDate && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-3.5 w-3.5 text-primary shrink-0" />
+          {isValidDate ? (
+            <span className="font-medium text-foreground">
+              {parsedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </span>
+          ) : (
+            <span>{placeholder}</span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 z-50 bg-popover border border-border shadow-xl rounded-xl" align="start">
+        <Calendar
+          mode="single"
+          captionLayout="dropdown"
+          fromYear={fromYear}
+          toYear={toYear}
+          selected={isValidDate ? parsedDate : undefined}
+          onSelect={(date) => {
+            if (date) {
+              const y = date.getFullYear();
+              const m = String(date.getMonth() + 1).padStart(2, '0');
+              const d = String(date.getDate()).padStart(2, '0');
+              onChange(`${y}-${m}-${d}`);
+              setOpen(false);
+            }
+          }}
+          initialFocus
+          classNames={{
+            caption_label: "hidden",
+            caption_dropdowns: "flex items-center gap-1.5 z-10",
+            caption: "flex justify-center pt-1 relative items-center gap-1",
+          }}
+          components={{
+            IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+            IconRight: () => <ChevronRight className="h-4 w-4" />,
+            Dropdown: ({ value, onChange, children }: any) => {
+              const options = React.Children.toArray(children) as React.ReactElement[];
+              const selected = options.find((child) => child.props.value === value);
+              const handleChange = (val: string) => {
+                const changeEvent = {
+                  target: { value: val },
+                } as React.ChangeEvent<HTMLSelectElement>;
+                onChange?.(changeEvent);
+              };
+              return (
+                <Select
+                  value={value?.toString()}
+                  onValueChange={(val) => {
+                    handleChange(val);
+                  }}
+                >
+                  <SelectTrigger className="h-7 w-[fit-content] py-0 px-2 text-xs font-medium border-input bg-transparent hover:bg-accent hover:text-accent-foreground focus:ring-0 focus:ring-offset-0">
+                    <SelectValue>{selected?.props.children}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[240px] overflow-y-auto custom-scrollbar">
+                    {options.map((option) => (
+                      <SelectItem
+                        key={option.props.value}
+                        value={option.props.value?.toString() ?? ""}
+                        className="text-xs"
+                      >
+                        {option.props.children}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              );
+            },
+          }}
+        />
+      </PopoverContent>
+    </Popover>
+  );
 };
 
 export default function AdmissionApplications() {
@@ -618,12 +727,15 @@ export default function AdmissionApplications() {
 
     setIsSavingForm(true);
     try {
+      const clean10th = formData.sslc_percentage ? parseFloat(formData.sslc_percentage.replace(/[^0-9.]/g, '')) : null;
+      const clean12th = formData.puc_percentage ? parseFloat(formData.puc_percentage.replace(/[^0-9.]/g, '')) : null;
+
       const payload: any = {
-        gender: formData.gender,
+        gender: formData.gender === 'Female' ? 'F' : formData.gender === 'Other' ? 'O' : 'M',
         dob: formData.dob || null,
-        address: formData.permanent_address || formData.local_guardian_address,
-        marks_10th: formData.sslc_percentage ? parseFloat(formData.sslc_percentage) : null,
-        marks_12th: formData.puc_percentage ? parseFloat(formData.puc_percentage) : null,
+        address: formData.permanent_address || formData.local_guardian_address || '',
+        marks_10th: !isNaN(Number(clean10th)) ? clean10th : null,
+        marks_12th: !isNaN(Number(clean12th)) ? clean12th : null,
         photo: formData.photo || null,
         signature: formData.signature || null,
         marks_card_10th: formData.marks_card_10th || null,
@@ -643,39 +755,80 @@ export default function AdmissionApplications() {
         if (res.ok) {
           const updated = await res.json();
           toast.success("Application details updated successfully!");
-          setApplications(prev => prev.map(a => a.id === editingAppId ? { ...a, ...updated, form_data: formData } : a));
+          setApplications(prev => prev.map(a => a.id === editingAppId ? { 
+            ...a, 
+            ...updated, 
+            form_data: formData,
+            enquiry_details: {
+              ...a.enquiry_details,
+              name: formData.name,
+              phone: formData.candidate_mobile,
+              email: formData.candidate_email,
+              city: formData.city
+            }
+          } : a));
           if (selectedApp?.id === editingAppId) {
-            setSelectedApp((prev: any) => prev ? ({ ...prev, ...updated, form_data: formData }) : null);
+            setSelectedApp((prev: any) => prev ? ({ 
+              ...prev, 
+              ...updated, 
+              form_data: formData,
+              enquiry_details: {
+                ...prev.enquiry_details,
+                name: formData.name,
+                phone: formData.candidate_mobile,
+                email: formData.candidate_email,
+                city: formData.city
+              }
+            }) : null);
           }
           setWizardOpen(false);
         } else {
-          toast.error("Failed to save application details.");
+          const errData = await res.json().catch(() => ({}));
+          let errMsg = "Failed to save application details.";
+          if (errData) {
+            if (typeof errData === 'string') errMsg = errData;
+            else if (errData.detail) errMsg = errData.detail;
+            else if (errData.error) errMsg = errData.error;
+            else {
+              const fieldErrors = Object.entries(errData)
+                .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+                .join('; ');
+              if (fieldErrors) errMsg = fieldErrors;
+            }
+          }
+          toast.error(errMsg);
         }
       } else {
-        // Create new enquiry + application
-        const enqRes = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/enquiries/`, {
+        // Create new application
+        const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: formData.name,
-            email: formData.candidate_email || `${formData.name.toLowerCase().replace(/\s+/g, '')}@student.local`,
-            phone: formData.candidate_mobile,
-            city: formData.city,
-            course_interested: formData.course_interested_id || null,
-            status: 'application_started'
-          })
+          body: JSON.stringify(payload)
         });
-        if (enqRes.ok) {
+        if (res.ok) {
           toast.success("New Application created successfully!");
           setWizardOpen(false);
           fetchApplications();
         } else {
-          toast.error("Failed to create new application enquiry.");
+          const errData = await res.json().catch(() => ({}));
+          let errMsg = "Failed to create application.";
+          if (errData) {
+            if (typeof errData === 'string') errMsg = errData;
+            else if (errData.detail) errMsg = errData.detail;
+            else if (errData.error) errMsg = errData.error;
+            else {
+              const fieldErrors = Object.entries(errData)
+                .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+                .join('; ');
+              if (fieldErrors) errMsg = fieldErrors;
+            }
+          }
+          toast.error(errMsg);
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("An error occurred while saving.");
+      toast.error(err.message || "An error occurred while saving.");
     } finally {
       setIsSavingForm(false);
     }
@@ -988,13 +1141,15 @@ export default function AdmissionApplications() {
                     </Select>
                   </div>
 
+                  {/* THEMED DATE OF BIRTH PICKER */}
                   <div className="space-y-1.5">
                     <Label className="text-xs">Date of Birth</Label>
-                    <Input 
-                      type="date" 
-                      value={formData.dob} 
-                      onChange={(e) => handleFormChange('dob', e.target.value)} 
-                      className="text-xs" 
+                    <ThemedDatePicker
+                      value={formData.dob}
+                      onChange={(val) => handleFormChange('dob', val)}
+                      placeholder="Select Date of Birth"
+                      fromYear={1950}
+                      toYear={new Date().getFullYear()}
                     />
                   </div>
 
@@ -1434,11 +1589,12 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Admission Order Date</Label>
-                    <Input 
-                      type="date"
-                      value={formData.kea_admission_order_date} 
-                      onChange={(e) => handleFormChange('kea_admission_order_date', e.target.value)} 
-                      className="text-xs" 
+                    <ThemedDatePicker
+                      value={formData.kea_admission_order_date}
+                      onChange={(val) => handleFormChange('kea_admission_order_date', val)}
+                      placeholder="Select Order Date"
+                      fromYear={2020}
+                      toYear={new Date().getFullYear() + 2}
                     />
                   </div>
 
@@ -1651,11 +1807,12 @@ export default function AdmissionApplications() {
 
                     <div className="space-y-1.5">
                       <Label className="text-xs">Date of Application</Label>
-                      <Input 
-                        type="date"
-                        value={formData.application_date} 
-                        onChange={(e) => handleFormChange('application_date', e.target.value)} 
-                        className="text-xs" 
+                      <ThemedDatePicker
+                        value={formData.application_date}
+                        onChange={(val) => handleFormChange('application_date', val)}
+                        placeholder="Select Application Date"
+                        fromYear={2020}
+                        toYear={new Date().getFullYear() + 1}
                       />
                     </div>
                   </div>
