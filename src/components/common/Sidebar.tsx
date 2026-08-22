@@ -764,6 +764,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   // Programmatically inject External Links right before the Profile item for all roles
   Object.keys(menuItems).forEach((key) => {
+    if (key === 'student' || key === 'outside_student') return;
     if (menuItems[key] && !menuItems[key].some(item => item.page === 'external-links')) {
       const profileIndex = menuItems[key].findIndex(item => item.page.includes('profile'));
       if (profileIndex !== -1) {
