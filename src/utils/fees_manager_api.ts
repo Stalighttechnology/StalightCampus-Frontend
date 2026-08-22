@@ -574,14 +574,15 @@ export const bulkSendReminders = async () => {
 };
 
 // Staff Attendance Reports
-export const getStaffAttendanceAudit = async (role: string, startDate: string, endDate: string, page: number = 1, format?: string) => {
+export const getStaffAttendanceAudit = async (role: string, startDate: string, endDate: string, page: number = 1, format?: string, searchQuery?: string) => {
   try {
     const params = new URLSearchParams({
       role,
       start_date: startDate,
       end_date: endDate,
       page: page.toString(),
-      ...(format && { export_format: format })
+      ...(format && { export_format: format }),
+      ...(searchQuery && { search: searchQuery })
     });
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/reports/attendance/?${params.toString()}`, {
       method: "GET"
@@ -595,7 +596,7 @@ export const getStaffAttendanceAudit = async (role: string, startDate: string, e
   }
 };
 
-export const getStaffDetailedAttendance = async (staffId: number, startDate: string, endDate: string) => {
+export const getStaffDetailedAttendance = async (staffId: string, startDate: string, endDate: string) => {
   try {
     const params = new URLSearchParams({
       start_date: startDate,
@@ -604,10 +605,31 @@ export const getStaffDetailedAttendance = async (staffId: number, startDate: str
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/reports/attendance/${staffId}/?${params.toString()}`, {
       method: "GET"
     });
-    return await response.json();
+    if (response.ok) {
+      return await response.json();
+    }
+    return { success: false, message: "Failed to fetch data" };
   } catch (error) {
+    return { success: false, message: "An error occurred" };
+  }
+};
 
-    return { success: false, message: "Network error" };
+export const updateStaffAttendanceRecord = async (staffId: string, date: string, payload: any) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/reports/attendance/${staffId}/${date}/edit/`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+    if (response.ok) {
+      return await response.json();
+    }
+    const errorData = await response.json().catch(() => ({}));
+    return { success: false, message: errorData.message || "Failed to update record" };
+  } catch (error) {
+    return { success: false, message: "An error occurred" };
   }
 };
 
@@ -745,12 +767,15 @@ export const STAFF_ROLES = [
 { value: 'coe', label: 'COE' },
 { value: 'fees_manager', label: 'Fees Manager' },
 { value: 'warden', label: 'Warden' },
+{ value: 'caretaker', label: 'Caretaker' },
 { value: 'hms_admin', label: 'HMS Admin' },
 { value: 'library_admin', label: 'Library Admin' },
 { value: 'transport_admin', label: 'Transport Admin' },
+{ value: 'driver', label: 'Driver' },
 { value: 'placement_officer', label: 'Placement Officer' },
 { value: 'counsellor', label: 'Admission Counsellor' },
-{ value: 'admission_manager', label: 'Admission Manager' }];
+{ value: 'admission_manager', label: 'Admission Manager' },
+{ value: 'org_admin', label: 'Org Admin' }];
 
 // Payroll Management API Helpers
 export const getPayrollSettings = async () => {

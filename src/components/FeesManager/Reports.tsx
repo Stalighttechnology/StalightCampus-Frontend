@@ -28,17 +28,21 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
-  CalendarX
+  CalendarX,
+  Edit2,
+  Save,
+  X
 } from
   'lucide-react';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { getStaffAttendanceAudit, getStaffDetailedAttendance, STAFF_ROLES } from '../../utils/fees_manager_api';
+import { getStaffAttendanceAudit, getStaffDetailedAttendance, updateStaffAttendanceRecord, STAFF_ROLES } from '../../utils/fees_manager_api';
 import { useTheme } from '@/context/ThemeContext';
 import { PLAN_TIERS } from '../../utils/planGating';
 import { translateTerminology, getInstitutionType } from '../../utils/institutionConfig';
+import Swal from 'sweetalert2';
 import {
   Skeleton,
   SkeletonStatsGrid,
@@ -47,7 +51,8 @@ import {
   SkeletonPageHeader,
   SkeletonCard
 } from
-  "@/components/ui/skeleton";
+  '@/components/ui/skeleton';
+import { DateTimePicker } from '@/components/ui/datetime-picker';
 
 
 interface AttendanceSummary {
@@ -77,11 +82,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
   const orgPlan = user?.org_plan || "basic";
   const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
 
-  const baseFilteredRoles = (userTier <= 2
-    ? STAFF_ROLES.filter(r => ['principal', 'hod', 'teacher', 'coe', 'fees_manager'].includes(r.value))
-    : STAFF_ROLES);
-
-  const filteredRoles = baseFilteredRoles
+  const filteredRoles = STAFF_ROLES
     .filter(r => getInstitutionType() !== 'school' || r.value !== 'placement_officer')
     .map(r => ({
       ...r,
@@ -97,10 +98,25 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [selectedDateDetailsStr, setSelectedDateDetailsStr] = useState<string | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+  // Edit Record Mode
+  const [isEditingRecord, setIsEditingRecord] = useState(false);
+  const [editPayload, setEditPayload] = useState<any>({});
+  const [isSavingRecord, setIsSavingRecord] = useState(false);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   useEffect(() => {
     if (selectedRole && startDate && endDate) {
@@ -109,18 +125,18 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
       setAttendanceData([]);
       setLoading(false);
     }
-  }, [selectedRole, startDate, endDate, currentPage]);
+  }, [selectedRole, startDate, endDate, currentPage, debouncedSearchQuery]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedRole, startDate, endDate]);
+  }, [selectedRole, startDate, endDate, debouncedSearchQuery]);
 
   const fetchAttendanceAudit = async () => {
     if (!selectedRole || !startDate || !endDate) return;
     try {
       setLoading(true);
       setError(null);
-      const response = await getStaffAttendanceAudit(selectedRole, startDate, endDate, currentPage);
+      const response = await getStaffAttendanceAudit(selectedRole, startDate, endDate, currentPage, undefined, debouncedSearchQuery);
 
       if (response.success) {
         setAttendanceData(response.results.attendance_summary || []);
@@ -183,6 +199,31 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
 
     } finally {
       setLoadingDetails(false);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedStaff || !selectedDateDetailsStr) return;
+    try {
+      setIsSavingRecord(true);
+      const response = await updateStaffAttendanceRecord(selectedStaff.id, selectedDateDetailsStr, editPayload);
+      if (response.success) {
+        Swal.fire({ title: 'Success!', text: 'Record updated successfully.', icon: 'success', confirmButtonColor: '#10b981' });
+        setIsEditingRecord(false);
+        // Refresh detail view data
+        const refreshResponse = await getStaffDetailedAttendance(selectedStaff.id, startDate, endDate);
+        if (refreshResponse.success) {
+          setDetailedAttendance(refreshResponse.results);
+        }
+        // Refresh main list
+        fetchAttendanceAudit();
+      } else {
+        Swal.fire({ title: 'Error', text: response.message || 'Failed to update record', icon: 'error', confirmButtonColor: '#ef4444' });
+      }
+    } catch (err) {
+      Swal.fire({ title: 'Error', text: 'An unexpected error occurred', icon: 'error', confirmButtonColor: '#ef4444' });
+    } finally {
+      setIsSavingRecord(false);
     }
   };
 
@@ -253,7 +294,17 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
 
           <CardContent className="p-6 pb-4">
             {/* Filters Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-muted/10 p-2 rounded-2xl border border-border/50">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-muted/10 p-2 rounded-2xl border border-border/50">
+              <div className="space-y-2">
+                <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Search Staff</Label>
+                <Input
+                  placeholder="Search by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-background rounded-xl border-border/50 h-11"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Role Type <span className="text-red-500">*</span></Label>
                 <Select value={selectedRole} onValueChange={(val) => {
@@ -651,113 +702,221 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
 
         return (
           <Dialog open={!!selectedDateDetailsStr} onOpenChange={(open) => {
-            if (!open) setSelectedDateDetailsStr(null);
+            if (!open) {
+              setSelectedDateDetailsStr(null);
+              setIsEditingRecord(false);
+            }
           }}>
             <DialogContent className={`w-[90%] max-w-[360px] p-0 border-0 rounded-2xl overflow-hidden shadow-2xl ${isDark ? 'bg-slate-900 text-white' : 'bg-white text-gray-900'}`}>
-              <div className={`p-5 ${isDark ? 'bg-slate-800' : 'bg-primary/5'} border-b ${isDark ? 'border-white/10' : 'border-primary/10'}`}>
-                <DialogTitle className="text-lg font-bold">
-                  {dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                </DialogTitle>
-                <div className={`mt-1 font-medium text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Attendance Record Details
+              <div className={`p-4 ${isDark ? 'bg-slate-800' : 'bg-primary/5'} border-b flex justify-between items-center ${isDark ? 'border-white/10' : 'border-primary/10'}`}>
+                <div>
+                  <DialogTitle className="text-lg font-bold">
+                    {dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                  </DialogTitle>
+                  <div className={`mt-1 font-medium text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {isEditingRecord ? 'Edit Attendance Record' : 'Attendance Record Details'}
+                  </div>
                 </div>
+                {!isEditingRecord && (
+                  <Button variant="outline" size="sm" onClick={() => {
+                    setEditPayload({
+                      status: record?.status && record.status !== 'not_marked' ? record.status : 'present',
+                      notes: record?.notes || '',
+                      checkin_timestamps: record?.checkin_timestamps || []
+                    });
+                    setIsEditingRecord(true);
+                  }} className="h-8 gap-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+                    <Edit2 className="w-3.5 h-3.5" /> Edit
+                  </Button>
+                )}
               </div>
 
-              <div className="p-5">
-                {record && (
+              <div className="p-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                {isEditingRecord ? (
                   <div className="space-y-4">
-                    <div className={`${isPresent ? 'text-green-500 bg-green-500/10' : 'text-red-500 bg-red-500/10'} p-3 rounded-xl font-bold flex items-center gap-2 text-base`}>
-                      {isPresent ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />} 
-                      {record.status === 'not_marked' ? 'Not Marked' : record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                    {record?.is_frozen && (
+                      <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm font-semibold flex gap-2">
+                        <AlertCircle className="w-5 h-5 shrink-0" />
+                        This record is frozen for payroll and cannot be saved.
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <Label>Status</Label>
+                      <Select 
+                        value={editPayload.status || 'present'} 
+                        onValueChange={(val) => setEditPayload({...editPayload, status: val})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="present">Present</SelectItem>
+                          <SelectItem value="absent">Absent</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                    
-                    {record.checkin_timestamps && record.checkin_timestamps.length > 0 ? (
-                      <div className={`space-y-2 p-4 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                        {record.checkin_timestamps.map((ts: any, idx: number) => (
-                          <div key={idx} className={`flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0 ${isDark ? 'border-white/5' : 'border-gray-200'}`}>
-                            <span className="font-semibold text-gray-500">
-                              {record.checkin_timestamps.length === 4
-                                ? (idx === 0 ? '1st Half In' : idx === 1 ? '1st Half Out' : idx === 2 ? '2nd Half In' : '2nd Half Out')
-                                : (idx === 0 ? 'Check In' : 'Check Out')}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              {ts === "Missed" ? (
-                                <span className="text-red-500 font-bold">Missed</span>
-                              ) : ts ? (
-                                <>
-                                  <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                    {new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                                  </span>
-                                  {record.delays && record.delays[idx] > 0 && (
-                                    <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded shadow-sm">
-                                      +{record.delays[idx]}m
-                                    </span>
-                                  )}
-                                </>
-                              ) : (
-                                <span className="text-gray-400 italic font-medium">Pending</span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                        {record.check_out_time && (
-                          <div className={`flex items-center justify-between font-bold pt-2 border-t mt-2 ${isDark ? 'border-white/10' : 'border-gray-300'}`}>
-                            <span className="text-gray-500">Check Out</span> 
-                            <span className={`${isDark ? 'text-white' : 'text-gray-900'}`}>
-                              {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    ) : (record.check_in_time || record.check_out_time) && (
-                      <div className={`space-y-2 p-4 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                        {record.check_in_time && (
-                          <div className="flex justify-between items-center">
-                            <span className="font-semibold text-gray-500">Check In</span> 
-                            <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                              {new Date(record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                            </span>
-                          </div>
-                        )}
-                        {record.check_out_time && (
-                          <div className="flex justify-between items-center">
-                            <span className="font-semibold text-gray-500">Check Out</span> 
-                            <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                              {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    
-                    {record.total_hours && (
-                      <div className="flex items-center justify-between font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-4 py-3 rounded-xl border border-blue-500/20">
-                        <span>Total Worked</span>
-                        <span>{record.total_hours}</span>
-                      </div>
-                    )}
 
-                    {record.notes?.includes('[Off-Campus Check-in]') && (
-                      <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 font-semibold leading-relaxed">
-                        <span className="block text-xs uppercase tracking-wider font-black mb-1 opacity-70">Off-Campus Duty</span>
-                        {record.notes.replace('[Off-Campus Check-in] Reason:', '').trim()}
+                    <div className="space-y-2">
+                      <Label>Notes (Optional)</Label>
+                      <textarea
+                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                        placeholder="Reason for edit..."
+                        value={editPayload.notes || ''}
+                        onChange={(e) => setEditPayload({...editPayload, notes: e.target.value})}
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label>Check-in/out Timestamps</Label>
+                      {editPayload.checkin_timestamps && editPayload.checkin_timestamps.length > 0 ? (
+                        editPayload.checkin_timestamps.map((ts: any, idx: number) => {
+                          const label = editPayload.checkin_timestamps.length === 4 
+                            ? (idx === 0 ? '1st Half In' : idx === 1 ? '1st Half Out' : idx === 2 ? '2nd Half In' : '2nd Half Out')
+                            : (idx === 0 ? 'Check In' : 'Check Out');
+                            
+                          const valStr = ts && ts !== "Missed" ? ts.substring(0, 16) : "";
+
+                          return (
+                            <div key={idx} className="flex flex-col gap-1">
+                              <span className="text-xs font-semibold text-muted-foreground">{label}</span>
+                              <div className="flex items-center gap-2">
+                                <DateTimePicker 
+                                  value={ts && ts !== "Missed" ? new Date(ts) : undefined}
+                                  onChange={(date) => {
+                                    const newTs = [...editPayload.checkin_timestamps];
+                                    newTs[idx] = date ? date.toISOString() : "Missed";
+                                    setEditPayload({...editPayload, checkin_timestamps: newTs});
+                                  }}
+                                />
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  title="Mark as Missed"
+                                  onClick={() => {
+                                    const newTs = [...editPayload.checkin_timestamps];
+                                    newTs[idx] = "Missed";
+                                    setEditPayload({...editPayload, checkin_timestamps: newTs});
+                                  }}
+                                >
+                                  <X className="w-4 h-4 text-red-500" />
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-sm text-muted-foreground italic bg-muted/50 p-3 rounded-lg border border-dashed border-border text-center">
+                          Record was auto-marked absent and has no checkpoint structure. Adding multi-punch timestamps here is not supported for a completely missed day yet. Just mark as Present/Absent.
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-3 pt-4 border-t mt-4">
+                      <Button variant="outline" className="w-full" onClick={() => setIsEditingRecord(false)}>Cancel</Button>
+                      <Button className="w-full" onClick={handleSaveEdit} disabled={isSavingRecord || record?.is_frozen}>
+                        {isSavingRecord ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />} Save
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {record && (
+                      <div className="space-y-4">
+                        <div className={`${isPresent ? 'text-green-500 bg-green-500/10' : 'text-red-500 bg-red-500/10'} p-3 rounded-xl font-bold flex items-center gap-2 text-base`}>
+                          {isPresent ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />} 
+                          {record.status === 'not_marked' ? 'Not Marked' : record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                        </div>
+                        
+                        {record.checkin_timestamps && record.checkin_timestamps.length > 0 ? (
+                          <div className={`space-y-2 p-4 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                            {record.checkin_timestamps.map((ts: any, idx: number) => (
+                              <div key={idx} className={`flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0 ${isDark ? 'border-white/5' : 'border-gray-200'}`}>
+                                <span className="font-semibold text-gray-500">
+                                  {record.checkin_timestamps.length === 4
+                                    ? (idx === 0 ? '1st Half In' : idx === 1 ? '1st Half Out' : idx === 2 ? '2nd Half In' : '2nd Half Out')
+                                    : (idx === 0 ? 'Check In' : 'Check Out')}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  {ts === "Missed" ? (
+                                    <span className="text-red-500 font-bold">Missed</span>
+                                  ) : ts ? (
+                                    <>
+                                      <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                        {new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                      </span>
+                                      {record.delays && record.delays[idx] > 0 && (
+                                        <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded shadow-sm">
+                                          +{record.delays[idx]}m
+                                        </span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <span className="text-gray-400 italic font-medium">Pending</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                            {record.check_out_time && (
+                              <div className={`flex items-center justify-between font-bold pt-2 border-t mt-2 ${isDark ? 'border-white/10' : 'border-gray-300'}`}>
+                                <span className="text-gray-500">Check Out</span> 
+                                <span className={`${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                  {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ) : (record.check_in_time || record.check_out_time) && (
+                          <div className={`space-y-2 p-4 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                            {record.check_in_time && (
+                              <div className="flex justify-between items-center">
+                                <span className="font-semibold text-gray-500">Check In</span> 
+                                <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                  {new Date(record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                </span>
+                              </div>
+                            )}
+                            {record.check_out_time && (
+                              <div className="flex justify-between items-center">
+                                <span className="font-semibold text-gray-500">Check Out</span> 
+                                <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                  {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {record.total_hours && (
+                          <div className="flex items-center justify-between font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-4 py-3 rounded-xl border border-blue-500/20">
+                            <span>Total Worked</span>
+                            <span>{record.total_hours}</span>
+                          </div>
+                        )}
+
+                        {record.notes?.includes('[Off-Campus Check-in]') && (
+                          <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 font-semibold leading-relaxed">
+                            <span className="block text-xs uppercase tracking-wider font-black mb-1 opacity-70">Off-Campus Duty</span>
+                            {record.notes.replace('[Off-Campus Check-in] Reason:', '').trim()}
+                          </div>
+                        )}
                       </div>
                     )}
-                  </div>
-                )}
-                
-                {!record && !isFuture && !isNonWorkingDay && (
-                  <div className="text-red-500 font-bold flex flex-col items-center justify-center gap-2 p-6 bg-red-500/10 rounded-xl border border-red-500/20 text-center">
-                    <XCircle className="w-10 h-10 opacity-80" /> 
-                    <span>Auto-marked Absent</span>
-                  </div>
-                )}
-                
-                {isNonWorkingDay && (
-                  <div className={`font-bold flex flex-col items-center justify-center gap-2 p-6 rounded-xl border text-center ${isDark ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
-                    <CalendarX className="w-10 h-10 opacity-50" /> 
-                    <span>{isHoliday ? 'Holiday' : 'Sunday'}</span>
-                  </div>
+                    
+                    {!record && !isFuture && !isNonWorkingDay && (
+                      <div className="text-red-500 font-bold flex flex-col items-center justify-center gap-2 p-6 bg-red-500/10 rounded-xl border border-red-500/20 text-center">
+                        <XCircle className="w-10 h-10 opacity-80" /> 
+                        <span>Auto-marked Absent</span>
+                      </div>
+                    )}
+                    
+                    {isNonWorkingDay && (
+                      <div className={`font-bold flex flex-col items-center justify-center gap-2 p-6 rounded-xl border text-center ${isDark ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+                        <CalendarX className="w-10 h-10 opacity-50" /> 
+                        <span>{isHoliday ? 'Holiday' : 'Sunday'}</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </DialogContent>

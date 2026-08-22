@@ -106,6 +106,8 @@ const FacultyAttendance = () => {
               checkin_windows: (foundTodayRec.checkin_windows && foundTodayRec.checkin_windows.length > 0) ? foundTodayRec.checkin_windows : orgCheckinWindows,
               periodic_checkin_count: foundTodayRec.periodic_checkin_count || orgPeriodicCount,
               strict_checkin_window: foundTodayRec.strict_checkin_window ?? orgStrictWindow,
+              category_attendance_workflows: (response as any).category_attendance_workflows || {},
+              staff_category: (response as any).staff_category || 'teaching',
             }
           : {
               id: `today-${today}`,
@@ -121,6 +123,8 @@ const FacultyAttendance = () => {
               periodic_checkin_count: orgPeriodicCount,
               checkin_windows: orgCheckinWindows,
               strict_checkin_window: orgStrictWindow,
+              category_attendance_workflows: (response as any).category_attendance_workflows || {},
+              staff_category: (response as any).staff_category || 'teaching',
             };
 
         setTodayRecord(finalTodayRec);
@@ -312,16 +316,25 @@ const FacultyAttendance = () => {
       const has2ndIn  = !!todayRecord.second_check_in;
       const has2ndOut = !!(todayRecord.second_check_out || todayRecord.check_out_time);
       
-      if (!has1stIn && !checkMissed(has1stIn, 'first_half_in')) currentAction = 'first_half_in';
-      else if (!has1stOut && !checkMissed(has1stOut, 'first_half_out')) currentAction = 'first_half_out';
-      else if (!has2ndIn && !checkMissed(has2ndIn, 'second_half_in'))  currentAction = 'second_half_in';
-      else if (!has2ndOut && !checkMissed(has2ndOut, 'second_half_out')) currentAction = 'second_half_out';
+      const missed1stIn = !has1stIn && checkMissed(has1stIn, 'first_half_in');
+      const missed1stOut = !has1stOut && checkMissed(has1stOut, 'first_half_out');
+      const missed2ndIn = !has2ndIn && checkMissed(has2ndIn, 'second_half_in');
+      const missed2ndOut = !has2ndOut && checkMissed(has2ndOut, 'second_half_out');
+
+      if (!has1stIn && !missed1stIn) currentAction = 'first_half_in';
+      else if (!has1stOut && !missed1stOut && has1stIn) currentAction = 'first_half_out';
+      else if (!has2ndIn && !missed2ndIn)  currentAction = 'second_half_in';
+      else if (!has2ndOut && !missed2ndOut && has2ndIn) currentAction = 'second_half_out';
       else                 isCompleted = true;
     } else {
       const hasCheckIn = !!todayRecord.check_in_time;
       const hasCheckOut = !!todayRecord.check_out_time;
-      if (!hasCheckIn && !checkMissed(hasCheckIn, 'check_in')) currentAction = 'check_in';
-      else if (!hasCheckOut && !checkMissed(hasCheckOut, 'check_out')) currentAction = 'check_out';
+      
+      const missedIn = !hasCheckIn && checkMissed(hasCheckIn, 'check_in');
+      const missedOut = !hasCheckOut && checkMissed(hasCheckOut, 'check_out');
+
+      if (!hasCheckIn && !missedIn) currentAction = 'check_in';
+      else if (!hasCheckOut && !missedOut && hasCheckIn) currentAction = 'check_out';
       else                                  isCompleted = true;
     }
 
@@ -336,7 +349,7 @@ const FacultyAttendance = () => {
     
     const currentWindow = windows[currentAction];
     const phase = getWindowPhase(currentWindow);
-    const isAllowed = (!currentWindow) || (!strictWindow) || (phase === 'active');
+    const isAllowed = (!currentWindow) || (phase === 'active') || (!strictWindow && phase === 'passed');
     
     let nextText = null;
     if (!isCompleted && currentWindow) {
@@ -399,9 +412,10 @@ const FacultyAttendance = () => {
     }
   };
 
-  const handleToggleAttendance = async (status: "present" | "absent", action?: "check_in" | "check_out") => {
-    const capitalizedStatus = action ? (action === "check_in" ? "Check In" : "Check Out") : (status.charAt(0).toUpperCase() + status.slice(1));
-    const actionText = action ? (action === "check_in" ? "check in" : "check out") : `mark today's attendance as ${status}`;
+  const handleToggleAttendance = async (status: "present" | "absent", action?: string) => {
+    const isCheckInAction = action ? !['first_half_out', 'second_half_out', 'check_out'].includes(action) : false;
+    const capitalizedStatus = action ? (isCheckInAction ? "Check In" : "Check Out") : (status.charAt(0).toUpperCase() + status.slice(1));
+    const actionText = action ? (isCheckInAction ? "check in" : "check out") : `mark today's attendance as ${status}`;
     const confirmResult = await Swal.fire({
       title: `Confirm ${capitalizedStatus}?`,
       text: `Are you sure you want to ${actionText}?`,
