@@ -36,10 +36,19 @@ interface LeaveRequest {
   leave_type: string;
   start_time?: string | null;
   end_time?: string | null;
+  is_half_day?: boolean;
+  half_day_session?: string | null;
   from: string;
   to: string;
   reason: string;
   status: string;
+  current_stage?: string;
+  alternate_faculty_name?: string | null;
+  alternate_duty_status?: string;
+  alternate_duty_remarks?: string;
+  hod_approval_status?: string;
+  intermediate_approval_status?: string;
+  principal_approval_status?: string;
 }
 
 interface HODLeavesManagementProps {
@@ -135,9 +144,18 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
             leave_type: leave.leave_type || "casual",
             start_time: leave.start_time,
             end_time: leave.end_time,
+            is_half_day: leave.is_half_day,
+            half_day_session: leave.half_day_session,
             from: leave.start_date || "N/A",
             to: leave.end_date || "N/A",
             reason: leave.reason || "N/A",
+            current_stage: leave.current_stage,
+            alternate_faculty_name: leave.alternate_faculty_name,
+            alternate_duty_status: leave.alternate_duty_status,
+            alternate_duty_remarks: leave.alternate_duty_remarks,
+            hod_approval_status: leave.hod_approval_status,
+            intermediate_approval_status: leave.intermediate_approval_status,
+            principal_approval_status: leave.principal_approval_status,
             status: leave.status === "APPROVED" ? "Approved" :
               leave.status === "REJECTED" ? "Rejected" :
                 leave.status === "PENDING" ? "Pending" :
@@ -617,14 +635,29 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                         </td>
                         <td className="py-4 px-2 md:px-4 text-left">
                           <div className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</div>
-                          {leave.leave_type === 'short_permission' ? (
-                            <span className={`inline-block mt-0.5 text-[11px] font-medium px-1.5 py-0.2 rounded ${theme === 'dark' ? 'bg-purple-950/40 text-purple-300 border border-purple-800/40' : 'bg-purple-50 text-purple-700 border border-purple-200'}`}>
-                              Short Permission
+                          <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded ${
+                              leave.leave_type === 'short_permission' ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300' :
+                              leave.leave_type === 'earned' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' :
+                              leave.leave_type === 'rh' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300' :
+                              'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
+                            }`}>
+                              {leave.leave_type === 'casual' ? 'Casual (CL)' :
+                               leave.leave_type === 'earned' ? 'Earned (EL)' :
+                               leave.leave_type === 'rh' ? 'Holiday (RH)' :
+                               leave.leave_type === 'short_permission' ? 'Short Permission' :
+                               leave.leave_type}
                             </span>
-                          ) : (
-                            <span className={`inline-block mt-0.5 text-[11px] font-medium px-1.5 py-0.2 rounded ${theme === 'dark' ? 'bg-blue-950/40 text-blue-300' : 'bg-blue-50 text-blue-700'}`}>
-                              Standard Leave
-                            </span>
+                            {leave.is_half_day && (
+                              <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                                Half-Day ({leave.half_day_session?.toUpperCase() || 'PM'})
+                              </span>
+                            )}
+                          </div>
+                          {leave.alternate_faculty_name && (
+                            <div className="text-[11px] text-muted-foreground mt-1">
+                              Sub: <span className="font-medium text-foreground">{leave.alternate_faculty_name}</span> ({leave.alternate_duty_status})
+                            </div>
                           )}
                         </td>
                         <td className={`py-4 px-2 md:px-4 text-sm text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>

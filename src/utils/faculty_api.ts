@@ -212,12 +212,15 @@ export interface ApplyLeaveRequest {
   leave_type?: string;
   start_time?: string;
   end_time?: string;
+  is_half_day?: boolean;
+  half_day_session?: 'forenoon' | 'afternoon';
+  alternate_faculty_id?: number | string | null;
 }
 
 interface ApplyLeaveResponse {
   success: boolean;
   message?: string;
-  data?: Array<{id: string;branch: string;}>;
+  data?: any;
 }
 
 interface ViewAttendanceRecordsResponse {
@@ -419,6 +422,7 @@ interface GetAttendanceRecordsWithSummaryResponse {
 }
 
 export interface LeaveQuota {
+  // Backward compatible fields
   total_standard_leaves: number;
   used_standard_leaves: number;
   remaining_standard_leaves: number;
@@ -428,6 +432,31 @@ export interface LeaveQuota {
   short_permission_max_hours: number;
   approver_role: string;
   approver_label: string;
+  workflow_pipeline?: string[];
+
+  // 9.8 Rule Specific Quotas
+  cl_annual_limit?: number;
+  cl_used?: number;
+  cl_remaining?: number;
+  el_annual_limit?: number;
+  el_credited_so_far?: number;
+  el_used?: number;
+  el_remaining?: number;
+  rh_annual_limit?: number;
+  rh_used?: number;
+  rh_remaining?: number;
+  rh_used_this_month?: number;
+  rh_remaining_this_month?: number;
+  short_permission_limit_monthly?: number;
+  short_permission_used_this_month?: number;
+  short_permission_remaining_this_month?: number;
+}
+
+export interface ColleagueOption {
+  id: number;
+  name: string;
+  role: string;
+  username: string;
 }
 
 export interface GetApplyLeaveBootstrapResponse {
@@ -438,6 +467,7 @@ export interface GetApplyLeaveBootstrapResponse {
     leave_requests: FacultyLeaveRequest[];
     branches: {id: number;name: string;}[];
     leave_quota?: LeaveQuota;
+    available_colleagues?: ColleagueOption[];
   };
 }
 
@@ -556,10 +586,42 @@ export interface FacultyLeaveRequest {
   leave_type?: string;
   start_time?: string | null;
   end_time?: string | null;
+  is_half_day?: boolean;
+  half_day_session?: string | null;
   reason: string;
   status: string;
+  current_stage?: string;
+  alternate_faculty_name?: string | null;
+  alternate_duty_status?: string;
+  alternate_duty_remarks?: string;
+  hod_approval_status?: string;
+  principal_approval_status?: string;
   applied_on: string;
   reviewed_by?: string | null;
+}
+
+export interface AlternateDutyRequestItem {
+  id: number;
+  applicant_name: string;
+  applicant_role: string;
+  department: string;
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  reason: string;
+  title?: string;
+  alternate_duty_status: string;
+  alternate_duty_remarks?: string;
+  applied_on: string;
+}
+
+export interface GetAlternateDutyRequestsResponse {
+  success: boolean;
+  message?: string;
+  data?: AlternateDutyRequestItem[];
+  pending_count?: number;
 }
 
 
@@ -719,6 +781,41 @@ data: ApplyLeaveRequest)
     return await response.json();
   } catch (error) {
 
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getAlternateDutyRequests = async (): Promise<GetAlternateDutyRequestsResponse> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/alternate-duty-requests/`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const alternateDutyAction = async (data: {
+  leave_id: number | string;
+  action: 'ACCEPT' | 'DECLINE';
+  remarks?: string;
+}): Promise<{ success: boolean; message?: string; alternate_duty_status?: string }> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/alternate-duty-requests/action/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+    return await response.json();
+  } catch (error) {
     return { success: false, message: "Network error" };
   }
 };

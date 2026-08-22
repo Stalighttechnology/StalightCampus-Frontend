@@ -391,20 +391,67 @@ export default function PrincipalTimetableSettings() {
     monthly_short_permission_limit: number | string;
     total_standard_leaves: number | string;
     short_permission_max_hours: number | string;
-    leave_approval_routing: Record<string, string>;
+    leave_policy_rules: {
+      casual_leave: {
+        annual_quota: number | string;
+        max_stretch_days: number | string;
+        allow_half_day: boolean;
+        half_day_session: string;
+      };
+      earned_leave: {
+        annual_quota: number | string;
+        jan_credit: number | string;
+        jul_credit: number | string;
+        min_stretch_days: number | string;
+        max_stretch_days: number | string;
+      };
+      restricted_holiday: {
+        annual_quota: number | string;
+        monthly_limit: number | string;
+      };
+      short_permission: {
+        monthly_limit: number | string;
+        max_hours: number | string;
+      };
+    };
+    leave_approval_routing: Record<string, any>;
   }>({
-    monthly_short_permission_limit: 2,
-    total_standard_leaves: 12,
+    monthly_short_permission_limit: 5,
+    total_standard_leaves: 15,
     short_permission_max_hours: 2,
+    leave_policy_rules: {
+      casual_leave: {
+        annual_quota: 15,
+        max_stretch_days: 3,
+        allow_half_day: true,
+        half_day_session: 'afternoon_only'
+      },
+      earned_leave: {
+        annual_quota: 15,
+        jan_credit: 7,
+        jul_credit: 8,
+        min_stretch_days: 2,
+        max_stretch_days: 5
+      },
+      restricted_holiday: {
+        annual_quota: 2,
+        monthly_limit: 1
+      },
+      short_permission: {
+        monthly_limit: 5,
+        max_hours: 2
+      }
+    },
     leave_approval_routing: {
-      teacher: 'hod',
-      hod: 'principal',
-      principal: 'dean',
-      coe: 'dean',
-      fees_manager: 'dean',
-      driver: 'transport_admin',
-      warden: 'hms_admin'
-    } as Record<string, string>
+      teacher: { num_stages: 2, stages: ['hod', 'principal'] },
+      hod: { num_stages: 1, stages: ['principal'] },
+      principal: { num_stages: 1, stages: ['dean'] },
+      coe: { num_stages: 1, stages: ['principal'] },
+      fees_manager: { num_stages: 1, stages: ['principal'] },
+      counsellor: { num_stages: 2, stages: ['admission_manager', 'principal'] },
+      driver: { num_stages: 2, stages: ['transport_admin', 'principal'] },
+      warden: { num_stages: 2, stages: ['hms_admin', 'principal'] }
+    } as Record<string, any>
   });
 
   const [periodicCheckinCount, setPeriodicCheckinCount] = useState<number>(1);
@@ -550,18 +597,44 @@ export default function PrincipalTimetableSettings() {
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/leave-policy-settings/`);
       if (res.ok) {
         const data = await res.json();
+        const rules = data.leave_policy_rules || {
+          casual_leave: {
+            annual_quota: data.total_standard_leaves ?? 15,
+            max_stretch_days: 3,
+            allow_half_day: true,
+            half_day_session: 'afternoon_only'
+          },
+          earned_leave: {
+            annual_quota: 15,
+            jan_credit: 7,
+            jul_credit: 8,
+            min_stretch_days: 2,
+            max_stretch_days: 5
+          },
+          restricted_holiday: {
+            annual_quota: 2,
+            monthly_limit: 1
+          },
+          short_permission: {
+            monthly_limit: data.monthly_short_permission_limit ?? 5,
+            max_hours: data.short_permission_max_hours ?? 2
+          }
+        };
+
         setLeavePolicy({
-          monthly_short_permission_limit: data.monthly_short_permission_limit ?? 2,
-          total_standard_leaves: data.total_standard_leaves ?? 12,
-          short_permission_max_hours: data.short_permission_max_hours ?? 2,
+          monthly_short_permission_limit: rules.short_permission?.monthly_limit ?? data.monthly_short_permission_limit ?? 5,
+          total_standard_leaves: rules.casual_leave?.annual_quota ?? data.total_standard_leaves ?? 15,
+          short_permission_max_hours: rules.short_permission?.max_hours ?? data.short_permission_max_hours ?? 2,
+          leave_policy_rules: rules,
           leave_approval_routing: data.leave_approval_routing || {
-            teacher: 'hod',
-            hod: 'principal',
-            principal: 'dean',
-            coe: 'dean',
-            fees_manager: 'dean',
-            driver: 'transport_admin',
-            warden: 'hms_admin'
+            teacher: { num_stages: 2, stages: ['hod', 'principal'] },
+            hod: { num_stages: 1, stages: ['principal'] },
+            principal: { num_stages: 1, stages: ['dean'] },
+            coe: { num_stages: 1, stages: ['principal'] },
+            fees_manager: { num_stages: 1, stages: ['principal'] },
+            counsellor: { num_stages: 2, stages: ['admission_manager', 'principal'] },
+            driver: { num_stages: 2, stages: ['transport_admin', 'principal'] },
+            warden: { num_stages: 2, stages: ['hms_admin', 'principal'] }
           }
         });
       }
@@ -575,12 +648,38 @@ export default function PrincipalTimetableSettings() {
   const handleSaveLeavePolicy = async () => {
     try {
       setLeavePolicySaving(true);
-      const payload = {
-        ...leavePolicy,
-        monthly_short_permission_limit: leavePolicy.monthly_short_permission_limit === '' ? 2 : Number(leavePolicy.monthly_short_permission_limit),
-        total_standard_leaves: leavePolicy.total_standard_leaves === '' ? 12 : Number(leavePolicy.total_standard_leaves),
-        short_permission_max_hours: leavePolicy.short_permission_max_hours === '' ? 2 : Number(leavePolicy.short_permission_max_hours)
+      const cleanRules = {
+        casual_leave: {
+          annual_quota: leavePolicy.leave_policy_rules?.casual_leave?.annual_quota === '' ? 15 : Number(leavePolicy.leave_policy_rules?.casual_leave?.annual_quota),
+          max_stretch_days: leavePolicy.leave_policy_rules?.casual_leave?.max_stretch_days === '' ? 3 : Number(leavePolicy.leave_policy_rules?.casual_leave?.max_stretch_days),
+          allow_half_day: Boolean(leavePolicy.leave_policy_rules?.casual_leave?.allow_half_day),
+          half_day_session: leavePolicy.leave_policy_rules?.casual_leave?.half_day_session || 'afternoon_only'
+        },
+        earned_leave: {
+          annual_quota: leavePolicy.leave_policy_rules?.earned_leave?.annual_quota === '' ? 15 : Number(leavePolicy.leave_policy_rules?.earned_leave?.annual_quota),
+          jan_credit: leavePolicy.leave_policy_rules?.earned_leave?.jan_credit === '' ? 7 : Number(leavePolicy.leave_policy_rules?.earned_leave?.jan_credit),
+          jul_credit: leavePolicy.leave_policy_rules?.earned_leave?.jul_credit === '' ? 8 : Number(leavePolicy.leave_policy_rules?.earned_leave?.jul_credit),
+          min_stretch_days: leavePolicy.leave_policy_rules?.earned_leave?.min_stretch_days === '' ? 2 : Number(leavePolicy.leave_policy_rules?.earned_leave?.min_stretch_days),
+          max_stretch_days: leavePolicy.leave_policy_rules?.earned_leave?.max_stretch_days === '' ? 5 : Number(leavePolicy.leave_policy_rules?.earned_leave?.max_stretch_days)
+        },
+        restricted_holiday: {
+          annual_quota: leavePolicy.leave_policy_rules?.restricted_holiday?.annual_quota === '' ? 2 : Number(leavePolicy.leave_policy_rules?.restricted_holiday?.annual_quota),
+          monthly_limit: leavePolicy.leave_policy_rules?.restricted_holiday?.monthly_limit === '' ? 1 : Number(leavePolicy.leave_policy_rules?.restricted_holiday?.monthly_limit)
+        },
+        short_permission: {
+          monthly_limit: leavePolicy.leave_policy_rules?.short_permission?.monthly_limit === '' ? 5 : Number(leavePolicy.leave_policy_rules?.short_permission?.monthly_limit),
+          max_hours: leavePolicy.leave_policy_rules?.short_permission?.max_hours === '' ? 2 : Number(leavePolicy.leave_policy_rules?.short_permission?.max_hours)
+        }
       };
+
+      const payload = {
+        leave_policy_rules: cleanRules,
+        monthly_short_permission_limit: cleanRules.short_permission.monthly_limit,
+        total_standard_leaves: cleanRules.casual_leave.annual_quota,
+        short_permission_max_hours: cleanRules.short_permission.max_hours,
+        leave_approval_routing: leavePolicy.leave_approval_routing
+      };
+
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/leave-policy-settings/`, {
         method: 'POST',
         headers: { "Content-Type": "application/json" },
@@ -1182,59 +1281,366 @@ export default function PrincipalTimetableSettings() {
                   <SkeletonTable rows={3} cols={2} />
                 ) : (
                   <div className="space-y-6">
-                    {/* Quota Settings Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Card className={`border ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'}`}>
-                        <CardContent className="p-4 space-y-2">
-                          <Label className="text-sm font-semibold">Short Permissions / Month</Label>
-                          <p className="text-xs text-muted-foreground">Max short period permission requests per faculty each month.</p>
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            value={leavePolicy.monthly_short_permission_limit}
-                            onChange={(e) => {
-                              const clean = e.target.value.replace(/[^0-9]/g, '');
-                              setLeavePolicy({ ...leavePolicy, monthly_short_permission_limit: clean });
-                            }}
-                            placeholder="e.g. 2"
-                            className={`mt-2 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
-                          />
+                    {/* Granular Leave Type Policies Configuration (CL, EL, RH, Short Permission) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* 1. Casual Leave (CL) Policy Card */}
+                      <Card className={`border ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                        <CardHeader className="p-4 pb-2 border-b border-border/40">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20">
+                                CL
+                              </span>
+                              <CardTitle className="text-sm font-semibold">Casual Leave (CL) Policy</CardTitle>
+                            </div>
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                              Personal / Urgent
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">Configure standard annual casual leaves and stretch parameters.</p>
+                        </CardHeader>
+                        <CardContent className="p-4 space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-xs font-semibold">Annual Quota (Days)</Label>
+                              <Input
+                                type="text"
+                                inputMode="numeric"
+                                value={leavePolicy.leave_policy_rules?.casual_leave?.annual_quota ?? 15}
+                                onChange={(e) => {
+                                  const clean = e.target.value.replace(/[^0-9]/g, '');
+                                  setLeavePolicy(prev => ({
+                                    ...prev,
+                                    total_standard_leaves: clean,
+                                    leave_policy_rules: {
+                                      ...prev.leave_policy_rules,
+                                      casual_leave: { ...prev.leave_policy_rules?.casual_leave, annual_quota: clean }
+                                    }
+                                  }));
+                                }}
+                                placeholder="15"
+                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs font-semibold">Max Stretch (Days)</Label>
+                              <Input
+                                type="text"
+                                inputMode="numeric"
+                                value={leavePolicy.leave_policy_rules?.casual_leave?.max_stretch_days ?? 3}
+                                onChange={(e) => {
+                                  const clean = e.target.value.replace(/[^0-9]/g, '');
+                                  setLeavePolicy(prev => ({
+                                    ...prev,
+                                    leave_policy_rules: {
+                                      ...prev.leave_policy_rules,
+                                      casual_leave: { ...prev.leave_policy_rules?.casual_leave, max_stretch_days: clean }
+                                    }
+                                  }));
+                                }}
+                                placeholder="3"
+                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="pt-2 border-t border-border/40 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-0.5">
+                                <Label className="text-xs font-medium">Allow Half-Day Applications</Label>
+                                <p className="text-[11px] text-muted-foreground">Permit staff to apply for 0.5 day sessions</p>
+                              </div>
+                              <Switch
+                                checked={leavePolicy.leave_policy_rules?.casual_leave?.allow_half_day !== false}
+                                onCheckedChange={(val) => {
+                                  setLeavePolicy(prev => ({
+                                    ...prev,
+                                    leave_policy_rules: {
+                                      ...prev.leave_policy_rules,
+                                      casual_leave: { ...prev.leave_policy_rules?.casual_leave, allow_half_day: val }
+                                    }
+                                  }));
+                                }}
+                              />
+                            </div>
+
+                            {leavePolicy.leave_policy_rules?.casual_leave?.allow_half_day !== false && (
+                              <div className="flex items-center justify-between gap-2 pt-1">
+                                <Label className="text-xs text-muted-foreground">Half-Day Session Rule:</Label>
+                                <Select
+                                  value={leavePolicy.leave_policy_rules?.casual_leave?.half_day_session || 'afternoon_only'}
+                                  onValueChange={(val) => {
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        casual_leave: { ...prev.leave_policy_rules?.casual_leave, half_day_session: val }
+                                      }
+                                    }));
+                                  }}
+                                >
+                                  <SelectTrigger className="h-7 w-40 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="afternoon_only">Afternoon Session Only</SelectItem>
+                                    <SelectItem value="both">Both Forenoon & Afternoon</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
 
-                      <Card className={`border ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'}`}>
-                        <CardContent className="p-4 space-y-2">
-                          <Label className="text-sm font-semibold">Total Standard Leaves</Label>
-                          <p className="text-xs text-muted-foreground">Standard leaves limit allowed per faculty per year.</p>
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            value={leavePolicy.total_standard_leaves}
-                            onChange={(e) => {
-                              const clean = e.target.value.replace(/[^0-9]/g, '');
-                              setLeavePolicy({ ...leavePolicy, total_standard_leaves: clean });
-                            }}
-                            placeholder="e.g. 12"
-                            className={`mt-2 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
-                          />
+                      {/* 2. Earned Leave (EL) Policy Card */}
+                      <Card className={`border ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                        <CardHeader className="p-4 pb-2 border-b border-border/40">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center border border-blue-500/20">
+                                EL
+                              </span>
+                              <CardTitle className="text-sm font-semibold">Earned Leave (EL) Policy</CardTitle>
+                            </div>
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300">
+                              Service Accrued
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">Bi-annual credit distribution and continuous stretch boundaries.</p>
+                        </CardHeader>
+                        <CardContent className="p-4 space-y-3">
+                          <div className="grid grid-cols-3 gap-2">
+                            <div className="space-y-1">
+                              <Label className="text-xs font-semibold">Annual Quota</Label>
+                              <Input
+                                type="text"
+                                inputMode="numeric"
+                                value={leavePolicy.leave_policy_rules?.earned_leave?.annual_quota ?? 15}
+                                onChange={(e) => {
+                                  const clean = e.target.value.replace(/[^0-9]/g, '');
+                                  setLeavePolicy(prev => ({
+                                    ...prev,
+                                    leave_policy_rules: {
+                                      ...prev.leave_policy_rules,
+                                      earned_leave: { ...prev.leave_policy_rules?.earned_leave, annual_quota: clean }
+                                    }
+                                  }));
+                                }}
+                                placeholder="15"
+                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs font-semibold">Jan Credit (H1)</Label>
+                              <Input
+                                type="text"
+                                inputMode="numeric"
+                                value={leavePolicy.leave_policy_rules?.earned_leave?.jan_credit ?? 7}
+                                onChange={(e) => {
+                                  const clean = e.target.value.replace(/[^0-9]/g, '');
+                                  setLeavePolicy(prev => ({
+                                    ...prev,
+                                    leave_policy_rules: {
+                                      ...prev.leave_policy_rules,
+                                      earned_leave: { ...prev.leave_policy_rules?.earned_leave, jan_credit: clean }
+                                    }
+                                  }));
+                                }}
+                                placeholder="7"
+                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs font-semibold">Jul Credit (H2)</Label>
+                              <Input
+                                type="text"
+                                inputMode="numeric"
+                                value={leavePolicy.leave_policy_rules?.earned_leave?.jul_credit ?? 8}
+                                onChange={(e) => {
+                                  const clean = e.target.value.replace(/[^0-9]/g, '');
+                                  setLeavePolicy(prev => ({
+                                    ...prev,
+                                    leave_policy_rules: {
+                                      ...prev.leave_policy_rules,
+                                      earned_leave: { ...prev.leave_policy_rules?.earned_leave, jul_credit: clean }
+                                    }
+                                  }));
+                                }}
+                                placeholder="8"
+                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/40">
+                            <div className="space-y-1">
+                              <Label className="text-xs font-semibold">Min Stretch (Days)</Label>
+                              <Input
+                                type="text"
+                                inputMode="numeric"
+                                value={leavePolicy.leave_policy_rules?.earned_leave?.min_stretch_days ?? 2}
+                                onChange={(e) => {
+                                  const clean = e.target.value.replace(/[^0-9]/g, '');
+                                  setLeavePolicy(prev => ({
+                                    ...prev,
+                                    leave_policy_rules: {
+                                      ...prev.leave_policy_rules,
+                                      earned_leave: { ...prev.leave_policy_rules?.earned_leave, min_stretch_days: clean }
+                                    }
+                                  }));
+                                }}
+                                placeholder="2"
+                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs font-semibold">Max Stretch (Days)</Label>
+                              <Input
+                                type="text"
+                                inputMode="numeric"
+                                value={leavePolicy.leave_policy_rules?.earned_leave?.max_stretch_days ?? 5}
+                                onChange={(e) => {
+                                  const clean = e.target.value.replace(/[^0-9]/g, '');
+                                  setLeavePolicy(prev => ({
+                                    ...prev,
+                                    leave_policy_rules: {
+                                      ...prev.leave_policy_rules,
+                                      earned_leave: { ...prev.leave_policy_rules?.earned_leave, max_stretch_days: clean }
+                                    }
+                                  }));
+                                }}
+                                placeholder="5"
+                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                              />
+                            </div>
+                          </div>
                         </CardContent>
                       </Card>
 
-                      <Card className={`border ${theme === 'dark' ? 'bg-background border-border' : 'bg-slate-50/50 border-gray-100'}`}>
-                        <CardContent className="p-4 space-y-2">
-                          <Label className="text-sm font-semibold">Max Duration (Hours)</Label>
-                          <p className="text-xs text-muted-foreground">Maximum duration allowed for a single short permission.</p>
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            value={leavePolicy.short_permission_max_hours}
-                            onChange={(e) => {
-                              const clean = e.target.value.replace(/[^0-9]/g, '');
-                              setLeavePolicy({ ...leavePolicy, short_permission_max_hours: clean });
-                            }}
-                            placeholder="e.g. 2"
-                            className={`mt-2 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
-                          />
+                      {/* 3. Restricted Holiday (RH) Policy Card */}
+                      <Card className={`border ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                        <CardHeader className="p-4 pb-2 border-b border-border/40">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold text-xs flex items-center justify-center border border-purple-500/20">
+                                RH
+                              </span>
+                              <CardTitle className="text-sm font-semibold">Restricted Holiday (RH) Policy</CardTitle>
+                            </div>
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300">
+                              Optional Holiday
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">Annual entitlement and monthly availing frequency.</p>
+                        </CardHeader>
+                        <CardContent className="p-4 space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-xs font-semibold">Annual Quota (Days)</Label>
+                              <Input
+                                type="text"
+                                inputMode="numeric"
+                                value={leavePolicy.leave_policy_rules?.restricted_holiday?.annual_quota ?? 2}
+                                onChange={(e) => {
+                                  const clean = e.target.value.replace(/[^0-9]/g, '');
+                                  setLeavePolicy(prev => ({
+                                    ...prev,
+                                    leave_policy_rules: {
+                                      ...prev.leave_policy_rules,
+                                      restricted_holiday: { ...prev.leave_policy_rules?.restricted_holiday, annual_quota: clean }
+                                    }
+                                  }));
+                                }}
+                                placeholder="2"
+                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs font-semibold">Monthly Limit (Days)</Label>
+                              <Input
+                                type="text"
+                                inputMode="numeric"
+                                value={leavePolicy.leave_policy_rules?.restricted_holiday?.monthly_limit ?? 1}
+                                onChange={(e) => {
+                                  const clean = e.target.value.replace(/[^0-9]/g, '');
+                                  setLeavePolicy(prev => ({
+                                    ...prev,
+                                    leave_policy_rules: {
+                                      ...prev.leave_policy_rules,
+                                      restricted_holiday: { ...prev.leave_policy_rules?.restricted_holiday, monthly_limit: clean }
+                                    }
+                                  }));
+                                }}
+                                placeholder="1"
+                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                              />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* 4. Short Permission Policy Card */}
+                      <Card className={`border ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                        <CardHeader className="p-4 pb-2 border-b border-border/40">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs flex items-center justify-center border border-amber-500/20">
+                                SP
+                              </span>
+                              <CardTitle className="text-sm font-semibold">Short Permission Policy</CardTitle>
+                            </div>
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                              Hourly Window
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">Short period permission quotas and max duration limit.</p>
+                        </CardHeader>
+                        <CardContent className="p-4 space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-xs font-semibold">Monthly Quota (Perms/Mo)</Label>
+                              <Input
+                                type="text"
+                                inputMode="numeric"
+                                value={leavePolicy.leave_policy_rules?.short_permission?.monthly_limit ?? leavePolicy.monthly_short_permission_limit ?? 5}
+                                onChange={(e) => {
+                                  const clean = e.target.value.replace(/[^0-9]/g, '');
+                                  setLeavePolicy(prev => ({
+                                    ...prev,
+                                    monthly_short_permission_limit: clean,
+                                    leave_policy_rules: {
+                                      ...prev.leave_policy_rules,
+                                      short_permission: { ...prev.leave_policy_rules?.short_permission, monthly_limit: clean }
+                                    }
+                                  }));
+                                }}
+                                placeholder="5"
+                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs font-semibold">Max Duration (Hours)</Label>
+                              <Input
+                                type="text"
+                                inputMode="numeric"
+                                value={leavePolicy.leave_policy_rules?.short_permission?.max_hours ?? leavePolicy.short_permission_max_hours ?? 2}
+                                onChange={(e) => {
+                                  const clean = e.target.value.replace(/[^0-9]/g, '');
+                                  setLeavePolicy(prev => ({
+                                    ...prev,
+                                    short_permission_max_hours: clean,
+                                    leave_policy_rules: {
+                                      ...prev.leave_policy_rules,
+                                      short_permission: { ...prev.leave_policy_rules?.short_permission, max_hours: clean }
+                                    }
+                                  }));
+                                }}
+                                placeholder="2"
+                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                              />
+                            </div>
+                          </div>
                         </CardContent>
                       </Card>
                     </div>
@@ -1251,53 +1657,172 @@ export default function PrincipalTimetableSettings() {
 
                       <div className={`rounded-xl border divide-y ${theme === 'dark' ? 'bg-background border-border divide-border' : 'bg-slate-50/50 border-gray-200 divide-gray-100'}`}>
                         {[
-                          { roleKey: 'teacher', label: 'Faculty / Teacher Leaves', defaultApprover: 'hod' },
-                          { roleKey: 'hod', label: 'Head of Department (HOD) Leaves', defaultApprover: 'principal' },
-                          { roleKey: 'dean', label: 'Dean Leaves', defaultApprover: 'principal' },
-                          { roleKey: 'coe', label: 'COE Leaves', defaultApprover: 'dean' },
-                          { roleKey: 'fees_manager', label: 'Fees Manager Leaves', defaultApprover: 'dean' },
-                          { roleKey: 'counsellor', label: 'Counsellor Leaves', defaultApprover: 'principal' },
-                          { roleKey: 'hms_admin', label: 'HMS Admin Leaves', defaultApprover: 'principal' },
-                          { roleKey: 'warden', label: 'Hostel Warden Leaves', defaultApprover: 'hms_admin' },
-                          { roleKey: 'caretaker', label: 'Hostel Caretaker Leaves', defaultApprover: 'hms_admin' },
-                          { roleKey: 'transport_admin', label: 'Transport Admin Leaves', defaultApprover: 'principal' },
-                          { roleKey: 'driver', label: 'Driver Leaves', defaultApprover: 'transport_admin' },
-                          { roleKey: 'library_admin', label: 'Library Admin Leaves', defaultApprover: 'principal' },
-                          { roleKey: 'placement_officer', label: 'Placement Officer Leaves', defaultApprover: 'principal' },
-                          { roleKey: 'admission_manager', label: 'Admission Manager Leaves', defaultApprover: 'principal' }
-                        ].map((item) => (
-                          <div key={item.roleKey} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div>
-                              <span className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{item.label}</span>
-                              <p className="text-xs text-muted-foreground">Requests will be forwarded to the selected approver</p>
+                          { roleKey: 'teacher', label: 'Faculty / Teacher Leaves', defaultStages: ['hod', 'principal'] },
+                          { roleKey: 'hod', label: 'Head of Department (HOD) Leaves', defaultStages: ['principal'] },
+                          { roleKey: 'dean', label: 'Dean Leaves', defaultStages: ['principal'] },
+                          { roleKey: 'coe', label: 'COE Leaves', defaultStages: ['principal'] },
+                          { roleKey: 'fees_manager', label: 'Fees Manager Leaves', defaultStages: ['principal'] },
+                          { roleKey: 'counsellor', label: 'Counsellor Leaves', defaultStages: ['admission_manager', 'principal'] },
+                          { roleKey: 'hms_admin', label: 'HMS Admin Leaves', defaultStages: ['principal'] },
+                          { roleKey: 'warden', label: 'Hostel Warden Leaves', defaultStages: ['hms_admin', 'principal'] },
+                          { roleKey: 'caretaker', label: 'Hostel Caretaker Leaves', defaultStages: ['hms_admin', 'principal'] },
+                          { roleKey: 'transport_admin', label: 'Transport Admin Leaves', defaultStages: ['principal'] },
+                          { roleKey: 'driver', label: 'Driver Leaves', defaultStages: ['transport_admin', 'principal'] },
+                          { roleKey: 'library_admin', label: 'Library Admin Leaves', defaultStages: ['principal'] },
+                          { roleKey: 'placement_officer', label: 'Placement Officer Leaves', defaultStages: ['principal'] },
+                          { roleKey: 'admission_manager', label: 'Admission Manager Leaves', defaultStages: ['principal'] }
+                        ].map((item) => {
+                          const rawConfig = leavePolicy.leave_approval_routing?.[item.roleKey];
+                          let stages: string[] = item.defaultStages;
+                          let numStages: number = item.defaultStages.length;
+
+                          if (rawConfig && typeof rawConfig === 'object' && Array.isArray(rawConfig.stages)) {
+                            stages = rawConfig.stages.filter((s: string) => s && s !== 'alternate_duty');
+                            numStages = rawConfig.num_stages || stages.length || item.defaultStages.length;
+                          } else if (typeof rawConfig === 'string' && rawConfig) {
+                            if (rawConfig === 'hod') stages = ['hod', 'principal'];
+                            else if (rawConfig === 'admission_manager') stages = ['admission_manager', 'principal'];
+                            else if (rawConfig === 'hms_admin') stages = ['hms_admin', 'principal'];
+                            else if (rawConfig === 'transport_admin') stages = ['transport_admin', 'principal'];
+                            else if (rawConfig === 'dean') stages = ['dean'];
+                            else stages = [rawConfig];
+                            numStages = stages.length;
+                          }
+
+                          // Ensure stages array matches numStages length
+                          while (stages.length < numStages) {
+                            stages.push('principal');
+                          }
+                          stages = stages.slice(0, numStages);
+
+                          const handleStageCountChange = (countStr: string) => {
+                            const count = parseInt(countStr, 10);
+                            let newStages = [...stages];
+                            if (count === 1) {
+                              newStages = ['principal'];
+                            } else if (count === 2) {
+                              newStages = item.roleKey === 'teacher' ? ['hod', 'principal'] : ['hod', 'principal'];
+                            } else if (count === 3) {
+                              newStages = ['hod', 'dean', 'principal'];
+                            }
+                            setLeavePolicy({
+                              ...leavePolicy,
+                              leave_approval_routing: {
+                                ...(leavePolicy.leave_approval_routing || {}),
+                                [item.roleKey]: {
+                                  num_stages: count,
+                                  stages: newStages
+                                }
+                              }
+                            });
+                          };
+
+                          const handleStageApproverChange = (index: number, approverValue: string) => {
+                            const newStages = [...stages];
+                            newStages[index] = approverValue;
+                            setLeavePolicy({
+                              ...leavePolicy,
+                              leave_approval_routing: {
+                                ...(leavePolicy.leave_approval_routing || {}),
+                                [item.roleKey]: {
+                                  num_stages: numStages,
+                                  stages: newStages
+                                }
+                              }
+                            });
+                          };
+
+                          const APPROVER_LABELS: Record<string, string> = {
+                            hod: 'HOD',
+                            principal: 'Principal',
+                            dean: 'Dean',
+                            admission_manager: 'Admission Mgr',
+                            hms_admin: 'HMS Admin',
+                            transport_admin: 'Transport Admin',
+                            coe: 'COE',
+                            fees_manager: 'Fees Mgr'
+                          };
+
+                          return (
+                            <div key={item.roleKey} className="p-4 flex flex-col gap-3">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{item.label}</span>
+                                  <p className="text-xs text-muted-foreground">Requests will be forwarded through the configured sequential approval stages</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Label className="text-xs font-medium text-muted-foreground whitespace-nowrap">Number of Stages:</Label>
+                                  <Select
+                                    value={String(numStages)}
+                                    onValueChange={handleStageCountChange}
+                                  >
+                                    <SelectTrigger className={`w-28 h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                      <SelectItem value="1">1 Stage</SelectItem>
+                                      <SelectItem value="2">2 Stages</SelectItem>
+                                      <SelectItem value="3">3 Stages</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+
+                              {/* Dynamic Dropdowns for Each Stage */}
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                                {Array.from({ length: numStages }).map((_, idx) => (
+                                  <div key={idx} className="space-y-1">
+                                    <Label className="text-[11px] font-medium text-muted-foreground">
+                                      Stage {idx + 1} Approver:
+                                    </Label>
+                                    <Select
+                                      value={stages[idx] || (idx === numStages - 1 ? 'principal' : 'hod')}
+                                      onValueChange={(val) => handleStageApproverChange(idx, val)}
+                                    >
+                                      <SelectTrigger className={`w-full h-9 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
+                                        <SelectValue placeholder={`Select stage ${idx + 1} approver`} />
+                                      </SelectTrigger>
+                                      <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                        <SelectItem value="hod">Head of Department (HOD)</SelectItem>
+                                        <SelectItem value="principal">Principal</SelectItem>
+                                        <SelectItem value="dean">Dean</SelectItem>
+                                        <SelectItem value="admission_manager">Admission Manager</SelectItem>
+                                        <SelectItem value="hms_admin">HMS Admin</SelectItem>
+                                        <SelectItem value="transport_admin">Transport Admin</SelectItem>
+                                        <SelectItem value="coe">COE</SelectItem>
+                                        <SelectItem value="fees_manager">Fees Manager</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Live Visual Pipeline Preview */}
+                              <div className="flex items-center flex-wrap gap-1.5 pt-1 text-[11px]">
+                                <span className="text-muted-foreground font-medium">Pipeline:</span>
+                                <span className={`px-2 py-0.5 rounded font-mono ${theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
+                                  Alternate Duty
+                                </span>
+                                {stages.map((stg, sIdx) => (
+                                  <div key={sIdx} className="flex items-center gap-1.5">
+                                    <span className="text-muted-foreground font-bold">➔</span>
+                                    <span className={`px-2 py-0.5 rounded font-medium ${
+                                      sIdx === stages.length - 1 
+                                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' 
+                                        : 'bg-primary/10 text-primary border border-primary/20'
+                                    }`}>
+                                      Stage {sIdx + 1}: {APPROVER_LABELS[stg] || stg}
+                                    </span>
+                                  </div>
+                                ))}
+                                <span className="text-muted-foreground font-bold">➔</span>
+                                <span className="px-2 py-0.5 rounded font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                                  Approved
+                                </span>
+                              </div>
                             </div>
-                            <div className="w-full sm:w-60">
-                              <Select
-                                value={leavePolicy.leave_approval_routing?.[item.roleKey] || item.defaultApprover}
-                                onValueChange={(val) => {
-                                  setLeavePolicy({
-                                    ...leavePolicy,
-                                    leave_approval_routing: {
-                                      ...(leavePolicy.leave_approval_routing || {}),
-                                      [item.roleKey]: val
-                                    }
-                                  });
-                                }}
-                              >
-                                <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
-                                  <SelectValue placeholder="Select approver" />
-                                </SelectTrigger>
-                                <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                                  <SelectItem value="hod">Head of Department (HOD)</SelectItem>
-                                  <SelectItem value="principal">Principal</SelectItem>
-                                  <SelectItem value="dean">Dean</SelectItem>
-                                  <SelectItem value="transport_admin">Transport Admin</SelectItem>
-                                  <SelectItem value="hms_admin">HMS Admin</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
 
