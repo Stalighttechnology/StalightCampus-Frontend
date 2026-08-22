@@ -411,6 +411,7 @@ export default function PrincipalTimetableSettings() {
   const [checkinWindows, setCheckinWindows] = useState<{ start: string, end: string }[]>([]);
   const [strictCheckinWindow, setStrictCheckinWindow] = useState<boolean>(true);
   const [allowWebAttendance, setAllowWebAttendance] = useState<boolean>(true);
+  const [requireDeviceIdAttendance, setRequireDeviceIdAttendance] = useState<boolean>(false);
   const [weekendPolicy, setWeekendPolicy] = useState<string>('sundays_only');
   const [staffCategoryMapping, setStaffCategoryMapping] = useState<Record<string, string[]>>(DEFAULT_STAFF_CATEGORY_MAPPING);
   const [selectedCategoryTab, setSelectedCategoryTab] = useState<'teaching' | 'non_teaching' | 'admin_branch'>('teaching');
@@ -500,6 +501,9 @@ export default function PrincipalTimetableSettings() {
         }
         if (data.allow_web_attendance !== undefined) {
           setAllowWebAttendance(data.allow_web_attendance);
+        }
+        if (data.require_device_id_attendance !== undefined) {
+          setRequireDeviceIdAttendance(data.require_device_id_attendance || false);
         }
         if (data.weekend_policy !== undefined) {
           setWeekendPolicy(data.weekend_policy);
@@ -639,6 +643,7 @@ export default function PrincipalTimetableSettings() {
           checkin_windows: checkinWindows,
           strict_checkin_window: strictCheckinWindow,
           allow_web_attendance: allowWebAttendance,
+          require_device_id_attendance: requireDeviceIdAttendance,
           weekend_policy: weekendPolicy,
           staff_category_mapping: staffCategoryMapping,
           category_attendance_workflows: categoryWorkflows
@@ -1431,6 +1436,27 @@ export default function PrincipalTimetableSettings() {
                           <Switch
                             checked={allowWebAttendance}
                             onCheckedChange={setAllowWebAttendance}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Device ID Restriction Toggle */}
+                      <div className={`p-4 rounded-xl border mt-4 ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-blue-50/60 border-blue-200/60'}`}>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold">Enforce Single Device Restriction</span>
+                              {requireDeviceIdAttendance && (
+                                <span className="text-[10px] font-bold uppercase tracking-wide bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full">Strict Mode Active</span>
+                              )}
+                            </div>
+                            <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              When enabled, the system restricts multiple users from marking attendance on the same device (using Device ID) on the same day. This prevents proxy attendance via a shared device.
+                            </p>
+                          </div>
+                          <Switch
+                            checked={requireDeviceIdAttendance}
+                            onCheckedChange={setRequireDeviceIdAttendance}
                           />
                         </div>
                       </div>
