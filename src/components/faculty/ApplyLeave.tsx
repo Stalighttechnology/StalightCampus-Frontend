@@ -336,7 +336,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
     const { value: remarks } = await MySwal.fire({
       title: `${actionLabel}?`,
-      text: action === 'ACCEPT' 
+      text: action === 'ACCEPT'
         ? 'You are accepting to cover classes/duties for this colleague during their leave period.'
         : 'Please enter remarks for declining this alternate duty request.',
       input: 'textarea',
@@ -606,7 +606,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         'text-amber-700 bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-300 dark:border-amber-800';
 
     return (
-      <div 
+      <div
         className="flex flex-col gap-1 items-start cursor-pointer group"
         onClick={() => setSelectedLeaveForFlow(leave)}
         title="Click to view complete approval workflow pipeline"
@@ -661,7 +661,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       `}</style>
 
       <div ref={ref} className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-        
+
         {/* 9.8 Rule Quota Overview Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* CL Card */}
@@ -673,7 +673,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               </span>
             </div>
             <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-primary">{leaveQuota?.cl_remaining ?? 15}</span>
+              <span className="text-2xl font-semibold text-primary">{leaveQuota?.cl_remaining ?? 15}</span>
               <span className="text-xs text-muted-foreground">/ {leaveQuota?.cl_annual_limit ?? leaveQuota?.cl_total ?? 15} left</span>
             </div>
             <p className="mt-1 text-[11px] text-muted-foreground">
@@ -690,7 +690,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               </span>
             </div>
             <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-amber-600 dark:text-amber-400">{leaveQuota?.el_remaining ?? (leaveQuota?.el_credited_so_far ?? 15)}</span>
+              <span className="text-2xl font-semibold text-amber-600 dark:text-amber-400">{leaveQuota?.el_remaining ?? (leaveQuota?.el_credited_so_far ?? 15)}</span>
               <span className="text-xs text-muted-foreground">/ {leaveQuota?.el_credited_so_far ?? leaveQuota?.el_accrued_to_date ?? 15} credited</span>
             </div>
             <p className="mt-1 text-[11px] text-muted-foreground">{leaveQuota?.el_half_year_period || 'Credited: 7 in Jan, 8 in Jul (Non-accum.)'}</p>
@@ -705,7 +705,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               </span>
             </div>
             <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-rose-600 dark:text-rose-400">{leaveQuota?.rh_remaining ?? 2}</span>
+              <span className="text-2xl font-semibold text-rose-600 dark:text-rose-400">{leaveQuota?.rh_remaining ?? 2}</span>
               <span className="text-xs text-muted-foreground">/ {leaveQuota?.rh_annual_limit ?? leaveQuota?.rh_total ?? 2} left</span>
             </div>
             <p className="mt-1 text-[11px] text-muted-foreground">Used this month: {leaveQuota?.rh_used_this_month ?? 0}/{leaveQuota?.rh_monthly_limit ?? 1}</p>
@@ -720,7 +720,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               </span>
             </div>
             <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">{leaveQuota?.short_permission_remaining_this_month ?? leaveQuota?.sp_remaining_this_month ?? 5}</span>
+              <span className="text-2xl font-semibold text-purple-600 dark:text-purple-400">{leaveQuota?.short_permission_remaining_this_month ?? leaveQuota?.sp_remaining_this_month ?? 5}</span>
               <span className="text-xs text-muted-foreground">/ {leaveQuota?.short_permission_limit_monthly ?? leaveQuota?.sp_monthly_limit ?? 5} left</span>
             </div>
             <p className="mt-1 text-[11px] text-muted-foreground">Used this month: {leaveQuota?.short_permission_used_this_month ?? leaveQuota?.sp_used_this_month ?? 0}</p>
@@ -746,7 +746,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             >
               Substitute Requests
               {pendingSubstituteCount > 0 && (
-                <span className="ml-2 px-1.5 py-0.2 text-[10px] rounded-full bg-rose-500 text-white font-bold animate-pulse">
+                <span className="ml-2 px-1.5 py-0.2 text-[10px] rounded-full bg-rose-500 text-white font-semibold animate-pulse">
                   {pendingSubstituteCount}
                 </span>
               )}
@@ -787,16 +787,15 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   {substituteRequests.map((req) => (
                     <div
                       key={req.id}
-                      className={`p-4 rounded-xl border transition-all ${
-                        req.alternate_duty_status === 'PENDING'
-                          ? 'border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20'
-                          : 'border-border bg-card'
-                      }`}
+                      className={`p-4 rounded-xl border transition-all ${req.alternate_duty_status === 'PENDING'
+                        ? 'border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20'
+                        : 'border-border bg-card'
+                        }`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-base text-foreground">{req.applicant_name}</span>
+                            <span className="font-semibold text-foreground">{req.applicant_name}</span>
                             <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground capitalize font-medium">
                               {req.applicant_role?.replace('_', ' ')}
                               {(['teacher', 'faculty', 'hod'].includes(req.applicant_role?.toLowerCase()) && req.department && req.department !== 'General' && req.department !== 'Unknown' && req.department !== 'N/A') ? ` • ${req.department}` : ''}
@@ -841,11 +840,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             </>
                           ) : (
                             <span
-                              className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                                req.alternate_duty_status === 'ACCEPTED'
-                                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400'
-                                  : 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-400'
-                              }`}
+                              className={`px-3 py-1 text-xs font-semibold rounded-full ${req.alternate_duty_status === 'ACCEPTED'
+                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400'
+                                : 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-400'
+                                }`}
                             >
                               {req.alternate_duty_status === 'ACCEPTED' ? 'Duty Accepted' : 'Duty Declined'}
                             </span>
@@ -885,33 +883,30 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                     <button
                       type="button"
                       onClick={() => setLeaveType('casual')}
-                      className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${
-                        leaveType === 'casual'
-                          ? 'bg-primary text-white shadow-md'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
+                      className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${leaveType === 'casual'
+                        ? 'bg-primary text-white shadow-md'
+                        : 'text-muted-foreground hover:text-foreground'
+                        }`}
                     >
                       Casual (CL)
                     </button>
                     <button
                       type="button"
                       onClick={() => setLeaveType('earned')}
-                      className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${
-                        leaveType === 'earned'
-                          ? 'bg-primary text-white shadow-md'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
+                      className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${leaveType === 'earned'
+                        ? 'bg-primary text-white shadow-md'
+                        : 'text-muted-foreground hover:text-foreground'
+                        }`}
                     >
                       Earned (EL)
                     </button>
                     <button
                       type="button"
                       onClick={() => setLeaveType('rh')}
-                      className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${
-                        leaveType === 'rh'
-                          ? 'bg-primary text-white shadow-md'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
+                      className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${leaveType === 'rh'
+                        ? 'bg-primary text-white shadow-md'
+                        : 'text-muted-foreground hover:text-foreground'
+                        }`}
                     >
                       Holiday (RH)
                     </button>
@@ -926,11 +921,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           setPermissionDate(new Date());
                         }
                       }}
-                      className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${
-                        leaveType === 'short_permission'
-                          ? 'bg-primary text-white shadow-md'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
+                      className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${leaveType === 'short_permission'
+                        ? 'bg-primary text-white shadow-md'
+                        : 'text-muted-foreground hover:text-foreground'
+                        }`}
                     >
                       Short Permission
                     </button>
@@ -1012,7 +1006,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           <Label htmlFor="half-day-toggle" className="text-xs font-semibold text-foreground cursor-pointer">
                             Apply for Half-Day CL
                           </Label>
-                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20">
+                          <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20">
                             0.5 Day
                           </span>
                         </div>
@@ -1081,18 +1075,17 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   type="button"
                                   disabled={isFnPassedForToday}
                                   onClick={() => setHalfDaySession('forenoon')}
-                                  className={`p-2.5 rounded-lg border text-xs text-left transition-all ${
-                                    isFnPassedForToday
-                                      ? 'opacity-50 cursor-not-allowed border-border/40 bg-muted/20 text-muted-foreground'
-                                      : halfDaySession === 'forenoon'
+                                  className={`p-2.5 rounded-lg border text-xs text-left transition-all ${isFnPassedForToday
+                                    ? 'opacity-50 cursor-not-allowed border-border/40 bg-muted/20 text-muted-foreground'
+                                    : halfDaySession === 'forenoon'
                                       ? 'border-primary bg-primary/10 text-primary ring-1 ring-primary'
                                       : 'border-border bg-background hover:bg-muted/30 text-muted-foreground'
-                                  }`}
+                                    }`}
                                 >
                                   <div className="font-semibold text-foreground flex items-center justify-between">
                                     <span>Morning Session</span>
                                     {isFnPassedForToday && (
-                                      <span className="text-[9px] px-1 py-0.2 rounded bg-rose-500/10 text-rose-500 font-bold">Passed</span>
+                                      <span className="text-[9px] px-1 py-0.2 rounded bg-rose-500/10 text-rose-500 font-semibold">Passed</span>
                                     )}
                                   </div>
                                   <div className="text-[10px] text-muted-foreground mt-0.5">
@@ -1103,18 +1096,17 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   type="button"
                                   disabled={isAnPassedForToday}
                                   onClick={() => setHalfDaySession('afternoon')}
-                                  className={`p-2.5 rounded-lg border text-xs text-left transition-all ${
-                                    isAnPassedForToday
-                                      ? 'opacity-50 cursor-not-allowed border-border/40 bg-muted/20 text-muted-foreground'
-                                      : halfDaySession === 'afternoon'
+                                  className={`p-2.5 rounded-lg border text-xs text-left transition-all ${isAnPassedForToday
+                                    ? 'opacity-50 cursor-not-allowed border-border/40 bg-muted/20 text-muted-foreground'
+                                    : halfDaySession === 'afternoon'
                                       ? 'border-primary bg-primary/10 text-primary ring-1 ring-primary'
                                       : 'border-border bg-background hover:bg-muted/30 text-muted-foreground'
-                                  }`}
+                                    }`}
                                 >
                                   <div className="font-semibold text-foreground flex items-center justify-between">
                                     <span>Afternoon Session</span>
                                     {isAnPassedForToday && (
-                                      <span className="text-[9px] px-1 py-0.2 rounded bg-rose-500/10 text-rose-500 font-bold">Passed</span>
+                                      <span className="text-[9px] px-1 py-0.2 rounded bg-rose-500/10 text-rose-500 font-semibold">Passed</span>
                                     )}
                                   </div>
                                   <div className="text-[10px] text-muted-foreground mt-0.5">
@@ -1251,8 +1243,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           <Label className="text-xs font-semibold">Start Time <span className="text-red-500">*</span></Label>
                         </div>
                         <div className="flex gap-1.5 items-center">
-                          <Select 
-                            value={startTimeParts.hour} 
+                          <Select
+                            value={startTimeParts.hour}
                             onValueChange={(v) => {
                               const newStart = { ...startTimeParts, hour: v };
                               setStartTimeParts(newStart);
@@ -1278,8 +1270,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             </SelectContent>
                           </Select>
                           <span className="text-muted-foreground font-semibold px-0.5">:</span>
-                          <Select 
-                            value={startTimeParts.minute} 
+                          <Select
+                            value={startTimeParts.minute}
                             onValueChange={(v) => {
                               setStartTimeParts({ ...startTimeParts, minute: v });
                               setEndTimeParts(prev => ({ ...prev, minute: v }));
@@ -1292,8 +1284,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                               {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
                             </SelectContent>
                           </Select>
-                          <Select 
-                            value={startTimeParts.period} 
+                          <Select
+                            value={startTimeParts.period}
                             onValueChange={(v) => {
                               const newStart = { ...startTimeParts, period: v };
                               setStartTimeParts(newStart);
@@ -1344,8 +1336,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           })()}
                         </div>
                         <div className="flex gap-1.5 items-center">
-                          <Select 
-                            value={endTimeParts.hour} 
+                          <Select
+                            value={endTimeParts.hour}
                             onValueChange={(v) => {
                               setEndTimeParts({ ...endTimeParts, hour: v });
                             }}
@@ -1480,7 +1472,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                               <div className="font-semibold text-sm">{leave.title}</div>
                               <div className="text-xs text-muted-foreground mt-0.5">
                                 {leave.from === leave.to ? leave.from : `${leave.from} to ${leave.to}`}
-                                <span className="uppercase text-[10px] ml-1 font-bold text-primary">({leave.leave_type})</span>
+                                <span className="uppercase text-[10px] ml-1 font-semibold text-primary">({leave.leave_type})</span>
                               </div>
                               {leave.alternate_faculty_name && (
                                 <div className="text-[11px] text-muted-foreground mt-1">
@@ -1508,11 +1500,11 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   <table className="hidden md:table w-full text-sm text-left border-collapse">
                     <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
                       <tr>
-                        <th className="py-2.5 px-3 text-left">Category / Title</th>
-                        <th className="py-2.5 px-3 text-left">Period</th>
-                        <th className="py-2.5 px-3 text-left">Substitute</th>
-                        <th className="py-2.5 px-3 text-left">Status & Pipeline</th>
-                        <th className="py-2.5 px-3 text-right">Action</th>
+                        <th className="py-2.5 px-3 text-left font-semibold">Category / Title</th>
+                        <th className="py-2.5 px-3 text-left font-semibold">Period</th>
+                        <th className="py-2.5 px-3 text-left font-semibold">Substitute</th>
+                        <th className="py-2.5 px-3 text-left font-semibold">Status & Pipeline</th>
+                        <th className="py-2.5 px-3 text-right font-semibold">Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1537,7 +1529,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             <td className="py-3 px-3">
                               <div className="font-semibold text-sm">{leave.title}</div>
                               <div className="flex flex-col items-start gap-1 mt-1">
-                                <span className="text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-primary/10 text-primary w-fit">
+                                <span className="text-[10px] uppercase font-semibold px-1.5 py-0.2 rounded bg-primary/10 text-primary w-fit">
                                   {leave.leave_type?.replace('_', ' ')}
                                 </span>
                                 {leave.is_half_day && (
@@ -1557,13 +1549,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                               {leave.alternate_faculty_name ? (
                                 <div>
                                   <div className="font-medium text-foreground">{leave.alternate_faculty_name}</div>
-                                  <span className={`text-[10px] font-semibold px-1 rounded ${
-                                    leave.alternate_duty_status === 'ACCEPTED'
-                                      ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
-                                      : leave.alternate_duty_status === 'DECLINED'
+                                  <span className={`text-[10px] font-semibold px-1 rounded ${leave.alternate_duty_status === 'ACCEPTED'
+                                    ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
+                                    : leave.alternate_duty_status === 'DECLINED'
                                       ? 'text-rose-600 bg-rose-50 dark:bg-rose-950/30'
                                       : 'text-amber-600 bg-amber-50 dark:bg-amber-950/30'
-                                  }`}>
+                                    }`}>
                                     {leave.alternate_duty_status || 'PENDING'}
                                   </span>
                                 </div>
@@ -1629,7 +1620,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[95%] sm:max-w-xl mx-auto rounded-xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto' : 'bg-white text-gray-900 border border-gray-200 max-w-[95%] sm:max-w-xl mx-auto rounded-xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto'}>
             <DialogHeader>
               <div className="flex items-center justify-between gap-2 pr-4">
-                <DialogTitle className="text-base sm:text-lg font-bold flex items-center gap-2">
+                <DialogTitle className=" sm:text-lg font-semibold flex items-center gap-2">
                   <ShieldCheck className="w-5 h-5 text-primary" />
                   Leave Approval Workflow Flow
                 </DialogTitle>
@@ -1649,7 +1640,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-primary/10 text-primary">
+                      <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary">
                         {selectedLeaveForFlow.leave_type?.replace('_', ' ')}
                       </span>
                       {selectedLeaveForFlow.is_half_day && (
@@ -1663,7 +1654,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                 {/* Role-Based Sequential Approval Pipeline Flow */}
                 <div>
-                  <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+                  <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
                     <span>Approval Pipeline</span>
                     <span className="text-[10px] lowercase font-normal opacity-70">(Role-Based Routing)</span>
                   </h5>
@@ -1672,31 +1663,28 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                     {/* Stage 0: Alternate Colleague Duty */}
                     {selectedLeaveForFlow.alternate_faculty_name && (
                       <div className="relative group">
-                        <div className={`absolute -left-6 top-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                          selectedLeaveForFlow.alternate_duty_status === 'ACCEPTED'
-                            ? 'bg-emerald-500 text-white'
-                            : selectedLeaveForFlow.alternate_duty_status === 'DECLINED'
+                        <div className={`absolute -left-6 top-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold ${selectedLeaveForFlow.alternate_duty_status === 'ACCEPTED'
+                          ? 'bg-emerald-500 text-white'
+                          : selectedLeaveForFlow.alternate_duty_status === 'DECLINED'
                             ? 'bg-rose-500 text-white'
                             : selectedLeaveForFlow.current_stage === 'alternate_duty'
-                            ? 'bg-amber-500 text-white ring-4 ring-amber-500/20 animate-pulse'
-                            : 'bg-muted text-muted-foreground'
-                        }`}>
+                              ? 'bg-amber-500 text-white ring-4 ring-amber-500/20 animate-pulse'
+                              : 'bg-muted text-muted-foreground'
+                          }`}>
                           {selectedLeaveForFlow.alternate_duty_status === 'ACCEPTED' ? <Check className="w-3 h-3" /> : '1'}
                         </div>
-                        <div className={`p-3 rounded-lg border text-xs ${
-                          selectedLeaveForFlow.current_stage === 'alternate_duty' && selectedLeaveForFlow.status === 'Pending'
-                            ? 'border-amber-500/50 bg-amber-500/5 shadow-sm'
-                            : theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
-                        }`}>
+                        <div className={`p-3 rounded-lg border text-xs ${selectedLeaveForFlow.current_stage === 'alternate_duty' && selectedLeaveForFlow.status === 'Pending'
+                          ? 'border-amber-500/50 bg-amber-500/5 shadow-sm'
+                          : theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
+                          }`}>
                           <div className="flex items-center justify-between gap-2">
                             <span className="font-semibold text-foreground">Alternate Duty Colleague</span>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              selectedLeaveForFlow.alternate_duty_status === 'ACCEPTED'
-                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
-                                : selectedLeaveForFlow.alternate_duty_status === 'DECLINED'
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${selectedLeaveForFlow.alternate_duty_status === 'ACCEPTED'
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                              : selectedLeaveForFlow.alternate_duty_status === 'DECLINED'
                                 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
                                 : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
-                            }`}>
+                              }`}>
                               {selectedLeaveForFlow.alternate_duty_status || 'PENDING'}
                             </span>
                           </div>
@@ -1717,91 +1705,91 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           {/* Re-nominate Colleague Option when DECLINED or PENDING in alternate_duty stage */}
                           {(selectedLeaveForFlow.alternate_duty_status === 'DECLINED' ||
                             (selectedLeaveForFlow.current_stage === 'alternate_duty' && selectedLeaveForFlow.status === 'Pending')) && (
-                            <div className="mt-3 pt-2.5 border-t border-border/40">
-                              {!isRenominating ? (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    setIsRenominating(true);
-                                    setNewColleagueId('');
-                                  }}
-                                  className="text-xs h-7 px-2.5 font-semibold text-primary border-primary/30 hover:bg-primary/5 flex items-center gap-1.5"
-                                >
-                                  <UserCheck className="w-3.5 h-3.5" />
-                                  {selectedLeaveForFlow.alternate_duty_status === 'DECLINED' ? 'Change / Re-nominate Colleague' : 'Change Nominated Colleague'}
-                                </Button>
-                              ) : (
-                                <div className="space-y-2 p-2.5 rounded-lg bg-muted/20 border border-border">
-                                  <div className="flex items-center justify-between">
-                                    <Label className="text-[11px] font-semibold text-foreground">
-                                      Select Different Colleague:
-                                    </Label>
-                                    <button
-                                      type="button"
-                                      onClick={() => setIsRenominating(false)}
-                                      className="text-[10px] text-muted-foreground hover:text-foreground underline"
-                                    >
-                                      Cancel
-                                    </button>
+                              <div className="mt-3 pt-2.5 border-t border-border/40">
+                                {!isRenominating ? (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setIsRenominating(true);
+                                      setNewColleagueId('');
+                                    }}
+                                    className="text-xs h-7 px-2.5 font-semibold text-primary border-primary/30 hover:bg-primary/5 flex items-center gap-1.5"
+                                  >
+                                    <UserCheck className="w-3.5 h-3.5" />
+                                    {selectedLeaveForFlow.alternate_duty_status === 'DECLINED' ? 'Change / Re-nominate Colleague' : 'Change Nominated Colleague'}
+                                  </Button>
+                                ) : (
+                                  <div className="space-y-2 p-2.5 rounded-lg bg-muted/20 border border-border">
+                                    <div className="flex items-center justify-between">
+                                      <Label className="text-[11px] font-semibold text-foreground">
+                                        Select Different Colleague:
+                                      </Label>
+                                      <button
+                                        type="button"
+                                        onClick={() => setIsRenominating(false)}
+                                        className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                    <Select value={newColleagueId} onValueChange={setNewColleagueId}>
+                                      <SelectTrigger className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
+                                        <SelectValue placeholder="-- Choose Different Colleague --" />
+                                      </SelectTrigger>
+                                      <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                        {availableColleagues
+                                          .filter(c => c.username !== user?.username)
+                                          .map((c) => (
+                                            <SelectItem key={c.id} value={String(c.id)}>
+                                              {c.name}
+                                            </SelectItem>
+                                          ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <div className="flex gap-2 justify-end pt-1">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => setIsRenominating(false)}
+                                        className="h-7 text-xs px-2"
+                                      >
+                                        Cancel
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        onClick={handleRenominateColleague}
+                                        disabled={!newColleagueId || renominatingLoading}
+                                        className="h-7 text-xs px-3 font-semibold bg-primary text-white hover:bg-primary/90"
+                                      >
+                                        {renominatingLoading ? 'Sending...' : 'Confirm & Nominate'}
+                                      </Button>
+                                    </div>
                                   </div>
-                                  <Select value={newColleagueId} onValueChange={setNewColleagueId}>
-                                    <SelectTrigger className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
-                                      <SelectValue placeholder="-- Choose Different Colleague --" />
-                                    </SelectTrigger>
-                                    <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                                      {availableColleagues
-                                        .filter(c => c.username !== user?.username)
-                                        .map((c) => (
-                                          <SelectItem key={c.id} value={String(c.id)}>
-                                            {c.name}
-                                          </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <div className="flex gap-2 justify-end pt-1">
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => setIsRenominating(false)}
-                                      className="h-7 text-xs px-2"
-                                    >
-                                      Cancel
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      onClick={handleRenominateColleague}
-                                      disabled={!newColleagueId || renominatingLoading}
-                                      className="h-7 text-xs px-3 font-semibold bg-primary text-white hover:bg-primary/90"
-                                    >
-                                      {renominatingLoading ? 'Sending...' : 'Confirm & Nominate'}
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
+                                )}
+                              </div>
+                            )}
                         </div>
                       </div>
                     )}
 
                     {/* Sequential Stages (HOD / Dean / Section Head / Principal) */}
-                    {(selectedLeaveForFlow.configured_stages && selectedLeaveForFlow.configured_stages.length > 0 
+                    {(selectedLeaveForFlow.configured_stages && selectedLeaveForFlow.configured_stages.length > 0
                       ? selectedLeaveForFlow.configured_stages.filter(s => s !== 'alternate_duty')
                       : ['hod', 'principal']
                     ).map((stageKey, idx) => {
                       const stageNumber = (selectedLeaveForFlow.alternate_faculty_name ? 2 : 1) + idx;
                       const isCurrentStage = selectedLeaveForFlow.current_stage === stageKey && selectedLeaveForFlow.status === 'Pending';
-                      
+
                       let stageTitle = stageKey === 'hod' ? 'Head of Department (HOD)' :
                         stageKey === 'dean' ? 'Dean' :
-                        stageKey === 'principal' ? 'Principal (Final Sanction)' :
-                        stageKey === 'admission_manager' ? 'Admission Manager' :
-                        stageKey === 'hms_admin' ? 'HMS Admin' :
-                        stageKey === 'transport_admin' ? 'Transport Admin' :
-                        stageKey === 'coe' ? 'Controller of Examination (COE)' :
-                        stageKey === 'fees_manager' ? 'Fees Manager' :
-                        stageKey.replace('_', ' ').toUpperCase();
+                          stageKey === 'principal' ? 'Principal (Final Sanction)' :
+                            stageKey === 'admission_manager' ? 'Admission Manager' :
+                              stageKey === 'hms_admin' ? 'HMS Admin' :
+                                stageKey === 'transport_admin' ? 'Transport Admin' :
+                                  stageKey === 'coe' ? 'Controller of Examination (COE)' :
+                                    stageKey === 'fees_manager' ? 'Fees Manager' :
+                                      stageKey.replace('_', ' ').toUpperCase();
 
                       let statusBadge = 'PENDING';
                       let reviewerName = null;
@@ -1830,40 +1818,37 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                       return (
                         <div key={stageKey} className="relative group">
-                          <div className={`absolute -left-6 top-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                            isApproved
-                              ? 'bg-emerald-500 text-white'
-                              : isRejected
+                          <div className={`absolute -left-6 top-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold ${isApproved
+                            ? 'bg-emerald-500 text-white'
+                            : isRejected
                               ? 'bg-rose-500 text-white'
                               : isCurrentStage
-                              ? 'bg-amber-500 text-white ring-4 ring-amber-500/20 animate-pulse'
-                              : 'bg-muted text-muted-foreground'
-                          }`}>
+                                ? 'bg-amber-500 text-white ring-4 ring-amber-500/20 animate-pulse'
+                                : 'bg-muted text-muted-foreground'
+                            }`}>
                             {isApproved ? <Check className="w-3 h-3" /> : stageNumber}
                           </div>
-                          <div className={`p-3 rounded-lg border text-xs ${
-                            isCurrentStage
-                              ? 'border-amber-500/50 bg-amber-500/5 shadow-sm'
-                              : theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
-                          }`}>
+                          <div className={`p-3 rounded-lg border text-xs ${isCurrentStage
+                            ? 'border-amber-500/50 bg-amber-500/5 shadow-sm'
+                            : theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
+                            }`}>
                             <div className="flex items-center justify-between gap-2">
                               <span className="font-semibold text-foreground flex items-center gap-1.5">
                                 <span>{stageTitle}</span>
                                 {isCurrentStage && (
-                                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                                  <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400">
                                     Current Stage
                                   </span>
                                 )}
                               </span>
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                isApproved
-                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
-                                  : isRejected
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${isApproved
+                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                                : isRejected
                                   ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
                                   : isCurrentStage
-                                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
-                                  : 'bg-muted text-muted-foreground'
-                              }`}>
+                                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
+                                    : 'bg-muted text-muted-foreground'
+                                }`}>
                                 {isApproved ? 'APPROVED' : isRejected ? 'REJECTED' : 'PENDING'}
                               </span>
                             </div>
@@ -1901,7 +1886,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                 {/* Application Reason & Notes */}
                 <div>
-                  <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+                  <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                     Application Reason
                   </h5>
                   <div className={`p-3 text-xs leading-relaxed whitespace-pre-wrap break-words max-h-36 overflow-y-auto rounded-lg border ${theme === 'dark' ? 'text-foreground bg-muted/20 border-border' : 'text-gray-900 bg-gray-50 border-gray-200'}`}>
@@ -1951,4 +1936,4 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   );
 });
 
-export default LeaveRequests;
+export default LeaveRequests;
