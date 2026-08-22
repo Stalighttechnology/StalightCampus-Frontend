@@ -820,6 +820,25 @@ export const alternateDutyAction = async (data: {
   }
 };
 
+export const renominateAlternateFaculty = async (data: {
+  leave_id: number | string;
+  alternate_faculty_id: number | string;
+}): Promise<{ success: boolean; message?: string; data?: any }> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/leaves/renominate-alternate/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
 export const viewAttendanceRecords = async (
 params: {branch_id: string;semester_id: string;section_id: string;subject_id: string;})
 : Promise<ViewAttendanceRecordsResponse> => {

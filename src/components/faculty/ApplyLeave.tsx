@@ -17,6 +17,7 @@ import {
   getApplyLeaveBootstrap,
   getAlternateDutyRequests,
   alternateDutyAction,
+  renominateAlternateFaculty,
   LeaveQuota,
   ColleagueOption,
   AlternateDutyRequestItem
@@ -136,6 +137,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [viewReason, setViewReason] = useState<string | null>(null);
   const [selectedLeaveForFlow, setSelectedLeaveForFlow] = useState<LeaveRequestDisplay | null>(null);
+  const [isRenominating, setIsRenominating] = useState<boolean>(false);
+  const [newColleagueId, setNewColleagueId] = useState<string>('');
+  const [renominatingLoading, setRenominatingLoading] = useState<boolean>(false);
   const pagination = usePagination({
     queryKey: ['facultyLeaves'],
     pageSize: 10
@@ -238,6 +242,70 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     fetchBootstrapData();
     fetchSubstituteRequests();
   }, [pagination.page, pagination.pageSize]);
+
+  // Handle re-nominating a substitute colleague if declined/pending
+  const handleRenominateColleague = async () => {
+    if (!selectedLeaveForFlow || !newColleagueId) return;
+    setRenominatingLoading(true);
+    try {
+      const res = await renominateAlternateFaculty({
+        leave_id: selectedLeaveForFlow.id,
+        alternate_faculty_id: newColleagueId
+      });
+      if (res.success) {
+        await MySwal.fire({
+          title: 'Substitute Re-Nominated!',
+          text: res.message || 'New colleague nominated. A notification has been sent for their acceptance.',
+          icon: 'success',
+          confirmButtonText: 'OK',
+          confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+          background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: theme === 'dark' ? '#ffffff' : '#000000'
+        });
+
+        const newColleagueObj = availableColleagues.find(c => String(c.id) === String(newColleagueId));
+        const newName = newColleagueObj ? newColleagueObj.name : 'Nominated Colleague';
+
+        setSelectedLeaveForFlow(prev => prev ? ({
+          ...prev,
+          alternate_faculty_name: newName,
+          alternate_duty_status: 'PENDING',
+          alternate_duty_acted_at: undefined,
+          alternate_duty_remarks: undefined,
+          current_stage: 'alternate_duty',
+          status: 'Pending'
+        }) : null);
+
+        setLeaveList(prev => prev.map(l => l.id === selectedLeaveForFlow.id ? ({
+          ...l,
+          alternate_faculty_name: newName,
+          alternate_duty_status: 'PENDING',
+          alternate_duty_acted_at: undefined,
+          alternate_duty_remarks: undefined,
+          current_stage: 'alternate_duty',
+          status: 'Pending'
+        }) : l));
+
+        setIsRenominating(false);
+        setNewColleagueId('');
+        fetchBootstrapData();
+      } else {
+        throw new Error(res.message || 'Failed to re-nominate colleague');
+      }
+    } catch (err: any) {
+      await MySwal.fire({
+        title: 'Error',
+        text: err.message || 'Could not re-nominate colleague.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: theme === 'dark' ? '#ffffff' : '#000000'
+      });
+    } finally {
+      setRenominatingLoading(false);
+    }
+  };
 
   // Derived filtered list for UI
   const filteredLeaveList = filterStatus === 'All' ?
@@ -1448,6 +1516,74 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             <p className="text-[11px] mt-1 p-1.5 rounded bg-muted/30 italic">
                               "{selectedLeaveForFlow.alternate_duty_remarks}"
                             </p>
+                          )}
+
+                          {/* Re-nominate Colleague Option when DECLINED or PENDING in alternate_duty stage */}
+                          {(selectedLeaveForFlow.alternate_duty_status === 'DECLINED' ||
+                            (selectedLeaveForFlow.current_stage === 'alternate_duty' && selectedLeaveForFlow.status === 'Pending')) && (
+                            <div className="mt-3 pt-2.5 border-t border-border/40">
+                              {!isRenominating ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setIsRenominating(true);
+                                    setNewColleagueId('');
+                                  }}
+                                  className="text-xs h-7 px-2.5 font-semibold text-primary border-primary/30 hover:bg-primary/5 flex items-center gap-1.5"
+                                >
+                                  <UserCheck className="w-3.5 h-3.5" />
+                                  {selectedLeaveForFlow.alternate_duty_status === 'DECLINED' ? 'Change / Re-nominate Colleague' : 'Change Nominated Colleague'}
+                                </Button>
+                              ) : (
+                                <div className="space-y-2 p-2.5 rounded-lg bg-muted/20 border border-border">
+                                  <div className="flex items-center justify-between">
+                                    <Label className="text-[11px] font-semibold text-foreground">
+                                      Select Different Colleague:
+                                    </Label>
+                                    <button
+                                      type="button"
+                                      onClick={() => setIsRenominating(false)}
+                                      className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                  <Select value={newColleagueId} onValueChange={setNewColleagueId}>
+                                    <SelectTrigger className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
+                                      <SelectValue placeholder="-- Choose Different Colleague --" />
+                                    </SelectTrigger>
+                                    <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                      {availableColleagues
+                                        .filter(c => c.username !== user?.username)
+                                        .map((c) => (
+                                          <SelectItem key={c.id} value={String(c.id)}>
+                                            {c.name}
+                                          </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <div className="flex gap-2 justify-end pt-1">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => setIsRenominating(false)}
+                                      className="h-7 text-xs px-2"
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={handleRenominateColleague}
+                                      disabled={!newColleagueId || renominatingLoading}
+                                      className="h-7 text-xs px-3 font-semibold bg-primary text-white hover:bg-primary/90"
+                                    >
+                                      {renominatingLoading ? 'Sending...' : 'Confirm & Nominate'}
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
