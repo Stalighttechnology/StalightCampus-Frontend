@@ -2,7 +2,7 @@ import React, { useState, useEffect, forwardRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Clock, CheckCircle2, Plus, ArrowRight, User, ChevronLeft, ChevronRight, Search, ClipboardX, MessageSquare, History, ChevronDown, ChevronUp, XCircle, PauseCircle, HelpCircle, CheckSquare, Edit2, Trash2 } from 'lucide-react';
+import { AlertCircle, Clock, CheckCircle2, Plus, ArrowRight, User, ChevronLeft, ChevronRight, Search, ClipboardX, MessageSquare, History, ChevronDown, ChevronUp, XCircle, PauseCircle, HelpCircle, CheckSquare, Edit2, Trash2, Paperclip, FileText, X, ExternalLink, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { staffTaskApi, StaffTask } from '../../api/staff_task_api';
 import Swal from 'sweetalert2';
@@ -26,6 +26,7 @@ import { cn } from "../../lib/utils";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { translateTerminology } from "../../utils/institutionConfig";
+import { uploadFileViaBackendProxy, performR2Upload } from "../../utils/common_api";
 
 // Custom SelectContent components without scroll arrows
 const CustomSelectContent = forwardRef<
@@ -200,7 +201,7 @@ const StaffTaskTracker = () => {
     setAssignedTasksLoading(true);
     try {
       const data = await staffTaskApi.getTasks('assigned', assignedTasksPage, categoryFilter);
-      setAssignedTasks((data.results || []).sort(sortTasks));
+      setAssignedTasks(data.results || []);
       setAssignedTasksCount(data.count || 0);
       setAssignedTasksTotalPages(Math.ceil((data.count || 1) / 10));
     } catch (error) {
@@ -271,6 +272,49 @@ const StaffTaskTracker = () => {
     }
   };
 
+  const [newTaskPdfFile, setNewTaskPdfFile] = useState<File | null>(null);
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+
+  const [editTaskPdfFile, setEditTaskPdfFile] = useState<File | null>(null);
+  const [editTaskExistingPdfUrl, setEditTaskExistingPdfUrl] = useState<string | null>(null);
+  const [editTaskExistingPdfName, setEditTaskExistingPdfName] = useState<string | null>(null);
+  const [editTaskExistingPdfSize, setEditTaskExistingPdfSize] = useState<number | null>(null);
+  const [isUploadingEditPdf, setIsUploadingEditPdf] = useState(false);
+
+  const handlePdfFileSelect = (file: File | null, isEdit: boolean = false) => {
+    if (!file) {
+      if (isEdit) setEditTaskPdfFile(null);
+      else setNewTaskPdfFile(null);
+      return;
+    }
+
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid File Type',
+        text: 'Only PDF documents (.pdf) can be attached to tasks.'
+      });
+      return;
+    }
+
+    const maxBytes = 1024 * 1024; // 1MB
+    if (file.size > maxBytes) {
+      Swal.fire({
+        icon: 'error',
+        title: 'File Too Large',
+        text: `Attachment must be 1MB or less. Selected file is ${(file.size / (1024 * 1024)).toFixed(2)} MB.`
+      });
+      return;
+    }
+
+    if (isEdit) {
+      setEditTaskPdfFile(file);
+    } else {
+      setNewTaskPdfFile(file);
+    }
+  };
+
   const currentUserId = user?.id || user?.user_id;
 
   const handleCreateTask = async () => {
@@ -285,6 +329,37 @@ const StaffTaskTracker = () => {
       return;
     }
 
+    let attachmentUrl: string | null = null;
+    let attachmentName: string | null = null;
+    let attachmentSize: number | null = null;
+
+    if (newTaskPdfFile) {
+      setIsUploadingPdf(true);
+      try {
+        const uploadedUrl = await uploadFileViaBackendProxy(newTaskPdfFile, 'staffassignedworkpdf') 
+          || await performR2Upload(newTaskPdfFile, 'staffassignedworkpdf');
+        
+        if (!uploadedUrl) {
+          setIsUploadingPdf(false);
+          Swal.fire({
+            icon: 'error',
+            title: 'PDF Upload Failed',
+            text: 'Failed to upload PDF attachment to storage. Please try again.'
+          });
+          return;
+        }
+        attachmentUrl = uploadedUrl;
+        attachmentName = newTaskPdfFile.name;
+        attachmentSize = newTaskPdfFile.size;
+      } catch (err) {
+        setIsUploadingPdf(false);
+        Swal.fire({ icon: 'error', title: 'PDF Upload Failed', text: 'Error uploading PDF attachment.' });
+        return;
+      } finally {
+        setIsUploadingPdf(false);
+      }
+    }
+
     try {
       const createdTask = await staffTaskApi.createTask({
         title: newTask.title,
@@ -292,11 +367,15 @@ const StaffTaskTracker = () => {
         task_type: newTask.task_type || 'task',
         priority: (newTask.priority || 'medium') as 'low' | 'medium' | 'high',
         assigned_to: parsedAssignedTo,
-        due_date: new Date(newTask.due_date).toISOString()
+        due_date: new Date(newTask.due_date).toISOString(),
+        attachment_url: attachmentUrl,
+        attachment_name: attachmentName,
+        attachment_size: attachmentSize
       });
 
       setIsDialogOpen(false);
       setNewTask({ title: '', description: '', task_type: 'task', priority: 'medium', assigned_to: '', assigned_to_name: '', due_date: '' });
+      setNewTaskPdfFile(null);
       setSelectedDate(undefined);
       const currentTime = getCurrentTime();
       setSelectedHour(currentTime.hour);
@@ -307,7 +386,7 @@ const StaffTaskTracker = () => {
       if (createdTask.assigned_to === currentUserId) {
         setMyTasks(prev => [createdTask, ...prev].sort(sortTasks));
       } else {
-        setAssignedTasks(prev => [createdTask, ...prev].sort(sortTasks));
+        setAssignedTasks(prev => [createdTask, ...prev.filter(t => t.id !== createdTask.id)]);
       }
 
       Swal.fire({
@@ -347,6 +426,10 @@ const StaffTaskTracker = () => {
       priority: task.priority || 'medium',
       due_date: task.due_date
     });
+    setEditTaskPdfFile(null);
+    setEditTaskExistingPdfUrl(task.attachment_url || null);
+    setEditTaskExistingPdfName(task.attachment_name || null);
+    setEditTaskExistingPdfSize(task.attachment_size || null);
     if (task.due_date) {
       const d = new Date(task.due_date);
       setEditSelectedDate(d);
@@ -398,17 +481,52 @@ const StaffTaskTracker = () => {
       return;
     }
 
+    let attachmentUrl: string | null = editTaskExistingPdfUrl;
+    let attachmentName: string | null = editTaskExistingPdfName;
+    let attachmentSize: number | null = editTaskExistingPdfSize;
+
+    if (editTaskPdfFile) {
+      setIsUploadingEditPdf(true);
+      try {
+        const uploadedUrl = await uploadFileViaBackendProxy(editTaskPdfFile, 'staffassignedworkpdf') 
+          || await performR2Upload(editTaskPdfFile, 'staffassignedworkpdf');
+        
+        if (!uploadedUrl) {
+          setIsUploadingEditPdf(false);
+          Swal.fire({
+            icon: 'error',
+            title: 'PDF Upload Failed',
+            text: 'Failed to upload PDF attachment. Please try again.'
+          });
+          return;
+        }
+        attachmentUrl = uploadedUrl;
+        attachmentName = editTaskPdfFile.name;
+        attachmentSize = editTaskPdfFile.size;
+      } catch (err) {
+        setIsUploadingEditPdf(false);
+        Swal.fire({ icon: 'error', title: 'PDF Upload Failed', text: 'Error uploading PDF attachment.' });
+        return;
+      } finally {
+        setIsUploadingEditPdf(false);
+      }
+    }
+
     try {
       const updated = await staffTaskApi.updateTask(editingTask.id, {
         title: editForm.title.trim(),
         description: editForm.description.trim(),
         task_type: editForm.task_type,
         priority: editForm.priority as any,
-        due_date: editForm.due_date
+        due_date: editForm.due_date,
+        attachment_url: attachmentUrl,
+        attachment_name: attachmentName,
+        attachment_size: attachmentSize
       });
-      setAssignedTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, ...updated } : t).sort(sortTasks));
+      setAssignedTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, ...updated } : t));
       setMyTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, ...updated } : t).sort(sortTasks));
       setIsEditDialogOpen(false);
+      setEditTaskPdfFile(null);
       Swal.fire({
         icon: 'success',
         title: 'Task Updated!',
@@ -621,6 +739,28 @@ const StaffTaskTracker = () => {
             </div>
 
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-relaxed break-words">{task.description}</p>
+
+            {/* Attached PDF Document Link */}
+            {task.attachment_url && (
+              <div className="mt-2">
+                <a
+                  href={task.attachment_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium border border-primary/20 transition-all max-w-full truncate shadow-sm group"
+                  title={`Open attached PDF: ${task.attachment_name || 'Document'}`}
+                >
+                  <FileText className="w-3.5 h-3.5 text-primary shrink-0 group-hover:scale-110 transition-transform" />
+                  <span className="truncate max-w-[200px] sm:max-w-[320px]">{task.attachment_name || 'Attached PDF Document'}</span>
+                  {task.attachment_size ? (
+                    <span className="text-[10px] text-primary/70 shrink-0 font-normal">
+                      ({Math.round(task.attachment_size / 1024)} KB)
+                    </span>
+                  ) : null}
+                  <ExternalLink className="w-3 h-3 shrink-0 ml-0.5 opacity-70 group-hover:opacity-100" />
+                </a>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[13px] sm:text-xs text-muted-foreground mt-4 pt-3 border-t border-border/50">
@@ -1071,8 +1211,73 @@ const StaffTaskTracker = () => {
                       </PopoverContent>
                     </Popover>
                   </div>
+
+                  {/* PDF Attachment Field (Optional, max 1MB) */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="create-task-pdf" className="flex items-center justify-between text-xs font-semibold text-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Paperclip className="w-3.5 h-3.5 text-primary" />
+                        Attach PDF Document
+                      </span>
+                      <span className="text-[11px] text-muted-foreground font-normal">Optional (Max 1MB)</span>
+                    </Label>
+
+                    {newTaskPdfFile ? (
+                      <div className="flex items-center justify-between p-2.5 rounded-lg border border-primary/30 bg-primary/5">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText className="w-4 h-4 text-primary shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium text-foreground truncate">{newTaskPdfFile.name}</p>
+                            <p className="text-[10px] text-muted-foreground">{(newTaskPdfFile.size / 1024).toFixed(1)} KB</p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setNewTaskPdfFile(null)}
+                          className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive shrink-0 rounded-full"
+                          title="Remove PDF"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <input
+                          id="create-task-pdf"
+                          type="file"
+                          accept="application/pdf,.pdf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null;
+                            handlePdfFileSelect(file, false);
+                            e.target.value = '';
+                          }}
+                        />
+                        <label
+                          htmlFor="create-task-pdf"
+                          className="flex flex-col items-center justify-center p-3 border-2 border-dashed border-border hover:border-primary/50 rounded-lg bg-muted/20 hover:bg-muted/40 cursor-pointer transition-colors"
+                        >
+                          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                            <Paperclip className="w-3.5 h-3.5 text-primary" />
+                            <span>Click to attach PDF</span>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground/70 mt-0.5">PDF only, 1MB or less</span>
+                        </label>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <Button onClick={handleCreateTask} className="w-full">Create Task</Button>
+                <Button onClick={handleCreateTask} disabled={isUploadingPdf} className="w-full">
+                  {isUploadingPdf ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Uploading PDF...
+                    </span>
+                  ) : (
+                    newTask.task_type === 'issue' ? 'Raise Issue / Ticket' : 'Create Task'
+                  )}
+                </Button>
               </DialogContent>
             </Dialog>
           )}
@@ -1420,10 +1625,112 @@ const StaffTaskTracker = () => {
                   </PopoverContent>
                 </Popover>
               </div>
+
+              {/* Edit PDF Attachment */}
+              <div className="grid gap-2">
+                <Label htmlFor="edit-task-pdf" className="flex items-center justify-between text-xs font-semibold text-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <Paperclip className="w-3.5 h-3.5 text-primary" />
+                    Attached PDF Document
+                  </span>
+                  <span className="text-[11px] text-muted-foreground font-normal">Optional (Max 1MB)</span>
+                </Label>
+
+                {editTaskPdfFile ? (
+                  <div className="flex items-center justify-between p-2.5 rounded-lg border border-primary/30 bg-primary/5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="w-4 h-4 text-primary shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-foreground truncate">{editTaskPdfFile.name}</p>
+                        <p className="text-[10px] text-muted-foreground">{(editTaskPdfFile.size / 1024).toFixed(1)} KB (New)</p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditTaskPdfFile(null)}
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive shrink-0 rounded-full"
+                      title="Remove PDF"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : editTaskExistingPdfUrl ? (
+                  <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/30">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="w-4 h-4 text-primary shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-foreground truncate">{editTaskExistingPdfName || 'Attached Document'}</p>
+                        {editTaskExistingPdfSize && (
+                          <p className="text-[10px] text-muted-foreground">{(editTaskExistingPdfSize / 1024).toFixed(1)} KB</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <a
+                        href={editTaskExistingPdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 text-muted-foreground hover:text-primary transition-colors"
+                        title="View Current PDF"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditTaskExistingPdfUrl(null);
+                          setEditTaskExistingPdfName(null);
+                          setEditTaskExistingPdfSize(null);
+                        }}
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive shrink-0 rounded-full"
+                        title="Remove Attachment"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <input
+                      id="edit-task-pdf"
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        handlePdfFileSelect(file, true);
+                        e.target.value = '';
+                      }}
+                    />
+                    <label
+                      htmlFor="edit-task-pdf"
+                      className="flex flex-col items-center justify-center p-3 border-2 border-dashed border-border hover:border-primary/50 rounded-lg bg-muted/20 hover:bg-muted/40 cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <Paperclip className="w-3.5 h-3.5 text-primary" />
+                        <span>Click to attach PDF</span>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground/70 mt-0.5">PDF only, 1MB or less</span>
+                    </label>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-              <Button onClick={handleEditSubmit}>Save Changes</Button>
+              <Button onClick={handleEditSubmit} disabled={isUploadingEditPdf}>
+                {isUploadingEditPdf ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                  </span>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
