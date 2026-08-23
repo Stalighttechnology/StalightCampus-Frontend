@@ -25,7 +25,7 @@ import HodProfile from "../hod/HodProfile";
 import { logoutUser } from "../../utils/authService";
 import StudyMaterial from "../hod/StudyMaterial";
 import PromotionManagement from "../hod/PromotionManagement";
-import FacultyAttendanceView from "../hod/FacultyAttendanceView";
+import AdminFacultyAttendanceView from "../admin/AdminFacultyAttendanceView";
 import HODMyAttendance from "../hod/HODMyAttendance";
 import StudentInfoScanner from "../hod/StudentInfoScanner";
 import StudentEnrollment from "../hod/StudentEnrollment";
@@ -287,7 +287,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       case "attendance":
         return <AttendanceView />;
       case "faculty-attendance":
-        return <FacultyAttendanceView />;
+        return <AdminFacultyAttendanceView />;
       case "my-attendance":
         return <HODMyAttendance />;
       case "marks":

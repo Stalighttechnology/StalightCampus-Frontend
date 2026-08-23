@@ -99,7 +99,7 @@ const AdminHODAttendance: React.FC = () => {
 
   // Today's snapshot
   const [todayRows, setTodayRows] = useState<TodayRow[]>([]);
-  const [todaySummary, setTodaySummary] = useState({ total_hods: 0, present: 0, absent: 0, not_marked: 0 });
+  const [todaySummary, setTodaySummary] = useState({ total_hods: 0, present: 0, absent: 0, on_leave: 0, not_marked: 0 });
   const [todayPagination, setTodayPagination] = useState({ page: 1, page_size: 10, total_pages: 1, total_items: 0, has_next: false, has_prev: false });
 
   // Records mode
@@ -124,6 +124,7 @@ const AdminHODAttendance: React.FC = () => {
   const getStatusIcon = (status: string) => {
     const s = (status || '').toLowerCase();
     if (s === 'present') return <CheckCircle className="w-5 h-5 text-green-500" />;
+    if (s === 'on_leave') return <CalendarIcon className="w-4 h-4 text-purple-500" />;
     return null;
   };
 
@@ -134,6 +135,8 @@ const AdminHODAttendance: React.FC = () => {
         return `${base} bg-green-100 text-green-800`;
       case 'absent':
         return `${base} bg-red-100 text-red-800`;
+      case 'on_leave':
+        return `${base} bg-purple-100 text-purple-800`;
       default:
         return `${base} bg-gray-100 text-gray-800`;
     }
@@ -381,7 +384,7 @@ const AdminHODAttendance: React.FC = () => {
                 <button onClick={() => setActiveTab('records')} className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${activeTab === 'records' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Attendance Records</button>
               </div>
               {/* Stats grid */}
-              <div id="hod-attendance-stats-grid" className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4`}>
+              <div id="hod-attendance-stats-grid" className={`grid grid-cols-2 lg:grid-cols-5 gap-4`}>
                 <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
                   <div className="flex items-center justify-between">
                     <div>
@@ -407,6 +410,15 @@ const AdminHODAttendance: React.FC = () => {
                       <p className={`text-2xl font-semibold text-red-600`}>{todaySummary.absent}</p>
                     </div>
                     <XCircle className="w-8 h-8 text-red-600" />
+                  </div>
+                </div>
+                <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>On Leave</p>
+                      <p className={`text-2xl font-semibold text-purple-600`}>{todaySummary.on_leave || 0}</p>
+                    </div>
+                    <CalendarIcon className="w-8 h-8 text-purple-600" />
                   </div>
                 </div>
                 <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
@@ -778,6 +790,7 @@ const AdminHODAttendance: React.FC = () => {
                           <TableHead className="px-6 py-3 text-left">Total Days</TableHead>
                           <TableHead className="px-6 py-3 text-left">Present</TableHead>
                           <TableHead className="px-6 py-3 text-left">Absent</TableHead>
+                          <TableHead className="px-6 py-3 text-left text-purple-600">On Leave</TableHead>
                           <TableHead className="px-6 py-3 text-left">Attendance</TableHead>
                           <TableHead className="px-6 py-3 text-right">Actions</TableHead>
                         </TableRow>
@@ -790,6 +803,7 @@ const AdminHODAttendance: React.FC = () => {
                             <TableCell className="text-foreground">{s.total_days}</TableCell>
                             <TableCell className="text-green-600 font-medium">{s.present_days}</TableCell>
                             <TableCell className="text-red-600 font-medium">{s.absent_days}</TableCell>
+                            <TableCell className="text-purple-600 font-medium">{s.on_leave || 0}</TableCell>
                             <TableCell>
                               <span className={`font-medium ${s.attendance_percentage >= 75 ? 'text-green-600' : s.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
                                 {s.attendance_percentage.toFixed(1)}%
@@ -839,6 +853,10 @@ const AdminHODAttendance: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
                       <span className="text-[10px] font-semibold uppercase tracking-widest opacity-80">Absent</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.4)]"></div>
+                      <span className="text-[10px] font-semibold uppercase tracking-widest opacity-80">On Leave</span>
                     </div>
                   </div>
                 </div>

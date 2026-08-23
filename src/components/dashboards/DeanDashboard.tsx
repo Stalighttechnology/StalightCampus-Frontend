@@ -1,6 +1,7 @@
 import FacultyPayroll from "../faculty/FacultyPayroll";
 import FacultyAttendance from "../faculty/FacultyAttendance";
 import ApplyLeave from "../faculty/ApplyLeave";
+import AdminFacultyAttendanceView from "../admin/AdminFacultyAttendanceView";
 import { useState, useEffect, Component, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import ExternalLinksPage from "../admin/ExternalLinksPage";
@@ -65,6 +66,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'finance': 'finance',
     'alerts': 'alerts',
     'attendance-records': 'attendance-records',
+    'faculty-attendance': 'faculty-attendance',
     'admin-leaves': 'admin-leaves',
     'enroll-user': 'enroll-user',
     'billing': 'billing',
@@ -110,6 +112,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <div><DeanStats /></div>;
       case 'attendance':
         return <div><DeanAttendance /></div>;
+      case 'faculty-attendance':
+        return <AdminFacultyAttendanceView />;
       case 'reports':
         return <div><Reports isReadOnly={true} /></div>;
       case 'campus-locations':

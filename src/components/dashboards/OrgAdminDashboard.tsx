@@ -1,4 +1,5 @@
 import FacultyPayroll from "../faculty/FacultyPayroll";
+import AdminFacultyAttendanceView from "../admin/AdminFacultyAttendanceView";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import ExternalLinksPage from "../admin/ExternalLinksPage";
@@ -45,7 +46,7 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
   const { toast } = useToast();
 
   const getActivePageFromPath = (pathname: string) => {
-    const path = pathname.replace('/org-admin', '').replace('/', '');
+    const path = pathname.replace('/org-admin', '').replace(/^\//, '');
     return path || 'dashboard';
   };
 
@@ -94,6 +95,8 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
 
       case "attendance":
         return <DeanAttendance isReadOnly={true} />;
+      case "faculty-attendance":
+        return <AdminFacultyAttendanceView />;
       case "exams":
         return <DeanExams isReadOnly={true} />;
       case "faculty":

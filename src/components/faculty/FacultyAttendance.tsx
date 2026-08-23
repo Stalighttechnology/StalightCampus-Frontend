@@ -27,7 +27,7 @@ const formatTotalHours = (decimalHours: number): string => {
 };
 
 const FacultyAttendance = () => {
-  const [attendanceStatus, setAttendanceStatus] = useState<"present" | "absent" | "holiday" | "weekly_off" | null>(null);
+  const [attendanceStatus, setAttendanceStatus] = useState<"present" | "absent" | "holiday" | "weekly_off" | "on_leave" | null>(null);
   const [selectedRecordDetails, setSelectedRecordDetails] = useState<any>(null);
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -128,8 +128,10 @@ const FacultyAttendance = () => {
             };
 
         setTodayRecord(finalTodayRec);
-        if (foundTodayRec) {
-          setAttendanceStatus(foundTodayRec.status as "present" | "absent" | "holiday" | "weekly_off");
+        if ((response as any).is_today_on_leave) {
+          setAttendanceStatus("on_leave");
+        } else if (foundTodayRec) {
+          setAttendanceStatus(foundTodayRec.status as "present" | "absent" | "holiday" | "weekly_off" | "on_leave");
           setNotes(foundTodayRec.notes || "");
         } else if ((response as any).is_today_holiday) {
           setAttendanceStatus("holiday");
@@ -752,6 +754,8 @@ const FacultyAttendance = () => {
         return theme === 'dark' ? 'bg-blue-900/20 border-blue-700' : 'bg-blue-50 border-blue-200';
       case "weekly_off":
         return theme === 'dark' ? 'bg-slate-900/20 border-slate-700' : 'bg-slate-50 border-slate-200';
+      case "on_leave":
+        return theme === 'dark' ? 'bg-purple-900/20 border-purple-700' : 'bg-purple-50 border-purple-200';
       default:
         return theme === 'dark' ? 'bg-gray-900/20 border-gray-700' : 'bg-gray-50 border-gray-200';
     }
@@ -784,20 +788,24 @@ const FacultyAttendance = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-6 pb-0">
-            {attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off' ? (
+            {attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off' || attendanceStatus === 'on_leave' ? (
               <div className="flex flex-col items-center py-6 space-y-3">
                 <div className={`p-4 rounded-full ${
                   attendanceStatus === 'holiday'
                     ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700')
+                    : attendanceStatus === 'on_leave'
+                    ? (theme === 'dark' ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700')
                     : (theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700')
                 }`}>
                   <CalendarIcon className="w-10 h-10" />
                 </div>
                 <span className="text-xl font-bold capitalize">
-                  {attendanceStatus === 'holiday' ? 'Institutional Holiday' : 'Weekly Off'}
+                  {attendanceStatus === 'holiday' ? 'Institutional Holiday' : attendanceStatus === 'on_leave' ? 'On Approved Leave' : 'Weekly Off'}
                 </span>
                 <p className="text-xs text-muted-foreground text-center max-w-xs">
-                  No attendance check-in is required today. Enjoy your day off!
+                  {attendanceStatus === 'on_leave' 
+                    ? 'You are on an approved full-day leave. No attendance check-in is required today.'
+                    : 'No attendance check-in is required today. Enjoy your day off!'}
                 </p>
               </div>
             ) : (
@@ -1029,25 +1037,27 @@ const FacultyAttendance = () => {
 
               {/* Status Indicator */}
               <AnimatePresence mode="wait">
-                {attendanceStatus && (todayRecord?.marked_at || todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.some(ts => ts && ts !== 'Missed')) || attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off') &&
+                {attendanceStatus && (todayRecord?.marked_at || todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.some(ts => ts && ts !== 'Missed')) || attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off' || attendanceStatus === 'on_leave') &&
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     className="text-center mt-4">
 
-                    <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full ${
+                    <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full border ${
                       attendanceStatus === 'present' ?
-                        (theme === 'dark' ? 'bg-green-900/20 text-green-400' : 'bg-green-100 text-green-800') :
+                        (theme === 'dark' ? 'bg-green-900/20 border-green-800 text-green-400' : 'bg-green-50 border-green-200 text-green-800') :
                       attendanceStatus === 'holiday' ?
-                        (theme === 'dark' ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-100 text-blue-800') :
+                        (theme === 'dark' ? 'bg-blue-900/20 border-blue-800 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700') :
+                      attendanceStatus === 'on_leave' ?
+                        (theme === 'dark' ? 'bg-purple-900/20 border-purple-800 text-purple-300' : 'bg-purple-50 border-purple-200 text-purple-700') :
                       attendanceStatus === 'weekly_off' ?
-                        (theme === 'dark' ? 'bg-slate-900/20 text-slate-400' : 'bg-slate-100 text-slate-800') :
-                        (theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-800')
+                        (theme === 'dark' ? 'bg-slate-900/20 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-800') :
+                        (theme === 'dark' ? 'bg-red-900/20 border-red-800 text-red-400' : 'bg-red-50 border-red-200 text-red-800')
                     }`}>
                       {getStatusIcon(attendanceStatus)}
                       <span className="font-medium capitalize">
-                        {attendanceStatus === 'weekly_off' ? 'Weekly Off' : attendanceStatus}
+                        {attendanceStatus === 'weekly_off' ? 'Weekly Off' : attendanceStatus === 'on_leave' ? 'On Leave' : attendanceStatus}
                       </span>
                     </div>
                   </motion.div>
