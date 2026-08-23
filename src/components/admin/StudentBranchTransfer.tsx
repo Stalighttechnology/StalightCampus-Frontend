@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -96,6 +96,7 @@ const StudentBranchTransfer = () => {
   const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
   const [historyPage, setHistoryPage] = useState<number>(1);
   const [historyTotalPages, setHistoryTotalPages] = useState<number>(1);
+  const [historyTotalCount, setHistoryTotalCount] = useState<number>(0);
 
   const fetchHistory = useCallback(async (page: number = 1, search: string = historySearch) => {
     if (!historyBatchId) return;
@@ -115,6 +116,7 @@ const StudentBranchTransfer = () => {
       setHistoryRecords(res?.results || []);
       setHistoryTotalPages(res?.total_pages || 1);
       setHistoryPage(res?.current_page || page);
+      setHistoryTotalCount(res?.count || (res?.results ? res.results.length : 0));
     } catch (e) {
       toast({ title: 'Error', description: 'Failed to fetch history', variant: 'destructive' });
     } finally {
@@ -394,51 +396,64 @@ const StudentBranchTransfer = () => {
   const isDark = theme === 'dark';
   const isFilterComplete = sourceBatchId && sourceBranchId && sourceSemesterId && sourceSectionId;
 
+  const [activeTab, setActiveTab] = useState<'transfer' | 'history'>('transfer');
+
   return (
-    <div className="space-y-6 p-1">
-      {/* Header */}
-      <div className={`rounded-xl p-6 border ${isDark ? 'bg-gradient-to-r from-slate-900 to-slate-800 border-slate-700' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100'}`}>
-        <div className="flex items-center gap-3">
-          <div className={`p-3 rounded-xl ${isDark ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
-            <ArrowRightLeft className={`h-6 w-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-          </div>
+    <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+      <Card className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
+        <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6">
           <div>
-            <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Student Branch Transfer</h1>
-            <p className={`text-sm mt-0.5 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-              Move students from their current branch to a new branch, semester, and section.
-            </p>
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-xl sm:text-2xl font-semibold">Student Branch Transfer</CardTitle>
+            </div>
+            <CardDescription className="text-sm text-muted-foreground mt-1">
+              {activeTab === 'transfer' 
+                ? "Move students from their current branch to a new branch, semester, and section" 
+                : "View and track past student branch transfer history records"}
+            </CardDescription>
           </div>
-        </div>
-      </div>
 
-      <Tabs defaultValue="transfer" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="transfer" className="flex items-center gap-2">
-            <Users className="h-4 w-4" /> Transfer Students
-          </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
-            <History className="h-4 w-4" /> Transfer Records
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="transfer" className="m-0 focus-visible:ring-0">
-          {/* Filter + Table Card */}
-          <Card className={isDark ? 'border-slate-700 bg-slate-900' : ''}>
-        <CardHeader className="pb-3 border-b border-border/50 mb-4">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Filter className="h-4 w-4 text-primary" />
-            Filter Students Sequentially
-          </CardTitle>
-          <CardDescription>Select Batch → Branch → Semester → Section to load students.</CardDescription>
+          {/* Pill Tab Switcher on Mobile, Tablet & Desktop */}
+          <div className={`flex items-center p-1 rounded-xl border w-full sm:w-auto ${
+            theme === 'dark' ? 'bg-background/80 border-border' : 'bg-muted/40 border-border/60'
+          }`}>
+            <button
+              type="button"
+              onClick={() => setActiveTab('transfer')}
+              className={`flex-1 sm:flex-initial justify-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${
+                activeTab === 'transfer'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+              }`}
+            >
+              <Users className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Transfer Students</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('history')}
+              className={`flex-1 sm:flex-initial justify-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${
+                activeTab === 'history'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+              }`}
+            >
+              <History className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Transfer Records</span>
+            </button>
+          </div>
         </CardHeader>
-        <CardContent>
-          {/* Filters Row */}
-          <div className="flex flex-col lg:flex-row gap-4 mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
+
+        {activeTab === 'transfer' ? (
+          <>
+            <CardContent className="p-4 sm:p-6 space-y-6">
+              {/* Filters Row */}
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
               
               {/* 1. BATCH */}
               <Select value={sourceBatchId} onValueChange={handleBatchChange} open={openBatch} onOpenChange={setOpenBatch}>
-                <SelectTrigger id="source-batch-select" className={sourceBatchId ? 'border-primary' : ''}>
+                <SelectTrigger id="source-batch-select">
                   <SelectValue placeholder="Select Batch" />
                 </SelectTrigger>
                 <SelectContent>
@@ -451,7 +466,7 @@ const StudentBranchTransfer = () => {
 
               {/* 2. BRANCH */}
               <Select value={sourceBranchId} onValueChange={handleBranchChange} open={openBranch} onOpenChange={setOpenBranch} disabled={!sourceBatchId}>
-                <SelectTrigger id="source-branch-select" className={sourceBranchId ? 'border-primary' : ''}>
+                <SelectTrigger id="source-branch-select">
                   <SelectValue placeholder={sourceBatchId ? "Select Branch" : "Select Batch First"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -464,7 +479,7 @@ const StudentBranchTransfer = () => {
 
               {/* 3. SEMESTER */}
               <Select value={sourceSemesterId} onValueChange={handleSemesterChange} open={openSem} onOpenChange={setOpenSem} disabled={!sourceBranchId || (sourceBranchId !== 'all' && sourceSemesters.length === 0)}>
-                <SelectTrigger id="source-semester-select" className={sourceSemesterId ? 'border-primary' : ''}>
+                <SelectTrigger id="source-semester-select">
                   <SelectValue placeholder={sourceBranchId ? "Select Semester" : "Select Branch First"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -477,7 +492,7 @@ const StudentBranchTransfer = () => {
 
               {/* 4. SECTION */}
               <Select value={sourceSectionId} onValueChange={handleSectionChange} open={openSec} onOpenChange={setOpenSec} disabled={!sourceSemesterId || (sourceSemesterId !== 'all' && sourceSections.length === 0)}>
-                <SelectTrigger id="source-section-select" className={sourceSectionId ? 'border-primary' : ''}>
+                <SelectTrigger id="source-section-select">
                   <SelectValue placeholder={sourceSemesterId ? "Select Section" : "Select Semester First"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -527,7 +542,7 @@ const StudentBranchTransfer = () => {
                 <SkeletonTable rows={5} columns={6} />
               ) : (
                 <table className="w-full text-sm text-left">
-                  <thead className={`font-medium text-xs uppercase tracking-wide ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-gray-50 text-gray-500'}`}>
+                  <thead className={`font-medium text-xs uppercase tracking-wide whitespace-nowrap ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-gray-50 text-gray-500'}`}>
                     <tr>
                       <th className="p-4 w-12">
                         <Checkbox
@@ -536,11 +551,11 @@ const StudentBranchTransfer = () => {
                           onCheckedChange={(c) => toggleSelectAll(c as boolean)}
                         />
                       </th>
-                      <th className="p-4">USN</th>
-                      <th className="p-4">Name</th>
-                      <th className="p-4">Branch</th>
-                      <th className="p-4">Semester</th>
-                      <th className="p-4">Section</th>
+                      <th className="p-4 whitespace-nowrap">USN</th>
+                      <th className="p-4 whitespace-nowrap">Name</th>
+                      <th className="p-4 whitespace-nowrap">Branch</th>
+                      <th className="p-4 whitespace-nowrap">Semester</th>
+                      <th className="p-4 whitespace-nowrap">Section</th>
                     </tr>
                   </thead>
                   <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-gray-100'}`}>
@@ -574,15 +589,15 @@ const StudentBranchTransfer = () => {
                               onCheckedChange={c => toggleSelectStudent(student.id, c as boolean)}
                             />
                           </td>
-                          <td className="p-4 font-mono font-medium text-xs">{student.usn}</td>
-                          <td className="p-4">
+                          <td className="p-4 font-mono font-medium text-xs whitespace-nowrap">{student.usn}</td>
+                          <td className="p-4 whitespace-nowrap">
                             <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{student.name}</span>
                           </td>
-                          <td className="p-4">
-                            <Badge variant="outline" className="text-xs font-normal">{student.branch || '—'}</Badge>
+                          <td className="p-4 whitespace-nowrap">
+                            <Badge variant="outline" className="text-xs font-normal whitespace-nowrap">{student.branch || '—'}</Badge>
                           </td>
-                          <td className="p-4 text-muted-foreground text-xs">{student.semester || '—'}</td>
-                          <td className="p-4 text-muted-foreground text-xs">{student.section || '—'}</td>
+                          <td className="p-4 text-muted-foreground text-xs whitespace-nowrap">{student.semester || '—'}</td>
+                          <td className="p-4 text-muted-foreground text-xs whitespace-nowrap">{student.section || '—'}</td>
                         </tr>
                       ))
                     )}
@@ -601,152 +616,172 @@ const StudentBranchTransfer = () => {
               </div>
             </div>
           )}
-
-          {/* Pagination */}
-          {hasSearched && totalPages > 1 && (
-            <div className="flex justify-between items-center mt-4">
-              <span className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</span>
-              <div className="flex gap-2">
-                <Button id="prev-page-btn" variant="outline" size="sm"
-                  onClick={() => fetchStudents(currentPage - 1, searchTerm)}
-                  disabled={currentPage === 1 || loading}>
-                  <ChevronLeft className="h-4 w-4 mr-1" /> Prev
-                </Button>
-                <Button id="next-page-btn" variant="outline" size="sm"
-                  onClick={() => fetchStudents(currentPage + 1, searchTerm)}
-                  disabled={currentPage === totalPages || loading}>
-                  Next <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
-            </div>
-          )}
         </CardContent>
-      </Card>
-      </TabsContent>
 
-      <TabsContent value="history" className="m-0 focus-visible:ring-0">
-        <Card className={isDark ? 'border-slate-700 bg-slate-900' : ''}>
-          <CardHeader className="pb-3 border-b border-border/50 mb-4">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <History className="h-4 w-4 text-primary" />
-              Transfer History Records
-            </CardTitle>
-            <CardDescription>View past student branch transfers for a specific batch.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {/* History Filters */}
-            <div className="flex flex-col lg:flex-row gap-4 mb-6 justify-between items-start lg:items-center">
-              <div className="w-full lg:w-64">
-                <Select value={historyBatchId} onValueChange={(v) => { setHistoryBatchId(v); setHistoryPage(1); }}>
-                  <SelectTrigger id="history-batch-select" className={historyBatchId ? 'border-primary' : ''}>
-                    <SelectValue placeholder="Select Batch" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Batches</SelectItem>
-                    {batches.map(b => (
-                      <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+        {/* Transfer Tab Pagination with CardFooter */}
+        {hasSearched && totalPages > 1 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} students
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchStudents(Math.max(1, currentPage - 1), searchTerm)}
+                disabled={currentPage === 1 || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${isDark ? 'text-foreground' : 'text-gray-900'}`}>
+                  {currentPage}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchStudents(Math.min(totalPages, currentPage + 1), searchTerm)}
+                disabled={currentPage === totalPages || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
+      </>
+        ) : (
+          <>
+            <CardContent className="p-4 sm:p-6 space-y-6">
+              {/* History Filters */}
+              <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
+                <div className="w-full lg:w-64">
+                  <Select value={historyBatchId} onValueChange={(v) => { setHistoryBatchId(v); setHistoryPage(1); }}>
+                    <SelectTrigger id="history-batch-select">
+                      <SelectValue placeholder="Select Batch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Batches</SelectItem>
+                      {batches.map(b => (
+                        <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {historyBatchId && (
+                  <div className="relative w-full lg:w-72">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="history-search"
+                      placeholder="Search by name or USN..."
+                      value={historySearch}
+                      onChange={e => setHistorySearch(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                )}
               </div>
 
-              {historyBatchId && (
-                <div className="relative w-full lg:w-72">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="history-search"
-                    placeholder="Search by name or USN..."
-                    value={historySearch}
-                    onChange={e => setHistorySearch(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* History Table */}
-            {!historyBatchId ? (
-              <div className="py-16 text-center border-2 border-dashed rounded-lg border-muted/60">
-                <div className="flex flex-col items-center gap-3">
-                  <Filter className="h-10 w-10 text-muted-foreground opacity-30" />
-                  <div>
-                    <p className="font-medium text-muted-foreground">Select a Batch</p>
-                    <p className="text-sm text-muted-foreground mt-1">Please select a batch above to view transfer records.</p>
+              {/* History Table */}
+              {!historyBatchId ? (
+                <div className="py-16 text-center border-2 border-dashed rounded-lg border-muted/60">
+                  <div className="flex flex-col items-center gap-3">
+                    <Filter className="h-10 w-10 text-muted-foreground opacity-30" />
+                    <div>
+                      <p className="font-medium text-muted-foreground">Select a Batch</p>
+                      <p className="text-sm text-muted-foreground mt-1">Please select a batch above to view transfer records.</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : loadingHistory ? (
-              <div className="border rounded-lg overflow-x-auto">
-                <SkeletonTable rows={5} columns={6} />
-              </div>
-            ) : (
-              <div className={`border rounded-lg overflow-x-auto ${isDark ? 'border-slate-700' : 'border-gray-200'} animate-in fade-in duration-300`}>
-                <table className="w-full text-sm text-left">
-                  <thead className={`font-medium text-xs uppercase tracking-wide whitespace-nowrap ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-gray-50 text-gray-500'}`}>
-                    <tr>
-                      <th className="p-4">Student</th>
-                      <th className="p-4">From</th>
-                      <th className="p-4">To</th>
-                      <th className="p-4">Transferred By</th>
-                      <th className="p-4">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-gray-100'}`}>
-                    {historyRecords.length === 0 ? (
+              ) : loadingHistory ? (
+                <div className="border rounded-lg overflow-x-auto">
+                  <SkeletonTable rows={5} columns={6} />
+                </div>
+              ) : (
+                <div className={`border rounded-lg overflow-x-auto ${isDark ? 'border-slate-700' : 'border-gray-200'} animate-in fade-in duration-300`}>
+                  <table className="w-full text-sm text-left">
+                    <thead className={`font-medium text-xs uppercase tracking-wide whitespace-nowrap ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-gray-50 text-gray-500'}`}>
                       <tr>
-                        <td colSpan={5} className="p-12 text-center">
-                          <p className="text-muted-foreground">No transfer records found.</p>
-                        </td>
+                        <th className="p-4">Student</th>
+                        <th className="p-4">From</th>
+                        <th className="p-4">To</th>
+                        <th className="p-4">Transferred By</th>
+                        <th className="p-4">Date</th>
                       </tr>
-                    ) : (
-                      historyRecords.map(record => (
-                        <tr key={record.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/60' : 'hover:bg-gray-50/80'}`}>
-                          <td className="p-4">
-                            <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{record.student_name}</p>
-                            <p className="font-mono text-xs text-muted-foreground mt-0.5">{record.student_usn}</p>
-                          </td>
-                          <td className="p-4">
-                            <Badge variant="outline" className="mb-1 text-xs">{record.source_branch}</Badge>
-                            <p className="text-xs text-muted-foreground">{record.source_semester}, {record.source_section}</p>
-                          </td>
-                          <td className="p-4">
-                            <Badge className="mb-1 text-xs">{record.target_branch}</Badge>
-                            <p className="text-xs text-muted-foreground">{record.target_semester}, {record.target_section}</p>
-                          </td>
-                          <td className="p-4 text-xs">{record.transferred_by}</td>
-                          <td className="p-4 text-xs whitespace-nowrap">
-                            {new Date(record.transfer_date).toLocaleDateString()}
+                    </thead>
+                    <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-gray-100'}`}>
+                      {historyRecords.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="p-12 text-center">
+                            <p className="text-muted-foreground">No transfer records found.</p>
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                      ) : (
+                        historyRecords.map(record => (
+                          <tr key={record.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/60' : 'hover:bg-gray-50/80'}`}>
+                            <td className="p-4">
+                              <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{record.student_name}</p>
+                              <p className="font-mono text-xs text-muted-foreground mt-0.5">{record.student_usn}</p>
+                            </td>
+                            <td className="p-4 whitespace-nowrap">
+                              <Badge variant="outline" className="mb-1 text-xs whitespace-nowrap">{record.source_branch}</Badge>
+                              <p className="text-xs text-muted-foreground">{record.source_semester}, {record.source_section}</p>
+                            </td>
+                            <td className="p-4 whitespace-nowrap">
+                              <Badge className="mb-1 text-xs whitespace-nowrap">{record.target_branch}</Badge>
+                              <p className="text-xs text-muted-foreground">{record.target_semester}, {record.target_section}</p>
+                            </td>
+                            <td className="p-4 text-xs whitespace-nowrap">{record.transferred_by}</td>
+                            <td className="p-4 text-xs whitespace-nowrap">
+                              {new Date(record.transfer_date).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
 
-            {/* History Pagination */}
+            {/* History Pagination with CardFooter */}
             {historyBatchId && historyTotalPages > 1 && (
-              <div className="flex justify-between items-center mt-4">
-                <span className="text-sm text-muted-foreground">Page {historyPage} of {historyTotalPages}</span>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm"
-                    onClick={() => fetchHistory(historyPage - 1)}
-                    disabled={historyPage === 1 || loadingHistory}>
-                    <ChevronLeft className="h-4 w-4 mr-1" /> Prev
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div>
+                  Showing {Math.min((historyPage - 1) * 10 + 1, historyTotalCount || (historyTotalPages * 10))} to {Math.min(historyPage * 10, historyTotalCount || (historyTotalPages * 10))} of {historyTotalCount || (historyTotalPages * 10)} records
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchHistory(Math.max(1, historyPage - 1))}
+                    disabled={historyPage === 1 || loadingHistory}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                    Previous
                   </Button>
-                  <Button variant="outline" size="sm"
-                    onClick={() => fetchHistory(historyPage + 1)}
-                    disabled={historyPage === historyTotalPages || loadingHistory}>
-                    Next <ChevronRight className="h-4 w-4 ml-1" />
+
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className={`text-sm font-semibold ${isDark ? 'text-foreground' : 'text-gray-900'}`}>
+                      {historyPage}
+                    </span>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchHistory(Math.min(historyTotalPages, historyPage + 1))}
+                    disabled={historyPage === historyTotalPages || loadingHistory}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                    Next
                   </Button>
                 </div>
-              </div>
+              </CardFooter>
             )}
-          </CardContent>
-        </Card>
-      </TabsContent>
-      </Tabs>
+          </>
+        )}
+      </Card>
 
       {/* ─── Transfer Dialog ──────────────────────────────────────────── */}
       <Dialog 
