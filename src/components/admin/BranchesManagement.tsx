@@ -565,60 +565,76 @@ const fetchData = async (page: number = 1, search: string = filter) => {
             font-size: 0.875rem !important;
             padding: 0 8px !important;
           }
-          .branches-mobile-row { display: flex !important; flex-direction: row !important; gap: 8px !important; width: 100% !important; }
-          .branches-mobile-row > button { flex: 1 !important; width: 50% !important; }
+          .branches-mobile-row { 
+            display: flex !important; 
+            flex-direction: column !important; 
+            gap: 8px !important; 
+            width: 100% !important; 
+          }
+          .branches-mobile-row > button { 
+            width: 100% !important; 
+            min-height: 38px !important;
+            height: auto !important;
+            padding: 8px 12px !important;
+            white-space: normal !important;
+            text-align: center !important;
+            justify-content: center !important;
+          }
         }
       `}</style>
 
-      <div className={`mx-auto w-full max-w-[400px] sm:max-w-full text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+      <div className={`w-full text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="branches-management-card" className={theme === 'dark' ? 'branches-card w-full bg-card border border-border flex flex-col h-[calc(100vh-240px)] min-h-[350px] md:h-[calc(100vh-280px)] md:min-h-[550px]' : 'branches-card w-full bg-white border border-gray-200 flex flex-col h-[calc(100vh-240px)] min-h-[350px] md:h-[calc(100vh-280px)] md:min-h-[550px]'}>
           <div id="branches-management-header-section" className="flex flex-col">
-            <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
+            <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4">
+              <div className="shrink-0">
                 <CardTitle className="text-xl sm:text-2xl font-semibold">{translateTerminology("Branch Management")}</CardTitle>
-                <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
+                <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-0.5">
                   {translateTerminology("Manage branches and assign department heads")}
                 </CardDescription>
               </div>
 
-              <div className={`flex-row gap-2 w-full sm:w-auto items-center ${isReadOnly ? 'hidden md:flex' : 'flex'}`}>
+              <div className={`flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center sm:justify-end gap-2 w-full sm:w-auto branches-mobile-row ${isReadOnly ? 'hidden md:flex' : 'flex'}`}>
                 {!isReadOnly && (
-                  <div className="flex flex-row gap-2 w-full sm:w-auto branches-mobile-row">
+                  <>
                     <Button
                       size="sm"
-                      className="flex items-center justify-center gap-1 w-auto"
+                      className="flex items-center justify-center gap-1.5 w-full sm:w-auto text-xs sm:text-sm font-medium whitespace-nowrap"
                       onClick={() => setIsAddDialogOpen(true)}
                       disabled={loading}>
-                      <PlusIcon className="w-4 h-4" /> {translateTerminology("Add Branch")}
+                      <PlusIcon className="w-4 h-4 shrink-0" /> 
+                      <span>{translateTerminology("Add Branch")}</span>
                     </Button>
 
                     {!hasNonTeachingBranch && (
                       <Button
                         size="sm"
                         variant="outline"
-                        className="flex items-center justify-center gap-1 w-auto border-purple-500 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                        className="flex items-center justify-center gap-1.5 w-full sm:w-auto text-xs sm:text-sm font-medium whitespace-nowrap border-purple-500 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
                         onClick={() => setIsNonTeachingModalOpen(true)}
                         disabled={loading}>
-                        <Building2 className="w-4 h-4" /> {getInstitutionType() === 'school' ? "Add Non-Teaching Staff Class" : "Add Non-Teaching Staff Branch"}
+                        <Building2 className="w-4 h-4 shrink-0" /> 
+                        <span>{getInstitutionType() === 'school' ? "Add Non-Teaching Class" : "Add Non-Teaching Branch"}</span>
                       </Button>
                     )}
 
                     <Button
                       size="sm"
-                      className="flex items-center justify-center gap-1 w-auto"
+                      className="flex items-center justify-center gap-1.5 w-full sm:w-auto text-xs sm:text-sm font-medium whitespace-nowrap"
                       onClick={() => { setIsAssignDialogOpen(true); fetchHODs(); }}
                       disabled={loading}>
-                      <UserPlus2Icon className="w-4 h-4" /> {translateTerminology("Assign HOD")}
+                      <UserPlus2Icon className="w-4 h-4 shrink-0" /> 
+                      <span>{translateTerminology("Assign HOD")}</span>
                     </Button>
-                  </div>
+                  </>
                 )}
                 <Button
                   size="sm"
-                  className="hidden md:flex items-center justify-center gap-1 w-auto"
+                  className="hidden md:flex items-center justify-center gap-1.5 w-auto whitespace-nowrap"
                   onClick={exportToPDF}
                   disabled={loading || downloadingPDF}>
-                  {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
-                  {downloadingPDF ? "Exporting..." : "Export PDF"}
+                  {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin shrink-0" /> : <FileDownIcon className="w-4 h-4 shrink-0" />}
+                  <span>{downloadingPDF ? "Exporting..." : "Export PDF"}</span>
                 </Button>
               </div>
             </CardHeader>

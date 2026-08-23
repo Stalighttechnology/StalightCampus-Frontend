@@ -130,6 +130,58 @@ const DEFAULT_STAFF_CATEGORY_MAPPING: Record<string, string[]> = {
   admin_branch: ['principal', 'org_admin', 'admission_manager', 'fees_manager', 'coe', 'placement_officer', 'counsellor'],
 };
 
+function ShadcnTimePicker({
+  value,
+  onChange,
+  theme,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  theme: string;
+}) {
+  const parts = parseTimeTo12h(value || "09:00");
+  const handleUpdate = (key: "hour" | "minute" | "period", val: string) => {
+    const next = { ...parts, [key]: val };
+    const next24 = formatTime24h(next.hour, next.minute, next.period);
+    onChange(next24);
+  };
+
+  return (
+    <div className="flex items-center gap-1">
+      <Select value={parts.hour} onValueChange={(v) => handleUpdate("hour", v)}>
+        <SelectTrigger className={`h-8 px-1.5 text-xs w-[52px] ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300'}`}>
+          <SelectValue placeholder="HH" />
+        </SelectTrigger>
+        <SelectContent className={`max-h-[200px] z-50 ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+          {hoursOptions.map((h) => (
+            <SelectItem key={h} value={h} className="text-xs">{h}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <span className="text-muted-foreground font-semibold text-xs">:</span>
+      <Select value={parts.minute} onValueChange={(v) => handleUpdate("minute", v)}>
+        <SelectTrigger className={`h-8 px-1.5 text-xs w-[52px] ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300'}`}>
+          <SelectValue placeholder="MM" />
+        </SelectTrigger>
+        <SelectContent className={`max-h-[200px] z-50 ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+          {minutesOptions.map((m) => (
+            <SelectItem key={m} value={m} className="text-xs">{m}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={parts.period} onValueChange={(v) => handleUpdate("period", v)}>
+        <SelectTrigger className={`h-8 px-1.5 text-xs w-[58px] ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300'}`}>
+          <SelectValue placeholder="AM/PM" />
+        </SelectTrigger>
+        <SelectContent className={`z-50 ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+          <SelectItem value="AM" className="text-xs">AM</SelectItem>
+          <SelectItem value="PM" className="text-xs">PM</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 function CategoryWorkflowTabContent({
   catKey,
   catConfig,
@@ -188,58 +240,62 @@ function CategoryWorkflowTabContent({
           
           {/* 1st Half In */}
           <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#1</div>
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#1</div>
                 <div>
                   <Label className="text-sm font-semibold">First Half Check-In Window</Label>
                   <p className="text-xs text-muted-foreground">Morning check-in timeframe</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground font-medium">Start:</span>
-                <Input
-                  type="time"
-                  value={currentConfig.half_day_split?.first_half_in?.start || "09:00"}
-                  onChange={(e) => updateWindow('half_day_split', 'first_half_in', 'start', e.target.value)}
-                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
-                />
-                <span className="text-muted-foreground font-medium ml-2">End:</span>
-                <Input
-                  type="time"
-                  value={currentConfig.half_day_split?.first_half_in?.end || "09:30"}
-                  onChange={(e) => updateWindow('half_day_split', 'first_half_in', 'end', e.target.value)}
-                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
-                />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4 text-xs pt-1 sm:pt-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium w-10 sm:w-auto text-left sm:text-left">Start:</span>
+                  <ShadcnTimePicker
+                    value={currentConfig.half_day_split?.first_half_in?.start || "09:00"}
+                    onChange={(val) => updateWindow('half_day_split', 'first_half_in', 'start', val)}
+                    theme={theme}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium w-10 sm:w-auto text-left sm:text-left">End:</span>
+                  <ShadcnTimePicker
+                    value={currentConfig.half_day_split?.first_half_in?.end || "09:30"}
+                    onChange={(val) => updateWindow('half_day_split', 'first_half_in', 'end', val)}
+                    theme={theme}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
           {/* 1st Half Out */}
           <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#2</div>
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#2</div>
                 <div>
                   <Label className="text-sm font-semibold">First Half Check-Out Window</Label>
                   <p className="text-xs text-muted-foreground">Lunch / mid-day departure window</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground font-medium">Start:</span>
-                <Input
-                  type="time"
-                  value={currentConfig.half_day_split?.first_half_out?.start || "12:30"}
-                  onChange={(e) => updateWindow('half_day_split', 'first_half_out', 'start', e.target.value)}
-                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
-                />
-                <span className="text-muted-foreground font-medium ml-2">End:</span>
-                <Input
-                  type="time"
-                  value={currentConfig.half_day_split?.first_half_out?.end || "13:00"}
-                  onChange={(e) => updateWindow('half_day_split', 'first_half_out', 'end', e.target.value)}
-                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
-                />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4 text-xs pt-1 sm:pt-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium w-10 sm:w-auto text-left sm:text-left">Start:</span>
+                  <ShadcnTimePicker
+                    value={currentConfig.half_day_split?.first_half_out?.start || "12:30"}
+                    onChange={(val) => updateWindow('half_day_split', 'first_half_out', 'start', val)}
+                    theme={theme}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium w-10 sm:w-auto text-left sm:text-left">End:</span>
+                  <ShadcnTimePicker
+                    value={currentConfig.half_day_split?.first_half_out?.end || "13:00"}
+                    onChange={(val) => updateWindow('half_day_split', 'first_half_out', 'end', val)}
+                    theme={theme}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -248,58 +304,62 @@ function CategoryWorkflowTabContent({
 
           {/* 2nd Half In */}
           <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#3</div>
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#3</div>
                 <div>
                   <Label className="text-sm font-semibold">Second Half Check-In Window</Label>
                   <p className="text-xs text-muted-foreground">Post-lunch check-in timeframe</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground font-medium">Start:</span>
-                <Input
-                  type="time"
-                  value={currentConfig.half_day_split?.second_half_in?.start || "13:30"}
-                  onChange={(e) => updateWindow('half_day_split', 'second_half_in', 'start', e.target.value)}
-                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
-                />
-                <span className="text-muted-foreground font-medium ml-2">End:</span>
-                <Input
-                  type="time"
-                  value={currentConfig.half_day_split?.second_half_in?.end || "14:00"}
-                  onChange={(e) => updateWindow('half_day_split', 'second_half_in', 'end', e.target.value)}
-                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
-                />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4 text-xs pt-1 sm:pt-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium w-10 sm:w-auto text-left sm:text-left">Start:</span>
+                  <ShadcnTimePicker
+                    value={currentConfig.half_day_split?.second_half_in?.start || "13:30"}
+                    onChange={(val) => updateWindow('half_day_split', 'second_half_in', 'start', val)}
+                    theme={theme}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium w-10 sm:w-auto text-left sm:text-left">End:</span>
+                  <ShadcnTimePicker
+                    value={currentConfig.half_day_split?.second_half_in?.end || "14:00"}
+                    onChange={(val) => updateWindow('half_day_split', 'second_half_in', 'end', val)}
+                    theme={theme}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
           {/* 2nd Half Out */}
           <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#4</div>
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#4</div>
                 <div>
                   <Label className="text-sm font-semibold">Second Half Check-Out Window</Label>
                   <p className="text-xs text-muted-foreground">Evening final departure window</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground font-medium">Start:</span>
-                <Input
-                  type="time"
-                  value={currentConfig.half_day_split?.second_half_out?.start || "17:00"}
-                  onChange={(e) => updateWindow('half_day_split', 'second_half_out', 'start', e.target.value)}
-                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
-                />
-                <span className="text-muted-foreground font-medium ml-2">End:</span>
-                <Input
-                  type="time"
-                  value={currentConfig.half_day_split?.second_half_out?.end || "17:30"}
-                  onChange={(e) => updateWindow('half_day_split', 'second_half_out', 'end', e.target.value)}
-                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
-                />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4 text-xs pt-1 sm:pt-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium w-10 sm:w-auto text-left sm:text-left">Start:</span>
+                  <ShadcnTimePicker
+                    value={currentConfig.half_day_split?.second_half_out?.start || "17:00"}
+                    onChange={(val) => updateWindow('half_day_split', 'second_half_out', 'start', val)}
+                    theme={theme}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium w-10 sm:w-auto text-left sm:text-left">End:</span>
+                  <ShadcnTimePicker
+                    value={currentConfig.half_day_split?.second_half_out?.end || "17:30"}
+                    onChange={(val) => updateWindow('half_day_split', 'second_half_out', 'end', val)}
+                    theme={theme}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -310,57 +370,61 @@ function CategoryWorkflowTabContent({
       {mode === 'full_day' && (
         <div className="space-y-4">
           <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#1</div>
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#1</div>
                 <div>
                   <Label className="text-sm font-semibold">Full Day Check-In Window</Label>
                   <p className="text-xs text-muted-foreground">Morning arrival check-in timeframe</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground font-medium">Start:</span>
-                <Input
-                  type="time"
-                  value={currentConfig.full_day?.check_in?.start || "09:00"}
-                  onChange={(e) => updateWindow('full_day', 'check_in', 'start', e.target.value)}
-                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
-                />
-                <span className="text-muted-foreground font-medium ml-2">End:</span>
-                <Input
-                  type="time"
-                  value={currentConfig.full_day?.check_in?.end || "09:30"}
-                  onChange={(e) => updateWindow('full_day', 'check_in', 'end', e.target.value)}
-                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
-                />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4 text-xs pt-1 sm:pt-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium w-10 sm:w-auto text-left sm:text-left">Start:</span>
+                  <ShadcnTimePicker
+                    value={currentConfig.full_day?.check_in?.start || "09:00"}
+                    onChange={(val) => updateWindow('full_day', 'check_in', 'start', val)}
+                    theme={theme}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium w-10 sm:w-auto text-left sm:text-left">End:</span>
+                  <ShadcnTimePicker
+                    value={currentConfig.full_day?.check_in?.end || "09:30"}
+                    onChange={(val) => updateWindow('full_day', 'check_in', 'end', val)}
+                    theme={theme}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
           <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#2</div>
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#2</div>
                 <div>
                   <Label className="text-sm font-semibold">Full Day Check-Out Window</Label>
                   <p className="text-xs text-muted-foreground">Evening departure check-out timeframe</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground font-medium">Start:</span>
-                <Input
-                  type="time"
-                  value={currentConfig.full_day?.check_out?.start || "17:00"}
-                  onChange={(e) => updateWindow('full_day', 'check_out', 'start', e.target.value)}
-                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
-                />
-                <span className="text-muted-foreground font-medium ml-2">End:</span>
-                <Input
-                  type="time"
-                  value={currentConfig.full_day?.check_out?.end || "17:30"}
-                  onChange={(e) => updateWindow('full_day', 'check_out', 'end', e.target.value)}
-                  className={cn("h-8 w-28 px-2 text-xs", theme === 'dark' && 'bg-background border-border text-foreground')}
-                />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4 text-xs pt-1 sm:pt-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium w-10 sm:w-auto text-left sm:text-left">Start:</span>
+                  <ShadcnTimePicker
+                    value={currentConfig.full_day?.check_out?.start || "17:00"}
+                    onChange={(val) => updateWindow('full_day', 'check_out', 'start', val)}
+                    theme={theme}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium w-10 sm:w-auto text-left sm:text-left">End:</span>
+                  <ShadcnTimePicker
+                    value={currentConfig.full_day?.check_out?.end || "17:30"}
+                    onChange={(val) => updateWindow('full_day', 'check_out', 'end', val)}
+                    theme={theme}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1030,10 +1094,46 @@ export default function PrincipalTimetableSettings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4 pb-6 space-y-6">
-            <div className={`p-1.5 rounded-2xl flex flex-col sm:flex-row w-full gap-1.5 ${theme === 'dark' ? 'bg-muted/40 border border-border/60' : 'bg-slate-100/90 border border-slate-200/80'}`}>
+            {/* Mobile Dropdown View (< sm) */}
+            <div className="block sm:hidden w-full">
+              <Select value={activeTab} onValueChange={(val: any) => setActiveTab(val)}>
+                <SelectTrigger className="w-full h-11 px-3 bg-background border-border/80 rounded-xl font-medium text-sm shadow-sm flex items-center justify-between">
+                  <SelectValue placeholder="Select tab" />
+                </SelectTrigger>
+                <SelectContent className="z-50">
+                  <SelectItem value="timetable" className="py-2.5">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <span>Timetable Slots</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="qp-workflow" className="py-2.5">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-muted-foreground" />
+                      <span>Question Paper Workflow</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="leave-policy" className="py-2.5">
+                    <div className="flex items-center gap-2">
+                      <CalendarCheck2 className="w-4 h-4 text-muted-foreground" />
+                      <span>Short Permission & Leave Policy</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="attendance-workflow" className="py-2.5">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-muted-foreground" />
+                      <span>Attendance Workflow</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Desktop / Tablet Tab Pills (>= sm) */}
+            <div className={`hidden sm:flex p-1.5 rounded-2xl flex-row w-full gap-1.5 ${theme === 'dark' ? 'bg-muted/40 border border-border/60' : 'bg-slate-100/90 border border-slate-200/80'}`}>
               <button
                 type="button"
-                className={`w-full sm:flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center sm:justify-center gap-2 ${
+                className={`flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center gap-2 ${
                   activeTab === 'timetable'
                     ? 'bg-primary text-white shadow-md'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
@@ -1045,7 +1145,7 @@ export default function PrincipalTimetableSettings() {
               </button>
               <button
                 type="button"
-                className={`w-full sm:flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center sm:justify-center gap-2 ${
+                className={`flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center gap-2 ${
                   activeTab === 'qp-workflow'
                     ? 'bg-primary text-white shadow-md'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
@@ -1057,7 +1157,7 @@ export default function PrincipalTimetableSettings() {
               </button>
               <button
                 type="button"
-                className={`w-full sm:flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center sm:justify-center gap-2 ${
+                className={`flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center gap-2 ${
                   activeTab === 'leave-policy'
                     ? 'bg-primary text-white shadow-md'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
@@ -1069,7 +1169,7 @@ export default function PrincipalTimetableSettings() {
               </button>
               <button
                 type="button"
-                className={`w-full sm:flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center sm:justify-center gap-2 ${
+                className={`flex-1 py-2.5 px-4 font-semibold text-xs sm:text-sm rounded-xl transition-all duration-200 flex items-center justify-center gap-2 ${
                   activeTab === 'attendance-workflow'
                     ? 'bg-primary text-white shadow-md'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
@@ -1287,7 +1387,7 @@ export default function PrincipalTimetableSettings() {
             {activeTab === 'leave-policy' && (
               <div className="space-y-6 pt-2">
                 <div className="flex items-center gap-3 pb-2 border-b border-border/40">
-                  <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <div className={`hidden sm:flex p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                     <CalendarCheck2 className="w-5 h-5" />
                   </div>
                   <div>
@@ -1307,18 +1407,18 @@ export default function PrincipalTimetableSettings() {
                       {/* 1. Casual Leave (CL) Policy Card */}
                       <Card className={`border ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20">
                                 CL
                               </span>
-                              <CardTitle className="text-sm font-semibold">Casual Leave (CL) Policy</CardTitle>
+                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Casual Leave (CL) Policy</CardTitle>
                             </div>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 shrink-0 self-start sm:self-auto">
                               Personal / Urgent
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">Configure standard annual casual leaves and stretch parameters.</p>
+                          <p className="text-xs text-muted-foreground mt-1">Configure standard annual casual leaves and stretch parameters.</p>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3">
                           <div className="grid grid-cols-2 gap-3">
@@ -1669,18 +1769,18 @@ export default function PrincipalTimetableSettings() {
                       {/* 2. Earned Leave (EL) Policy Card */}
                       <Card className={`border ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center border border-blue-500/20">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center border border-blue-500/20">
                                 EL
                               </span>
-                              <CardTitle className="text-sm font-semibold">Earned Leave (EL) Policy</CardTitle>
+                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Earned Leave (EL) Policy</CardTitle>
                             </div>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300">
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 shrink-0 self-start sm:self-auto">
                               Service Accrued
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">Bi-annual credit distribution and continuous stretch boundaries.</p>
+                          <p className="text-xs text-muted-foreground mt-1">Bi-annual credit distribution and continuous stretch boundaries.</p>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3">
                           <div className="grid grid-cols-3 gap-2">
@@ -1794,18 +1894,18 @@ export default function PrincipalTimetableSettings() {
                       {/* 3. Restricted Holiday (RH) Policy Card */}
                       <Card className={`border ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold text-xs flex items-center justify-center border border-purple-500/20">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold text-xs flex items-center justify-center border border-purple-500/20">
                                 RH
                               </span>
-                              <CardTitle className="text-sm font-semibold">Restricted Holiday (RH) Policy</CardTitle>
+                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Restricted Holiday (RH) Policy</CardTitle>
                             </div>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300">
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300 shrink-0 self-start sm:self-auto">
                               Optional Holiday
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">Annual entitlement and monthly availing frequency.</p>
+                          <p className="text-xs text-muted-foreground mt-1">Annual entitlement and monthly availing frequency.</p>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3">
                           <div className="grid grid-cols-2 gap-3">
@@ -1856,23 +1956,23 @@ export default function PrincipalTimetableSettings() {
                       {/* 4. Short Permission Policy Card */}
                       <Card className={`border ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs flex items-center justify-center border border-amber-500/20">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs flex items-center justify-center border border-amber-500/20">
                                 SP
                               </span>
-                              <CardTitle className="text-sm font-semibold">Short Permission Policy</CardTitle>
+                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Short Permission Policy</CardTitle>
                             </div>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 shrink-0 self-start sm:self-auto">
                               Hourly Window
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">Short period permission quotas and max duration limit.</p>
+                          <p className="text-xs text-muted-foreground mt-1">Short period permission quotas and max duration limit.</p>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3">
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1">
-                              <Label className="text-xs font-semibold">Monthly Quota (Perms/Mo)</Label>
+                          <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3">
+                            <div className="space-y-1.5 flex flex-col justify-end">
+                              <Label className="text-xs font-semibold leading-tight">Monthly Quota (Permissions / Month)</Label>
                               <Input
                                 type="text"
                                 inputMode="numeric"
@@ -1892,8 +1992,8 @@ export default function PrincipalTimetableSettings() {
                                 className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
                               />
                             </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs font-semibold">Max Duration (Hours)</Label>
+                            <div className="space-y-1.5 flex flex-col justify-end">
+                              <Label className="text-xs font-semibold leading-tight">Max Duration (Hours)</Label>
                               <Input
                                 type="text"
                                 inputMode="numeric"
@@ -2158,7 +2258,7 @@ export default function PrincipalTimetableSettings() {
             {activeTab === 'qp-workflow' && (
               <div className="space-y-6 pt-2">
                 <div className="flex items-center gap-3 pb-2 border-b border-border/40">
-                  <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <div className={`hidden sm:flex p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
@@ -2176,7 +2276,36 @@ export default function PrincipalTimetableSettings() {
                     {/* Presets */}
                     <div className="space-y-3">
                       <Label className="text-sm font-medium">Quick Presets</Label>
-                      <div className="flex flex-wrap gap-2">
+                      
+                      {/* Mobile Dropdown View (< sm) */}
+                      <div className="block sm:hidden w-full">
+                        <Select
+                          value={
+                            Object.entries(PRESETS).find(
+                              ([_, chain]) => JSON.stringify(approvalChain) === JSON.stringify(chain)
+                            )?.[0] || ""
+                          }
+                          onValueChange={(val) => {
+                            if (PRESETS[val]) {
+                              setApprovalChain(PRESETS[val]);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-full h-10 px-3 bg-background border-border/80 rounded-xl text-sm font-medium shadow-sm">
+                            <SelectValue placeholder="Choose a preset..." />
+                          </SelectTrigger>
+                          <SelectContent className="z-50">
+                            {Object.keys(PRESETS).map((presetName) => (
+                              <SelectItem key={presetName} value={presetName} className="py-2.5">
+                                {presetName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Desktop / Tablet Buttons (>= sm) */}
+                      <div className="hidden sm:flex flex-wrap gap-2">
                         {Object.entries(PRESETS).map(([presetName, presetChain]) => (
                           <Button
                             key={presetName}
@@ -2239,7 +2368,7 @@ export default function PrincipalTimetableSettings() {
             {activeTab === 'attendance-workflow' && (
               <div className="space-y-6 pt-2">
                 <div className="flex items-center gap-3 pb-2 border-b border-border/40">
-                  <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <div className={`hidden sm:flex p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
@@ -2432,35 +2561,61 @@ export default function PrincipalTimetableSettings() {
                       <div className="space-y-4">
                         <h3 className="text-sm font-bold tracking-wide uppercase text-muted-foreground mb-2">Category-Specific Workflows</h3>
                       
-                      {/* Staff Category Tabs */}
-                      <div className="flex flex-wrap items-center gap-2 border-b border-border/60 pb-3">
-                        {[
-                          { id: 'teaching', label: 'Teaching Staff', sub: 'Faculty, HODs, Deans' },
-                          { id: 'non_teaching', label: 'Non-Teaching Staff', sub: 'Lab Asst, Caretakers, Drivers' },
-                          { id: 'admin_branch', label: 'Administration Branch', sub: 'Office, Principal, Admin Staff' },
-                        ].map(cat => {
-                          const active = selectedCategoryTab === cat.id;
-                          return (
-                            <button
-                              key={cat.id}
-                              type="button"
-                              onClick={() => setSelectedCategoryTab(cat.id as any)}
-                              className={`flex flex-col text-left px-4 py-2.5 rounded-xl transition-all border ${
-                                active
-                                  ? theme === 'dark'
-                                    ? 'bg-primary/20 border-primary text-primary font-semibold shadow-sm'
-                                    : 'bg-primary/10 border-primary/50 text-primary font-semibold shadow-sm'
-                                  : theme === 'dark'
-                                    ? 'bg-card border-border/60 text-muted-foreground hover:text-foreground hover:bg-card/80'
-                                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                              }`}
-                            >
-                              <span className="text-sm font-medium">{cat.label}</span>
-                              <span className="text-[10px] opacity-75 font-normal">{cat.sub}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
+                        {/* Mobile Category Dropdown (< sm) */}
+                        <div className="block sm:hidden w-full pb-3 border-b border-border/60">
+                          <Select
+                            value={selectedCategoryTab}
+                            onValueChange={(val: any) => setSelectedCategoryTab(val)}
+                          >
+                            <SelectTrigger className="w-full h-12 px-3.5 bg-background border-border/80 rounded-xl shadow-sm text-left">
+                              <SelectValue placeholder="Select Staff Category" />
+                            </SelectTrigger>
+                            <SelectContent className="z-50">
+                              {[
+                                { id: 'teaching', label: 'Teaching Staff', sub: 'Faculty, HODs, Deans' },
+                                { id: 'non_teaching', label: 'Non-Teaching Staff', sub: 'Lab Asst, Caretakers, Drivers' },
+                                { id: 'admin_branch', label: 'Administration Branch', sub: 'Office, Principal, Admin Staff' },
+                              ].map((cat) => (
+                                <SelectItem key={cat.id} value={cat.id} className="py-2.5">
+                                  <div className="flex flex-col text-left">
+                                    <span className="text-sm font-semibold text-foreground">{cat.label}</span>
+                                    <span className="text-[11px] text-muted-foreground">{cat.sub}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Desktop / Tablet Staff Category Tabs (>= sm) */}
+                        <div className="hidden sm:flex flex-wrap items-center gap-2 border-b border-border/60 pb-3">
+                          {[
+                            { id: 'teaching', label: 'Teaching Staff', sub: 'Faculty, HODs, Deans' },
+                            { id: 'non_teaching', label: 'Non-Teaching Staff', sub: 'Lab Asst, Caretakers, Drivers' },
+                            { id: 'admin_branch', label: 'Administration Branch', sub: 'Office, Principal, Admin Staff' },
+                          ].map(cat => {
+                            const active = selectedCategoryTab === cat.id;
+                            return (
+                              <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => setSelectedCategoryTab(cat.id as any)}
+                                className={`flex flex-col text-left px-4 py-2.5 rounded-xl transition-all border ${
+                                  active
+                                    ? theme === 'dark'
+                                      ? 'bg-primary/20 border-primary text-primary font-semibold shadow-sm'
+                                      : 'bg-primary/10 border-primary/50 text-primary font-semibold shadow-sm'
+                                    : theme === 'dark'
+                                      ? 'bg-card border-border/60 text-muted-foreground hover:text-foreground hover:bg-card/80'
+                                      : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                                }`}
+                              >
+                                <span className="text-sm font-medium">{cat.label}</span>
+                                <span className="text-[10px] opacity-75 font-normal">{cat.sub}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
   
                       {/* Active Category Config Box */}
                       <CategoryWorkflowTabContent
