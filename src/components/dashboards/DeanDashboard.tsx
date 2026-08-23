@@ -19,7 +19,7 @@ import DeanAlerts from "../dean/DeanAlerts";
 import AdminCOAttainment from "../common/AdminCOAttainment";
 import DeanAttendanceRecords from "../dean/DeanAttendanceRecords";
 import DeanProfile from "../dean/DeanProfile";
-import ManageAdminLeavesDean from "../dean/ManageAdminLeavesDean";
+import HODLeavesManagement from "../admin/HODLeavesManagement";
 import EnrollUser from "../admin/EnrollUser";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
@@ -139,7 +139,7 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
       case 'leaves':
         return <ApplyLeave />;
       case 'admin-leaves':
-        return <ManageAdminLeavesDean />;
+        return <HODLeavesManagement setError={setError} toast={toast} userRole="dean" />;
       case 'enroll-user':
         return <div><EnrollUser setError={setError} toast={toast} /></div>;
       case 'billing':

@@ -97,6 +97,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [leaveType, setLeaveType] = useState<'casual' | 'earned' | 'rh' | 'short_permission'>('casual');
   const [isHalfDay, setIsHalfDay] = useState<boolean>(false);
   const [halfDaySession, setHalfDaySession] = useState<'forenoon' | 'afternoon'>('afternoon');
+  const [targetRole, setTargetRole] = useState<string>('');
   const [selectedAlternateFaculty, setSelectedAlternateFaculty] = useState<string>('');
   const [availableColleagues, setAvailableColleagues] = useState<ColleagueOption[]>([]);
   const [permissionDate, setPermissionDate] = useState<Date | undefined>();
@@ -663,12 +664,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       <div ref={ref} className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
 
         {/* 9.8 Rule Quota Overview Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* CL Card */}
           <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Casual Leave (CL)</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 font-semibold">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 font-semibold whitespace-nowrap shrink-0">
                 Max {leaveQuota?.cl_max_stretch ?? 3}d Stretch
               </span>
             </div>
@@ -683,9 +684,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
           {/* EL Card */}
           <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Earned Leave (EL)</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 font-semibold">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 font-semibold whitespace-nowrap shrink-0">
                 {leaveQuota?.el_min_stretch ?? 2} - {leaveQuota?.el_max_stretch ?? 5}d Stretch
               </span>
             </div>
@@ -698,9 +699,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
           {/* RH Card */}
           <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Restricted Holiday (RH)</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 font-semibold">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 font-semibold whitespace-nowrap shrink-0">
                 Max {leaveQuota?.rh_monthly_limit ?? 1} / mo
               </span>
             </div>
@@ -713,9 +714,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
           {/* Short Permission Card */}
           <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Short Permission</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 font-semibold">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 font-semibold whitespace-nowrap shrink-0">
                 Max {leaveQuota?.short_permission_max_hours ?? leaveQuota?.sp_max_hours ?? 2}h / time
               </span>
             </div>
@@ -728,29 +729,43 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         </div>
 
         {/* Top Header Tab Switcher (Apply Leave vs Substitute Requests) */}
-        <div className="flex items-center justify-between border-b border-border pb-3">
-          <div className="flex gap-2">
-            <Button
-              variant={activeMainTab === 'apply' ? 'default' : 'outline'}
-              size="sm"
+        <div className="flex items-center w-full border-b border-border pb-3">
+          <div className={`flex items-center p-1 rounded-xl border w-full ${
+            theme === 'dark' ? 'bg-background/80 border-border' : 'bg-muted/40 border-border/60'
+          }`}>
+            <button
+              type="button"
               onClick={() => setActiveMainTab('apply')}
-              className="rounded-lg text-xs sm:text-sm font-semibold"
+              className={`flex-1 justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${
+                activeMainTab === 'apply'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+              }`}
             >
-              Apply Leave & History
-            </Button>
-            <Button
-              variant={activeMainTab === 'substitute_requests' ? 'default' : 'outline'}
-              size="sm"
+              <CalendarCheck2 className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Apply Leave & History</span>
+            </button>
+            <button
+              type="button"
               onClick={() => setActiveMainTab('substitute_requests')}
-              className="rounded-lg text-xs sm:text-sm font-semibold relative"
+              className={`flex-1 justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 relative ${
+                activeMainTab === 'substitute_requests'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+              }`}
             >
-              Substitute Requests
+              <Users className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Substitute Requests</span>
               {pendingSubstituteCount > 0 && (
-                <span className="ml-2 px-1.5 py-0.2 text-[10px] rounded-full bg-rose-500 text-white font-semibold animate-pulse">
+                <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] rounded-full font-bold leading-none ${
+                  activeMainTab === 'substitute_requests'
+                    ? 'bg-white text-primary'
+                    : 'bg-rose-500 text-white animate-pulse'
+                }`}>
                   {pendingSubstituteCount}
                 </span>
               )}
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -758,19 +773,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           /* Alternate Duty / Substitute Requests Assigned to You */
           <Card className={`border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
             <CardHeader className="border-b">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-2">
-                    <Users className="w-5 h-5 text-primary" />
-                    Alternate Duty / Substitute Requests Assigned to You
-                  </CardTitle>
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                    Colleagues who nominated you to cover their duties while they are on leave. Accept or decline to allow their request to proceed.
-                  </p>
-                </div>
-                <Button size="sm" variant="outline" onClick={fetchSubstituteRequests} disabled={substituteLoading}>
-                  Refresh
-                </Button>
+              <div>
+                <CardTitle className="text-lg sm:text-xl font-semibold">
+                  Alternate Duty / Substitute Requests Assigned to You
+                </CardTitle>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                  Colleagues who nominated you to cover their duties while they are on leave. Accept or decline to allow their request to proceed.
+                </p>
               </div>
             </CardHeader>
             <CardContent className="p-4">
@@ -876,10 +885,40 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </div>
                 )}
 
-                {/* 4-way Leave Type Switcher */}
+                {/* 4-way Leave Type Switcher / Dropdown */}
                 <div className="space-y-2">
                   <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Category <span className="text-red-500">*</span></Label>
-                  <div className={`p-1 rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-1 ${theme === 'dark' ? 'bg-muted/40 border border-border/60' : 'bg-slate-100 border border-slate-200'}`}>
+                  
+                  {/* Mobile Dropdown (< sm) */}
+                  <div className="sm:hidden">
+                    <Select
+                      value={leaveType}
+                      onValueChange={(val: 'casual' | 'earned' | 'rh' | 'short_permission') => {
+                        setLeaveType(val);
+                        if (val === 'short_permission') {
+                          const liveTimes = getInitialTimes();
+                          setStartTimeParts(liveTimes.start);
+                          setEndTimeParts(liveTimes.end);
+                          if (!permissionDate) {
+                            setPermissionDate(new Date());
+                          }
+                        }
+                      }}
+                    >
+                      <SelectTrigger className={`apply-leave-input w-full text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                        <SelectValue placeholder="Select Leave Category" />
+                      </SelectTrigger>
+                      <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                        <SelectItem value="casual">Casual Leave (CL)</SelectItem>
+                        <SelectItem value="earned">Earned Leave (EL)</SelectItem>
+                        <SelectItem value="rh">Restricted Holiday (RH)</SelectItem>
+                        <SelectItem value="short_permission">Short Permission</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Desktop / Tablet Grid Switcher (sm+) */}
+                  <div className={`hidden sm:grid p-1 rounded-xl grid-cols-4 gap-1 ${theme === 'dark' ? 'bg-muted/40 border border-border/60' : 'bg-slate-100 border border-slate-200'}`}>
                     <button
                       type="button"
                       onClick={() => setLeaveType('casual')}
@@ -957,33 +996,107 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   />
                 </div>
 
-                {/* Nominate Substitute / Alternate Duty Colleague (Mandatory Step 1 in Workflow) */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      Nominate Alternate Duty / Substitute Colleague
-                    </Label>
-                    <span className="text-[11px] text-muted-foreground">Step 1 of approval</span>
+                {/* Substitute Role & Assign To (Substitute Selection) */}
+                <div className="space-y-4 p-3.5 rounded-xl border bg-muted/20 border-border">
+                  {/* Step 1: Select Substitute Role */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        Substitute Role
+                      </Label>
+                    </div>
+                    <Select
+                      value={targetRole}
+                      onValueChange={(val) => {
+                        setTargetRole(val);
+                        setSelectedAlternateFaculty('');
+                      }}
+                    >
+                      <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                        <SelectValue placeholder="Choose role for duty coverage..." />
+                      </SelectTrigger>
+                      <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                        <SelectItem value="none">Direct (No Substitute / Direct Review)</SelectItem>
+                        <SelectItem value="faculty">Faculty Member / Teacher</SelectItem>
+                        <SelectItem value="hod">HOD</SelectItem>
+                        <SelectItem value="dean">Dean</SelectItem>
+                        <SelectItem value="principal">Principal</SelectItem>
+                        <SelectItem value="coe">Controller of Examinations (COE)</SelectItem>
+                        <SelectItem value="fees_manager">Fees Manager</SelectItem>
+                        <SelectItem value="admission_manager">Admission Manager</SelectItem>
+                        <SelectItem value="hms_admin">Hostel Manager (HMS)</SelectItem>
+                        <SelectItem value="library_admin">Library Admin</SelectItem>
+                        <SelectItem value="transport_admin">Transport Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <Select
-                    value={selectedAlternateFaculty}
-                    onValueChange={setSelectedAlternateFaculty}
-                  >
-                    <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                      <SelectValue placeholder="-- Select colleague to cover classes/responsibilities --" />
-                    </SelectTrigger>
-                    <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                      <SelectItem value="none">-- None (Direct review) --</SelectItem>
-                      {availableColleagues.map((c) => (
-                        <SelectItem key={c.id} value={c.id.toString()}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[11px] text-muted-foreground">
-                    Selected colleague will receive an invitation to accept duty arrangement before your request is routed to management.
-                  </p>
+
+                  {/* Step 2: Assign To (Hidden when Direct is selected) */}
+                  {targetRole === 'none' ? (
+                    <div className={`p-3 rounded-lg border text-xs flex items-center gap-2 ${
+                      theme === 'dark' ? 'bg-muted/40 border-border text-muted-foreground' : 'bg-slate-100 border-slate-200 text-slate-600'
+                    }`}>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <span>Direct Review enabled: Request will be sent directly for approval without substitute duty assignment.</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          Assign To
+                        </Label>
+                        <span className="text-[11px] text-muted-foreground">Optional</span>
+                      </div>
+                      {(() => {
+                        const filteredColleagues = availableColleagues.filter((c) => {
+                          if (!targetRole || targetRole === 'all') return true;
+                          const roleNormalized = (c.role || '').toLowerCase().replace(/[\s_-]+/g, '');
+                          const targetNormalized = targetRole.toLowerCase().replace(/[\s_-]+/g, '');
+                          if (targetNormalized === 'faculty' || targetNormalized === 'teacher') {
+                            return ['faculty', 'teacher', 'prof', 'professor', 'lecturer', 'instructor'].some(r => roleNormalized.includes(r));
+                          }
+                          if (targetNormalized === 'hmsadmin' || targetNormalized === 'hms') {
+                            return ['hms', 'hostel'].some(r => roleNormalized.includes(r));
+                          }
+                          if (targetNormalized === 'coe') {
+                            return ['coe', 'exam'].some(r => roleNormalized.includes(r));
+                          }
+                          return roleNormalized.includes(targetNormalized) || targetNormalized.includes(roleNormalized);
+                        });
+
+                        return (
+                          <Select
+                            value={selectedAlternateFaculty}
+                            onValueChange={setSelectedAlternateFaculty}
+                            disabled={!targetRole}
+                          >
+                            <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                              <SelectValue placeholder={!targetRole ? "Select target role first..." : "Select colleague..."} />
+                            </SelectTrigger>
+                            <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                              <SelectItem value="none">-- None (Direct review) --</SelectItem>
+                              {filteredColleagues.length === 0 ? (
+                                availableColleagues.map((c) => (
+                                  <SelectItem key={c.id} value={c.id.toString()}>
+                                    {c.name}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                filteredColleagues.map((c) => (
+                                  <SelectItem key={c.id} value={c.id.toString()}>
+                                    {c.name}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                        );
+                      })()}
+                      <p className="text-[11px] text-muted-foreground">
+                        Selected colleague will receive an invitation to accept duty coverage before request moves forward.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Branch Selection (Only for Faculty / Teacher / HOD) */}
@@ -1405,10 +1518,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 <div className="flex flex-row items-start sm:items-center justify-between gap-4 w-full">
                   <div className="flex flex-col gap-1">
                     <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      Recent Applications & Audit Trail
+                      Leave History
                     </CardTitle>
                     <p className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      Multi-stage approval progression
+                      Track your leave requests and approval status
                     </p>
                   </div>
 
@@ -1452,17 +1565,17 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 p-4 pt-2 sm:pt-0 overflow-y-auto custom-scrollbar">
-                <div className="overflow-x-auto thin-scrollbar">
+              <CardContent className="flex-1 flex flex-col p-4 pt-2 sm:pt-4 overflow-y-auto custom-scrollbar">
+                <div className="flex-1 flex flex-col overflow-x-auto thin-scrollbar min-h-[360px] sm:min-h-[420px]">
                   {/* Mobile View */}
-                  <div className="md:hidden space-y-3">
+                  <div className="md:hidden flex-1 flex flex-col space-y-3">
                     {loading ? (
                       <SkeletonList count={3} />
                     ) : filteredLeaveList.length === 0 ? (
-                      <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
-                        <CalendarCheck2 className="w-8 h-8 text-primary opacity-50 mb-2" />
-                        <h3 className="text-sm font-semibold mb-1">No applications</h3>
-                        <p className="text-xs text-muted-foreground text-center">No leave applications recorded.</p>
+                      <div className={`flex-1 flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                        <CalendarCheck2 className="w-10 h-10 text-primary/40 mb-3" />
+                        <h3 className="text-sm font-semibold mb-1 text-foreground">No applications found</h3>
+                        <p className="text-xs text-muted-foreground text-center max-w-[240px]">Your leave application records will appear here.</p>
                       </div>
                     ) : (
                       filteredLeaveList.map((leave) => (
@@ -1497,90 +1610,90 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </div>
 
                   {/* Desktop Table View */}
-                  <table className="hidden md:table w-full text-sm text-left border-collapse">
-                    <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
-                      <tr>
-                        <th className="py-2.5 px-3 text-left font-semibold">Category / Title</th>
-                        <th className="py-2.5 px-3 text-left font-semibold">Period</th>
-                        <th className="py-2.5 px-3 text-left font-semibold">Substitute</th>
-                        <th className="py-2.5 px-3 text-left font-semibold">Status & Pipeline</th>
-                        <th className="py-2.5 px-3 text-right font-semibold">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loading ? (
+                  {filteredLeaveList.length === 0 && !loading ? (
+                    <div className={`hidden md:flex flex-1 flex-col items-center justify-center py-16 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                      <CalendarCheck2 className="w-12 h-12 text-primary/40 mb-3" />
+                      <h3 className="text-sm font-semibold mb-1 text-foreground">No applications found</h3>
+                      <p className="text-xs text-muted-foreground text-center max-w-[280px]">Your leave application records will appear here.</p>
+                    </div>
+                  ) : (
+                    <table className="hidden md:table w-full text-sm text-left border-collapse">
+                      <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
                         <tr>
-                          <td colSpan={5} className="p-4"><SkeletonList count={3} /></td>
+                          <th className="py-2.5 px-3 text-left font-semibold">Category / Title</th>
+                          <th className="py-2.5 px-3 text-left font-semibold">Period</th>
+                          <th className="py-2.5 px-3 text-left font-semibold">Substitute</th>
+                          <th className="py-2.5 px-3 text-left font-semibold">Status & Pipeline</th>
+                          <th className="py-2.5 px-3 text-right font-semibold">Action</th>
                         </tr>
-                      ) : filteredLeaveList.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="py-16 px-4 text-center text-muted-foreground">
-                            <CalendarCheck2 className="w-10 h-10 text-primary/40 mx-auto mb-2" />
-                            <p className="font-semibold text-foreground">No applications found</p>
-                            <p className="text-xs">Your leave application records will appear here.</p>
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredLeaveList.map((leave) => (
-                          <tr
-                            key={leave.id}
-                            className={`border-b transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/40' : 'border-gray-200 hover:bg-gray-50'}`}
-                          >
-                            <td className="py-3 px-3">
-                              <div className="font-semibold text-sm">{leave.title}</div>
-                              <div className="flex flex-col items-start gap-1 mt-1">
-                                <span className="text-[10px] uppercase font-semibold px-1.5 py-0.2 rounded bg-primary/10 text-primary w-fit">
-                                  {leave.leave_type?.replace('_', ' ')}
-                                </span>
-                                {leave.is_half_day && (
-                                  <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 w-fit">
-                                    Half-Day ({leave.half_day_session?.toLowerCase() === 'forenoon' || leave.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-3 px-3 text-xs">
-                              <div>{leave.from === leave.to ? leave.from : `${leave.from} to ${leave.to}`}</div>
-                              {leave.start_time && leave.end_time && (
-                                <div className="text-muted-foreground font-mono">{leave.start_time} - {leave.end_time}</div>
-                              )}
-                            </td>
-                            <td className="py-3 px-3 text-xs">
-                              {leave.alternate_faculty_name ? (
-                                <div>
-                                  <div className="font-medium text-foreground">{leave.alternate_faculty_name}</div>
-                                  <span className={`text-[10px] font-semibold px-1 rounded ${leave.alternate_duty_status === 'ACCEPTED'
-                                    ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
-                                    : leave.alternate_duty_status === 'DECLINED'
-                                      ? 'text-rose-600 bg-rose-50 dark:bg-rose-950/30'
-                                      : 'text-amber-600 bg-amber-50 dark:bg-amber-950/30'
-                                    }`}>
-                                    {leave.alternate_duty_status || 'PENDING'}
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="text-muted-foreground italic">None nominated</span>
-                              )}
-                            </td>
-                            <td className="py-3 px-3">
-                              {renderStatus(leave)}
-                            </td>
-                            <td className="py-3 px-3 text-right">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-xs h-7 px-2.5 flex items-center gap-1 ml-auto border-primary/30 text-primary hover:bg-primary/10"
-                                onClick={() => setSelectedLeaveForFlow(leave)}
-                              >
-                                <Eye className="w-3 h-3" />
-                                View Flow
-                              </Button>
-                            </td>
+                      </thead>
+                      <tbody>
+                        {loading ? (
+                          <tr>
+                            <td colSpan={5} className="p-4"><SkeletonList count={3} /></td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                        ) : (
+                          filteredLeaveList.map((leave) => (
+                            <tr
+                              key={leave.id}
+                              className={`border-b transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/40' : 'border-gray-200 hover:bg-gray-50'}`}
+                            >
+                              <td className="py-3 px-3">
+                                <div className="font-semibold text-sm">{leave.title}</div>
+                                <div className="flex flex-col items-start gap-1 mt-1">
+                                  <span className="text-[10px] uppercase font-semibold px-1.5 py-0.2 rounded bg-primary/10 text-primary w-fit">
+                                    {leave.leave_type?.replace('_', ' ')}
+                                  </span>
+                                  {leave.is_half_day && (
+                                    <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 w-fit">
+                                      Half-Day ({leave.half_day_session?.toLowerCase() === 'forenoon' || leave.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3 px-3 text-xs">
+                                <div>{leave.from === leave.to ? leave.from : `${leave.from} to ${leave.to}`}</div>
+                                {leave.start_time && leave.end_time && (
+                                  <div className="text-muted-foreground font-mono">{leave.start_time} - {leave.end_time}</div>
+                                )}
+                              </td>
+                              <td className="py-3 px-3 text-xs">
+                                {leave.alternate_faculty_name ? (
+                                  <div>
+                                    <div className="font-medium text-foreground">{leave.alternate_faculty_name}</div>
+                                    <span className={`text-[10px] font-semibold px-1 rounded ${leave.alternate_duty_status === 'ACCEPTED'
+                                      ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
+                                      : leave.alternate_duty_status === 'DECLINED'
+                                        ? 'text-rose-600 bg-rose-50 dark:bg-rose-950/30'
+                                        : 'text-amber-600 bg-amber-50 dark:bg-amber-950/30'
+                                      }`}>
+                                      {leave.alternate_duty_status || 'PENDING'}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground italic">None nominated</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-3">
+                                {renderStatus(leave)}
+                              </td>
+                              <td className="py-3 px-3 text-right">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-xs h-7 px-2.5 flex items-center gap-1 ml-auto border-primary/30 text-primary hover:bg-primary/10"
+                                  onClick={() => setSelectedLeaveForFlow(leave)}
+                                >
+                                  <Eye className="w-3 h-3" />
+                                  View Flow
+                                </Button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
               </CardContent>
               {pagination.paginationState.totalPages > 1 && (
