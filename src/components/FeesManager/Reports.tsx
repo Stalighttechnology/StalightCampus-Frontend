@@ -63,6 +63,10 @@ interface AttendanceSummary {
   total_days: number;
   present: number;
   absent: number;
+  on_leave?: number;
+  total_delay_minutes?: number;
+  total_missed?: number;
+  total_hours?: string;
   attendance_percentage: number;
 }
 
@@ -72,8 +76,9 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const todayDateStr = new Date().toLocaleDateString('sv-SE');
+  const [startDate, setStartDate] = useState(todayDateStr);
+  const [endDate, setEndDate] = useState(todayDateStr);
   const [isStartPopoverOpen, setIsStartPopoverOpen] = useState(false);
   const [isEndPopoverOpen, setIsEndPopoverOpen] = useState(false);
 
@@ -431,6 +436,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Total Days</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-green-600">Present</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-red-600">Absent</TableHead>
+                  <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-purple-600">On Leave</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Percentage</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-orange-600">Delay (m)</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-red-600">Missed</TableHead>
@@ -441,8 +447,8 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
               <TableBody>
                 {loading ?
                   <TableRow>
-                    <TableCell colSpan={11} className="p-0">
-                      <SkeletonTable rows={10} cols={11} />
+                    <TableCell colSpan={12} className="p-0">
+                      <SkeletonTable rows={10} cols={12} />
                     </TableCell>
                   </TableRow> :
                   attendanceData.length > 0 ?
@@ -465,6 +471,11 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                         <TableCell className="text-center">
                           <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 font-semibold text-sm">
                             {item.absent}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 font-semibold text-sm">
+                            {item.on_leave || 0}
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
@@ -506,7 +517,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                     ) :
                     !selectedRole || !startDate || !endDate ?
                       <TableRow>
-                        <TableCell colSpan={11} className="h-72 text-center">
+                        <TableCell colSpan={12} className="h-72 text-center">
                           <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
                             <div className="bg-primary/10 p-4 rounded-full">
                               <Filter className="h-8 w-8 text-primary" />
@@ -520,7 +531,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                       </TableRow> :
 
                       <TableRow>
-                        <TableCell colSpan={11} className="h-72 text-center">
+                        <TableCell colSpan={12} className="h-72 text-center">
                           <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
                             <div className="bg-muted p-4 rounded-full">
                               <Users className="h-8 w-8 text-muted-foreground" />

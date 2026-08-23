@@ -68,6 +68,7 @@ interface FacultySummary {
   total_days: number;
   present_days: number;
   absent_days: number;
+  on_leave?: number;
   attendance_percentage: number;
 }
 
@@ -135,6 +136,7 @@ const FacultyAttendanceView: React.FC = () => {
     total_faculty: 0,
     present: 0,
     absent: 0,
+    on_leave: 0,
     not_marked: 0
   });
   const { theme } = useTheme();
@@ -204,6 +206,7 @@ const FacultyAttendanceView: React.FC = () => {
           total_faculty: 0,
           present: 0,
           absent: 0,
+          on_leave: 0,
           not_marked: 0
         });
       }
@@ -226,6 +229,7 @@ const FacultyAttendanceView: React.FC = () => {
         total_faculty: 0,
         present: 0,
         absent: 0,
+        on_leave: 0,
         not_marked: 0
       });
     } finally {
@@ -429,6 +433,8 @@ const FacultyAttendanceView: React.FC = () => {
         return <CheckCircle className="w-5 h-5 text-green-500" />;
       case 'absent':
         return <XCircle className="w-5 h-5 text-red-500" />;
+      case 'on_leave':
+        return <CalendarIcon className="w-5 h-5 text-purple-500" />;
       default:
         return <Clock className="w-5 h-5 text-gray-400" />;
     }
@@ -441,6 +447,8 @@ const FacultyAttendanceView: React.FC = () => {
         return `${baseClasses} bg-green-100 text-green-800`;
       case 'absent':
         return `${baseClasses} bg-red-100 text-red-800`;
+      case 'on_leave':
+        return `${baseClasses} bg-purple-100 text-purple-800`;
       default:
         return `${baseClasses} bg-gray-100 text-gray-800`;
     }
@@ -546,7 +554,7 @@ const FacultyAttendanceView: React.FC = () => {
 
           {activeTab === 'today' && !isLoading && todaySummary.total_faculty > 0 && (
             /* Today's Stats Cards */
-            <div id="hod-faculty-attendance-summary" className={`grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+            <div id="hod-faculty-attendance-summary" className={`grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
                 <div className="flex flex-row items-center justify-between gap-2">
                   <div>
@@ -572,6 +580,15 @@ const FacultyAttendanceView: React.FC = () => {
                     <p className={`text-xl sm:text-2xl lg:text-3xl font-bold text-red-600`}>{todaySummary.absent}</p>
                   </div>
                   <XCircle className="w-5 sm:w-6 lg:w-8 h-5 sm:h-6 lg:h-8 text-red-600 flex-shrink-0" />
+                </div>
+              </div>
+              <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                <div className="flex flex-row items-center justify-between gap-2">
+                  <div>
+                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>On Leave</p>
+                    <p className={`text-xl sm:text-2xl lg:text-3xl font-bold text-purple-600`}>{todaySummary.on_leave || 0}</p>
+                  </div>
+                  <Calendar className="w-5 sm:w-6 lg:w-8 h-5 sm:h-6 lg:h-8 text-purple-600 flex-shrink-0" />
                 </div>
               </div>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
@@ -1146,6 +1163,7 @@ const FacultyAttendanceView: React.FC = () => {
                           <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
                           <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</th>
                           <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</th>
+                          <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-purple-600`}>On Leave</th>
                           <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance</th>
                           <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Actions</th>
                         </tr>
@@ -1167,6 +1185,9 @@ const FacultyAttendanceView: React.FC = () => {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-red-600 font-medium">
                                   {summary.absent_days}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-purple-600 font-medium">
+                                  {summary.on_leave || 0}
                                 </td>
                                 <td className={`px-6 py-4 whitespace-nowrap font-medium ${summary.attendance_percentage >= 75 ? 'text-green-600' :
                                   summary.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`
@@ -1264,6 +1285,10 @@ const FacultyAttendanceView: React.FC = () => {
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
                   <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Absent</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.4)]"></div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">On Leave</span>
+                </div>
               </div>
             </div>
           </DialogHeader>
@@ -1287,6 +1312,7 @@ const FacultyAttendanceView: React.FC = () => {
 
                     const isPresent = record?.status?.toLowerCase() === 'present';
                     const isAbsent = record?.status?.toLowerCase() === 'absent';
+                    const isOnLeave = record?.status?.toLowerCase() === 'on_leave';
 
                     return (
                       <button
@@ -1296,9 +1322,11 @@ const FacultyAttendanceView: React.FC = () => {
                           'bg-green-500/10 border-green-500/30 text-green-600' :
                           isAbsent ?
                             'bg-red-500/10 border-red-500/30 text-red-600' :
-                            theme === 'dark' ?
-                              'bg-white/5 border-white/5 text-muted-foreground/30' :
-                              'bg-gray-100 border-gray-200 text-gray-300'}`
+                            isOnLeave ?
+                              'bg-purple-500/10 border-purple-500/30 text-purple-600' :
+                              theme === 'dark' ?
+                                'bg-white/5 border-white/5 text-muted-foreground/30' :
+                                'bg-gray-100 border-gray-200 text-gray-300'}`
                         }>
 
                         <span className="text-[10px] font-black uppercase tracking-wider mb-1 opacity-60">
@@ -1310,9 +1338,9 @@ const FacultyAttendanceView: React.FC = () => {
                         </span>
 
                         {record ?
-                          <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`
+                          <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]' : isOnLeave ? 'bg-purple-500 text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`
                           }>
-                            {record.status[0]}
+                            {isOnLeave ? 'L' : record.status[0]}
                           </div> :
 
                           !isFuture &&
