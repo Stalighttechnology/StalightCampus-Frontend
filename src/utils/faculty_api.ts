@@ -457,6 +457,8 @@ export interface ColleagueOption {
   name: string;
   role: string;
   username: string;
+  branch_id?: number | null;
+  branch_name?: string | null;
 }
 
 export interface GetApplyLeaveBootstrapResponse {

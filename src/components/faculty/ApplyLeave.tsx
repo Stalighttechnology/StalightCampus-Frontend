@@ -94,6 +94,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [activeMainTab, setActiveMainTab] = useState<'apply' | 'substitute_requests'>('apply');
   const [branches, setBranches] = useState<{ id: number; name: string; }[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>('');
+  const [selectedSubstituteBranch, setSelectedSubstituteBranch] = useState<string>('');
   const [leaveType, setLeaveType] = useState<'casual' | 'earned' | 'rh' | 'short_permission'>('casual');
   const [isHalfDay, setIsHalfDay] = useState<boolean>(false);
   const [halfDaySession, setHalfDaySession] = useState<'forenoon' | 'afternoon'>('afternoon');
@@ -608,6 +609,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         setPermissionDate(undefined);
         setReason("");
         setIsHalfDay(false);
+        setTargetRole('');
+        setSelectedSubstituteBranch('');
         setSelectedAlternateFaculty('');
 
         fetchBootstrapData();
@@ -1047,10 +1050,11 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       </Label>
                     </div>
                     <Select
-                      value={targetRole}
+                      value={targetRole || undefined}
                       onValueChange={(val) => {
                         setTargetRole(val);
                         setSelectedAlternateFaculty('');
+                        setSelectedSubstituteBranch('');
                       }}
                     >
                       <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
@@ -1072,6 +1076,36 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* Step 1.5: Select Department / Branch (Only when Faculty Member / Teacher is selected) */}
+                  {targetRole !== 'none' && (targetRole === 'faculty' || targetRole === 'teacher') && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          Department / Branch <span className="text-red-500">*</span>
+                        </Label>
+                        <span className="text-[11px] text-muted-foreground">Select branch first</span>
+                      </div>
+                      <Select
+                        value={selectedSubstituteBranch || undefined}
+                        onValueChange={(val) => {
+                          setSelectedSubstituteBranch(val);
+                          setSelectedAlternateFaculty('');
+                        }}
+                      >
+                        <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                          <SelectValue placeholder="Choose Department / Branch..." />
+                        </SelectTrigger>
+                        <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                          {branches.map((b) => (
+                            <SelectItem key={b.id} value={b.id.toString()}>
+                              {b.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   {/* Step 2: Assign To (Hidden when Direct is selected) */}
                   {targetRole === 'none' ? (
@@ -1132,22 +1166,32 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           return role === target || role.includes(target) || target.includes(role);
                         };
 
-                        const filteredColleagues = availableColleagues.filter((c) => matchSubstituteRole(c.role, targetRole));
+                        const filteredColleagues = availableColleagues.filter((c) => {
+                          if (!matchSubstituteRole(c.role, targetRole)) return false;
+                          if (targetRole === 'faculty' || targetRole === 'teacher') {
+                            if (!selectedSubstituteBranch) return false;
+                            return String(c.branch_id) === String(selectedSubstituteBranch);
+                          }
+                          return true;
+                        });
+
+                        const isFacultyRole = targetRole === 'faculty' || targetRole === 'teacher';
+                        const isBranchMissing = isFacultyRole && !selectedSubstituteBranch;
 
                         return (
                           <Select
-                            value={selectedAlternateFaculty}
+                            value={selectedAlternateFaculty || undefined}
                             onValueChange={setSelectedAlternateFaculty}
-                            disabled={!targetRole}
+                            disabled={!targetRole || isBranchMissing}
                           >
                             <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                              <SelectValue placeholder={!targetRole ? "Select target role first..." : "Select colleague..."} />
+                              <SelectValue placeholder={!targetRole ? "Select substitute role first..." : isBranchMissing ? "Select department / branch above first..." : "Select colleague..."} />
                             </SelectTrigger>
                             <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
                               <SelectItem value="none">-- None (Direct review) --</SelectItem>
                               {filteredColleagues.length === 0 ? (
                                 <SelectItem value="none_available" disabled>
-                                  No staff found with role "{targetRole.replace('_', ' ')}"
+                                  {isBranchMissing ? "Please select a department / branch above" : `No staff found with role "${targetRole.replace('_', ' ')}"`}
                                 </SelectItem>
                               ) : (
                                 filteredColleagues.map((c) => (
