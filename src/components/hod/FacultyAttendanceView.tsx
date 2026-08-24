@@ -109,6 +109,7 @@ const FacultyAttendanceView: React.FC = () => {
   });
   const [selectedFaculty, setSelectedFaculty] = useState<FacultySummary | null>(null);
   const [facultyAttendanceDetails, setFacultyAttendanceDetails] = useState<FacultyAttendanceRecord[]>([]);
+  const [leaveDates, setLeaveDates] = useState<string[]>([]);
   const [selectedDateDetailsStr, setSelectedDateDetailsStr] = useState<string | null>(null);
   const [selectedTodayRecord, setSelectedTodayRecord] = useState<any>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
@@ -397,6 +398,7 @@ const FacultyAttendanceView: React.FC = () => {
       });
       if (response.success) {
         setFacultyAttendanceDetails(response.data || []);
+        setLeaveDates((response as any).leave_dates || []);
       } else {
         Swal.fire("Error", "Failed to load faculty details", "error");
       }
@@ -1312,7 +1314,7 @@ const FacultyAttendanceView: React.FC = () => {
 
                     const isPresent = record?.status?.toLowerCase() === 'present';
                     const isAbsent = record?.status?.toLowerCase() === 'absent';
-                    const isOnLeave = record?.status?.toLowerCase() === 'on_leave';
+                    const isOnLeave = leaveDates.includes(dateStr) || record?.status?.toLowerCase() === 'on_leave';
 
                     return (
                       <button
@@ -1521,7 +1523,14 @@ const FacultyAttendanceView: React.FC = () => {
                   </div>
                 )}
                 
-                {!record && !isFuture && !isNonWorkingDay && (
+                {!record && isOnLeave && (
+                  <div className="text-purple-500 font-bold flex flex-col items-center justify-center gap-2 p-6 bg-purple-500/10 rounded-xl border border-purple-500/20 text-center">
+                    <Calendar className="w-10 h-10 opacity-80" />
+                    <span>On Leave</span>
+                  </div>
+                )}
+
+                {!record && !isFuture && !isNonWorkingDay && !isOnLeave && (
                   <div className="text-red-500 font-bold flex flex-col items-center justify-center gap-2 p-6 bg-red-500/10 rounded-xl border border-red-500/20 text-center">
                     <XCircle className="w-10 h-10 opacity-80" /> 
                     <span>Auto-marked Absent</span>
