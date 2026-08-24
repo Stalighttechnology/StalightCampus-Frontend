@@ -23,7 +23,8 @@ interface LeaveRequest {
   dept: string;
   period: string;
   reason: string;
-  status: "Pending" | "Approved" | "Rejected";
+  status: "Pending" | "Approved" | "Rejected" | "Endorsed (Pending Principal)";
+  canApprove?: boolean;
 }
 
 interface FacultyLeaveData {
@@ -152,25 +153,62 @@ const LeaveManagement = () => {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       const processed = data.leaves.
-        map((req: FacultyLeaveData) => ({
-          raw: req,
-          mapped: {
-            id: req.id.toString(),
-            name: req.faculty_name || "Unknown",
-            dept: req.department || "Unknown",
-            period: formatPeriod(req.start_date, req.end_date),
-            reason: req.reason || "No reason provided",
-            status: req.status === "APPROVED" ? "Approved" : req.status === "REJECTED" ? "Rejected" : "Pending"
-          } as LeaveRequest
-        })).
+        map((req: any) => {
+          const isPending = req.status === "PENDING";
+          const isHodApproved = req.hod_approval_status === "APPROVED";
+          const isAtHod = req.current_stage === "hod";
+
+          let displayStatus: "Pending" | "Approved" | "Rejected" | "Endorsed (Pending Principal)" | "Endorsed (Pending Next Authority)" = "Pending";
+          if (req.status === "APPROVED") {
+            displayStatus = "Approved";
+          } else if (req.status === "REJECTED") {
+            displayStatus = "Rejected";
+          } else if (isHodApproved) {
+            const nextStage = (req.current_stage || '').toLowerCase();
+            if (nextStage === 'principal') {
+              displayStatus = "Endorsed (Pending Principal)";
+            } else if (nextStage === 'dean') {
+              displayStatus = "Endorsed (Pending Dean)" as any;
+            } else if (nextStage === 'coe') {
+              displayStatus = "Endorsed (Pending COE)" as any;
+            } else if (nextStage && nextStage !== 'completed') {
+              displayStatus = `Endorsed (Pending ${nextStage.replace('_', ' ').toUpperCase()})` as any;
+            } else {
+              displayStatus = "Endorsed (Pending Next Authority)";
+            }
+          } else {
+            displayStatus = "Pending";
+          }
+
+          return {
+            raw: req,
+            mapped: {
+              id: req.id.toString(),
+              name: req.faculty_name || "Unknown",
+              dept: req.department || "Unknown",
+              period: formatPeriod(req.start_date, req.end_date),
+              reason: req.reason || "No reason provided",
+              status: displayStatus,
+              canApprove: isPending && isAtHod && !isHodApproved
+            }
+          };
+        }).
         filter((item) => {
           const r = item.raw;
           const status = (r.status || '').toUpperCase();
+          const isHodApproved = r.hod_approval_status === "APPROVED";
 
           // If user has chosen a specific date range (e.g. via Month filter), skip the "7-day/pending active" rule
           if (filters?.date_from || filters?.date_to) return true;
 
           if (status === 'PENDING') {
+            if (isHodApproved) {
+              const refDateStr = r.reviewed_at || r.submitted_at;
+              if (!refDateStr) return true;
+              const ref = new Date(refDateStr);
+              const refDateOnly = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
+              return refDateOnly >= sevenDaysAgo;
+            }
             try {
               const end = new Date(r.end_date);
               const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
@@ -191,8 +229,7 @@ const LeaveManagement = () => {
 
           return false;
         }).
-
-        map((item) => item.mapped) as LeaveRequest[];
+        map((item) => item.mapped);
 
       setLeaveRequests(processed);
       setTotalCount(response.count || 0);
@@ -242,8 +279,25 @@ const LeaveManagement = () => {
     try {
       const res = await manageLeaves(payload, "PATCH");
       if (res.success) {
+        setErrors([]);
+        const updated = res.updated_leave;
+        let newStatus: any = 'Approved';
+        if (updated && updated.status === 'PENDING' && updated.hod_approval_status === 'APPROVED') {
+          const nextStage = (updated.current_stage || '').toLowerCase();
+          if (nextStage === 'principal') {
+            newStatus = "Endorsed (Pending Principal)";
+          } else if (nextStage === 'dean') {
+            newStatus = "Endorsed (Pending Dean)";
+          } else if (nextStage === 'coe') {
+            newStatus = "Endorsed (Pending COE)";
+          } else if (nextStage && nextStage !== 'completed') {
+            newStatus = `Endorsed (Pending ${nextStage.replace('_', ' ').toUpperCase()})`;
+          } else {
+            newStatus = "Endorsed (Pending Next Authority)";
+          }
+        }
         // Update local list without re-fetching
-        setLeaveRequests((prev) => prev.map((item, idx) => item.id === leave.id ? { ...item, status: 'Approved' } : item));
+        setLeaveRequests((prev) => prev.map((item, idx) => item.id === leave.id ? { ...item, status: newStatus, canApprove: false } : item));
         Swal.fire(`${typeLabel} Approved!`, `The ${typeLabel.toLowerCase()} request has been approved.`, 'success');
       } else {
         setErrors([res.message || `Failed to approve ${typeLabel.toLowerCase()}`]);
@@ -285,8 +339,9 @@ const LeaveManagement = () => {
         try {
           const res = await manageLeaves(payload, "PATCH");
           if (res.success) {
+            setErrors([]);
             // Update local list without re-fetching
-            setLeaveRequests((prev) => prev.map((item, idx) => item.id === leave.id ? { ...item, status: 'Rejected' } : item));
+            setLeaveRequests((prev) => prev.map((item, idx) => item.id === leave.id ? { ...item, status: 'Rejected', canApprove: false } : item));
             Swal.fire('Rejected!', 'The leave request has been rejected.', 'success');
           } else {
             setErrors([res.message || "Failed to reject leave"]);
@@ -437,7 +492,9 @@ const LeaveManagement = () => {
                             theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
                             row.status === "Approved" ?
                               theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' :
-                              theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
+                              row.status === "Endorsed (Pending Principal)" ?
+                                theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700' :
+                                theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
                           }>
 
                           {row.status}
@@ -458,7 +515,7 @@ const LeaveManagement = () => {
                       </button>
                     </div>
 
-                    {row.status === "Pending" ?
+                    {row.canApprove ?
                       <div className="flex flex-row gap-2 mt-4">
                         <Button
                           variant="outline"
@@ -486,7 +543,11 @@ const LeaveManagement = () => {
                         </Button>
                       </div> :
 
-                      <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+                      <div className="pt-2 text-center border-t border-border/30">
+                        <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          {row.status === "Endorsed (Pending Principal)" ? "Endorsed (Forwarded to Principal)" : "No action needed"}
+                        </span>
+                      </div>
                     }
                   </div>
                 )
@@ -552,14 +613,16 @@ const LeaveManagement = () => {
                               theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
                               row.status === "Approved" ?
                                 theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' :
-                                theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
+                                row.status === "Endorsed (Pending Principal)" ?
+                                  theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700' :
+                                  theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
                             }>
 
                             {row.status}
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          {row.status === "Pending" ?
+                          {row.canApprove ?
                             <div className="flex flex-col md:flex-row gap-2">
                               <Button
                                 variant="outline"
@@ -585,7 +648,9 @@ const LeaveManagement = () => {
                               </Button>
                             </div> :
 
-                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              {row.status === "Endorsed (Pending Principal)" ? "Endorsed (Forwarded to Principal)" : "No action needed"}
+                            </span>
                           }
                         </td>
                       </tr>

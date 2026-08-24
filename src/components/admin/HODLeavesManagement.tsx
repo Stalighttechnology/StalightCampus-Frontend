@@ -47,7 +47,9 @@ interface LeaveRequest {
   alternate_duty_status?: string;
   alternate_duty_remarks?: string;
   hod_approval_status?: string;
+  hod_reviewed_by_name?: string | null;
   intermediate_approval_status?: string;
+  intermediate_reviewed_by_name?: string | null;
   principal_approval_status?: string;
 }
 
@@ -83,6 +85,49 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
   const { theme } = useTheme();
   const [statusFilter, setStatusFilter] = useState("All");
   const [roleFilter, setRoleFilter] = useState("All");
+
+  const canTakeAction = (leave: LeaveRequest) => {
+    if (leave.status !== "Pending") return false;
+    const role = (userRole || "").toLowerCase();
+    const stage = (leave.current_stage || "").toLowerCase();
+
+    if (role === "hod") {
+      return stage === "hod" && leave.hod_approval_status !== "APPROVED";
+    }
+    if (role === "dean") {
+      return stage === "dean" && leave.intermediate_approval_status !== "APPROVED";
+    }
+    if (!role || ["principal", "org_admin", "superadmin", "admin"].includes(role)) {
+      return stage === "principal" && leave.principal_approval_status !== "APPROVED";
+    }
+    if (stage === role && leave.intermediate_approval_status !== "APPROVED") {
+      return true;
+    }
+    return false;
+  };
+
+  const getActionPendingLabel = (leave: LeaveRequest) => {
+    if (leave.status !== "Pending") return null;
+    const role = (userRole || "").toLowerCase();
+    const stage = (leave.current_stage || "").toLowerCase();
+
+    if (role === "hod" && leave.hod_approval_status === "APPROVED") {
+      return "Endorsed (Pending Principal)";
+    }
+    if (role === "dean" && leave.intermediate_approval_status === "APPROVED") {
+      return "Endorsed (Pending Principal)";
+    }
+    if (stage === "alternate_duty") {
+      return "Awaiting Substitute";
+    }
+    if (stage === "hod" && role !== "hod") {
+      return "Awaiting HOD";
+    }
+    if (stage === "principal" && role !== "principal" && role !== "org_admin" && role !== "admin" && Boolean(role)) {
+      return "Awaiting Principal";
+    }
+    return "No action needed";
+  };
 
   const filteredLeaveRequests = Array.isArray(leaveRequests) ? leaveRequests : [];
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
@@ -155,7 +200,9 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
             alternate_duty_status: leave.alternate_duty_status,
             alternate_duty_remarks: leave.alternate_duty_remarks,
             hod_approval_status: leave.hod_approval_status,
+            hod_reviewed_by_name: leave.hod_reviewed_by_name,
             intermediate_approval_status: leave.intermediate_approval_status,
+            intermediate_reviewed_by_name: leave.intermediate_reviewed_by_name,
             principal_approval_status: leave.principal_approval_status,
             status: leave.status === "APPROVED" ? "Approved" :
               leave.status === "REJECTED" ? "Rejected" :
@@ -555,6 +602,11 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                             Short Permission
                           </span>
                         )}
+                        {leave.hod_approval_status === "APPROVED" && (
+                          <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-1 font-medium">
+                            ✓ Endorsed by HOD{leave.hod_reviewed_by_name ? ` (${leave.hod_reviewed_by_name})` : ''}
+                          </div>
+                        )}
                       </div>
 
                       <div className="mt-2.5 space-y-3">
@@ -587,7 +639,7 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                           View Reason
                         </Button>
 
-                        {leave.status === "Pending" ?
+                        {canTakeAction(leave) ?
                           <div className="grid grid-cols-2 gap-3 mt-2">
                             <Button
                               variant="outline"
@@ -612,7 +664,9 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                           </div> :
 
                           <div className="pt-2 text-center border-t border-border/30">
-                            <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+                            <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              {getActionPendingLabel(leave) || "No action needed"}
+                            </span>
                           </div>
                         }
                       </div>
@@ -683,6 +737,16 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                               Sub: <span className="font-medium text-foreground">{leave.alternate_faculty_name}</span> ({leave.alternate_duty_status})
                             </div>
                           )}
+                          {leave.hod_approval_status === "APPROVED" && (
+                            <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-0.5 font-medium flex items-center gap-1">
+                              <span>✓ Endorsed by HOD{leave.hod_reviewed_by_name ? ` (${leave.hod_reviewed_by_name})` : ''}</span>
+                            </div>
+                          )}
+                          {leave.intermediate_approval_status === "APPROVED" && (
+                            <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-0.5 font-medium flex items-center gap-1">
+                              <span>✓ Endorsed by Section Head{leave.intermediate_reviewed_by_name ? ` (${leave.intermediate_reviewed_by_name})` : ''}</span>
+                            </div>
+                          )}
                         </td>
                         <td className={`py-4 px-2 md:px-4 text-sm text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                           <div>{formatDateString(leave.from)} {leave.from !== leave.to && <><span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {formatDateString(leave.to)}</>}</div>
@@ -705,7 +769,7 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                         </td>
                         <td className="py-4 px-2 md:px-4 text-center">{getStatusBadge(leave.status, theme)}</td>
                         <td className="py-4 px-2 md:px-4 text-center">
-                          {leave.status === "Pending" ?
+                          {canTakeAction(leave) ?
                             <div className="flex flex-col md:flex-row justify-center gap-2">
                               <Button
                                 variant="outline"
@@ -731,7 +795,9 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                               </Button>
                             </div> :
 
-                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              {getActionPendingLabel(leave) || "No action needed"}
+                            </span>
                           }
                         </td>
                       </tr>

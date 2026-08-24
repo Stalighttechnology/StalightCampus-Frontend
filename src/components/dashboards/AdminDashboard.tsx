@@ -166,7 +166,7 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
       case "hod-leaves":
         return (
           <div>
-            <HODLeavesManagement setError={setError} toast={toast} />
+            <HODLeavesManagement setError={setError} toast={toast} userRole={user?.role || "principal"} />
           </div>);
 
       case "hod-attendance":
