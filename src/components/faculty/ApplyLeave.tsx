@@ -251,12 +251,20 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       .then((res) => {
         if (res.success && res.data) {
           setSubstituteRequests(res.data);
-          setPendingSubstituteCount(res.pending_count || 0);
+          const count = res.pending_count || 0;
+          setPendingSubstituteCount(count);
+          window.dispatchEvent(new CustomEvent('substitute-requests-updated', {
+            detail: { pending_count: count }
+          }));
         }
       })
       .catch((err) => console.error("Error fetching substitute requests:", err))
       .finally(() => setSubstituteLoading(false));
   };
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('substitute-requests-viewed'));
+  }, []);
 
   useEffect(() => {
     fetchBootstrapData();
@@ -308,6 +316,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
         setIsRenominating(false);
         setNewColleagueId('');
+        window.dispatchEvent(new CustomEvent('leaves-updated'));
         fetchBootstrapData();
       } else {
         throw new Error(res.message || 'Failed to re-nominate colleague');
@@ -368,6 +377,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
             color: currentTheme === 'dark' ? '#ffffff' : '#000000'
           });
+          window.dispatchEvent(new CustomEvent('leaves-updated'));
           fetchSubstituteRequests();
         } else {
           throw new Error(res.message || 'Action failed');
@@ -613,6 +623,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         setSelectedSubstituteBranch('');
         setSelectedAlternateFaculty('');
 
+        window.dispatchEvent(new CustomEvent('leaves-updated'));
         fetchBootstrapData();
       } else {
         throw new Error(res.message || 'Failed to apply for leave');

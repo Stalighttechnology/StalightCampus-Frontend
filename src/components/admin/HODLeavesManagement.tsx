@@ -217,6 +217,12 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
         const pages = typeof response.total_pages === 'number' ? response.total_pages : (typeof dataSource?.total_pages === 'number' ? dataSource.total_pages : Math.ceil(total / 10));
         setTotalPages(Math.max(1, pages));
         setTotalCount(total);
+
+        // Real-time synchronization of pending approvals count to sidebar
+        const pendingCount = typeof (response as any).pending_count === 'number'
+          ? (response as any).pending_count
+          : (typeof dataSource?.pending_count === 'number' ? dataSource.pending_count : leaveData.filter((l: any) => l.status === 'Pending').length);
+        window.dispatchEvent(new CustomEvent('leave-approvals-updated', { detail: { pending_count: pendingCount } }));
       } else {
         setError(dataSource?.message || response?.message || "Failed to fetch leave requests");
         toast({
@@ -281,6 +287,8 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
               leave
           )
         );
+        window.dispatchEvent(new CustomEvent('leaves-updated'));
+        fetchLeaves(selectedMonth, currentPage);
         Swal.fire({
           icon: 'success',
           title: `${typeLabel} Approved!`,
@@ -345,6 +353,8 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
               leave
           )
         );
+        window.dispatchEvent(new CustomEvent('leaves-updated'));
+        fetchLeaves(selectedMonth, currentPage);
         Swal.fire({
           icon: 'error',
           title: 'Leave Rejected',

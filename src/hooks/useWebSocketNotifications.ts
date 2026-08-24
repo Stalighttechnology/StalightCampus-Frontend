@@ -167,9 +167,11 @@ export const useWebSocketNotifications = () => {
                         queryClient.invalidateQueries({ queryKey: ['notifications'] });
                         queryClient.invalidateQueries({ queryKey: ['announcements'] });
                         queryClient.invalidateQueries({ queryKey: ['campusMonitoring'] });
+                        queryClient.invalidateQueries({ queryKey: ['pendingLeaveCounts'] });
                         if (!isSelf) {
                             queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
                         }
+                        window.dispatchEvent(new CustomEvent('leaves-updated'));
                         window.dispatchEvent(new CustomEvent('refresh-announcements'));
                         window.dispatchEvent(new CustomEvent('refresh-campus-monitoring'));
                     }

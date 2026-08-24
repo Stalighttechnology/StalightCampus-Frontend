@@ -10,6 +10,8 @@ import { Card } from "../ui/card";
 import { isPageAllowed, PLAN_TIERS } from "../../utils/planGating";
 import { API_BASE_URL } from "../../utils/config";
 import { fetchParentChildrenCached } from "../../utils/student_api";
+import { getAlternateDutyRequests } from "../../utils/faculty_api";
+import { manageHODLeaves } from "../../utils/admin_api";
 import {
   LayoutDashboard,
   Users,
@@ -78,6 +80,9 @@ const MODULE_PAGE_MAP: Record<string, string[]> = {
   academics_extra: ['syllabus-monitor', 'syllabus-status', 'study-materials', 'student-study-material', 'assignments', 'faculty-assignments', 'student-assignment', 'co-attainment']
 };
 
+const APPLY_LEAVE_PAGES = ['apply-leave', 'apply-leaves'];
+const LEAVE_APPROVAL_PAGES = ['hod-leaves', 'leaves', 'manage-leaves', 'admin-leaves', 'student-leave', 'manage-warden-leaves', 'department-admin-leaves'];
+
 interface SidebarProps {
   role: string;
   setPage: (page: string) => void;
@@ -100,6 +105,84 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   const [childrenList, setChildrenList] = useState<any[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(localStorage.getItem('selectedStudentId'));
+
+  // Substitute requests notification state (Apply Leave)
+  const [pendingSubstituteCount, setPendingSubstituteCount] = useState<number>(0);
+
+  // Leave approvals notification state (Leave Requests)
+  const [pendingApprovalCount, setPendingApprovalCount] = useState<number>(0);
+
+  useEffect(() => {
+    const roleLower = (role || '').toLowerCase();
+    const canHaveSubstituteRequests = ['teacher', 'faculty', 'hod'].includes(roleLower);
+    const canApproveLeaves = ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe'].includes(roleLower);
+
+    if (canHaveSubstituteRequests || canApproveLeaves) {
+      const checkSubstituteRequests = async () => {
+        if (!canHaveSubstituteRequests) return;
+        try {
+          const res = await getAlternateDutyRequests();
+          if (res && res.success) {
+            const count = typeof res.pending_count === 'number'
+              ? res.pending_count
+              : (Array.isArray(res.data) ? res.data.filter((d: any) => d.alternate_duty_status === 'PENDING').length : 0);
+            setPendingSubstituteCount(count);
+          }
+        } catch (err) {
+          console.error("Error checking substitute requests in sidebar:", err);
+        }
+      };
+
+      const checkPendingApprovals = async () => {
+        if (!canApproveLeaves) return;
+        try {
+          const res = await manageHODLeaves({ status: 'PENDING', page_size: 1 });
+          if (res) {
+            const count = (res as any).pending_count ?? (res as any).count ?? (res as any).total_records ?? res.pagination?.total_records ?? (res.leaves?.filter((l: any) => l.status === 'PENDING').length ?? 0);
+            setPendingApprovalCount(typeof count === 'number' ? count : 0);
+          }
+        } catch (err) {
+          console.error("Error checking pending approvals in sidebar:", err);
+        }
+      };
+
+      const refreshAll = () => {
+        if (canHaveSubstituteRequests) checkSubstituteRequests();
+        if (canApproveLeaves) checkPendingApprovals();
+      };
+
+      // Fetch once on mount
+      refreshAll();
+
+      window.addEventListener('leaves-updated', refreshAll);
+
+      return () => {
+        window.removeEventListener('leaves-updated', refreshAll);
+      };
+    }
+  }, [role]);
+
+  useEffect(() => {
+    const handleUpdated = (e: any) => {
+      if (e.detail?.pending_count !== undefined) {
+        setPendingSubstituteCount(e.detail.pending_count);
+      }
+    };
+
+    const handleApprovalsUpdated = (e: any) => {
+      if (e.detail?.pending_count !== undefined) {
+        setPendingApprovalCount(e.detail.pending_count);
+      }
+    };
+
+    window.addEventListener('substitute-requests-updated', handleUpdated);
+    window.addEventListener('leave-approvals-updated', handleApprovalsUpdated);
+
+    return () => {
+      window.removeEventListener('substitute-requests-updated', handleUpdated);
+      window.removeEventListener('leave-approvals-updated', handleApprovalsUpdated);
+    };
+  }, []);
 
   useEffect(() => {
     if (role === 'parent') {
@@ -913,50 +996,85 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
               }
               return true;
             })
-            ?.map((item, index) => (
-              <motion.div
-                key={item.page}
-                initial={isMobile ? false : { opacity: 0, x: -20 }}
-                animate={isMobile ? false : { opacity: 1, x: 0 }}
-                transition={isMobile ? undefined : { duration: 0.3, delay: 0.1 * index }}
-              >
-                <Button
-                  id={getSidebarId(item.page)}
-                  variant={isItemActive(item.page) ? "default" : "ghost"}
-                  className={`w-full justify-start gap-3 h-10 transition-all duration-200 ${isItemActive(item.page)
-                    ? "bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
-                    : theme === 'dark'
-                      ? "text-muted-foreground hover:text-foreground hover:bg-accent"
-                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                    } ${collapsed ? "px-2" : "px-3"}`}
-                  onClick={() => handlePageChange(item.page)}
+            ?.map((item, index) => {
+              const isApplyLeaveItem = APPLY_LEAVE_PAGES.includes(item.page);
+              const isLeaveApprovalsItem = LEAVE_APPROVAL_PAGES.includes(item.page);
+
+              const showSubstituteDot = isApplyLeaveItem && pendingSubstituteCount > 0;
+              const showApprovalDot = isLeaveApprovalsItem && pendingApprovalCount > 0;
+              const showDot = showSubstituteDot || showApprovalDot;
+              const badgeCount = showSubstituteDot ? pendingSubstituteCount : (showApprovalDot ? pendingApprovalCount : 0);
+
+              return (
+                <motion.div
+                  key={item.page}
+                  initial={isMobile ? false : { opacity: 0, x: -20 }}
+                  animate={isMobile ? false : { opacity: 1, x: 0 }}
+                  transition={isMobile ? undefined : { duration: 0.3, delay: 0.1 * index }}
                 >
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.1 }}
+                  <Button
+                    id={getSidebarId(item.page)}
+                    variant={isItemActive(item.page) ? "default" : "ghost"}
+                    className={`w-full justify-start gap-3 h-10 transition-all duration-200 relative ${isItemActive(item.page)
+                      ? "bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
+                      : theme === 'dark'
+                        ? "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      } ${collapsed ? "px-2" : "px-3"}`}
+                    onClick={() => handlePageChange(item.page)}
                   >
-                    {getIcon(item.page)}
-                  </motion.div>
-                  <AnimatePresence>
-                    {!collapsed && (
-                      isMobile ? (
-                        <span className={`truncate ${role === 'coe' ? 'text-[15px] font-medium' : ''}`}>{item.name}</span>
-                      ) : (
-                        <motion.span
-                          className={`truncate ${role === 'coe' ? 'text-sm font-medium' : ''}`}
-                          initial={{ opacity: 0, width: 0 }}
-                          animate={{ opacity: 1, width: "auto" }}
-                          exit={{ opacity: 0, width: 0 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          {item.name}
-                        </motion.span>
-                      )
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.1 }}
+                      className="relative flex items-center justify-center shrink-0"
+                    >
+                      {getIcon(item.page)}
+                      {showDot && (
+                        <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 z-10 pointer-events-none">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 ring-2 ring-white dark:ring-slate-900"></span>
+                        </span>
+                      )}
+                    </motion.div>
+                    <AnimatePresence>
+                      {!collapsed && (
+                        isMobile ? (
+                          <span className={`truncate ${role === 'coe' ? 'text-[15px] font-medium' : ''}`}>{item.name}</span>
+                        ) : (
+                          <motion.span
+                            className={`truncate ${role === 'coe' ? 'text-sm font-medium' : ''}`}
+                            initial={{ opacity: 0, width: 0 }}
+                            animate={{ opacity: 1, width: "auto" }}
+                            exit={{ opacity: 0, width: 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            {item.name}
+                          </motion.span>
+                        )
+                      )}
+                    </AnimatePresence>
+                    {!collapsed && showDot && (
+                      <div className="ml-auto flex items-center shrink-0 pl-1 z-10 pointer-events-none">
+                        {badgeCount > 0 ? (
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none border shadow-sm ${
+                            isItemActive(item.page)
+                              ? "bg-white text-primary border-white/60 font-extrabold"
+                              : "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
+                          }`}>
+                            {badgeCount}
+                          </span>
+                        ) : (
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                          </span>
+                        )}
+                      </div>
                     )}
-                  </AnimatePresence>
-                </Button>
-              </motion.div>
-            ))}
+                  </Button>
+                </motion.div>
+              );
+            })}
         </div>
       </motion.div>
 
