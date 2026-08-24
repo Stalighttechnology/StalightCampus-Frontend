@@ -31,7 +31,8 @@ import {
   CalendarX,
   Edit2,
   Save,
-  X
+  X,
+  Clock
 } from
   'lucide-react';
 import { format } from "date-fns";
@@ -481,8 +482,8 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
-                          <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 font-semibold text-sm">
-                            {item.on_leave || 0}
+                          <div className="inline-flex items-center justify-center min-w-[2rem] h-8 px-2 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 font-semibold text-sm">
+                            {item.on_leave != null ? item.on_leave : 0}
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
@@ -931,6 +932,13 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                           <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 font-semibold leading-relaxed">
                             <span className="block text-xs uppercase tracking-wider font-black mb-1 opacity-70">Off-Campus Duty</span>
                             {record.notes.replace('[Off-Campus Check-in] Reason:', '').trim()}
+                          </div>
+                        )}
+
+                        {leaveTypes[dateStr] && record.status !== 'on_leave' && (
+                          <div className="flex items-center justify-center gap-2 text-purple-600 bg-purple-50 dark:bg-purple-900/20 px-4 py-2.5 rounded-full font-medium text-sm border border-purple-100 dark:border-purple-500/20 mt-2">
+                            <Clock className="w-4 h-4" />
+                            <span>On Leave ({leaveTypes[dateStr]})</span>
                           </div>
                         )}
                       </div>

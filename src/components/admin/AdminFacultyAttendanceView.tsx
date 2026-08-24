@@ -1175,13 +1175,20 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                         </div>
                                       </td>
                                       <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                                        <span className={`${getStatusBadge(record.status)} text-xs`}>
-                                          {record.status === 'not_marked' ? 'Not Marked' :
-                                           record.status === 'on_leave' ? (record.leave_type ? `On Leave (${record.leave_type})` : 'On Leave') :
-                                           record.status === 'holiday' ? 'Holiday' :
-                                           record.status === 'early_checkout' ? 'Early Out' :
-                                           record.status.charAt(0).toUpperCase() + record.status.slice(1)}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                          <span className={`${getStatusBadge(record.status)} text-xs`}>
+                                            {record.status === 'not_marked' ? 'Not Marked' :
+                                             record.status === 'on_leave' ? (record.leave_type ? `On Leave (${record.leave_type})` : 'On Leave') :
+                                             record.status === 'holiday' ? 'Holiday' :
+                                             record.status === 'early_checkout' ? 'Early Out' :
+                                             record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                                          </span>
+                                          {record.status !== 'on_leave' && record.leave_type && (
+                                            <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider">
+                                              On Leave ({record.leave_type})
+                                            </span>
+                                          )}
+                                        </div>
                                       </td>
                                       {/* Summary column — hidden on mobile, shown on sm+ */}
                                       <td className={`hidden sm:table-cell px-6 py-4 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} meta-text`}>
@@ -1416,6 +1423,14 @@ const AdminFacultyAttendanceView: React.FC = () => {
                             <div className="flex items-center justify-between font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-4 py-3 rounded-xl border border-blue-500/20">
                               <span>Total Worked</span>
                               <span>{formatTotalHours(selectedTodayRecord.total_hours)}</span>
+                            </div>
+                          )}
+
+                          {/* Leave Indicator (if present but had half-day leave) */}
+                          {selectedTodayRecord.status !== 'on_leave' && selectedTodayRecord.leave_type && (
+                            <div className="flex items-center justify-center gap-2 text-purple-600 bg-purple-50 dark:bg-purple-900/20 px-4 py-2.5 rounded-full font-medium text-sm border border-purple-100 dark:border-purple-500/20">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                              <span>On Leave ({selectedTodayRecord.leave_type})</span>
                             </div>
                           )}
 
@@ -2084,9 +2099,9 @@ const AdminFacultyAttendanceView: React.FC = () => {
               <div className="p-5">
                 {record && (
                   <div className="space-y-4">
-                    <div className={`${isOnLeave ? 'text-purple-500 bg-purple-500/10' : isPresent ? 'text-green-500 bg-green-500/10' : 'text-red-500 bg-red-500/10'} p-3 rounded-xl font-bold flex items-center gap-2 text-base capitalize`}>
-                      {isOnLeave ? <CalendarIcon className="w-5 h-5" /> : isPresent ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />} 
-                      {isOnLeave ? (leaveTypes[dateStr] ? `On Leave (${leaveTypes[dateStr]})` : 'On Leave') : record.status === 'not_marked' ? 'Not Marked' : record.status.replace('_', ' ')}
+                    <div className={`${isPresent ? 'text-green-500 bg-green-500/10' : (record.status === 'on_leave' ? 'text-purple-500 bg-purple-500/10' : 'text-red-500 bg-red-500/10')} p-3 rounded-xl font-bold flex items-center gap-2 text-base capitalize`}>
+                      {isPresent ? <CheckCircle className="w-5 h-5" /> : (record.status === 'on_leave' ? <CalendarIcon className="w-5 h-5" /> : <XCircle className="w-5 h-5" />)} 
+                      {record.status === 'not_marked' ? 'Not Marked' : (record.status === 'on_leave' ? (leaveTypes[dateStr] ? `On Leave (${leaveTypes[dateStr]})` : 'On Leave') : record.status.replace('_', ' '))}
                     </div>
                     
                     {record.checkin_timestamps && record.checkin_timestamps.length > 0 ? (
@@ -2178,6 +2193,13 @@ const AdminFacultyAttendanceView: React.FC = () => {
                       <div className="flex items-center justify-between font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-4 py-3 rounded-xl border border-blue-500/20">
                         <span>Total Worked</span>
                         <span>{formatTotalHours(record.total_hours)}</span>
+                      </div>
+                    )}
+
+                    {leaveTypes[dateStr] && record.status !== 'on_leave' && (
+                      <div className="flex items-center justify-center gap-2 text-purple-600 bg-purple-50 dark:bg-purple-900/20 px-4 py-2.5 rounded-full font-medium text-sm border border-purple-100 dark:border-purple-500/20 mt-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span>On Leave ({leaveTypes[dateStr]})</span>
                       </div>
                     )}
 
