@@ -40,6 +40,12 @@ interface LeaveRequest {
   id: string;
   name: string;
   dept: string;
+  title?: string;
+  leave_type?: string;
+  is_half_day?: boolean;
+  half_day_session?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
   period: string;
   reason: string;
   status: "Pending" | "Approved" | "Rejected";
@@ -78,6 +84,12 @@ interface DashboardLeave {
   id: number;
   faculty_name: string;
   department: string;
+  title?: string;
+  leave_type?: string;
+  is_half_day?: boolean;
+  half_day_session?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
   start_date: string;
   end_date: string;
   reason: string;
@@ -100,16 +112,56 @@ export default function HODStats({ setError, setPage, onBootstrapData }: HODStat
   const orgPlan = user?.org_plan || "basic";
   const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
 
-  // Format date range to "MMM DD, YYYY to MMM DD, YYYY"
+  // Format date range to "MMM DD, YYYY to MMM DD, YYYY" (or single date if same day)
   const formatPeriod = (startDate: string, endDate: string): string => {
     try {
       const start = new Date(startDate);
       const end = new Date(endDate);
       const options: Intl.DateTimeFormatOptions = { month: "short", day: "2-digit", year: "numeric" };
-      return `${start.toLocaleDateString("en-US", options)} to ${end.toLocaleDateString("en-US", options)}`;
+      const startStr = start.toLocaleDateString("en-US", options);
+      const endStr = end.toLocaleDateString("en-US", options);
+      if (startDate === endDate || startStr === endStr) {
+        return startStr;
+      }
+      return `${startStr} to ${endStr}`;
     } catch {
       return "Invalid date";
     }
+  };
+
+  const renderLeaveCategoryBadge = (leaveType?: string, isHalfDay?: boolean, halfDaySession?: string | null) => {
+    const normalizedType = (leaveType || 'casual').toLowerCase();
+    
+    let label = 'Casual (CL)';
+    let colorClass = 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300';
+    
+    if (normalizedType === 'short_permission') {
+      label = 'Short Permission';
+      colorClass = 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300';
+    } else if (normalizedType === 'earned') {
+      label = 'Earned (EL)';
+      colorClass = 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300';
+    } else if (normalizedType === 'rh' || normalizedType === 'restricted_holiday') {
+      label = 'Holiday (RH)';
+      colorClass = 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300';
+    }
+
+    const showHalfDay = Boolean(isHalfDay || normalizedType === 'half_day');
+    const sessionNormalized = (halfDaySession || '').toLowerCase();
+    const sessionText = (sessionNormalized === 'forenoon' || sessionNormalized === 'morning') ? 'Morning' : 'Afternoon';
+
+    return (
+      <div className="flex flex-wrap items-center gap-1 mt-1">
+        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded w-fit ${colorClass}`}>
+          {label}
+        </span>
+        {showHalfDay && (
+          <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 w-fit">
+            Half-Day ({sessionText})
+          </span>
+        )}
+      </div>
+    );
   };
 
   // Fetch combined dashboard bootstrap (profile + stats + leaves in one call)
@@ -142,6 +194,12 @@ export default function HODStats({ setError, setPage, onBootstrapData }: HODStat
               id: req.id.toString(),
               name: req.faculty_name || "Unknown",
               dept: req.department || "Unknown",
+              title: req.title || (req.leave_type === 'short_permission' ? 'Short Permission' : (req.reason ? req.reason.slice(0, 50) : 'Leave Request')),
+              leave_type: req.leave_type || "casual",
+              is_half_day: Boolean(req.is_half_day || req.leave_type === 'half_day'),
+              half_day_session: req.half_day_session,
+              start_time: req.start_time,
+              end_time: req.end_time,
               period: formatPeriod(req.start_date, req.end_date),
               reason: req.reason || "No reason provided",
               status: "Pending",
@@ -631,8 +689,20 @@ const handleApprove = async (index: number) => {
                       </div>
                     </div>
 
+                    <div className="mt-2">
+                      <div className="text-sm font-semibold text-gray-900 dark:text-foreground">{row.title}</div>
+                      {renderLeaveCategoryBadge(row.leave_type, row.is_half_day, row.half_day_session)}
+                    </div>
+
                     {/* Period (date range) on separate line */}
-                    <div className="mt-2 text-sm text-gray-700 dark:text-gray-300 font-medium">{row.period}</div>
+                    <div className="mt-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                      {row.period}
+                      {row.start_time && row.end_time && (
+                        <span className="font-semibold text-purple-600 dark:text-purple-400 ml-1">
+                          ({row.start_time} - {row.end_time})
+                        </span>
+                      )}
+                    </div>
 
                     {/* View reason via modal instead of showing text */}
                     <div className="mt-3">
@@ -683,8 +753,9 @@ const handleApprove = async (index: number) => {
               <table className="w-full">
                 <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
                   <tr className={`text-center border-b ${theme === 'dark' ? 'border-border text-foreground' : 'border-gray-200 text-gray-900'} text-xs md:text-sm`}>
-                    <th className="py-3 px-2 md:px-4">Faculty</th>
-                    <th className="py-3 px-2 md:px-4">Period</th>
+                    <th className="py-3 px-2 md:px-4 text-left">Faculty</th>
+                    <th className="py-3 px-2 md:px-4 text-left">Category / Title</th>
+                    <th className="py-3 px-2 md:px-4">Period & Time</th>
                     <th className="py-3 px-2 md:px-4">Reason</th>
                     <th className="py-3 px-2 md:px-4">Status</th>
                     <th className="py-3 px-2 md:px-4">Action</th>
@@ -693,7 +764,7 @@ const handleApprove = async (index: number) => {
                 <tbody>
                   {leaveRequests.length === 0 && !isLoading ? (
                     <tr>
-                      <td colSpan={5} className="py-8">
+                      <td colSpan={6} className="py-8">
                         <div className={`w-full border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center space-y-3 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
                           <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
                             <ClipboardList className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
@@ -711,13 +782,24 @@ const handleApprove = async (index: number) => {
                         key={row.id}
                         className={`border-b last:border-none text-sm md:text-base hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} text-center`}
                       >
-                        <td className="py-3 md:py-4 px-2 md:px-4">
+                        <td className="py-3 md:py-4 px-2 md:px-4 text-left">
                           <div>
                             <p className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{row.name}</p>
                             <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{row.dept}</p>
                           </div>
                         </td>
-                        <td className="py-3 md:py-4 px-2 md:px-4">{row.period}</td>
+                        <td className="py-3 md:py-4 px-2 md:px-4 text-left">
+                          <p className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{row.title}</p>
+                          {renderLeaveCategoryBadge(row.leave_type, row.is_half_day, row.half_day_session)}
+                        </td>
+                        <td className="py-3 md:py-4 px-2 md:px-4">
+                          <div>{row.period}</div>
+                          {row.start_time && row.end_time && (
+                            <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 mt-0.5">
+                              {row.start_time} - {row.end_time}
+                            </div>
+                          )}
+                        </td>
                         <td className="py-3 md:py-4 px-2 md:px-4">
                           <button
                             onClick={() => openReasonModal(row.reason)}

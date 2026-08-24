@@ -118,7 +118,7 @@ const LeaveManagement = () => {
   const initialLoadRef = useRef(true);
   const isSilentOperationRef = useRef(false);
 
-  // Format date range to "MMM DD, YYYY to MMM DD, YYYY"
+  // Format date range to "MMM DD, YYYY to MMM DD, YYYY" (or single date if same day)
   const formatPeriod = (startDate: string, endDate: string): string => {
     try {
       const start = new Date(startDate);
@@ -126,10 +126,48 @@ const LeaveManagement = () => {
       const options: Intl.DateTimeFormatOptions = { month: "short", day: "2-digit", year: "numeric" };
       const startStr = start.toLocaleDateString("en-US", options);
       const endStr = end.toLocaleDateString("en-US", options);
+      if (startDate === endDate || startStr === endStr) {
+        return startStr;
+      }
       return `${startStr} to ${endStr}`;
     } catch {
       return "Invalid date";
     }
+  };
+
+  const renderLeaveCategoryBadge = (leaveType: string, isHalfDay?: boolean, halfDaySession?: string | null) => {
+    const normalizedType = (leaveType || 'casual').toLowerCase();
+    
+    let label = 'Casual (CL)';
+    let colorClass = 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300';
+    
+    if (normalizedType === 'short_permission') {
+      label = 'Short Permission';
+      colorClass = 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300';
+    } else if (normalizedType === 'earned') {
+      label = 'Earned (EL)';
+      colorClass = 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300';
+    } else if (normalizedType === 'rh' || normalizedType === 'restricted_holiday') {
+      label = 'Holiday (RH)';
+      colorClass = 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300';
+    }
+
+    const showHalfDay = Boolean(isHalfDay || normalizedType === 'half_day');
+    const sessionNormalized = (halfDaySession || '').toLowerCase();
+    const sessionText = (sessionNormalized === 'forenoon' || sessionNormalized === 'morning') ? 'Morning' : 'Afternoon';
+
+    return (
+      <div className="flex flex-wrap items-center gap-1 mt-1">
+        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded w-fit ${colorClass}`}>
+          {label}
+        </span>
+        {showHalfDay && (
+          <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 w-fit">
+            Half-Day ({sessionText})
+          </span>
+        )}
+      </div>
+    );
   };
 
   // Fetch branch_id from manageProfile
@@ -219,7 +257,7 @@ const LeaveManagement = () => {
               leave_type: req.leave_type || "casual",
               start_time: req.start_time,
               end_time: req.end_time,
-              is_half_day: req.is_half_day,
+              is_half_day: Boolean(req.is_half_day || req.leave_type === 'half_day'),
               half_day_session: req.half_day_session,
               from: req.start_date || "N/A",
               to: req.end_date || "N/A",
@@ -551,26 +589,14 @@ const LeaveManagement = () => {
 
                     <div className="my-2 p-2 rounded bg-accent/10 border border-border/40">
                       <div className="font-semibold text-xs text-foreground">{row.title}</div>
-                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded ${
-                          row.leave_type === 'short_permission' ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300' :
-                          row.leave_type === 'earned' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' :
-                          'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
-                        }`}>
-                          {row.leave_type === 'casual' ? 'Casual (CL)' :
-                           row.leave_type === 'earned' ? 'Earned (EL)' :
-                           row.leave_type === 'short_permission' ? 'Short Permission' :
-                           row.leave_type}
-                        </span>
-                        {row.is_half_day && (
-                          <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-                            Half-Day
-                          </span>
-                        )}
-                      </div>
+                      {renderLeaveCategoryBadge(row.leave_type, row.is_half_day, row.half_day_session)}
                       <div className="text-xs text-muted-foreground mt-1">
                         {row.period}
-                        {row.start_time && row.end_time && ` (${row.start_time} - ${row.end_time})`}
+                        {row.start_time && row.end_time && (
+                          <span className="font-semibold text-purple-600 dark:text-purple-400 ml-1">
+                            ({row.start_time} - {row.end_time})
+                          </span>
+                        )}
                       </div>
                       {row.alternate_faculty_name && (
                         <div className="text-[11px] text-muted-foreground mt-1">
@@ -641,7 +667,7 @@ const LeaveManagement = () => {
                 <thead className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-gray-50 text-gray-900'}`}>
                   <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                     <th className="py-3 px-2 md:px-4 text-left font-semibold">Applicant</th>
-                    <th className="py-3 px-2 md:px-4 text-left font-semibold">Title</th>
+                    <th className="py-3 px-2 md:px-4 text-left font-semibold">Category / Title</th>
                     <th className="py-3 px-2 md:px-4 text-center font-semibold">Period & Time</th>
                     <th className="py-3 px-2 md:px-4 text-center font-semibold">Reason</th>
                     <th className="py-3 px-2 md:px-4 text-center font-semibold">Status</th>
@@ -684,25 +710,7 @@ const LeaveManagement = () => {
 
                         <td className="py-4 px-2 md:px-4 text-left">
                           <div className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{row.title}</div>
-                          <div className="flex flex-col items-start gap-1 mt-1">
-                            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded w-fit ${
-                              row.leave_type === 'short_permission' ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300' :
-                              row.leave_type === 'earned' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' :
-                              row.leave_type === 'rh' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300' :
-                              'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
-                            }`}>
-                              {row.leave_type === 'casual' ? 'Casual (CL)' :
-                               row.leave_type === 'earned' ? 'Earned (EL)' :
-                               row.leave_type === 'rh' ? 'Holiday (RH)' :
-                               row.leave_type === 'short_permission' ? 'Short Permission' :
-                               row.leave_type}
-                            </span>
-                            {row.is_half_day && (
-                              <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 w-fit">
-                                Half-Day ({row.half_day_session?.toLowerCase() === 'forenoon' || row.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
-                              </span>
-                            )}
-                          </div>
+                          {renderLeaveCategoryBadge(row.leave_type, row.is_half_day, row.half_day_session)}
                           {row.alternate_faculty_name && (
                             <div className="text-[11px] text-muted-foreground mt-1">
                               Sub: <span className="font-medium text-foreground">{row.alternate_faculty_name}</span> ({row.alternate_duty_status})
@@ -713,7 +721,7 @@ const LeaveManagement = () => {
                         <td className={`py-4 px-2 md:px-4 text-sm text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                           <div>{row.period}</div>
                           {row.start_time && row.end_time && (
-                            <div className="text-xs font-semibold text-primary mt-0.5">
+                            <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 mt-0.5">
                               {row.start_time} - {row.end_time}
                             </div>
                           )}
