@@ -19,6 +19,14 @@ import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
 import android.content.pm.PackageManager;
 import androidx.core.content.ContextCompat;
@@ -126,6 +134,99 @@ public class CampusGeofencePlugin extends Plugin {
             call.resolve(ret);
         } catch (Exception e) {
             call.reject("Could not open settings: " + e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void isLocationServicesEnabled(PluginCall call) {
+        try {
+            android.location.LocationManager locationManager =
+                    (android.location.LocationManager)
+                            getContext().getSystemService(android.content.Context.LOCATION_SERVICE);
+
+            boolean isEnabled = false;
+
+            if (locationManager != null) {
+                isEnabled =
+                        androidx.core.location.LocationManagerCompat
+                                .isLocationEnabled(locationManager);
+            }
+
+            JSObject ret = new JSObject();
+            ret.put("enabled", isEnabled);
+            call.resolve(ret);
+
+        } catch (Exception e) {
+            call.reject("Could not check location services: " + e.getMessage());
+        }
+    }
+
+    private static final int REQUEST_CHECK_SETTINGS = 1001;
+    private PluginCall savedLocationSettingsCall;
+
+    @PluginMethod
+    public void resolveLocationSettings(PluginCall call) {
+        try {
+            LocationRequest locationRequest = LocationRequest.create();
+            locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+            
+            LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                    .addLocationRequest(locationRequest);
+            builder.setAlwaysShow(true);
+
+            Task<LocationSettingsResponse> result =
+                    LocationServices.getSettingsClient(getActivity()).checkLocationSettings(builder.build());
+
+            result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
+                @Override
+                public void onComplete(Task<LocationSettingsResponse> task) {
+                    try {
+                        LocationSettingsResponse response = task.getResult(ApiException.class);
+                        // All location settings are satisfied.
+                        JSObject ret = new JSObject();
+                        ret.put("enabled", true);
+                        call.resolve(ret);
+                    } catch (ApiException exception) {
+                        switch (exception.getStatusCode()) {
+                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                try {
+                                    ResolvableApiException resolvable = (ResolvableApiException) exception;
+                                    savedLocationSettingsCall = call;
+                                    resolvable.startResolutionForResult(getActivity(), REQUEST_CHECK_SETTINGS);
+                                } catch (Exception e) {
+                                    call.reject(e.getMessage());
+                                }
+                                break;
+                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                call.reject("Location settings are inadequate, and cannot be fixed here.");
+                                break;
+                            default:
+                                call.reject("Location settings error.");
+                                break;
+                        }
+                    }
+                }
+            });
+        } catch (Exception e) {
+            call.reject("Could not check location settings: " + e.getMessage());
+        }
+    }
+
+    @Override
+    protected void handleOnActivityResult(int requestCode, int resultCode, Intent data) {
+        super.handleOnActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CHECK_SETTINGS) {
+            if (savedLocationSettingsCall != null) {
+                JSObject ret = new JSObject();
+                if (resultCode == android.app.Activity.RESULT_OK) {
+                    ret.put("enabled", true);
+                } else {
+                    ret.put("enabled", false);
+                }
+                savedLocationSettingsCall.resolve(ret);
+                savedLocationSettingsCall = null;
+            }
         }
     }
 

@@ -140,6 +140,7 @@ export default function ScheduledLocationTracker() {
   const disclosureResolveRef = useRef<
     ((accepted: boolean) => void) | null
   >(null);
+  const isExecutingRef = useRef(false);
 
   // ── Helper: show the disclosure modal and return whether user accepted ──
   // This is the ONLY function that shows the disclosure.
@@ -201,6 +202,8 @@ export default function ScheduledLocationTracker() {
     }
 
     const startGeofenceTracker = async () => {
+      if (isExecutingRef.current) return;
+      isExecutingRef.current = true;
       try {
         console.log("📍 Initialising Faculty Geofence Location Tracker…");
 
@@ -351,6 +354,21 @@ export default function ScheduledLocationTracker() {
             console.log(
               "📍 Location permissions already granted — checking eligibility."
             );
+          }
+
+          // ── 2f. Native Android Location Settings resolution ────────────────
+          // Uses SettingsClient to show the system location resolution dialog if needed.
+          try {
+            if (CampusGeofence.resolveLocationSettings) {
+              const res = await CampusGeofence.resolveLocationSettings();
+              if (!res?.enabled) {
+                console.log("📍 Location Settings resolution failed or cancelled by user — aborting geofence.");
+                return;
+              }
+            }
+          } catch (locErr) {
+            console.warn("Location Settings resolution error:", locErr);
+            // If the native check fails, we proceed so we don't break the app flow
           }
         }
 
@@ -586,6 +604,8 @@ export default function ScheduledLocationTracker() {
         intervalIdRef.current = setInterval(checkCurrentLocationWeb, 15000);
       } catch (error: any) {
         console.error("Failed to start geofence tracker:", error);
+      } finally {
+        isExecutingRef.current = false;
       }
     };
 
