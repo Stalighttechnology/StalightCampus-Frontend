@@ -27,8 +27,11 @@ import {
   Building2, 
   FileCheck,
   FolderOpen,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Printer,
+  Download
 } from 'lucide-react';
+import { printFullAdmissionApplication, printAdmissionConfirmationSlip } from '../../utils/admissionSlip';
 import { SkeletonTable } from '../ui/skeleton';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -182,6 +185,18 @@ const initialFormState: FormState = {
   course_interested_id: ''
 };
 
+const appStages = [
+  'new', 
+  'contacted', 
+  'interested', 
+  'application_started', 
+  'documents_pending', 
+  'documents_verified', 
+  'admission_confirmed', 
+  'enrolled', 
+  'rejected'
+];
+
 // Reusable Themed Date Picker matching software theme
 interface ThemedDatePickerProps {
   value: string;
@@ -313,6 +328,7 @@ export default function AdmissionApplications() {
   const [enrollBatchId, setEnrollBatchId] = useState("");
   const [enrollSemesterId, setEnrollSemesterId] = useState("");
   const [enrollSectionId, setEnrollSectionId] = useState("");
+  const [enrollCycle, setEnrollCycle] = useState<'P' | 'C'>('P');
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [uploadingDocKey, setUploadingDocKey] = useState<string | null>(null);
@@ -491,6 +507,16 @@ export default function AdmissionApplications() {
         if (selectedApp?.id === id) {
           setSelectedApp((prev: any) => prev ? ({ ...prev, enquiry_details: { ...prev.enquiry_details, status } }) : null);
         }
+
+        if (status === 'admission_confirmed') {
+          Swal.fire({
+            title: 'Admission Confirmed!',
+            text: 'Applicant admission has been confirmed. You can now proceed to Enroll the student.',
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#2563eb'
+          });
+        }
       } else {
         toast.error("Failed to update status");
       }
@@ -506,6 +532,7 @@ export default function AdmissionApplications() {
     setEnrollBatchId("");
     setEnrollSemesterId("");
     setEnrollSectionId("");
+    setEnrollCycle("P");
     setEnrollModalOpen(true);
     fetchEnrollmentOptions();
   };
@@ -515,6 +542,15 @@ export default function AdmissionApplications() {
       toast.error("Please select Branch, Batch, Semester, and Section.");
       return;
     }
+
+    const selectedSemObj = optionsData.semesters.find(s => s.id.toString() === enrollSemesterId.toString());
+    const is1stOr2ndSem = selectedSemObj && (selectedSemObj.number === 1 || selectedSemObj.number === 2);
+
+    if (is1stOr2ndSem && !enrollCycle) {
+      toast.error("Please select a cycle (Physics or Chemistry) for 1st/2nd Semester.");
+      return;
+    }
+
     try {
       setIsEnrolling(true);
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/${enrollAppId}/enroll/`, {
@@ -524,7 +560,8 @@ export default function AdmissionApplications() {
           branch_id: enrollBranchId,
           batch_id: enrollBatchId,
           semester_id: enrollSemesterId,
-          section_id: enrollSectionId
+          section_id: enrollSectionId,
+          cycle: is1stOr2ndSem ? enrollCycle : null
         })
       });
       if (response.ok) {
@@ -536,6 +573,29 @@ export default function AdmissionApplications() {
           setSelectedApp((prev: any) => prev ? ({ ...prev, enquiry_details: { ...prev.enquiry_details, status: 'enrolled' } }) : null);
         }
         setEnrollModalOpen(false);
+
+        const currentApp = (selectedApp?.id === enrollAppId ? selectedApp : null) || applications.find(a => a.id === enrollAppId);
+        const branchObj = optionsData.branches.find(b => b.id.toString() === enrollBranchId.toString());
+        const semObj = optionsData.semesters.find(s => s.id.toString() === enrollSemesterId.toString());
+
+        Swal.fire({
+          title: 'Student Enrolled!',
+          text: 'Student enrolled successfully! Would you like to download / print the complete 5-Page Filled Admission Application & Confirmation Dossier?',
+          icon: 'success',
+          showCancelButton: true,
+          confirmButtonText: 'Download Application Form',
+          cancelButtonText: 'Done',
+          confirmButtonColor: '#10b981'
+        }).then((res) => {
+          if (res.isConfirmed && currentApp) {
+            printFullAdmissionApplication({
+              ...currentApp,
+              branch_name: branchObj?.name || currentApp.branch_name,
+              semester_name: semObj ? `Sem ${semObj.number}` : currentApp.semester_name,
+              enquiry_details: { ...currentApp.enquiry_details, status: 'enrolled' }
+            });
+          }
+        });
       } else {
         const errData = await response.json();
         toast.error(errData.error || "Failed to enroll");
@@ -669,13 +729,77 @@ export default function AdmissionApplications() {
   };
 
   const handleFormChange = (field: keyof FormState, value: string) => {
+    let sanitizedValue = value;
+
+    // 1. Alphabetical only for Person Names (letters, spaces, dots)
+    if (['name', 'father_name', 'mother_name'].includes(field)) {
+      sanitizedValue = value.replace(/[^a-zA-Z\s.]/g, '');
+    }
+
+    // 2. Alphabetical only for Occupations, Nationality, Religion, Caste, Place
+    if (['father_occupation', 'mother_occupation', 'nationality', 'religion', 'caste', 'place'].includes(field)) {
+      sanitizedValue = value.replace(/[^a-zA-Z\s]/g, '');
+    }
+
+    // 3. Alphabetical for City / Town (letters, spaces, commas, hyphens)
+    if (field === 'city') {
+      sanitizedValue = value.replace(/[^a-zA-Z\s,-]/g, '');
+    }
+
+    // 4. Alphabetical + standard educational punctuation (no numbers/digits) for School & Institute Name/Address
+    if (['sslc_school_name', 'puc_institute_name', 'puc_address'].includes(field)) {
+      sanitizedValue = value.replace(/[^a-zA-Z\s.,&/()\-]/g, '');
+    }
+
+    // 5. Alphabetical + dots/hyphens/slash for Board & University
+    if (['sslc_board', 'puc_board'].includes(field)) {
+      sanitizedValue = value.replace(/[^a-zA-Z\s.\-/]/g, '');
+    }
+
+    // 6. Alphanumeric only for Year of Passing (e.g. JUL 2021, 2023, 2022-23)
+    if (['sslc_passing_year', 'puc_passing_year'].includes(field)) {
+      sanitizedValue = value.replace(/[^a-zA-Z0-9\s\-/]/g, '');
+    }
+
+    // 7. Alphanumeric for Categories, Registration numbers, and KEA/MNGT No
+    if (['category', 'category_claimed', 'allotted_category'].includes(field)) {
+      sanitizedValue = value.replace(/[^a-zA-Z0-9\s/+\-]/g, '').toUpperCase();
+    }
+    if (field === 'kea_mngt_no') {
+      sanitizedValue = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    }
+    if (['sslc_reg_no', 'puc_reg_no'].includes(field)) {
+      sanitizedValue = value.replace(/[^a-zA-Z0-9\-/]/g, '');
+    }
+
+    // 8. Numbers only for Admission Order Number, KEA Rank, and Fees Collected
+    if (['admission_order_number', 'kea_rank'].includes(field)) {
+      sanitizedValue = value.replace(/[^0-9]/g, '');
+    }
+    if (field === 'fees_collected_kea') {
+      sanitizedValue = value.replace(/[^0-9.]/g, '');
+    }
+
+    // 9. Numbers only for Mobile Numbers
+    if (['candidate_mobile', 'parent_mobile'].includes(field)) {
+      sanitizedValue = value.replace(/[^0-9]/g, '').slice(0, 10);
+    }
+
+    // 10. Aadhaar (12 digits) & PAN (10 alphanumeric uppercase)
+    if (field === 'aadhaar_no') {
+      sanitizedValue = value.replace(/[^0-9]/g, '').slice(0, 12);
+    }
+    if (field === 'pan_no') {
+      sanitizedValue = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 10);
+    }
+
     setFormData(prev => {
-      const updated = { ...prev, [field]: value };
+      const updated = { ...prev, [field]: sanitizedValue };
 
       // Auto calculate SSLC percentage
       if (field === 'sslc_obtained_marks' || field === 'sslc_max_marks') {
-        const obt = parseFloat(field === 'sslc_obtained_marks' ? value : updated.sslc_obtained_marks);
-        const max = parseFloat(field === 'sslc_max_marks' ? value : updated.sslc_max_marks);
+        const obt = parseFloat(field === 'sslc_obtained_marks' ? sanitizedValue : updated.sslc_obtained_marks);
+        const max = parseFloat(field === 'sslc_max_marks' ? sanitizedValue : updated.sslc_max_marks);
         if (!isNaN(obt) && !isNaN(max) && max > 0) {
           updated.sslc_percentage = ((obt / max) * 100).toFixed(2);
         }
@@ -683,8 +807,8 @@ export default function AdmissionApplications() {
 
       // Auto calculate PUC percentage
       if (field === 'puc_obtained_marks' || field === 'puc_max_marks') {
-        const obt = parseFloat(field === 'puc_obtained_marks' ? value : updated.puc_obtained_marks);
-        const max = parseFloat(field === 'puc_max_marks' ? value : updated.puc_max_marks);
+        const obt = parseFloat(field === 'puc_obtained_marks' ? sanitizedValue : updated.puc_obtained_marks);
+        const max = parseFloat(field === 'puc_max_marks' ? sanitizedValue : updated.puc_max_marks);
         if (!isNaN(obt) && !isNaN(max) && max > 0) {
           updated.puc_percentage = ((obt / max) * 100).toFixed(2);
         }
@@ -692,10 +816,10 @@ export default function AdmissionApplications() {
 
       // Auto calculate Subject PCM / PCB total & percentage
       if (['physics_marks', 'maths_marks', 'chemistry_marks', 'biology_others_marks'].includes(field)) {
-        const p = parseFloat(field === 'physics_marks' ? value : updated.physics_marks) || 0;
-        const m = parseFloat(field === 'maths_marks' ? value : updated.maths_marks) || 0;
-        const c = parseFloat(field === 'chemistry_marks' ? value : updated.chemistry_marks) || 0;
-        const b = parseFloat(field === 'biology_others_marks' ? value : updated.biology_others_marks) || 0;
+        const p = parseFloat(field === 'physics_marks' ? sanitizedValue : updated.physics_marks) || 0;
+        const m = parseFloat(field === 'maths_marks' ? sanitizedValue : updated.maths_marks) || 0;
+        const c = parseFloat(field === 'chemistry_marks' ? sanitizedValue : updated.chemistry_marks) || 0;
+        const b = parseFloat(field === 'biology_others_marks' ? sanitizedValue : updated.biology_others_marks) || 0;
         const total = p + m + c + b;
         let countSubjects = 0;
         if (updated.physics_marks) countSubjects++;
@@ -930,6 +1054,56 @@ export default function AdmissionApplications() {
 
   const reviewInfo = selectedApp ? getReviewData(selectedApp) : null;
 
+  const renderStatusBadge = (status?: string) => {
+    const s = status || 'pending';
+    switch (s) {
+      case 'documents_verified':
+      case 'verified':
+        return (
+          <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-600 border border-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
+            Verified
+          </span>
+        );
+      case 'admission_confirmed':
+      case 'confirmed':
+        return (
+          <span className="inline-flex items-center gap-1 bg-blue-500/10 text-blue-600 border border-blue-300 dark:border-blue-800 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
+            Confirmed
+          </span>
+        );
+      case 'enrolled':
+        return (
+          <span className="inline-flex items-center gap-1 bg-purple-500/10 text-purple-600 border border-purple-300 dark:border-purple-800 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
+            Enrolled
+          </span>
+        );
+      case 'documents_pending':
+        return (
+          <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 border border-amber-300 dark:border-amber-800 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
+            Docs Pending
+          </span>
+        );
+      case 'fee_pending':
+        return (
+          <span className="inline-flex items-center gap-1 bg-orange-500/10 text-orange-600 border border-orange-300 dark:border-orange-800 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
+            Fee Pending
+          </span>
+        );
+      case 'rejected':
+        return (
+          <span className="inline-flex items-center gap-1 bg-destructive/10 text-destructive border border-destructive/20 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
+            Rejected
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
+            {s.replace(/_/g, ' ')}
+          </span>
+        );
+    }
+  };
+
   return (
     <div id="admission-applications-container" className="space-y-6 w-full max-w-full overflow-hidden">
       <Card className="flex flex-col w-full border-border shadow-sm">
@@ -1006,11 +1180,20 @@ export default function AdmissionApplications() {
                           {app.marks_12th ? `${app.marks_12th}%` : 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
-                            {app.enquiry_details?.status ? app.enquiry_details.status.replace('_', ' ') : 'PENDING'}
-                          </span>
+                          {renderStatusBadge(app.enquiry_details?.status)}
                         </td>
                         <td className="px-6 py-4 text-right whitespace-nowrap space-x-2">
+                          {app.enquiry_details?.status === 'enrolled' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-8 text-xs gap-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-300 dark:border-emerald-800" 
+                              onClick={() => printFullAdmissionApplication(app)}
+                              title="Download Complete 5-Page Filled Admission Application & Confirmation Dossier"
+                            >
+                              <Download className="w-3.5 h-3.5" /> Download App
+                            </Button>
+                          )}
                           <Button 
                             variant="outline" 
                             size="sm" 
@@ -1882,27 +2065,38 @@ export default function AdmissionApplications() {
               <div>
                 <DialogTitle className="text-lg font-semibold flex items-center gap-2">
                   <span>Application Review: {reviewInfo?.name}</span>
-                  <Badge variant="outline" className="text-xs uppercase bg-primary/10 text-primary border-primary/20">
-                    {selectedApp?.enquiry_details?.status ? selectedApp.enquiry_details.status.replace('_', ' ') : 'Pending'}
-                  </Badge>
+                  {renderStatusBadge(selectedApp?.enquiry_details?.status)}
                 </DialogTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Review applicant credentials, examination marks, quota allotments & documents.
                 </p>
               </div>
 
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => {
-                  const target = selectedApp;
-                  setSelectedApp(null);
-                  openWizardForApp(target);
-                }}
-                className="h-8 text-xs gap-1.5 shrink-0"
-              >
-                <Edit className="w-3.5 h-3.5" /> Edit All Details
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                {selectedApp?.enquiry_details?.status === 'enrolled' && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => printFullAdmissionApplication(selectedApp)}
+                    className="h-8 text-xs gap-1.5 shrink-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-300 dark:border-emerald-800 font-medium"
+                    title="Download Complete 5-Page Filled Admission Application & Confirmation Dossier"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Download Application Form
+                  </Button>
+                )}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    const target = selectedApp;
+                    setSelectedApp(null);
+                    openWizardForApp(target);
+                  }}
+                  className="h-8 text-xs gap-1.5 shrink-0"
+                >
+                  <Edit className="w-3.5 h-3.5" /> Edit All Details
+                </Button>
+              </div>
             </div>
           </DialogHeader>
 
@@ -1979,12 +2173,13 @@ export default function AdmissionApplications() {
                 {/* PUC Details */}
                 <div className="p-4 rounded-lg border border-border bg-card shadow-sm space-y-3">
                   <div className="flex items-center gap-2 text-primary font-semibold text-xs uppercase tracking-wider border-b border-border pb-2">
-                    <Building2 className="w-4 h-4" /> 5. PUC / Intermediate / Diploma Details
+                    <Building2 className="w-4 h-4" /> 5. PUC / Intermediate / Diploma Details (12th)
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="col-span-2"><span className="text-muted-foreground block text-[11px]">Institute Name & Address</span><p className="font-medium text-foreground">{reviewInfo.puc_institute_name} {reviewInfo.puc_address !== 'N/A' ? `(${reviewInfo.puc_address})` : ''}</p></div>
-                    <div><span className="text-muted-foreground block text-[11px]">Registration No.</span><strong className="text-foreground">{reviewInfo.puc_reg_no}</strong></div>
-                    <div><span className="text-muted-foreground block text-[11px]">Board / University</span><strong className="text-foreground">{reviewInfo.puc_board}</strong></div>
+                    <div className="col-span-2"><span className="text-muted-foreground block text-[11px]">Institute Name</span><p className="font-medium text-foreground">{reviewInfo.puc_institute_name}</p></div>
+                    <div className="col-span-2"><span className="text-muted-foreground block text-[11px]">Institute Address</span><p className="font-medium text-foreground">{reviewInfo.puc_address}</p></div>
+                    <div><span className="text-muted-foreground block text-[11px]">PUC Reg No.</span><strong className="text-foreground">{reviewInfo.puc_reg_no}</strong></div>
+                    <div><span className="text-muted-foreground block text-[11px]">Board</span><strong className="text-foreground">{reviewInfo.puc_board}</strong></div>
                     <div><span className="text-muted-foreground block text-[11px]">Marks</span><strong className="text-foreground">{reviewInfo.puc_obtained_marks} / {reviewInfo.puc_max_marks}</strong></div>
                     <div><span className="text-muted-foreground block text-[11px]">Percentage</span><strong className="text-primary font-mono">{reviewInfo.puc_percentage}</strong></div>
                     <div><span className="text-muted-foreground block text-[11px]">Year of Passing</span><strong className="text-foreground">{reviewInfo.puc_passing_year}</strong></div>
@@ -1992,164 +2187,181 @@ export default function AdmissionApplications() {
                 </div>
               </div>
 
-              {/* SECTION 6: KEA / MANAGEMENT DETAILS */}
+              {/* SECTION 6: KEA / MNGT QUOTA DETAILS */}
               <div className="p-4 rounded-lg border border-border bg-card shadow-sm space-y-3">
                 <div className="flex items-center gap-2 text-primary font-semibold text-xs uppercase tracking-wider border-b border-border pb-2">
-                  <Award className="w-4 h-4" /> 6. KEA / Management Details
+                  <Award className="w-4 h-4" /> 6. KEA / Management Quota & Admission Order Details
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                  <div><span className="text-muted-foreground block text-[11px]">Quota Type</span><strong className="text-foreground">{reviewInfo.admission_quota}</strong></div>
-                  <div><span className="text-muted-foreground block text-[11px]">KEA/MNGT No.</span><strong className="text-foreground">{reviewInfo.kea_mngt_no}</strong></div>
-                  <div><span className="text-muted-foreground block text-[11px]">Rank</span><strong className="text-foreground">{reviewInfo.kea_rank}</strong></div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs">
+                  <div><span className="text-muted-foreground block text-[11px]">Admission Quota</span><strong className="text-foreground">{reviewInfo.admission_quota}</strong></div>
+                  <div><span className="text-muted-foreground block text-[11px]">KEA / MNGT No.</span><strong className="text-foreground">{reviewInfo.kea_mngt_no}</strong></div>
+                  <div><span className="text-muted-foreground block text-[11px]">KEA Rank</span><strong className="text-foreground">{reviewInfo.kea_rank}</strong></div>
                   <div><span className="text-muted-foreground block text-[11px]">Category Claimed</span><strong className="text-foreground">{reviewInfo.category_claimed}</strong></div>
                   <div><span className="text-muted-foreground block text-[11px]">Allotted Category</span><strong className="text-foreground">{reviewInfo.allotted_category}</strong></div>
-                  <div><span className="text-muted-foreground block text-[11px]">Fees Collected</span><strong className="text-foreground">{reviewInfo.fees_collected_kea}</strong></div>
+                  <div><span className="text-muted-foreground block text-[11px]">Fees Collected in KEA</span><strong className="text-foreground font-mono">{reviewInfo.fees_collected_kea}</strong></div>
                   <div><span className="text-muted-foreground block text-[11px]">Admission Order Date</span><strong className="text-foreground">{reviewInfo.kea_admission_order_date}</strong></div>
-                  <div><span className="text-muted-foreground block text-[11px]">Order Number</span><strong className="text-foreground">{reviewInfo.admission_order_number}</strong></div>
+                  <div><span className="text-muted-foreground block text-[11px]">Admission Order No.</span><strong className="text-foreground">{reviewInfo.admission_order_number}</strong></div>
                 </div>
               </div>
 
-              {/* SECTION 7: UPLOADED DOCUMENTS (POSITIONED AFTER KEA SECTION) */}
-              <div className="p-4 rounded-lg border border-primary/20 bg-primary/5 shadow-sm space-y-3">
-                <div className="flex items-center justify-between border-b border-primary/15 pb-2">
-                  <h3 className="font-semibold text-xs uppercase tracking-wider text-primary flex items-center gap-1.5">
-                    <FolderOpen className="w-4 h-4" /> 7. Uploaded Documents
-                  </h3>
-                  <span className="text-[11px] text-muted-foreground">Counselor/Manager can preview or upload missing documents</span>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-1">
-                  {[
-                    { label: 'Passport Photo', key: 'photo' },
-                    { label: 'Signature of Candidate', key: 'signature' },
-                    { label: '10th Marks Card', key: 'marks_card_10th' },
-                    { label: '12th Marks Card', key: 'marks_card_12th' },
-                    { label: 'Transfer Certificate', key: 'transfer_certificate' },
-                    { label: 'Aadhaar Card', key: 'aadhaar_card' },
-                  ].map((doc) => {
-                    const fileUrl = (reviewInfo as any)[doc.key];
-                    const isUploading = uploadingDocKey === doc.key;
-
-                    return (
-                      <div key={doc.key} className="flex flex-col justify-between p-2.5 border border-border rounded-lg bg-card hover:bg-muted/20 transition-colors gap-2">
-                        <div className="flex items-center justify-between w-full">
-                          <span className="text-xs font-semibold truncate max-w-[150px]" title={doc.label}>{doc.label}</span>
-                          {fileUrl ? (
-                            <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 font-semibold px-1.5 py-0.5 rounded">Uploaded</span>
-                          ) : (
-                            <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 font-semibold px-1.5 py-0.5 rounded">Missing</span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center justify-between w-full pt-1 border-t border-border/50 text-xs">
-                          {fileUrl ? (
-                            <a 
-                              href={fileUrl} 
-                              onClick={(e) => handlePreview(e, fileUrl)}
-                              className="text-xs text-primary font-semibold hover:underline cursor-pointer flex items-center gap-1"
-                            >
-                              <FileText className="w-3 h-3" /> View File
-                            </a>
-                          ) : (
-                            <span className="text-xs text-muted-foreground italic">No file</span>
-                          )}
-
-                          <label className={`cursor-pointer inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 hover:underline ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                            {isUploading ? (
-                              <span className="flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Uploading...</span>
-                            ) : (
-                              <span className="flex items-center gap-1"><Upload className="w-3 h-3" /> {fileUrl ? 'Replace' : 'Upload'}</span>
-                            )}
-                            <input
-                              type="file"
-                              accept="image/*,application/pdf"
-                              className="hidden"
-                              disabled={isUploading}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  handleDocumentUpload(doc.key, file, selectedApp.id);
-                                }
-                              }}
-                            />
-                          </label>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* SECTION 8: OFFICE USE MARKS & OTHER FIELDS */}
+              {/* SECTION 7: UPLOADED ATTACHMENTS & CERTIFICATES */}
               <div className="p-4 rounded-lg border border-border bg-card shadow-sm space-y-3">
                 <div className="flex items-center gap-2 text-primary font-semibold text-xs uppercase tracking-wider border-b border-border pb-2">
-                  <FileCheck className="w-4 h-4" /> 8. Office Use Marks & Other Identification
+                  <FileText className="w-4 h-4" /> 7. Uploaded Certificates & Identification Documents
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                  {[
+                    { key: 'photo', label: 'Photo', url: reviewInfo.photo },
+                    { key: 'signature', label: 'Signature', url: reviewInfo.signature },
+                    { key: 'marks_card_10th', label: '10th Marks', url: reviewInfo.marks_card_10th },
+                    { key: 'marks_card_12th', label: '12th Marks', url: reviewInfo.marks_card_12th },
+                    { key: 'transfer_certificate', label: 'Transfer Cert', url: reviewInfo.transfer_certificate },
+                    { key: 'aadhaar_card', label: 'Aadhaar Card', url: reviewInfo.aadhaar_card },
+                  ].map(doc => (
+                    <div key={doc.key} className="p-2.5 rounded border border-border bg-muted/20 text-center space-y-1.5 flex flex-col justify-between items-center">
+                      <span className="text-[11px] font-medium text-foreground">{doc.label}</span>
+                      {doc.url ? (
+                        <div className="space-y-1 w-full">
+                          <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-semibold">
+                            <Check className="w-3 h-3" /> Attached
+                          </span>
+                          <a 
+                            href={doc.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="block text-[10px] text-primary hover:underline truncate w-full"
+                          >
+                            View File
+                          </a>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground italic">Not Uploaded</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* SECTION 8: OFFICE VERIFICATION & PCM MARKS */}
+              <div className="p-4 rounded-lg border border-border bg-card shadow-sm space-y-3">
+                <div className="flex items-center gap-2 text-primary font-semibold text-xs uppercase tracking-wider border-b border-border pb-2">
+                  <CheckCircle className="w-4 h-4" /> 8. Office Verification & PCM Subject Marks
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-xs bg-muted/20 p-3 rounded">
                   <div><span className="text-muted-foreground block text-[11px]">Physics</span><strong className="text-foreground">{reviewInfo.physics_marks}</strong></div>
                   <div><span className="text-muted-foreground block text-[11px]">Maths</span><strong className="text-foreground">{reviewInfo.maths_marks}</strong></div>
                   <div><span className="text-muted-foreground block text-[11px]">Chemistry</span><strong className="text-foreground">{reviewInfo.chemistry_marks}</strong></div>
                   <div><span className="text-muted-foreground block text-[11px]">Biology / Others</span><strong className="text-foreground">{reviewInfo.biology_others_marks}</strong></div>
-                  <div><span className="text-muted-foreground block text-[11px]">Total</span><strong className="text-foreground font-semibold">{reviewInfo.total_subject_marks}</strong></div>
-                  <div><span className="text-muted-foreground block text-[11px]">Percentage</span><strong className="text-primary font-mono font-bold">{reviewInfo.subject_percentage}</strong></div>
+                  <div><span className="text-muted-foreground block text-[11px]">Total PCM</span><strong className="text-foreground font-mono">{reviewInfo.total_subject_marks}</strong></div>
+                  <div><span className="text-muted-foreground block text-[11px]">Percentage</span><strong className="text-primary font-mono">{reviewInfo.subject_percentage}</strong></div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-border/50 text-xs">
-                  <div><span className="text-muted-foreground block text-[11px]">Aadhaar Number</span><strong className="text-foreground">{reviewInfo.aadhaar_no}</strong></div>
-                  <div><span className="text-muted-foreground block text-[11px]">PAN</span><strong className="text-foreground">{reviewInfo.pan_no}</strong></div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2">
+                  <div><span className="text-muted-foreground block text-[11px]">Aadhaar No.</span><strong className="text-foreground font-mono">{reviewInfo.aadhaar_no}</strong></div>
+                  <div><span className="text-muted-foreground block text-[11px]">PAN No.</span><strong className="text-foreground font-mono">{reviewInfo.pan_no}</strong></div>
                   <div><span className="text-muted-foreground block text-[11px]">Place</span><strong className="text-foreground">{reviewInfo.place}</strong></div>
-                  <div><span className="text-muted-foreground block text-[11px]">Achievements</span><span className="text-foreground">{reviewInfo.extra_curricular}</span></div>
+                  <div><span className="text-muted-foreground block text-[11px]">Application Date</span><strong className="text-foreground">{reviewInfo.application_date}</strong></div>
                 </div>
               </div>
 
-              {/* SECTION 9: ACTIONS TOOLBAR */}
-              <div className="space-y-3 pt-4 border-t border-border">
-                <h3 className="font-semibold text-xs uppercase tracking-wider text-muted-foreground pb-1">Application Actions</h3>
+              {/* SECTION 9: STAGE PROGRESSION ACTIONS */}
+              <div className="p-4 rounded-lg border border-border bg-card shadow-sm space-y-3">
+                <div className="flex items-center gap-2 text-primary font-semibold text-xs uppercase tracking-wider border-b border-border pb-2">
+                  <UserCheck className="w-4 h-4" /> 9. Application Actions & Status Progression
+                </div>
+                
                 {(() => {
-                  const appStages = ['new', 'contacted', 'interested', 'application_started', 'documents_pending', 'documents_verified', 'admission_confirmed', 'enrolled', 'rejected'];
                   const currentStatus = selectedApp?.enquiry_details?.status;
                   const isRejected = currentStatus === 'rejected';
                   const currentIndex = appStages.indexOf(currentStatus);
+                  const isVerified = currentStatus === 'documents_verified' || selectedApp?.is_verified || currentIndex >= appStages.indexOf('documents_verified');
+                  const isConfirmed = currentStatus === 'admission_confirmed' || currentIndex >= appStages.indexOf('admission_confirmed');
+                  const isEnrolled = currentStatus === 'enrolled';
                   
-                  const verifyDisabled = isRejected || currentIndex >= appStages.indexOf('documents_verified');
-                  const confirmDisabled = isRejected || currentIndex >= appStages.indexOf('admission_confirmed');
-                  const enrollDisabled = isRejected || currentIndex >= appStages.indexOf('enrolled');
+                  const verifyDisabled = isRejected || isVerified;
+                  const confirmDisabled = isRejected || isConfirmed;
+                  const enrollDisabled = isRejected || isEnrolled;
 
                   return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 w-full">
+                    <div className={cn(
+                      "grid gap-2.5 w-full",
+                      isEnrolled 
+                        ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-5" 
+                        : "grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
+                    )}>
+                      {isEnrolled && (
+                        <Button 
+                          onClick={() => printFullAdmissionApplication(selectedApp)}
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-300 justify-center text-xs h-9 font-medium"
+                          title="Download Complete 5-Page Filled Admission Application & Confirmation Dossier"
+                        >
+                          <Download className="w-4 h-4 mr-1.5 shrink-0" /> Download Application
+                        </Button>
+                      )}
+
                       <Button 
                         onClick={() => handleUpdateStatus(selectedApp.id, 'documents_verified')}
-                        variant="outline" 
+                        variant={isVerified ? "default" : "outline"}
                         size="sm" 
-                        className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50 justify-center text-xs h-9"
+                        className={cn(
+                          "w-full justify-center text-xs h-9 font-medium transition-colors",
+                          isVerified 
+                            ? "bg-emerald-600 hover:bg-emerald-600 text-white cursor-default opacity-100 shadow-sm" 
+                            : "text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200 dark:border-blue-800"
+                        )}
                         disabled={verifyDisabled}
                       >
-                        <FileText className="w-4 h-4 mr-1.5 shrink-0" /> Verify Documents
+                        {isVerified ? (
+                          <><Check className="w-4 h-4 mr-1.5 shrink-0" /> Verified</>
+                        ) : (
+                          <><FileText className="w-4 h-4 mr-1.5 shrink-0" /> Verify Documents</>
+                        )}
                       </Button>
                       
                       <Button 
                         onClick={() => handleUpdateStatus(selectedApp.id, 'admission_confirmed')}
-                        variant="outline" 
+                        variant={isConfirmed ? "default" : "outline"}
                         size="sm" 
-                        className="w-full text-green-600 hover:text-green-700 hover:bg-green-50 justify-center text-xs h-9"
+                        className={cn(
+                          "w-full justify-center text-xs h-9 font-medium transition-colors",
+                          isConfirmed 
+                            ? "bg-blue-600 hover:bg-blue-600 text-white cursor-default opacity-100 shadow-sm" 
+                            : "text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200 dark:border-green-800"
+                        )}
                         disabled={confirmDisabled}
                       >
-                        <CheckCircle className="w-4 h-4 mr-1.5 shrink-0" /> Confirm Admission
+                        {isConfirmed ? (
+                          <><CheckCircle className="w-4 h-4 mr-1.5 shrink-0" /> Confirmed</>
+                        ) : (
+                          <><CheckCircle className="w-4 h-4 mr-1.5 shrink-0" /> Confirm Admission</>
+                        )}
                       </Button>
                       
                       <Button 
                         onClick={() => handleEnroll(selectedApp.id)}
-                        size="sm"
-                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90 justify-center text-xs h-9 shadow-sm"
+                        size="sm" 
+                        className={cn(
+                          "w-full justify-center text-xs h-9 shadow-sm font-medium transition-colors",
+                          isEnrolled 
+                            ? "bg-purple-600 hover:bg-purple-600 text-white cursor-default opacity-100" 
+                            : "bg-primary text-primary-foreground hover:bg-primary/90"
+                        )}
                         disabled={enrollDisabled}
                       >
-                        <UserCheck className="w-4 h-4 mr-1.5 shrink-0" /> Enroll as Student
+                        {isEnrolled ? (
+                          <><UserCheck className="w-4 h-4 mr-1.5 shrink-0" /> Enrolled</>
+                        ) : (
+                          <><UserCheck className="w-4 h-4 mr-1.5 shrink-0" /> Enroll as Student</>
+                        )}
                       </Button>
                       
                       <Button 
                         onClick={() => handleUpdateStatus(selectedApp.id, 'rejected')}
                         variant="outline" 
                         size="sm" 
-                        className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 justify-center text-xs h-9"
+                        className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200 dark:border-red-800 justify-center text-xs h-9"
                         disabled={isRejected}
                       >
                         <XCircle className="w-4 h-4 mr-1.5 shrink-0" /> Reject
@@ -2164,7 +2376,7 @@ export default function AdmissionApplications() {
       </Dialog>
 
       {/* ========================================================================= */}
-      {/* ENROLLMENT ASSIGNMENT MODAL (Batch, Branch, Sem, Section)                   */}
+      {/* ENROLLMENT ASSIGNMENT MODAL (Batch, Branch, Sem, Section, Cycle)            */}
       {/* ========================================================================= */}
       <Dialog open={enrollModalOpen} onOpenChange={setEnrollModalOpen}>
         <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
@@ -2209,6 +2421,31 @@ export default function AdmissionApplications() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* CYCLE SELECTION (P-CYCLE / C-CYCLE FOR 1ST & 2ND SEMESTERS) */}
+            {(() => {
+              const selectedSemObj = optionsData.semesters.find(s => String(s.id) === String(enrollSemesterId));
+              const semNum = selectedSemObj ? Number(selectedSemObj.number) : 0;
+              const isHigherSem = semNum > 2;
+
+              if (isHigherSem) return null;
+
+              return (
+                <div className="space-y-1.5 p-2.5 rounded-lg border border-primary/20 bg-primary/5">
+                  <Label className="text-xs font-semibold text-primary flex items-center justify-between">
+                    <span>Academic Cycle *</span>
+                    <span className="text-[10px] text-muted-foreground font-normal">(For 1st &amp; 2nd Sem)</span>
+                  </Label>
+                  <Select value={enrollCycle} onValueChange={(val: 'P' | 'C') => setEnrollCycle(val)}>
+                    <SelectTrigger className="text-xs bg-background"><SelectValue placeholder="Select Cycle (P or C)" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="P" className="text-xs font-medium">Physics Cycle (P-Cycle)</SelectItem>
+                      <SelectItem value="C" className="text-xs font-medium">Chemistry Cycle (C-Cycle)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              );
+            })()}
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Section *</Label>

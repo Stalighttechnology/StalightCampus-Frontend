@@ -81,7 +81,24 @@ const AdminAnnouncementManagement = () => {
   
   const user = parsedUser || (superadminRole ? { role: superadminRole } : null);
 
-  const [activeTab, setActiveTab] = useState(user?.role === 'counsellor' ? "received" : "my");
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const tabParam = searchParams.get('tab');
+      if (tabParam === 'received' || tabParam === 'my') return tabParam;
+    }
+    return user?.role === 'counsellor' ? "received" : "my";
+  });
+
+  useEffect(() => {
+    const handleSetTab = (e: any) => {
+      if (e.detail?.tab) {
+        setActiveTab(e.detail.tab);
+      }
+    };
+    window.addEventListener('stalightcampus_set_announcement_tab', handleSetTab);
+    return () => window.removeEventListener('stalightcampus_set_announcement_tab', handleSetTab);
+  }, []);
   const [showArchive, setShowArchive] = useState(false);
   const pageSize = 10;
 

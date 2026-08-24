@@ -87,9 +87,24 @@ const FacultyAnnouncementManagement = () => {
   const user = userStr ? JSON.parse(userStr) : null;
   const branchName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
   const deptName = (user?.department || '').toString().toLowerCase();
-  const isNonTeaching = branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const tabParam = searchParams.get('tab');
+      if (tabParam === 'received' || tabParam === 'my') return tabParam;
+    }
+    return isNonTeaching ? "received" : "my";
+  });
 
-  const [activeTab, setActiveTab] = useState(isNonTeaching ? "received" : "my");
+  useEffect(() => {
+    const handleSetTab = (e: any) => {
+      if (e.detail?.tab) {
+        setActiveTab(e.detail.tab);
+      }
+    };
+    window.addEventListener('stalightcampus_set_announcement_tab', handleSetTab);
+    return () => window.removeEventListener('stalightcampus_set_announcement_tab', handleSetTab);
+  }, []);
   const [showArchive, setShowArchive] = useState(false);
   const [assignedSections, setAssignedSections] = useState<any[]>([]);
   const pageSize = 10;

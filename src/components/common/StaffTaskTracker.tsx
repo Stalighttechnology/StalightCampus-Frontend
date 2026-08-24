@@ -73,8 +73,29 @@ const StaffTaskTracker = () => {
   const [assignedTasksLoading, setAssignedTasksLoading] = useState(true);
   const [assignedTasksPage, setAssignedTasksPage] = useState(1);
   const [assignedTasksTotalPages, setAssignedTasksTotalPages] = useState(1);
-  const [assignedTasksCount, setAssignedTasksCount] = useState(0);
-  const [activeTaskTab, setActiveTaskTab] = useState<'assigned_to_me' | 'assigned_by_me'>('assigned_to_me');
+  const [activeTaskTab, setActiveTaskTab] = useState<'assigned_to_me' | 'assigned_by_me'>(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const tabParam = searchParams.get('tab') || searchParams.get('task_tab');
+      if (tabParam === 'assigned_to_me' || tabParam === 'my_tasks' || tabParam === 'my') {
+        return 'assigned_to_me';
+      }
+      if (tabParam === 'assigned_by_me') {
+        return 'assigned_by_me';
+      }
+    }
+    return role === 'org_admin' ? 'assigned_by_me' : 'assigned_to_me';
+  });
+
+  useEffect(() => {
+    const handleSetTaskTab = (e: any) => {
+      if (e.detail?.tab === 'assigned_to_me' || e.detail?.tab === 'assigned_by_me') {
+        setActiveTaskTab(e.detail.tab);
+      }
+    };
+    window.addEventListener('stalightcampus_set_task_tab', handleSetTaskTab);
+    return () => window.removeEventListener('stalightcampus_set_task_tab', handleSetTaskTab);
+  }, []);
 
   useEffect(() => {
     if (role === 'org_admin') {

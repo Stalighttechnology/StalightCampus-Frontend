@@ -91,7 +91,26 @@ interface LeaveRequestDisplay {
 }
 
 const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
-  const [activeMainTab, setActiveMainTab] = useState<'apply' | 'substitute_requests'>('apply');
+  const [activeMainTab, setActiveMainTab] = useState<'apply' | 'substitute_requests'>(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const tabParam = searchParams.get('tab') || searchParams.get('leave_tab');
+      if (tabParam === 'substitute_requests' || tabParam === 'substitute' || tabParam === 'substitutes') {
+        return 'substitute_requests';
+      }
+    }
+    return 'apply';
+  });
+
+  useEffect(() => {
+    const handleSetLeaveTab = (e: any) => {
+      if (e.detail?.tab === 'substitute_requests' || e.detail?.tab === 'apply') {
+        setActiveMainTab(e.detail.tab);
+      }
+    };
+    window.addEventListener('stalightcampus_set_leave_tab', handleSetLeaveTab);
+    return () => window.removeEventListener('stalightcampus_set_leave_tab', handleSetLeaveTab);
+  }, []);
   const [branches, setBranches] = useState<{ id: number; name: string; }[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [selectedSubstituteBranch, setSelectedSubstituteBranch] = useState<string>('');
