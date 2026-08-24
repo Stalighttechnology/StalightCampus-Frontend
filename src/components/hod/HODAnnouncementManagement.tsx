@@ -81,7 +81,24 @@ const HODAnnouncementManagement = () => {
   const [totalMyCount, setTotalMyCount] = useState(0);
   const [totalReceivedCount, setTotalReceivedCount] = useState(0);
   const [unreadReceivedCount, setUnreadReceivedCount] = useState(0);
-  const [activeTab, setActiveTab] = useState("my");
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const tabParam = searchParams.get('tab');
+      if (tabParam === 'received' || tabParam === 'my') return tabParam;
+    }
+    return "my";
+  });
+
+  useEffect(() => {
+    const handleSetTab = (e: any) => {
+      if (e.detail?.tab) {
+        setActiveTab(e.detail.tab);
+      }
+    };
+    window.addEventListener('stalightcampus_set_announcement_tab', handleSetTab);
+    return () => window.removeEventListener('stalightcampus_set_announcement_tab', handleSetTab);
+  }, []);
   const [showArchive, setShowArchive] = useState(false);
   const pageSize = 10;
 

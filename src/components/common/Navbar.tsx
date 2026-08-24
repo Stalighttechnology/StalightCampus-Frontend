@@ -148,8 +148,170 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
     window.location.reload();
   };
 
+  const handleNotificationItemClick = (notif: any) => {
+    setIsNotificationsOpen(false);
+    const titleLower = (notif.title || '').toLowerCase();
+    const msgLower = (notif.message || '').toLowerCase();
+    const typeLower = (notif.notification_type || '').toLowerCase();
+    const roleLower = (role || '').toLowerCase();
+
+    // 1. Alternate Duty / Substitute Requests
+    if (
+      titleLower.includes('alternate duty') ||
+      titleLower.includes('substitute') ||
+      msgLower.includes('alternate duty') ||
+      msgLower.includes('alternate substitute') ||
+      msgLower.includes('accepted your alternate duty') ||
+      msgLower.includes('declined your alternate duty')
+    ) {
+      if (roleLower === 'hod') {
+        setPage('apply-leaves');
+      } else if (roleLower === 'student' || roleLower === 'parent') {
+        setPage('leave-request');
+      } else {
+        setPage('apply-leave');
+      }
+      // Switch directly to the "Alternate Duty / Substitute Requests Assigned to You" tab
+      window.dispatchEvent(new CustomEvent('stalightcampus_set_leave_tab', { detail: { tab: 'substitute_requests' } }));
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('stalightcampus_set_leave_tab', { detail: { tab: 'substitute_requests' } }));
+      }, 50);
+      return;
+    }
+
+    // 1b. My Leave Applications Status (Approved / Rejected / Sanctioned)
+    if (
+      titleLower.includes('leave request approved') ||
+      titleLower.includes('leave request rejected') ||
+      titleLower.includes('leave approved') ||
+      titleLower.includes('leave rejected') ||
+      msgLower.includes('sanctioned by')
+    ) {
+      if (roleLower === 'hod') {
+        setPage('apply-leaves');
+      } else if (roleLower === 'student' || roleLower === 'parent') {
+        setPage('leave-request');
+      } else {
+        setPage('apply-leave');
+      }
+      window.dispatchEvent(new CustomEvent('stalightcampus_set_leave_tab', { detail: { tab: 'apply' } }));
+      return;
+    }
+
+    // 2. Incoming Leave Approval Requests (for HOD / Dean / Principal / Admins)
+    if (
+      titleLower.includes('leave request for') ||
+      titleLower.includes('for hod review') ||
+      titleLower.includes('for principal review') ||
+      titleLower.includes('leave approval') ||
+      titleLower.includes('permission request')
+    ) {
+      if (roleLower === 'hod') {
+        setPage('leaves');
+      } else if (['principal', 'org_admin', 'admin', 'coe', 'dean'].includes(roleLower)) {
+        setPage('hod-leaves');
+      } else if (roleLower === 'hms' || roleLower === 'hms_admin') {
+        setPage('manage-warden-leaves');
+      } else if (roleLower === 'transport_admin') {
+        setPage('manage-leaves');
+      } else {
+        setPage('apply-leave');
+      }
+      return;
+    }
+
+    // 3. Attendance
+    if (titleLower.includes('attendance') || typeLower.includes('attendance') || msgLower.includes('attendance')) {
+      if (roleLower === 'student' || roleLower === 'parent') {
+        setPage('attendance');
+      } else if (roleLower === 'faculty' || roleLower === 'teacher') {
+        setPage('faculty-attendance');
+      } else {
+        setPage('my-attendance');
+      }
+      return;
+    }
+
+    // 4. Exams, Marks, Schedule, Question Papers
+    if (titleLower.includes('exam') || titleLower.includes('result') || titleLower.includes('timetable') || titleLower.includes('question paper') || titleLower.includes('qp') || typeLower.includes('exam')) {
+      if (roleLower === 'student' || roleLower === 'parent') {
+        setPage('marks');
+      } else if (roleLower === 'faculty' || roleLower === 'teacher') {
+        setPage('upload-marks');
+      } else if (roleLower === 'coe') {
+        setPage('exam-scheduling');
+      } else {
+        setPage('exams');
+      }
+      return;
+    }
+
+    // 5. Staff Tasks & Task Assigned
+    if (
+      titleLower.includes('new task assigned') ||
+      titleLower.includes('task assigned') ||
+      titleLower.includes('task updated') ||
+      titleLower.includes('task deadline') ||
+      titleLower.includes('task completed') ||
+      typeLower.includes('task') ||
+      msgLower.includes('assigned a new task') ||
+      msgLower.includes('new task')
+    ) {
+      setPage('staff-tasks');
+      window.dispatchEvent(new CustomEvent('stalightcampus_set_task_tab', { detail: { tab: 'assigned_to_me' } }));
+      return;
+    }
+
+    // 6. Fees & Invoices
+    if (titleLower.includes('fee') || titleLower.includes('invoice') || titleLower.includes('payment') || typeLower.includes('fee')) {
+      if (roleLower === 'student' || roleLower === 'parent') {
+        setPage('fees');
+      } else if (roleLower === 'fees_manager') {
+        setPage('payments');
+      } else {
+        setPage('finance');
+      }
+      return;
+    }
+
+    // 6. Announcements (default fallback)
+    const paths: Record<string, string> = {
+      'student': '/announcements',
+      'parent': '/announcements',
+      'faculty': '/faculty/announcements?tab=received',
+      'hod': '/hod/hod-announcement-management?tab=received',
+      'admin': '/admin/announcement-management?tab=received',
+      'principal': '/admin/announcement-management?tab=received',
+      'coe': '/coe/announcement-management?tab=received',
+      'dean': '/dean/announcement-management?tab=received',
+      'hms': '/hms/announcement-management?tab=received',
+      'hms_admin': '/hms/announcement-management?tab=received',
+      'fees_manager': '/fees-manager/announcement-management?tab=received',
+      'transport_admin': '/transport-admin/announcement-management?tab=received',
+      'org_admin': '/org-admin/announcement-management?tab=received',
+      'warden': '/warden/announcement-management?tab=received',
+      'driver': '/driver/announcements',
+      'library_admin': '/library-admin/announcements?tab=received',
+      'admission_manager': '/admission-manager/announcements?tab=received',
+      'counsellor': '/counsellor/announcements'
+    };
+
+    const targetRoute = paths[roleLower] || '/announcements';
+    navigate(targetRoute);
+    window.dispatchEvent(new CustomEvent('stalightcampus_set_announcement_tab', { detail: { tab: 'received' } }));
+  };
+
   const [align, setAlign] = useState<'center' | 'end'>('end');
   const [localNotifications, setLocalNotifications] = useState<any[]>(recentNotifications);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setAlign(window.innerWidth < 640 ? 'center' : 'end');
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     setLocalNotifications(recentNotifications);
@@ -407,12 +569,16 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                         const previewMessage = (cleanMessage && cleanMessage.length > 80) ? `${cleanMessage.slice(0, 80)}...` : cleanMessage;
 
                         return (
-                          <div key={notif.id} className="px-4 py-3 border-b text-sm flex flex-col hover:bg-muted/50 transition-colors">
-                            <span className="font-medium">{notif.title}</span>
+                          <div
+                            key={notif.id}
+                            onClick={() => handleNotificationItemClick(notif)}
+                            className="px-4 py-3 border-b text-sm flex flex-col hover:bg-muted/70 transition-colors cursor-pointer group"
+                          >
+                            <span className="font-medium group-hover:text-primary transition-colors">{notif.title}</span>
                             <span className="text-muted-foreground mt-1 line-clamp-2">{previewMessage}</span>
                             {isLong && (
                               <Dialog>
-                                <DialogTrigger asChild>
+                                <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
                                   <Button variant="link" className="p-0 h-auto text-xs text-primary justify-start font-semibold mt-1">
                                     Show More
                                   </Button>
@@ -479,24 +645,26 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                         const paths: Record<string, string> = {
                           'student': '/announcements',
                           'parent': '/announcements',
-                          'faculty': '/faculty/announcements',
-                          'hod': '/hod/hod-announcement-management',
-                          'admin': '/admin/announcement-management',
-                          'principal': '/admin/announcement-management',
-                          'coe': '/coe/announcement-management',
-                          'dean': '/dean/announcement-management',
-                          'hms': '/hms/announcement-management',
-                          'hms_admin': '/hms/announcement-management',
-                          'fees_manager': '/fees-manager/announcement-management',
-                          'transport_admin': '/transport-admin/announcement-management',
-                          'org_admin': '/org-admin/announcement-management',
-                          'warden': '/warden/announcement-management',
+                          'faculty': '/faculty/announcements?tab=received',
+                          'hod': '/hod/hod-announcement-management?tab=received',
+                          'admin': '/admin/announcement-management?tab=received',
+                          'principal': '/admin/announcement-management?tab=received',
+                          'coe': '/coe/announcement-management?tab=received',
+                          'dean': '/dean/announcement-management?tab=received',
+                          'hms': '/hms/announcement-management?tab=received',
+                          'hms_admin': '/hms/announcement-management?tab=received',
+                          'fees_manager': '/fees-manager/announcement-management?tab=received',
+                          'transport_admin': '/transport-admin/announcement-management?tab=received',
+                          'org_admin': '/org-admin/announcement-management?tab=received',
+                          'warden': '/warden/announcement-management?tab=received',
                           'driver': '/driver/announcements',
-                          'library_admin': '/library-admin/announcements',
-                          'admission_manager': '/admission-manager/announcements',
+                          'library_admin': '/library-admin/announcements?tab=received',
+                          'admission_manager': '/admission-manager/announcements?tab=received',
                           'counsellor': '/counsellor/announcements'
                         };
-                        navigate(paths[role || ''] || '/announcements');
+                        const targetRoute = paths[role || ''] || '/announcements';
+                        navigate(targetRoute);
+                        window.dispatchEvent(new CustomEvent('stalightcampus_set_announcement_tab', { detail: { tab: 'received' } }));
                         setIsNotificationsOpen(false);
                       }}
                     >
