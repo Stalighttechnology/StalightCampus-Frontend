@@ -281,7 +281,7 @@ const FacultyAttendance = () => {
     const userCat = todayRecord.staff_category || 'teaching';
     const catConfig = catWorkflows[userCat] || catWorkflows['teaching'];
     const mode = catConfig?.mode || 'half_day_split';
-    const strictWindow = catConfig?.strict_window !== false;
+    const strictWindow = todayRecord.strict_checkin_window === false ? false : (catConfig?.strict_window !== false);
 
     const toMinutes = (t?: string) => {
       if (!t) return 0;
@@ -801,7 +801,7 @@ const FacultyAttendance = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-6 pb-0">
-            {attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off' || attendanceStatus === 'on_leave' ? (
+            {attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off' || (attendanceStatus === 'on_leave' && (!todayLeaveType || !todayLeaveType.toLowerCase().includes('half-day'))) ? (
               <div className="flex flex-col items-center py-6 space-y-3">
                 <div className={`p-4 rounded-full ${
                   attendanceStatus === 'holiday'
