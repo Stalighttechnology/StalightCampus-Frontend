@@ -37,6 +37,7 @@ interface FacultyAttendanceTodayRecord {
   faculty_name: string;
   faculty_id: string;
   status: string;
+  leave_type?: string | null;
   marked_at: string | null;
   notes: string | null;
   location?: {
@@ -195,6 +196,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
   const [selectedTodayRecord, setSelectedTodayRecord] = useState<any>(null);
   const [holidayDates, setHolidayDates] = useState<string[]>([]);
   const [leaveDates, setLeaveDates] = useState<string[]>([]);
+  const [leaveTypes, setLeaveTypes] = useState<Record<string, string>>({});
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [todayPagination, setTodayPagination] = useState({
     page: 1,
@@ -692,6 +694,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
         setFacultyAttendanceDetails(response.data || []);
         setHolidayDates(response.holidays || []);
         setLeaveDates(response.leave_dates || []);
+        setLeaveTypes(response.leave_types || {});
       } else {
         Swal.fire("Error", "Failed to load faculty details", "error");
       }
@@ -1174,7 +1177,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                       <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                                         <span className={`${getStatusBadge(record.status)} text-xs`}>
                                           {record.status === 'not_marked' ? 'Not Marked' :
-                                           record.status === 'on_leave' ? 'On Leave' :
+                                           record.status === 'on_leave' ? (record.leave_type ? `On Leave (${record.leave_type})` : 'On Leave') :
                                            record.status === 'holiday' ? 'Holiday' :
                                            record.status === 'early_checkout' ? 'Early Out' :
                                            record.status.charAt(0).toUpperCase() + record.status.slice(1)}
@@ -1298,7 +1301,9 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           <div className="flex justify-between items-center">
                             <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Status</span>
                             <span className={`${getStatusBadge(selectedTodayRecord.status)} text-sm px-3 py-1 rounded-full font-bold`}>
-                              {selectedTodayRecord.status === 'not_marked' ? 'Not Marked' : selectedTodayRecord.status.charAt(0).toUpperCase() + selectedTodayRecord.status.slice(1)}
+                              {selectedTodayRecord.status === 'not_marked' ? 'Not Marked' : 
+                               selectedTodayRecord.status === 'on_leave' ? (selectedTodayRecord.leave_type ? `On Leave (${selectedTodayRecord.leave_type})` : 'On Leave') : 
+                               selectedTodayRecord.status.charAt(0).toUpperCase() + selectedTodayRecord.status.slice(1)}
                             </span>
                           </div>
 
@@ -2081,7 +2086,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                   <div className="space-y-4">
                     <div className={`${isOnLeave ? 'text-purple-500 bg-purple-500/10' : isPresent ? 'text-green-500 bg-green-500/10' : 'text-red-500 bg-red-500/10'} p-3 rounded-xl font-bold flex items-center gap-2 text-base capitalize`}>
                       {isOnLeave ? <CalendarIcon className="w-5 h-5" /> : isPresent ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />} 
-                      {isOnLeave ? 'On Leave' : record.status === 'not_marked' ? 'Not Marked' : record.status.replace('_', ' ')}
+                      {isOnLeave ? (leaveTypes[dateStr] ? `On Leave (${leaveTypes[dateStr]})` : 'On Leave') : record.status === 'not_marked' ? 'Not Marked' : record.status.replace('_', ' ')}
                     </div>
                     
                     {record.checkin_timestamps && record.checkin_timestamps.length > 0 ? (
@@ -2188,7 +2193,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                 {!record && isOnLeave && (
                   <div className="text-purple-500 font-bold flex flex-col items-center justify-center gap-2 p-6 bg-purple-500/10 rounded-xl border border-purple-500/20 text-center">
                     <CalendarIcon className="w-10 h-10 opacity-80" /> 
-                    <span>On Leave</span>
+                    <span>{leaveTypes[dateStr] ? `On Leave (${leaveTypes[dateStr]})` : 'On Leave'}</span>
                   </div>
                 )}
                 

@@ -99,6 +99,8 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
   const [selectedStaff, setSelectedStaff] = useState<AttendanceSummary | null>(null);
   const [detailedAttendance, setDetailedAttendance] = useState<any[]>([]);
   const [holidayDates, setHolidayDates] = useState<string[]>([]);
+  const [leaveDates, setLeaveDates] = useState<string[]>([]);
+  const [leaveTypes, setLeaveTypes] = useState<Record<string, string>>({});
   const [selectedStaffJoinDate, setSelectedStaffJoinDate] = useState<string | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [selectedDateDetailsStr, setSelectedDateDetailsStr] = useState<string | null>(null);
@@ -198,6 +200,8 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
       if (response.success) {
         setDetailedAttendance(response.results);
         setHolidayDates(response.holidays || []);
+        setLeaveDates((response as any).leave_dates || []);
+        setLeaveTypes((response as any).leave_types || {});
         setSelectedStaffJoinDate((response as any).date_joined || null);
       }
     } catch (error) {
@@ -218,6 +222,9 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
         const refreshResponse = await getStaffDetailedAttendance(selectedStaff.id, startDate, endDate);
         if (refreshResponse.success) {
           setDetailedAttendance(refreshResponse.results);
+          setHolidayDates(refreshResponse.holidays || []);
+          setLeaveDates((refreshResponse as any).leave_dates || []);
+          setLeaveTypes((refreshResponse as any).leave_types || {});
         }
         // Refresh main list
         fetchAttendanceAudit();
@@ -633,24 +640,27 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                         const isHoliday = holidayDates.includes(dateStr);
                         const isNonWorkingDay = isSunday || isHoliday;
 
+                        const isOnLeave = leaveDates.includes(dateStr) || record?.status === 'on_leave';
                         const isPresent = record?.status === 'present';
-                        const isAbsent = !isNonWorkingDay && (record?.status === 'absent' || (!record && !isPresent));
+                        const isAbsent = !isNonWorkingDay && !isOnLeave && (record?.status === 'absent' || (!record && !isPresent));
 
                         return (
                           <button
                             key={idx}
                             onClick={() => setSelectedDateDetailsStr(dateStr)}
+                            title={isOnLeave ? (leaveTypes[dateStr] ? `On Leave (${leaveTypes[dateStr]})` : 'On Leave') : isPresent ? 'Present' : isAbsent ? 'Absent' : isHoliday ? 'Holiday' : isSunday ? 'Sunday' : 'Not Marked'}
                             className={cn(
                               "flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-xl border transition-all duration-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 hover:scale-105",
-                              isPresent ? "bg-green-500/10 border-green-500/30 text-green-700 shadow-green-500/5 hover:border-green-500" :
-                                isAbsent ? "bg-red-500/10 border-red-500/30 text-red-700 shadow-red-500/5 hover:border-red-500" :
-                                  isNonWorkingDay ? "bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-400" :
-                                    "bg-muted/30 border-border/50 text-muted-foreground opacity-30 hover:border-primary/20"
+                              isOnLeave ? "bg-purple-500/10 border-purple-500/30 text-purple-700 shadow-purple-500/5 hover:border-purple-500" :
+                                isPresent ? "bg-green-500/10 border-green-500/30 text-green-700 shadow-green-500/5 hover:border-green-500" :
+                                  isAbsent ? "bg-red-500/10 border-red-500/30 text-red-700 shadow-red-500/5 hover:border-red-500" :
+                                    isNonWorkingDay ? "bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-400" :
+                                      "bg-muted/30 border-border/50 text-muted-foreground opacity-30 hover:border-primary/20"
                             )}
                           >
                             <span className={cn(
                               "text-[9px] sm:text-[10px] font-semibold uppercase tracking-tighter opacity-70 detail-day-weekday",
-                              (isPresent || isAbsent || isNonWorkingDay) && "opacity-100"
+                              (isPresent || isAbsent || isOnLeave || isNonWorkingDay) && "opacity-100"
                             )}>
                               {format(date, "EEE")}
                             </span>
@@ -659,7 +669,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                             </span>
                             <div className={cn(
                               "w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full mt-1 detail-status-badge",
-                              isPresent ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : isAbsent ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]" : isNonWorkingDay ? "bg-slate-300 dark:bg-slate-600" : "bg-muted-foreground/30"
+                              isOnLeave ? "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.4)]" : isPresent ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : isAbsent ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]" : isNonWorkingDay ? "bg-slate-300 dark:bg-slate-600" : "bg-muted-foreground/30"
                             )} />
                           </button>
                         );
@@ -711,6 +721,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
         const isHoliday = holidayDates.includes(dateStr);
         const isNonWorkingDay = isSunday || isHoliday;
         const isPresent = record?.status === 'present';
+        const isOnLeave = leaveDates.includes(dateStr) || record?.status === 'on_leave';
         
         // Use document.documentElement.classList to check theme safely in Reports
         const isDark = document.documentElement.classList.contains('dark');
@@ -735,7 +746,9 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                 {!isEditingRecord && (
                   <Button variant="outline" size="sm" onClick={() => {
                     setEditPayload({
-                      status: record?.status && record.status !== 'not_marked' ? record.status : 'present',
+                      status: record?.status && record.status !== 'not_marked' 
+                        ? record.status 
+                        : (isOnLeave ? 'on_leave' : 'present'),
                       notes: record?.notes || '',
                       checkin_timestamps: record?.checkin_timestamps || []
                     });
@@ -768,6 +781,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                         <SelectContent>
                           <SelectItem value="present">Present</SelectItem>
                           <SelectItem value="absent">Absent</SelectItem>
+                          <SelectItem value="on_leave">On Leave</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -822,7 +836,11 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                         })
                       ) : (
                         <div className="text-sm text-muted-foreground italic bg-muted/50 p-3 rounded-lg border border-dashed border-border text-center">
-                          Record was auto-marked absent and has no checkpoint structure. Adding multi-punch timestamps here is not supported for a completely missed day yet. Just mark as Present/Absent.
+                          {isOnLeave || editPayload.status === 'on_leave' ? (
+                            "This day is recorded as an approved leave. Editing this to 'Present' or 'Absent' will override the leave status."
+                          ) : (
+                            "Record was auto-marked absent and has no checkpoint structure. Adding multi-punch timestamps here is not supported for a completely missed day yet. Just mark as Present/Absent."
+                          )}
                         </div>
                       )}
                     </div>
@@ -838,9 +856,9 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                   <>
                     {record && (
                       <div className="space-y-4">
-                        <div className={`${isPresent ? 'text-green-500 bg-green-500/10' : 'text-red-500 bg-red-500/10'} p-3 rounded-xl font-bold flex items-center gap-2 text-base`}>
-                          {isPresent ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />} 
-                          {record.status === 'not_marked' ? 'Not Marked' : record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                        <div className={`${isPresent ? 'text-green-500 bg-green-500/10' : (record.status === 'on_leave' ? 'text-purple-500 bg-purple-500/10' : 'text-red-500 bg-red-500/10')} p-3 rounded-xl font-bold flex items-center gap-2 text-base`}>
+                          {isPresent ? <CheckCircle className="w-5 h-5" /> : (record.status === 'on_leave' ? <CalendarIcon className="w-5 h-5" /> : <XCircle className="w-5 h-5" />)} 
+                          {record.status === 'not_marked' ? 'Not Marked' : (record.status === 'on_leave' ? (leaveTypes[dateStr] ? `On Leave (${leaveTypes[dateStr]})` : 'On Leave') : record.status.charAt(0).toUpperCase() + record.status.slice(1))}
                         </div>
                         
                         {record.checkin_timestamps && record.checkin_timestamps.length > 0 ? (
@@ -918,7 +936,14 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                       </div>
                     )}
                     
-                    {!record && !isFuture && !isNonWorkingDay && (
+                    {!record && isOnLeave && (
+                      <div className="text-purple-500 font-bold flex flex-col items-center justify-center gap-2 p-6 bg-purple-500/10 rounded-xl border border-purple-500/20 text-center">
+                        <CalendarIcon className="w-10 h-10 opacity-80" />
+                        <span>{leaveTypes[dateStr] ? `On Leave (${leaveTypes[dateStr]})` : 'On Leave'}</span>
+                      </div>
+                    )}
+
+                    {!record && !isFuture && !isNonWorkingDay && !isOnLeave && (
                       <div className="text-red-500 font-bold flex flex-col items-center justify-center gap-2 p-6 bg-red-500/10 rounded-xl border border-red-500/20 text-center">
                         <XCircle className="w-10 h-10 opacity-80" /> 
                         <span>Auto-marked Absent</span>

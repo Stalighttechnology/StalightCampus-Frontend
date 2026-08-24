@@ -28,6 +28,7 @@ const formatTotalHours = (decimalHours: number): string => {
 
 const FacultyAttendance = () => {
   const [attendanceStatus, setAttendanceStatus] = useState<"present" | "absent" | "holiday" | "weekly_off" | "on_leave" | null>(null);
+  const [todayLeaveType, setTodayLeaveType] = useState<string | null>(null);
   const [selectedRecordDetails, setSelectedRecordDetails] = useState<any>(null);
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -130,11 +131,16 @@ const FacultyAttendance = () => {
         setTodayRecord(finalTodayRec);
         if ((response as any).is_today_on_leave) {
           setAttendanceStatus("on_leave");
+          setTodayLeaveType((response as any).today_leave_type || null);
         } else if (foundTodayRec) {
           setAttendanceStatus(foundTodayRec.status as "present" | "absent" | "holiday" | "weekly_off" | "on_leave");
           setNotes(foundTodayRec.notes || "");
+          setTodayLeaveType(null);
         } else if ((response as any).is_today_holiday) {
           setAttendanceStatus("holiday");
+          setTodayLeaveType(null);
+        } else {
+          setTodayLeaveType(null);
         }
         
         if ((response as any).next_check_time) {
@@ -204,11 +210,18 @@ const FacultyAttendance = () => {
               };
 
           setTodayRecord(finalTodayRec);
-          if (foundTodayRec) {
-            setAttendanceStatus(foundTodayRec.status as "present" | "absent" | "holiday" | "weekly_off");
+          if ((response as any).is_today_on_leave) {
+            setAttendanceStatus("on_leave");
+            setTodayLeaveType((response as any).today_leave_type || null);
+          } else if (foundTodayRec) {
+            setAttendanceStatus(foundTodayRec.status as "present" | "absent" | "holiday" | "weekly_off" | "on_leave");
             setNotes(foundTodayRec.notes || "");
+            setTodayLeaveType(null);
           } else if ((response as any).is_today_holiday) {
             setAttendanceStatus("holiday");
+            setTodayLeaveType(null);
+          } else {
+            setTodayLeaveType(null);
           }
           
           if ((response as any).next_check_time) {
@@ -800,7 +813,7 @@ const FacultyAttendance = () => {
                   <CalendarIcon className="w-10 h-10" />
                 </div>
                 <span className="text-xl font-bold capitalize">
-                  {attendanceStatus === 'holiday' ? 'Institutional Holiday' : attendanceStatus === 'on_leave' ? 'On Approved Leave' : 'Weekly Off'}
+                  {attendanceStatus === 'holiday' ? 'Institutional Holiday' : attendanceStatus === 'on_leave' ? (todayLeaveType ? `On Approved Leave (${todayLeaveType})` : 'On Approved Leave') : 'Weekly Off'}
                 </span>
                 <p className="text-xs text-muted-foreground text-center max-w-xs">
                   {attendanceStatus === 'on_leave' 
@@ -1057,7 +1070,7 @@ const FacultyAttendance = () => {
                     }`}>
                       {getStatusIcon(attendanceStatus)}
                       <span className="font-medium capitalize">
-                        {attendanceStatus === 'weekly_off' ? 'Weekly Off' : attendanceStatus === 'on_leave' ? 'On Leave' : attendanceStatus}
+                        {attendanceStatus === 'weekly_off' ? 'Weekly Off' : attendanceStatus === 'on_leave' ? (todayLeaveType ? `On Leave (${todayLeaveType})` : 'On Leave') : attendanceStatus}
                       </span>
                     </div>
                   </motion.div>
