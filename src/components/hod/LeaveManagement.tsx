@@ -20,21 +20,49 @@ import {
 interface LeaveRequest {
   id: string;
   name: string;
+  role: string;
   dept: string;
+  title: string;
+  leave_type: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  is_half_day?: boolean;
+  half_day_session?: string | null;
+  from: string;
+  to: string;
   period: string;
   reason: string;
-  status: "Pending" | "Approved" | "Rejected" | "Endorsed (Pending Principal)";
+  status: "Pending" | "Approved" | "Rejected" | "Endorsed (Pending Principal)" | "Endorsed (Pending Dean)" | "Endorsed (Pending COE)" | "Endorsed (Pending Next Authority)" | string;
+  alternate_faculty_name?: string | null;
+  alternate_duty_status?: string;
+  hod_approval_status?: string;
+  hod_reviewed_by_name?: string | null;
+  current_stage?: string;
   canApprove?: boolean;
 }
 
 interface FacultyLeaveData {
   id: number;
+  title?: string;
   faculty_name: string;
+  role?: string;
   department: string;
+  leave_type?: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  is_half_day?: boolean;
+  half_day_session?: string | null;
   start_date: string;
   end_date: string;
   reason: string;
   status: string;
+  current_stage?: string;
+  alternate_faculty_name?: string | null;
+  alternate_duty_status?: string;
+  hod_approval_status?: string;
+  hod_reviewed_by_name?: string | null;
+  intermediate_approval_status?: string;
+  principal_approval_status?: string;
   submitted_at?: string | null;
   reviewed_at?: string | null;
 }
@@ -185,10 +213,24 @@ const LeaveManagement = () => {
             mapped: {
               id: req.id.toString(),
               name: req.faculty_name || "Unknown",
+              role: req.role || "teacher",
               dept: req.department || "Unknown",
+              title: req.title || (req.leave_type === 'short_permission' ? 'Short Permission' : (req.reason ? req.reason.slice(0, 50) : 'Leave Request')),
+              leave_type: req.leave_type || "casual",
+              start_time: req.start_time,
+              end_time: req.end_time,
+              is_half_day: req.is_half_day,
+              half_day_session: req.half_day_session,
+              from: req.start_date || "N/A",
+              to: req.end_date || "N/A",
               period: formatPeriod(req.start_date, req.end_date),
               reason: req.reason || "No reason provided",
               status: displayStatus,
+              alternate_faculty_name: req.alternate_faculty_name,
+              alternate_duty_status: req.alternate_duty_status,
+              hod_approval_status: req.hod_approval_status,
+              hod_reviewed_by_name: req.hod_reviewed_by_name,
+              current_stage: req.current_stage,
               canApprove: isPending && isAtHod && !isHodApproved
             }
           };
@@ -480,11 +522,17 @@ const LeaveManagement = () => {
 
                 leaveRequests.map((row, index) =>
                   <div key={row.id} className={`p-3 sm:p-4 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
-                    <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex items-start justify-between gap-3 mb-2">
                       <div>
-                        <div className="font-medium">{row.name}</div>
-                        <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{row.dept}</div>
-                        <div className={`text-sm mt-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{row.period}</div>
+                        <div className="font-medium text-base">{row.name}</div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
+                            {row.role?.replace('_', ' ')}
+                          </span>
+                          {row.dept && row.dept !== 'N/A' && (
+                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{row.dept}</span>
+                          )}
+                        </div>
                       </div>
                       <div className="shrink-0">
                         <span
@@ -492,14 +540,43 @@ const LeaveManagement = () => {
                             theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
                             row.status === "Approved" ?
                               theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' :
-                              row.status === "Endorsed (Pending Principal)" ?
+                              row.status.startsWith("Endorsed") ?
                                 theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700' :
                                 theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
                           }>
-
                           {row.status}
                         </span>
                       </div>
+                    </div>
+
+                    <div className="my-2 p-2 rounded bg-accent/10 border border-border/40">
+                      <div className="font-semibold text-xs text-foreground">{row.title}</div>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded ${
+                          row.leave_type === 'short_permission' ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300' :
+                          row.leave_type === 'earned' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' :
+                          'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
+                        }`}>
+                          {row.leave_type === 'casual' ? 'Casual (CL)' :
+                           row.leave_type === 'earned' ? 'Earned (EL)' :
+                           row.leave_type === 'short_permission' ? 'Short Permission' :
+                           row.leave_type}
+                        </span>
+                        {row.is_half_day && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                            Half-Day
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {row.period}
+                        {row.start_time && row.end_time && ` (${row.start_time} - ${row.end_time})`}
+                      </div>
+                      {row.alternate_faculty_name && (
+                        <div className="text-[11px] text-muted-foreground mt-1">
+                          Sub: <span className="font-medium text-foreground">{row.alternate_faculty_name}</span> ({row.alternate_duty_status})
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-center mb-4">
@@ -563,17 +640,18 @@ const LeaveManagement = () => {
               <table className="w-full text-sm">
                 <thead className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-gray-50 text-gray-900'}`}>
                   <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                    <th className="px-4 py-3 text-left font-semibold">Faculty</th>
-                    <th className="px-4 py-3 text-left font-semibold">Period</th>
-                    <th className="px-4 py-3 text-left font-semibold">Reason</th>
-                    <th className="px-4 py-3 text-left font-semibold">Status</th>
-                    <th className="px-4 py-3 text-left font-semibold">Actions</th>
+                    <th className="py-3 px-2 md:px-4 text-left font-semibold">Applicant</th>
+                    <th className="py-3 px-2 md:px-4 text-left font-semibold">Title</th>
+                    <th className="py-3 px-2 md:px-4 text-center font-semibold">Period & Time</th>
+                    <th className="py-3 px-2 md:px-4 text-center font-semibold">Reason</th>
+                    <th className="py-3 px-2 md:px-4 text-center font-semibold">Status</th>
+                    <th className="py-3 px-2 md:px-4 text-center font-semibold">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {leaveRequests.length === 0 ?
                     <tr>
-                      <td colSpan={5} className="p-0">
+                      <td colSpan={6} className="p-0">
                         <div className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
                           <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
                             <Filter className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
@@ -592,38 +670,80 @@ const LeaveManagement = () => {
 
                     leaveRequests.map((row, index) =>
                       <tr key={row.id} className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
-                        <td className={`px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                          <div>
-                            <p className="font-medium">{row.name}</p>
-                            <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{row.dept}</p>
+                        <td className="py-4 px-2 md:px-4 text-left">
+                          <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{row.name}</div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
+                              {row.role?.replace('_', ' ')}
+                            </span>
+                            {row.dept && row.dept !== 'N/A' && row.dept !== 'General' && (
+                              <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{row.dept}</span>
+                            )}
                           </div>
                         </td>
-                        <td className={`px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{row.period}</td>
-                        <td className="px-4 py-3">
+
+                        <td className="py-4 px-2 md:px-4 text-left">
+                          <div className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{row.title}</div>
+                          <div className="flex flex-col items-start gap-1 mt-1">
+                            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded w-fit ${
+                              row.leave_type === 'short_permission' ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300' :
+                              row.leave_type === 'earned' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' :
+                              row.leave_type === 'rh' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300' :
+                              'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
+                            }`}>
+                              {row.leave_type === 'casual' ? 'Casual (CL)' :
+                               row.leave_type === 'earned' ? 'Earned (EL)' :
+                               row.leave_type === 'rh' ? 'Holiday (RH)' :
+                               row.leave_type === 'short_permission' ? 'Short Permission' :
+                               row.leave_type}
+                            </span>
+                            {row.is_half_day && (
+                              <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 w-fit">
+                                Half-Day ({row.half_day_session?.toLowerCase() === 'forenoon' || row.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
+                              </span>
+                            )}
+                          </div>
+                          {row.alternate_faculty_name && (
+                            <div className="text-[11px] text-muted-foreground mt-1">
+                              Sub: <span className="font-medium text-foreground">{row.alternate_faculty_name}</span> ({row.alternate_duty_status})
+                            </div>
+                          )}
+                        </td>
+
+                        <td className={`py-4 px-2 md:px-4 text-sm text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          <div>{row.period}</div>
+                          {row.start_time && row.end_time && (
+                            <div className="text-xs font-semibold text-primary mt-0.5">
+                              {row.start_time} - {row.end_time}
+                            </div>
+                          )}
+                        </td>
+
+                        <td className="py-4 px-2 md:px-4 text-sm text-center">
                           <button
                             onClick={() => setViewReason(row.reason)}
                             className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
-
                             View
                           </button>
                         </td>
-                        <td className="px-4 py-3">
+
+                        <td className="py-4 px-2 md:px-4 text-sm text-center">
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-medium ${row.status === "Pending" ?
                               theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
                               row.status === "Approved" ?
                                 theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' :
-                                row.status === "Endorsed (Pending Principal)" ?
+                                row.status.startsWith("Endorsed") ?
                                   theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700' :
                                   theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
                             }>
-
                             {row.status}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
+
+                        <td className="py-4 px-2 md:px-4 text-sm text-center">
                           {row.canApprove ?
-                            <div className="flex flex-col md:flex-row gap-2">
+                            <div className="flex flex-col md:flex-row items-center justify-center gap-2">
                               <Button
                                 variant="outline"
                                 className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
@@ -632,7 +752,6 @@ const LeaveManagement = () => {
                                 }
                                 onClick={() => handleApprove(index)}
                                 disabled={isLoading}>
-
                                 <CheckCircle size={16} /> Approve
                               </Button>
                               <Button
@@ -643,13 +762,12 @@ const LeaveManagement = () => {
                                 }
                                 onClick={() => handleReject(index)}
                                 disabled={isLoading}>
-
                                 <XCircle size={16} /> Reject
                               </Button>
                             </div> :
 
                             <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                              {row.status === "Endorsed (Pending Principal)" ? "Endorsed (Forwarded to Principal)" : "No action needed"}
+                              {row.status.startsWith("Endorsed") ? "Endorsed (Forwarded to Next Authority)" : "No action needed"}
                             </span>
                           }
                         </td>
