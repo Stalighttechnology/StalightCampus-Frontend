@@ -546,6 +546,47 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       alternate_faculty_id: (selectedAlternateFaculty && selectedAlternateFaculty !== 'none') ? parseInt(selectedAlternateFaculty) : null
     };
 
+    const typeLabel = 
+      leaveType === 'short_permission' ? 'Short Permission' :
+      leaveType === 'earned' ? 'Earned Leave (EL)' :
+      leaveType === 'rh' ? 'Restricted Holiday (RH)' :
+      (isHalfDay ? `Casual Leave (CL) - Half Day (${halfDaySession === 'forenoon' ? 'Morning' : 'Afternoon'})` : 'Casual Leave (CL)');
+
+    const dateDisplay = leaveType === 'short_permission'
+      ? `${format(permissionDate!, 'MMM dd, yyyy')} (${startTimeParts.hour}:${startTimeParts.minute} ${startTimeParts.period} - ${endTimeParts.hour}:${endTimeParts.minute} ${endTimeParts.period})`
+      : (isSameDay(dateRange!.from!, dateRange!.to!)
+          ? format(dateRange!.from!, 'MMM dd, yyyy')
+          : `${format(dateRange!.from!, 'MMM dd, yyyy')} to ${format(dateRange!.to!, 'MMM dd, yyyy')}`);
+
+    const alternateFacultyObj = availableColleagues.find(c => c.id.toString() === selectedAlternateFaculty);
+
+    const confirmResult = await MySwal.fire({
+      title: 'Confirm Leave Request?',
+      html: `
+        <div style="text-align: left; font-size: 13.5px; line-height: 1.6; margin-top: 8px;">
+          <div style="margin-bottom: 6px;"><strong>Category:</strong> <span style="color: ${currentTheme === 'dark' ? '#60a5fa' : '#2563eb'}; font-weight: 600;">${typeLabel}</span></div>
+          <div style="margin-bottom: 6px;"><strong>Period / Time:</strong> <span>${dateDisplay}</span></div>
+          <div style="margin-bottom: 6px;"><strong>Title:</strong> <span>${title.trim()}</span></div>
+          ${alternateFacultyObj ? `<div style="margin-bottom: 6px;"><strong>Substitute Faculty:</strong> <span>${alternateFacultyObj.name}</span></div>` : ''}
+          <div style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed ${currentTheme === 'dark' ? '#374151' : '#e5e7eb'}; font-size: 13px; opacity: 0.9;">
+            Are you sure you want to submit this leave application for approval?
+          </div>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Submit Request',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+      cancelButtonColor: '#6b7280',
+      background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+      color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+    });
+
+    if (!confirmResult.isConfirmed) {
+      return;
+    }
+
     try {
       setSubmitting(true);
       const res = await applyLeave(requestData);
