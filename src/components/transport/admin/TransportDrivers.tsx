@@ -52,11 +52,19 @@ const TransportDrivers: React.FC = () => {
   const ok = (msg: string) => toast({ title: 'Success', description: msg });
   const err = (msg: string) => toast({ variant: 'destructive', title: 'Error', description: msg });
 
-  const loadAssignments = useCallback(async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const a = await fetchAssignments();
-      if (a.results || Array.isArray(a)) setAssignments(a.results || a);
+      const [assignmentsRes, driversRes] = await Promise.all([
+        fetchAssignments(),
+        fetchDrivers()
+      ]);
+      if (assignmentsRes.results || Array.isArray(assignmentsRes)) {
+        setAssignments(assignmentsRes.results || assignmentsRes);
+      }
+      if (driversRes.drivers || Array.isArray(driversRes)) {
+        setDrivers(driversRes.drivers || driversRes);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -65,8 +73,8 @@ const TransportDrivers: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    loadAssignments();
-  }, [loadAssignments]);
+    loadData();
+  }, [loadData]);
 
   const handleEnrollDriver = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +101,7 @@ const TransportDrivers: React.FC = () => {
         if (opts.success) {
           setAssignOptions({ drivers: opts.drivers, routes: opts.routes, buses: opts.buses });
         }
-        loadAssignments();
+        loadData();
       } else {
         Swal.fire("Error", res.message || 'Failed to enroll driver', "error");
       }
@@ -106,13 +114,9 @@ const TransportDrivers: React.FC = () => {
     setShowAssignForm(true);
     const actualDriverId = typeof driverId === 'string' ? driverId : '';
     setAssignForm({ driver_id: actualDriverId, bus_id: '', route_id: '' });
-    if (assignOptions.drivers.length === 0) {
-      const res = await fetchAssignmentOptions();
-      if (res.success) {
-        setAssignOptions({ drivers: res.drivers, routes: res.routes, buses: res.buses });
-      } else {
-        err("Failed to load options");
-      }
+    const res = await fetchAssignmentOptions();
+    if (res.success) {
+      setAssignOptions({ drivers: res.drivers, routes: res.routes, buses: res.buses });
     }
   };
 
@@ -143,7 +147,7 @@ const TransportDrivers: React.FC = () => {
       });
       if (res.id) {
         Swal.fire("Assigned!", "Driver assigned successfully.", "success");
-        loadAssignments();
+        loadData();
         setAssignForm({ driver_id: '', bus_id: '', route_id: '' });
         setShowAssignForm(false);
       } else {
@@ -161,11 +165,9 @@ const TransportDrivers: React.FC = () => {
       bus_id: String(a.bus_details?.id || a.bus || ''),
       route_id: String(a.route_details?.id || a.route || '')
     });
-    if (assignOptions.buses.length === 0) {
-      const res = await fetchAssignmentOptions();
-      if (res.success) {
-        setAssignOptions({ drivers: res.drivers, routes: res.routes, buses: res.buses });
-      }
+    const res = await fetchAssignmentOptions();
+    if (res.success) {
+      setAssignOptions({ drivers: res.drivers, routes: res.routes, buses: res.buses });
     }
   };
 
@@ -176,7 +178,7 @@ const TransportDrivers: React.FC = () => {
       try {
         await deleteAssignment(editingAssignment.id);
         Swal.fire("Unassigned", "Driver assignment removed successfully.", "success");
-        loadAssignments();
+        loadData();
         setEditingAssignment(null);
       } catch (err) {
         Swal.fire("Error", "Server error unassigning driver", "error");
@@ -196,7 +198,7 @@ const TransportDrivers: React.FC = () => {
       });
       if (res.id) {
         Swal.fire("Updated!", "Assignment updated successfully.", "success");
-        loadAssignments();
+        loadData();
         setEditingAssignment(null);
       } else {
         Swal.fire("Error", getErrorMessage(res, 'Failed to update assignment'), "error");
@@ -222,13 +224,13 @@ const TransportDrivers: React.FC = () => {
         const res = await deleteAssignment(id);
         if (res.success !== false) {
           Swal.fire("Unassigned", "Driver assignment removed successfully.", "success");
-          loadAssignments();
+          loadData();
         } else {
           Swal.fire("Error", res.message || 'Failed to remove assignment', "error");
         }
       } catch (e) {
         Swal.fire("Unassigned", "Driver assignment removed.", "success");
-        loadAssignments();
+        loadData();
       }
     }
   };
@@ -272,6 +274,25 @@ const TransportDrivers: React.FC = () => {
     b => !assignedBusIds.includes(b.id) || (editingAssignment && (editingAssignment.bus_details?.id || editingAssignment.bus) === b.id)
   );
 
+  const combinedItems = React.useMemo(() => {
+    if (drivers.length > 0) {
+      return drivers.map(d => {
+        const matchingAssignment = assignments.find(
+          a => (a.driver_details?.id === d.id) || (a.driver === d.id)
+        );
+        return {
+          driver: d,
+          assignment: matchingAssignment || null
+        };
+      });
+    }
+
+    return assignments.map(a => ({
+      driver: a.driver_details || { id: a.driver, first_name: 'Unknown', last_name: 'Driver', email: '', mobile_number: '', designation: 'Driver' },
+      assignment: a
+    }));
+  }, [drivers, assignments]);
+
   return (
     <div id="transport-drivers-header" className="space-y-6">
 
@@ -281,9 +302,14 @@ const TransportDrivers: React.FC = () => {
           <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
             <CardHeader className="pb-3 border-b border-inherit">
               <div id="transport-drivers-action-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <CardTitle className="sm:text-2xl text-xl font-semibold flex items-center gap-2">
-                  Driver Assignments Register
-                </CardTitle>
+                <div>
+                  <CardTitle className="sm:text-2xl text-xl font-semibold flex items-center gap-2">
+                    Driver Assignments Register
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Manage driver fleet roster, active bus route assignments, and driver accounts.
+                  </p>
+                </div>
                 <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto sm:items-center sm:justify-end">
                   <Button variant="outline" onClick={() => handleOpenAssignForm()} className="w-full sm:w-auto flex items-center justify-center gap-1.5 h-9 text-sm">
                     <CheckCircle size={15} /> Assign Route
@@ -297,31 +323,30 @@ const TransportDrivers: React.FC = () => {
             <div>
               {loading ? (
                 <div className="p-4"><SkeletonTable rows={5} cols={6} /></div>
-              ) : assignments.length === 0 ? (
+              ) : combinedItems.length === 0 ? (
                 <div className="p-6">
                   <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                     <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                       <UserCheck size={32} className="opacity-80" />
                     </div>
-                    <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Assignments Found</h3>
+                    <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Drivers Found</h3>
                     <p className="max-w-xs text-xs leading-relaxed opacity-80">
-                      No driver assignments configured yet. Assign a route to a driver to get started.
+                      No drivers enrolled yet. Click "Enroll Driver" above to register drivers in the transport system.
                     </p>
                   </div>
                 </div>
               ) : (() => {
-                const totalPages = Math.ceil(assignments.length / ROWS_PER_PAGE);
+                const totalPages = Math.ceil(combinedItems.length / ROWS_PER_PAGE);
                 const safePage = Math.min(currentPage, totalPages);
-                const pageAssignments = assignments.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
+                const pageItems = combinedItems.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
                 return (
                   <>
                     {/* Mobile View: Stacked Cards */}
                     <div className="md:hidden space-y-4 p-4">
-                      {pageAssignments.map(a => {
-                        const d = a.driver_details || { id: a.driver, first_name: 'Unknown', last_name: 'Driver', email: '', mobile_number: '', designation: 'Driver' };
+                      {pageItems.map(({ driver: d, assignment: a }) => {
                         return (
                           <div
-                            key={d.id}
+                            key={d.id || Math.random()}
                             className={`p-4 rounded-xl border ${
                               theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'
                             } flex flex-col gap-3 shadow-sm`}
@@ -333,8 +358,13 @@ const TransportDrivers: React.FC = () => {
                                 </div>
                                 <div>
                                   <h4 className="font-semibold text-base leading-tight">{d.first_name} {d.last_name}</h4>
-                                  <div className="mt-1">
+                                  <div className="mt-1 flex items-center gap-1.5">
                                     <Badge label={d.designation || 'Driver'} color="allocated" />
+                                    {!a && (
+                                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
+                                        Unassigned
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -358,7 +388,7 @@ const TransportDrivers: React.FC = () => {
                             <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/25">
                               <div>
                                 <span className="text-xs uppercase font-bold opacity-60 block mb-0.5">Assigned Route</span>
-                                <span className="text-base font-semibold text-primary">
+                                <span className={`text-base font-semibold ${a ? 'text-primary' : 'text-amber-600 dark:text-amber-400 text-sm'}`}>
                                   {a ? (a.route_details?.route_name || '—') : 'Unassigned'}
                                 </span>
                               </div>
@@ -380,9 +410,15 @@ const TransportDrivers: React.FC = () => {
                             </div>
 
                             <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border/25 mt-1 w-full">
+                              {a ? (
                                 <Button size="sm" variant="outline" onClick={() => startEditAssignment(a)} className="h-9 text-sm flex items-center justify-center gap-1.5 w-full font-medium">
                                   <Pencil size={14} /> Edit Route
                                 </Button>
+                              ) : (
+                                <Button size="sm" onClick={() => handleOpenAssignForm(String(d.id))} className="h-9 text-sm flex items-center justify-center gap-1.5 w-full bg-primary hover:bg-primary/95 text-white font-medium">
+                                  <Plus size={14} /> Assign Route
+                                </Button>
+                              )}
                               <Button size="sm" variant="ghost" onClick={() => handleDeleteDriver(d.id)} className="h-9 text-sm flex items-center justify-center gap-1.5 w-full text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-lg">
                                 <Trash2 size={14} /> Delete Driver
                               </Button>
@@ -401,15 +437,14 @@ const TransportDrivers: React.FC = () => {
                             <th className="p-4">Contact</th>
                             <th className="p-4">Assigned Route</th>
                             <th className="p-4">Assigned Bus</th>
-                            <th className="p-4">Designation</th>
+                            <th className="p-4">Status / Designation</th>
                             <th className="p-4 text-right">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {pageAssignments.map(a => {
-                            const d = a.driver_details || { id: a.driver, first_name: 'Unknown', last_name: 'Driver', email: '', mobile_number: '', designation: 'Driver' };
+                          {pageItems.map(({ driver: d, assignment: a }) => {
                             return (
-                              <tr key={a.id} className={`border-b text-sm transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}>
+                              <tr key={d.id || Math.random()} className={`border-b text-sm transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}>
                                 <td className="p-4">
                                   <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center font-bold text-emerald-600 text-xs">
@@ -432,8 +467,14 @@ const TransportDrivers: React.FC = () => {
                                     </div>
                                   )}
                                 </td>
-                                <td className="p-4 font-semibold text-sm sm:text-xs text-primary">
-                                  {a ? (a.route_details?.route_name || '—') : <Badge label="Unassigned" color="bg-gray-100 text-gray-600" />}
+                                <td className="p-4 font-semibold text-sm sm:text-xs">
+                                  {a ? (
+                                    <span className="text-primary">{a.route_details?.route_name || '—'}</span>
+                                  ) : (
+                                    <span className="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 font-semibold">
+                                      Unassigned
+                                    </span>
+                                  )}
                                 </td>
                                 <td className="p-4 text-sm sm:text-xs font-medium">
                                   {a ? (
@@ -453,10 +494,16 @@ const TransportDrivers: React.FC = () => {
                                   <Badge label={d.designation || 'Driver'} color="allocated" />
                                 </td>
                                 <td className="p-4 text-right">
-                                  <div className="flex justify-end gap-1.5">
+                                  <div className="flex justify-end items-center gap-1.5">
+                                    {a ? (
                                       <Button size="icon" variant="ghost" onClick={() => startEditAssignment(a)} className="h-8 w-8 text-primary" title="Edit Assignment">
                                         <Pencil size={15} />
                                       </Button>
+                                    ) : (
+                                      <Button size="sm" variant="outline" onClick={() => handleOpenAssignForm(String(d.id))} className="h-8 px-2.5 text-xs text-primary border-primary/30 hover:bg-primary/5 flex items-center gap-1 font-medium">
+                                        <Plus size={13} /> Assign Route
+                                      </Button>
+                                    )}
                                     <Button size="icon" variant="ghost" onClick={() => handleDeleteDriver(d.id)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20" title="Delete Driver">
                                       <Trash2 size={15} />
                                     </Button>
@@ -472,14 +519,14 @@ const TransportDrivers: React.FC = () => {
                 );
               })()}
             </div>
-            {assignments.length > ROWS_PER_PAGE && (
+            {combinedItems.length > ROWS_PER_PAGE && (
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                 <div>
-                  {assignments.length > 0 && (() => {
-                    const safePage2 = Math.min(currentPage, Math.ceil(assignments.length / ROWS_PER_PAGE));
-                    const start2 = Math.min((safePage2 - 1) * ROWS_PER_PAGE + 1, assignments.length);
-                    const end2 = Math.min(safePage2 * ROWS_PER_PAGE, assignments.length);
-                    return <>Showing {start2} to {end2} of {assignments.length} assignments</>;
+                  {combinedItems.length > 0 && (() => {
+                    const safePage2 = Math.min(currentPage, Math.ceil(combinedItems.length / ROWS_PER_PAGE));
+                    const start2 = Math.min((safePage2 - 1) * ROWS_PER_PAGE + 1, combinedItems.length);
+                    const end2 = Math.min(safePage2 * ROWS_PER_PAGE, combinedItems.length);
+                    return <>Showing {start2} to {end2} of {combinedItems.length} drivers</>;
                   })()}
                 </div>
                 <div className="flex items-center gap-2">
@@ -494,14 +541,14 @@ const TransportDrivers: React.FC = () => {
                   </Button>
                   <div className="flex items-center justify-center min-w-[2rem]">
                     <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      {Math.min(currentPage, Math.max(1, Math.ceil(assignments.length / ROWS_PER_PAGE)))}
+                      {Math.min(currentPage, Math.max(1, Math.ceil(combinedItems.length / ROWS_PER_PAGE)))}
                     </span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(assignments.length / ROWS_PER_PAGE), p + 1))}
-                    disabled={currentPage === Math.ceil(assignments.length / ROWS_PER_PAGE) || loading}
+                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(combinedItems.length / ROWS_PER_PAGE), p + 1))}
+                    disabled={currentPage === Math.ceil(combinedItems.length / ROWS_PER_PAGE) || loading}
                     className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
                   >
                     Next

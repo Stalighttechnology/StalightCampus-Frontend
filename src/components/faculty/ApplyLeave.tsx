@@ -1068,6 +1068,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         <SelectItem value="hms_admin">Hostel Manager (HMS)</SelectItem>
                         <SelectItem value="library_admin">Library Admin</SelectItem>
                         <SelectItem value="transport_admin">Transport Admin</SelectItem>
+                        <SelectItem value="driver">Driver</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1089,21 +1090,49 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         <span className="text-[11px] text-muted-foreground">Optional</span>
                       </div>
                       {(() => {
-                        const filteredColleagues = availableColleagues.filter((c) => {
+                        const matchSubstituteRole = (colleagueRole: string, targetRole: string): boolean => {
                           if (!targetRole || targetRole === 'all') return true;
-                          const roleNormalized = (c.role || '').toLowerCase().replace(/[\s_-]+/g, '');
-                          const targetNormalized = targetRole.toLowerCase().replace(/[\s_-]+/g, '');
-                          if (targetNormalized === 'faculty' || targetNormalized === 'teacher') {
-                            return ['faculty', 'teacher', 'prof', 'professor', 'lecturer', 'instructor'].some(r => roleNormalized.includes(r));
+                          const role = (colleagueRole || '').toLowerCase().replace(/[\s_-]+/g, '');
+                          const target = targetRole.toLowerCase().replace(/[\s_-]+/g, '');
+
+                          if (target === 'faculty' || target === 'teacher') {
+                            return ['teacher', 'faculty', 'prof', 'professor', 'lecturer', 'instructor'].some(r => role.includes(r));
                           }
-                          if (targetNormalized === 'hmsadmin' || targetNormalized === 'hms') {
-                            return ['hms', 'hostel'].some(r => roleNormalized.includes(r));
+                          if (target === 'hod') {
+                            return ['hod', 'headofdepartment', 'headofbranch', 'branchhead'].some(r => role.includes(r));
                           }
-                          if (targetNormalized === 'coe') {
-                            return ['coe', 'exam'].some(r => roleNormalized.includes(r));
+                          if (target === 'dean') {
+                            return role.includes('dean');
                           }
-                          return roleNormalized.includes(targetNormalized) || targetNormalized.includes(roleNormalized);
-                        });
+                          if (target === 'principal') {
+                            return role.includes('principal');
+                          }
+                          if (target === 'coe') {
+                            return ['coe', 'exam', 'examination'].some(r => role.includes(r));
+                          }
+                          if (target === 'feesmanager' || target === 'fees_manager' || target === 'fees') {
+                            return ['fee', 'account', 'accountant'].some(r => role.includes(r));
+                          }
+                          if (target === 'admissionmanager' || target === 'admission_manager' || target === 'admission') {
+                            return ['admission', 'counsel', 'counsellor', 'counselor'].some(r => role.includes(r));
+                          }
+                          if (target === 'hmsadmin' || target === 'hms_admin' || target === 'hms') {
+                            return ['hms', 'hostel', 'warden'].some(r => role.includes(r));
+                          }
+                          if (target === 'libraryadmin' || target === 'library_admin' || target === 'library') {
+                            return ['library', 'librarian'].some(r => role.includes(r));
+                          }
+                          if (target === 'transportadmin' || target === 'transport_admin' || target === 'transport') {
+                            return ['transportadmin', 'transportmanager'].some(r => role.includes(r)) || (role.includes('transport') && !role.includes('driver'));
+                          }
+                          if (target === 'driver') {
+                            return ['driver', 'busdriver', 'vandriver', 'transportdriver'].some(r => role.includes(r));
+                          }
+
+                          return role === target || role.includes(target) || target.includes(role);
+                        };
+
+                        const filteredColleagues = availableColleagues.filter((c) => matchSubstituteRole(c.role, targetRole));
 
                         return (
                           <Select
@@ -1117,11 +1146,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
                               <SelectItem value="none">-- None (Direct review) --</SelectItem>
                               {filteredColleagues.length === 0 ? (
-                                availableColleagues.map((c) => (
-                                  <SelectItem key={c.id} value={c.id.toString()}>
-                                    {c.name}
-                                  </SelectItem>
-                                ))
+                                <SelectItem value="none_available" disabled>
+                                  No staff found with role "{targetRole.replace('_', ' ')}"
+                                </SelectItem>
                               ) : (
                                 filteredColleagues.map((c) => (
                                   <SelectItem key={c.id} value={c.id.toString()}>
@@ -1738,9 +1765,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 </div>
               </CardContent>
               {pagination.paginationState.totalPages > 1 && (
-                <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-muted-foreground px-6 py-3 border-t border-border mt-auto">
+                <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                   <div>
-                    Showing {pagination.paginationState.totalItems === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1} to {Math.min(pagination.page * pagination.pageSize, pagination.paginationState.totalItems)} of {pagination.paginationState.totalItems} applications
+                    Showing {pagination.paginationState.totalItems === 0 ? 0 : Math.min((pagination.page - 1) * pagination.pageSize + 1, pagination.paginationState.totalItems)} to {Math.min(pagination.page * pagination.pageSize, pagination.paginationState.totalItems)} of {pagination.paginationState.totalItems} applications
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -1748,17 +1775,23 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       size="sm"
                       onClick={() => pagination.goToPage(Math.max(1, pagination.page - 1))}
                       disabled={pagination.page === 1 || loading}
-                      className="h-8 px-3 text-xs"
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
                     >
                       Previous
                     </Button>
-                    <span className="text-xs font-semibold px-1">{pagination.page}</span>
+
+                    <div className="flex items-center justify-center min-w-[2rem]">
+                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {pagination.page}
+                      </span>
+                    </div>
+
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => pagination.goToPage(Math.min(pagination.paginationState.totalPages, pagination.page + 1))}
                       disabled={pagination.page >= pagination.paginationState.totalPages || loading}
-                      className="h-8 px-3 text-xs"
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
                     >
                       Next
                     </Button>

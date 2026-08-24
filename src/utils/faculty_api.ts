@@ -787,10 +787,11 @@ data: ApplyLeaveRequest)
 
 export const getAlternateDutyRequests = async (): Promise<GetAlternateDutyRequestsResponse> => {
   try {
+    const token = sessionStorage.getItem("access_token") || localStorage.getItem("access_token");
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/alternate-duty-requests/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json"
       }
     });
@@ -806,10 +807,11 @@ export const alternateDutyAction = async (data: {
   remarks?: string;
 }): Promise<{ success: boolean; message?: string; alternate_duty_status?: string }> => {
   try {
+    const token = sessionStorage.getItem("access_token") || localStorage.getItem("access_token");
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/alternate-duty-requests/action/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -825,10 +827,11 @@ export const renominateAlternateFaculty = async (data: {
   alternate_faculty_id: number | string;
 }): Promise<{ success: boolean; message?: string; data?: any }> => {
   try {
+    const token = sessionStorage.getItem("access_token") || localStorage.getItem("access_token");
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/leaves/renominate-alternate/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
