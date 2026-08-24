@@ -403,47 +403,45 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
   return (
     <>
       <style>{`
-        @media (max-width: 480px) {
-          .leave-card-header { padding: 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
-          .leave-card-title { font-size: 1.125rem !important; }
-          .leave-card-desc { font-size: 0.8125rem !important; margin-top: 4px !important; }
-          .leave-filter-container { display: flex !important; flex-direction: row !important; justify-content: space-between !important; align-items: center !important; width: 100% !important; gap: 8px !important; }
-          .leave-month-wrapper { display: flex !important; flex: 1 !important; min-width: 0 !important; align-items: center !important; gap: 6px !important; }
-          .leave-month-picker { flex: 1 !important; min-width: 0 !important; width: auto !important; margin-top: 0px !important; padding-left: 8px !important; padding-right: 8px !important; font-size: 13px !important; }
-          .leave-filter-select { width: 90px !important; flex-shrink: 0 !important; padding-left: 8px !important; padding-right: 8px !important; font-size: 13px !important; gap: 4px !important; }
-          .leave-item-card { padding: 16px !important; border-radius: 12px !important; }
-          .leave-actions-mobile { width: 100% !important; margin-top: 12px !important; gap: 8px !important; flex-direction: row !important; }
-          .leave-action-btn { flex: 1 !important; height: 38px !important; font-size: 12px !important; font-weight: 600 !important; }
-          .leave-view-btn { width: 100% !important; height: 38px !important; justify-content: center !important; }
+        @media (max-width: 640px) {
+          .leave-card-header { padding: 12px 14px !important; gap: 10px !important; }
+          .leave-filter-container { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; gap: 6px !important; width: 100% !important; }
+          .leave-month-wrapper { flex: 1 1 0% !important; min-width: 0 !important; }
+          .leave-month-picker { width: 100% !important; height: 36px !important; font-size: 12px !important; padding: 0 6px !important; }
+          .leave-role-select { flex: 1 1 0% !important; min-width: 0 !important; width: 100% !important; height: 36px !important; font-size: 12px !important; padding: 0 6px !important; }
+          .leave-filter-select { flex: 0 0 auto !important; height: 36px !important; font-size: 12px !important; padding: 0 10px !important; min-width: 76px !important; }
+          .leave-item-card { padding: 14px !important; border-radius: 12px !important; }
+          .leave-actions-mobile { width: 100% !important; margin-top: 10px !important; gap: 8px !important; flex-direction: row !important; }
+          .leave-action-btn { flex: 1 !important; height: 36px !important; font-size: 12px !important; font-weight: 600 !important; }
+          .leave-view-btn { width: 100% !important; height: 36px !important; justify-content: center !important; }
         }
       `}</style>
 
       <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <Card id="hod-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
-          <CardHeader id="hod-leaves-header-section" className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3">
-                <CardTitle className="text-xl sm:text-2xl font-semibold">Leave Requests</CardTitle>
+          <CardHeader id="hod-leaves-header-section" className="leave-card-header border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6">
+            <div className="flex flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <CardTitle className="text-lg sm:text-2xl font-semibold tracking-tight">Leave Requests</CardTitle>
                 {totalCount > 0 &&
-                  <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
+                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full inline-flex items-center ${theme === 'dark' ? 'bg-primary/15 text-primary border border-primary/20' : 'bg-blue-50 text-blue-700 border border-blue-200'}`}>
                     {totalCount} Total
                   </span>
                 }
               </div>
-              <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
+              <CardDescription className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 {translateTerminology("Review and approve leave and permission requests routed to you for approval")}
               </CardDescription>
             </div>
-            <div className="leave-filter-container flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
-                <div className="leave-month-wrapper flex items-center gap-2">
-                  <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Month:</label>
+            <div className="leave-filter-container flex items-center justify-start sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto">
+                <div className="leave-month-wrapper flex items-center">
                   <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        className={`leave-month-picker ${theme === 'dark' ? 'w-40 justify-start text-left font-normal bg-card text-foreground border-border' : 'w-40 justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}`}>
-
-                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        className={`leave-month-picker ${theme === 'dark' ? 'w-36 sm:w-40 justify-start text-left font-normal bg-card text-foreground border-border' : 'w-36 sm:w-40 justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}`}>
+                        <CalendarIcon className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                        <span className="truncate">
                         {selectedMonth ?
                           (() => {
                             try {
@@ -453,9 +451,9 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                               return selectedMonth;
                             }
                           })() :
-
-                          <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select month</span>
+                          <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Month</span>
                         }
+                        </span>
                       </Button>
                     </PopoverTrigger>
 
@@ -526,7 +524,7 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
 
                 {/* Role Filter */}
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
-                  <SelectTrigger className={`w-[140px] h-9 text-xs sm:text-sm font-medium ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                  <SelectTrigger className={`leave-role-select w-[130px] sm:w-[140px] h-9 text-xs sm:text-sm font-medium ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
                     <SelectValue placeholder="All Roles" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900'}>
