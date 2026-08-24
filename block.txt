@@ -1,0 +1,174 @@
+        }
+
+        // Rule 1 (Present only) & Rule 2 (No tracking after 6 PM) & Rule 3 (Fully Checked Out)
+        if (data.tracking_allowed === false) {
+          if (data.is_after_6pm) {
+            console.log(
+              "⏰ Past 6:00 PM: Geofence tracking disabled for the evening."
+            );
+          } else if (data.is_fully_checked_out) {
+            console.log(
+              "✅ Fully Checked Out: Geofence tracking disabled for the rest of the day."
+            );
+          } else if (data.is_present_today === false) {
+            console.log(
+              "🚫 Faculty not marked present today: Geofence tracking disabled."
+            );
+          }
+          return;
+        }
+
+        const campus = data.campuses[0];
+        const centerLat = campus.latitude;
+        const centerLng = campus.longitude;
+        const radiusMeters = campus.radius_meters || 500;
+
+        if (!centerLat || !centerLng) {
+          console.warn("Active campus location missing centre coordinates.");
+          return;
+        }
+
+        // ── Step 2: Native-only geofence path ─────────────────────────────
+        if (Capacitor.isNativePlatform()) {
+          const token =
+            data.geofence_token || localStorage.getItem("access_token");
+          const CampusGeofence = registerPlugin<any>("CampusGeofence");
+
+          // ── 2a. Check ACTUAL Android permission state (no dialog) ────────
+          //    SOURCE OF TRUTH: what the OS says, not a localStorage flag.
+          const foregroundGranted =
+            await isForegroundLocationGranted(CampusGeofence);
+          const backgroundGranted =
+            foregroundGranted &&
+            (await isBackgroundLocationGranted(CampusGeofence));
+
+          const permissionsAlreadyGranted =
+            foregroundGranted && backgroundGranted;
+
+          if (!permissionsAlreadyGranted) {
+            // ── 2b. Permissions are missing — MUST show disclosure first ───
+            //
+            // Brief safety delay (1.5 s) so the dashboard / onboarding tour
+            // modal is not visually competing with the disclosure on first
+            // open. This is intentionally SHORT — we never poll forever.
+            //
+            // Additionally, if a tour is running, wait for it to finish or
+            // time out (max 10 s). This prevents Joyride's overlay from
+            // clashing with the disclosure, while guaranteeing that the
+            // disclosure always appears eventually.
+            await new Promise<void>((r) => setTimeout(r, 1500));
+
+            if (isMounted) {
+              const resolveUserId = (u: any): string => {
+                if (u?.user_id) return String(u.user_id);
+                if (u?.id) return String(u.id);
+                try {
+                  const stored = sessionStorage.getItem("user");
+                  if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed?.user_id) return String(parsed.user_id);
+                    if (parsed?.id) return String(parsed.id);
+                  }
+                } catch {
+                  /* ignore */
+                }
+                return "anonymous";
+              };
+
+              const userId = resolveUserId(user);
+              const tourSeenKey = `tutorial_seen_${userId}_1`;
+
+              // Guaranteed-terminating tour wait (max 10 s fallback)
+              await waitForTourOrTimeout(tourSeenKey);
+            }
+
+            if (!isMounted) return;
+
+            // ── 2c. PROMINENT DISCLOSURE — immediately before permission ───
+            //
+            // Google Play requirement:
+            //   • Exists inside the app
+            //   • Appears during normal usage
+            //   • Immediately before the location runtime permission
+            //   • Contains "location" and "when the app is closed or not in use"
+            //   • Explains the geofencing feature and server transmission
+            //   • Requires explicit affirmative action (Continue) to proceed
+            //
+            const accepted = await showDisclosure();
+
+            if (!accepted) {
+              // User tapped "Not Now" — abort entirely.
+              // NO permission is requested. NO geofence is registered.
+              // On next app open, if permissions are still missing,
+              // the disclosure will be shown again.
+              console.log(
+                "📍 User declined location disclosure — geofencing aborted."
+              );
+              return;
+            }
+
+            // ── 2d. Request foreground location permission ─────────────────
+            //    Immediately after Continue — this is the system dialog.
+            try {
+              if (CampusGeofence.requestGeofencePermissions) {
+                await CampusGeofence.requestGeofencePermissions();
+              }
+            } catch (permErr) {
+              console.warn(
+                "Foreground location permission not granted:",
+                permErr
+              );
+              // If denied, abort — do not register geofence without permission
+              return;
+            }
+
+            // Brief OS animation settle time
+            await new Promise<void>((r) => setTimeout(r, 800));
+
+            // ── 2e. Request background location permission ─────────────────
+            //    On Android 11+ this opens Location Settings with
+            //    "Allow all the time" option.
+            try {
+              if (CampusGeofence.requestBackgroundPermission) {
+                await CampusGeofence.requestBackgroundPermission();
+              }
+            } catch (bgErr) {
+              console.warn(
+                "Background location permission not granted:",
+                bgErr
+              );
+              // Non-fatal: geofence will not fire when app is killed,
+              // but register anyway for foreground-only coverage.
+            }
+          } else {
+            // Permissions already granted — silently re-register geofence.
+            // No disclosure is needed because no permission dialog will be shown.
+            console.log(
+              "📍 Location permissions already granted — re-registering geofence."
+            );
+          }
+
+          if (!isMounted) return;
+
+          // ── Step 3: Register native geofence ──────────────────────────────
+          // Android → GeofencingClient → GeofenceBroadcastReceiver → Django POST
+          // iOS    → CLCircularRegion  → CampusGeofencePlugin.swift → Django POST
+          try {
+            await CampusGeofence.addGeofence({
+              latitude: centerLat,
+              longitude: centerLng,
+              radius: radiusMeters,
+              campusId: campus.id?.toString() || "CAMPUS_1",
+              serverUrl: `${API_ENDPOINT}/faculty/location/scheduled-ping/`,
+              authToken: token || "",
+            });
+            console.log(
+              `✅ Native ${Capacitor.getPlatform().toUpperCase()} Geofence registered — centre (${centerLat}, ${centerLng}), radius ${radiusMeters}m`
+            );
+          } catch (geoErr) {
+            console.warn("Native Geofence registration error:", geoErr);
+          }
+
+          // ── Step 4: One-time initial position check ────────────────────────
+          // Handles the edge case where faculty opens the app while already
+          // outside campus — the OS only fires EXIT when crossing the boundary,

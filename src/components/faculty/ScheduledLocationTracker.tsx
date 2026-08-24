@@ -235,38 +235,8 @@ export default function ScheduledLocationTracker() {
           return;
         }
 
-        // Rule 1 (Present only) & Rule 2 (No tracking after 6 PM) & Rule 3 (Fully Checked Out)
-        if (data.tracking_allowed === false) {
-          if (data.is_after_6pm) {
-            console.log(
-              "⏰ Past 6:00 PM: Geofence tracking disabled for the evening."
-            );
-          } else if (data.is_fully_checked_out) {
-            console.log(
-              "✅ Fully Checked Out: Geofence tracking disabled for the rest of the day."
-            );
-          } else if (data.is_present_today === false) {
-            console.log(
-              "🚫 Faculty not marked present today: Geofence tracking disabled."
-            );
-          }
-          return;
-        }
-
-        const campus = data.campuses[0];
-        const centerLat = campus.latitude;
-        const centerLng = campus.longitude;
-        const radiusMeters = campus.radius_meters || 500;
-
-        if (!centerLat || !centerLng) {
-          console.warn("Active campus location missing centre coordinates.");
-          return;
-        }
-
-        // ── Step 2: Native-only geofence path ─────────────────────────────
+        // ── Step 2: Native-only permission onboarding (Before eligibility check) ──
         if (Capacitor.isNativePlatform()) {
-          const token =
-            data.geofence_token || localStorage.getItem("access_token");
           const CampusGeofence = registerPlugin<any>("CampusGeofence");
 
           // ── 2a. Check ACTUAL Android permission state (no dialog) ────────
@@ -379,11 +349,46 @@ export default function ScheduledLocationTracker() {
             // Permissions already granted — silently re-register geofence.
             // No disclosure is needed because no permission dialog will be shown.
             console.log(
-              "📍 Location permissions already granted — re-registering geofence."
+              "📍 Location permissions already granted — checking eligibility."
             );
           }
+        }
 
-          if (!isMounted) return;
+        if (!isMounted) return;
+
+        // Rule 1 (Present only) & Rule 2 (No tracking after 6 PM) & Rule 3 (Fully Checked Out)
+        if (data.tracking_allowed === false) {
+          if (data.is_after_6pm) {
+            console.log(
+              "⏰ Past 6:00 PM: Geofence tracking disabled for the evening."
+            );
+          } else if (data.is_fully_checked_out) {
+            console.log(
+              "✅ Fully Checked Out: Geofence tracking disabled for the rest of the day."
+            );
+          } else if (data.is_present_today === false) {
+            console.log(
+              "🚫 Faculty not marked present today: Geofence tracking disabled."
+            );
+          }
+          return;
+        }
+
+        const campus = data.campuses[0];
+        const centerLat = campus.latitude;
+        const centerLng = campus.longitude;
+        const radiusMeters = campus.radius_meters || 500;
+
+        if (!centerLat || !centerLng) {
+          console.warn("Active campus location missing centre coordinates.");
+          return;
+        }
+
+        // ── Step 3: Register native geofence ──────────────────────────────
+        if (Capacitor.isNativePlatform()) {
+          const token =
+            data.geofence_token || localStorage.getItem("access_token");
+          const CampusGeofence = registerPlugin<any>("CampusGeofence");
 
           // ── Step 3: Register native geofence ──────────────────────────────
           // Android → GeofencingClient → GeofenceBroadcastReceiver → Django POST
