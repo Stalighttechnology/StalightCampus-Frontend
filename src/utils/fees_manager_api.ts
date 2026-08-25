@@ -802,9 +802,9 @@ export const savePayrollSettings = async (data: any) => {
   }
 };
 
-export const getSalaryStructures = async (page: number = 1, search: string = '', role: string = '') => {
+export const getSalaryStructures = async (page: number = 1, search: string = '', role: string = '', limit: number = 10) => {
   try {
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/salary-structures/?page=${page}&search=${encodeURIComponent(search)}&role=${encodeURIComponent(role)}`, {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/salary-structures/?page=${page}&search=${encodeURIComponent(search)}&role=${encodeURIComponent(role)}&page_size=${limit}`, {
       method: 'GET'
     });
     return await response.json();
@@ -1005,16 +1005,21 @@ export const createPayrollAdjustment = async (data: any) => {
 };
 
 export const deletePayrollAdjustment = async (id: number) => {
-  try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/adjustments/`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adjustment_id: id })
+        method: 'DELETE',
+        body: JSON.stringify({ adjustment_id: id })
     });
-    return await response.json();
-  } catch (error) {
-    return { success: false, message: 'Network error deleting adjustment' };
-  }
+    if (response) return await response.json();
+    return { success: false, message: 'Network error deleting payroll adjustment' };
+};
+
+export const updatePayrollAdjustmentStatus = async (id: number, action: 'approve' | 'reject') => {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/adjustments/${id}/`, {
+        method: 'PUT',
+        body: JSON.stringify({ action })
+    });
+    if (response) return await response.json();
+    return { success: false, message: 'Network error updating payroll adjustment status' };
 };
 
 // Attendance Lock
