@@ -19,9 +19,12 @@ import { Monitor, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import ScheduledLocationTracker from "./components/faculty/ScheduledLocationTracker";
+import { useVersionControl } from "./hooks/useVersionControl";
+import { MandatoryUpdateScreen } from "./components/common/MandatoryUpdateScreen";
 
 // Lazy loaded components
 const NotFound = lazy(() => import("./components/common/NotFound"));
+
 const PaymentSuccess = lazy(() => import("./components/common/PaymentSuccess"));
 const PaymentCancel = lazy(() => import("./components/common/PaymentCancel"));
 const ResultsView = lazy(() => import("./components/common/ResultsView"));
@@ -175,6 +178,7 @@ const ProtectedRoute = ({
 
 const AppContent = () => {
   useWebSocketNotifications();
+  const { isUpdateRequired, storeUrl } = useVersionControl();
   const { role: userRole, user: userData } = useAuth();
   const [showExitDialog, setShowExitDialog] = useState(false);
   const location = useLocation();
@@ -803,6 +807,7 @@ const AppContent = () => {
       <Toaster />
       <Sonner />
       <NetworkStatus />
+      {isUpdateRequired && <MandatoryUpdateScreen storeUrl={storeUrl} />}
       <FeaturePopup />
       <ScheduledLocationTracker />
       {/* Exit App Premium Bottom Sheet Modal — native mobile only */}
