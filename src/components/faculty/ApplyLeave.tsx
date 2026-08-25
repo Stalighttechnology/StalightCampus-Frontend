@@ -7,7 +7,7 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { PopoverTrigger, Popover, PopoverContent } from '../ui/popover';
-import { CalendarIcon, UserCheck, Clock, CheckCircle2, XCircle, AlertCircle, Users, ArrowRight, ShieldCheck, Eye, ChevronRight, Check } from 'lucide-react';
+import { CalendarIcon, UserCheck, Clock, CheckCircle2, XCircle, AlertCircle, Users, ArrowRight, ShieldCheck, Eye, ChevronRight, Check, FileText, Upload, Paperclip, ExternalLink } from 'lucide-react';
 import { format, isSameDay } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
@@ -18,6 +18,7 @@ import {
   getAlternateDutyRequests,
   alternateDutyAction,
   renominateAlternateFaculty,
+  uploadOdCompletionCertificate,
   LeaveQuota,
   ColleagueOption,
   AlternateDutyRequestItem
@@ -71,6 +72,13 @@ interface LeaveRequestDisplay {
   status: LeaveStatus;
   current_stage?: string;
   configured_stages?: string[];
+  od_purpose_category?: string;
+  initial_document_url?: string | null;
+  completion_document_url?: string | null;
+  od_completion_verified?: boolean;
+  od_completion_verified_by?: string | null;
+  od_completion_verified_at?: string | null;
+  od_completion_remarks?: string;
   alternate_faculty_name?: string | null;
   alternate_duty_status?: string;
   alternate_duty_remarks?: string;
@@ -114,13 +122,21 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [branches, setBranches] = useState<{ id: number; name: string; }[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [selectedSubstituteBranch, setSelectedSubstituteBranch] = useState<string>('');
-  const [leaveType, setLeaveType] = useState<'casual' | 'earned' | 'rh' | 'short_permission'>('casual');
+  const [leaveType, setLeaveType] = useState<'casual' | 'earned' | 'od' | 'vacation' | 'rh' | 'maternity' | 'short_permission'>('casual');
+  const [odPurposeCategory, setOdPurposeCategory] = useState<string>('conference');
+  const [initialDocFile, setInitialDocFile] = useState<File | null>(null);
   const [isHalfDay, setIsHalfDay] = useState<boolean>(false);
   const [halfDaySession, setHalfDaySession] = useState<'forenoon' | 'afternoon'>('afternoon');
   const [targetRole, setTargetRole] = useState<string>('');
   const [selectedAlternateFaculty, setSelectedAlternateFaculty] = useState<string>('');
   const [availableColleagues, setAvailableColleagues] = useState<ColleagueOption[]>([]);
   const [permissionDate, setPermissionDate] = useState<Date | undefined>();
+
+  // Post-OD Certificate Upload state
+  const [uploadCertModalOpen, setUploadCertModalOpen] = useState<boolean>(false);
+  const [targetOdLeave, setTargetOdLeave] = useState<LeaveRequestDisplay | null>(null);
+  const [completionCertFile, setCompletionCertFile] = useState<File | null>(null);
+  const [uploadingCert, setUploadingCert] = useState<boolean>(false);
 
   // Alternate Duty requests assigned to current user
   const [substituteRequests, setSubstituteRequests] = useState<AlternateDutyRequestItem[]>([]);
@@ -234,6 +250,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               status: mappedStatus,
               current_stage: leave.current_stage,
               configured_stages: leave.configured_stages,
+              od_purpose_category: leave.od_purpose_category,
+              initial_document_url: leave.initial_document_url,
+              completion_document_url: leave.completion_document_url,
+              od_completion_verified: leave.od_completion_verified,
+              od_completion_verified_by: leave.od_completion_verified_by,
+              od_completion_verified_at: leave.od_completion_verified_at,
+              od_completion_remarks: leave.od_completion_remarks,
               alternate_faculty_name: leave.alternate_faculty_name,
               alternate_duty_status: leave.alternate_duty_status,
               alternate_duty_remarks: leave.alternate_duty_remarks,
@@ -472,10 +495,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       const endD = dateRange.to;
       const diffDays = Math.ceil((endD.getTime() - startD.getTime()) / (1000 * 3600 * 24)) + 1;
 
-      if (leaveType === 'casual' && diffDays > 3) {
+      if (leaveType === 'casual' && diffDays > (leaveQuota?.cl_max_stretch ?? 3)) {
         await MySwal.fire({
-          title: 'CL Limit (9.8 Rule)',
-          text: 'Casual Leave (CL) can be availed for a maximum of 3 days at a stretch.',
+          title: 'CL Limit (Rule 9.8.1)',
+          text: `Casual Leave (CL) can be availed for a maximum of ${leaveQuota?.cl_max_stretch ?? 3} days at a stretch.`,
           icon: 'warning',
           confirmButtonColor: '#f59e0b',
           background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
@@ -484,22 +507,38 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         return;
       }
 
-      if (leaveType === 'earned' && (diffDays < 2 || diffDays > 5)) {
-        await MySwal.fire({
-          title: 'EL Rule (9.8 Rule)',
-          text: `Earned Leave (EL) requires a minimum of 2 days and a maximum of 5 days at a stretch. Selected: ${diffDays} day(s).`,
-          icon: 'warning',
-          confirmButtonColor: '#f59e0b',
-          background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
-          color: currentTheme === 'dark' ? '#ffffff' : '#000000'
-        });
-        return;
+      if (leaveType === 'earned') {
+        const minStretch = leaveQuota?.el_min_stretch ?? 2;
+        const maxStretch = leaveQuota?.el_max_stretch ?? 5;
+        if (diffDays < minStretch || diffDays > maxStretch) {
+          await MySwal.fire({
+            title: 'EL Rule (Rule 9.8.3)',
+            text: `Earned Leave (EL) requires a minimum of ${minStretch} days and a maximum of ${maxStretch} days at a stretch. Selected: ${diffDays} day(s).`,
+            icon: 'warning',
+            confirmButtonColor: '#f59e0b',
+            background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+            color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+          });
+          return;
+        }
       }
 
       if (leaveType === 'rh' && diffDays > 1) {
         await MySwal.fire({
-          title: 'Restricted Holiday (9.8 Rule)',
+          title: 'Restricted Holiday (Rule 9.8.7)',
           text: 'Restricted Holiday (RH) can only be availed for 1 day at a time (max 1 per month).',
+          icon: 'warning',
+          confirmButtonColor: '#f59e0b',
+          background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+        });
+        return;
+      }
+
+      if (leaveType === 'maternity' && diffDays > (leaveQuota?.maternity_annual_limit ?? 90)) {
+        await MySwal.fire({
+          title: 'Maternity Leave Limit (Rule 9.8.5)',
+          text: `Maternity leave cannot exceed ${leaveQuota?.maternity_annual_limit ?? 90} days per year. Selected: ${diffDays} days.`,
           icon: 'warning',
           confirmButtonColor: '#f59e0b',
           background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
@@ -562,7 +601,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     const startTimeStr = leaveType === 'short_permission' ? formatTime24h(startTimeParts.hour, startTimeParts.minute, startTimeParts.period) : undefined;
     const endTimeStr = leaveType === 'short_permission' ? formatTime24h(endTimeParts.hour, endTimeParts.minute, endTimeParts.period) : undefined;
 
-    const requestData = {
+    const requestData: any = {
       title: title.trim(),
       branch_ids: [parseInt(selectedBranch)],
       start_date: startDateStr,
@@ -576,9 +615,19 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       alternate_faculty_id: (selectedAlternateFaculty && selectedAlternateFaculty !== 'none') ? parseInt(selectedAlternateFaculty) : null
     };
 
+    if (leaveType === 'od') {
+      requestData.od_purpose_category = odPurposeCategory;
+    }
+    if (initialDocFile) {
+      requestData.document = initialDocFile;
+    }
+
     const typeLabel = 
       leaveType === 'short_permission' ? 'Short Permission' :
       leaveType === 'earned' ? 'Earned Leave (EL)' :
+      leaveType === 'od' ? `On Duty (OD) - ${odPurposeCategory.replace('_', ' ').toUpperCase()}` :
+      leaveType === 'vacation' ? 'Vacation Leave' :
+      leaveType === 'maternity' ? 'Maternity Leave' :
       leaveType === 'rh' ? 'Restricted Holiday (RH)' :
       (isHalfDay ? `Casual Leave (CL) - Half Day (${halfDaySession === 'forenoon' ? 'Morning' : 'Afternoon'})` : 'Casual Leave (CL)');
 
@@ -597,6 +646,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           <div style="margin-bottom: 6px;"><strong>Category:</strong> <span style="color: ${currentTheme === 'dark' ? '#60a5fa' : '#2563eb'}; font-weight: 600;">${typeLabel}</span></div>
           <div style="margin-bottom: 6px;"><strong>Period / Time:</strong> <span>${dateDisplay}</span></div>
           <div style="margin-bottom: 6px;"><strong>Title:</strong> <span>${title.trim()}</span></div>
+          ${initialDocFile ? `<div style="margin-bottom: 6px;"><strong>Attached Document:</strong> <span>${initialDocFile.name}</span></div>` : ''}
           ${alternateFacultyObj ? `<div style="margin-bottom: 6px;"><strong>Substitute Faculty:</strong> <span>${alternateFacultyObj.name}</span></div>` : ''}
           <div style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed ${currentTheme === 'dark' ? '#374151' : '#e5e7eb'}; font-size: 13px; opacity: 0.9;">
             Are you sure you want to submit this leave application for approval?
@@ -641,6 +691,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         setTargetRole('');
         setSelectedSubstituteBranch('');
         setSelectedAlternateFaculty('');
+        setInitialDocFile(null);
 
         window.dispatchEvent(new CustomEvent('leaves-updated'));
         fetchBootstrapData();
@@ -756,20 +807,77 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             </p>
           </div>
 
-          {/* EL Card */}
-          <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Earned Leave (EL)</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 font-semibold whitespace-nowrap shrink-0">
-                {leaveQuota?.el_min_stretch ?? 2} - {leaveQuota?.el_max_stretch ?? 5}d Stretch
-              </span>
+          {/* On Duty (OD) Card */}
+          {leaveQuota?.is_od_eligible !== false && (
+            <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">On Duty (OD)</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 font-semibold whitespace-nowrap shrink-0">
+                  Duty Deputation
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">{leaveQuota?.od_total_approved_days ?? 0}</span>
+                <span className="text-xs text-muted-foreground">days availed</span>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {leaveQuota?.od_pending_certificates_count && leaveQuota.od_pending_certificates_count > 0 ? (
+                  <span className="text-amber-500 font-semibold">⚠️ {leaveQuota.od_pending_certificates_count} attendance cert(s) pending</span>
+                ) : 'Post-OD certificate upload required'}
+              </p>
             </div>
-            <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl font-semibold text-amber-600 dark:text-amber-400">{leaveQuota?.el_remaining ?? (leaveQuota?.el_credited_so_far ?? 15)}</span>
-              <span className="text-xs text-muted-foreground">/ {leaveQuota?.el_credited_so_far ?? leaveQuota?.el_accrued_to_date ?? 15} credited</span>
+          )}
+
+          {/* EL Card (if eligible) */}
+          {leaveQuota?.is_el_eligible !== false && (
+            <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Earned Leave (EL)</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 font-semibold whitespace-nowrap shrink-0">
+                  {leaveQuota?.el_min_stretch ?? 2} - {leaveQuota?.el_max_stretch ?? 5}d Stretch
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="text-2xl font-semibold text-amber-600 dark:text-amber-400">{leaveQuota?.el_remaining ?? (leaveQuota?.el_credited_so_far ?? 15)}</span>
+                <span className="text-xs text-muted-foreground">/ {leaveQuota?.el_credited_so_far ?? leaveQuota?.el_accrued_to_date ?? 15} credited</span>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">{leaveQuota?.el_half_year_period || 'Credited: 7 in Jan, 8 in Jul (Non-accum.)'}</p>
             </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">{leaveQuota?.el_half_year_period || 'Credited: 7 in Jan, 8 in Jul (Non-accum.)'}</p>
-          </div>
+          )}
+
+          {/* Vacation Leave Card (if eligible) */}
+          {leaveQuota?.is_vacation_eligible === true && (
+            <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Vacation Leave</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400 font-semibold whitespace-nowrap shrink-0">
+                  Teaching Staff
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="text-2xl font-semibold text-teal-600 dark:text-teal-400">{leaveQuota?.vacation_remaining ?? 60}</span>
+                <span className="text-xs text-muted-foreground">/ {leaveQuota?.vacation_annual_limit ?? 60} days left</span>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">Used: {leaveQuota?.vacation_used ?? 0} days | Per College Schedule</p>
+            </div>
+          )}
+
+          {/* Maternity Leave Card (if eligible) */}
+          {leaveQuota?.is_maternity_eligible === true && (
+            <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Maternity Leave</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 dark:bg-pink-950/40 dark:text-pink-400 font-semibold whitespace-nowrap shrink-0">
+                  Max 90 Days
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="text-2xl font-semibold text-pink-600 dark:text-pink-400">{leaveQuota?.maternity_remaining ?? 90}</span>
+                <span className="text-xs text-muted-foreground">/ {leaveQuota?.maternity_annual_limit ?? 90} days left</span>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">Used: {leaveQuota?.maternity_used ?? 0} days | Medical proof required</p>
+            </div>
+          )}
 
           {/* RH Card */}
           <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
@@ -959,99 +1067,148 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </div>
                 )}
 
-                {/* 4-way Leave Type Switcher / Dropdown */}
-                <div className="space-y-2">
-                  <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Category <span className="text-red-500">*</span></Label>
-                  
-                  {/* Mobile Dropdown (< sm) */}
-                  <div className="sm:hidden">
-                    <Select
-                      value={leaveType}
-                      onValueChange={(val: 'casual' | 'earned' | 'rh' | 'short_permission') => {
-                        setLeaveType(val);
-                        if (val === 'short_permission') {
-                          const liveTimes = getInitialTimes();
-                          setStartTimeParts(liveTimes.start);
-                          setEndTimeParts(liveTimes.end);
-                          if (!permissionDate) {
-                            setPermissionDate(new Date());
-                          }
-                        }
-                      }}
-                    >
-                      <SelectTrigger className={`apply-leave-input w-full text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                        <SelectValue placeholder="Select Leave Category" />
-                      </SelectTrigger>
-                      <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                        <SelectItem value="casual">Casual Leave (CL)</SelectItem>
-                        <SelectItem value="earned">Earned Leave (EL)</SelectItem>
-                        <SelectItem value="rh">Restricted Holiday (RH)</SelectItem>
-                        <SelectItem value="short_permission">Short Permission</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                {/* Dynamic Leave Category Switcher based on 9.8 Role Eligibility */}
+                {(() => {
+                  const availableCategories = [
+                    { id: 'casual', label: 'Casual (CL)', fullLabel: 'Casual Leave (CL)', visible: true },
+                    { id: 'od', label: 'On Duty (OD)', fullLabel: 'On Duty (OD)', visible: leaveQuota?.is_od_eligible !== false },
+                    { id: 'earned', label: 'Earned (EL)', fullLabel: 'Earned Leave (EL)', visible: leaveQuota?.is_el_eligible !== false },
+                    { id: 'vacation', label: 'Vacation', fullLabel: 'Vacation Leave', visible: leaveQuota?.is_vacation_eligible === true },
+                    { id: 'rh', label: 'Holiday (RH)', fullLabel: 'Restricted Holiday (RH)', visible: true },
+                    { id: 'maternity', label: 'Maternity', fullLabel: 'Maternity Leave', visible: leaveQuota?.is_maternity_eligible === true },
+                    { id: 'short_permission', label: 'Permission', fullLabel: 'Short Permission', visible: true },
+                  ].filter(c => c.visible);
 
-                  {/* Desktop / Tablet Grid Switcher (sm+) */}
-                  <div className={`hidden sm:grid p-1 rounded-xl grid-cols-4 gap-1 ${theme === 'dark' ? 'bg-muted/40 border border-border/60' : 'bg-slate-100 border border-slate-200'}`}>
-                    <button
-                      type="button"
-                      onClick={() => setLeaveType('casual')}
-                      className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${leaveType === 'casual'
-                        ? 'bg-primary text-white shadow-md'
-                        : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                      Casual (CL)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLeaveType('earned')}
-                      className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${leaveType === 'earned'
-                        ? 'bg-primary text-white shadow-md'
-                        : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                      Earned (EL)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLeaveType('rh')}
-                      className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${leaveType === 'rh'
-                        ? 'bg-primary text-white shadow-md'
-                        : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                      Holiday (RH)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLeaveType('short_permission');
-                        const liveTimes = getInitialTimes();
-                        setStartTimeParts(liveTimes.start);
-                        setEndTimeParts(liveTimes.end);
-                        if (!permissionDate) {
-                          setPermissionDate(new Date());
-                        }
-                      }}
-                      className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${leaveType === 'short_permission'
-                        ? 'bg-primary text-white shadow-md'
-                        : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                      Short Permission
-                    </button>
-                  </div>
+                  return (
+                    <div className="space-y-2">
+                      <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Category <span className="text-red-500">*</span></Label>
+                      
+                      {/* Mobile Dropdown (< sm) */}
+                      <div className="sm:hidden">
+                        <Select
+                          value={leaveType}
+                          onValueChange={(val: any) => {
+                            setLeaveType(val);
+                            if (val === 'short_permission') {
+                              const liveTimes = getInitialTimes();
+                              setStartTimeParts(liveTimes.start);
+                              setEndTimeParts(liveTimes.end);
+                              if (!permissionDate) {
+                                setPermissionDate(new Date());
+                              }
+                            }
+                          }}
+                        >
+                          <SelectTrigger className={`apply-leave-input w-full text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                            <SelectValue placeholder="Select Leave Category" />
+                          </SelectTrigger>
+                          <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                            {availableCategories.map(cat => (
+                              <SelectItem key={cat.id} value={cat.id}>{cat.fullLabel}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                  {/* 9.8 Rule Tip */}
-                  <div className="text-[11px] text-muted-foreground pt-0.5">
-                    {leaveType === 'casual' && 'ℹ️ Max 3 days at a stretch. Cannot combine with other leave. Advance sanction required.'}
-                    {leaveType === 'earned' && 'ℹ️ 15 days/yr (7 Jan, 8 Jul). Min 2 days and max 5 days at a stretch. Non-accumulative.'}
-                    {leaveType === 'rh' && 'ℹ️ Max 2 days per year, limited to 1 day per calendar month.'}
-                    {leaveType === 'short_permission' && 'ℹ️ Max 2 hours per permission, allowed up to 5 times per month.'}
-                  </div>
-                </div>
+                      {/* Desktop / Tablet Grid Switcher (sm+) */}
+                      <div className={`hidden sm:flex flex-wrap p-1 rounded-xl gap-1 ${theme === 'dark' ? 'bg-muted/40 border border-border/60' : 'bg-slate-100 border border-slate-200'}`}>
+                        {availableCategories.map(cat => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => {
+                              setLeaveType(cat.id as any);
+                              if (cat.id === 'short_permission') {
+                                const liveTimes = getInitialTimes();
+                                setStartTimeParts(liveTimes.start);
+                                setEndTimeParts(liveTimes.end);
+                                if (!permissionDate) {
+                                  setPermissionDate(new Date());
+                                }
+                              }
+                            }}
+                            className={`flex-1 min-w-[90px] py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${leaveType === cat.id
+                              ? 'bg-primary text-white shadow-md'
+                              : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                          >
+                            {cat.label}
+                          </button>
+                        ))}
+                      </div>
 
+                      {/* 9.8 Rule Tip */}
+                      <div className="text-[11px] text-muted-foreground pt-0.5">
+                        {leaveType === 'casual' && 'ℹ️ Rule 9.8.1: Max 3 days at a stretch. Cannot combine with other leave. Advance sanction required.'}
+                        {leaveType === 'od' && 'ℹ️ Rule 9.8.2: For conferences, workshops, Ph.D, statutory/exam duties. Attendance certificate required post-completion.'}
+                        {leaveType === 'earned' && 'ℹ️ Rule 9.8.3: 15 days/yr (7 Jan, 8 Jul). Min 2 days, max 5 days at a stretch. Non-accumulative.'}
+                        {leaveType === 'vacation' && 'ℹ️ Rule 9.8.4: For non-probationary vacational teaching staff as per college vacation schedule.'}
+                        {leaveType === 'maternity' && 'ℹ️ Rule 9.8.5: Up to 90 days for eligible female employees. Attach medical certificate.'}
+                        {leaveType === 'rh' && 'ℹ️ Rule 9.8.7: Max 2 days per year, limited to 1 day per calendar month.'}
+                        {leaveType === 'short_permission' && 'ℹ️ Rule 9.8.8: Max 2 hours per permission, allowed up to 5 times per month.'}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* On Duty (OD) Purpose Selector & Initial File Attachment */}
+                {leaveType === 'od' && (
+                  <div className="space-y-4 p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/5">
+                    <div className="space-y-2">
+                      <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        OD Purpose Category <span className="text-red-500">*</span>
+                      </Label>
+                      <Select value={odPurposeCategory} onValueChange={setOdPurposeCategory}>
+                        <SelectTrigger className={`w-full text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                          <SelectValue placeholder="Select OD Purpose..." />
+                        </SelectTrigger>
+                        <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                          <SelectItem value="conference">Conference / Symposia</SelectItem>
+                          <SelectItem value="workshop">Workshop / FDP</SelectItem>
+                          <SelectItem value="seminar">Seminar / Panel</SelectItem>
+                          <SelectItem value="meeting">Official Meeting</SelectItem>
+                          <SelectItem value="phd_work">Ph.D Research / Thesis Works</SelectItem>
+                          <SelectItem value="statutory_work">VTU / AICTE / Statutory Committee Duty</SelectItem>
+                          <SelectItem value="exam_work">Paper Valuation / Examination Duty</SelectItem>
+                          <SelectItem value="management_assigned">Institute / Management Assigned Duty</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold flex items-center gap-1.5">
+                        <Paperclip className="w-3.5 h-3.5 text-primary" />
+                        <span>Invitation / Deputation Letter / Duty Order (Optional/Recommended)</span>
+                      </Label>
+                      <Input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                        onChange={(e) => setInitialDocFile(e.target.files?.[0] || null)}
+                        className={`text-xs ${theme === 'dark' ? 'bg-background border-border file:text-foreground' : 'bg-white file:text-gray-700'}`}
+                      />
+                      <p className="text-[10px] text-muted-foreground">Supported formats: PDF, JPG, PNG, DOC (Max 10MB)</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Maternity Leave Document Attachment */}
+                {leaveType === 'maternity' && (
+                  <div className="space-y-3 p-3.5 rounded-xl border border-pink-500/30 bg-pink-500/5">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold flex items-center gap-1.5">
+                        <Paperclip className="w-3.5 h-3.5 text-pink-500" />
+                        <span>Medical Certificate / Doctor Endorsement <span className="text-red-500">*</span></span>
+                      </Label>
+                      <Input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                        onChange={(e) => setInitialDocFile(e.target.files?.[0] || null)}
+                        className={`text-xs ${theme === 'dark' ? 'bg-background border-border file:text-foreground' : 'bg-white file:text-gray-700'}`}
+                      />
+                      <p className="text-[10px] text-muted-foreground">Please attach official medical certificate from a registered practitioner.</p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Title */}
                 <div className="space-y-2">
@@ -1729,9 +1886,62 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                 {leave.from === leave.to ? leave.from : `${leave.from} to ${leave.to}`}
                                 <span className="uppercase text-[10px] ml-1 font-semibold text-primary">({leave.leave_type})</span>
                               </div>
+                              {leave.od_purpose_category && (
+                                <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                  Purpose: {leave.od_purpose_category.replace('_', ' ').toUpperCase()}
+                                </div>
+                              )}
+                              {leave.initial_document_url && (
+                                <a
+                                  href={leave.initial_document_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-[10px] text-blue-500 hover:underline flex items-center gap-1 mt-0.5 font-medium"
+                                >
+                                  <FileText className="w-3 h-3" /> View Initial Order / Letter <ExternalLink className="w-2.5 h-2.5" />
+                                </a>
+                              )}
                               {leave.alternate_faculty_name && (
                                 <div className="text-[11px] text-muted-foreground mt-1">
                                   Substitute: <span className="text-foreground font-medium">{leave.alternate_faculty_name}</span> ({leave.alternate_duty_status})
+                                </div>
+                              )}
+
+                              {/* Post-OD Attendance Certificate State */}
+                              {leave.leave_type === 'od' && leave.status === 'Approved' && (
+                                <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
+                                  {leave.completion_document_url ? (
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <a
+                                        href={leave.completion_document_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold hover:underline flex items-center gap-1"
+                                      >
+                                        <FileText className="w-3 h-3" /> Attendance Certificate <ExternalLink className="w-2.5 h-2.5" />
+                                      </a>
+                                      <span className={`text-[9px] px-1.5 py-0.2 rounded font-semibold ${
+                                        leave.od_completion_verified
+                                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400'
+                                          : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400'
+                                      }`}>
+                                        {leave.od_completion_verified ? 'Verified by HoD' : 'Pending Verification'}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => {
+                                        setTargetOdLeave(leave);
+                                        setUploadCertModalOpen(true);
+                                        setCompletionCertFile(null);
+                                      }}
+                                      className="text-[10px] h-6 px-2 font-semibold text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 flex items-center gap-1 w-full justify-center"
+                                    >
+                                      <Upload className="w-3 h-3" /> Upload Attendance Certificate
+                                    </Button>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -1786,6 +1996,21 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   <span className="text-[10px] uppercase font-semibold px-1.5 py-0.2 rounded bg-primary/10 text-primary w-fit">
                                     {leave.leave_type?.replace('_', ' ')}
                                   </span>
+                                  {leave.od_purpose_category && (
+                                    <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400 w-fit">
+                                      OD: {leave.od_purpose_category.replace('_', ' ').toUpperCase()}
+                                    </span>
+                                  )}
+                                  {leave.initial_document_url && (
+                                    <a
+                                      href={leave.initial_document_url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-[10px] text-blue-500 hover:underline flex items-center gap-1 font-medium"
+                                    >
+                                      <FileText className="w-3 h-3" /> Duty Order Proof <ExternalLink className="w-2.5 h-2.5" />
+                                    </a>
+                                  )}
                                   {leave.is_half_day && (
                                     <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 w-fit">
                                       Half-Day ({leave.half_day_session?.toLowerCase() === 'forenoon' || leave.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
@@ -1818,6 +2043,44 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                               </td>
                               <td className="py-3 px-3">
                                 {renderStatus(leave)}
+
+                                {/* OD Post-Completion Certificate Actions in Table */}
+                                {leave.leave_type === 'od' && leave.status === 'Approved' && (
+                                  <div className="mt-1.5 space-y-1">
+                                    {leave.completion_document_url ? (
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <a
+                                          href={leave.completion_document_url}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold hover:underline flex items-center gap-1"
+                                        >
+                                          <FileText className="w-3 h-3" /> Attendance Cert <ExternalLink className="w-2.5 h-2.5" />
+                                        </a>
+                                        <span className={`text-[9px] px-1.5 py-0.2 rounded font-semibold ${
+                                          leave.od_completion_verified
+                                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400'
+                                            : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400'
+                                        }`}>
+                                          {leave.od_completion_verified ? 'Verified' : 'Pending Verification'}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => {
+                                          setTargetOdLeave(leave);
+                                          setUploadCertModalOpen(true);
+                                          setCompletionCertFile(null);
+                                        }}
+                                        className="text-[10px] h-6 px-2 font-semibold text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 flex items-center gap-1"
+                                      >
+                                        <Upload className="w-3 h-3" /> Upload Attendance Cert
+                                      </Button>
+                                    )}
+                                  </div>
+                                )}
                               </td>
                               <td className="py-3 px-3 text-right">
                                 <Button
@@ -2190,6 +2453,111 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 Close
               </Button>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Upload Post-OD Attendance Certificate Dialog (Rule 9.8.2) */}
+        <Dialog open={uploadCertModalOpen} onOpenChange={setUploadCertModalOpen}>
+          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-xl p-5 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-xl p-5 sm:p-6'}>
+            <DialogHeader>
+              <DialogTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
+                <Upload className="w-5 h-5 text-primary" />
+                Upload OD Attendance Certificate
+              </DialogTitle>
+            </DialogHeader>
+
+            {targetOdLeave && (
+              <div className="space-y-4 mt-2">
+                <div className={`p-3 rounded-lg border text-xs space-y-1 ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-slate-50 border-slate-200'}`}>
+                  <div className="font-semibold text-foreground">{targetOdLeave.title}</div>
+                  <div className="text-muted-foreground">
+                    Period: {targetOdLeave.from === targetOdLeave.to ? targetOdLeave.from : `${targetOdLeave.from} to ${targetOdLeave.to}`}
+                  </div>
+                  {targetOdLeave.od_purpose_category && (
+                    <div className="text-emerald-600 dark:text-emerald-400 font-medium">
+                      Purpose: {targetOdLeave.od_purpose_category.replace('_', ' ').toUpperCase()}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold">
+                    Attendance / Participation Certificate File <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                    onChange={(e) => setCompletionCertFile(e.target.files?.[0] || null)}
+                    className={`text-xs ${theme === 'dark' ? 'bg-background border-border file:text-foreground' : 'bg-white file:text-gray-700'}`}
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Rule 9.8.2 requires submitting the attendance certificate after completing the On Duty period. This will be verified by your HoD.
+                  </p>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t border-border">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setUploadCertModalOpen(false);
+                      setTargetOdLeave(null);
+                      setCompletionCertFile(null);
+                    }}
+                    disabled={uploadingCert}
+                    className="text-xs h-8 px-3"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!targetOdLeave || !completionCertFile) {
+                        await MySwal.fire({
+                          title: 'File Required',
+                          text: 'Please select a certificate file to upload.',
+                          icon: 'warning',
+                          confirmButtonColor: '#3b82f6'
+                        });
+                        return;
+                      }
+                      setUploadingCert(true);
+                      try {
+                        const res = await uploadOdCompletionCertificate({
+                          leave_id: targetOdLeave.id,
+                          file: completionCertFile
+                        });
+                        if (res.success) {
+                          await MySwal.fire({
+                            title: 'Certificate Uploaded!',
+                            text: res.message || 'Your OD attendance certificate has been submitted for HoD verification.',
+                            icon: 'success',
+                            confirmButtonColor: '#10b981'
+                          });
+                          setUploadCertModalOpen(false);
+                          setTargetOdLeave(null);
+                          setCompletionCertFile(null);
+                          fetchBootstrapData();
+                        } else {
+                          throw new Error(res.message || 'Failed to upload certificate');
+                        }
+                      } catch (err: any) {
+                        await MySwal.fire({
+                          title: 'Upload Failed',
+                          text: err.message || 'Failed to upload certificate',
+                          icon: 'error',
+                          confirmButtonColor: '#ef4444'
+                        });
+                      } finally {
+                        setUploadingCert(false);
+                      }
+                    }}
+                    disabled={!completionCertFile || uploadingCert}
+                    className="bg-primary hover:bg-primary/90 text-white text-xs h-8 px-4 font-semibold"
+                  >
+                    {uploadingCert ? 'Uploading...' : 'Submit Certificate'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
