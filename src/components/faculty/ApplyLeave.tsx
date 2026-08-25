@@ -1,5 +1,5 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -7,7 +7,7 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { PopoverTrigger, Popover, PopoverContent } from '../ui/popover';
-import { CalendarIcon, UserCheck, Clock, CheckCircle2, XCircle, AlertCircle, Users, ArrowRight, ShieldCheck, Eye, ChevronRight, Check, FileText, Upload, Paperclip, ExternalLink } from 'lucide-react';
+import { CalendarIcon, UserCheck, Clock, CheckCircle2, XCircle, AlertCircle, Users, ArrowRight, ShieldCheck, Eye, ChevronRight, Check, FileText, Upload, Paperclip, ExternalLink, Image as ImageIcon, X } from 'lucide-react';
 import { format, isSameDay } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
@@ -125,6 +125,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [leaveType, setLeaveType] = useState<'casual' | 'earned' | 'od' | 'vacation' | 'rh' | 'maternity' | 'short_permission'>('casual');
   const [odPurposeCategory, setOdPurposeCategory] = useState<string>('conference');
   const [initialDocFile, setInitialDocFile] = useState<File | null>(null);
+  const [docPreviewUrl, setDocPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [isHalfDay, setIsHalfDay] = useState<boolean>(false);
   const [halfDaySession, setHalfDaySession] = useState<'forenoon' | 'afternoon'>('afternoon');
   const [targetRole, setTargetRole] = useState<string>('');
@@ -136,7 +139,29 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [uploadCertModalOpen, setUploadCertModalOpen] = useState<boolean>(false);
   const [targetOdLeave, setTargetOdLeave] = useState<LeaveRequestDisplay | null>(null);
   const [completionCertFile, setCompletionCertFile] = useState<File | null>(null);
+  const [certPreviewUrl, setCertPreviewUrl] = useState<string | null>(null);
+  const certFileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadingCert, setUploadingCert] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (initialDocFile && (initialDocFile.type.startsWith('image/') || ['jpg', 'jpeg', 'png'].includes(initialDocFile.name.split('.').pop()?.toLowerCase() || ''))) {
+      const url = URL.createObjectURL(initialDocFile);
+      setDocPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setDocPreviewUrl(null);
+    }
+  }, [initialDocFile]);
+
+  useEffect(() => {
+    if (completionCertFile && (completionCertFile.type.startsWith('image/') || ['jpg', 'jpeg', 'png'].includes(completionCertFile.name.split('.').pop()?.toLowerCase() || ''))) {
+      const url = URL.createObjectURL(completionCertFile);
+      setCertPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setCertPreviewUrl(null);
+    }
+  }, [completionCertFile]);
 
   // Alternate Duty requests assigned to current user
   const [substituteRequests, setSubstituteRequests] = useState<AlternateDutyRequestItem[]>([]);
@@ -594,16 +619,30 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       }
     }
 
-    if (initialDocFile && initialDocFile.size > 1024 * 1024) {
-      await MySwal.fire({
-        title: 'Attachment Too Large',
-        text: `The attached document (${(initialDocFile.size / (1024 * 1024)).toFixed(2)} MB) must be less than 1 MB. Please upload a compressed document under 1 MB.`,
-        icon: 'warning',
-        confirmButtonColor: '#f59e0b',
-        background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
-        color: currentTheme === 'dark' ? '#ffffff' : '#000000'
-      });
-      return;
+    if (initialDocFile) {
+      const ext = initialDocFile.name.split('.').pop()?.toLowerCase() || '';
+      if (!['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'].includes(ext)) {
+        await MySwal.fire({
+          title: 'Unsupported File Format',
+          text: 'For images, only JPG and PNG formats are allowed (documents: PDF, DOC, DOCX).',
+          icon: 'warning',
+          confirmButtonColor: '#f59e0b',
+          background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+        });
+        return;
+      }
+      if (initialDocFile.size > 1024 * 1024) {
+        await MySwal.fire({
+          title: 'Attachment Too Large',
+          text: `The attached document (${(initialDocFile.size / (1024 * 1024)).toFixed(2)} MB) must be less than 1 MB. Please upload a compressed document under 1 MB.`,
+          icon: 'warning',
+          confirmButtonColor: '#f59e0b',
+          background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+        });
+        return;
+      }
     }
 
     setError(null);
@@ -1211,10 +1250,15 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   );
                 })()}
 
-                {/* On Duty (OD) Purpose Selector & Initial File Attachment */}
-                {leaveType === 'od' && (
-                  <div className="space-y-4 p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/5">
-                    <div className="space-y-2">
+                {/* Universal File / Image Attachment Section */}
+                <div className={`p-3.5 rounded-xl border space-y-3 ${
+                  leaveType === 'od' ? 'border-emerald-500/30 bg-emerald-500/5' :
+                  leaveType === 'maternity' ? 'border-pink-500/30 bg-pink-500/5' :
+                  theme === 'dark' ? 'border-border/60 bg-muted/10' : 'border-slate-200 bg-slate-50/70'
+                }`}>
+                  {/* OD Purpose Category */}
+                  {leaveType === 'od' && (
+                    <div className="space-y-2 pb-2 border-b border-emerald-500/20">
                       <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                         OD Purpose Category <span className="text-red-500">*</span>
                       </Label>
@@ -1234,73 +1278,149 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         </SelectContent>
                       </Select>
                     </div>
+                  )}
 
-                    <div className="space-y-2">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
                       <Label className="text-xs font-semibold flex items-center gap-1.5">
-                        <Paperclip className="w-3.5 h-3.5 text-primary" />
-                        <span>Invitation / Deputation Letter / Duty Order (Optional/Recommended)</span>
+                        <Paperclip className={`w-3.5 h-3.5 ${leaveType === 'maternity' ? 'text-pink-500' : 'text-primary'}`} />
+                        <span>
+                          {leaveType === 'od' ? 'Invitation / Deputation Letter / Duty Order' :
+                           leaveType === 'maternity' ? 'Medical Certificate / Doctor Endorsement' :
+                           'Supporting Document / Image Proof'}
+                        </span>
+                        {leaveType === 'maternity' && <span className="text-red-500">*</span>}
+                        {leaveType !== 'maternity' && <span className="text-[10px] text-muted-foreground font-normal">(Optional)</span>}
                       </Label>
-                      <Input
-                        type="file"
-                        accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0] || null;
-                          if (file && file.size > 1024 * 1024) {
-                            e.target.value = '';
-                            setInitialDocFile(null);
-                            await MySwal.fire({
-                              title: 'File Size Exceeded',
-                              text: `The selected file (${(file.size / (1024 * 1024)).toFixed(2)} MB) exceeds the maximum allowed limit of 1 MB. Please upload a file under 1 MB.`,
-                              icon: 'warning',
-                              confirmButtonColor: '#f59e0b',
-                              background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
-                              color: currentTheme === 'dark' ? '#ffffff' : '#000000'
-                            });
-                            return;
-                          }
-                          setInitialDocFile(file);
-                        }}
-                        className={`text-xs ${theme === 'dark' ? 'bg-background border-border file:text-foreground' : 'bg-white file:text-gray-700'}`}
-                      />
-                      <p className="text-[10px] text-muted-foreground">Supported formats: PDF, JPG, PNG, DOC (Max 1 MB)</p>
                     </div>
-                  </div>
-                )}
 
-                {/* Maternity Leave Document Attachment */}
-                {leaveType === 'maternity' && (
-                  <div className="space-y-3 p-3.5 rounded-xl border border-pink-500/30 bg-pink-500/5">
-                    <div className="space-y-2">
-                      <Label className="text-xs font-semibold flex items-center gap-1.5">
-                        <Paperclip className="w-3.5 h-3.5 text-pink-500" />
-                        <span>Medical Certificate / Doctor Endorsement <span className="text-red-500">*</span></span>
-                      </Label>
-                      <Input
-                        type="file"
-                        accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0] || null;
-                          if (file && file.size > 1024 * 1024) {
-                            e.target.value = '';
-                            setInitialDocFile(null);
-                            await MySwal.fire({
-                              title: 'File Size Exceeded',
-                              text: `The selected medical certificate (${(file.size / (1024 * 1024)).toFixed(2)} MB) exceeds the maximum allowed limit of 1 MB. Please upload a file under 1 MB.`,
-                              icon: 'warning',
-                              confirmButtonColor: '#f59e0b',
-                              background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
-                              color: currentTheme === 'dark' ? '#ffffff' : '#000000'
-                            });
-                            return;
-                          }
-                          setInitialDocFile(file);
-                        }}
-                        className={`text-xs ${theme === 'dark' ? 'bg-background border-border file:text-foreground' : 'bg-white file:text-gray-700'}`}
-                      />
-                      <p className="text-[10px] text-muted-foreground">Please attach official medical certificate (Max 1 MB).</p>
-                    </div>
+                    {/* Hidden Native File Input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0] || null;
+                        if (!file) return;
+
+                        const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
+                        const ext = file.name.split('.').pop()?.toLowerCase() || '';
+
+                        if (!allowedExtensions.includes(ext) && !file.type.startsWith('image/')) {
+                          if (fileInputRef.current) fileInputRef.current.value = '';
+                          setInitialDocFile(null);
+                          await MySwal.fire({
+                            title: 'Unsupported File Format',
+                            text: 'For images, only JPG and PNG formats are allowed (documents: PDF, DOC, DOCX).',
+                            icon: 'warning',
+                            confirmButtonColor: '#f59e0b',
+                            background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+                            color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+                          });
+                          return;
+                        }
+
+                        // Allow file to be chosen, submit will block if > 1MB
+                        setInitialDocFile(file);
+                      }}
+                    />
+
+                    {/* Selected File Preview Card OR Clean Upload Dropzone */}
+                    {initialDocFile ? (
+                      <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${
+                        initialDocFile.size > 1024 * 1024
+                          ? 'bg-rose-500/5 border-rose-500/40'
+                          : theme === 'dark' ? 'bg-background/90 border-primary/30' : 'bg-white border-primary/30 shadow-sm'
+                      }`}>
+                        <div className="flex items-center gap-3 min-w-0">
+                          {docPreviewUrl ? (
+                            <img
+                              src={docPreviewUrl}
+                              alt="Preview"
+                              className={`w-12 h-12 rounded-lg object-cover border shrink-0 bg-muted ${
+                                initialDocFile.size > 1024 * 1024 ? 'border-rose-500/40' : 'border-primary/20'
+                              }`}
+                            />
+                          ) : (
+                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border ${
+                              initialDocFile.size > 1024 * 1024
+                                ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                                : 'bg-primary/10 text-primary border-primary/20'
+                            }`}>
+                              <FileText className="w-6 h-6" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="font-semibold text-xs text-foreground truncate max-w-[200px] sm:max-w-[280px]">
+                              {initialDocFile.name}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                              <span>{(initialDocFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                              <span>•</span>
+                              {initialDocFile.size > 1024 * 1024 ? (
+                                <span className="text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-0.5">
+                                  <AlertCircle className="w-3 h-3" /> Exceeds 1 MB Limit
+                                </span>
+                              ) : (
+                                <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-0.5">
+                                  <CheckCircle2 className="w-3 h-3" /> Ready
+                                </span>
+                              )}
+                            </p>
+                            {initialDocFile.size > 1024 * 1024 && (
+                              <p className="text-[10px] text-rose-500 font-medium mt-0.5">
+                                Attachment must be under 1 MB to submit.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="text-[11px] h-7 px-2.5"
+                          >
+                            Change
+                          </Button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (fileInputRef.current) fileInputRef.current.value = '';
+                              setInitialDocFile(null);
+                            }}
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all"
+                            title="Remove attachment"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 ${
+                          theme === 'dark' ? 'border-border/60 bg-background/50' : 'border-gray-200 bg-white/80'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center justify-center gap-1.5">
+                          <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                            <Upload className="w-4 h-4" />
+                          </div>
+                          <div className="text-xs font-medium text-foreground">
+                            Click to upload image or document
+                          </div>
+                          <div className="text-[10px] text-muted-foreground">
+                            Supports: JPG, PNG images, PDF, Word DOC (Max 1 MB)
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
 
                 {/* Title */}
                 <div className="space-y-2">
@@ -2611,17 +2731,25 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   <Label className="text-xs font-semibold">
                     Attendance / Participation Certificate File <span className="text-red-500">*</span>
                   </Label>
-                  <Input
+                  {/* Hidden Native File Input for Post-OD */}
+                  <input
+                    ref={certFileInputRef}
                     type="file"
-                    accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                    className="hidden"
+                    accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     onChange={async (e) => {
                       const file = e.target.files?.[0] || null;
-                      if (file && file.size > 1024 * 1024) {
-                        e.target.value = '';
+                      if (!file) return;
+
+                      const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
+                      const ext = file.name.split('.').pop()?.toLowerCase() || '';
+
+                      if (!allowedExtensions.includes(ext) && !file.type.startsWith('image/')) {
+                        if (certFileInputRef.current) certFileInputRef.current.value = '';
                         setCompletionCertFile(null);
                         await MySwal.fire({
-                          title: 'File Size Exceeded',
-                          text: `The selected certificate (${(file.size / (1024 * 1024)).toFixed(2)} MB) exceeds the maximum allowed limit of 1 MB. Please upload a file under 1 MB.`,
+                          title: 'Unsupported File Format',
+                          text: 'For images, only JPG and PNG formats are allowed (documents: PDF, DOC, DOCX).',
                           icon: 'warning',
                           confirmButtonColor: '#f59e0b',
                           background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
@@ -2629,13 +2757,105 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         });
                         return;
                       }
+
+                      // Allow file to be chosen, submit will block if > 1MB
                       setCompletionCertFile(file);
                     }}
-                    className={`text-xs ${theme === 'dark' ? 'bg-background border-border file:text-foreground' : 'bg-white file:text-gray-700'}`}
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Rule 9.8.2 requires submitting the attendance certificate (Max 1 MB) after completing the On Duty period. This will be verified by your HoD.
-                  </p>
+
+                  {/* Selected Certificate Preview Card OR Clean Upload Dropzone */}
+                  {completionCertFile ? (
+                    <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${
+                      completionCertFile.size > 1024 * 1024
+                        ? 'bg-rose-500/5 border-rose-500/40'
+                        : theme === 'dark' ? 'bg-background/90 border-primary/30' : 'bg-white border-primary/30 shadow-sm'
+                    }`}>
+                      <div className="flex items-center gap-3 min-w-0">
+                        {certPreviewUrl ? (
+                          <img
+                            src={certPreviewUrl}
+                            alt="Certificate Preview"
+                            className={`w-12 h-12 rounded-lg object-cover border shrink-0 bg-muted ${
+                              completionCertFile.size > 1024 * 1024 ? 'border-rose-500/40' : 'border-primary/20'
+                            }`}
+                          />
+                        ) : (
+                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border ${
+                            completionCertFile.size > 1024 * 1024
+                              ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                              : 'bg-primary/10 text-primary border-primary/20'
+                          }`}>
+                            <FileText className="w-6 h-6" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-semibold text-xs text-foreground truncate max-w-[180px] sm:max-w-[240px]">
+                            {completionCertFile.name}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                            <span>{(completionCertFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                            <span>•</span>
+                            {completionCertFile.size > 1024 * 1024 ? (
+                              <span className="text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-0.5">
+                                <AlertCircle className="w-3 h-3" /> Exceeds 1 MB Limit
+                              </span>
+                            ) : (
+                              <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-0.5">
+                                <CheckCircle2 className="w-3 h-3" /> Ready
+                              </span>
+                            )}
+                          </p>
+                          {completionCertFile.size > 1024 * 1024 && (
+                            <p className="text-[10px] text-rose-500 font-medium mt-0.5">
+                              Certificate must be under 1 MB to submit.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => certFileInputRef.current?.click()}
+                          className="text-[11px] h-7 px-2.5"
+                        >
+                          Change
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (certFileInputRef.current) certFileInputRef.current.value = '';
+                            setCompletionCertFile(null);
+                          }}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all"
+                          title="Remove certificate"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => certFileInputRef.current?.click()}
+                      className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 ${
+                        theme === 'dark' ? 'border-border/60 bg-background/50' : 'border-gray-200 bg-white/80'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center justify-center gap-1.5">
+                        <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                          <Upload className="w-4 h-4" />
+                        </div>
+                        <div className="text-xs font-medium text-foreground">
+                          Click to upload attendance certificate / proof
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          Supports: JPG, PNG images, PDF (Max 1 MB)
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-end gap-2 pt-3 border-t border-border">
@@ -2659,6 +2879,16 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           text: 'Please select a certificate file to upload.',
                           icon: 'warning',
                           confirmButtonColor: '#3b82f6'
+                        });
+                        return;
+                      }
+                      const ext = completionCertFile.name.split('.').pop()?.toLowerCase() || '';
+                      if (!['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'].includes(ext)) {
+                        await MySwal.fire({
+                          title: 'Unsupported File Format',
+                          text: 'For images, only JPG and PNG formats are allowed (documents: PDF, DOC, DOCX).',
+                          icon: 'warning',
+                          confirmButtonColor: '#f59e0b'
                         });
                         return;
                       }
