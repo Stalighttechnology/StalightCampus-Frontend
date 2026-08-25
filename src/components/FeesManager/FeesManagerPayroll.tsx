@@ -6,6 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { showConfirmAlert, showSweetAlert } from "@/utils/sweetalert";
 import Swal from 'sweetalert2';
 import DashboardCard from '../common/DashboardCard';
@@ -34,7 +37,9 @@ import {
   AlertTriangle,
   AlertCircle,
   ClipboardCheck,
-  Loader2
+  Loader2,
+  Check,
+  ChevronsUpDown
 } from 'lucide-react';
 import {
   getPayrollSettings,
@@ -56,6 +61,7 @@ import {
   getPayrollAdjustments,
   createPayrollAdjustment,
   deletePayrollAdjustment,
+  updatePayrollAdjustmentStatus,
   getAttendanceLockStatus,
   toggleAttendanceLock,
   downloadPayrollReport
@@ -238,6 +244,14 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   const [adjustmentEmployees, setAdjustmentEmployees] = useState<any[]>([]);
   const [showAddAdjustment, setShowAddAdjustment] = useState(false);
 
+  // Combobox state for Adjustment Employees
+  const [adjustmentRole, setAdjustmentRole] = useState('');
+  const [adjustmentEmpPage, setAdjustmentEmpPage] = useState(1);
+  const [adjustmentEmpTotalPages, setAdjustmentEmpTotalPages] = useState(1);
+  const [adjustmentEmpSearch, setAdjustmentEmpSearch] = useState('');
+  const [isAdjustmentEmpLoading, setIsAdjustmentEmpLoading] = useState(false);
+  const [isEmpComboboxOpen, setIsEmpComboboxOpen] = useState(false);
+
   // Attendance Lock state
   const [lockMonth, setLockMonth] = useState(new Date().getMonth() + 1);
   const [lockYear, setLockYear] = useState(new Date().getFullYear());
@@ -341,9 +355,6 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         if (res.success) setPayrollSettings(res.data);
       } else if (activeTab === 'structures') {
         await fetchStructures(structuresPage, structuresSearch);
-        // Pre-load employees for adjustment dropdown
-        const empRes = await getSalaryStructures(1, '', '', 999);
-        if (empRes.success) setAdjustmentEmployees(empRes.data || []);
       } else if (activeTab === 'reimbursements') {
         const res = await getReimbursementClaims(claimsPage);
         if (res.success) {
@@ -360,8 +371,6 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
         }
       } else if (activeTab === 'adjustments') {
         await fetchAdjustments(adjustmentsPage, adjustmentsSearch);
-        const empRes = await getSalaryStructures(1, '');
-        if (empRes.success) setAdjustmentEmployees(empRes.data || []);
       } else if (activeTab === 'attendance-lock') {
         await fetchLockStatus();
       }
@@ -379,6 +388,43 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
       setAdjustmentsTotalPages(res.total_pages || 1);
       setAdjustmentsCount(res.count || 0);
     }
+  };
+
+  const fetchAdjustmentEmployees = async (page: number, search: string, role: string, append = false) => {
+    setIsAdjustmentEmpLoading(true);
+    try {
+      const res = await getSalaryStructures(page, search, role === 'all' ? '' : role);
+      if (res.success) {
+        if (append) {
+          setAdjustmentEmployees(prev => {
+            const newEmps = res.data || [];
+            const existingIds = new Set(prev.map(e => e.employee_id));
+            return [...prev, ...newEmps.filter((e: any) => !existingIds.has(e.employee_id))];
+          });
+        } else {
+          setAdjustmentEmployees(res.data || []);
+        }
+        setAdjustmentEmpTotalPages(res.total_pages || 1);
+      }
+    } finally {
+      setIsAdjustmentEmpLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isEmpComboboxOpen) {
+      fetchAdjustmentEmployees(1, adjustmentEmpSearch, adjustmentRole, false);
+      setAdjustmentEmpPage(1);
+    }
+  }, [adjustmentRole, isEmpComboboxOpen]);
+
+  const handleAdjustmentEmpSearch = (val: string) => {
+    setAdjustmentEmpSearch(val);
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      setAdjustmentEmpPage(1);
+      fetchAdjustmentEmployees(1, val, adjustmentRole, false);
+    }, 400);
   };
 
   const fetchLockStatus = async () => {
@@ -411,6 +457,23 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
       } else {
         showSweetAlert('Error', res.message || 'Failed to create adjustment.', 'error');
       }
+    } catch { showSweetAlert('Error', 'An error occurred.', 'error'); }
+    finally { setLoading(false); }
+  };
+
+  const handleAdjustmentAction = async (id: number, action: 'approve' | 'reject') => {
+    const result = await showConfirmAlert(
+      `${action === 'approve' ? 'Approve' : 'Reject'} Adjustment?`,
+      action === 'approve' ? 'This adjustment will be applied to the next payroll run.' : 'This adjustment will be rejected.',
+      `Yes, ${action}`,
+      'warning'
+    );
+    if (!result.isConfirmed) return;
+    setLoading(true);
+    try {
+      const res = await updatePayrollAdjustmentStatus(id, action);
+      if (res.success) { showSweetAlert('Success', `Adjustment ${action}d.`, 'success'); fetchAdjustments(adjustmentsPage, adjustmentsSearch); }
+      else showSweetAlert('Error', res.message || 'Failed to update.', 'error');
     } catch { showSweetAlert('Error', 'An error occurred.', 'error'); }
     finally { setLoading(false); }
   };
@@ -1394,25 +1457,38 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                         }`}>
                           {adj.adjustment_type === 'deduction' ? '-' : '+'}{formatCurrency(adj.amount)}
                         </td>
-                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
-                          {new Date(0, adj.apply_month - 1).toLocaleString('en-US', { month: 'short' })} {adj.apply_year}
+                        <td className="px-6 py-4">
+                          <div className="font-medium text-slate-900 dark:text-white">
+                            {formatDateDDMMYYYY(adj.created_at)}
+                          </div>
                         </td>
                         <td className="px-6 py-4">
                           <Badge variant="outline" className={`capitalize border-none ${
-                            adj.is_applied ? 'bg-slate-500/10 text-slate-500' : 'bg-amber-500/10 text-amber-500'
+                            adj.status === 'applied' ? 'bg-slate-500/10 text-slate-500' :
+                            adj.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
+                            'bg-amber-500/10 text-amber-500'
                           }`}>
-                            {adj.is_applied ? 'Applied' : 'Pending'}
+                            {adj.status}
                           </Badge>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          {!adj.is_applied && (
-                            <Button
-                              size="sm" variant="outline"
-                              className="text-red-500 border-red-400/50 hover:bg-red-50 dark:hover:bg-red-900/20 gap-1"
-                              onClick={() => handleDeleteAdjustment(adj.id)}
-                            >
-                              <Trash2 size={14} /> Delete
-                            </Button>
+                          {adj.status === 'pending' && (
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                size="sm" variant="outline"
+                                className="text-emerald-500 border-emerald-400/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 gap-1"
+                                onClick={() => handleAdjustmentAction(adj.id, 'approve')}
+                              >
+                                <CheckCircle size={14} /> Approve
+                              </Button>
+                              <Button
+                                size="sm" variant="outline"
+                                className="text-red-500 border-red-400/50 hover:bg-red-50 dark:hover:bg-red-900/20 gap-1"
+                                onClick={() => handleDeleteAdjustment(adj.id)}
+                              >
+                                <Trash2 size={14} /> Delete
+                              </Button>
+                            </div>
                           )}
                         </td>
                       </tr>
@@ -1622,7 +1698,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                 }`}>
                   {selectedRun.status}
                 </Badge>
-                <span className="text-xs text-slate-500 dark:text-slate-400">Total Payout: {formatCurrency(runDetails.reduce((a, b) => a + Number(b.net_salary), 0))}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">Total Payout: {formatCurrency(selectedRun.total_net_payout)}</span>
               </div>
               {/* Audit Trail */}
               <div className={`mt-3 flex flex-wrap gap-3 text-xs ${ theme === 'dark' ? 'text-slate-400' : 'text-slate-500' }`}>
@@ -1816,23 +1892,106 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
             <DialogDescription>Apply a one-time bonus, deduction, or arrears to an employee's payroll.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 my-2">
-            <div>
-              <label className="text-xs font-semibold text-slate-400 block mb-1">Employee <span className="text-red-500">*</span></label>
-              <Select
-                value={newAdjustment.employee_id}
-                onValueChange={(val) => setNewAdjustment({ ...newAdjustment, employee_id: val })}
-              >
-                <SelectTrigger className={`w-full rounded-md p-2 h-9 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}>
-                  <SelectValue placeholder="Select Employee" />
-                </SelectTrigger>
-                <SelectContent>
-                  {adjustmentEmployees.map((emp) => (
-                    <SelectItem key={emp.employee_id} value={emp.employee_id}>
-                      {emp.name} ({emp.role})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Role</label>
+                <Select
+                  value={adjustmentRole}
+                  onValueChange={(val) => {
+                    setAdjustmentRole(val);
+                    setNewAdjustment({ ...newAdjustment, employee_id: '' });
+                  }}
+                >
+                  <SelectTrigger className={`w-full rounded-md p-2 h-9 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}>
+                    <SelectValue placeholder="All Roles" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rolesList.map((r) => (
+                      <SelectItem key={r.value || "all"} value={r.value || "all"}>
+                        {r.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Employee <span className="text-red-500">*</span></label>
+                <Popover open={isEmpComboboxOpen} onOpenChange={setIsEmpComboboxOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={isEmpComboboxOpen}
+                      disabled={!adjustmentRole || adjustmentRole === 'all'}
+                      className={`w-full justify-between h-9 px-3 border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'} ${(!adjustmentRole || adjustmentRole === 'all') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <span className="truncate">
+                        {newAdjustment.employee_id
+                          ? adjustmentEmployees.find((emp) => emp.employee_id === newAdjustment.employee_id)?.name || "Selected Employee"
+                          : (!adjustmentRole || adjustmentRole === 'all') ? "Select role first..." : "Select employee..."}
+                      </span>
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0" align="start">
+                    <Command shouldFilter={false}>
+                      <CommandInput 
+                        placeholder="Search employee..." 
+                        value={adjustmentEmpSearch}
+                        onValueChange={handleAdjustmentEmpSearch}
+                      />
+                      <CommandList>
+                        {isAdjustmentEmpLoading && adjustmentEmpPage === 1 && (
+                          <div className="p-4 text-center text-sm text-slate-500 flex items-center justify-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" /> Loading...
+                          </div>
+                        )}
+                        {!isAdjustmentEmpLoading && adjustmentEmployees.length === 0 && (
+                          <CommandEmpty>No employee found.</CommandEmpty>
+                        )}
+                        <CommandGroup>
+                          {adjustmentEmployees.map((emp) => (
+                            <CommandItem
+                              key={emp.employee_id}
+                              value={emp.employee_id}
+                              onSelect={() => {
+                                setNewAdjustment({ ...newAdjustment, employee_id: emp.employee_id });
+                                setIsEmpComboboxOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  newAdjustment.employee_id === emp.employee_id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {emp.name} <span className="text-xs text-slate-400 ml-1">({emp.role})</span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                        {adjustmentEmpPage < adjustmentEmpTotalPages && (
+                          <div className="p-2">
+                            <Button 
+                              variant="ghost" 
+                              className="w-full text-xs h-8" 
+                              disabled={isAdjustmentEmpLoading}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const nextPage = adjustmentEmpPage + 1;
+                                setAdjustmentEmpPage(nextPage);
+                                fetchAdjustmentEmployees(nextPage, adjustmentEmpSearch, adjustmentRole, true);
+                              }}
+                            >
+                              {isAdjustmentEmpLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Load More"}
+                            </Button>
+                          </div>
+                        )}
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>

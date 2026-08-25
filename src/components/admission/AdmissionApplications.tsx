@@ -118,6 +118,64 @@ interface FormState {
   course_interested_id?: string;
 }
 
+const NATIONALITY_OPTIONS = [
+  'INDIAN',
+  'NRI',
+  'OCI',
+  'PIO',
+  'NEPALESE',
+  'BHUTANESE',
+  'FOREIGN NATIONAL',
+  'OTHER',
+];
+
+const RELIGION_OPTIONS = [
+  'HINDU',
+  'MUSLIM',
+  'CHRISTIAN',
+  'SIKH',
+  'JAIN',
+  'BUDDHIST',
+  'PARSI',
+  'OTHER',
+];
+
+const CATEGORY_OPTIONS = [
+  'GM',
+  'CAT-1',
+  '2A',
+  '2B',
+  '3A',
+  '3B',
+  'SC',
+  'ST',
+  'OBC',
+  'EWS',
+  'OTHER',
+];
+
+const SSLC_BOARD_OPTIONS = [
+  'KSEAB / KSEEB',
+  'CBSE',
+  'ICSE',
+  'IGCSE / CAMBRIDGE',
+  'IB',
+  'NIOS',
+  'OTHER STATE BOARD',
+  'OTHER',
+];
+
+const PUC_BOARD_OPTIONS = [
+  'DPUE / KSEAB',
+  'CBSE (CLASS XII)',
+  'ISC (CLASS XII)',
+  'BTE (DIPLOMA)',
+  'DTE',
+  'NIOS (SR. SECONDARY)',
+  'OTHER STATE BOARD',
+  'OTHER',
+];
+
 const initialFormState: FormState = {
   name: '',
   gender: 'Male',
@@ -140,7 +198,7 @@ const initialFormState: FormState = {
 
   sslc_school_name: '',
   sslc_reg_no: '',
-  sslc_board: 'KSEEB',
+  sslc_board: 'KSEAB / KSEEB',
   sslc_max_marks: '625',
   sslc_obtained_marks: '',
   sslc_percentage: '',
@@ -149,7 +207,7 @@ const initialFormState: FormState = {
   puc_institute_name: '',
   puc_address: '',
   puc_reg_no: '',
-  puc_board: 'KSEAB',
+  puc_board: 'DPUE / KSEAB',
   puc_max_marks: '600',
   puc_obtained_marks: '',
   puc_percentage: '',
@@ -1378,22 +1436,42 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Nationality</Label>
-                    <Input 
-                      value={formData.nationality} 
-                      onChange={(e) => handleFormChange('nationality', e.target.value)} 
-                      placeholder="e.g. INDIAN" 
-                      className="text-xs" 
-                    />
+                    <Select 
+                      value={formData.nationality || 'INDIAN'} 
+                      onValueChange={(val) => handleFormChange('nationality', val)}
+                    >
+                      <SelectTrigger className="text-xs h-9">
+                        <SelectValue placeholder="Select Nationality" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {NATIONALITY_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={opt} className="text-xs">{opt}</SelectItem>
+                        ))}
+                        {formData.nationality && !NATIONALITY_OPTIONS.includes(formData.nationality) && (
+                          <SelectItem value={formData.nationality} className="text-xs">{formData.nationality}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Religion</Label>
-                    <Input 
-                      value={formData.religion} 
-                      onChange={(e) => handleFormChange('religion', e.target.value)} 
-                      placeholder="e.g. HINDU" 
-                      className="text-xs" 
-                    />
+                    <Select 
+                      value={formData.religion || 'HINDU'} 
+                      onValueChange={(val) => handleFormChange('religion', val)}
+                    >
+                      <SelectTrigger className="text-xs h-9">
+                        <SelectValue placeholder="Select Religion" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RELIGION_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={opt} className="text-xs">{opt}</SelectItem>
+                        ))}
+                        {formData.religion && !RELIGION_OPTIONS.includes(formData.religion) && (
+                          <SelectItem value={formData.religion} className="text-xs">{formData.religion}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-1.5">
@@ -1408,12 +1486,22 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Category</Label>
-                    <Input 
-                      value={formData.category} 
-                      onChange={(e) => handleFormChange('category', e.target.value)} 
-                      placeholder="e.g. 2A / GM / 3B" 
-                      className="text-xs" 
-                    />
+                    <Select 
+                      value={formData.category || 'GM'} 
+                      onValueChange={(val) => handleFormChange('category', val)}
+                    >
+                      <SelectTrigger className="text-xs h-9">
+                        <SelectValue placeholder="Select Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORY_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={opt} className="text-xs">{opt}</SelectItem>
+                        ))}
+                        {formData.category && !CATEGORY_OPTIONS.includes(formData.category) && (
+                          <SelectItem value={formData.category} className="text-xs">{formData.category}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
@@ -1548,12 +1636,22 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Board</Label>
-                    <Input 
-                      value={formData.sslc_board} 
-                      onChange={(e) => handleFormChange('sslc_board', e.target.value)} 
-                      placeholder="e.g. KSEEB / CBSE / ICSE" 
-                      className="text-xs" 
-                    />
+                    <Select 
+                      value={formData.sslc_board || 'KSEAB / KSEEB'} 
+                      onValueChange={(val) => handleFormChange('sslc_board', val)}
+                    >
+                      <SelectTrigger className="text-xs h-9">
+                        <SelectValue placeholder="Select SSLC Board" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SSLC_BOARD_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={opt} className="text-xs">{opt}</SelectItem>
+                        ))}
+                        {formData.sslc_board && !SSLC_BOARD_OPTIONS.includes(formData.sslc_board) && (
+                          <SelectItem value={formData.sslc_board} className="text-xs">{formData.sslc_board}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-1.5">
@@ -1643,12 +1741,22 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Board / University</Label>
-                    <Input 
-                      value={formData.puc_board} 
-                      onChange={(e) => handleFormChange('puc_board', e.target.value)} 
-                      placeholder="e.g. KSEAB / CBSE / BTE" 
-                      className="text-xs" 
-                    />
+                    <Select 
+                      value={formData.puc_board || 'DPUE / KSEAB'} 
+                      onValueChange={(val) => handleFormChange('puc_board', val)}
+                    >
+                      <SelectTrigger className="text-xs h-9">
+                        <SelectValue placeholder="Select PUC / Diploma Board" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PUC_BOARD_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={opt} className="text-xs">{opt}</SelectItem>
+                        ))}
+                        {formData.puc_board && !PUC_BOARD_OPTIONS.includes(formData.puc_board) && (
+                          <SelectItem value={formData.puc_board} className="text-xs">{formData.puc_board}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-1.5">
@@ -1742,22 +1850,42 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Category Claimed</Label>
-                    <Input 
-                      value={formData.category_claimed} 
-                      onChange={(e) => handleFormChange('category_claimed', e.target.value)} 
-                      placeholder="e.g. 2A" 
-                      className="text-xs" 
-                    />
+                    <Select 
+                      value={formData.category_claimed || ''} 
+                      onValueChange={(val) => handleFormChange('category_claimed', val)}
+                    >
+                      <SelectTrigger className="text-xs h-9">
+                        <SelectValue placeholder="Select Category Claimed" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORY_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={opt} className="text-xs">{opt}</SelectItem>
+                        ))}
+                        {formData.category_claimed && !CATEGORY_OPTIONS.includes(formData.category_claimed) && (
+                          <SelectItem value={formData.category_claimed} className="text-xs">{formData.category_claimed}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Allotted Category</Label>
-                    <Input 
-                      value={formData.allotted_category} 
-                      onChange={(e) => handleFormChange('allotted_category', e.target.value)} 
-                      placeholder="e.g. GM" 
-                      className="text-xs" 
-                    />
+                    <Select 
+                      value={formData.allotted_category || ''} 
+                      onValueChange={(val) => handleFormChange('allotted_category', val)}
+                    >
+                      <SelectTrigger className="text-xs h-9">
+                        <SelectValue placeholder="Select Allotted Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORY_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={opt} className="text-xs">{opt}</SelectItem>
+                        ))}
+                        {formData.allotted_category && !CATEGORY_OPTIONS.includes(formData.allotted_category) && (
+                          <SelectItem value={formData.allotted_category} className="text-xs">{formData.allotted_category}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-1.5">
