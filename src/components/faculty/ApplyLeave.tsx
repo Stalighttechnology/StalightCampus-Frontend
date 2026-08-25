@@ -594,6 +594,18 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       }
     }
 
+    if (initialDocFile && initialDocFile.size > 1024 * 1024) {
+      await MySwal.fire({
+        title: 'Attachment Too Large',
+        text: `The attached document (${(initialDocFile.size / (1024 * 1024)).toFixed(2)} MB) must be less than 1 MB. Please upload a compressed document under 1 MB.`,
+        icon: 'warning',
+        confirmButtonColor: '#f59e0b',
+        background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+      });
+      return;
+    }
+
     setError(null);
 
     const startDateStr = leaveType !== 'short_permission' ? format(dateRange!.from!, "yyyy-MM-dd") : format(permissionDate!, "yyyy-MM-dd");
@@ -1231,10 +1243,26 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       <Input
                         type="file"
                         accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                        onChange={(e) => setInitialDocFile(e.target.files?.[0] || null)}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0] || null;
+                          if (file && file.size > 1024 * 1024) {
+                            e.target.value = '';
+                            setInitialDocFile(null);
+                            await MySwal.fire({
+                              title: 'File Size Exceeded',
+                              text: `The selected file (${(file.size / (1024 * 1024)).toFixed(2)} MB) exceeds the maximum allowed limit of 1 MB. Please upload a file under 1 MB.`,
+                              icon: 'warning',
+                              confirmButtonColor: '#f59e0b',
+                              background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+                              color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+                            });
+                            return;
+                          }
+                          setInitialDocFile(file);
+                        }}
                         className={`text-xs ${theme === 'dark' ? 'bg-background border-border file:text-foreground' : 'bg-white file:text-gray-700'}`}
                       />
-                      <p className="text-[10px] text-muted-foreground">Supported formats: PDF, JPG, PNG, DOC (Max 10MB)</p>
+                      <p className="text-[10px] text-muted-foreground">Supported formats: PDF, JPG, PNG, DOC (Max 1 MB)</p>
                     </div>
                   </div>
                 )}
@@ -1250,10 +1278,26 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       <Input
                         type="file"
                         accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                        onChange={(e) => setInitialDocFile(e.target.files?.[0] || null)}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0] || null;
+                          if (file && file.size > 1024 * 1024) {
+                            e.target.value = '';
+                            setInitialDocFile(null);
+                            await MySwal.fire({
+                              title: 'File Size Exceeded',
+                              text: `The selected medical certificate (${(file.size / (1024 * 1024)).toFixed(2)} MB) exceeds the maximum allowed limit of 1 MB. Please upload a file under 1 MB.`,
+                              icon: 'warning',
+                              confirmButtonColor: '#f59e0b',
+                              background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+                              color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+                            });
+                            return;
+                          }
+                          setInitialDocFile(file);
+                        }}
                         className={`text-xs ${theme === 'dark' ? 'bg-background border-border file:text-foreground' : 'bg-white file:text-gray-700'}`}
                       />
-                      <p className="text-[10px] text-muted-foreground">Please attach official medical certificate from a registered practitioner.</p>
+                      <p className="text-[10px] text-muted-foreground">Please attach official medical certificate (Max 1 MB).</p>
                     </div>
                   </div>
                 )}
@@ -2570,11 +2614,27 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   <Input
                     type="file"
                     accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                    onChange={(e) => setCompletionCertFile(e.target.files?.[0] || null)}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (file && file.size > 1024 * 1024) {
+                        e.target.value = '';
+                        setCompletionCertFile(null);
+                        await MySwal.fire({
+                          title: 'File Size Exceeded',
+                          text: `The selected certificate (${(file.size / (1024 * 1024)).toFixed(2)} MB) exceeds the maximum allowed limit of 1 MB. Please upload a file under 1 MB.`,
+                          icon: 'warning',
+                          confirmButtonColor: '#f59e0b',
+                          background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+                          color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+                        });
+                        return;
+                      }
+                      setCompletionCertFile(file);
+                    }}
                     className={`text-xs ${theme === 'dark' ? 'bg-background border-border file:text-foreground' : 'bg-white file:text-gray-700'}`}
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    Rule 9.8.2 requires submitting the attendance certificate after completing the On Duty period. This will be verified by your HoD.
+                    Rule 9.8.2 requires submitting the attendance certificate (Max 1 MB) after completing the On Duty period. This will be verified by your HoD.
                   </p>
                 </div>
 
@@ -2599,6 +2659,15 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           text: 'Please select a certificate file to upload.',
                           icon: 'warning',
                           confirmButtonColor: '#3b82f6'
+                        });
+                        return;
+                      }
+                      if (completionCertFile.size > 1024 * 1024) {
+                        await MySwal.fire({
+                          title: 'File Size Exceeded',
+                          text: `The selected certificate (${(completionCertFile.size / (1024 * 1024)).toFixed(2)} MB) exceeds the 1 MB limit.`,
+                          icon: 'warning',
+                          confirmButtonColor: '#f59e0b'
                         });
                         return;
                       }
