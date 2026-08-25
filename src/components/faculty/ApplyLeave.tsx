@@ -124,7 +124,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [selectedSubstituteBranch, setSelectedSubstituteBranch] = useState<string>('');
   const [leaveType, setLeaveType] = useState<'casual' | 'earned' | 'od' | 'vacation' | 'rh' | 'maternity' | 'short_permission'>('casual');
-  const [odPurposeCategory, setOdPurposeCategory] = useState<string>('conference');
+  const [odPurposeCategory, setOdPurposeCategory] = useState<string>('conference_symposia');
+  const [customOdPurpose, setCustomOdPurpose] = useState<string>('');
   const [initialDocFile, setInitialDocFile] = useState<File | null>(null);
   const [docPreviewUrl, setDocPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -618,6 +619,18 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         });
         return;
       }
+
+      if (leaveType === 'od' && odPurposeCategory === 'other' && !customOdPurpose.trim()) {
+        await MySwal.fire({
+          title: 'Specify Custom OD Purpose',
+          text: 'Please type the specific purpose for your On Duty (OD) application.',
+          icon: 'warning',
+          confirmButtonColor: '#f59e0b',
+          background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+        });
+        return;
+      }
     } else {
       if (!title.trim() || !selectedBranch || !permissionDate || !reason.trim()) {
         await MySwal.fire({
@@ -717,16 +730,28 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     };
 
     if (leaveType === 'od') {
-      requestData.od_purpose_category = odPurposeCategory;
+      const finalOdPurpose = odPurposeCategory === 'other'
+        ? (customOdPurpose.trim() ? `Other: ${customOdPurpose.trim()}` : 'Other')
+        : odPurposeCategory;
+      requestData.od_purpose_category = finalOdPurpose;
     }
     if (initialDocFile) {
       requestData.document = initialDocFile;
     }
 
+    const odCategoryDisplayMap: Record<string, string> = {
+      'conference_symposia': 'Conference / Seminar / Symposia',
+      'workshop_fdp': 'Workshop / FDP',
+      'exam_valuation_duty': 'Valuation / Examination Duty',
+      'phd_doctoral_work': 'Ph.D Research / Doctoral Work',
+      'university_statutory_duty': 'Official / Statutory / University Duty',
+      'other': customOdPurpose.trim() ? `Other (${customOdPurpose.trim()})` : 'Other Custom Duty',
+    };
+
     const typeLabel =
       leaveType === 'short_permission' ? 'Short Permission' :
         leaveType === 'earned' ? 'Earned Leave (EL)' :
-          leaveType === 'od' ? `On Duty (OD) - ${odPurposeCategory.replace('_', ' ').toUpperCase()}` :
+          leaveType === 'od' ? `On Duty (OD) - ${odCategoryDisplayMap[odPurposeCategory] || odPurposeCategory.replace(/_/g, ' ').toUpperCase()}` :
             leaveType === 'vacation' ? 'Vacation Leave' :
               leaveType === 'maternity' ? 'Maternity Leave' :
                 leaveType === 'rh' ? 'Restricted Holiday (RH)' :
@@ -1344,25 +1369,49 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                     }`}>
                     {/* OD Purpose Category */}
                     {leaveType === 'od' && (
-                      <div className="space-y-2 pb-2 border-b border-emerald-500/20">
+                      <div className="space-y-2.5 pb-2.5 border-b border-emerald-500/20">
                         <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                           OD Purpose Category <span className="text-red-500">*</span>
                         </Label>
-                        <Select value={odPurposeCategory} onValueChange={setOdPurposeCategory}>
-                          <SelectTrigger className={`w-full text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                        <Select 
+                          value={odPurposeCategory} 
+                          onValueChange={(val) => {
+                            setOdPurposeCategory(val);
+                            if (val !== 'other') {
+                              setCustomOdPurpose('');
+                            }
+                          }}
+                        >
+                          <SelectTrigger className={`w-full text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300'}`}>
                             <SelectValue placeholder="Select OD Purpose..." />
                           </SelectTrigger>
                           <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                            <SelectItem value="conference">Conference / Symposia</SelectItem>
-                            <SelectItem value="workshop">Workshop / Faculty Development (FDP)</SelectItem>
-                            <SelectItem value="seminar">Seminar / Panel Discussion</SelectItem>
-                            <SelectItem value="meeting">Official Meeting / Delegation</SelectItem>
-                            <SelectItem value="phd_work">Ph.D Research / Doctoral Work</SelectItem>
-                            <SelectItem value="statutory_work">Statutory / AICTE / University Duty</SelectItem>
-                            <SelectItem value="exam_work">Valuation / Examination Duty</SelectItem>
-                            <SelectItem value="management_assigned">Institutional / Management Assigned Duty</SelectItem>
+                            <SelectItem value="conference_symposia">Conference / Seminar / Symposia</SelectItem>
+                            <SelectItem value="workshop_fdp">Workshop / Faculty Development (FDP)</SelectItem>
+                            <SelectItem value="exam_valuation_duty">Valuation / Examination / Viva Duty</SelectItem>
+                            <SelectItem value="phd_doctoral_work">Ph.D Research / Doctoral Work</SelectItem>
+                            <SelectItem value="university_statutory_duty">Official Meeting / Statutory / University Duty</SelectItem>
+                            <SelectItem value="other">Other (Specify Custom Purpose)</SelectItem>
                           </SelectContent>
                         </Select>
+
+                        {/* Custom OD Purpose Input when Other is selected */}
+                        {odPurposeCategory === 'other' && (
+                          <div className="space-y-1.5 pt-1">
+                            <Label className={`text-xs font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-800'}`}>
+                              Specify Custom OD Purpose <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              type="text"
+                              value={customOdPurpose}
+                              onChange={(e) => setCustomOdPurpose(e.target.value)}
+                              placeholder="e.g., Guest Lecture, Industrial Visit, Accreditation Review, Project Inspection"
+                              className={`h-8.5 text-xs ${theme === 'dark' ? 'bg-background border-border text-foreground focus:ring-emerald-500/30' : 'bg-white border-gray-300 text-gray-900 focus:ring-emerald-500/20'}`}
+                              required
+                            />
+                            <p className="text-[10px] text-muted-foreground">Please type the official reason or duty description for this OD request.</p>
+                          </div>
+                        )}
                       </div>
                     )}
 
