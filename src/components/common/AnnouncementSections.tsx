@@ -384,25 +384,52 @@ export const AnnouncementSections = ({
               </div>
             ) : (
               <TabsList className="ann-tabs-list grid w-full sm:w-auto grid-cols-2 max-w-md bg-muted/50 p-1 rounded-xl mt-5">
-                <TabsTrigger value="my" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
+                <TabsTrigger
+                  value="my"
+                  className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all"
+                >
                   <span className="text-sm font-semibold">My Announcements</span>
                   {myPagination && myPagination.count > 0 && (
-                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold bg-primary/10 text-primary border-none">
+                    <Badge
+                      variant="secondary"
+                      className={`text-[10px] h-5 px-1.5 font-semibold border-none transition-colors ${
+                        activeTab === 'my'
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-primary/10 text-primary'
+                      }`}
+                    >
                       {myPagination.count}
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="received" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
+                <TabsTrigger
+                  value="received"
+                  className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all"
+                >
                   <span className="text-sm font-semibold">Received</span>
                   {receivedPagination && receivedPagination.unreadCount !== undefined ? (
                     receivedPagination.unreadCount > 0 && (
-                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-primary text-white border-none shadow-sm pointer-events-none select-none">
+                      <Badge
+                        variant="secondary"
+                        className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none shadow-sm pointer-events-none select-none transition-colors ${
+                          activeTab === 'received'
+                            ? 'bg-white text-primary font-bold'
+                            : 'bg-primary text-white'
+                        }`}
+                      >
                         {receivedPagination.unreadCount}
                       </Badge>
                     )
                   ) : (
                     filteredReceivedAnnouncements.length > 0 && (
-                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-muted text-muted-foreground border-none pointer-events-none select-none">
+                      <Badge
+                        variant="secondary"
+                        className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none pointer-events-none select-none transition-colors ${
+                          activeTab === 'received'
+                            ? 'bg-primary-foreground/20 text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
                         {filteredReceivedAnnouncements.length}
                       </Badge>
                     )
