@@ -119,7 +119,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     window.addEventListener('stalightcampus_set_leave_tab', handleSetLeaveTab);
     return () => window.removeEventListener('stalightcampus_set_leave_tab', handleSetLeaveTab);
   }, []);
-  const [branches, setBranches] = useState<{ id: number; name: string; }[]>([]);
+  const [branches, setBranches] = useState<{ id: number; name: string; branch_code?: string; }[]>([]);
+  const [userBranch, setUserBranch] = useState<{ id: number; name: string; branch_code?: string; } | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [selectedSubstituteBranch, setSelectedSubstituteBranch] = useState<string>('');
   const [leaveType, setLeaveType] = useState<'casual' | 'earned' | 'od' | 'vacation' | 'rh' | 'maternity' | 'short_permission'>('casual');
@@ -235,7 +236,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     getApplyLeaveBootstrap({ page: pagination.page, page_size: pagination.pageSize })
       .then((res) => {
         if (res.success && res.data) {
-          const { leave_requests, branches, leave_quota, available_colleagues } = res.data;
+          const { leave_requests, branches, faculty_branch, leave_quota, available_colleagues } = res.data;
 
           if (leave_quota) {
             setLeaveQuota(leave_quota);
@@ -253,7 +254,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
           if (branches) {
             setBranches(branches);
-            if (branches.length > 0 && !selectedBranch) setSelectedBranch(branches[0].id.toString());
+          }
+
+          if (faculty_branch) {
+            setUserBranch(faculty_branch);
+            setSelectedBranch(faculty_branch.id.toString());
+          } else if (branches && branches.length > 0 && !selectedBranch) {
+            setSelectedBranch(branches[0].id.toString());
           }
 
           const transformedLeaves: LeaveRequestDisplay[] = leave_requests.map((leave: any) => {
@@ -652,9 +659,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     const startTimeStr = leaveType === 'short_permission' ? formatTime24h(startTimeParts.hour, startTimeParts.minute, startTimeParts.period) : undefined;
     const endTimeStr = leaveType === 'short_permission' ? formatTime24h(endTimeParts.hour, endTimeParts.minute, endTimeParts.period) : undefined;
 
+    const branchIdToSubmit = selectedBranch ? parseInt(selectedBranch) : (userBranch ? userBranch.id : undefined);
+
     const requestData: any = {
       title: title.trim(),
-      branch_ids: [parseInt(selectedBranch)],
+      branch_id: branchIdToSubmit,
+      branch_ids: branchIdToSubmit ? [branchIdToSubmit] : undefined,
       start_date: startDateStr,
       end_date: endDateStr,
       reason: reason.trim(),
@@ -1420,6 +1430,35 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Department / Branch */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="applicant-branch" className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      Department / Branch <span className="text-red-500">*</span>
+                    </Label>
+                    {userBranch && (
+                      <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                        Assigned: {userBranch.name}
+                      </span>
+                    )}
+                  </div>
+                  <Select
+                    value={selectedBranch || undefined}
+                    onValueChange={(val) => setSelectedBranch(val)}
+                  >
+                    <SelectTrigger id="applicant-branch" className={`apply-leave-input w-full text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300'}`}>
+                      <SelectValue placeholder="Select Department / Branch..." />
+                    </SelectTrigger>
+                    <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                      {branches.map((b) => (
+                        <SelectItem key={b.id} value={b.id.toString()}>
+                          {b.name} {userBranch && userBranch.id === b.id ? ' (Your Department)' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Title */}

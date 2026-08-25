@@ -616,7 +616,8 @@ export interface GetApplyLeaveBootstrapResponse {
   data?: {
     assignments: FacultyAssignment[];
     leave_requests: FacultyLeaveRequest[];
-    branches: {id: number;name: string;}[];
+    branches: { id: number; name: string; branch_code?: string; }[];
+    faculty_branch?: { id: number; name: string; branch_code?: string; } | null;
     leave_quota?: LeaveQuota;
     available_colleagues?: ColleagueOption[];
   };
