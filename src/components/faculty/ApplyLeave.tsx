@@ -226,6 +226,25 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const { user } = useAuth();
   const userRole = user?.role || '';
   const showBranchField = userRole === 'teacher' || userRole === 'hod' || userRole === 'faculty';
+  const isStageZero = Boolean(
+    leaveQuota && (
+      leaveQuota.num_stages === 0 ||
+      (Array.isArray(leaveQuota.workflow_stages) && (
+        leaveQuota.workflow_stages.length === 0 ||
+        (leaveQuota.workflow_stages.length === 1 && (leaveQuota.workflow_stages[0] === 'auto_approve' || leaveQuota.workflow_stages[0] === 'none'))
+      )) ||
+      (userRole === 'principal' && (!leaveQuota.workflow_stages || leaveQuota.workflow_stages.length === 0 || leaveQuota.num_stages === 0))
+    )
+  ) || (userRole === 'principal' && !leaveQuota);
+
+  useEffect(() => {
+    if (isStageZero) {
+      setTargetRole('none');
+      setSelectedAlternateFaculty('');
+      setSelectedSubstituteBranch('');
+    }
+  }, [isStageZero]);
+
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
   const [leaveList, setLeaveList] = useState<LeaveRequestDisplay[]>([]);
@@ -245,6 +264,19 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               setHalfDaySession('forenoon');
             } else if (sessionRule === 'afternoon_only') {
               setHalfDaySession('afternoon');
+            }
+
+            const isZero = leave_quota.num_stages === 0 ||
+              (Array.isArray(leave_quota.workflow_stages) && (
+                leave_quota.workflow_stages.length === 0 ||
+                (leave_quota.workflow_stages.length === 1 && (leave_quota.workflow_stages[0] === 'auto_approve' || leave_quota.workflow_stages[0] === 'none'))
+              )) ||
+              (userRole === 'principal' && (!leave_quota.workflow_stages || leave_quota.workflow_stages.length === 0 || leave_quota.num_stages === 0));
+
+            if (isZero) {
+              setTargetRole('none');
+              setSelectedAlternateFaculty('');
+              setSelectedSubstituteBranch('');
             }
           }
 
@@ -718,13 +750,15 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           ${initialDocFile ? `<div style="margin-bottom: 6px;"><strong>Attached Document:</strong> <span>${initialDocFile.name}</span></div>` : ''}
           ${alternateFacultyObj ? `<div style="margin-bottom: 6px;"><strong>Substitute Faculty:</strong> <span>${alternateFacultyObj.name}</span></div>` : ''}
           <div style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed ${currentTheme === 'dark' ? '#374151' : '#e5e7eb'}; font-size: 13px; opacity: 0.9;">
-            Are you sure you want to submit this leave application for approval?
+            ${isStageZero
+              ? 'This leave request will be <strong>auto-approved immediately for records</strong> without requiring approvals.'
+              : 'Are you sure you want to submit this leave application for approval?'}
           </div>
         </div>
       `,
       icon: 'question',
       showCancelButton: true,
-      confirmButtonText: 'Yes, Submit Request',
+      confirmButtonText: isStageZero ? 'Yes, Apply Leave' : 'Yes, Submit Request',
       cancelButtonText: 'Cancel',
       confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
       cancelButtonColor: '#6b7280',
@@ -1495,37 +1529,49 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                         Substitute Role
                       </Label>
+                      {isStageZero && (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                          ⚡ Auto-Approve (0 Stages)
+                        </span>
+                      )}
                     </div>
                     <Select
-                      value={targetRole || undefined}
+                      value={isStageZero ? 'none' : (targetRole || undefined)}
                       onValueChange={(val) => {
-                        setTargetRole(val);
-                        setSelectedAlternateFaculty('');
-                        setSelectedSubstituteBranch('');
+                        if (!isStageZero) {
+                          setTargetRole(val);
+                          setSelectedAlternateFaculty('');
+                          setSelectedSubstituteBranch('');
+                        }
                       }}
+                      disabled={isStageZero}
                     >
-                      <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                      <SelectTrigger className={`w-full ${isStageZero ? 'opacity-90 cursor-not-allowed bg-muted/50 border-emerald-500/30' : ''} ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
                         <SelectValue placeholder="Choose role for duty coverage..." />
                       </SelectTrigger>
                       <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
                         <SelectItem value="none">Direct Review (No Substitute Required)</SelectItem>
-                        <SelectItem value="faculty">Faculty Member / Teacher</SelectItem>
-                        <SelectItem value="hod">Head of Department (HOD)</SelectItem>
-                        <SelectItem value="dean">Dean</SelectItem>
-                        <SelectItem value="principal">Principal</SelectItem>
-                        <SelectItem value="coe">Controller of Examinations (COE)</SelectItem>
-                        <SelectItem value="fees_manager">Fees & Accounts Manager</SelectItem>
-                        <SelectItem value="admission_manager">Admission Manager</SelectItem>
-                        <SelectItem value="hms_admin">Hostel Manager (HMS)</SelectItem>
-                        <SelectItem value="library_admin">Library Admin</SelectItem>
-                        <SelectItem value="transport_admin">Transport Admin</SelectItem>
-                        <SelectItem value="driver">Driver / Fleet Staff</SelectItem>
+                        {!isStageZero && (
+                          <>
+                            <SelectItem value="faculty">Faculty Member / Teacher</SelectItem>
+                            <SelectItem value="hod">Head of Department (HOD)</SelectItem>
+                            <SelectItem value="dean">Dean</SelectItem>
+                            <SelectItem value="principal">Principal</SelectItem>
+                            <SelectItem value="coe">Controller of Examinations (COE)</SelectItem>
+                            <SelectItem value="fees_manager">Fees & Accounts Manager</SelectItem>
+                            <SelectItem value="admission_manager">Admission Manager</SelectItem>
+                            <SelectItem value="hms_admin">Hostel Manager (HMS)</SelectItem>
+                            <SelectItem value="library_admin">Library Admin</SelectItem>
+                            <SelectItem value="transport_admin">Transport Admin</SelectItem>
+                            <SelectItem value="driver">Driver / Fleet Staff</SelectItem>
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Step 1.5: Select Department / Branch (Only when Faculty Member / Teacher is selected) */}
-                  {targetRole !== 'none' && (targetRole === 'faculty' || targetRole === 'teacher') && (
+                  {!isStageZero && targetRole !== 'none' && (targetRole === 'faculty' || targetRole === 'teacher') && (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -1555,10 +1601,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   )}
 
                   {/* Step 2: Assign To (Hidden when Direct is selected) */}
-                  {targetRole === 'none' ? (
-                    <div className={`p-3 rounded-lg border text-xs flex items-center gap-2 ${theme === 'dark' ? 'bg-muted/40 border-border text-muted-foreground' : 'bg-slate-100 border-slate-200 text-slate-600'
-                      }`}>
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  {(isStageZero || targetRole === 'none') ? (
+                    <div className={`p-3 rounded-lg border text-xs flex items-center gap-2 ${
+                      isStageZero
+                        ? (theme === 'dark' ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-800')
+                        : (theme === 'dark' ? 'bg-muted/40 border-border text-muted-foreground' : 'bg-slate-100 border-slate-200 text-slate-600')
+                    }`}>
+                      <CheckCircle2 className={`w-4 h-4 shrink-0 ${isStageZero ? 'text-emerald-600 dark:text-emerald-400' : 'text-emerald-500'}`} />
                       <span>Direct Review enabled: Request will be sent directly for approval without substitute duty assignment.</span>
                     </div>
                   ) : (

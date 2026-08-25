@@ -470,6 +470,9 @@ export interface LeaveQuota {
   is_od_eligible?: boolean;
 
   policy_rules?: any;
+  num_stages?: number;
+  workflow_stages?: string[];
+  require_alternate_duty?: boolean;
 }
 
 interface GetFacultyAssignmentsResponse {
