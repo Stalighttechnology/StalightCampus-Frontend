@@ -514,8 +514,8 @@ const StudentEnrollment = () => {
         <div id="elective-enrollment-filters-section">
           <CardHeader className="pb-4 md:pb-2 lg:pb-4 flex flex-row items-start justify-between border-b pb-4">
             <div>
-              <CardTitle className="text-xl sm:text-2xl font-semibold">Student Enrollment <span className="block sm:inline">(Elective(Lab) / Open Elective)</span></CardTitle>
-              <CardDescription className="text-sm text-muted-foreground mt-1">Manage student course enrollments for elective(lab) and open elective subjects.</CardDescription>
+              <CardTitle className="text-xl sm:text-2xl font-semibold">Student Enrollment <span className="block sm:inline">(Elective / Open Elective / Lab)</span></CardTitle>
+              <CardDescription className="text-sm text-muted-foreground mt-1">Manage student course enrollments for elective, open elective, and lab subjects.</CardDescription>
             </div>
             <Button
               onClick={handleExportPDF}
@@ -607,8 +607,9 @@ const StudentEnrollment = () => {
                       <SelectValue placeholder="Choose Subject Type" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                      <SelectItem value="elective">Elective(Lab)</SelectItem>
+                      <SelectItem value="elective">Elective</SelectItem>
                       <SelectItem value="open_elective">Open Elective</SelectItem>
+                      <SelectItem value="lab">Lab</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -946,8 +947,9 @@ const StudentEnrollment = () => {
                       <SelectValue placeholder="Select Course Type" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                      <SelectItem value="elective">Elective(Lab)</SelectItem>
+                      <SelectItem value="elective">Elective</SelectItem>
                       <SelectItem value="open_elective">Open Elective</SelectItem>
+                      <SelectItem value="lab">Lab</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
