@@ -71,8 +71,25 @@ const TakeAttendance = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [recentRecords, setRecentRecords] = useState<GetTakeAttendanceBootstrapResponse['data']['recent_records']>([]);
   const [subjectType, setSubjectType] = useState<string | null>(null);
+  const [labBatchId, setLabBatchId] = useState<number | null>(null);
   const [lastBootstrapParams, setLastBootstrapParams] = useState<any>(null);
   const [attendanceDate, setAttendanceDate] = useState<string>(new Date().toLocaleDateString('sv-SE'));
+
+  const isLabSubject = subjectType === 'lab';
+  const currentAssignment = normalizedAssignments.find((a) => a.subject_id === subjectId);
+  const labBatches: Array<{ id: number | string; name: string }> = (currentAssignment as any)?.lab_batches || [];
+
+  // Sync labBatchId with available batches
+  useEffect(() => {
+    if (isLabSubject && labBatches.length > 0) {
+      const exists = labBatches.some((b) => Number(b.id) === Number(labBatchId));
+      if (!exists) {
+        setLabBatchId(Number(labBatches[0].id));
+      }
+    } else if (!isLabSubject) {
+      setLabBatchId(null);
+    }
+  }, [subjectId, isLabSubject, labBatches, labBatchId]);
 
   // Simple debounced value hook to avoid rapid-fire API calls when user changes selections
   const useDebounced = <T,>(value: T, delay = 300) => {
@@ -186,6 +203,7 @@ const TakeAttendance = () => {
       branch_id: branchId,
       semester_id: semesterId,
       section_id: sectionId,
+      lab_batch_id: isLabSubject ? (labBatchId || undefined) : undefined,
       page: debouncedPage,
       page_size: debouncedPageSize,
       date: attendanceDate
@@ -204,9 +222,18 @@ const TakeAttendance = () => {
     setRecentRecords([]);
     setErrorMsg("");
 
-    // CASE 0: Elective (Branch + Semester + Subject, section optional)
-    if (subjectId && branchId && semesterId && subjectType === 'elective') {
-      runLoader(getStudentsForElective, { subject_id: subjectId, branch_id: branchId, semester_id: semesterId, section_id: sectionId, page: debouncedPage, page_size: debouncedPageSize, date: attendanceDate });
+    // CASE 0: Elective or Lab (Branch + Semester + Subject, section optional, lab batch optional)
+    if (subjectId && branchId && semesterId && (subjectType === 'elective' || subjectType === 'lab')) {
+      runLoader(getStudentsForElective, {
+        subject_id: subjectId,
+        branch_id: branchId,
+        semester_id: semesterId,
+        section_id: sectionId,
+        lab_batch_id: isLabSubject ? (labBatchId || undefined) : undefined,
+        page: debouncedPage,
+        page_size: debouncedPageSize,
+        date: attendanceDate
+      });
       return;
     }
 
@@ -253,11 +280,20 @@ const TakeAttendance = () => {
 
     // CASE 3: Section-specific class (Subject + Branch + Semester + Section)
     if (subjectId && branchId && semesterId && sectionId) {
-      const loader = subjectType === 'regular' || !subjectType ? getStudentsForRegular : subjectType === 'elective' ? getStudentsForElective : getStudentsForOpenElective;
-      runLoader(loader, { subject_id: subjectId, branch_id: branchId, semester_id: semesterId, section_id: sectionId, page: debouncedPage, page_size: debouncedPageSize, date: attendanceDate }, subjectType === 'regular');
+      const loader = subjectType === 'regular' || !subjectType ? getStudentsForRegular : (subjectType === 'elective' || subjectType === 'lab') ? getStudentsForElective : getStudentsForOpenElective;
+      runLoader(loader, {
+        subject_id: subjectId,
+        branch_id: branchId,
+        semester_id: semesterId,
+        section_id: sectionId,
+        lab_batch_id: isLabSubject ? (labBatchId || undefined) : undefined,
+        page: debouncedPage,
+        page_size: debouncedPageSize,
+        date: attendanceDate
+      }, subjectType === 'regular');
       return;
     }
-  }, [subjectId, branchId, semesterId, sectionId, debouncedPage, debouncedPageSize, attendanceDate, subjectType, subjectStudents]);
+  }, [subjectId, branchId, semesterId, sectionId, labBatchId, isLabSubject, debouncedPage, debouncedPageSize, attendanceDate, subjectType, subjectStudents]);
 
   // When subject changes, reset branch/semester/section selections and set subject type immediately
   useEffect(() => {
@@ -303,7 +339,7 @@ const TakeAttendance = () => {
 
       // Behavior by subject type:
       // - open_elective: do not auto-select anything; require manual picks
-      // - elective: auto-select branch & semester if unique; do NOT auto-select section (optional)
+      // - elective/lab: auto-select branch & semester if unique; do NOT auto-select section (optional)
       // - regular/other: keep existing behavior (auto-select branch/semester/section when unique)
       if (subjectType === 'open_elective') {
         setTimeout(() => setIsBranchOpen(true), 150);
@@ -333,7 +369,7 @@ const TakeAttendance = () => {
         return;
       }
 
-      // regular or unknown subject_type: auto-select all unique values including section
+      // regular, lab, or unknown subject_type: auto-select all unique values including section
       const isBranchUnique = uniqBranches.length === 1;
       const isSemUnique = uniqSemesters.length === 1;
       const isSectionUnique = uniqSections.length === 1;
@@ -361,14 +397,12 @@ const TakeAttendance = () => {
         setTimeout(() => setIsBranchOpen(true), 150);
       }
     } catch (e) {
-
-
+      // ignore
     }
-  }, [subjectId, normalizedAssignments, subjectType]);
+  }, [subjectId, subjectType, normalizedAssignments]);
 
-  // When branch changes, clear dependent selections so the UI recomputes semesters/sections
+  // When branch changes, clear semester & section and reset students derived from registrations
   useEffect(() => {
-    // If this change was triggered by auto-derive, skip clearing once
     if (suppressBranchClearRef.current) {
       suppressBranchClearRef.current = false;
       return;
@@ -416,7 +450,7 @@ const TakeAttendance = () => {
 
       // Fallback: if JSON stringify fails for any reason, continue with reload
     } // Choose loader based on subjectType so we call the correct endpoint
-    const loader = subjectType === 'elective' ?
+    const loader = (subjectType === 'elective' || subjectType === 'lab') ?
     getStudentsForElective :
     subjectType === 'open_elective' ? getStudentsForOpenElective : getStudentsForRegular;
 
@@ -468,31 +502,32 @@ const TakeAttendance = () => {
     if (match) semesters.unshift({ id: match.semester_id, name: match.semester.toString() });
   }
 
-  // Sections: derive from subjectStudents when available for chosen branch+semester, else fall back to assignments
-  const sectionsFromRegistrations = subjectStudents.length && branchId && semesterId ?
-  Array.from(new Map(subjectStudents.filter((s) => s.branch_id === branchId && s.semester_id === semesterId && s.section_id).map((s) => {
-    const assignLabel = normalizedAssignments.find((a) => a.section_id === s.section_id && a.branch_id === branchId && a.semester_id === semesterId)?.section;
-    const label = s.section || assignLabel || `Section ${s.section_id}`;
-    return [s.section_id, { id: s.section_id, name: label } as {id: number;name: string;}];
-  })).values()) :
-  [];
-  let sectionsPreferred: {id: number;name: string;}[] = [];
-  if (subjectType === 'elective') {
-    // For elective subjects prefer the sections present in student registrations
-    sectionsPreferred = sectionsFromRegistrations.slice();
-  } else {
-    sectionsPreferred = sectionsFromRegistrations.length ?
-    sectionsFromRegistrations :
-    subjectId && branchId && semesterId && subjectType === 'elective' ?
-    Array.from(new Map(normalizedAssignments.filter((a) => a.branch_id === branchId && a.semester_id === semesterId).map((a) => [a.section_id, { id: a.section_id, name: a.section }])).values()) :
-    subjectId && branchId && semesterId ?
-    Array.from(new Map(normalizedAssignments.filter((a) => a.subject_id === Number(subjectId) && a.branch_id === branchId && a.semester_id === semesterId).map((a) => [a.section_id, { id: a.section_id, name: a.section }])).values()) :
-    branchId && semesterId ? Array.from(new Map(normalizedAssignments.filter((a) => a.branch_id === branchId && a.semester_id === semesterId).map((a) => [a.section_id, { id: a.section_id, name: a.section }])).values()) : [];
-  }
-  const sections = sectionsPreferred.slice();
+  // Sections: derive from students, subjectStudents, and assignments
+  const studentRoster = students.length ? students : subjectStudents;
+  const sectionsFromStudents = studentRoster.length && branchId && semesterId ?
+    Array.from(new Map(studentRoster.filter((s: any) => (s.branch_id === branchId || !s.branch_id) && (s.semester_id === semesterId || !s.semester_id) && s.section_id).map((s: any) => {
+      const assignLabel = normalizedAssignments.find((a) => a.section_id === s.section_id && a.branch_id === branchId && a.semester_id === semesterId)?.section;
+      const label = s.section || assignLabel || `Section ${s.section_id}`;
+      return [s.section_id, { id: s.section_id, name: label } as { id: number; name: string; }];
+    })).values()) : [];
+
+  const sectionsFromAssignments = (subjectId && branchId && semesterId) ?
+    Array.from(new Map(normalizedAssignments.filter((a) => a.branch_id === branchId && a.semester_id === semesterId && a.section_id && (a.subject_id === Number(subjectId) || !a.subject_id)).map((a) => [a.section_id, { id: a.section_id, name: a.section }])).values()) :
+    (branchId && semesterId) ?
+    Array.from(new Map(normalizedAssignments.filter((a) => a.branch_id === branchId && a.semester_id === semesterId && a.section_id).map((a) => [a.section_id, { id: a.section_id, name: a.section }])).values()) : [];
+
+  // Combine and deduplicate sections
+  const preferredSectionsMap = new Map<number, { id: number; name: string }>();
+  sectionsFromStudents.forEach((sec) => preferredSectionsMap.set(sec.id, sec));
+  sectionsFromAssignments.forEach((sec) => {
+    if (!preferredSectionsMap.has(sec.id)) {
+      preferredSectionsMap.set(sec.id, sec);
+    }
+  });
+  const sections = Array.from(preferredSectionsMap.values());
   if (sectionId && !sections.find((s) => s.id === sectionId)) {
     const match = normalizedAssignments.find((a) => a.section_id === sectionId && a.branch_id === branchId && a.semester_id === semesterId);
-    if (match) sections.unshift({ id: match.section_id, name: match.section });
+    if (match && match.section_id) sections.unshift({ id: match.section_id, name: match.section });
   }
 
   // Subjects for selection: show all assigned subjects (faculty's subjects)
@@ -505,7 +540,7 @@ const TakeAttendance = () => {
   const handleSubmit = async () => {
     // Validation:
     // - regular: require branch, semester, section
-    // - elective: require branch, semester (section optional)
+    // - elective / lab: require branch, semester (section optional)
     // - open_elective: require subject only (branch/semester/section optional)
     if (!subjectId) return;
 
@@ -518,7 +553,7 @@ const TakeAttendance = () => {
 
     if (subjectType === 'regular') {
       if (!branchId || !semesterId || !sectionId) return;
-    } else if (subjectType === 'elective') {
+    } else if (subjectType === 'elective' || subjectType === 'lab') {
       if (!branchId || !semesterId) return;
     }
 
@@ -542,6 +577,7 @@ const TakeAttendance = () => {
       if (branchId) data.branch_id = branchId.toString();
       if (semesterId) data.semester_id = semesterId.toString();
       if (sectionId) data.section_id = sectionId.toString();
+      if (isLabSubject && labBatchId) data.lab_batch_id = labBatchId.toString();
       if (attendanceDate) data.date = attendanceDate;
       const res = await takeAttendance(data);
       if (res.success) {
@@ -577,7 +613,7 @@ const TakeAttendance = () => {
             </CardHeader>
             <CardContent className="pb-0">
               <div className="space-y-4 w-full max-w-full">
-                <div id="take-attendance-selectors" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 sm:gap-3 w-full">
+                <div id="take-attendance-selectors" className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${isLabSubject ? 'xl:grid-cols-6' : 'xl:grid-cols-5'} gap-2.5 sm:gap-3 w-full`}>
                   <Select value={subjectId?.toString()} onValueChange={(v) => {
                     setSubjectId(Number(v));
                   }}>
@@ -624,7 +660,7 @@ const TakeAttendance = () => {
                   </Select>
                   <Select value={sectionId?.toString() || ""} onValueChange={(v) => setSectionId(v ? Number(v) : null)} disabled={!semesterId || sections.length === 0} open={isSectionOpen} onOpenChange={setIsSectionOpen}>
                     <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`} disabled={!semesterId || sections.length === 0}>
-                      <SelectValue placeholder={subjectType === 'elective' ? "Select Section (Optional)" : "Select Section"} />
+                      <SelectValue placeholder={subjectType === 'elective' || subjectType === 'lab' ? "Select Section (Optional)" : "Select Section"} />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
                       {sections.length > 0 ? (
@@ -634,6 +670,28 @@ const TakeAttendance = () => {
                       )}
                     </SelectContent>
                   </Select>
+                  {isLabSubject && (
+                    <Select
+                      value={labBatchId ? labBatchId.toString() : ""}
+                      onValueChange={(v) => setLabBatchId(v ? Number(v) : null)}
+                      disabled={!subjectId || labBatches.length === 0}
+                    >
+                      <SelectTrigger className="w-full border-purple-300 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/30 text-purple-900 dark:text-purple-200 font-semibold" disabled={!subjectId || labBatches.length === 0}>
+                        <SelectValue placeholder="Select Batch" />
+                      </SelectTrigger>
+                      <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+                        {labBatches.length > 0 ? (
+                          labBatches.map((b) => (
+                            <SelectItem key={b.id.toString()} value={b.id.toString()}>
+                              {b.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="none" disabled>No batch found</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
                   <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                     <PopoverTrigger asChild>
                       <Button

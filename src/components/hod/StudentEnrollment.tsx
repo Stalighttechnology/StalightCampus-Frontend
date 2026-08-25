@@ -12,7 +12,7 @@ import { useHODBootstrap } from "../../context/HODBootstrapContext";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
-import { Loader2, Users, UserX, UserCheck, FileDown, Search } from "lucide-react";
+import { Loader2, Users, UserX, UserCheck, FileDown, Search, Layers, FlaskConical } from "lucide-react";
 import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 
 const StudentEnrollment = () => {
@@ -39,6 +39,8 @@ const StudentEnrollment = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [appliedSearch, setAppliedSearch] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedBatchFilter, setSelectedBatchFilter] = useState<string>("all");
+  const [activeEnrollBatchId, setActiveEnrollBatchId] = useState<string>("");
   const { theme } = useTheme();
   const [saving, setSaving] = useState(false);
   const [resultModalOpen, setResultModalOpen] = useState(false);
@@ -194,7 +196,8 @@ const StudentEnrollment = () => {
         subject_code: newSubjectState.subject_code,
         semester_id: newSubjectState.semester_id,
         subject_type: newSubjectState.subject_type,
-        credits: Number(newSubjectState.credits)
+        credits: Number(newSubjectState.credits),
+        lab_batches: newSubjectState.subject_type === 'lab' ? ['Batch 1', 'Batch 2'] : undefined
       } as any, "POST");
 
       if (res.success) {
@@ -362,6 +365,22 @@ const StudentEnrollment = () => {
     setSubjects(electiveSubjects);
   }, [electiveSubjects]);
 
+  const currentSubjectObj = subjects.find((s: any) => String(s.id) === String(selectedSubjectId));
+  const currentLabBatches: Array<{ id: string; name: string }> = currentSubjectObj?.lab_batches || [];
+  const isLabSubject = (currentSubjectObj?.subject_type || currentSubjectObj?.subjectType || subjectType) === 'lab';
+
+  // Ensure active enrollment batch is valid when lab batches change
+  useEffect(() => {
+    if (isLabSubject && currentLabBatches.length > 0) {
+      const exists = currentLabBatches.some(b => String(b.id) === String(activeEnrollBatchId));
+      if (!exists) {
+        setActiveEnrollBatchId(String(currentLabBatches[0].id));
+      }
+    }
+  }, [selectedSubjectId, currentLabBatches, isLabSubject, activeEnrollBatchId]);
+
+  const activeBatchName = currentLabBatches.find(b => String(b.id) === String(activeEnrollBatchId))?.name || (currentLabBatches[0]?.name || 'Batch 1');
+
   const loadStudents = async (page = 1, search?: string) => {
     if (!branchId || !selectedSubjectId) return;
     // Determine selected subject type to decide required params (open_elective vs regular)
@@ -398,12 +417,16 @@ const StudentEnrollment = () => {
         throw new Error(data.message || "Failed to fetch students");
       }
 
+      const defaultBatchId = currentLabBatches[0]?.id ? String(currentLabBatches[0].id) : '';
       const mapped = data.results.map((s: any) => ({
         id: s.usn || s.student_id || s.id,
         usn: s.usn || s.student_id || s.id,
         name: s.name,
         checked: s.is_enrolled || false,
-        originallyEnrolled: s.is_enrolled || false // Store original state for change detection
+        originallyEnrolled: s.is_enrolled || false, // Store original state for change detection
+        lab_batch_id: s.lab_batch_id ? String(s.lab_batch_id) : null,
+        lab_batch_name: s.lab_batch_name || null,
+        assignedBatchId: s.lab_batch_id ? String(s.lab_batch_id) : defaultBatchId
       }));
 
       setStudents(mapped);
@@ -434,11 +457,27 @@ const StudentEnrollment = () => {
   }, [branchId, selectedSubjectId, semesterId, sectionId, appliedSearch]);
 
   const toggleStudent = (id: string) => {
-    setStudents((prev) => prev.map((p) => p.id === id ? { ...p, checked: !p.checked } : p));
+    setStudents((prev) => prev.map((p) => {
+      if (p.id === id) {
+        const nextChecked = !p.checked;
+        const targetBatch = isLabSubject
+          ? (activeEnrollBatchId || (currentLabBatches[0]?.id ? String(currentLabBatches[0].id) : ''))
+          : '';
+        return {
+          ...p,
+          checked: nextChecked,
+          assignedBatchId: nextChecked ? targetBatch : p.assignedBatchId
+        };
+      }
+      return p;
+    }));
   };
 
   const checkAllNotEnrolled = () => {
-    setStudents((prev) => prev.map((s) => !s.checked ? { ...s, checked: true } : s));
+    const targetBatch = isLabSubject
+      ? (activeEnrollBatchId || (currentLabBatches[0]?.id ? String(currentLabBatches[0].id) : ''))
+      : '';
+    setStudents((prev) => prev.map((s) => !s.checked ? { ...s, checked: true, assignedBatchId: targetBatch || s.assignedBatchId } : s));
   };
 
   const uncheckAllEnrolled = () => {
@@ -450,15 +489,31 @@ const StudentEnrollment = () => {
     setSaving(true);
     try {
       // Determine changes based on original loaded state vs current checked state
-      const toRegister = students.filter((s) => s.checked && !s.originallyEnrolled).map((s) => s.usn);
+      const toRegister = students.filter((s) => s.checked && (!s.originallyEnrolled || (isLabSubject && s.assignedBatchId && s.assignedBatchId !== s.lab_batch_id))).map((s) => s.usn);
       const toUnregister = students.filter((s) => !s.checked && s.originallyEnrolled).map((s) => s.usn);
+
+      const student_lab_batches: Record<string, string> = {};
+      if (isLabSubject) {
+        students.filter((s) => s.checked && s.assignedBatchId).forEach((s) => {
+          student_lab_batches[s.usn] = s.assignedBatchId;
+        });
+      }
 
       let registeredCount = 0;
       let removedCount = 0;
       let failed: any[] = [];
 
       if (toRegister.length > 0) {
-        const res = await manageStudents({ action: "bulk_register_subjects", branch_id: branchId, subject_id: selectedSubjectId, student_ids: toRegister }, "POST");
+        const payload: any = {
+          action: "bulk_register_subjects",
+          branch_id: branchId,
+          subject_id: selectedSubjectId,
+          student_ids: toRegister
+        };
+        if (isLabSubject && Object.keys(student_lab_batches).length > 0) {
+          payload.student_lab_batches = student_lab_batches;
+        }
+        const res = await manageStudents(payload, "POST");
         if (res?.success) {
           const resData: any = res.data;
           registeredCount = resData?.registered_count ?? resData?.registered?.length ?? toRegister.length;
@@ -493,9 +548,15 @@ const StudentEnrollment = () => {
       // Update local state instead of reloading to avoid extra API call
       setStudents((prev) => prev.map((student) => {
         if (toRegister.includes(student.usn)) {
-          return { ...student, checked: true, originallyEnrolled: true };
+          return {
+            ...student,
+            checked: true,
+            originallyEnrolled: true,
+            lab_batch_id: student.assignedBatchId,
+            lab_batch_name: currentLabBatches.find(b => String(b.id) === String(student.assignedBatchId))?.name || student.lab_batch_name
+          };
         } else if (toUnregister.includes(student.usn)) {
-          return { ...student, checked: false, originallyEnrolled: false };
+          return { ...student, checked: false, originallyEnrolled: false, lab_batch_id: null, lab_batch_name: null };
         }
         return student;
       }));
@@ -529,7 +590,7 @@ const StudentEnrollment = () => {
           </CardHeader>
           <CardContent className="space-y-4 sm:space-y-5 md:space-y-4 lg:space-y-6 p-4 sm:p-5 md:p-4 lg:p-6 pb-0 pt-6">
             <div className="w-full">
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 w-full">
+              <div className={`grid grid-cols-1 sm:grid-cols-2 ${(subjectType === 'lab' || isLabSubject) ? 'lg:grid-cols-3 xl:grid-cols-5' : 'xl:grid-cols-4'} gap-4 w-full`}>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">{translateTerminology("Semester")}</label>
                   <Select open={isSemesterOpen} onOpenChange={setIsSemesterOpen} value={semesterId} onValueChange={(v: string) => {
@@ -651,6 +712,32 @@ const StudentEnrollment = () => {
                     </Button>
                   }
                 </div>
+                {(subjectType === 'lab' || isLabSubject) && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300 flex items-center justify-between">
+                      <span>Batch</span>
+                      <span className="text-[11px] text-purple-600 dark:text-purple-400 font-normal">Active</span>
+                    </label>
+                    <Select
+                      value={activeEnrollBatchId}
+                      onValueChange={(val: string) => {
+                        setActiveEnrollBatchId(val);
+                      }}
+                      disabled={!selectedSubjectId || currentLabBatches.length === 0}
+                    >
+                      <SelectTrigger className="w-full border-purple-400/80 dark:border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200 font-semibold" disabled={!selectedSubjectId || currentLabBatches.length === 0}>
+                        <SelectValue placeholder="Choose Batch" />
+                      </SelectTrigger>
+                      <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
+                        {currentLabBatches.map((b: any) => (
+                          <SelectItem key={String(b.id)} value={String(b.id)}>
+                            {b.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -701,12 +788,16 @@ const StudentEnrollment = () => {
               </div>
               <div className="flex flex-row items-center justify-center xl:justify-start gap-4 xl:gap-6 text-sm pt-2 xl:pt-0 border-t xl:border-none border-gray-200 dark:border-gray-800 mt-2 xl:mt-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-gray-600 dark:text-gray-400">Enrolled:</span>
+                  <span className="font-semibold text-gray-600 dark:text-gray-400">
+                    {isLabSubject && activeBatchName ? `Enrolled (${activeBatchName}):` : "Enrolled:"}
+                  </span>
                   <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${theme === 'dark' ?
                       'bg-green-900/30 text-green-400 border border-green-800/50' :
                       'bg-green-100 text-green-800 border border-green-200'}`
                   }>
-                    {students.filter((s: any) => s.checked).length}
+                    {isLabSubject && activeEnrollBatchId
+                      ? students.filter((s: any) => s.checked && String(s.assignedBatchId || s.lab_batch_id) === String(activeEnrollBatchId)).length
+                      : students.filter((s: any) => s.checked).length}
                   </span>
                 </div>
                 <label className={`flex items-center gap-2 shrink-0 ${(!semesterId || !sectionId || !subjectType || !selectedSubjectId) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer group'}`}>
@@ -747,7 +838,13 @@ const StudentEnrollment = () => {
                     // Server-side search is used when the user clicks the Search button.
                     // `students` already contains the server-provided (possibly searched) page.
                     const filtered = students;
-                    const enrolledListFiltered = filtered.filter((s: any) => s.checked);
+                    const enrolledListFiltered = filtered.filter((s: any) => {
+                      if (!s.checked) return false;
+                      if (isLabSubject && activeEnrollBatchId) {
+                        return String(s.assignedBatchId || s.lab_batch_id) === String(activeEnrollBatchId);
+                      }
+                      return true;
+                    });
                     const notEnrolledListFiltered = filtered.filter((s: any) => !s.checked);
 
                     return (
@@ -757,14 +854,20 @@ const StudentEnrollment = () => {
                             <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center gap-2">
                                 <UserCheck className={`w-5 h-5 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
-                                <strong className="text-lg font-semibold">Enrolled</strong>
+                                <strong className="text-lg font-semibold">
+                                  Enrolled {isLabSubject && activeBatchName ? `(${activeBatchName})` : ''}
+                                </strong>
                               </div>
                               <div className="flex items-center gap-3">
                                 {enrolledListFiltered.length > 0 && (
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={uncheckAllEnrolled}
+                                    onClick={() => {
+                                      // Uncheck only the students currently displayed in this batch
+                                      const idsToUncheck = new Set(enrolledListFiltered.map(s => s.id));
+                                      setStudents(prev => prev.map(s => idsToUncheck.has(s.id) ? { ...s, checked: false } : s));
+                                    }}
                                     className="text-xs border-red-500/30 bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all px-3 py-1 h-7 rounded-full shadow-sm"
                                   >
                                     Deselect All
@@ -778,6 +881,7 @@ const StudentEnrollment = () => {
                                 </span>
                               </div>
                             </div>
+
                             <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
                               {enrolledListFiltered.map((s: any) =>
                                 <label key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all cursor-pointer ${theme === 'dark'
@@ -795,7 +899,7 @@ const StudentEnrollment = () => {
                               {enrolledListFiltered.length === 0 &&
                                 <div className={`flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-xl ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
                                   <UserX className="w-8 h-8 mb-2 opacity-20" />
-                                  <p className="text-sm font-medium">No enrolled students</p>
+                                  <p className="text-sm font-medium">No students enrolled in {activeBatchName}</p>
                                 </div>
                               }
                             </div>
@@ -814,9 +918,9 @@ const StudentEnrollment = () => {
                                       variant="outline"
                                       size="sm"
                                       onClick={checkAllNotEnrolled}
-                                      className="text-xs border-primary/30 bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all px-3 py-1 h-7 rounded-full shadow-sm"
+                                      className="text-xs border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-300 hover:bg-purple-600 hover:text-white transition-all px-3 py-1 h-7 rounded-full shadow-sm font-medium"
                                     >
-                                      Select All
+                                      {isLabSubject ? `+ Move All to ${activeBatchName}` : "Select All"}
                                     </Button>
                                   )}
                                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${theme === 'dark' ?

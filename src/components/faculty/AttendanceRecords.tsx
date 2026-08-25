@@ -39,6 +39,8 @@ interface AttendanceRecord {
   section_id: number | null;
   subject_id: number | null;
   semester_id: number | null;
+  lab_batch_id?: number | null;
+  lab_batch_name?: string | null;
   summary: {
     present_count: number;
     absent_count: number;
@@ -111,9 +113,16 @@ const AttendanceRecords = () => {
 
   const [subjects, setSubjects] = useState<any[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string>("");
+  const [selectedLabBatch, setSelectedLabBatch] = useState<string>("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+
+  const selectedSubjectObj = subjects.find(
+    (s) => s.subject_id?.toString() === selectedSubject
+  );
+  const isLabSelected = selectedSubjectObj?.subject_type === 'lab';
+  const availableLabBatches = selectedSubjectObj?.lab_batches || [];
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -141,6 +150,7 @@ const AttendanceRecords = () => {
           page: pagination.page,
           page_size: pagination.pageSize,
           subject_id: selectedSubject || undefined,
+          lab_batch_id: selectedLabBatch || undefined,
           start_date: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
           end_date: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
         });
@@ -158,10 +168,11 @@ const AttendanceRecords = () => {
     };
 
     fetchRecords();
-  }, [pagination.page, pagination.pageSize, selectedSubject, startDate, endDate]);
+  }, [pagination.page, pagination.pageSize, selectedSubject, selectedLabBatch, startDate, endDate]);
 
   const handleSubjectChange = (val: string) => {
     setSelectedSubject(val);
+    setSelectedLabBatch("");
     pagination.goToPage(1);
   };
 
@@ -364,13 +375,14 @@ const AttendanceRecords = () => {
               Track and manage history of all student attendance submissions.
             </p>
           </div>
-          <div className="flex-shrink-0">
-            {selectedSubject ? (
+          <div className="flex-shrink-0 flex items-center gap-2">
+            {(selectedSubject || selectedLabBatch) ? (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   handleSubjectChange("");
+                  setSelectedLabBatch("");
                 }}
                 className={`flex items-center gap-0.5 sm:gap-1 transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-7 sm:h-8 lg:h-9 px-1.5 sm:px-2 lg:px-3 whitespace-nowrap ${
                   theme === 'dark'
@@ -473,7 +485,16 @@ const AttendanceRecords = () => {
                     {records.map((record) => (
                       <TableRow key={record.id} className={theme === 'dark' ? 'hover:bg-muted' : 'hover:bg-gray-50'}>
                         <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{formatDateToDDMMYYYY(record.date)}</TableCell>
-                        <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{record.subject}</TableCell>
+                        <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span>{record.subject}</span>
+                            {record.lab_batch_name && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800">
+                                {record.lab_batch_name}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{record.section}</TableCell>
                         <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{record.semester}</TableCell>
                         <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{record.branch}</TableCell>
@@ -562,6 +583,12 @@ const AttendanceRecords = () => {
                                       <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Subject</p>
                                       <p className="text-sm font-semibold break-words" title={selectedRecord.subject}>{selectedRecord.subject}</p>
                                     </div>
+                                    {selectedRecord.lab_batch_name && (
+                                      <div className="space-y-1">
+                                        <p className="text-[10px] uppercase tracking-wider font-semibold text-purple-600 dark:text-purple-400">Lab Batch</p>
+                                        <p className="text-sm font-semibold text-purple-800 dark:text-purple-300">{selectedRecord.lab_batch_name}</p>
+                                      </div>
+                                    )}
                                     <div className="space-y-1">
                                       <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Class</p>
                                       <p className="text-sm font-semibold">
