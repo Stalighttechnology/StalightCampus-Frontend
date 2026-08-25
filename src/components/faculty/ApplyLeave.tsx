@@ -1148,83 +1148,62 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </div>
                 )}
 
-                {/* Dynamic Leave Category Switcher based on 9.8 Role Eligibility */}
+                {/* Leave Category Select Option */}
                 {(() => {
                   const availableCategories = [
-                    { id: 'casual', label: 'Casual (CL)', fullLabel: 'Casual Leave (CL)', visible: true },
-                    { id: 'od', label: 'On Duty (OD)', fullLabel: 'On Duty (OD)', visible: leaveQuota?.is_od_eligible !== false },
-                    { id: 'earned', label: 'Earned (EL)', fullLabel: 'Earned Leave (EL)', visible: leaveQuota?.is_el_eligible !== false },
-                    { id: 'vacation', label: 'Vacation', fullLabel: 'Vacation Leave', visible: leaveQuota?.is_vacation_eligible === true },
-                    { id: 'rh', label: 'Holiday (RH)', fullLabel: 'Restricted Holiday (RH)', visible: true },
-                    { id: 'maternity', label: 'Maternity', fullLabel: 'Maternity Leave', visible: leaveQuota?.is_maternity_eligible === true },
-                    { id: 'short_permission', label: 'Permission', fullLabel: 'Short Permission', visible: true },
+                    { id: 'casual', label: 'Casual Leave (CL)', visible: true },
+                    { id: 'od', label: 'On Duty (OD)', visible: leaveQuota?.is_od_eligible !== false },
+                    { id: 'earned', label: 'Earned Leave (EL)', visible: leaveQuota?.is_el_eligible !== false },
+                    { id: 'vacation', label: 'Vacation Leave', visible: leaveQuota?.is_vacation_eligible === true },
+                    { id: 'rh', label: 'Restricted Holiday (RH)', visible: true },
+                    { id: 'maternity', label: 'Maternity Leave (ML)', visible: leaveQuota?.is_maternity_eligible === true },
+                    { id: 'short_permission', label: 'Short Permission', visible: true },
                   ].filter(c => c.visible);
 
                   return (
                     <div className="space-y-2">
-                      <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Category <span className="text-red-500">*</span></Label>
+                      <Label htmlFor="leave-category-select" className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        Leave Category <span className="text-red-500">*</span>
+                      </Label>
                       
-                      {/* Mobile Dropdown (< sm) */}
-                      <div className="sm:hidden">
-                        <Select
-                          value={leaveType}
-                          onValueChange={(val: any) => {
-                            setLeaveType(val);
-                            if (val !== 'od' && val !== 'maternity') {
-                              setInitialDocFile(null);
-                              if (fileInputRef.current) fileInputRef.current.value = '';
+                      <Select
+                        value={leaveType}
+                        onValueChange={(val: any) => {
+                          setLeaveType(val);
+                          if (val !== 'od' && val !== 'maternity') {
+                            setInitialDocFile(null);
+                            if (fileInputRef.current) fileInputRef.current.value = '';
+                          }
+                          if (val === 'short_permission') {
+                            const liveTimes = getInitialTimes();
+                            setStartTimeParts(liveTimes.start);
+                            setEndTimeParts(liveTimes.end);
+                            if (!permissionDate) {
+                              setPermissionDate(new Date());
                             }
-                            if (val === 'short_permission') {
-                              const liveTimes = getInitialTimes();
-                              setStartTimeParts(liveTimes.start);
-                              setEndTimeParts(liveTimes.end);
-                              if (!permissionDate) {
-                                setPermissionDate(new Date());
-                              }
-                            }
-                          }}
-                        >
-                          <SelectTrigger className={`apply-leave-input w-full text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                            <SelectValue placeholder="Select Leave Category" />
-                          </SelectTrigger>
-                          <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                            {availableCategories.map(cat => (
-                              <SelectItem key={cat.id} value={cat.id}>{cat.fullLabel}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Desktop / Tablet Grid Switcher (sm+) */}
-                      <div className={`hidden sm:flex flex-wrap p-1 rounded-xl gap-1 ${theme === 'dark' ? 'bg-muted/40 border border-border/60' : 'bg-slate-100 border border-slate-200'}`}>
-                        {availableCategories.map(cat => (
-                          <button
-                            key={cat.id}
-                            type="button"
-                            onClick={() => {
-                              setLeaveType(cat.id as any);
-                              if (cat.id !== 'od' && cat.id !== 'maternity') {
-                                setInitialDocFile(null);
-                                if (fileInputRef.current) fileInputRef.current.value = '';
-                              }
-                              if (cat.id === 'short_permission') {
-                                const liveTimes = getInitialTimes();
-                                setStartTimeParts(liveTimes.start);
-                                setEndTimeParts(liveTimes.end);
-                                if (!permissionDate) {
-                                  setPermissionDate(new Date());
-                                }
-                              }
-                            }}
-                            className={`flex-1 min-w-[90px] py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center ${leaveType === cat.id
-                              ? 'bg-primary text-white shadow-md'
-                              : 'text-muted-foreground hover:text-foreground'
-                              }`}
-                          >
-                            {cat.label}
-                          </button>
-                        ))}
-                      </div>
+                          }
+                        }}
+                      >
+                        <SelectTrigger id="leave-category-select" className={`apply-leave-input w-full text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300'}`}>
+                          <SelectValue placeholder="Select Leave Category" />
+                        </SelectTrigger>
+                        <SelectContent className={`max-h-[280px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                          {availableCategories.map(cat => {
+                            const isSelected = leaveType === cat.id;
+                            return (
+                              <SelectItem
+                                key={cat.id}
+                                value={cat.id}
+                                className={`text-xs font-medium py-2 rounded-md transition-colors cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:font-semibold ${
+                                  isSelected ? 'bg-primary text-primary-foreground font-semibold' : ''
+                                }`}
+                              >
+                                {cat.label}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
 
                       {/* Dynamic Rule Tip from Organization Policy */}
                       <div className="text-[11px] text-muted-foreground pt-0.5 leading-relaxed">
@@ -1286,13 +1265,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           </SelectTrigger>
                           <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
                             <SelectItem value="conference">Conference / Symposia</SelectItem>
-                            <SelectItem value="workshop">Workshop / FDP</SelectItem>
-                            <SelectItem value="seminar">Seminar / Panel</SelectItem>
-                            <SelectItem value="meeting">Official Meeting</SelectItem>
-                            <SelectItem value="phd_work">Ph.D Research / Thesis Works</SelectItem>
-                            <SelectItem value="statutory_work">VTU / AICTE / Statutory Committee Duty</SelectItem>
-                            <SelectItem value="exam_work">Paper Valuation / Examination Duty</SelectItem>
-                            <SelectItem value="management_assigned">Institute / Management Assigned Duty</SelectItem>
+                            <SelectItem value="workshop">Workshop / Faculty Development (FDP)</SelectItem>
+                            <SelectItem value="seminar">Seminar / Panel Discussion</SelectItem>
+                            <SelectItem value="meeting">Official Meeting / Delegation</SelectItem>
+                            <SelectItem value="phd_work">Ph.D Research / Doctoral Work</SelectItem>
+                            <SelectItem value="statutory_work">Statutory / AICTE / University Duty</SelectItem>
+                            <SelectItem value="exam_work">Valuation / Examination Duty</SelectItem>
+                            <SelectItem value="management_assigned">Institutional / Management Assigned Duty</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1478,18 +1457,18 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         <SelectValue placeholder="Choose role for duty coverage..." />
                       </SelectTrigger>
                       <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                        <SelectItem value="none">Direct (No Substitute / Direct Review)</SelectItem>
+                        <SelectItem value="none">Direct Review (No Substitute Required)</SelectItem>
                         <SelectItem value="faculty">Faculty Member / Teacher</SelectItem>
-                        <SelectItem value="hod">HOD</SelectItem>
+                        <SelectItem value="hod">Head of Department (HOD)</SelectItem>
                         <SelectItem value="dean">Dean</SelectItem>
                         <SelectItem value="principal">Principal</SelectItem>
                         <SelectItem value="coe">Controller of Examinations (COE)</SelectItem>
-                        <SelectItem value="fees_manager">Fees Manager</SelectItem>
+                        <SelectItem value="fees_manager">Fees & Accounts Manager</SelectItem>
                         <SelectItem value="admission_manager">Admission Manager</SelectItem>
                         <SelectItem value="hms_admin">Hostel Manager (HMS)</SelectItem>
                         <SelectItem value="library_admin">Library Admin</SelectItem>
                         <SelectItem value="transport_admin">Transport Admin</SelectItem>
-                        <SelectItem value="driver">Driver</SelectItem>
+                        <SelectItem value="driver">Driver / Fleet Staff</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
