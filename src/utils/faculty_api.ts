@@ -772,7 +772,10 @@ export interface AlternateDutyRequestItem {
 export interface GetAlternateDutyRequestsResponse {
   success: boolean;
   message?: string;
-  data?: AlternateDutyRequestItem[];
+  data?: AlternateDutyRequestItem[] | {
+    requests?: AlternateDutyRequestItem[];
+    pending_count?: number;
+  };
   pending_count?: number;
 }
 

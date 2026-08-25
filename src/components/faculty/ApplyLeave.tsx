@@ -322,17 +322,25 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const fetchSubstituteRequests = () => {
     setSubstituteLoading(true);
     getAlternateDutyRequests()
-      .then((res) => {
+      .then((res: any) => {
         if (res.success && res.data) {
-          setSubstituteRequests(res.data);
-          const count = res.pending_count || 0;
+          const rawList = Array.isArray(res.data)
+            ? res.data
+            : (Array.isArray(res.data.requests) ? res.data.requests : []);
+          setSubstituteRequests(rawList);
+          const count = res.pending_count ?? (res.data?.pending_count ?? rawList.filter((r: any) => r.alternate_duty_status === 'PENDING').length);
           setPendingSubstituteCount(count);
           window.dispatchEvent(new CustomEvent('substitute-requests-updated', {
             detail: { pending_count: count }
           }));
+        } else {
+          setSubstituteRequests([]);
         }
       })
-      .catch((err) => console.error("Error fetching substitute requests:", err))
+      .catch((err) => {
+        console.error("Error fetching substitute requests:", err);
+        setSubstituteRequests([]);
+      })
       .finally(() => setSubstituteLoading(false));
   };
 
@@ -1048,7 +1056,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             <CardContent className="p-4">
               {substituteLoading ? (
                 <SkeletonList count={3} />
-              ) : substituteRequests.length === 0 ? (
+              ) : (!Array.isArray(substituteRequests) || substituteRequests.length === 0) ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <UserCheck className="w-12 h-12 mx-auto mb-2 text-muted-foreground/40" />
                   <p className="font-semibold text-foreground">No substitute duty requests assigned</p>
@@ -1056,7 +1064,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {substituteRequests.map((req) => (
+                  {(Array.isArray(substituteRequests) ? substituteRequests : []).map((req) => (
                     <div
                       key={req.id}
                       className={`p-4 rounded-xl border transition-all ${req.alternate_duty_status === 'PENDING'
@@ -2087,75 +2095,101 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       </div>
                     ) : (
                       filteredLeaveList.map((leave) => (
-                        <div key={leave.id} className={`p-3 rounded-lg border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+                          <div key={leave.id} className={`p-3.5 rounded-xl border space-y-2.5 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200 shadow-sm'}`}>
                           <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <div className="font-semibold text-sm">{leave.title}</div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-semibold text-sm text-foreground">{leave.title || 'Leave Application'}</div>
                               <div className="text-xs text-muted-foreground mt-0.5">
-                                {leave.from === leave.to ? leave.from : `${leave.from} to ${leave.to}`}
-                                <span className="uppercase text-[10px] ml-1 font-semibold text-primary">({leave.leave_type})</span>
+                                {leave.from === leave.to ? leave.from : `${leave.from} → ${leave.to}`}
+                                {leave.start_time && leave.end_time && (
+                                  <span className="font-mono text-[11px] ml-1">({leave.start_time} - {leave.end_time})</span>
+                                )}
                               </div>
-                              {leave.od_purpose_category && (
-                                <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                                  Purpose: {leave.od_purpose_category.replace('_', ' ').toUpperCase()}
-                                </div>
-                              )}
-                              {leave.initial_document_url && (
-                                <a
-                                  href={leave.initial_document_url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-[10px] text-blue-500 hover:underline flex items-center gap-1 mt-0.5 font-medium"
-                                >
-                                  <FileText className="w-3 h-3" /> View Initial Order / Letter <ExternalLink className="w-2.5 h-2.5" />
-                                </a>
-                              )}
+                              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
+                                  {leave.leave_type?.replace('_', ' ')}
+                                </span>
+                                {leave.od_purpose_category && (
+                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
+                                    OD: {leave.od_purpose_category.replace('_', ' ').toUpperCase()}
+                                  </span>
+                                )}
+                                {leave.is_half_day && (
+                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0">
+                                    Half-Day ({leave.half_day_session?.toLowerCase() === 'forenoon' || leave.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
+                                  </span>
+                                )}
+                                {leave.initial_document_url && (
+                                  <a
+                                    href={leave.initial_document_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors shrink-0"
+                                    title="View Attached Duty Order / Document Proof"
+                                  >
+                                    <FileText className="w-3 h-3 text-sky-600 dark:text-sky-400" />
+                                    <span>Attachment</span>
+                                    <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                                  </a>
+                                )}
+                              </div>
                               {leave.alternate_faculty_name && (
-                                <div className="text-[11px] text-muted-foreground mt-1">
-                                  Substitute: <span className="text-foreground font-medium">{leave.alternate_faculty_name}</span> ({leave.alternate_duty_status})
-                                </div>
-                              )}
-
-                              {/* Post-OD Attendance Certificate State */}
-                              {leave.leave_type === 'od' && leave.status === 'Approved' && (
-                                <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
-                                  {leave.completion_document_url ? (
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <a
-                                        href={leave.completion_document_url}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold hover:underline flex items-center gap-1"
-                                      >
-                                        <FileText className="w-3 h-3" /> Attendance Certificate <ExternalLink className="w-2.5 h-2.5" />
-                                      </a>
-                                      <span className={`text-[9px] px-1.5 py-0.2 rounded font-semibold ${
-                                        leave.od_completion_verified
-                                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400'
-                                          : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400'
-                                      }`}>
-                                        {leave.od_completion_verified ? 'Verified by HoD' : 'Pending Verification'}
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => {
-                                        setTargetOdLeave(leave);
-                                        setUploadCertModalOpen(true);
-                                        setCompletionCertFile(null);
-                                      }}
-                                      className="text-[10px] h-6 px-2 font-semibold text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 flex items-center gap-1 w-full justify-center"
-                                    >
-                                      <Upload className="w-3 h-3" /> Upload Attendance Certificate
-                                    </Button>
-                                  )}
+                                <div className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1.5 flex-wrap">
+                                  <span>Substitute:</span>
+                                  <span className="text-foreground font-medium">{leave.alternate_faculty_name}</span>
+                                  <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded border ${
+                                    leave.alternate_duty_status === 'ACCEPTED'
+                                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400'
+                                      : leave.alternate_duty_status === 'DECLINED'
+                                        ? 'text-rose-700 bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400'
+                                        : 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400'
+                                  }`}>
+                                    {leave.alternate_duty_status || 'PENDING'}
+                                  </span>
                                 </div>
                               )}
                             </div>
                             {renderStatus(leave)}
                           </div>
+
+                          {/* Post-OD Attendance Certificate State */}
+                          {leave.leave_type === 'od' && leave.status === 'Approved' && (
+                            <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
+                              {leave.completion_document_url ? (
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <a
+                                    href={leave.completion_document_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold hover:underline flex items-center gap-1"
+                                  >
+                                    <FileText className="w-3 h-3" /> Attendance Certificate <ExternalLink className="w-2.5 h-2.5" />
+                                  </a>
+                                  <span className={`text-[9px] px-1.5 py-0.2 rounded font-semibold ${
+                                    leave.od_completion_verified
+                                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400'
+                                      : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400'
+                                  }`}>
+                                    {leave.od_completion_verified ? 'Verified by HoD' : 'Pending Verification'}
+                                  </span>
+                                </div>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setTargetOdLeave(leave);
+                                    setUploadCertModalOpen(true);
+                                    setCompletionCertFile(null);
+                                  }}
+                                  className="text-[10px] h-6 px-2 font-semibold text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 flex items-center gap-1 w-full justify-center"
+                                >
+                                  <Upload className="w-3 h-3" /> Upload Attendance Certificate
+                                </Button>
+                              )}
+                            </div>
+                          )}
+
                           <div className="mt-3 flex gap-2">
                             <button
                               onClick={() => setSelectedLeaveForFlow(leave)}
@@ -2179,13 +2213,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                     </div>
                   ) : (
                     <table className="hidden md:table w-full text-sm text-left border-collapse">
-                      <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
+                      <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50/80'}`}>
                         <tr>
-                          <th className="py-2.5 px-3 text-left font-semibold">Category / Title</th>
-                          <th className="py-2.5 px-3 text-left font-semibold">Period</th>
-                          <th className="py-2.5 px-3 text-left font-semibold">Substitute</th>
-                          <th className="py-2.5 px-3 text-left font-semibold">Status & Pipeline</th>
-                          <th className="py-2.5 px-3 text-right font-semibold">Action</th>
+                          <th className="py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Category / Title</th>
+                          <th className="py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Period</th>
+                          <th className="py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Substitute</th>
+                          <th className="py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Status & Pipeline</th>
+                          <th className="py-3 px-3 text-right font-semibold text-xs text-muted-foreground uppercase tracking-wider">Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2197,17 +2231,25 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           filteredLeaveList.map((leave) => (
                             <tr
                               key={leave.id}
-                              className={`border-b transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/40' : 'border-gray-200 hover:bg-gray-50'}`}
+                              className={`border-b transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/40' : 'border-gray-200 hover:bg-gray-50/80'}`}
                             >
-                              <td className="py-3 px-3">
-                                <div className="font-semibold text-sm">{leave.title}</div>
-                                <div className="flex flex-col items-start gap-1 mt-1">
-                                  <span className="text-[10px] uppercase font-semibold px-1.5 py-0.2 rounded bg-primary/10 text-primary w-fit">
+                              {/* Category / Title */}
+                              <td className="py-3.5 px-3 align-top min-w-[200px]">
+                                <div className="font-semibold text-sm text-foreground max-w-[240px] truncate" title={leave.title}>
+                                  {leave.title || 'Leave Application'}
+                                </div>
+                                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                  <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0 whitespace-nowrap">
                                     {leave.leave_type?.replace('_', ' ')}
                                   </span>
                                   {leave.od_purpose_category && (
-                                    <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400 w-fit">
+                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0 whitespace-nowrap">
                                       OD: {leave.od_purpose_category.replace('_', ' ').toUpperCase()}
+                                    </span>
+                                  )}
+                                  {leave.is_half_day && (
+                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0 whitespace-nowrap">
+                                      Half-Day ({leave.half_day_session?.toLowerCase() === 'forenoon' || leave.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
                                     </span>
                                   )}
                                   {leave.initial_document_url && (
@@ -2215,61 +2257,70 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                       href={leave.initial_document_url}
                                       target="_blank"
                                       rel="noreferrer"
-                                      className="text-[10px] text-blue-500 hover:underline flex items-center gap-1 font-medium"
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-900/60 transition-colors shrink-0 whitespace-nowrap"
+                                      title="View Attached Duty Order / Document Proof"
                                     >
-                                      <FileText className="w-3 h-3" /> Duty Order Proof <ExternalLink className="w-2.5 h-2.5" />
+                                      <FileText className="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0" />
+                                      <span>Attachment</span>
+                                      <ExternalLink className="w-2.5 h-2.5 opacity-70 shrink-0" />
                                     </a>
-                                  )}
-                                  {leave.is_half_day && (
-                                    <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 w-fit">
-                                      Half-Day ({leave.half_day_session?.toLowerCase() === 'forenoon' || leave.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
-                                    </span>
                                   )}
                                 </div>
                               </td>
-                              <td className="py-3 px-3 text-xs">
-                                <div>{leave.from === leave.to ? leave.from : `${leave.from} to ${leave.to}`}</div>
+
+                              {/* Period */}
+                              <td className="py-3.5 px-3 align-top text-xs whitespace-nowrap">
+                                <div className="font-medium text-foreground">
+                                  {leave.from === leave.to ? leave.from : `${leave.from} → ${leave.to}`}
+                                </div>
                                 {leave.start_time && leave.end_time && (
-                                  <div className="text-muted-foreground font-mono">{leave.start_time} - {leave.end_time}</div>
+                                  <div className="text-muted-foreground text-[11px] font-mono mt-0.5">
+                                    {leave.start_time} - {leave.end_time}
+                                  </div>
                                 )}
                               </td>
-                              <td className="py-3 px-3 text-xs">
+
+                              {/* Substitute */}
+                              <td className="py-3.5 px-3 align-top text-xs min-w-[130px]">
                                 {leave.alternate_faculty_name ? (
-                                  <div>
-                                    <div className="font-medium text-foreground">{leave.alternate_faculty_name}</div>
-                                    <span className={`text-[10px] font-semibold px-1 rounded ${leave.alternate_duty_status === 'ACCEPTED'
-                                      ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
-                                      : leave.alternate_duty_status === 'DECLINED'
-                                        ? 'text-rose-600 bg-rose-50 dark:bg-rose-950/30'
-                                        : 'text-amber-600 bg-amber-50 dark:bg-amber-950/30'
-                                      }`}>
+                                  <div className="space-y-1">
+                                    <div className="font-medium text-foreground leading-tight">{leave.alternate_faculty_name}</div>
+                                    <span className={`inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded border ${
+                                      leave.alternate_duty_status === 'ACCEPTED'
+                                        ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800'
+                                        : leave.alternate_duty_status === 'DECLINED'
+                                          ? 'text-rose-700 bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800'
+                                          : 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800'
+                                    }`}>
                                       {leave.alternate_duty_status || 'PENDING'}
                                     </span>
                                   </div>
                                 ) : (
-                                  <span className="text-muted-foreground italic">None nominated</span>
+                                  <span className="text-muted-foreground italic text-xs">None nominated</span>
                                 )}
                               </td>
-                              <td className="py-3 px-3">
+
+                              {/* Status & Pipeline */}
+                              <td className="py-3.5 px-3 align-top min-w-[160px]">
                                 {renderStatus(leave)}
 
                                 {/* OD Post-Completion Certificate Actions in Table */}
                                 {leave.leave_type === 'od' && leave.status === 'Approved' && (
-                                  <div className="mt-1.5 space-y-1">
+                                  <div className="mt-2 space-y-1">
                                     {leave.completion_document_url ? (
                                       <div className="flex items-center gap-1.5 flex-wrap">
                                         <a
                                           href={leave.completion_document_url}
                                           target="_blank"
                                           rel="noreferrer"
-                                          className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold hover:underline flex items-center gap-1"
+                                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
                                         >
                                           <FileText className="w-3 h-3" /> Attendance Cert <ExternalLink className="w-2.5 h-2.5" />
                                         </a>
-                                        <span className={`text-[9px] px-1.5 py-0.2 rounded font-semibold ${
+                                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-semibold border ${
                                           leave.od_completion_verified
-                                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400'
-                                            : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400'
+                                            ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
+                                            : 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800'
                                         }`}>
                                           {leave.od_completion_verified ? 'Verified' : 'Pending Verification'}
                                         </span>
@@ -2283,7 +2334,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                           setUploadCertModalOpen(true);
                                           setCompletionCertFile(null);
                                         }}
-                                        className="text-[10px] h-6 px-2 font-semibold text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 flex items-center gap-1"
+                                        className="text-[10px] h-6 px-2 font-semibold text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 flex items-center gap-1 shadow-none"
                                       >
                                         <Upload className="w-3 h-3" /> Upload Attendance Cert
                                       </Button>
@@ -2291,15 +2342,17 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   </div>
                                 )}
                               </td>
-                              <td className="py-3 px-3 text-right">
+
+                              {/* Action */}
+                              <td className="py-3.5 px-3 align-top text-right whitespace-nowrap">
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="text-xs h-7 px-2.5 flex items-center gap-1 ml-auto border-primary/30 text-primary hover:bg-primary/10"
+                                  className="text-xs h-8 px-3 inline-flex items-center gap-1.5 ml-auto border-primary/30 text-primary hover:bg-primary/10 shadow-none font-medium"
                                   onClick={() => setSelectedLeaveForFlow(leave)}
                                 >
-                                  <Eye className="w-3 h-3" />
-                                  View Flow
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>View Flow</span>
                                 </Button>
                               </td>
                             </tr>
