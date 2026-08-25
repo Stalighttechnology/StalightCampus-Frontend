@@ -1175,6 +1175,141 @@ export default function PrincipalTimetableSettings() {
     }
   };
 
+  const renderLeaveRoleSelector = (
+    title: string,
+    selectedRoles: string[],
+    onChange: (updated: string[]) => void,
+    themeColor: 'blue' | 'emerald' | 'teal' | 'pink' = 'blue'
+  ) => {
+    const roles = [
+      { value: 'teacher', label: 'Teacher / Faculty' },
+      { value: 'hod', label: translateTerminology('HOD') || 'HOD' },
+      { value: 'dean', label: 'Dean' },
+      { value: 'principal', label: 'Principal' },
+      { value: 'coe', label: 'COE' },
+      { value: 'admission_manager', label: 'Admission Mgr' },
+      { value: 'fees_manager', label: 'Fees Mgr' },
+      { value: 'placement_officer', label: 'Placement' },
+      { value: 'counsellor', label: 'Counsellor' },
+      { value: 'warden', label: 'Warden' },
+      { value: 'driver', label: 'Driver' },
+      { value: 'caretaker', label: 'Caretaker' },
+      { value: 'library_admin', label: 'Library' },
+      { value: 'office_admin', label: 'Office Admin' }
+    ];
+
+    const colorConfig = {
+      blue: {
+        active: 'bg-blue-50/90 text-blue-700 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-700/60 font-semibold shadow-xs',
+        badge: 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800',
+        action: 'text-blue-600 dark:text-blue-400 hover:text-blue-700',
+        icon: 'text-blue-600 dark:text-blue-400'
+      },
+      emerald: {
+        active: 'bg-emerald-50/90 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-700/60 font-semibold shadow-xs',
+        badge: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800',
+        action: 'text-emerald-600 dark:text-emerald-400 hover:text-emerald-700',
+        icon: 'text-emerald-600 dark:text-emerald-400'
+      },
+      teal: {
+        active: 'bg-teal-50/90 text-teal-700 border-teal-300 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-700/60 font-semibold shadow-xs',
+        badge: 'text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border-teal-200 dark:border-teal-800',
+        action: 'text-teal-600 dark:text-teal-400 hover:text-teal-700',
+        icon: 'text-teal-600 dark:text-teal-400'
+      },
+      pink: {
+        active: 'bg-pink-50/90 text-pink-700 border-pink-300 dark:bg-pink-950/40 dark:text-pink-300 dark:border-pink-700/60 font-semibold shadow-xs',
+        badge: 'text-pink-700 dark:text-pink-300 bg-pink-50 dark:bg-pink-950/60 border-pink-200 dark:border-pink-800',
+        action: 'text-pink-600 dark:text-pink-400 hover:text-pink-700',
+        icon: 'text-pink-600 dark:text-pink-400'
+      }
+    }[themeColor];
+
+    const isRoleSelected = (val: string) => {
+      if (selectedRoles.includes(val)) return true;
+      if (val === 'teacher' && selectedRoles.includes('faculty')) return true;
+      return false;
+    };
+
+    const toggleRole = (val: string) => {
+      const selected = isRoleSelected(val);
+      let updated: string[];
+      if (selected) {
+        updated = selectedRoles.filter(r => r !== val && (val !== 'teacher' || r !== 'faculty'));
+      } else {
+        updated = [...selectedRoles, val];
+      }
+      onChange(updated);
+    };
+
+    const selectAll = () => onChange(roles.map(r => r.value));
+    const selectTeaching = () => onChange(['teacher', 'faculty', 'hod', 'dean']);
+    const clearAll = () => onChange([]);
+
+    return (
+      <div className="pt-2.5 border-t border-border/40 space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <Label className="text-xs font-semibold">{title}</Label>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${colorConfig.badge}`}>
+              {selectedRoles.length} selected
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] font-medium">
+            <button
+              type="button"
+              onClick={selectAll}
+              className={`${colorConfig.action} hover:underline transition-colors`}
+            >
+              Select All
+            </button>
+            <span className="text-muted-foreground/40">•</span>
+            <button
+              type="button"
+              onClick={selectTeaching}
+              className="text-muted-foreground hover:text-foreground hover:underline transition-colors"
+            >
+              Teaching
+            </button>
+            <span className="text-muted-foreground/40">•</span>
+            <button
+              type="button"
+              onClick={clearAll}
+              className="text-muted-foreground hover:text-foreground hover:underline transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-0.5">
+          {roles.map(role => {
+            const isSelected = isRoleSelected(role.value);
+            return (
+              <button
+                key={role.value}
+                type="button"
+                onClick={() => toggleRole(role.value)}
+                className={`flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all text-left ${
+                  isSelected
+                    ? colorConfig.active
+                    : `${theme === 'dark' ? 'bg-card/70 border-border text-muted-foreground hover:border-border/80 hover:text-foreground' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900 shadow-xs'}`
+                }`}
+              >
+                <span className="truncate">{role.label}</span>
+                {isSelected ? (
+                  <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${colorConfig.icon}`} />
+                ) : (
+                  <span className={`w-3.5 h-3.5 shrink-0 rounded-full border border-border/70 ${theme === 'dark' ? 'bg-background/40' : 'bg-slate-100'}`} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <style>{`
@@ -2091,52 +2226,20 @@ export default function PrincipalTimetableSettings() {
                           </div>
 
                           {/* EL Eligible Roles */}
-                          <div className="pt-2 border-t border-border/40 space-y-1.5">
-                            <Label className="text-xs font-semibold">Eligible Roles for EL</Label>
-                            <div className="flex flex-wrap gap-1.5">
-                              {[
-                                { value: 'teacher', label: 'Teacher' },
-                                { value: 'hod', label: 'HOD' },
-                                { value: 'dean', label: 'Dean' },
-                                { value: 'principal', label: 'Principal' },
-                                { value: 'coe', label: 'COE' },
-                                { value: 'fees_manager', label: 'Fees Mgr' },
-                                { value: 'counsellor', label: 'Counsellor' },
-                                { value: 'driver', label: 'Driver' },
-                                { value: 'warden', label: 'Warden' },
-                                { value: 'library_admin', label: 'Library' },
-                                { value: 'office_admin', label: 'Admin' }
-                              ].map(role => {
-                                const currentList: string[] = leavePolicy.leave_policy_rules?.earned_leave?.eligible_roles || ['hod', 'dean', 'principal', 'coe', 'fees_manager', 'counsellor', 'driver', 'warden', 'librarian', 'lab_assistant', 'office_admin'];
-                                const isSelected = currentList.includes(role.value);
-                                return (
-                                  <button
-                                    key={role.value}
-                                    type="button"
-                                    onClick={() => {
-                                      const updated = isSelected
-                                        ? currentList.filter(r => r !== role.value)
-                                        : [...currentList, role.value];
-                                      setLeavePolicy(prev => ({
-                                        ...prev,
-                                        leave_policy_rules: {
-                                          ...prev.leave_policy_rules,
-                                          earned_leave: { ...prev.leave_policy_rules?.earned_leave, eligible_roles: updated }
-                                        }
-                                      }));
-                                    }}
-                                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
-                                      isSelected
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                    }`}
-                                  >
-                                    {role.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
+                          {renderLeaveRoleSelector(
+                            "Eligible Roles for EL",
+                            leavePolicy.leave_policy_rules?.earned_leave?.eligible_roles || ['hod', 'dean', 'principal', 'coe', 'fees_manager', 'counsellor', 'driver', 'warden', 'librarian', 'lab_assistant', 'office_admin'],
+                            (updated) => {
+                              setLeavePolicy(prev => ({
+                                ...prev,
+                                leave_policy_rules: {
+                                  ...prev.leave_policy_rules,
+                                  earned_leave: { ...prev.leave_policy_rules?.earned_leave, eligible_roles: updated }
+                                }
+                              }));
+                            },
+                            'blue'
+                          )}
                         </CardContent>
                       </Card>
 
@@ -2198,52 +2301,20 @@ export default function PrincipalTimetableSettings() {
                           </div>
 
                           {/* OD Eligible Roles */}
-                          <div className="pt-2 border-t border-border/40 space-y-1.5">
-                            <Label className="text-xs font-semibold">Eligible Roles for OD</Label>
-                            <div className="flex flex-wrap gap-1.5">
-                              {[
-                                { value: 'teacher', label: 'Teacher' },
-                                { value: 'hod', label: 'HOD' },
-                                { value: 'dean', label: 'Dean' },
-                                { value: 'principal', label: 'Principal' },
-                                { value: 'coe', label: 'COE' },
-                                { value: 'fees_manager', label: 'Fees Mgr' },
-                                { value: 'counsellor', label: 'Counsellor' },
-                                { value: 'driver', label: 'Driver' },
-                                { value: 'warden', label: 'Warden' },
-                                { value: 'library_admin', label: 'Library' },
-                                { value: 'office_admin', label: 'Admin' }
-                              ].map(role => {
-                                const currentList: string[] = leavePolicy.leave_policy_rules?.on_duty?.eligible_roles || ['teacher', 'faculty', 'hod', 'dean', 'principal', 'coe'];
-                                const isSelected = currentList.includes(role.value);
-                                return (
-                                  <button
-                                    key={role.value}
-                                    type="button"
-                                    onClick={() => {
-                                      const updated = isSelected
-                                        ? currentList.filter(r => r !== role.value)
-                                        : [...currentList, role.value];
-                                      setLeavePolicy(prev => ({
-                                        ...prev,
-                                        leave_policy_rules: {
-                                          ...prev.leave_policy_rules,
-                                          on_duty: { ...prev.leave_policy_rules?.on_duty, eligible_roles: updated }
-                                        }
-                                      }));
-                                    }}
-                                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
-                                      isSelected
-                                        ? 'bg-emerald-600 text-white'
-                                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                    }`}
-                                  >
-                                    {role.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
+                          {renderLeaveRoleSelector(
+                            "Eligible Roles for OD",
+                            leavePolicy.leave_policy_rules?.on_duty?.eligible_roles || ['teacher', 'faculty', 'hod', 'dean', 'principal', 'coe'],
+                            (updated) => {
+                              setLeavePolicy(prev => ({
+                                ...prev,
+                                leave_policy_rules: {
+                                  ...prev.leave_policy_rules,
+                                  on_duty: { ...prev.leave_policy_rules?.on_duty, eligible_roles: updated }
+                                }
+                              }));
+                            },
+                            'emerald'
+                          )}
                         </CardContent>
                       </Card>
 
@@ -2306,52 +2377,20 @@ export default function PrincipalTimetableSettings() {
                           </div>
 
                           {/* Vacation Eligible Roles */}
-                          <div className="pt-2 border-t border-border/40 space-y-1.5">
-                            <Label className="text-xs font-semibold">Eligible Roles for Vacation Leave</Label>
-                            <div className="flex flex-wrap gap-1.5">
-                              {[
-                                { value: 'teacher', label: 'Teacher' },
-                                { value: 'hod', label: 'HOD' },
-                                { value: 'dean', label: 'Dean' },
-                                { value: 'principal', label: 'Principal' },
-                                { value: 'coe', label: 'COE' },
-                                { value: 'fees_manager', label: 'Fees Mgr' },
-                                { value: 'counsellor', label: 'Counsellor' },
-                                { value: 'driver', label: 'Driver' },
-                                { value: 'warden', label: 'Warden' },
-                                { value: 'library_admin', label: 'Library' },
-                                { value: 'office_admin', label: 'Admin' }
-                              ].map(role => {
-                                const currentList: string[] = leavePolicy.leave_policy_rules?.vacation_leave?.eligible_roles || ['teacher', 'faculty'];
-                                const isSelected = currentList.includes(role.value);
-                                return (
-                                  <button
-                                    key={role.value}
-                                    type="button"
-                                    onClick={() => {
-                                      const updated = isSelected
-                                        ? currentList.filter(r => r !== role.value)
-                                        : [...currentList, role.value];
-                                      setLeavePolicy(prev => ({
-                                        ...prev,
-                                        leave_policy_rules: {
-                                          ...prev.leave_policy_rules,
-                                          vacation_leave: { ...prev.leave_policy_rules?.vacation_leave, eligible_roles: updated }
-                                        }
-                                      }));
-                                    }}
-                                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
-                                      isSelected
-                                        ? 'bg-teal-600 text-white'
-                                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                    }`}
-                                  >
-                                    {role.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
+                          {renderLeaveRoleSelector(
+                            "Eligible Roles for Vacation Leave",
+                            leavePolicy.leave_policy_rules?.vacation_leave?.eligible_roles || ['teacher', 'faculty'],
+                            (updated) => {
+                              setLeavePolicy(prev => ({
+                                ...prev,
+                                leave_policy_rules: {
+                                  ...prev.leave_policy_rules,
+                                  vacation_leave: { ...prev.leave_policy_rules?.vacation_leave, eligible_roles: updated }
+                                }
+                              }));
+                            },
+                            'teal'
+                          )}
                         </CardContent>
                       </Card>
 
@@ -2395,52 +2434,20 @@ export default function PrincipalTimetableSettings() {
                           </div>
 
                           {/* Maternity Eligible Roles */}
-                          <div className="pt-2 border-t border-border/40 space-y-1.5">
-                            <Label className="text-xs font-semibold">Eligible Roles for Maternity Leave</Label>
-                            <div className="flex flex-wrap gap-1.5">
-                              {[
-                                { value: 'teacher', label: 'Teacher' },
-                                { value: 'hod', label: 'HOD' },
-                                { value: 'dean', label: 'Dean' },
-                                { value: 'principal', label: 'Principal' },
-                                { value: 'coe', label: 'COE' },
-                                { value: 'fees_manager', label: 'Fees Mgr' },
-                                { value: 'counsellor', label: 'Counsellor' },
-                                { value: 'driver', label: 'Driver' },
-                                { value: 'warden', label: 'Warden' },
-                                { value: 'library_admin', label: 'Library' },
-                                { value: 'office_admin', label: 'Admin' }
-                              ].map(role => {
-                                const currentList: string[] = leavePolicy.leave_policy_rules?.maternity_leave?.eligible_roles || ['teacher', 'faculty', 'hod', 'counsellor', 'warden', 'office_admin'];
-                                const isSelected = currentList.includes(role.value);
-                                return (
-                                  <button
-                                    key={role.value}
-                                    type="button"
-                                    onClick={() => {
-                                      const updated = isSelected
-                                        ? currentList.filter(r => r !== role.value)
-                                        : [...currentList, role.value];
-                                      setLeavePolicy(prev => ({
-                                        ...prev,
-                                        leave_policy_rules: {
-                                          ...prev.leave_policy_rules,
-                                          maternity_leave: { ...prev.leave_policy_rules?.maternity_leave, eligible_roles: updated }
-                                        }
-                                      }));
-                                    }}
-                                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
-                                      isSelected
-                                        ? 'bg-pink-600 text-white'
-                                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                    }`}
-                                  >
-                                    {role.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
+                          {renderLeaveRoleSelector(
+                            "Eligible Roles for Maternity Leave",
+                            leavePolicy.leave_policy_rules?.maternity_leave?.eligible_roles || ['teacher', 'faculty', 'hod', 'counsellor', 'warden', 'office_admin'],
+                            (updated) => {
+                              setLeavePolicy(prev => ({
+                                ...prev,
+                                leave_policy_rules: {
+                                  ...prev.leave_policy_rules,
+                                  maternity_leave: { ...prev.leave_policy_rules?.maternity_leave, eligible_roles: updated }
+                                }
+                              }));
+                            },
+                            'pink'
+                          )}
                         </CardContent>
                       </Card>
 
