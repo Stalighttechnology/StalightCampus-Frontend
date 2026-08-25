@@ -679,6 +679,10 @@ const AdminAnnouncementManagement = () => {
   const roles = getInstitutionType() === 'school' ? rawRoles.filter(r => r !== "placement_officer") : rawRoles;
 
   const isCircularPage = mainSection === 'circulars';
+  const isDisallowedCircularCreator = ['hms_admin', 'warden', 'transport_admin'].includes(user?.role);
+  const canCreate = isCircularPage 
+    ? (!isDisallowedCircularCreator && user?.role !== 'counsellor')
+    : user?.role !== 'counsellor';
   const nonCircularCount = totalMyCount;
   const circularCount = totalMyCircularCount;
 
@@ -702,7 +706,7 @@ const AdminAnnouncementManagement = () => {
 
         {/* Action Button: New Announcement OR Issue Circular */}
         <div className="announce-actions w-full sm:w-auto">
-          {user?.role !== 'counsellor' && (
+          {canCreate && (
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
               <DialogTrigger asChild>
                 <Button
@@ -1126,7 +1130,7 @@ const AdminAnnouncementManagement = () => {
       <button
         onClick={() => {
           setMainSection('circulars');
-          setActiveTab('my');
+          setActiveTab(isDisallowedCircularCreator ? 'received' : 'my');
         }}
         className={`flex-1 sm:flex-none py-2 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
           mainSection === 'circulars'
@@ -1136,7 +1140,7 @@ const AdminAnnouncementManagement = () => {
       >
         <FileText className="w-4 h-4" />
         <span>Circulars</span>
-        {circularCount > 0 && (
+        {circularCount > 0 && !isDisallowedCircularCreator && (
           <Badge className={`text-[10px] h-4 px-1.5 border-none ${mainSection === 'circulars' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300'}`}>
             {circularCount}
           </Badge>
@@ -1216,7 +1220,6 @@ const AdminAnnouncementManagement = () => {
               onMarkRead={handleMarkRead}
               onResolveEmergency={handleResolveEmergency}
               loading={loading}
-              showActions={true}
               myPagination={currentMyPagination}
               receivedPagination={currentReceivedPagination}
               onPageChange={handlePageChange}
@@ -1225,8 +1228,8 @@ const AdminAnnouncementManagement = () => {
               showExpired={showArchive}
               setShowExpired={setShowArchive}
               hideReceivedTab={false}
-              hideMyTab={user?.role === 'counsellor'}
-              showActions={user?.role !== 'counsellor'}
+              hideMyTab={user?.role === 'counsellor' || (isCircularPage && isDisallowedCircularCreator)}
+              showActions={user?.role !== 'counsellor' && !(isCircularPage && isDisallowedCircularCreator)}
               sectionMode={mainSection}
               circularCategory={circularCategory}
               onCircularCategoryChange={handleCategoryChange}
