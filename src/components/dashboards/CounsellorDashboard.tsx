@@ -60,7 +60,7 @@ const CounsellorDashboard = ({ user }: DashboardProps) => {
       case "my-payroll":
         return <FacultyPayroll />;
       case "external-links":
-        return <ExternalLinksPage userRole={user?.role || "student"} />;
+        return <ExternalLinksPage userRole={user?.role || "counsellor"} />;
       default:
         return <AdmissionDashboard />;
     }

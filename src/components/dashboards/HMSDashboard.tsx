@@ -127,7 +127,7 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
       case "staff-tasks":
         return <StaffTaskTracker />;
       case "external-links":
-        return <ExternalLinksPage userRole={user?.role || "student"} />;
+        return <ExternalLinksPage userRole={user?.role || "hms_admin"} />;
       default:
         return <HMSOverview />;
     }

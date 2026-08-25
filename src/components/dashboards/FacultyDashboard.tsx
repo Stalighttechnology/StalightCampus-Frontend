@@ -91,14 +91,15 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'reimbursements': 'reimbursements',
       'schedule-meeting': 'schedule-meeting',
       'my-payroll': 'my-payroll',
-      'staff-tasks': 'staff-tasks'
+      'staff-tasks': 'staff-tasks',
+      'external-links': 'external-links'
     };
 
     // Add direct mappings for additional top-level routes
     pathMap['study-materials'] = 'study-materials';
     pathMap['faculty-announcement-management'] = 'faculty-announcement-management';
 
-    return pathMap[lastPart] || 'dashboard';
+    return pathMap[lastPart] || lastPart || 'dashboard';
   };
 
   const [activePage, setActivePage] = useState(getActivePageFromPath(location.pathname));
@@ -146,10 +147,11 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'schedule-meeting': '/faculty/schedule-meeting',
       'my-payroll': '/faculty/my-payroll',
       'staff-tasks': '/faculty/staff-tasks',
-      'return-to-hod': '/hod/dashboard'
+      'return-to-hod': '/hod/dashboard',
+      'external-links': '/faculty/external-links'
     };
 
-    const path = pathMap[page] || '/faculty/dashboard';
+    const path = pathMap[page] || `/faculty/${page}`;
     navigate(path);
   };
 
@@ -224,7 +226,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       case "syllabus-status":
         return <SyllabusTracker />;
       case "holiday-calendar":
-        return <HolidayCalendar readOnly showLeaves userRole="teacher" />;
+        return <HolidayCalendar readOnly showLeaves userRole="faculty" />;
       case "reimbursements":
         return <EmployeeReimbursements />;
       case "schedule-meeting":
@@ -234,7 +236,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       case "staff-tasks":
         return <StaffTaskTracker />;
       case "external-links":
-        return <ExternalLinksPage userRole={user?.role || "student"} />;
+        return <ExternalLinksPage userRole={user?.role || "faculty"} />;
       default:
         return <FacultyStats setActivePage={handlePageChange} />;
     }

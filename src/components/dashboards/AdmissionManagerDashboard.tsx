@@ -93,7 +93,7 @@ const AdmissionManagerDashboard = ({ user }: DashboardProps) => {
       case "staff-tasks":
         return <StaffTaskTracker />;
       case "external-links":
-        return <ExternalLinksPage userRole={user?.role || "student"} />;
+        return <ExternalLinksPage userRole={user?.role || "admission_manager"} />;
       default:
         return <AdmissionDashboard />;
     }

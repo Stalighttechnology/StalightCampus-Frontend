@@ -59,7 +59,7 @@ const DriverDashboard = ({ user }: DashboardProps) => {
       case "my-payroll":
         return <FacultyPayroll />;
       case "external-links":
-        return <ExternalLinksPage userRole={user?.role || "student"} />;
+        return <ExternalLinksPage userRole={user?.role || "driver"} />;
       default:
         return <DriverDashboardContent />;
     }
