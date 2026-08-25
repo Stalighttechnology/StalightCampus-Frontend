@@ -367,7 +367,7 @@ const EditModal: React.FC<EditModalProps> = ({ classDetails, onSave, onCancel, o
     <div className={`fixed inset-0 flex items-center justify-center z-50 ${theme === 'dark' ? 'bg-background/60' : 'bg-gray-900/60'} text-gray-200`}>
       <div className={`w-[90%] sm:w-[420px] max-h-[85vh] overflow-y-auto custom-scrollbar p-6 md:p-8 rounded-lg shadow-2xl border-2 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
         <h2 className={`text-2xl md:text-3xl font-semibold mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-          {classDetails.timetable_id ? "Edit Class" : "Add Class"} — {dayFull}
+          {newClassDetails.timetable_id ? "Edit Class" : "Add Class"} — {dayFull}
         </h2>
 
         <div className="mb-4">
@@ -382,90 +382,63 @@ const EditModal: React.FC<EditModalProps> = ({ classDetails, onSave, onCancel, o
                   No courses available
                 </SelectItem>
               ) : (
-                <>
-                  {subjects.filter((s: Subject) => s.subject_type !== 'elective' && s.subject_type !== 'open_elective').map((subject: Subject) =>
+                subjects.map((subject: Subject) => {
+                  let displayName = subject.name;
+                  if (subject.subject_type === 'elective') {
+                    displayName = `${subject.name} (Elective)`;
+                  } else if (subject.subject_type === 'open_elective') {
+                    displayName = `${subject.name} (Open Elective)`;
+                  }
+                  return (
                     <SelectItem key={subject.id} value={subject.name} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                      {subject.name}
+                      {displayName}
                     </SelectItem>
-                  )}
-                  {subjects.some((s: Subject) => s.subject_type === 'elective') && (
-                    <SelectItem value="Elective Subjects" className={theme === 'dark' ? 'text-foreground font-semibold' : 'text-gray-900 font-semibold'}>
-                      Elective Subjects (Group)
-                    </SelectItem>
-                  )}
-                  {subjects.some((s: Subject) => s.subject_type === 'open_elective') && (
-                    <SelectItem value="Open Elective Subjects" className={theme === 'dark' ? 'text-foreground font-semibold' : 'text-gray-900 font-semibold'}>
-                      Open Elective Subjects (Group)
-                    </SelectItem>
-                  )}
-                </>
+                  );
+                })
               )}
             </SelectContent>
           </Select>
         </div>
 
-        {!(newClassDetails.subject === 'Elective Subjects' || newClassDetails.subject === 'Open Elective Subjects') && (
-            <div className="mb-4">
-              <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground/70' : 'text-gray-600'}`}>Professor:</label>
-              {matchingAssignments.length > 1 ? (
-                <Select value={newClassDetails.professor} onValueChange={(value) => handleSelectChange("professor", value)}>
-                  <SelectTrigger className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}>
-                    <SelectValue placeholder="Select Professor" />
-                  </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                    {matchingAssignments.map((a: any) => {
-                      const profName = a.faculty_name || a.faculty || "";
-                      return (
-                        <SelectItem key={a.id} value={profName} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                          {profName}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className={`w-full p-3 border rounded-lg flex items-center gap-3 transition-all duration-200 ${theme === 'dark' ? 'bg-muted/50 text-foreground border-border' : 'bg-gray-50 text-gray-900 border-gray-200'}`}>
-                  <User className={`w-4 h-4 ${theme === 'dark' ? 'text-primary' : 'text-primary'}`} />
-                  <span className="font-medium">
-                    {isLoadingAssignments ? (
-                      <Skeleton className="h-4 w-32" />
-                    ) : newClassDetails.professor ? (
-                      newClassDetails.professor
-                    ) : (
-                      <span className="text-destructive/70 italic">No professor assigned</span>
-                    )}
-                  </span>
-                </div>
-              )}
-              {!isLoadingAssignments && !newClassDetails.professor && newClassDetails.subject &&
-                <p className="text-xs text-destructive mt-1">Please assign a faculty to this subject in Faculty Assignments.</p>
-              }
+        <div className="mb-4">
+          <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground/70' : 'text-gray-600'}`}>Professor:</label>
+          {matchingAssignments.length > 1 ? (
+            <Select value={newClassDetails.professor} onValueChange={(value) => handleSelectChange("professor", value)}>
+              <SelectTrigger className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}>
+                <SelectValue placeholder="Select Professor" />
+              </SelectTrigger>
+              <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
+                {matchingAssignments.map((assignment: FacultyAssignmentData) => {
+                  const name = (assignment as any).faculty_name || (assignment as any).faculty || "";
+                  return (
+                    <SelectItem key={assignment.id} value={name} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                      {name}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className={`w-full p-2 border rounded ${theme === 'dark' ? 'bg-[#151c2c] border-slate-700 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-700'}`}>
+              {newClassDetails.professor || "No professor assigned"}
             </div>
-        )}
+          )}
+          {!isLoadingAssignments && !newClassDetails.professor && newClassDetails.subject &&
+            <p className="text-xs text-destructive mt-1">Please assign a faculty to this subject in Faculty Assignments.</p>
+          }
+        </div>
 
-        {!(newClassDetails.subject === 'Elective Subjects' || newClassDetails.subject === 'Open Elective Subjects') ? (
-            <div className="mb-4">
-              <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Room:</label>
-              <input
-                type="text"
-                name="room"
-                value={newClassDetails.room}
-                onChange={handleChange}
-                className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border placeholder-muted-foreground' : 'text-gray-900 bg-white border-gray-300 placeholder-gray-500'}`}
-                placeholder="e.g., R103" />
-            </div>
-        ) : (
-            <div className="mb-4">
-              <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Room:</label>
-              <input
-                type="text"
-                name="room"
-                value="Multiple Rooms"
-                readOnly
-                className={`w-full p-2 border rounded bg-muted/50 cursor-not-allowed ${theme === 'dark' ? 'text-foreground/70 border-border text-muted-foreground' : 'text-gray-500 border-gray-200 bg-gray-100'}`}
-              />
-            </div>
-        )}
+        <div className="mb-4">
+          <label className={`block mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Room:</label>
+          <input
+            type="text"
+            name="room"
+            value={newClassDetails.room || ""}
+            onChange={handleChange}
+            placeholder="Enter Room Number"
+            className={`w-full p-2 border rounded ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-950'}`}
+          />
+        </div>
 
         <div className="mb-4">
           <label className={`block mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Time Slot:</label>
@@ -475,28 +448,47 @@ const EditModal: React.FC<EditModalProps> = ({ classDetails, onSave, onCancel, o
           </div>
         </div>
 
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            {classDetails.timetable_id && (
-              <Button
-                variant="destructive"
-                onClick={async () => {
-                  const result = await showConfirmAlert("Delete class?", `This will delete the class for ${dayFull} at ${newClassDetails.start_time} - ${newClassDetails.end_time}.`, "Confirm Delete");
-                  if (result.isConfirmed) {
-                    onDelete && onDelete(classDetails.timetable_id);
-                  }
-                }}
-                className={theme === 'dark' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-red-600 text-white hover:bg-red-700'}>
-                Delete
-              </Button>
-            )}
+        <div className="flex flex-col sm:flex-row justify-between gap-4 sm:items-center mt-6">
+          <div className="flex flex-row gap-2 w-full sm:w-auto">
+            {newClassDetails.timetable_id ? (
+              <>
+                <Button
+                  variant="destructive"
+                  onClick={async () => {
+                    const result = await showConfirmAlert("Delete class?", `This will delete the class for ${dayFull} at ${newClassDetails.start_time} - ${newClassDetails.end_time}.`, "Confirm Delete");
+                    if (result.isConfirmed) {
+                      onDelete && onDelete(newClassDetails.timetable_id);
+                    }
+                  }}
+                  className="flex-1 sm:flex-none bg-red-600 text-white hover:bg-red-700">
+                  Delete
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setNewClassDetails({
+                      subject: "",
+                      professor: "",
+                      room: "",
+                      slot_id: newClassDetails.slot_id || classDetails.slot_id,
+                      time: newClassDetails.time || classDetails.time,
+                      day: newClassDetails.day || classDetails.day,
+                      timetable_id: undefined,
+                      isGroup: false,
+                      subject_type: undefined
+                    });
+                  }}
+                  className={`flex-1 sm:flex-none ${theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100'}`}>
+                  Add Another
+                </Button>
+              </>
+            ) : null}
           </div>
-          <div className="flex justify-end space-x-4">
+          <div className="flex flex-row justify-end gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
-              className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100'}
+              className={`flex-1 sm:flex-none ${theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100'}`}
               onClick={onCancel}>
-
               Cancel
             </Button>
             <Button
@@ -517,10 +509,10 @@ const EditModal: React.FC<EditModalProps> = ({ classDetails, onSave, onCancel, o
                   isGroup,
                   subject_type: newClassDetails.subject === 'Elective Subjects' ? 'elective' : (newClassDetails.subject === 'Open Elective Subjects' ? 'open_elective' : undefined),
                   day: classDetails.day || "",
-                  timetable_id: classDetails.timetable_id
+                  timetable_id: newClassDetails.timetable_id
                 });
               }}
-              className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent bg-primary text-white hover:bg-primary/90 hover:text-white' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100 bg-primary text-white hover:bg-primary/90 hover:text-white'}>
+              className={`flex-1 sm:flex-none ${theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent bg-primary text-white hover:bg-primary/90 hover:text-white' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100 bg-primary text-white hover:bg-primary/90 hover:text-white'}`}>
               Save
             </Button>
           </div>
@@ -875,38 +867,7 @@ const Timetable = () => {
         const entries = timetable.filter(
           (e) => String((e as any).slot_id) === String(slot.id) && e.day === day
         );
-        const groupedEntries: any[] = [];
-        const electiveGroups: Record<string, any> = {};
-
-        entries.forEach((e) => {
-          const type = (e.faculty_assignment as any).subject_type;
-          if (type === 'elective' || type === 'open_elective') {
-            const key = `${e.start_time}-${e.end_time}-${type}`;
-            if (!electiveGroups[key]) {
-              electiveGroups[key] = {
-                id: `group-${e.id}`,
-                isGroup: true,
-                subject_type: type,
-                start_time: e.start_time,
-                end_time: e.end_time,
-                day: e.day,
-                faculty_assignment: {
-                  subject: type === 'elective' ? 'Elective Subjects' : 'Open Elective Subjects',
-                  faculty: 'Multiple Professors',
-                  subject_type: type,
-                  id: 'group_assignment_id'
-                },
-                room: 'Multiple Rooms',
-                timetable_id: e.id // keep one id just in case, though delete uses subject_type
-              };
-              groupedEntries.push(electiveGroups[key]);
-            }
-          } else {
-            groupedEntries.push(e);
-          }
-        });
-
-        row[day.toLowerCase()] = groupedEntries;
+        row[day.toLowerCase()] = entries;
       });
       return row;
     });
@@ -997,11 +958,8 @@ const Timetable = () => {
 
       const response = await manageTimetable(timetableRequest);
       if (response.success) {
-        // Reconcile optimistic UI using server response without refetch
-        const timetableId = response.data?.timetable_id as string | undefined;
+        const timetableId = (response.data?.timetable_id || response.data?.timetable_ids?.[0]) as string | undefined;
         const day = state.selectedClass?.day || timetableRequest.day;
-        const start_time = timetableRequest.start_time;
-        const end_time = timetableRequest.end_time;
         const room = timetableRequest.room || "";
 
         // Build faculty_assignment details from local cache
@@ -1013,28 +971,49 @@ const Timetable = () => {
               faculty: assignment.faculty_name || assignment.faculty || "",
               subject: subjectObj?.name || assignment.subject || newClassDetails.subject || "",
               semester: assignment.semester,
-              section: assignment.section
+              section: assignment.section,
+              subject_type: subjectObj?.subject_type || assignment.subject_type || ""
             }
-          : { id: timetableRequest.assignment_id || "", faculty: newClassDetails.professor || "", subject: newClassDetails.subject || "", semester: 0, section: "" };
+          : { id: timetableRequest.assignment_id || "", faculty: newClassDetails.professor || "", subject: newClassDetails.subject || "", semester: 0, section: "", subject_type: "" };
+
+        const slotId = timetableRequest.slot_id || state.selectedClass?.slot_id;
+        const slot = slots.find(s => String(s.id) === String(slotId));
 
         if (timetableRequest.action === 'create_group') {
-          // Instead of fully mocking it, just fetch timetable again to let backend data group it properly
-          updateState({ selectedClass: null, loading: true });
-          const fetchRes = await manageTimetable({ action: "GET", branch_id: state.branchId, semester_id: state.semesterId, section_id: state.sectionId });
-          if (fetchRes.success && fetchRes.data) {
-            const normalized = Array.isArray(fetchRes.data) ? fetchRes.data.map((e: any) => ({
-              id: e.id,
-              faculty_assignment: { ...e.faculty_assignment, subject_type: e.faculty_assignment.subject_type || (e.faculty_assignment as any).subject_type },
-              day: e.day.toUpperCase(), start_time: e.start_time, end_time: e.end_time, slot_id: e.slot_id, room: e.room
-            })) : [];
-            updateState({ timetable: normalized, loading: false });
-          } else {
-            updateState({ loading: false });
-          }
-          toast({ title: "Success", description: "Elective group created" });
+          // If bulk group creation, we will have multiple IDs
+          const createdIds = (response.data?.timetable_ids || []) as string[];
+          // Find all assignments for this elective group
+          const groupAssignments = state.facultyAssignments.filter(
+            (a: any) => a.subject_type === timetableRequest.subject_type && String(a.semester_id) === String(state.semesterId) && String(a.section_id) === String(state.sectionId)
+          );
+          
+          const newEntries = groupAssignments.map((a, idx) => {
+            const sub = state.subjects.find(s => s.id === a.subject_id);
+            return {
+              id: createdIds[idx] || `temp-${Date.now()}-${idx}`,
+              faculty_assignment: {
+                id: a.id,
+                faculty: a.faculty_name || a.faculty || "",
+                subject: sub?.name || a.subject || "",
+                semester: a.semester,
+                section: a.section,
+                subject_type: sub?.subject_type || a.subject_type || ""
+              },
+              day: day.toUpperCase(),
+              slot_id: slotId,
+              start_time: slot?.start_time?.substring(0, 5) || "",
+              end_time: slot?.end_time?.substring(0, 5) || "",
+              room
+            };
+          });
+
+          // Delete any existing entries for this elective group type in this slot
+          const filtered = state.timetable.filter(
+            (e) => !(e.day === day.toUpperCase() && String(e.slot_id) === String(slotId) && e.faculty_assignment.subject_type === timetableRequest.subject_type)
+          );
+
+          updateState({ timetable: [...filtered, ...newEntries], selectedClass: null });
         } else if (timetableRequest.action === 'create') {
-          const slotId = timetableRequest.slot_id || state.selectedClass?.slot_id;
-          const slot = slots.find(s => String(s.id) === String(slotId));
           const newEntry = {
             id: timetableId || `temp-${Date.now()}`,
             faculty_assignment: facultyAssignment,
@@ -1044,15 +1023,30 @@ const Timetable = () => {
             end_time: slot?.end_time?.substring(0, 5) || "",
             room
           };
-          skipNextFetch.current = true;
-          updateState({ timetable: [...state.timetable, newEntry], selectedClass: null });
-          toast({ title: "Success", description: "Timetable created" });
+
+          const isElective = facultyAssignment.subject_type === 'elective' || facultyAssignment.subject_type === 'open_elective';
+          const updatedTimetable = state.timetable.filter(
+            (e) => {
+              if (isElective) {
+                // If it is an elective, keep other scheduled electives in the same slot.
+                // Replace only if the exact same assignment or ID matches, or if a regular class was there.
+                const isExistingElective = e.faculty_assignment.subject_type === 'elective' || e.faculty_assignment.subject_type === 'open_elective';
+                if (!isExistingElective && e.day === day.toUpperCase() && String(e.slot_id) === String(slotId)) {
+                  return false; // Remove regular class if replacing it
+                }
+                return !(e.id === timetableId || e.faculty_assignment.id === facultyAssignment.id);
+              } else {
+                // For regular subjects, remove everything in that day/slot
+                return !(e.day === day.toUpperCase() && String(e.slot_id) === String(slotId));
+              }
+            }
+          );
+          updateState({ timetable: [...updatedTimetable, newEntry], selectedClass: null });
         } else {
           // update
-          const slotId = timetableRequest.slot_id || state.selectedClass?.slot_id;
-          const slot = slots.find(s => String(s.id) === String(slotId));
           if (timetableId || state.selectedClass?.timetable_id) {
-            const updated = state.timetable.map((e) => e.id === timetableId || e.id === state.selectedClass?.timetable_id ?
+            const targetId = timetableId || state.selectedClass?.timetable_id;
+            const updated = state.timetable.map((e) => e.id === targetId ?
               { ...e, faculty_assignment: facultyAssignment, day: day.toUpperCase(),
                 slot_id: slotId,
                 start_time: slot?.start_time?.substring(0, 5) || e.start_time,
@@ -1060,11 +1054,10 @@ const Timetable = () => {
                 room } :
               e
             );
-            skipNextFetch.current = true;
             updateState({ timetable: updated, selectedClass: null });
-            toast({ title: "Success", description: "Timetable updated successfully" });
           }
         }
+        toast({ title: "Success", description: "Timetable saved successfully" });
       } else {
         throw new Error(response.message || "Failed to save timetable");
       }
@@ -1096,7 +1089,7 @@ const Timetable = () => {
       let end_time = '';
 
       const targetEntry = state.timetable.find(e => e.id === timetableId);
-      if (timetableId.startsWith('group-')) {
+      if (String(timetableId).startsWith('group-')) {
         isGroup = true;
         subjectType = targetEntry?.faculty_assignment?.subject_type || state.selectedClass?.subject_type || '';
         day = targetEntry?.day || state.selectedClass?.day || '';
@@ -1109,8 +1102,7 @@ const Timetable = () => {
           action: 'delete_group',
           subject_type: subjectType,
           day,
-          start_time,
-          end_time,
+          slot_id: String(state.selectedClass?.slot_id || ''),
           semester_id: state.semesterId,
           section_id: state.sectionId,
           branch_id: state.branchId

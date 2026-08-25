@@ -5,11 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit2, Trash2, Eye, Clock, User, AlertCircle, MoreVertical, CheckCircle2, XCircle, Megaphone, BellOff, MapPin, ExternalLink, FileDown, Loader2 } from "lucide-react";
+import { Edit2, Trash2, Eye, Clock, User, AlertCircle, MoreVertical, CheckCircle2, XCircle, Megaphone, BellOff, MapPin, ExternalLink, FileDown, Loader2, FileText, Download, Paperclip } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { Announcement } from "@/utils/announcements_api";
 import { translateTerminology } from "@/utils/institutionConfig";
 import { actionGatePass } from "@/utils/hms_api";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -25,6 +26,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import {
   Pagination,
@@ -66,6 +74,9 @@ interface AnnouncementSectionsProps {
   hideReceivedTab?: boolean;
   hideMyTab?: boolean;
   onResolveEmergency?: (incidentId: number) => void;
+  sectionMode?: 'all' | 'announcements' | 'circulars';
+  circularCategory?: string;
+  onCircularCategoryChange?: (category: string) => void;
 }
 
 const getPriorityColor = (priority: string) => {
@@ -95,6 +106,25 @@ const getPriorityIcon = (priority: string) => {
       return "🟢";
     default:
       return "⚪";
+  }
+};
+
+const getCircularCategoryBadge = (category?: string | null) => {
+  switch (category) {
+    case 'vtu':
+      return { label: 'VTU Circular', className: 'bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300 border-purple-300 dark:border-purple-800' };
+    case 'university':
+      return { label: 'University Notice', className: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800' };
+    case 'exam':
+      return { label: 'Exam / COE Notice', className: 'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 border-blue-300 dark:border-blue-800' };
+    case 'academic':
+      return { label: 'Academic Calendar', className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800' };
+    case 'govt':
+      return { label: 'Govt / AICTE', className: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border-amber-300 dark:border-amber-800' };
+    case 'internal':
+      return { label: 'Internal Circular', className: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950/50 dark:text-cyan-300 border-cyan-300 dark:border-cyan-800' };
+    default:
+      return { label: 'Official Circular', className: 'bg-primary/10 text-primary border-primary/30' };
   }
 };
 
@@ -251,10 +281,26 @@ export const AnnouncementSections = ({
   hideReceivedTab = false,
   hideMyTab = false,
   onResolveEmergency,
+  sectionMode = 'all',
+  circularCategory: propCircularCategory,
+  onCircularCategoryChange,
 }: AnnouncementSectionsProps) => {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const [localShowExpired, setLocalShowExpired] = useState(false);
+  const [circularFilter, setCircularFilter] = useState<'all' | 'circulars' | 'general'>('all');
+  const [circularCategoryFilter, setCircularCategoryFilter] = useState<string>('all');
+
+  const activeCircularCategory = propCircularCategory !== undefined ? propCircularCategory : circularCategoryFilter;
+  const handleCategoryChange = (val: string) => {
+    setCircularCategoryFilter(val);
+    if (onCircularCategoryChange) {
+      onCircularCategoryChange(val);
+    }
+  };
+
+  const isCircularMode = sectionMode === 'circulars';
+  const isAnnouncementMode = sectionMode === 'announcements';
 
   const showExpired = propShowExpired !== undefined ? propShowExpired : localShowExpired;
   const setShowExpired = propSetShowExpired || setLocalShowExpired;
@@ -304,17 +350,46 @@ export const AnnouncementSections = ({
   const cleanName = (name?: string | null) =>
     name ? name.replace(/\bNone\b/g, '').replace(/\s{2,}/g, ' ').trim() : '';
 
-  const filteredMyAnnouncements = showExpired
+  const rawMyAnnouncements = showExpired
     ? myAnnouncements.filter(a => isExpired(a.expires_at) || !a.is_active)
     : myAnnouncements.filter(a => !isExpired(a.expires_at) && a.is_active);
 
-  const filteredReceivedAnnouncements = receivedAnnouncements
+  const filteredMyAnnouncements = rawMyAnnouncements.filter(a => {
+    if (isCircularMode) {
+      if (!a.is_circular) return false;
+      // If server is not managing category filtering, do local filter fallback
+      if (!onCircularCategoryChange && activeCircularCategory !== 'all' && a.circular_category !== activeCircularCategory) return false;
+      return true;
+    }
+    if (isAnnouncementMode) {
+      return !a.is_circular;
+    }
+    if (circularFilter === 'circulars') return a.is_circular;
+    if (circularFilter === 'general') return !a.is_circular;
+    return true;
+  });
+
+  const rawReceivedAnnouncements = receivedAnnouncements
     .filter(a => !isExpired(a.expires_at))
     .slice()
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
+  const filteredReceivedAnnouncements = rawReceivedAnnouncements.filter(a => {
+    if (isCircularMode) {
+      if (!a.is_circular) return false;
+      if (!onCircularCategoryChange && activeCircularCategory !== 'all' && a.circular_category !== activeCircularCategory) return false;
+      return true;
+    }
+    if (isAnnouncementMode) {
+      return !a.is_circular;
+    }
+    if (circularFilter === 'circulars') return a.is_circular;
+    if (circularFilter === 'general') return !a.is_circular;
+    return true;
+  });
+
   const totalUnread = receivedAnnouncements.filter(
-    (a) => !a.is_read && !isExpired(a.expires_at)
+    (a) => !a.is_read && !isExpired(a.expires_at) && (isCircularMode ? a.is_circular : isAnnouncementMode ? !a.is_circular : true)
   ).length;
 
   useEffect(() => {
@@ -366,16 +441,16 @@ export const AnnouncementSections = ({
           <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${header ? 'px-6 pb-2 sm:pb-4' : ''}`}>
             {hideReceivedTab ? (
               <div className="flex items-center gap-2 mt-5">
-                <h3 className="text-lg font-semibold">My Announcements</h3>
+                <h3 className="text-lg font-semibold">{isCircularMode ? "Dispatched Circulars" : "My Announcements"}</h3>
                 {myPagination && myPagination.count > 0 && (
                   <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold bg-primary/10 text-primary border-none">
-                    {myPagination.count}
+                    {filteredMyAnnouncements.length}
                   </Badge>
                 )}
               </div>
             ) : hideMyTab ? (
               <div className="flex items-center gap-2 mt-5">
-                <h3 className="text-lg font-semibold">Received Announcements</h3>
+                <h3 className="text-lg font-semibold">{isCircularMode ? "Received Circulars" : "Received Announcements"}</h3>
                 {receivedPagination && receivedPagination.unreadCount !== undefined && receivedPagination.unreadCount > 0 && (
                   <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold bg-primary text-white border-none shadow-sm">
                     {receivedPagination.unreadCount}
@@ -384,46 +459,150 @@ export const AnnouncementSections = ({
               </div>
             ) : (
               <TabsList className="ann-tabs-list grid w-full sm:w-auto grid-cols-2 max-w-md bg-muted/50 p-1 rounded-xl mt-5">
-                <TabsTrigger value="my" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
-                  <span className="text-sm font-semibold">My Announcements</span>
-                  {myPagination && myPagination.count > 0 && (
-                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold bg-primary/10 text-primary border-none">
+                <TabsTrigger
+                  value="my"
+                  className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all"
+                >
+                  <span className="text-sm font-semibold">{isCircularMode ? "Dispatched Circulars" : "My Announcements"}</span>
+                  {myPagination && myPagination.count > 0 ? (
+                    <Badge
+                      variant="secondary"
+                      className={`text-[10px] h-5 px-1.5 font-semibold border-none transition-colors ${
+                        activeTab === 'my'
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-primary/10 text-primary'
+                      }`}
+                    >
                       {myPagination.count}
                     </Badge>
+                  ) : (
+                    filteredMyAnnouncements.length > 0 && (
+                      <Badge
+                        variant="secondary"
+                        className={`text-[10px] h-5 px-1.5 font-semibold border-none transition-colors ${
+                          activeTab === 'my'
+                            ? 'bg-primary-foreground/20 text-primary-foreground'
+                            : 'bg-primary/10 text-primary'
+                        }`}
+                      >
+                        {filteredMyAnnouncements.length}
+                      </Badge>
+                    )
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="received" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
-                  <span className="text-sm font-semibold">Received</span>
+                <TabsTrigger
+                  value="received"
+                  className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all"
+                >
+                  <span className="text-sm font-semibold">{isCircularMode ? "Received Circulars" : "Received"}</span>
                   {receivedPagination && receivedPagination.unreadCount !== undefined ? (
                     receivedPagination.unreadCount > 0 && (
-                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-primary text-white border-none shadow-sm pointer-events-none select-none">
+                      <Badge
+                        variant="secondary"
+                        className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none shadow-sm pointer-events-none select-none transition-colors ${
+                          activeTab === 'received'
+                            ? 'bg-white text-primary font-bold'
+                            : 'bg-primary text-white'
+                        }`}
+                      >
                         {receivedPagination.unreadCount}
                       </Badge>
                     )
                   ) : (
-                    filteredReceivedAnnouncements.length > 0 && (
-                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-muted text-muted-foreground border-none pointer-events-none select-none">
-                        {filteredReceivedAnnouncements.length}
+                    totalUnread > 0 ? (
+                      <Badge
+                        variant="secondary"
+                        className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none shadow-sm pointer-events-none select-none transition-colors ${
+                          activeTab === 'received'
+                            ? 'bg-white text-primary font-bold'
+                            : 'bg-primary text-white'
+                        }`}
+                      >
+                        {totalUnread}
                       </Badge>
+                    ) : (
+                      filteredReceivedAnnouncements.length > 0 && (
+                        <Badge
+                          variant="secondary"
+                          className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none pointer-events-none select-none transition-colors ${
+                            activeTab === 'received'
+                              ? 'bg-primary-foreground/20 text-primary-foreground'
+                              : 'bg-muted text-muted-foreground'
+                          }`}
+                        >
+                          {filteredReceivedAnnouncements.length}
+                        </Badge>
+                      )
                     )
                   )}
                 </TabsTrigger>
               </TabsList>
             )}
 
-            {activeTab !== "received" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowExpired(!showExpired)}
-                className={`ann-archive-btn text-xs font-semibold transition-all h-9 px-4 rounded-xl border-dashed mt-5 hover:border-solid ${showExpired
-                  ? "bg-primary/5 border-primary text-primary hover:bg-primary/10"
-                  : "text-muted-foreground hover:text-foreground border-muted-foreground/20 hover:border-foreground/30"
-                  }`}
-              >
-                {showExpired ? "Hide Archive" : "Show Archive"}
-              </Button>
-            )}
+            {/* Top Toolbar: Circular Category Filter OR Quick Filter Pills & Archive Button */}
+            <div className="flex flex-wrap items-center gap-2 mt-5">
+              {isCircularMode ? (
+                <div className="flex items-center gap-2">
+                  <Select value={activeCircularCategory} onValueChange={handleCategoryChange}>
+                    <SelectTrigger className="h-9 w-[180px] sm:w-[210px] text-xs bg-background">
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Circular Categories</SelectItem>
+                      <SelectItem value="vtu">VTU Circular</SelectItem>
+                      <SelectItem value="university">University Notification</SelectItem>
+                      <SelectItem value="exam">Examination / COE</SelectItem>
+                      <SelectItem value="academic">Academic Calendar</SelectItem>
+                      <SelectItem value="govt">Government / AICTE</SelectItem>
+                      <SelectItem value="internal">Internal Orders</SelectItem>
+                      <SelectItem value="general">General Circular</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : !isAnnouncementMode ? (
+                <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border/40">
+                  <Button
+                    variant={circularFilter === 'all' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setCircularFilter('all')}
+                    className="h-7 text-xs px-2.5 rounded-lg font-medium"
+                  >
+                    All
+                  </Button>
+                  <Button
+                    variant={circularFilter === 'circulars' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setCircularFilter('circulars')}
+                    className="h-7 text-xs px-2.5 rounded-lg font-medium gap-1 text-purple-600 dark:text-purple-400"
+                  >
+                    <FileText className="w-3 h-3" />
+                    Circulars
+                  </Button>
+                  <Button
+                    variant={circularFilter === 'general' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setCircularFilter('general')}
+                    className="h-7 text-xs px-2.5 rounded-lg font-medium text-muted-foreground"
+                  >
+                    Notices
+                  </Button>
+                </div>
+              ) : null}
+
+              {activeTab !== "received" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowExpired(!showExpired)}
+                  className={`ann-archive-btn text-xs font-semibold transition-all h-9 px-4 rounded-xl border-dashed hover:border-solid ${showExpired
+                    ? "bg-primary/5 border-primary text-primary hover:bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground border-muted-foreground/20 hover:border-foreground/30"
+                    }`}
+                >
+                  {showExpired ? "Hide Archive" : "Show Archive"}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -433,14 +612,18 @@ export const AnnouncementSections = ({
               <div className="py-4">
                 <SkeletonList items={5} />
               </div>
-            ) : myAnnouncements.length === 0 ? (
+            ) : filteredMyAnnouncements.length === 0 ? (
               <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
                 <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                  <Megaphone className="w-10 h-10" />
+                  {isCircularMode ? <FileText className="w-10 h-10" /> : <Megaphone className="w-10 h-10" />}
                 </div>
-                <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No announcements created</h3>
+                <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {isCircularMode ? "No circulars dispatched yet" : "No announcements created"}
+                </h3>
                 <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  You haven't created any announcements yet. Click the button above to create your first announcement!
+                  {isCircularMode 
+                    ? "You haven't issued or uploaded any official circulars yet. Click above to issue a circular!"
+                    : "You haven't created any announcements yet. Click the button above to create your first announcement!"}
                 </p>
               </div>
             ) : (
@@ -450,8 +633,15 @@ export const AnnouncementSections = ({
                   <Table>
                     <TableHeader>
                       <TableRow className={theme === 'dark' ? 'hover:bg-transparent' : 'bg-gray-50/50 hover:bg-gray-50/50'}>
-                        <TableHead className="w-[250px] text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Announcement</TableHead>
-                        <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Reason</TableHead>
+                        <TableHead className="w-[240px] text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">
+                          {isCircularMode ? "Circular / Notice" : "Announcement"}
+                        </TableHead>
+                        <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 whitespace-nowrap">
+                          {isCircularMode ? "Category / Issuer" : "Type / Circular"}
+                        </TableHead>
+                        <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">
+                          {isCircularMode ? "Overview" : "Reason"}
+                        </TableHead>
                         <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 whitespace-nowrap">Target Roles</TableHead>
                         <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Priority</TableHead>
                         <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Status</TableHead>
@@ -474,6 +664,35 @@ export const AnnouncementSections = ({
                                   </span>
                                 </div>
                               </div>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {announcement.is_circular ? (
+                                <div className="flex flex-col items-center gap-1">
+                                  <Badge variant="outline" className={cn("text-[10px] font-semibold px-2 py-0.5 whitespace-nowrap", getCircularCategoryBadge(announcement.circular_category).className)}>
+                                    <FileText className="w-3 h-3 mr-1 shrink-0" />
+                                    {getCircularCategoryBadge(announcement.circular_category).label}
+                                  </Badge>
+                                  {announcement.circular_number && (
+                                    <span className="text-[10px] font-mono text-muted-foreground truncate max-w-[130px]" title={announcement.circular_number}>
+                                      {announcement.circular_number}
+                                    </span>
+                                  )}
+                                  {announcement.file_url && (
+                                    <a
+                                      href={announcement.file_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 text-[10px] text-emerald-600 hover:text-emerald-700 hover:underline font-semibold"
+                                      onClick={(e) => e.stopPropagation()}
+                                      title="Download attached circular document"
+                                    >
+                                      <FileDown className="w-3 h-3" /> PDF Doc
+                                    </a>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground font-normal">Notice</span>
+                              )}
                             </TableCell>
                             <TableCell className="text-center">
                               <Button
@@ -675,14 +894,18 @@ export const AnnouncementSections = ({
               <div className="py-4">
                 <SkeletonList items={5} />
               </div>
-            ) : receivedAnnouncements.length === 0 ? (
+            ) : filteredReceivedAnnouncements.length === 0 ? (
               <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
                 <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                  <BellOff className="w-10 h-10" />
+                  {isCircularMode ? <FileText className="w-10 h-10" /> : <BellOff className="w-10 h-10" />}
                 </div>
-                <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No announcements received</h3>
+                <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {isCircularMode ? "No circulars received" : "No announcements received"}
+                </h3>
                 <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Your inbox is clear! There are currently no announcements for you to review.
+                  {isCircularMode
+                    ? "Your circular inbox is clear. There are currently no official circulars issued to you."
+                    : "Your inbox is clear! There are currently no announcements for you to review."}
                 </p>
               </div>
             ) : (
@@ -692,8 +915,15 @@ export const AnnouncementSections = ({
                   <Table>
                     <TableHeader>
                       <TableRow className={theme === 'dark' ? 'hover:bg-transparent' : 'bg-gray-50/50 hover:bg-gray-50/50'}>
-                        <TableHead className="w-[250px] text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Announcement</TableHead>
-                        <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Reason</TableHead>
+                        <TableHead className="w-[240px] text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">
+                          {isCircularMode ? "Circular / Notice" : "Announcement"}
+                        </TableHead>
+                        <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 whitespace-nowrap">
+                          {isCircularMode ? "Category / Issuer" : "Notice / Circular"}
+                        </TableHead>
+                        <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">
+                          {isCircularMode ? "Overview" : "Reason"}
+                        </TableHead>
                         <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Priority</TableHead>
                         <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Date</TableHead>
                         <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Action</TableHead>
@@ -741,6 +971,35 @@ export const AnnouncementSections = ({
                                   )}
                                 </div>
                               </div>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {announcement.is_circular ? (
+                                <div className="flex flex-col items-center gap-1">
+                                  <Badge variant="outline" className={cn("text-[10px] font-semibold px-2 py-0.5 whitespace-nowrap", getCircularCategoryBadge(announcement.circular_category).className)}>
+                                    <FileText className="w-3 h-3 mr-1 shrink-0" />
+                                    {getCircularCategoryBadge(announcement.circular_category).label}
+                                  </Badge>
+                                  {announcement.circular_number && (
+                                    <span className="text-[10px] font-mono text-muted-foreground truncate max-w-[130px]" title={announcement.circular_number}>
+                                      {announcement.circular_number}
+                                    </span>
+                                  )}
+                                  {announcement.file_url && (
+                                    <a
+                                      href={announcement.file_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 text-[10px] text-emerald-600 hover:text-emerald-700 hover:underline font-semibold"
+                                      onClick={(e) => e.stopPropagation()}
+                                      title="Download attached circular document"
+                                    >
+                                      <FileDown className="w-3 h-3" /> Download
+                                    </a>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground font-normal">Notice</span>
+                              )}
                             </TableCell>
                             <TableCell className="text-center">
                               <Button
@@ -813,9 +1072,17 @@ export const AnnouncementSections = ({
                       <div key={announcement.id} className={`ann-card-mobile ${theme === 'dark' ? 'bg-muted/10' : 'bg-gray-50/50'} ${isEmergency ? 'border-red-500 border-l-4 bg-red-50/20 dark:bg-red-950/10' : unread ? 'border-primary/40 bg-primary/5' : ''}`}>
                         <div className="ann-card-header">
                           <div className="flex justify-between items-start">
-                            <Badge className={`${getPriorityColor(announcement.priority)} text-[10px] uppercase font-semibold px-2 py-0.5`}>
-                              {announcement.priority}
-                            </Badge>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <Badge className={`${getPriorityColor(announcement.priority)} text-[10px] uppercase font-semibold px-2 py-0.5`}>
+                                {announcement.priority}
+                              </Badge>
+                              {announcement.is_circular && (
+                                <Badge variant="outline" className={cn("text-[10px] font-semibold px-2 py-0.5", getCircularCategoryBadge(announcement.circular_category).className)}>
+                                  <FileText className="w-3 h-3 mr-1" />
+                                  {getCircularCategoryBadge(announcement.circular_category).label}
+                                </Badge>
+                              )}
+                            </div>
                             {isEmergency ? (
                               <Badge className="bg-red-500 text-white text-[10px]">Emergency</Badge>
                             ) : unread ? (
@@ -835,6 +1102,11 @@ export const AnnouncementSections = ({
                             <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
                               <Clock className="w-3.5 h-3.5" /> {format(new Date(announcement.created_at), 'dd MMM, HH:mm')}
                             </span>
+                            {announcement.is_circular && announcement.circular_number && (
+                              <span className="text-[11px] font-mono text-muted-foreground font-medium flex items-center gap-1.5">
+                                <FileText className="w-3.5 h-3.5 text-primary" /> Ref: {announcement.circular_number}
+                              </span>
+                            )}
                             {isEmergency && hasCoords && (
                               <div className="flex flex-col gap-2 mt-2">
                                 <span className="text-[11px] flex items-center gap-1 text-red-500 font-semibold bg-red-50 dark:bg-red-950/30 px-2 py-1 rounded border border-red-200 dark:border-red-900/50 w-fit">
@@ -856,6 +1128,16 @@ export const AnnouncementSections = ({
                         </div>
 
                         <div className="ann-card-actions">
+                          {announcement.is_circular && announcement.file_url && (
+                            <a
+                              href={announcement.file_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="h-8 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 rounded-lg flex items-center justify-center gap-1.5"
+                            >
+                              <Download className="w-3.5 h-3.5" /> Download Circular PDF
+                            </a>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
@@ -901,7 +1183,7 @@ export const AnnouncementSections = ({
         {activeTab === "my" && myPagination && myPagination.count > myPagination.pageSize && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
-              Showing {Math.min((myPagination.page - 1) * myPagination.pageSize + 1, myPagination.count)} to {Math.min(myPagination.page * myPagination.pageSize, myPagination.count)} of {myPagination.count} announcements
+              Showing {Math.min((myPagination.page - 1) * myPagination.pageSize + 1, myPagination.count)} to {Math.min(myPagination.page * myPagination.pageSize, myPagination.count)} of {myPagination.count} {isCircularMode ? "circulars" : "announcements"}
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -936,7 +1218,7 @@ export const AnnouncementSections = ({
         {activeTab === "received" && receivedPagination && receivedPagination.count > receivedPagination.pageSize && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
-              Showing {Math.min((receivedPagination.page - 1) * receivedPagination.pageSize + 1, receivedPagination.count)} to {Math.min(receivedPagination.page * receivedPagination.pageSize, receivedPagination.count)} of {receivedPagination.count} announcements
+              Showing {Math.min((receivedPagination.page - 1) * receivedPagination.pageSize + 1, receivedPagination.count)} to {Math.min(receivedPagination.page * receivedPagination.pageSize, receivedPagination.count)} of {receivedPagination.count} {isCircularMode ? "circulars" : "announcements"}
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -1048,6 +1330,53 @@ export const AnnouncementSections = ({
                   )}
                 </div>
               </DialogHeader>
+
+              {/* OFFICIAL CIRCULAR BANNER & DOCUMENT DOWNLOAD */}
+              {viewingAnnouncement?.is_circular && (
+                <div className="p-4 rounded-2xl border border-primary/25 bg-primary/5 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-primary/15 pb-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className={cn("text-xs font-semibold px-2.5 py-0.5", getCircularCategoryBadge(viewingAnnouncement.circular_category).className)}>
+                        <FileText className="w-3.5 h-3.5 mr-1" />
+                        {getCircularCategoryBadge(viewingAnnouncement.circular_category).label}
+                      </Badge>
+                      {viewingAnnouncement.circular_number && (
+                        <span className="text-xs font-mono font-semibold text-foreground bg-background/80 px-2 py-0.5 rounded border border-border">
+                          Ref: {viewingAnnouncement.circular_number}
+                        </span>
+                      )}
+                    </div>
+                    {viewingAnnouncement.file_url && (
+                      <a
+                        href={viewingAnnouncement.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="h-8 px-3 text-xs inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm transition-colors"
+                      >
+                        <Download className="w-3.5 h-3.5" /> Download Circular ({viewingAnnouncement.file_size ? `${(viewingAnnouncement.file_size / (1024 * 1024)).toFixed(2)} MB` : 'PDF'})
+                      </a>
+                    )}
+                  </div>
+                  {viewingAnnouncement.file_name && (
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1.5 truncate">
+                        <Paperclip className="w-3.5 h-3.5 text-primary shrink-0" />
+                        Attached: <strong className="text-foreground truncate">{viewingAnnouncement.file_name}</strong>
+                      </span>
+                      {viewingAnnouncement.file_url && (
+                        <a
+                          href={viewingAnnouncement.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-semibold text-primary hover:underline shrink-0 ml-2 flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-3 h-3" /> View File
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="relative">
                 <div className={`p-6 sm:p-8 rounded-2xl border ${theme === 'dark' ? 'bg-muted/20 border-border/50' : 'bg-gray-50/50 border-gray-100'} min-h-[120px]`}>

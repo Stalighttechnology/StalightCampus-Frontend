@@ -1,7 +1,7 @@
 import { translateTerminology, getTerm, getInstitutionType } from "../../utils/institutionConfig";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
-import { Pencil, Trash2, BookOpen, FileDown, Loader2 } from "lucide-react";
+import { Pencil, Trash2, BookOpen, FileDown, Loader2, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { SkeletonTable } from "../ui/skeleton";
 import { Input } from "../ui/input";
@@ -59,7 +59,16 @@ interface SubjectManagementState {
   semesters: Semester[];
   showModal: "add" | "edit" | null;
   currentSubject: Subject | null;
-  newSubject: { code: string; name: string; semester_id: string; subject_type: string; credits: number | string; max_cie_marks: number | string; max_see_marks: number | string; };
+  newSubject: {
+    code: string;
+    name: string;
+    semester_id: string;
+    subject_type: string;
+    credits: number | string;
+    max_cie_marks: number | string;
+    max_see_marks: number | string;
+    lab_batches: string[];
+  };
   loading: boolean;
   branchId: string;
   currentPage: number;
@@ -79,7 +88,7 @@ const SubjectManagement = () => {
     semesters: [],
     showModal: null,
     currentSubject: null,
-    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50 },
+    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50, lab_batches: ["Batch 1", "Batch 2"] },
     loading: false,
     branchId: "",
     currentPage: 1,
@@ -254,7 +263,10 @@ const SubjectManagement = () => {
         subject_type: subject.subject_type,
         credits: subject.credits || 3,
         max_cie_marks: subject.max_cie_marks ?? 50,
-        max_see_marks: subject.max_see_marks ?? 50
+        max_see_marks: subject.max_see_marks ?? 50,
+        lab_batches: subject.lab_batches && subject.lab_batches.length > 0
+          ? subject.lab_batches.map(b => b.name)
+          : ['Batch 1', 'Batch 2']
       },
       showModal: "edit"
     });
@@ -416,8 +428,9 @@ const SubjectManagement = () => {
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
                     <SelectItem value="regular">Regular</SelectItem>
-                    <SelectItem value="elective">Elective/Labs</SelectItem>
+                    <SelectItem value="elective">Elective</SelectItem>
                     <SelectItem value="open_elective">Open Elective</SelectItem>
+                    <SelectItem value="lab">Lab</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -472,7 +485,15 @@ const SubjectManagement = () => {
                             <td className="px-4 py-3">{subject.name}</td>
                             <td className="px-4 py-3">{getSemesterNumber(subject.semester_id)}</td>
                             {getInstitutionType() !== 'school' && (
-                              <td className="px-4 py-3">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? 'Elective/Labs' : 'Open Elective Subjects'}</td>
+                              <td className="px-4 py-3">
+                                {subject.subject_type === 'regular'
+                                  ? 'Regular'
+                                  : subject.subject_type === 'elective'
+                                  ? 'Elective'
+                                  : subject.subject_type === 'lab'
+                                  ? 'Lab'
+                                  : 'Open Elective Subjects'}
+                              </td>
                             )}
                             {getInstitutionType() !== 'school' && (
                               <td className="px-4 py-3">{subject.credits ?? 0}</td>
@@ -501,7 +522,15 @@ const SubjectManagement = () => {
                           <div className="flex-1 pr-3">
                             <div className="text-xs text-gray-500 mb-1">{subject.subject_code} • {getSemesterNumber(subject.semester_id)}</div>
                             <div className="font-medium text-sm mb-1">{subject.name}</div>
-                            <div className="text-sm text-gray-500">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? 'Elective/Labs' : 'Open Elective'} • {subject.credits ?? 0} credits</div>
+                            <div className="text-sm text-gray-500">
+                              {subject.subject_type === 'regular'
+                                ? 'Regular'
+                                : subject.subject_type === 'elective'
+                                ? 'Elective'
+                                : subject.subject_type === 'lab'
+                                ? 'Lab'
+                                : 'Open Elective'} • {subject.credits ?? 0} credits
+                            </div>
                           </div>
                           <div className="flex items-start gap-3">
                             <Pencil
@@ -657,7 +686,17 @@ const SubjectManagement = () => {
                 open={isModalTypeOpen}
                 onOpenChange={setIsModalTypeOpen}
                 value={state.newSubject.subject_type}
-                onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, subject_type: val } })}
+                onValueChange={(val: string) => {
+                  updateState({
+                    newSubject: {
+                      ...state.newSubject,
+                      subject_type: val,
+                      lab_batches: val === 'lab' && (!state.newSubject.lab_batches || state.newSubject.lab_batches.length === 0)
+                        ? ['Batch 1', 'Batch 2']
+                        : state.newSubject.lab_batches || ['Batch 1', 'Batch 2']
+                    }
+                  });
+                }}
                 disabled={state.loading}>
 
                 <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
@@ -665,11 +704,112 @@ const SubjectManagement = () => {
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                   <SelectItem value="regular">Regular</SelectItem>
-                  <SelectItem value="elective">Elective/Labs</SelectItem>
+                  <SelectItem value="elective">Elective</SelectItem>
                   <SelectItem value="open_elective">Open Elective Subjects</SelectItem>
+                  <SelectItem value="lab">Lab</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Lab Batches Section - Shown when Course Type is Lab */}
+            {state.newSubject.subject_type === 'lab' && (
+              <div className="mb-4 p-3 rounded-lg border border-purple-200 dark:border-purple-900/50 bg-purple-50/50 dark:bg-purple-950/20">
+                <div className="flex items-center justify-between mb-2">
+                  <label className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    Lab Batches <span className="text-red-500">*</span>
+                  </label>
+                  <span className="text-xs text-muted-foreground">Practical lab groups</span>
+                </div>
+                
+                {/* Batches Chip List */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {(state.newSubject.lab_batches && state.newSubject.lab_batches.length > 0
+                    ? state.newSubject.lab_batches
+                    : ['Batch 1', 'Batch 2']
+                  ).map((batchName, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-1.5 px-3 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 shadow-sm"
+                    >
+                      <span>{batchName}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = state.newSubject.lab_batches || ['Batch 1', 'Batch 2'];
+                          if (current.length <= 1) {
+                            showErrorAlert("Warning", "At least one lab batch is required for a lab course.");
+                            return;
+                          }
+                          const updated = current.filter((_, i) => i !== idx);
+                          updateState({
+                            newSubject: { ...state.newSubject, lab_batches: updated }
+                          });
+                        }}
+                        className="hover:text-red-500 hover:bg-purple-200 dark:hover:bg-purple-800 rounded-full p-0.5 transition-colors"
+                        title="Remove batch"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add Batch Input and Quick Buttons */}
+                <div className="flex gap-2 items-center">
+                  <Input
+                    type="text"
+                    id="new-lab-batch-name-input"
+                    placeholder="e.g., Batch 3, L1, L2"
+                    className={`text-xs h-8 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-300'}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const inputEl = e.currentTarget;
+                        const val = inputEl.value.trim();
+                        if (val) {
+                          const current = state.newSubject.lab_batches || ['Batch 1', 'Batch 2'];
+                          if (!current.includes(val)) {
+                            updateState({
+                              newSubject: { ...state.newSubject, lab_batches: [...current, val] }
+                            });
+                          }
+                          inputEl.value = '';
+                        }
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 px-3 text-xs bg-purple-600 hover:bg-purple-700 text-white shrink-0"
+                    onClick={() => {
+                      const inputEl = document.getElementById('new-lab-batch-name-input') as HTMLInputElement;
+                      const val = inputEl?.value?.trim();
+                      if (val) {
+                        const current = state.newSubject.lab_batches || ['Batch 1', 'Batch 2'];
+                        if (!current.includes(val)) {
+                          updateState({
+                            newSubject: { ...state.newSubject, lab_batches: [...current, val] }
+                          });
+                        }
+                        if (inputEl) inputEl.value = '';
+                      } else {
+                        // Quick auto-increment default: "Batch N"
+                        const current = state.newSubject.lab_batches || ['Batch 1', 'Batch 2'];
+                        const nextBatchName = `Batch ${current.length + 1}`;
+                        if (!current.includes(nextBatchName)) {
+                          updateState({
+                            newSubject: { ...state.newSubject, lab_batches: [...current, nextBatchName] }
+                          });
+                        }
+                      }
+                    }}
+                  >
+                    + Add Batch
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Course Credits - Optional / Hidden for School */}
             {getInstitutionType() !== 'school' && (
@@ -755,7 +895,7 @@ const SubjectManagement = () => {
                 onClick={() => {
                   updateState({
                     showModal: null,
-                    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50 },
+                    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50, lab_batches: ["Batch 1", "Batch 2"] },
                     currentSubject: null
                   });
                 }}
@@ -772,6 +912,11 @@ const SubjectManagement = () => {
                     return;
                   }
 
+                  const isLab = state.newSubject.subject_type === 'lab';
+                  const labBatchesToSave = isLab
+                    ? (state.newSubject.lab_batches && state.newSubject.lab_batches.length > 0 ? state.newSubject.lab_batches : ['Batch 1', 'Batch 2'])
+                    : undefined;
+
                   const data: ManageSubjectsRequest = {
                     action: state.showModal === "add" ? "create" : "update",
                     branch_id: state.branchId,
@@ -782,6 +927,7 @@ const SubjectManagement = () => {
                     credits: Number(state.newSubject.credits),
                     max_cie_marks: Number(state.newSubject.max_cie_marks),
                     max_see_marks: Number(state.newSubject.max_see_marks),
+                    lab_batches: labBatchesToSave,
                     ...(state.showModal === "edit" && state.currentSubject ? { subject_id: state.currentSubject.id } : {})
                   };
 
@@ -791,6 +937,7 @@ const SubjectManagement = () => {
                     if (response.success) {
                       const isCreate = data.action === 'create';
                       const createdId = response.data?.subject_id as unknown as string;
+                      const returnedBatches = response.data?.lab_batches || (isLab ? labBatchesToSave?.map((b, i) => ({ id: `${i+1}`, name: b })) : []);
                       const updatedSubject: Subject = {
                         id: isCreate ? createdId || `${Date.now()}` : state.currentSubject ? state.currentSubject.id : createdId || `${Date.now()}`,
                         name: state.newSubject.name,
@@ -799,7 +946,8 @@ const SubjectManagement = () => {
                         subject_type: state.newSubject.subject_type,
                         credits: state.newSubject.credits,
                         max_cie_marks: state.newSubject.max_cie_marks,
-                        max_see_marks: state.newSubject.max_see_marks
+                        max_see_marks: state.newSubject.max_see_marks,
+                        lab_batches: returnedBatches
                       };
 
                       if (isCreate) {
@@ -812,7 +960,7 @@ const SubjectManagement = () => {
                           totalCount: newTotalCount,
                           totalPages: newTotalPages,
                           showModal: null,
-                          newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50 },
+                          newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50, lab_batches: ["Batch 1", "Batch 2"] },
                           currentSubject: null
                         });
                       } else {
@@ -821,9 +969,13 @@ const SubjectManagement = () => {
                         updateState({
                           subjects: newSubjects,
                           showModal: null,
-                          newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                          newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50, lab_batches: ["Batch 1", "Batch 2"] },
                           currentSubject: null
                         });
+                      }
+                      // Refetch subjects to ensure server synchronization
+                      if (state.branchId) {
+                        fetchSubjects(state.branchId, state.currentPage, state.pageSize);
                       }
                     } else {
                       showErrorAlert("Error", response.message);

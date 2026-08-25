@@ -87,6 +87,7 @@ const FacultyAnnouncementManagement = () => {
   const user = userStr ? JSON.parse(userStr) : null;
   const branchName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
   const deptName = (user?.department || '').toString().toLowerCase();
+  const isNonTeaching = branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching') || ['warden', 'library_admin', 'transport_admin', 'driver', 'fees_manager', 'admission_manager'].includes(user?.role || '');
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectTrigger,
@@ -32,7 +33,7 @@ import {
   AlertDialogTitle
 } from
   "@/components/ui/alert-dialog";
-import { Loader2, Plus, Calendar as CalendarIcon, Check, AlertTriangle, MapPin, ExternalLink, CheckCircle } from "lucide-react";
+import { Loader2, Plus, Calendar as CalendarIcon, Check, AlertTriangle, MapPin, ExternalLink, CheckCircle, FileText, UploadCloud, Paperclip, File, Trash, Download, Megaphone } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -42,6 +43,7 @@ import { translateTerminology, getInstitutionType } from "@/utils/institutionCon
 import { SkeletonTable } from "@/components/ui/skeleton";
 import {
   fetchAnnouncements,
+  fetchCirculars,
   createAnnouncement,
   updateAnnouncement,
   deleteAnnouncement,
@@ -49,8 +51,8 @@ import {
   markAnnouncementRead,
   Announcement,
   CreateAnnouncementRequest
-} from
-  "@/utils/announcements_api";
+} from "@/utils/announcements_api";
+import { uploadFileViaBackendProxy } from "@/utils/common_api";
 import { manageBranches } from "@/utils/admin_api";
 import { fetchIncidents, resolveIncident } from "@/utils/transport_api";
 import AnnouncementSections from "@/components/common/AnnouncementSections";
@@ -61,25 +63,38 @@ import withReactContent from "sweetalert2-react-content";
 const MySwal = withReactContent(Swal);
 
 const AdminAnnouncementManagement = () => {
+  // Announcements State & Pagination
   const [myAnnouncements, setMyAnnouncements] = useState<Announcement[]>([]);
   const [receivedAnnouncements, setReceivedAnnouncements] = useState<Announcement[]>([]);
+  const [myPage, setMyPage] = useState(1);
+  const [receivedPage, setReceivedPage] = useState(1);
+  const [totalMyCount, setTotalMyCount] = useState(0);
+  const [totalReceivedCount, setTotalReceivedCount] = useState(0);
+  const [unreadReceivedCount, setUnreadReceivedCount] = useState(0);
+
+  // Circulars State & Pagination & Category Filter
+  const [myCirculars, setMyCirculars] = useState<Announcement[]>([]);
+  const [receivedCirculars, setReceivedCirculars] = useState<Announcement[]>([]);
+  const [circularMyPage, setCircularMyPage] = useState(1);
+  const [circularReceivedPage, setCircularReceivedPage] = useState(1);
+  const [circularCategory, setCircularCategory] = useState<string>('all');
+  const [totalMyCircularCount, setTotalMyCircularCount] = useState(0);
+  const [totalReceivedCircularCount, setTotalReceivedCircularCount] = useState(0);
+  const [unreadReceivedCircularCount, setUnreadReceivedCircularCount] = useState(0);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [emergencies, setEmergencies] = useState<any[]>([]);
 
-  // Pagination state
-  const [myPage, setMyPage] = useState(1);
-  const [receivedPage, setReceivedPage] = useState(1);
-  const [totalMyCount, setTotalMyCount] = useState(0);
-  const [totalReceivedCount, setTotalReceivedCount] = useState(0);
-  const [unreadReceivedCount, setUnreadReceivedCount] = useState(0);
   const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
   const parsedUser = userStr ? JSON.parse(userStr) : null;
   const superadminRole = localStorage.getItem("superadmin_role");
   
   const user = parsedUser || (superadminRole ? { role: superadminRole } : null);
+
+  const [mainSection, setMainSection] = useState<'announcements' | 'circulars'>('announcements');
 
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -117,118 +132,216 @@ const AdminAnnouncementManagement = () => {
     is_global: true,
     branch: null,
     expires_at: "",
-    priority: "normal"
+    priority: "normal",
+    is_circular: false,
+    circular_number: "",
+    circular_category: "vtu",
+    file_url: null,
+    file_name: null,
+    file_size: null
   });
   const [expiresOpen, setExpiresOpen] = useState(false);
   const [branches, setBranches] = useState<Array<{ id: number; name: string }>>([]);
   const [selectedHostelId, setSelectedHostelId] = useState<string>("all");
+  const [uploadingFile, setUploadingFile] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 25 * 1024 * 1024) {
+      MySwal.fire("File Too Large", "Please select a file smaller than 25MB.", "warning");
+      return;
+    }
+
+    setUploadingFile(true);
+    try {
+      const url = await uploadFileViaBackendProxy(file);
+      if (url) {
+        setFormData(prev => ({
+          ...prev,
+          file_url: url,
+          file_name: file.name,
+          file_size: file.size
+        }));
+      } else {
+        MySwal.fire("Upload Failed", "Failed to upload document. Please try again.", "error");
+      }
+    } catch (err: any) {
+      console.error("Error uploading file:", err);
+      MySwal.fire("Upload Failed", err.message || "Failed to upload file", "error");
+    } finally {
+      setUploadingFile(false);
+      // Reset input value so same file can be re-uploaded if needed
+      e.target.value = '';
+    }
+  };
 
   useEffect(() => {
     if (!showCreateDialog) return;
-
-    if (isHMSUser) {
-      // For HMS users, load hostels instead of branches
-      if (hostels.length === 0) {
-        fetchHostelsOnly();
-      }
-    } else {
-      if (branches.length > 0) return;
-      const loadBranches = async () => {
-        try {
-          const resp = await manageBranches({ compact: true }, undefined, "GET");
-          if (resp.success && resp.branches) {
-            setBranches(resp.branches);
-          }
-        } catch (e) {
-          console.error("Error loading branches", e);
+    const loadBranches = async () => {
+      try {
+        const response = await manageBranches({ page: 1, pageSize: 100 });
+        if (response.success && response.data?.results) {
+          setBranches(response.data.results.map((b: any) => ({ id: b.id, name: b.name })));
         }
-      };
-      loadBranches();
+      } catch (error) {
+        console.error("Failed to load branches:", error);
+      }
+    };
+    loadBranches();
+  }, [showCreateDialog]);
+
+  useEffect(() => {
+    if (isHMSUser && hostels.length === 0) {
+      fetchHostelsOnly();
     }
-  }, [showCreateDialog, branches.length, isHMSUser, hostels.length]);
+  }, [isHMSUser, hostels.length, fetchHostelsOnly]);
 
   const loadAnnouncements = async () => {
     setLoading(true);
     setError(null);
-    // Fetch for management view with pagination
-    const response = await fetchAnnouncements({
-      myPage,
-      receivedPage,
-      pageSize,
-      includeInactive: showArchive,
-      includeExpired: showArchive
-    });
+    try {
+      const response = await fetchAnnouncements({
+        is_circular: false,
+        myPage,
+        pageSize,
+        receivedPage,
+        includeInactive: showArchive,
+        includeExpired: showArchive
+      });
 
-    if (response.success && response.data) {
-      setMyAnnouncements(response.data.my_announcements.results || []);
-      setTotalMyCount(response.data.my_announcements.count || 0);
-      setReceivedAnnouncements(response.data.received_announcements.results || []);
-      setTotalReceivedCount(response.data.received_announcements.count || 0);
-      setUnreadReceivedCount(response.data.received_announcements.unread_count || 0);
-      setError(null);
-    } else {
-      setError(response.message || "Failed to load announcements");
-      setMyAnnouncements([]);
-      setReceivedAnnouncements([]);
-    }
+      if (response.success && response.data) {
+        const myData = response.data.my_announcements;
+        const receivedData = response.data.received_announcements;
 
-    if (user?.role === "transport_admin") {
-      try {
-        const inc = await fetchIncidents(1, 'emergency');
-        const rawIncidents = inc.results || inc || [];
-        const activeEmergencies = rawIncidents.filter(
-          (i: any) => i.status === "pending"
-        );
-        setEmergencies(activeEmergencies);
-      } catch (e) {
-        console.error("Failed to load emergencies", e);
+        setMyAnnouncements(myData.results || []);
+        setTotalMyCount(myData.count || 0);
+
+        setReceivedAnnouncements(receivedData.results || []);
+        setTotalReceivedCount(receivedData.count || 0);
+        setUnreadReceivedCount(receivedData.unread_count || 0);
+      } else {
+        setError(response.message || "Failed to load announcements");
       }
+    } catch (err: any) {
+      console.error("Error loading announcements:", err);
+      setError(err.message || "Failed to load announcements");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setLoading(false);
+  const loadCirculars = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetchCirculars({
+        myPage: circularMyPage,
+        pageSize,
+        receivedPage: circularReceivedPage,
+        circular_category: circularCategory,
+        includeInactive: showArchive,
+        includeExpired: showArchive
+      });
+
+      if (response.success && response.data) {
+        const myData = response.data.my_announcements;
+        const receivedData = response.data.received_announcements;
+
+        setMyCirculars(myData.results || []);
+        setTotalMyCircularCount(myData.count || 0);
+
+        setReceivedCirculars(receivedData.results || []);
+        setTotalReceivedCircularCount(receivedData.count || 0);
+        setUnreadReceivedCircularCount(receivedData.unread_count || 0);
+      } else {
+        setError(response.message || "Failed to load circulars");
+      }
+    } catch (err: any) {
+      console.error("Error loading circulars:", err);
+      setError(err.message || "Failed to load circulars");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    loadAnnouncements();
-  }, [myPage, receivedPage, showArchive]);
+    if (mainSection === 'announcements') {
+      loadAnnouncements();
+    } else {
+      loadCirculars();
+    }
+  }, [mainSection, myPage, receivedPage, circularMyPage, circularReceivedPage, circularCategory, showArchive]);
 
   useEffect(() => {
     const handleRefresh = () => {
-      loadAnnouncements();
+      if (mainSection === 'announcements') {
+        loadAnnouncements();
+      } else {
+        loadCirculars();
+      }
     };
     window.addEventListener('refresh-announcements', handleRefresh);
-    return () => {
-      window.removeEventListener('refresh-announcements', handleRefresh);
-    };
-  }, []);
+    return () => window.removeEventListener('refresh-announcements', handleRefresh);
+  }, [mainSection, myPage, receivedPage, circularMyPage, circularReceivedPage, circularCategory, showArchive]);
+
+  // Load emergencies for transport_admin
+  useEffect(() => {
+    if (user?.role === 'transport_admin') {
+      fetchIncidents({ is_emergency: true, status: 'open' }).then(res => {
+        if (res.success && res.data?.results) {
+          setEmergencies(res.data.results);
+        }
+      }).catch(err => {
+        console.error("Failed to fetch emergencies:", err);
+      });
+    }
+  }, [user?.role]);
 
   const handlePageChange = (page: number, type: 'my' | 'received') => {
-    if (type === 'my') {
-      setMyPage(page);
+    if (mainSection === 'announcements') {
+      if (type === 'my') {
+        setMyPage(page);
+      } else {
+        setReceivedPage(page);
+      }
     } else {
-      setReceivedPage(page);
+      if (type === 'my') {
+        setCircularMyPage(page);
+      } else {
+        setCircularReceivedPage(page);
+      }
     }
   };
 
-  const [submitting, setSubmitting] = useState(false);
+  const handleCategoryChange = (category: string) => {
+    setCircularCategory(category);
+    setCircularMyPage(1);
+    setCircularReceivedPage(1);
+  };
 
-  const handleCreateOrUpdate = async () => {
-    if (submitting) return;
-    if (!formData.title.trim() || !formData.message.trim()) {
-      MySwal.fire({
-        title: "Validation Error",
-        text: "Please fill all required fields",
-        icon: "warning",
-        confirmButtonColor: "#9147e0",
-        target: document.body
-      });
-      return;
+  const validateForm = (): string | null => {
+    if (!formData.title.trim()) {
+      return "Title is required";
     }
-
+    if (!formData.message.trim()) {
+      return "Message is required";
+    }
     if (formData.target_roles.length === 0) {
+      return "Please select at least one target role";
+    }
+    return null;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const validationError = validateForm();
+    if (validationError) {
       MySwal.fire({
         title: "Validation Error",
-        text: "Please select at least one target role",
+        text: validationError,
         icon: "warning",
         confirmButtonColor: "#9147e0",
         target: document.body
@@ -236,11 +349,11 @@ const AdminAnnouncementManagement = () => {
       return;
     }
 
-    const allowGlobalStudents = ["coe", "dean", "fees_manager", "principal", "admin", "org_admin", "hms", "hms_admin", "transport_admin", "warden"].includes(user?.role);
-    if (!allowGlobalStudents && formData.target_roles.includes("student") && formData.is_global) {
+    // Role-based validation
+    if (user?.role === "dean" && !formData.branch) {
       MySwal.fire({
         title: "Validation Error",
-        text: "Please select a specific department when targeting students.",
+        text: "Please select a branch",
         icon: "warning",
         confirmButtonColor: "#9147e0",
         target: document.body
@@ -248,16 +361,24 @@ const AdminAnnouncementManagement = () => {
       return;
     }
 
+    if (user?.role === "counsellor") {
+      MySwal.fire({
+        title: "Permission Denied",
+        text: "Counsellors cannot create announcements",
+        icon: "error",
+        confirmButtonColor: "#9147e0",
+        target: document.body
+      });
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      setSubmitting(true);
       if (editingId) {
         const response = await updateAnnouncement(editingId, formData);
         if (response.success) {
-          setMyAnnouncements((prev) =>
-            prev.map((a) => a.id === editingId ? response.data : a)
-          );
           MySwal.fire({
-            title: "Updated",
+            title: "Success",
             text: "Announcement updated successfully",
             icon: "success",
             confirmButtonColor: "#9147e0",
@@ -265,6 +386,7 @@ const AdminAnnouncementManagement = () => {
           });
           setShowCreateDialog(false);
           resetForm();
+          loadAnnouncements();
         } else {
           MySwal.fire({
             title: "Error",
@@ -277,8 +399,6 @@ const AdminAnnouncementManagement = () => {
       } else {
         const response = await createAnnouncement(formData);
         if (response.success) {
-          setMyAnnouncements((prev) => [response.data, ...prev]);
-          setTotalMyCount((prev) => prev + 1); // Update count immediately
           MySwal.fire({
             title: "Success",
             text: "Announcement created successfully",
@@ -288,6 +408,7 @@ const AdminAnnouncementManagement = () => {
           });
           setShowCreateDialog(false);
           resetForm();
+          loadAnnouncements();
         } else {
           MySwal.fire({
             title: "Error",
@@ -320,7 +441,13 @@ const AdminAnnouncementManagement = () => {
       is_global: announcement.is_global,
       branch: announcement.branch,
       expires_at: announcement.expires_at?.split("T")[0] || "",
-      priority: announcement.priority
+      priority: announcement.priority,
+      is_circular: announcement.is_circular || false,
+      circular_number: announcement.circular_number || "",
+      circular_category: announcement.circular_category || "vtu",
+      file_url: announcement.file_url || null,
+      file_name: announcement.file_name || null,
+      file_size: announcement.file_size || null
     });
     setShowCreateDialog(true);
   };
@@ -494,7 +621,8 @@ const AdminAnnouncementManagement = () => {
     }
   };
 
-  const resetForm = () => {
+  const resetForm = (forCircular?: boolean) => {
+    const isCirc = forCircular !== undefined ? forCircular : mainSection === 'circulars';
     setEditingId(null);
     setFormData({
       title: "",
@@ -503,10 +631,18 @@ const AdminAnnouncementManagement = () => {
       is_global: true,
       branch: null,
       expires_at: "",
-      priority: "normal"
+      priority: "normal",
+      is_circular: isCirc,
+      circular_number: "",
+      circular_category: "vtu",
+      file_url: null,
+      file_name: null,
+      file_size: null
     });
     setSelectedHostelId("all");
   };
+
+  const [submitting, setSubmitting] = useState(false);
 
   const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "counsellor", "driver", "warden"];
   const BASIC_ROLES = ["student", "hod", "faculty", "principal", "org_admin", "dean", "driver", "warden"];
@@ -542,68 +678,87 @@ const AdminAnnouncementManagement = () => {
   const rawRoles = (userTier >= 2 ? baseRoles : baseRoles.filter(r => BASIC_ROLES.includes(r))).filter(r => r !== user?.role);
   const roles = getInstitutionType() === 'school' ? rawRoles.filter(r => r !== "placement_officer") : rawRoles;
 
+  const isCircularPage = mainSection === 'circulars';
+  const nonCircularCount = totalMyCount;
+  const circularCount = totalMyCircularCount;
+
+  const currentMyList = isCircularPage ? myCirculars : myAnnouncements;
+  const currentReceivedList = isCircularPage ? receivedCirculars : receivedAnnouncements;
+  const currentMyPagination = isCircularPage
+    ? { count: totalMyCircularCount, page: circularMyPage, pageSize }
+    : { count: totalMyCount, page: myPage, pageSize };
+  const currentReceivedPagination = isCircularPage
+    ? { count: totalReceivedCircularCount, page: circularReceivedPage, pageSize, unreadCount: unreadReceivedCircularCount }
+    : { count: totalReceivedCount + emergencies.length, page: receivedPage, pageSize, unreadCount: unreadReceivedCount + emergencies.length };
+
   const renderHeader = (
-    <CardHeader id="announcement-header-section" className="announcements-card-header border-b pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-      <div className="min-w-0">
-        <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Announcement Management</CardTitle>
-        <p className={`text-sm sm:text-md mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Create and manage system announcements</p>
-      </div>
-      <div className="announce-actions">
-        {user?.role !== 'counsellor' && (
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
-              <Button
-                onClick={() => resetForm()}
-                className={`gap-2 ${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
+    <CardHeader id="announcement-header-section" className="announcements-card-header border-b pb-4 flex flex-col gap-4">
+      {/* Top Row: Title & Subtitle + Action Button */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+        <div className="min-w-0">
+          <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Announcement Management</CardTitle>
+          <p className={`text-sm sm:text-md mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Create and manage system announcements</p>
+        </div>
 
-                <Plus className="w-4 h-4" />
-                New Announcement
-              </Button>
-            </DialogTrigger>
-            <DialogContent
-              onPointerDownOutside={(e) => e.preventDefault()}
-              className="mobile-modal max-w-xl max-h-[80vh] overflow-y-auto custom-scrollbar [&>button]:border-none [&>button]:outline-none [&>button]:focus:ring-0">
+        {/* Action Button: New Announcement OR Issue Circular */}
+        <div className="announce-actions w-full sm:w-auto">
+          {user?.role !== 'counsellor' && (
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={() => resetForm(isCircularPage)}
+                  className={`gap-2 w-full sm:w-auto ${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
+                  <Plus className="w-4 h-4" />
+                  {isCircularPage ? "Issue / Upload Circular" : "New Announcement"}
+                </Button>
+              </DialogTrigger>
+              <DialogContent
+                onPointerDownOutside={(e) => e.preventDefault()}
+                className="mobile-modal max-w-xl max-h-[80vh] overflow-y-auto custom-scrollbar [&>button]:border-none [&>button]:outline-none [&>button]:focus:ring-0">
 
-              <DialogHeader>
-                <DialogTitle>
-                  {editingId ? "Edit Announcement" : "Create Announcement"}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingId ?
-                    "Update the announcement details below" :
-                    "Create a new announcement visible to selected roles"}
-                </DialogDescription>
-              </DialogHeader>
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingId
+                      ? isCircularPage ? "Edit Official Circular" : "Edit Announcement"
+                      : isCircularPage ? "Issue / Upload Official Circular" : "Create Announcement"}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingId
+                      ? "Update the details below"
+                      : isCircularPage
+                        ? "Dispatch an official university or institutional circular, notification, or order"
+                        : "Create a new announcement visible to selected roles"}
+                  </DialogDescription>
+                </DialogHeader>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
-                    <span className={`text-[10px] ${formData.title.length >= 150 ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
-                      {formData.title.length}/150
-                    </span>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="title">{isCircularPage ? "Circular Subject / Title" : "Title"} <span className="text-red-500">*</span></Label>
+                      <span className={`text-[10px] ${formData.title.length >= 150 ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+                        {formData.title.length}/150
+                      </span>
+                    </div>
+                    <Input
+                      id="title"
+                      placeholder={isCircularPage ? "e.g. Circular regarding revised examination dates / academic calendar" : "Announcement title"}
+                      maxLength={150}
+                      value={formData.title}
+                      onChange={(e) =>
+                        setFormData({ ...formData, title: e.target.value })
+                      } />
                   </div>
-                  <Input
-                    id="title"
-                    placeholder="Announcement title"
-                    maxLength={150}
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    } />
 
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="message">Message <span className="text-red-500">*</span></Label>
-                    <span className={`text-[10px] ${formData.message.length >= 1000 ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
-                      {formData.message.length}/1000
-                    </span>
-                  </div>
-                  <Textarea
-                    id="message"
-                    placeholder="Announcement message"
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="message">Message <span className="text-red-500">*</span></Label>
+                      <span className={`text-[10px] ${formData.message.length >= 1000 ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+                        {formData.message.length}/1000
+                      </span>
+                    </div>
+                    <Textarea
+                      id="message"
+                      placeholder={isCircularPage ? "Circular description / summary details" : "Announcement message / overview"}
                     maxLength={1000}
                     value={formData.message}
                     onChange={(e) =>
@@ -613,6 +768,128 @@ const AdminAnnouncementManagement = () => {
                     className="resize-none max-h-24 overflow-auto custom-scrollbar" />
 
                 </div>
+
+                {/* OFFICIAL CIRCULAR / VTU NOTIFICATION FIELDS (Only shown in Circulars section / mode) */}
+                {(isCircularPage || formData.is_circular) && (
+                  <div className="p-3.5 rounded-lg border border-primary/20 bg-primary/5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-primary flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5" />
+                        Official Circular Details &amp; Document Attachment
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-medium">Official Dispatch</span>
+                    </div>
+
+                    <div className="space-y-3 pt-2 border-t border-primary/15 animate-in fade-in-50 duration-200">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="circular_number" className="text-xs font-medium">
+                            Circular Reference Number
+                          </Label>
+                          <Input
+                            id="circular_number"
+                            placeholder="e.g. VTU/BGM/Aca/2026/042"
+                            value={formData.circular_number || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, circular_number: e.target.value })
+                            }
+                            className="text-xs h-9 bg-background font-mono"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="circular_category" className="text-xs font-medium">
+                            Category / Issuer
+                          </Label>
+                          <Select
+                            value={formData.circular_category || "vtu"}
+                            onValueChange={(val) =>
+                              setFormData({ ...formData, circular_category: val })
+                            }
+                          >
+                            <SelectTrigger className="text-xs h-9 bg-background">
+                              <SelectValue placeholder="Select Category" />
+                            </SelectTrigger>
+                            <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
+                              <SelectItem value="vtu" className="text-xs">VTU Circular</SelectItem>
+                              <SelectItem value="university" className="text-xs">University Notification</SelectItem>
+                              <SelectItem value="exam" className="text-xs">Examination / COE</SelectItem>
+                              <SelectItem value="academic" className="text-xs">Academic Calendar</SelectItem>
+                              <SelectItem value="govt" className="text-xs">Government / AICTE</SelectItem>
+                              <SelectItem value="internal" className="text-xs">Internal / Office Order</SelectItem>
+                              <SelectItem value="general" className="text-xs">General Circular</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* PDF / Document Attachment */}
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium flex items-center justify-between">
+                          <span>Attached Circular Document (PDF / Word)</span>
+                          {formData.file_url && <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1"><Check className="w-3 h-3" /> Attached</span>}
+                        </Label>
+
+                        {formData.file_url ? (
+                          <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-background">
+                            <div className="flex items-center gap-2 min-w-0 pr-2">
+                              <div className="w-8 h-8 rounded bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                <FileText className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-medium text-foreground truncate">{formData.file_name || 'Circular_Document.pdf'}</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {formData.file_size ? `${(formData.file_size / (1024 * 1024)).toFixed(2)} MB` : 'PDF Document'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <a
+                                href={formData.file_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="h-7 px-2 text-xs inline-flex items-center gap-1 rounded border border-border text-primary hover:bg-muted font-medium"
+                              >
+                                <ExternalLink className="w-3 h-3" /> View
+                              </a>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setFormData({ ...formData, file_url: null, file_name: null, file_size: null })}
+                                className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                title="Remove File"
+                              >
+                                <Trash className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <label className={`flex flex-col items-center justify-center border-2 border-dashed border-primary/30 hover:border-primary/60 bg-background/50 hover:bg-background/80 transition-colors rounded-lg p-4 cursor-pointer text-center ${uploadingFile ? 'opacity-60 pointer-events-none' : ''}`}>
+                            <input
+                              type="file"
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                              className="hidden"
+                              disabled={uploadingFile}
+                              onChange={handleFileUpload}
+                            />
+                            {uploadingFile ? (
+                              <div className="flex items-center gap-2 text-xs text-primary font-medium">
+                                <Loader2 className="w-4 h-4 animate-spin" /> Uploading circular document to cloud...
+                              </div>
+                            ) : (
+                              <div className="space-y-1">
+                                <UploadCloud className="w-6 h-6 mx-auto text-primary" />
+                                <p className="text-xs font-semibold text-foreground">Click to upload or drag &amp; drop PDF</p>
+                                <p className="text-[10px] text-muted-foreground">PDF, DOC, DOCX up to 25MB</p>
+                              </div>
+                            )}
+                          </label>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -805,16 +1082,16 @@ const AdminAnnouncementManagement = () => {
                     Cancel
                   </Button>
                   <Button
-                    onClick={handleCreateOrUpdate}
+                    onClick={handleSubmit}
                     disabled={submitting}
                     className={`w-full sm:w-auto ${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
                     {submitting ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin mr-2 inline-block" />
-                        {editingId ? "Updating..." : "Creating..."}
+                        {editingId ? "Updating..." : isCircularPage ? "Publishing Circular..." : "Creating..."}
                       </>
                     ) : (
-                      <>{editingId ? "Update" : "Create"} Announcement</>
+                      <>{editingId ? "Update" : isCircularPage ? "Issue / Publish" : "Create"} {isCircularPage ? "Circular" : "Announcement"}</>
                     )}
                   </Button>
                 </div>
@@ -823,8 +1100,51 @@ const AdminAnnouncementManagement = () => {
           </Dialog>
         )}
       </div>
-    </CardHeader>
-  );
+    </div>
+
+    {/* Top Segmented Navigation Switcher (like Staff Task Tracker) */}
+    <div className="flex space-x-1 p-1 rounded-xl bg-muted border border-border overflow-x-auto w-full sm:w-auto self-start mt-2">
+      <button
+        onClick={() => {
+          setMainSection('announcements');
+          setActiveTab('my');
+        }}
+        className={`flex-1 sm:flex-none py-2 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+          mainSection === 'announcements'
+            ? 'bg-primary text-white shadow-sm'
+            : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+        }`}
+      >
+        <Megaphone className="w-4 h-4" />
+        <span>Announcements</span>
+        {nonCircularCount > 0 && (
+          <Badge className={`text-[10px] h-4 px-1.5 border-none ${mainSection === 'announcements' ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'}`}>
+            {nonCircularCount}
+          </Badge>
+        )}
+      </button>
+      <button
+        onClick={() => {
+          setMainSection('circulars');
+          setActiveTab('my');
+        }}
+        className={`flex-1 sm:flex-none py-2 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+          mainSection === 'circulars'
+            ? 'bg-primary text-white shadow-sm'
+            : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+        }`}
+      >
+        <FileText className="w-4 h-4" />
+        <span>Circulars</span>
+        {circularCount > 0 && (
+          <Badge className={`text-[10px] h-4 px-1.5 border-none ${mainSection === 'circulars' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300'}`}>
+            {circularCount}
+          </Badge>
+        )}
+      </button>
+    </div>
+  </CardHeader>
+);
 
   return (
     <>
@@ -867,9 +1187,9 @@ const AdminAnnouncementManagement = () => {
           ) : (
             <AnnouncementSections
               header={renderHeader}
-              myAnnouncements={myAnnouncements}
-              receivedAnnouncements={[
-                ...receivedAnnouncements,
+              myAnnouncements={currentMyList}
+              receivedAnnouncements={isCircularPage ? currentReceivedList : [
+                ...currentReceivedList,
                 ...emergencies.map(e => ({
                   id: e.id + 1000000,
                   title: e.title,
@@ -897,13 +1217,8 @@ const AdminAnnouncementManagement = () => {
               onResolveEmergency={handleResolveEmergency}
               loading={loading}
               showActions={true}
-              myPagination={{ count: totalMyCount, page: myPage, pageSize }}
-              receivedPagination={{
-                count: totalReceivedCount + emergencies.length,
-                page: receivedPage,
-                pageSize,
-                unreadCount: unreadReceivedCount + emergencies.length
-              }}
+              myPagination={currentMyPagination}
+              receivedPagination={currentReceivedPagination}
               onPageChange={handlePageChange}
               activeTab={activeTab}
               onTabChange={setActiveTab}
@@ -912,6 +1227,9 @@ const AdminAnnouncementManagement = () => {
               hideReceivedTab={false}
               hideMyTab={user?.role === 'counsellor'}
               showActions={user?.role !== 'counsellor'}
+              sectionMode={mainSection}
+              circularCategory={circularCategory}
+              onCircularCategoryChange={handleCategoryChange}
             />
           )}
         </Card>
@@ -919,8 +1237,8 @@ const AdminAnnouncementManagement = () => {
 
 
 
-    </>);
-
+    </>
+  );
 };
 
 export default AdminAnnouncementManagement;

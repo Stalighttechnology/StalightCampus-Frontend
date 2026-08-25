@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, Filter } from "lucide-react";
+import { CheckCircle, XCircle, Filter, FileText, ExternalLink } from "lucide-react";
 import { SkeletonTable, SkeletonCard } from "../ui/skeleton";
 import Swal from 'sweetalert2';
 import { manageLeaves, manageProfile, getFacultyLeavesBootstrap } from "../../utils/hod_api";
@@ -33,6 +33,10 @@ interface LeaveRequest {
   period: string;
   reason: string;
   status: "Pending" | "Approved" | "Rejected" | "Endorsed (Pending Principal)" | "Endorsed (Pending Dean)" | "Endorsed (Pending COE)" | "Endorsed (Pending Next Authority)" | string;
+  initial_document_url?: string | null;
+  completion_document_url?: string | null;
+  od_completion_verified?: boolean;
+  od_purpose_category?: string | null;
   alternate_faculty_name?: string | null;
   alternate_duty_status?: string;
   hod_approval_status?: string;
@@ -48,6 +52,10 @@ interface FacultyLeaveData {
   role?: string;
   department: string;
   leave_type?: string;
+  initial_document_url?: string | null;
+  completion_document_url?: string | null;
+  od_completion_verified?: boolean;
+  od_purpose_category?: string | null;
   start_time?: string | null;
   end_time?: string | null;
   is_half_day?: boolean;
@@ -135,21 +143,30 @@ const LeaveManagement = () => {
     }
   };
 
-  const renderLeaveCategoryBadge = (leaveType: string, isHalfDay?: boolean, halfDaySession?: string | null) => {
+  const renderLeaveCategoryBadge = (leaveType: string, isHalfDay?: boolean, halfDaySession?: string | null, odCategory?: string | null) => {
     const normalizedType = (leaveType || 'casual').toLowerCase();
     
     let label = 'Casual (CL)';
     let colorClass = 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300';
     
-    if (normalizedType === 'short_permission') {
+    if (normalizedType === 'od' || normalizedType === 'on_duty') {
+      label = 'On Duty (OD)';
+      colorClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300';
+    } else if (normalizedType === 'short_permission') {
       label = 'Short Permission';
       colorClass = 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300';
-    } else if (normalizedType === 'earned') {
+    } else if (normalizedType === 'earned' || normalizedType === 'el') {
       label = 'Earned (EL)';
-      colorClass = 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300';
+      colorClass = 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300';
+    } else if (normalizedType === 'vacation') {
+      label = 'Vacation Leave';
+      colorClass = 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300';
     } else if (normalizedType === 'rh' || normalizedType === 'restricted_holiday') {
       label = 'Holiday (RH)';
       colorClass = 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300';
+    } else if (normalizedType === 'maternity' || normalizedType === 'ml') {
+      label = 'Maternity (ML)';
+      colorClass = 'bg-pink-100 text-pink-800 dark:bg-pink-950/40 dark:text-pink-300';
     }
 
     const showHalfDay = Boolean(isHalfDay || normalizedType === 'half_day');
@@ -161,6 +178,11 @@ const LeaveManagement = () => {
         <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded w-fit ${colorClass}`}>
           {label}
         </span>
+        {odCategory && (
+          <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 w-fit">
+            OD: {odCategory.replace(/_/g, ' ').toUpperCase()}
+          </span>
+        )}
         {showHalfDay && (
           <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 w-fit">
             Half-Day ({sessionText})
@@ -264,6 +286,10 @@ const LeaveManagement = () => {
               period: formatPeriod(req.start_date, req.end_date),
               reason: req.reason || "No reason provided",
               status: displayStatus,
+              initial_document_url: req.initial_document_url || null,
+              completion_document_url: req.completion_document_url || null,
+              od_completion_verified: Boolean(req.od_completion_verified),
+              od_purpose_category: req.od_purpose_category || null,
               alternate_faculty_name: req.alternate_faculty_name,
               alternate_duty_status: req.alternate_duty_status,
               hod_approval_status: req.hod_approval_status,
@@ -316,6 +342,12 @@ const LeaveManagement = () => {
       setTotalPages(response.total_pages || Math.ceil((response.count || 0) / 50));
       setCurrentPage(response.current_page || page);
       setErrors([]);
+
+      // Sync badge count to sidebar
+      const currentPendingCount = typeof (data as any).pending_count === 'number'
+        ? (data as any).pending_count
+        : (typeof response.pending_count === 'number' ? response.pending_count : processed.filter((l: any) => l.canApprove).length);
+      window.dispatchEvent(new CustomEvent('leave-approvals-updated', { detail: { pending_count: currentPendingCount } }));
 
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to fetch data";
@@ -376,8 +408,16 @@ const LeaveManagement = () => {
             newStatus = "Endorsed (Pending Next Authority)";
           }
         }
-        // Update local list without re-fetching
-        setLeaveRequests((prev) => prev.map((item, idx) => item.id === leave.id ? { ...item, status: newStatus, canApprove: false } : item));
+        // Update local list and sync count
+        setLeaveRequests((prev) => {
+          const nextList = prev.map((item) => item.id === leave.id ? { ...item, status: newStatus, canApprove: false } : item);
+          const remainingPending = typeof res.pending_leaves_count === 'number'
+            ? res.pending_leaves_count
+            : nextList.filter(item => item.canApprove).length;
+          window.dispatchEvent(new CustomEvent('leave-approvals-updated', { detail: { pending_count: remainingPending } }));
+          window.dispatchEvent(new CustomEvent('leaves-updated'));
+          return nextList;
+        });
         Swal.fire(`${typeLabel} Approved!`, `The ${typeLabel.toLowerCase()} request has been approved.`, 'success');
       } else {
         setErrors([res.message || `Failed to approve ${typeLabel.toLowerCase()}`]);
@@ -420,8 +460,16 @@ const LeaveManagement = () => {
           const res = await manageLeaves(payload, "PATCH");
           if (res.success) {
             setErrors([]);
-            // Update local list without re-fetching
-            setLeaveRequests((prev) => prev.map((item, idx) => item.id === leave.id ? { ...item, status: 'Rejected', canApprove: false } : item));
+            // Update local list and sync count
+            setLeaveRequests((prev) => {
+              const nextList = prev.map((item) => item.id === leave.id ? { ...item, status: 'Rejected', canApprove: false } : item);
+              const remainingPending = typeof res.pending_leaves_count === 'number'
+                ? res.pending_leaves_count
+                : nextList.filter(item => item.canApprove).length;
+              window.dispatchEvent(new CustomEvent('leave-approvals-updated', { detail: { pending_count: remainingPending } }));
+              window.dispatchEvent(new CustomEvent('leaves-updated'));
+              return nextList;
+            });
             Swal.fire('Rejected!', 'The leave request has been rejected.', 'success');
           } else {
             setErrors([res.message || "Failed to reject leave"]);
@@ -589,7 +637,7 @@ const LeaveManagement = () => {
 
                     <div className="my-2 p-2 rounded bg-accent/10 border border-border/40">
                       <div className="font-semibold text-xs text-foreground">{row.title}</div>
-                      {renderLeaveCategoryBadge(row.leave_type, row.is_half_day, row.half_day_session)}
+                      {renderLeaveCategoryBadge(row.leave_type, row.is_half_day, row.half_day_session, row.od_purpose_category)}
                       <div className="text-xs text-muted-foreground mt-1">
                         {row.period}
                         {row.start_time && row.end_time && (
@@ -605,17 +653,53 @@ const LeaveManagement = () => {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-center mb-4">
+                    <div className="flex flex-col gap-2 mb-4">
                       <button
                         onClick={() => setViewReason(row.reason)}
-                        className={`w-full sm:w-32 h-8 text-sm font-semibold flex items-center justify-center rounded-lg shadow-sm transition-all duration-200
+                        className={`w-full h-9 text-sm font-semibold flex items-center justify-center rounded-lg shadow-sm transition-all duration-200
                         ${theme === 'dark' ?
                             'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' :
                             'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10'}`
                         }>
-
                         View Reason
                       </button>
+
+                      {(row.initial_document_url || row.completion_document_url) && (
+                        <>
+                          {row.initial_document_url && (
+                            <a
+                              href={row.initial_document_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-lg border shadow-sm transition-all ${
+                                theme === 'dark'
+                                  ? 'border-sky-500/30 bg-sky-950/30 text-sky-300 hover:bg-sky-950/50'
+                                  : 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100'
+                              }`}
+                            >
+                              <FileText className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                              <span>View Attachment</span>
+                              <ExternalLink className="w-3 h-3 opacity-70" />
+                            </a>
+                          )}
+                          {row.completion_document_url && (
+                            <a
+                              href={row.completion_document_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-lg border shadow-sm transition-all ${
+                                theme === 'dark'
+                                  ? 'border-emerald-500/30 bg-emerald-950/30 text-emerald-300 hover:bg-emerald-950/50'
+                                  : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                              }`}
+                            >
+                              <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                              <span>View Attendance Certificate</span>
+                              <ExternalLink className="w-3 h-3 opacity-70" />
+                            </a>
+                          )}
+                        </>
+                      )}
                     </div>
 
                     {row.canApprove ?
@@ -657,10 +741,10 @@ const LeaveManagement = () => {
             }
           </div>
 
-          <div className={`hidden md:block overflow-x-auto border rounded-lg ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+          <div className={`hidden md:block overflow-x-auto custom-scrollbar border rounded-lg ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
             {isLoading ?
               <div className="p-4">
-                <SkeletonTable rows={10} cols={5} />
+                <SkeletonTable rows={10} cols={7} />
               </div> :
 
               <table className="w-full text-sm">
@@ -669,6 +753,7 @@ const LeaveManagement = () => {
                     <th className="py-3 px-2 md:px-4 text-left font-semibold">Applicant</th>
                     <th className="py-3 px-2 md:px-4 text-left font-semibold">Category / Title</th>
                     <th className="py-3 px-2 md:px-4 text-center font-semibold">Period & Time</th>
+                    <th className="py-3 px-2 md:px-4 text-center font-semibold">Attachments</th>
                     <th className="py-3 px-2 md:px-4 text-center font-semibold">Reason</th>
                     <th className="py-3 px-2 md:px-4 text-center font-semibold">Status</th>
                     <th className="py-3 px-2 md:px-4 text-center font-semibold">Action</th>
@@ -677,7 +762,7 @@ const LeaveManagement = () => {
                 <tbody>
                   {leaveRequests.length === 0 ?
                     <tr>
-                      <td colSpan={6} className="p-0">
+                      <td colSpan={7} className="p-0">
                         <div className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
                           <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
                             <Filter className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
@@ -710,7 +795,7 @@ const LeaveManagement = () => {
 
                         <td className="py-4 px-2 md:px-4 text-left">
                           <div className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{row.title}</div>
-                          {renderLeaveCategoryBadge(row.leave_type, row.is_half_day, row.half_day_session)}
+                          {renderLeaveCategoryBadge(row.leave_type, row.is_half_day, row.half_day_session, row.od_purpose_category)}
                           {row.alternate_faculty_name && (
                             <div className="text-[11px] text-muted-foreground mt-1">
                               Sub: <span className="font-medium text-foreground">{row.alternate_faculty_name}</span> ({row.alternate_duty_status})
@@ -724,6 +809,42 @@ const LeaveManagement = () => {
                             <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 mt-0.5">
                               {row.start_time} - {row.end_time}
                             </div>
+                          )}
+                        </td>
+
+                        {/* Attachments Column */}
+                        <td className="py-4 px-2 md:px-4 text-sm text-center">
+                          {row.initial_document_url || row.completion_document_url ? (
+                            <div className="flex flex-col items-center justify-center gap-1.5">
+                              {row.initial_document_url && (
+                                <a
+                                  href={row.initial_document_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors shrink-0 whitespace-nowrap"
+                                  title="View Attached Order / Document Proof"
+                                >
+                                  <FileText className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                                  <span>Attachment</span>
+                                  <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                                </a>
+                              )}
+                              {row.completion_document_url && (
+                                <a
+                                  href={row.completion_document_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors shrink-0 whitespace-nowrap"
+                                  title="View Attendance Certificate"
+                                >
+                                  <FileText className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                  <span>Certificate</span>
+                                  <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                                </a>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-xs italic">—</span>
                           )}
                         </td>
 

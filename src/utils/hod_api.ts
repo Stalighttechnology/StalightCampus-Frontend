@@ -213,6 +213,8 @@ interface ManageStudentsRequest {
   subject_ids?: string[];
   subject_id?: string;
   student_ids?: string[];
+  lab_batch_id?: string;
+  student_lab_batches?: Record<string, string>;
   bulk_data?: Array<{
     usn: string;
     name: string;
@@ -277,14 +279,21 @@ interface ManageBatchesResponse {
   batch?: Batch;
 }
 
-interface Subject {
+export interface LabBatchItem {
+  id: string;
+  name: string;
+}
+
+export interface Subject {
   id: string;
   name: string;
   subject_code: string;
   semester_id: string;
   subject_type: string;
+  credits?: number;
   max_cie_marks?: number;
   max_see_marks?: number;
+  lab_batches?: LabBatchItem[];
 }
 
 interface GetSubjectsResponse {
@@ -301,20 +310,21 @@ interface GetSubjectsResponse {
 interface ManageSubjectsRequest {
   action: "create" | "update" | "delete";
   subject_id?: string;
-  name: string;
+  name?: string;
   subject_code?: string;
-  semester_id: string;
+  semester_id?: string;
   branch_id: string;
   subject_type?: string;
   credits?: number;
   max_cie_marks?: number;
   max_see_marks?: number;
+  lab_batches?: string[];
 }
 
 interface ManageSubjectsResponse {
   success: boolean;
   message?: string;
-  data?: {subject_id: string;subject_code: string;};
+  data?: {subject_id: string;subject_code: string;lab_batches?: LabBatchItem[];};
 }
 
 interface FacultyAssignment {
