@@ -463,8 +463,8 @@ export const AnnouncementSections = ({
                   value="my"
                   className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all"
                 >
-                  <span className="text-sm font-semibold">My Announcements</span>
-                  {myPagination && myPagination.count > 0 && (
+                  <span className="text-sm font-semibold">{isCircularMode ? "Dispatched Circulars" : "My Announcements"}</span>
+                  {myPagination && myPagination.count > 0 ? (
                     <Badge
                       variant="secondary"
                       className={`text-[10px] h-5 px-1.5 font-semibold border-none transition-colors ${
@@ -475,13 +475,26 @@ export const AnnouncementSections = ({
                     >
                       {myPagination.count}
                     </Badge>
+                  ) : (
+                    filteredMyAnnouncements.length > 0 && (
+                      <Badge
+                        variant="secondary"
+                        className={`text-[10px] h-5 px-1.5 font-semibold border-none transition-colors ${
+                          activeTab === 'my'
+                            ? 'bg-primary-foreground/20 text-primary-foreground'
+                            : 'bg-primary/10 text-primary'
+                        }`}
+                      >
+                        {filteredMyAnnouncements.length}
+                      </Badge>
+                    )
                   )}
                 </TabsTrigger>
                 <TabsTrigger
                   value="received"
                   className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all"
                 >
-                  <span className="text-sm font-semibold">Received</span>
+                  <span className="text-sm font-semibold">{isCircularMode ? "Received Circulars" : "Received"}</span>
                   {receivedPagination && receivedPagination.unreadCount !== undefined ? (
                     receivedPagination.unreadCount > 0 && (
                       <Badge
@@ -496,33 +509,30 @@ export const AnnouncementSections = ({
                       </Badge>
                     )
                   ) : (
-                    filteredReceivedAnnouncements.length > 0 && (
+                    totalUnread > 0 ? (
                       <Badge
                         variant="secondary"
-                        className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none pointer-events-none select-none transition-colors ${
+                        className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none shadow-sm pointer-events-none select-none transition-colors ${
                           activeTab === 'received'
-                            ? 'bg-primary-foreground/20 text-primary-foreground'
-                            : 'bg-muted text-muted-foreground'
+                            ? 'bg-white text-primary font-bold'
+                            : 'bg-primary text-white'
                         }`}
                       >
-                        {filteredReceivedAnnouncements.length}
-                <TabsTrigger value="my" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
-                  <span className="text-sm font-semibold">{isCircularMode ? "Dispatched Circulars" : "My Announcements"}</span>
-                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold bg-primary/10 text-primary border-none">
-                    {myPagination?.count !== undefined ? myPagination.count : filteredMyAnnouncements.length}
-                  </Badge>
-                </TabsTrigger>
-                <TabsTrigger value="received" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
-                  <span className="text-sm font-semibold">{isCircularMode ? "Received Circulars" : "Received"}</span>
-                  {totalUnread > 0 ? (
-                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-primary text-white border-none shadow-sm pointer-events-none select-none">
-                      {totalUnread}
-                    </Badge>
-                  ) : (
-                    (receivedPagination?.count !== undefined ? receivedPagination.count > 0 : filteredReceivedAnnouncements.length > 0) && (
-                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-muted text-muted-foreground border-none pointer-events-none select-none">
-                        {receivedPagination?.count !== undefined ? receivedPagination.count : filteredReceivedAnnouncements.length}
+                        {totalUnread}
                       </Badge>
+                    ) : (
+                      filteredReceivedAnnouncements.length > 0 && (
+                        <Badge
+                          variant="secondary"
+                          className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none pointer-events-none select-none transition-colors ${
+                            activeTab === 'received'
+                              ? 'bg-primary-foreground/20 text-primary-foreground'
+                              : 'bg-muted text-muted-foreground'
+                          }`}
+                        >
+                          {filteredReceivedAnnouncements.length}
+                        </Badge>
+                      )
                     )
                   )}
                 </TabsTrigger>
