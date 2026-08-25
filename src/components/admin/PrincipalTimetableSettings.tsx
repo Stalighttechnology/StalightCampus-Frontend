@@ -1975,7 +1975,7 @@ export default function PrincipalTimetableSettings() {
                               <span className="w-6 h-6 shrink-0 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center border border-blue-500/20">
                                 EL
                               </span>
-                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Earned Leave (EL) Policy (Rule 9.8.3)</CardTitle>
+                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Earned Leave (EL) Policy</CardTitle>
                             </div>
                             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 shrink-0 self-start sm:self-auto">
                               Service Accrued
@@ -2148,7 +2148,7 @@ export default function PrincipalTimetableSettings() {
                               <span className="w-6 h-6 shrink-0 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20">
                                 OD
                               </span>
-                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">On Duty (OD) Policy (Rule 9.8.2)</CardTitle>
+                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">On Duty (OD) Policy</CardTitle>
                             </div>
                             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 shrink-0 self-start sm:self-auto">
                               Duty Deputation
@@ -2255,7 +2255,7 @@ export default function PrincipalTimetableSettings() {
                               <span className="w-6 h-6 shrink-0 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold text-xs flex items-center justify-center border border-teal-500/20">
                                 VL
                               </span>
-                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Vacation Leave Policy (Rule 9.8.4)</CardTitle>
+                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Vacation Leave Policy</CardTitle>
                             </div>
                             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300 shrink-0 self-start sm:self-auto">
                               Vacational Staff
@@ -2363,7 +2363,7 @@ export default function PrincipalTimetableSettings() {
                               <span className="w-6 h-6 shrink-0 rounded-md bg-pink-500/10 text-pink-600 dark:text-pink-400 font-bold text-xs flex items-center justify-center border border-pink-500/20">
                                 ML
                               </span>
-                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Maternity Leave Policy (Rule 9.8.5)</CardTitle>
+                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Maternity Leave Policy</CardTitle>
                             </div>
                             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-pink-100 text-pink-800 dark:bg-pink-950/50 dark:text-pink-300 shrink-0 self-start sm:self-auto">
                               Female Staff
@@ -2373,7 +2373,7 @@ export default function PrincipalTimetableSettings() {
                         </CardHeader>
                         <CardContent className="p-4 space-y-3">
                           <div className="space-y-1">
-                            <Label className="text-xs font-semibold">Annual Quota (Days - Standard 90)</Label>
+                            <Label className="text-xs font-semibold">Annual Quota (Days - Standard 90, Customizable)</Label>
                             <Input
                               type="text"
                               inputMode="numeric"
@@ -2388,9 +2388,10 @@ export default function PrincipalTimetableSettings() {
                                   }
                                 }));
                               }}
-                              placeholder="90"
+                              placeholder="e.g. 90, 120, 180 (Custom)"
                               className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
                             />
+                            <p className="text-[10px] text-muted-foreground">Standard is 90 days. Can be set to any custom number of days per institution policy.</p>
                           </div>
 
                           {/* Maternity Eligible Roles */}

@@ -537,7 +537,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
       if (leaveType === 'casual' && diffDays > (leaveQuota?.cl_max_stretch ?? 3)) {
         await MySwal.fire({
-          title: 'CL Limit (Rule 9.8.1)',
+          title: 'Casual Leave Stretch Limit',
           text: `Casual Leave (CL) can be availed for a maximum of ${leaveQuota?.cl_max_stretch ?? 3} days at a stretch.`,
           icon: 'warning',
           confirmButtonColor: '#f59e0b',
@@ -552,7 +552,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         const maxStretch = leaveQuota?.el_max_stretch ?? 5;
         if (diffDays < minStretch || diffDays > maxStretch) {
           await MySwal.fire({
-            title: 'EL Rule (Rule 9.8.3)',
+            title: 'Earned Leave Stretch Limit',
             text: `Earned Leave (EL) requires a minimum of ${minStretch} days and a maximum of ${maxStretch} days at a stretch. Selected: ${diffDays} day(s).`,
             icon: 'warning',
             confirmButtonColor: '#f59e0b',
@@ -565,7 +565,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
       if (leaveType === 'rh' && diffDays > 1) {
         await MySwal.fire({
-          title: 'Restricted Holiday (Rule 9.8.7)',
+          title: 'Restricted Holiday Limit',
           text: 'Restricted Holiday (RH) can only be availed for 1 day at a time (max 1 per month).',
           icon: 'warning',
           confirmButtonColor: '#f59e0b',
@@ -577,7 +577,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
       if (leaveType === 'maternity' && diffDays > (leaveQuota?.maternity_annual_limit ?? 90)) {
         await MySwal.fire({
-          title: 'Maternity Leave Limit (Rule 9.8.5)',
+          title: 'Maternity Leave Limit',
           text: `Maternity leave cannot exceed ${leaveQuota?.maternity_annual_limit ?? 90} days per year. Selected: ${diffDays} days.`,
           icon: 'warning',
           confirmButtonColor: '#f59e0b',
@@ -937,12 +937,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Casual Leave (CL)</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 font-semibold whitespace-nowrap shrink-0">
-                Max {leaveQuota?.cl_max_stretch ?? 3}d Stretch
+                Max {leaveQuota?.cl_max_stretch ?? leaveQuota?.policy_rules?.casual_leave?.max_stretch_days ?? 3}d Stretch
               </span>
             </div>
             <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl font-semibold text-primary">{leaveQuota?.cl_remaining ?? 15}</span>
-              <span className="text-xs text-muted-foreground">/ {leaveQuota?.cl_annual_limit ?? leaveQuota?.cl_total ?? 15} left</span>
+              <span className="text-2xl font-semibold text-primary">{leaveQuota?.cl_remaining ?? (leaveQuota?.cl_annual_limit ?? leaveQuota?.cl_total ?? leaveQuota?.policy_rules?.casual_leave?.annual_quota ?? 15)}</span>
+              <span className="text-xs text-muted-foreground">/ {leaveQuota?.cl_annual_limit ?? leaveQuota?.cl_total ?? leaveQuota?.policy_rules?.casual_leave?.annual_quota ?? 15} left</span>
             </div>
             <p className="mt-1 text-[11px] text-muted-foreground">
               Used: {leaveQuota?.cl_used ?? 0} days | {leaveQuota?.policy_rules?.casual_leave?.allow_half_day === false ? 'No Half-Day' : (leaveQuota?.policy_rules?.casual_leave?.half_day_session === 'forenoon_only' ? 'Half-day (Morning only)' : (leaveQuota?.policy_rules?.casual_leave?.half_day_session === 'both' ? 'Half-day (Morning / Afternoon)' : 'Half-day (Afternoon only)'))}
@@ -976,7 +976,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Earned Leave (EL)</span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 font-semibold whitespace-nowrap shrink-0">
-                  {leaveQuota?.el_min_stretch ?? 2} - {leaveQuota?.el_max_stretch ?? 5}d Stretch
+                  {leaveQuota?.el_min_stretch ?? leaveQuota?.policy_rules?.earned_leave?.min_stretch_days ?? 2} - {leaveQuota?.el_max_stretch ?? leaveQuota?.policy_rules?.earned_leave?.max_stretch_days ?? 5}d Stretch
                 </span>
               </div>
               <div className="mt-2 flex items-baseline gap-1">
@@ -997,8 +997,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 </span>
               </div>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-2xl font-semibold text-teal-600 dark:text-teal-400">{leaveQuota?.vacation_remaining ?? 60}</span>
-                <span className="text-xs text-muted-foreground">/ {leaveQuota?.vacation_annual_limit ?? 60} days left</span>
+                <span className="text-2xl font-semibold text-teal-600 dark:text-teal-400">{leaveQuota?.vacation_remaining ?? (leaveQuota?.vacation_annual_limit ?? leaveQuota?.vacation_total ?? leaveQuota?.policy_rules?.vacation_leave?.annual_quota ?? 60)}</span>
+                <span className="text-xs text-muted-foreground">/ {leaveQuota?.vacation_annual_limit ?? leaveQuota?.vacation_total ?? leaveQuota?.policy_rules?.vacation_leave?.annual_quota ?? 60} days left</span>
               </div>
               <p className="mt-1 text-[11px] text-muted-foreground">Used: {leaveQuota?.vacation_used ?? 0} days | Per College Schedule</p>
             </div>
@@ -1010,12 +1010,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Maternity Leave</span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 dark:bg-pink-950/40 dark:text-pink-400 font-semibold whitespace-nowrap shrink-0">
-                  Max 90 Days
+                  Max {leaveQuota?.maternity_annual_limit ?? leaveQuota?.maternity_total ?? leaveQuota?.policy_rules?.maternity_leave?.annual_quota ?? 90} Days
                 </span>
               </div>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-2xl font-semibold text-pink-600 dark:text-pink-400">{leaveQuota?.maternity_remaining ?? 90}</span>
-                <span className="text-xs text-muted-foreground">/ {leaveQuota?.maternity_annual_limit ?? 90} days left</span>
+                <span className="text-2xl font-semibold text-pink-600 dark:text-pink-400">{leaveQuota?.maternity_remaining ?? (leaveQuota?.maternity_annual_limit ?? leaveQuota?.maternity_total ?? leaveQuota?.policy_rules?.maternity_leave?.annual_quota ?? 90)}</span>
+                <span className="text-xs text-muted-foreground">/ {leaveQuota?.maternity_annual_limit ?? leaveQuota?.maternity_total ?? leaveQuota?.policy_rules?.maternity_leave?.annual_quota ?? 90} days left</span>
               </div>
               <p className="mt-1 text-[11px] text-muted-foreground">Used: {leaveQuota?.maternity_used ?? 0} days | Medical proof required</p>
             </div>
@@ -1026,14 +1026,14 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Restricted Holiday (RH)</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 font-semibold whitespace-nowrap shrink-0">
-                Max {leaveQuota?.rh_monthly_limit ?? 1} / mo
+                Max {leaveQuota?.rh_monthly_limit ?? leaveQuota?.policy_rules?.restricted_holiday?.monthly_limit ?? 1} / mo
               </span>
             </div>
             <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl font-semibold text-rose-600 dark:text-rose-400">{leaveQuota?.rh_remaining ?? 2}</span>
-              <span className="text-xs text-muted-foreground">/ {leaveQuota?.rh_annual_limit ?? leaveQuota?.rh_total ?? 2} left</span>
+              <span className="text-2xl font-semibold text-rose-600 dark:text-rose-400">{leaveQuota?.rh_remaining ?? (leaveQuota?.rh_annual_limit ?? leaveQuota?.rh_total ?? leaveQuota?.policy_rules?.restricted_holiday?.annual_quota ?? 2)}</span>
+              <span className="text-xs text-muted-foreground">/ {leaveQuota?.rh_annual_limit ?? leaveQuota?.rh_total ?? leaveQuota?.policy_rules?.restricted_holiday?.annual_quota ?? 2} left</span>
             </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">Used this month: {leaveQuota?.rh_used_this_month ?? 0}/{leaveQuota?.rh_monthly_limit ?? 1}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">Used this month: {leaveQuota?.rh_used_this_month ?? 0}/{leaveQuota?.rh_monthly_limit ?? leaveQuota?.policy_rules?.restricted_holiday?.monthly_limit ?? 1}</p>
           </div>
 
           {/* Short Permission Card */}
@@ -1041,12 +1041,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Short Permission</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 font-semibold whitespace-nowrap shrink-0">
-                Max {leaveQuota?.short_permission_max_hours ?? leaveQuota?.sp_max_hours ?? 2}h / time
+                Max {leaveQuota?.short_permission_max_hours ?? leaveQuota?.sp_max_hours ?? leaveQuota?.policy_rules?.short_permission?.max_hours ?? 2}h / time
               </span>
             </div>
             <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl font-semibold text-purple-600 dark:text-purple-400">{leaveQuota?.short_permission_remaining_this_month ?? leaveQuota?.sp_remaining_this_month ?? 5}</span>
-              <span className="text-xs text-muted-foreground">/ {leaveQuota?.short_permission_limit_monthly ?? leaveQuota?.sp_monthly_limit ?? 5} left</span>
+              <span className="text-2xl font-semibold text-purple-600 dark:text-purple-400">{leaveQuota?.short_permission_remaining_this_month ?? leaveQuota?.sp_remaining_this_month ?? (leaveQuota?.short_permission_limit_monthly ?? leaveQuota?.sp_monthly_limit ?? leaveQuota?.policy_rules?.short_permission?.monthly_limit ?? 5)}</span>
+              <span className="text-xs text-muted-foreground">/ {leaveQuota?.short_permission_limit_monthly ?? leaveQuota?.sp_monthly_limit ?? leaveQuota?.policy_rules?.short_permission?.monthly_limit ?? 5} left</span>
             </div>
             <p className="mt-1 text-[11px] text-muted-foreground">Used this month: {leaveQuota?.short_permission_used_this_month ?? leaveQuota?.sp_used_this_month ?? 0}</p>
           </div>
