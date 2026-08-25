@@ -1541,6 +1541,11 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                 mode="single"
                                 selected={new Date(dateRange.start_date)}
                                 onSelect={(date) => date && setDateRange((prev) => ({ ...prev, start_date: date.toLocaleDateString('sv-SE') }))}
+                                disabled={(date) => {
+                                  const today = new Date();
+                                  today.setHours(23, 59, 59, 999);
+                                  return date > today;
+                                }}
                                 initialFocus />
 
                             </PopoverContent>

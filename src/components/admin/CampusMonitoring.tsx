@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
 import { useAuth } from "../../context/AuthContext";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
@@ -53,7 +54,8 @@ import {
   Phone,
   Mail,
   Table as TableIcon,
-  Filter
+  Filter,
+  Download
 } from "lucide-react";
 
 export default function CampusMonitoring() {
@@ -120,6 +122,35 @@ export default function CampusMonitoring() {
       console.error("Failed to fetch reports", err);
     } finally {
       setReportLoading(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/monitoring/reports/?start_date=${startDate}&end_date=${endDate}&page=1&page_size=10000`);
+      const data = await res.json();
+      
+      if (data.success && data.data) {
+        const exportData = data.data.map((alert: any) => ({
+          "Date": new Date(alert.timestamp).toLocaleDateString(),
+          "Exit Time": new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+          "Entry Time": alert.is_resolved && alert.resolved_at 
+            ? new Date(alert.resolved_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) 
+            : "Still Outside",
+          "Faculty Name": alert.faculty_name,
+          "Email": alert.faculty_email,
+          "Status": alert.is_resolved ? "Returned" : "Active Exit",
+          "Duration": getExcursionDuration(alert),
+          "Details": getFormattedDistance(alert)
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Audit Reports");
+        XLSX.writeFile(wb, `Campus_Monitoring_Audit_${startDate}_to_${endDate}.xlsx`);
+      }
+    } catch (err) {
+      console.error("Failed to export reports", err);
     }
   };
 
@@ -535,6 +566,9 @@ export default function CampusMonitoring() {
                 </div>
                 <Button size="sm" onClick={() => fetchReports(1)} className="h-8 text-xs font-semibold">
                   <Filter className="w-3.5 h-3.5 mr-1.5" /> Filter
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleExportExcel} className="h-8 text-xs font-semibold">
+                  <Download className="w-3.5 h-3.5 mr-1.5" /> Export Excel
                 </Button>
               </div>
             </CardHeader>

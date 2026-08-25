@@ -177,6 +177,7 @@ export interface TakeAttendanceRequest {
   subject_id: string;
   section_id: string;
   semester_id: string;
+  lab_batch_id?: string | number;
   method: "manual" | "ai";
   date?: string; // YYYY-MM-DD
   class_images?: File[];
@@ -357,6 +358,7 @@ export interface FacultyAssignment {
   branch: string;
   branch_id: number;
   has_timetable: boolean;
+  lab_batches?: Array<{ id: number | string; name: string }>;
 }
 
 export interface FacultyLeaveRequest {
@@ -1350,6 +1352,7 @@ export const getAttendanceRecordsWithSummary = async (params?: {
   page?: number;
   page_size?: number;
   subject_id?: string;
+  lab_batch_id?: string;
   start_date?: string;
   end_date?: string;
 }): Promise<GetAttendanceRecordsWithSummaryResponse> => {
@@ -1363,6 +1366,7 @@ export const getAttendanceRecordsWithSummary = async (params?: {
       queryParams.append('page_size', ps.toString());
     }
     if (params?.subject_id) queryParams.append('subject_id', params.subject_id);
+    if (params?.lab_batch_id) queryParams.append('lab_batch_id', params.lab_batch_id);
     if (params?.start_date) queryParams.append('start_date', params.start_date);
     if (params?.end_date) queryParams.append('end_date', params.end_date);
 
@@ -1827,7 +1831,7 @@ export const getStudentsForRegular = async (params: {branch_id: string;semester_
   }
 };
 
-export const getStudentsForElective = async (params: {subject_id: string;branch_id: string;semester_id: string;section_id?: string;page?: number;page_size?: number;}) => {
+export const getStudentsForElective = async (params: {subject_id: string;branch_id: string;semester_id: string;section_id?: string;lab_batch_id?: string | number;page?: number;page_size?: number;}) => {
   try {
     // Elective requires subject_id, branch_id and semester_id
     if (!params.subject_id || !params.branch_id || !params.semester_id) {
