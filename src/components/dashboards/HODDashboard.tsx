@@ -159,10 +159,11 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'syllabus-status': 'syllabus-status',
       'syllabus-monitor': 'syllabus-monitor',
       'schedule-meeting': 'schedule-meeting',
-      'alumni-directory': 'alumni-directory'
+      'alumni-directory': 'alumni-directory',
+      'external-links': 'external-links'
     };
 
-    return pathMap[lastPart] || 'dashboard';
+    return pathMap[lastPart] || lastPart || 'dashboard';
   };
 
   const [activePage, setActivePage] = useState<string>(getActivePageFromPath(location.pathname));
@@ -222,10 +223,11 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'act-as-teacher': '/faculty/dashboard',
       'schedule-meeting': '/hod/schedule-meeting',
       'staff-tasks': '/hod/staff-tasks',
-      'alumni-directory': '/hod/alumni-directory'
+      'alumni-directory': '/hod/alumni-directory',
+      'external-links': '/hod/external-links'
     };
 
-    const path = pathMap[page] || '/hod/dashboard';
+    const path = pathMap[page] || `/hod/${page}`;
     navigate(path);
   };
 
@@ -328,7 +330,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       case "staff-tasks":
         return <StaffTaskTracker />;
       case "external-links":
-        return <ExternalLinksPage userRole={user?.role || "student"} />;
+        return <ExternalLinksPage userRole={user?.role || "hod"} />;
       default:
         return <HODStats setError={setError} setPage={handlePageChange} />;
     }

@@ -68,7 +68,7 @@ const LibraryAdminDashboard = ({ user }: DashboardProps) => {
       case "staff-tasks":
         return <StaffTaskTracker />;
       case "external-links":
-        return <ExternalLinksPage userRole={user?.role || "student"} />;
+        return <ExternalLinksPage userRole={user?.role || "library_admin"} />;
       default:
         return <LibraryOverview />;
     }

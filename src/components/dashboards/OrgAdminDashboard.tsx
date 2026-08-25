@@ -125,7 +125,7 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
       case "compliance-reports":
         return <ComplianceReports />;
       case "external-links":
-        return <ExternalLinksPage userRole={user?.role || "student"} />;
+        return <ExternalLinksPage userRole={user?.role || "org_admin"} />;
       default:
         return <AdminStats setError={setError} onNavigate={handlePageChange} />;
     }

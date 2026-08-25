@@ -77,8 +77,9 @@ const getActivePageFromPath = (pathname: string): string => {
     'co-attainment': 'co-attainment',
     'qp-approvals': 'qp-approvals',
     'compliance-reports': 'compliance-reports',
+    'external-links': 'external-links',
   };
-  return pathMap[lastPart] || 'dashboard';
+  return pathMap[lastPart] || lastPart || 'dashboard';
 };
 
 const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string) => void }) => {
@@ -161,7 +162,7 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
       case "compliance-reports":
         return <ComplianceReports />;
       case "external-links":
-        return <ExternalLinksPage userRole={user?.role || "student"} />;
+        return <ExternalLinksPage userRole={user?.role || "dean"} />;
       default:
         return <div>Welcome, Dean.</div>;
     }

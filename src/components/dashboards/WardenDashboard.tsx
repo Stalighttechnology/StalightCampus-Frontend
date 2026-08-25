@@ -101,7 +101,7 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
       case "my-payroll":
         return <FacultyPayroll />;
       case "external-links":
-        return <ExternalLinksPage userRole={user?.role || "student"} />;
+        return <ExternalLinksPage userRole={user?.role || "warden"} />;
       default:
         return <WardenDashboardOverview />;
     }

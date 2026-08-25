@@ -74,10 +74,11 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'profile': 'profile',
       'co-attainment': 'co-attainment',
       'schedule-meeting': 'schedule-meeting',
-      'staff-tasks': 'staff-tasks'
+      'staff-tasks': 'staff-tasks',
+      'external-links': 'external-links'
     };
 
-    return pathMap[lastPart] || 'dashboard';
+    return pathMap[lastPart] || lastPart || 'dashboard';
   };
 
   const [activePage, setActivePage] = useState(getActivePageFromPath(location.pathname));
@@ -119,10 +120,11 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'fee-settings': '/coe/fee-settings',
       'co-attainment': '/coe/co-attainment',
       'schedule-meeting': '/coe/schedule-meeting',
-      'staff-tasks': '/coe/staff-tasks'
+      'staff-tasks': '/coe/staff-tasks',
+      'external-links': '/coe/external-links'
     };
 
-    navigate(pathMap[page] || '/coe/dashboard');
+    navigate(pathMap[page] || `/coe/${page}`);
   };
 
   const [error, setError] = useState<string | null>(null);
@@ -187,7 +189,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       case "staff-tasks":
         return <StaffTaskTracker />;
       case "external-links":
-        return <ExternalLinksPage userRole={user?.role || "student"} />;
+        return <ExternalLinksPage userRole={user?.role || "coe"} />;
       default:
         return <COEDashboardStats />;
     }

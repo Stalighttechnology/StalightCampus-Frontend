@@ -211,18 +211,24 @@ export type { GetLeaveRequestsResponse, GetStudentAttendanceResponse, GetInterna
 
 // Common Unread Count API (used for all roles to prevent heavy polling)
 export const getUnreadNotificationCount = async (): Promise<GetUnreadCountResponse> => {
+  const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+  if (!token) {
+    return { success: true, count: 0, unread_count: 0 } as any;
+  }
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/notifications/unread-count/`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });
+    if (!response.ok) {
+      return { success: false, count: 0, unread_count: 0 } as any;
+    }
     return await response.json();
   } catch (error) {
-    console.error('Error fetching unread notification count:', error);
-    return { success: false, message: 'Network error' };
+    return { success: false, message: 'Network error', count: 0, unread_count: 0 } as any;
   }
 };
 

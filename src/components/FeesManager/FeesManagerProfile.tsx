@@ -96,11 +96,10 @@ const FeesManagerProfile: React.FC = () => {
           email: p.email || "",
           phone: p.phone_number || p.mobile_number || "",
           address: p.address || "",
-          bio: p.bio || ""
-        ,
-          library_id: profileData.library_id || "",
-          vtu_staff_id: profileData.vtu_staff_id || "",
-          aicte_id: profileData.aicte_id || ""
+          bio: p.bio || "",
+          library_id: p.library_id || "",
+          vtu_staff_id: p.vtu_staff_id || "",
+          aicte_id: p.aicte_id || ""
         });
       } else {
         showErrorAlert("Error", res.message || "Failed to load profile");

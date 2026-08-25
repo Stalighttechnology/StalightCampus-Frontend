@@ -81,7 +81,7 @@ const TransportAdminDashboard = ({ user }: DashboardProps) => {
       case "staff-tasks":
         return <StaffTaskTracker />;
       case "external-links":
-        return <ExternalLinksPage userRole={user?.role || "student"} />;
+        return <ExternalLinksPage userRole={user?.role || "transport_admin"} />;
       default:
         return <TransportOverview />;
     }

@@ -69,28 +69,35 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Do NOT intercept or cache any /api/ routes in the service worker
-  if (url.pathname.startsWith('/api/') || request.url.includes('/api/')) {
+  // Do NOT intercept or cache any /api/ routes, chrome-extensions, or non-GET requests
+  if (
+    request.method !== 'GET' ||
+    url.pathname.startsWith('/api/') || 
+    request.url.includes('/api/') ||
+    url.origin !== self.location.origin
+  ) {
     return;
   }
 
   // Handle navigation requests (HTML pages)
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).
-      catch(() => {
-        // If the fetch fails (e.g., 404), serve the index.html
-        return caches.match('/index.html') || fetch('/index.html');
+      fetch(request).catch(() => {
+        return caches.match('/index.html').then((cached) => {
+          return cached || fetch('/index.html').catch(() => new Response('Offline', { status: 503 }));
+        });
       })
     );
     return;
   }
 
-  // For other requests, try cache first, then network
+  // For other requests, try cache first, then network with safe catch
   event.respondWith(
-    caches.match(request).
-    then((response) => {
-      return response || fetch(request);
+    caches.match(request).then((response) => {
+      if (response) return response;
+      return fetch(request).catch(() => {
+        return new Response(null, { status: 404, statusText: 'Not Found' });
+      });
     })
   );
 });

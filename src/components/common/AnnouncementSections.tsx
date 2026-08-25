@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit2, Trash2, Eye, Clock, User, AlertCircle, MoreVertical, CheckCircle2, XCircle, Megaphone, BellOff, MapPin, ExternalLink, FileDown, Loader2, FileText, Download, Paperclip } from "lucide-react";
+import { Edit2, Trash2, Eye, Clock, User, AlertCircle, MoreVertical, CheckCircle2, XCircle, Megaphone, BellOff, MapPin, ExternalLink, FileDown, Loader2, FileText, Download, Paperclip, Filter } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { Announcement } from "@/utils/announcements_api";
 import { translateTerminology } from "@/utils/institutionConfig";
@@ -467,11 +467,10 @@ export const AnnouncementSections = ({
                   {myPagination && myPagination.count > 0 ? (
                     <Badge
                       variant="secondary"
-                      className={`text-[10px] h-5 px-1.5 font-semibold border-none transition-colors ${
-                        activeTab === 'my'
-                          ? 'bg-primary-foreground/20 text-primary-foreground'
-                          : 'bg-primary/10 text-primary'
-                      }`}
+                      className={`text-[10px] h-5 px-1.5 font-semibold border-none transition-colors ${activeTab === 'my'
+                        ? 'bg-primary-foreground/20 text-primary-foreground'
+                        : 'bg-primary/10 text-primary'
+                        }`}
                     >
                       {myPagination.count}
                     </Badge>
@@ -479,11 +478,10 @@ export const AnnouncementSections = ({
                     filteredMyAnnouncements.length > 0 && (
                       <Badge
                         variant="secondary"
-                        className={`text-[10px] h-5 px-1.5 font-semibold border-none transition-colors ${
-                          activeTab === 'my'
-                            ? 'bg-primary-foreground/20 text-primary-foreground'
-                            : 'bg-primary/10 text-primary'
-                        }`}
+                        className={`text-[10px] h-5 px-1.5 font-semibold border-none transition-colors ${activeTab === 'my'
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-primary/10 text-primary'
+                          }`}
                       >
                         {filteredMyAnnouncements.length}
                       </Badge>
@@ -499,11 +497,10 @@ export const AnnouncementSections = ({
                     receivedPagination.unreadCount > 0 && (
                       <Badge
                         variant="secondary"
-                        className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none shadow-sm pointer-events-none select-none transition-colors ${
-                          activeTab === 'received'
-                            ? 'bg-white text-primary font-bold'
-                            : 'bg-primary text-white'
-                        }`}
+                        className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none shadow-sm pointer-events-none select-none transition-colors ${activeTab === 'received'
+                          ? 'bg-white text-primary font-bold'
+                          : 'bg-primary text-white'
+                          }`}
                       >
                         {receivedPagination.unreadCount}
                       </Badge>
@@ -512,11 +509,10 @@ export const AnnouncementSections = ({
                     totalUnread > 0 ? (
                       <Badge
                         variant="secondary"
-                        className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none shadow-sm pointer-events-none select-none transition-colors ${
-                          activeTab === 'received'
-                            ? 'bg-white text-primary font-bold'
-                            : 'bg-primary text-white'
-                        }`}
+                        className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none shadow-sm pointer-events-none select-none transition-colors ${activeTab === 'received'
+                          ? 'bg-white text-primary font-bold'
+                          : 'bg-primary text-white'
+                          }`}
                       >
                         {totalUnread}
                       </Badge>
@@ -524,11 +520,10 @@ export const AnnouncementSections = ({
                       filteredReceivedAnnouncements.length > 0 && (
                         <Badge
                           variant="secondary"
-                          className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none pointer-events-none select-none transition-colors ${
-                            activeTab === 'received'
-                              ? 'bg-primary-foreground/20 text-primary-foreground'
-                              : 'bg-muted text-muted-foreground'
-                          }`}
+                          className={`text-[10px] h-5 px-1.5 font-semibold ml-1 border-none pointer-events-none select-none transition-colors ${activeTab === 'received'
+                            ? 'bg-primary-foreground/20 text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
+                            }`}
                         >
                           {filteredReceivedAnnouncements.length}
                         </Badge>
@@ -560,32 +555,18 @@ export const AnnouncementSections = ({
                   </Select>
                 </div>
               ) : !isAnnouncementMode ? (
-                <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border/40">
-                  <Button
-                    variant={circularFilter === 'all' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setCircularFilter('all')}
-                    className="h-7 text-xs px-2.5 rounded-lg font-medium"
-                  >
-                    All
-                  </Button>
-                  <Button
-                    variant={circularFilter === 'circulars' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setCircularFilter('circulars')}
-                    className="h-7 text-xs px-2.5 rounded-lg font-medium gap-1 text-purple-600 dark:text-purple-400"
-                  >
-                    <FileText className="w-3 h-3" />
-                    Circulars
-                  </Button>
-                  <Button
-                    variant={circularFilter === 'general' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setCircularFilter('general')}
-                    className="h-7 text-xs px-2.5 rounded-lg font-medium text-muted-foreground"
-                  >
-                    Notices
-                  </Button>
+                <div className="flex items-center gap-2">
+                  <Select value={circularFilter} onValueChange={(val: 'all' | 'circulars' | 'general') => setCircularFilter(val)}>
+                    <SelectTrigger className="h-9 w-[160px] sm:w-[190px] text-xs bg-background">
+                      <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All </SelectItem>
+                      <SelectItem value="circulars">Circulars</SelectItem>
+                      <SelectItem value="general">Announcements</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               ) : null}
 
@@ -621,7 +602,7 @@ export const AnnouncementSections = ({
                   {isCircularMode ? "No circulars dispatched yet" : "No announcements created"}
                 </h3>
                 <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  {isCircularMode 
+                  {isCircularMode
                     ? "You haven't issued or uploaded any official circulars yet. Click above to issue a circular!"
                     : "You haven't created any announcements yet. Click the button above to create your first announcement!"}
                 </p>
