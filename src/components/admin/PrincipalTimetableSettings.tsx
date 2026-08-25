@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Plus, Trash2, Edit2, GripVertical, Clock, AlertTriangle, Save, ShieldCheck, ChevronRight, CalendarCheck2, Users, Sliders, X } from "lucide-react";
+import { Plus, Trash2, Edit2, GripVertical, Clock, AlertTriangle, Save, ShieldCheck, ChevronRight, CalendarCheck2, Users, Sliders, X, CheckCircle2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -466,32 +466,55 @@ export default function PrincipalTimetableSettings() {
 
   // Leave & Short Permission Policy state
   const [leavePolicyLoading, setLeavePolicyLoading] = useState(false);
-  const [leavePolicySaving, setLeavePolicySaving] = useState(false);
+  const [leaveRulesSaving, setLeaveRulesSaving] = useState(false);
+  const [leaveRoutingSaving, setLeaveRoutingSaving] = useState(false);
   const [leavePolicy, setLeavePolicy] = useState<{
     monthly_short_permission_limit: number | string;
     total_standard_leaves: number | string;
     short_permission_max_hours: number | string;
     leave_policy_rules: {
-      casual_leave: {
-        annual_quota: number | string;
-        max_stretch_days: number | string;
-        allow_half_day: boolean;
-        half_day_session: string;
+      academic_year?: {
+        start_month?: number | string;
       };
-      earned_leave: {
-        annual_quota: number | string;
-        jan_credit: number | string;
-        jul_credit: number | string;
-        min_stretch_days: number | string;
-        max_stretch_days: number | string;
+      casual_leave?: {
+        annual_quota?: number | string;
+        max_stretch_days?: number | string;
+        allow_half_day?: boolean;
+        half_day_session?: 'afternoon_only' | 'forenoon_only' | 'both';
+        forenoon_start_time?: string;
+        forenoon_end_time?: string;
+        afternoon_start_time?: string;
+        afternoon_end_time?: string;
       };
-      restricted_holiday: {
-        annual_quota: number | string;
-        monthly_limit: number | string;
+      earned_leave?: {
+        annual_quota?: number | string;
+        jan_credit?: number | string;
+        jul_credit?: number | string;
+        min_stretch_days?: number | string;
+        max_stretch_days?: number | string;
+        eligible_roles?: string[];
       };
-      short_permission: {
-        monthly_limit: number | string;
-        max_hours: number | string;
+      on_duty?: {
+        eligible_roles?: string[];
+        require_initial_document?: boolean;
+        require_completion_certificate?: boolean;
+      };
+      vacation_leave?: {
+        annual_quota?: number | string;
+        eligible_roles?: string[];
+        require_non_probationary?: boolean;
+      };
+      maternity_leave?: {
+        annual_quota?: number | string;
+        eligible_roles?: string[];
+      };
+      restricted_holiday?: {
+        annual_quota?: number | string;
+        monthly_limit?: number | string;
+      };
+      short_permission?: {
+        monthly_limit?: number | string;
+        max_hours?: number | string;
       };
     };
     leave_approval_routing: Record<string, any>;
@@ -500,6 +523,9 @@ export default function PrincipalTimetableSettings() {
     total_standard_leaves: 15,
     short_permission_max_hours: 2,
     leave_policy_rules: {
+      academic_year: {
+        start_month: 6
+      },
       casual_leave: {
         annual_quota: 15,
         max_stretch_days: 3,
@@ -511,7 +537,22 @@ export default function PrincipalTimetableSettings() {
         jan_credit: 7,
         jul_credit: 8,
         min_stretch_days: 2,
-        max_stretch_days: 5
+        max_stretch_days: 5,
+        eligible_roles: ['hod', 'dean', 'principal', 'coe', 'fees_manager', 'counsellor', 'driver', 'warden', 'librarian', 'lab_assistant', 'office_admin']
+      },
+      on_duty: {
+        eligible_roles: ['teacher', 'faculty', 'hod', 'dean', 'principal', 'coe'],
+        require_initial_document: false,
+        require_completion_certificate: true
+      },
+      vacation_leave: {
+        annual_quota: 60,
+        eligible_roles: ['teacher', 'faculty'],
+        require_non_probationary: true
+      },
+      maternity_leave: {
+        annual_quota: 90,
+        eligible_roles: ['teacher', 'faculty', 'hod', 'counsellor', 'warden', 'office_admin']
       },
       restricted_holiday: {
         annual_quota: 2,
@@ -681,35 +722,56 @@ export default function PrincipalTimetableSettings() {
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/leave-policy-settings/`);
       if (res.ok) {
         const data = await res.json();
-        const rules = data.leave_policy_rules || {
+        const rules = data.leave_policy_rules || {};
+
+        const defaultRules = {
           casual_leave: {
-            annual_quota: data.total_standard_leaves ?? 15,
-            max_stretch_days: 3,
-            allow_half_day: true,
-            half_day_session: 'afternoon_only'
+            annual_quota: rules.casual_leave?.annual_quota ?? data.total_standard_leaves ?? 15,
+            max_stretch_days: rules.casual_leave?.max_stretch_days ?? 3,
+            allow_half_day: rules.casual_leave?.allow_half_day !== false,
+            half_day_session: rules.casual_leave?.half_day_session || 'afternoon_only',
+            forenoon_start_time: rules.casual_leave?.forenoon_start_time || '09:00 AM',
+            forenoon_end_time: rules.casual_leave?.forenoon_end_time || '12:00 PM',
+            afternoon_start_time: rules.casual_leave?.afternoon_start_time || '12:00 PM',
+            afternoon_end_time: rules.casual_leave?.afternoon_end_time || '05:00 PM'
           },
           earned_leave: {
-            annual_quota: 15,
-            jan_credit: 7,
-            jul_credit: 8,
-            min_stretch_days: 2,
-            max_stretch_days: 5
+            annual_quota: rules.earned_leave?.annual_quota ?? 15,
+            jan_credit: rules.earned_leave?.jan_credit ?? 7,
+            jul_credit: rules.earned_leave?.jul_credit ?? 8,
+            min_stretch_days: rules.earned_leave?.min_stretch_days ?? 2,
+            max_stretch_days: rules.earned_leave?.max_stretch_days ?? 5,
+            eligible_roles: rules.earned_leave?.eligible_roles || ['hod', 'dean', 'principal', 'coe', 'fees_manager', 'counsellor', 'driver', 'warden', 'librarian', 'lab_assistant', 'office_admin']
+          },
+          on_duty: {
+            eligible_roles: rules.on_duty?.eligible_roles || ['teacher', 'faculty', 'hod', 'dean', 'principal', 'coe'],
+            require_initial_document: Boolean(rules.on_duty?.require_initial_document),
+            require_completion_certificate: rules.on_duty?.require_completion_certificate !== false
+          },
+          vacation_leave: {
+            annual_quota: rules.vacation_leave?.annual_quota ?? 60,
+            eligible_roles: rules.vacation_leave?.eligible_roles || ['teacher', 'faculty'],
+            require_non_probationary: rules.vacation_leave?.require_non_probationary !== false
+          },
+          maternity_leave: {
+            annual_quota: rules.maternity_leave?.annual_quota ?? 90,
+            eligible_roles: rules.maternity_leave?.eligible_roles || ['teacher', 'faculty', 'hod', 'counsellor', 'warden', 'office_admin']
           },
           restricted_holiday: {
-            annual_quota: 2,
-            monthly_limit: 1
+            annual_quota: rules.restricted_holiday?.annual_quota ?? 2,
+            monthly_limit: rules.restricted_holiday?.monthly_limit ?? 1
           },
           short_permission: {
-            monthly_limit: data.monthly_short_permission_limit ?? 5,
-            max_hours: data.short_permission_max_hours ?? 2
+            monthly_limit: rules.short_permission?.monthly_limit ?? data.monthly_short_permission_limit ?? 5,
+            max_hours: rules.short_permission?.max_hours ?? data.short_permission_max_hours ?? 2
           }
         };
 
         setLeavePolicy({
-          monthly_short_permission_limit: rules.short_permission?.monthly_limit ?? data.monthly_short_permission_limit ?? 5,
-          total_standard_leaves: rules.casual_leave?.annual_quota ?? data.total_standard_leaves ?? 15,
-          short_permission_max_hours: rules.short_permission?.max_hours ?? data.short_permission_max_hours ?? 2,
-          leave_policy_rules: rules,
+          monthly_short_permission_limit: defaultRules.short_permission.monthly_limit,
+          total_standard_leaves: defaultRules.casual_leave.annual_quota,
+          short_permission_max_hours: defaultRules.short_permission.max_hours,
+          leave_policy_rules: defaultRules,
           leave_approval_routing: data.leave_approval_routing || {
             teacher: { num_stages: 2, stages: ['hod', 'principal'] },
             hod: { num_stages: 1, stages: ['principal'] },
@@ -729,22 +791,132 @@ export default function PrincipalTimetableSettings() {
     }
   };
 
-  const handleSaveLeavePolicy = async () => {
+  const [savingCard, setSavingCard] = useState<string | null>(null);
+
+  const handleSaveIndividualLeaveCard = async (cardKey: string, cardName: string) => {
     try {
-      setLeavePolicySaving(true);
+      setSavingCard(cardKey);
+      const rules = leavePolicy.leave_policy_rules || {};
+
+      let cleanedCardRule: any = {};
+      const payload: Record<string, any> = {};
+
+      if (cardKey === 'casual_leave') {
+        const cl = rules.casual_leave || {};
+        cleanedCardRule = {
+          annual_quota: cl.annual_quota === '' ? 15 : Number(cl.annual_quota),
+          max_stretch_days: cl.max_stretch_days === '' ? 3 : Number(cl.max_stretch_days),
+          allow_half_day: Boolean(cl.allow_half_day),
+          half_day_session: cl.half_day_session || 'afternoon_only',
+          forenoon_start_time: cl.forenoon_start_time || '09:00 AM',
+          forenoon_end_time: cl.forenoon_end_time || '12:00 PM',
+          afternoon_start_time: cl.afternoon_start_time || '12:00 PM',
+          afternoon_end_time: cl.afternoon_end_time || '05:00 PM'
+        };
+        payload.total_standard_leaves = cleanedCardRule.annual_quota;
+      } else if (cardKey === 'earned_leave') {
+        const el = rules.earned_leave || {};
+        cleanedCardRule = {
+          annual_quota: el.annual_quota === '' ? 15 : Number(el.annual_quota),
+          jan_credit: el.jan_credit === '' ? 7 : Number(el.jan_credit),
+          jul_credit: el.jul_credit === '' ? 8 : Number(el.jul_credit),
+          min_stretch_days: el.min_stretch_days === '' ? 2 : Number(el.min_stretch_days),
+          max_stretch_days: el.max_stretch_days === '' ? 5 : Number(el.max_stretch_days),
+          eligible_roles: el.eligible_roles || ['hod', 'dean', 'principal', 'coe', 'fees_manager', 'counsellor', 'driver', 'warden', 'librarian', 'lab_assistant', 'office_admin']
+        };
+      } else if (cardKey === 'on_duty') {
+        const od = rules.on_duty || {};
+        cleanedCardRule = {
+          eligible_roles: od.eligible_roles || ['teacher', 'faculty', 'hod', 'dean', 'principal', 'coe'],
+          require_initial_document: Boolean(od.require_initial_document),
+          require_completion_certificate: od.require_completion_certificate !== false
+        };
+      } else if (cardKey === 'vacation_leave') {
+        const vac = rules.vacation_leave || {};
+        cleanedCardRule = {
+          annual_quota: vac.annual_quota === '' ? 60 : Number(vac.annual_quota),
+          eligible_roles: vac.eligible_roles || ['teacher', 'faculty'],
+          require_non_probationary: vac.require_non_probationary !== false
+        };
+      } else if (cardKey === 'maternity_leave') {
+        const mat = rules.maternity_leave || {};
+        cleanedCardRule = {
+          annual_quota: mat.annual_quota === '' ? 90 : Number(mat.annual_quota),
+          eligible_roles: mat.eligible_roles || ['teacher', 'faculty', 'hod', 'counsellor', 'warden', 'office_admin']
+        };
+      } else if (cardKey === 'restricted_holiday') {
+        const rh = rules.restricted_holiday || {};
+        cleanedCardRule = {
+          annual_quota: rh.annual_quota === '' ? 2 : Number(rh.annual_quota),
+          monthly_limit: rh.monthly_limit === '' ? 1 : Number(rh.monthly_limit)
+        };
+      } else if (cardKey === 'short_permission') {
+        const sp = rules.short_permission || {};
+        cleanedCardRule = {
+          monthly_limit: sp.monthly_limit === '' ? 5 : Number(sp.monthly_limit),
+          max_hours: sp.max_hours === '' ? 2 : Number(sp.max_hours)
+        };
+        payload.monthly_short_permission_limit = cleanedCardRule.monthly_limit;
+        payload.short_permission_max_hours = cleanedCardRule.max_hours;
+      }
+
+      payload.leave_policy_rules = {
+        [cardKey]: cleanedCardRule
+      };
+
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/leave-policy-settings/`, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        toast({ title: "Success", description: `${cardName} policy saved successfully` });
+      } else {
+        toast({ title: "Error", description: `Failed to save ${cardName} policy`, variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: `Failed to save ${cardName} policy`, variant: "destructive" });
+    } finally {
+      setSavingCard(null);
+    }
+  };
+
+  const handleSaveLeaveRules = async () => {
+    try {
+      setLeaveRulesSaving(true);
       const cleanRules = {
         casual_leave: {
           annual_quota: leavePolicy.leave_policy_rules?.casual_leave?.annual_quota === '' ? 15 : Number(leavePolicy.leave_policy_rules?.casual_leave?.annual_quota),
           max_stretch_days: leavePolicy.leave_policy_rules?.casual_leave?.max_stretch_days === '' ? 3 : Number(leavePolicy.leave_policy_rules?.casual_leave?.max_stretch_days),
           allow_half_day: Boolean(leavePolicy.leave_policy_rules?.casual_leave?.allow_half_day),
-          half_day_session: leavePolicy.leave_policy_rules?.casual_leave?.half_day_session || 'afternoon_only'
+          half_day_session: leavePolicy.leave_policy_rules?.casual_leave?.half_day_session || 'afternoon_only',
+          forenoon_start_time: leavePolicy.leave_policy_rules?.casual_leave?.forenoon_start_time || '09:00 AM',
+          forenoon_end_time: leavePolicy.leave_policy_rules?.casual_leave?.forenoon_end_time || '12:00 PM',
+          afternoon_start_time: leavePolicy.leave_policy_rules?.casual_leave?.afternoon_start_time || '12:00 PM',
+          afternoon_end_time: leavePolicy.leave_policy_rules?.casual_leave?.afternoon_end_time || '05:00 PM'
         },
         earned_leave: {
           annual_quota: leavePolicy.leave_policy_rules?.earned_leave?.annual_quota === '' ? 15 : Number(leavePolicy.leave_policy_rules?.earned_leave?.annual_quota),
           jan_credit: leavePolicy.leave_policy_rules?.earned_leave?.jan_credit === '' ? 7 : Number(leavePolicy.leave_policy_rules?.earned_leave?.jan_credit),
           jul_credit: leavePolicy.leave_policy_rules?.earned_leave?.jul_credit === '' ? 8 : Number(leavePolicy.leave_policy_rules?.earned_leave?.jul_credit),
           min_stretch_days: leavePolicy.leave_policy_rules?.earned_leave?.min_stretch_days === '' ? 2 : Number(leavePolicy.leave_policy_rules?.earned_leave?.min_stretch_days),
-          max_stretch_days: leavePolicy.leave_policy_rules?.earned_leave?.max_stretch_days === '' ? 5 : Number(leavePolicy.leave_policy_rules?.earned_leave?.max_stretch_days)
+          max_stretch_days: leavePolicy.leave_policy_rules?.earned_leave?.max_stretch_days === '' ? 5 : Number(leavePolicy.leave_policy_rules?.earned_leave?.max_stretch_days),
+          eligible_roles: leavePolicy.leave_policy_rules?.earned_leave?.eligible_roles || ['hod', 'dean', 'principal', 'coe', 'fees_manager', 'counsellor', 'driver', 'warden', 'librarian', 'lab_assistant', 'office_admin']
+        },
+        on_duty: {
+          eligible_roles: leavePolicy.leave_policy_rules?.on_duty?.eligible_roles || ['teacher', 'faculty', 'hod', 'dean', 'principal', 'coe'],
+          require_initial_document: Boolean(leavePolicy.leave_policy_rules?.on_duty?.require_initial_document),
+          require_completion_certificate: leavePolicy.leave_policy_rules?.on_duty?.require_completion_certificate !== false
+        },
+        vacation_leave: {
+          annual_quota: leavePolicy.leave_policy_rules?.vacation_leave?.annual_quota === '' ? 60 : Number(leavePolicy.leave_policy_rules?.vacation_leave?.annual_quota),
+          eligible_roles: leavePolicy.leave_policy_rules?.vacation_leave?.eligible_roles || ['teacher', 'faculty'],
+          require_non_probationary: leavePolicy.leave_policy_rules?.vacation_leave?.require_non_probationary !== false
+        },
+        maternity_leave: {
+          annual_quota: leavePolicy.leave_policy_rules?.maternity_leave?.annual_quota === '' ? 90 : Number(leavePolicy.leave_policy_rules?.maternity_leave?.annual_quota),
+          eligible_roles: leavePolicy.leave_policy_rules?.maternity_leave?.eligible_roles || ['teacher', 'faculty', 'hod', 'counsellor', 'warden', 'office_admin']
         },
         restricted_holiday: {
           annual_quota: leavePolicy.leave_policy_rules?.restricted_holiday?.annual_quota === '' ? 2 : Number(leavePolicy.leave_policy_rules?.restricted_holiday?.annual_quota),
@@ -761,6 +933,29 @@ export default function PrincipalTimetableSettings() {
         monthly_short_permission_limit: cleanRules.short_permission.monthly_limit,
         total_standard_leaves: cleanRules.casual_leave.annual_quota,
         short_permission_max_hours: cleanRules.short_permission.max_hours,
+      };
+
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/leave-policy-settings/`, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        toast({ title: "Success", description: "Leave policy rules & quotas saved successfully" });
+      } else {
+        toast({ title: "Error", description: "Failed to save leave policy rules", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to save leave policy rules", variant: "destructive" });
+    } finally {
+      setLeaveRulesSaving(false);
+    }
+  };
+
+  const handleSaveLeaveRouting = async () => {
+    try {
+      setLeaveRoutingSaving(true);
+      const payload = {
         leave_approval_routing: leavePolicy.leave_approval_routing
       };
 
@@ -770,14 +965,14 @@ export default function PrincipalTimetableSettings() {
         body: JSON.stringify(payload)
       });
       if (res.ok) {
-        toast({ title: "Success", description: "Leave policy & workflow saved successfully" });
+        toast({ title: "Success", description: "Role-based leave approval routing saved successfully" });
       } else {
-        toast({ title: "Error", description: "Failed to save leave policy", variant: "destructive" });
+        toast({ title: "Error", description: "Failed to save approval routing", variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "Error", description: "Failed to save leave policy", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to save approval routing", variant: "destructive" });
     } finally {
-      setLeavePolicySaving(false);
+      setLeaveRoutingSaving(false);
     }
   };
 
@@ -1069,6 +1264,141 @@ export default function PrincipalTimetableSettings() {
     } catch (err) {
       toast({ title: "Error", description: "Failed to delete slot", variant: "destructive" });
     }
+  };
+
+  const renderLeaveRoleSelector = (
+    title: string,
+    selectedRoles: string[],
+    onChange: (updated: string[]) => void,
+    themeColor: 'blue' | 'emerald' | 'teal' | 'pink' = 'blue'
+  ) => {
+    const roles = [
+      { value: 'teacher', label: 'Teacher / Faculty' },
+      { value: 'hod', label: translateTerminology('HOD') || 'HOD' },
+      { value: 'dean', label: 'Dean' },
+      { value: 'principal', label: 'Principal' },
+      { value: 'coe', label: 'COE' },
+      { value: 'admission_manager', label: 'Admission Mgr' },
+      { value: 'fees_manager', label: 'Fees Mgr' },
+      { value: 'placement_officer', label: 'Placement' },
+      { value: 'counsellor', label: 'Counsellor' },
+      { value: 'warden', label: 'Warden' },
+      { value: 'driver', label: 'Driver' },
+      { value: 'caretaker', label: 'Caretaker' },
+      { value: 'library_admin', label: 'Library' },
+      { value: 'office_admin', label: 'Office Admin' }
+    ];
+
+    const colorConfig = {
+      blue: {
+        active: 'bg-blue-50/90 text-blue-700 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-700/60 font-semibold shadow-xs',
+        badge: 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800',
+        action: 'text-blue-600 dark:text-blue-400 hover:text-blue-700',
+        icon: 'text-blue-600 dark:text-blue-400'
+      },
+      emerald: {
+        active: 'bg-emerald-50/90 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-700/60 font-semibold shadow-xs',
+        badge: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800',
+        action: 'text-emerald-600 dark:text-emerald-400 hover:text-emerald-700',
+        icon: 'text-emerald-600 dark:text-emerald-400'
+      },
+      teal: {
+        active: 'bg-teal-50/90 text-teal-700 border-teal-300 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-700/60 font-semibold shadow-xs',
+        badge: 'text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border-teal-200 dark:border-teal-800',
+        action: 'text-teal-600 dark:text-teal-400 hover:text-teal-700',
+        icon: 'text-teal-600 dark:text-teal-400'
+      },
+      pink: {
+        active: 'bg-pink-50/90 text-pink-700 border-pink-300 dark:bg-pink-950/40 dark:text-pink-300 dark:border-pink-700/60 font-semibold shadow-xs',
+        badge: 'text-pink-700 dark:text-pink-300 bg-pink-50 dark:bg-pink-950/60 border-pink-200 dark:border-pink-800',
+        action: 'text-pink-600 dark:text-pink-400 hover:text-pink-700',
+        icon: 'text-pink-600 dark:text-pink-400'
+      }
+    }[themeColor];
+
+    const isRoleSelected = (val: string) => {
+      if (selectedRoles.includes(val)) return true;
+      if (val === 'teacher' && selectedRoles.includes('faculty')) return true;
+      return false;
+    };
+
+    const toggleRole = (val: string) => {
+      const selected = isRoleSelected(val);
+      let updated: string[];
+      if (selected) {
+        updated = selectedRoles.filter(r => r !== val && (val !== 'teacher' || r !== 'faculty'));
+      } else {
+        updated = [...selectedRoles, val];
+      }
+      onChange(updated);
+    };
+
+    const selectAll = () => onChange(roles.map(r => r.value));
+    const selectTeaching = () => onChange(['teacher', 'faculty', 'hod', 'dean']);
+    const clearAll = () => onChange([]);
+
+    return (
+      <div className="pt-2.5 border-t border-border/40 space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <Label className="text-xs font-semibold">{title}</Label>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${colorConfig.badge}`}>
+              {selectedRoles.length} selected
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] font-medium">
+            <button
+              type="button"
+              onClick={selectAll}
+              className={`${colorConfig.action} hover:underline transition-colors`}
+            >
+              Select All
+            </button>
+            <span className="text-muted-foreground/40">•</span>
+            <button
+              type="button"
+              onClick={selectTeaching}
+              className="text-muted-foreground hover:text-foreground hover:underline transition-colors"
+            >
+              Teaching
+            </button>
+            <span className="text-muted-foreground/40">•</span>
+            <button
+              type="button"
+              onClick={clearAll}
+              className="text-muted-foreground hover:text-foreground hover:underline transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-0.5">
+          {roles.map(role => {
+            const isSelected = isRoleSelected(role.value);
+            return (
+              <button
+                key={role.value}
+                type="button"
+                onClick={() => toggleRole(role.value)}
+                className={`flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all text-left ${
+                  isSelected
+                    ? colorConfig.active
+                    : `${theme === 'dark' ? 'bg-card/70 border-border text-muted-foreground hover:border-border/80 hover:text-foreground' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900 shadow-xs'}`
+                }`}
+              >
+                <span className="truncate">{role.label}</span>
+                {isSelected ? (
+                  <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${colorConfig.icon}`} />
+                ) : (
+                  <span className={`w-3.5 h-3.5 shrink-0 rounded-full border border-border/70 ${theme === 'dark' ? 'bg-background/40' : 'bg-slate-100'}`} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -1402,10 +1732,109 @@ export default function PrincipalTimetableSettings() {
                   <SkeletonTable rows={3} cols={2} />
                 ) : (
                   <div className="space-y-6">
+                    {/* Academic Year Cycle & Leave Reset Configuration Banner Card */}
+                    {(() => {
+                      const startMonthVal = Number(leavePolicy.leave_policy_rules?.academic_year?.start_month ?? 6);
+                      const today = new Date();
+                      const curYear = today.getFullYear();
+                      const curMonth = today.getMonth() + 1;
+                      const cycleStartYear = curMonth >= startMonthVal ? curYear : curYear - 1;
+                      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                      const startMonthName = months[startMonthVal - 1] || "Jun";
+                      const endMonthVal = startMonthVal === 1 ? 12 : startMonthVal - 1;
+                      const endMonthName = months[endMonthVal - 1] || "May";
+                      const cycleEndYear = startMonthVal === 1 ? cycleStartYear : cycleStartYear + 1;
+                      const lastDay = new Date(cycleEndYear, endMonthVal, 0).getDate();
+                      const cycleLabel = startMonthVal === 1 ? `${cycleStartYear}` : `${cycleStartYear} - ${cycleEndYear}`;
+                      const cyclePeriodStr = `${startMonthName} 01, ${cycleStartYear} to ${endMonthName} ${lastDay}, ${cycleEndYear}`;
+
+                      return (
+                        <Card className={`border shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-background/90 border-border' : 'bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 border-indigo-100'}`}>
+                          <CardHeader className="p-3.5 sm:p-4 pb-3 border-b border-border/40">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                              <div className="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
+                                <span className="w-8 h-8 shrink-0 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-xs flex items-center justify-center border border-indigo-500/20 mt-0.5 sm:mt-0">
+                                  <CalendarCheck2 className="w-4 h-4" />
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <CardTitle className="text-xs sm:text-sm font-semibold leading-snug break-words">
+                                    Academic Year Leave Cycle & Reset Configuration
+                                  </CardTitle>
+                                  <CardDescription className="text-[11px] leading-normal break-words mt-0.5">
+                                    Configure the annual reset month and active 12-month cycle for all staff leave quotas (CL, EL, Vacation, RH, Maternity).
+                                  </CardDescription>
+                                </div>
+                              </div>
+                              <span className="text-[10px] sm:text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 self-start sm:self-auto shrink-0 border border-indigo-200 dark:border-indigo-800">
+                                Active Cycle: AY {cycleLabel}
+                              </span>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="p-4 space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                              {/* 1. Academic Cycle Start / Reset Month */}
+                              <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Academic Cycle Reset Month</Label>
+                                <Select
+                                  value={String(startMonthVal)}
+                                  onValueChange={(val) => {
+                                    const parsed = parseInt(val, 10);
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        academic_year: {
+                                          ...prev.leave_policy_rules?.academic_year,
+                                          start_month: parsed
+                                        }
+                                      }
+                                    }));
+                                  }}
+                                >
+                                  <SelectTrigger className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
+                                    <SelectValue placeholder="Select Reset Month" />
+                                  </SelectTrigger>
+                                  <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                    <SelectItem value="1">January 1 (Jan - Dec • Calendar Year)</SelectItem>
+                                    <SelectItem value="4">April 1 (Apr - Mar • Financial Year)</SelectItem>
+                                    <SelectItem value="6">June 1 (Jun - May • Standard Higher Ed)</SelectItem>
+                                    <SelectItem value="7">July 1 (Jul - Jun • University Academic Year)</SelectItem>
+                                    <SelectItem value="8">August 1 (Aug - Jul • Fall Session)</SelectItem>
+                                    <SelectItem value="9">September 1 (Sep - Aug • Autumn Session)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <p className="text-[10px] text-muted-foreground">All annual balances are calculated and automatically reset on this month.</p>
+                              </div>
+
+                              {/* 2. Active Cycle Period Preview */}
+                              <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Current Active 12-Month Window</Label>
+                                <div className={`h-8 px-2.5 rounded-md border text-xs font-medium flex items-center justify-between ${theme === 'dark' ? 'bg-muted/20 border-border text-foreground' : 'bg-white border-slate-200 text-slate-800'}`}>
+                                  <span className="truncate">{cyclePeriodStr}</span>
+                                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold shrink-0 ml-1">12M</span>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground">Leave requests count strictly towards the academic cycle of their date.</p>
+                              </div>
+
+                              {/* 3. Strict Reset Enforcement Status */}
+                              <div className="space-y-1 sm:col-span-2 lg:col-span-1">
+                                <Label className="text-xs font-semibold">Cycle Reset Policy</Label>
+                                <div className="h-8 px-2.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                  <span className="text-[11px] font-medium truncate">Zero-accumulation & annual reset strictly enforced.</span>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground">EL semester credits (H1 vs H2) synchronize with this cycle.</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })()}
+
                     {/* Granular Leave Type Policies Configuration (CL, EL, RH, Short Permission) */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* 1. Casual Leave (CL) Policy Card */}
-                      <Card className={`border ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
@@ -1420,354 +1849,371 @@ export default function PrincipalTimetableSettings() {
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Configure standard annual casual leaves and stretch parameters.</p>
                         </CardHeader>
-                        <CardContent className="p-4 space-y-3">
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1">
-                              <Label className="text-xs font-semibold">Annual Quota (Days)</Label>
-                              <Input
-                                type="text"
-                                inputMode="numeric"
-                                value={leavePolicy.leave_policy_rules?.casual_leave?.annual_quota ?? 15}
-                                onChange={(e) => {
-                                  const clean = e.target.value.replace(/[^0-9]/g, '');
-                                  setLeavePolicy(prev => ({
-                                    ...prev,
-                                    total_standard_leaves: clean,
-                                    leave_policy_rules: {
-                                      ...prev.leave_policy_rules,
-                                      casual_leave: { ...prev.leave_policy_rules?.casual_leave, annual_quota: clean }
-                                    }
-                                  }));
-                                }}
-                                placeholder="15"
-                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
-                              />
+                        <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Annual Quota (Days)</Label>
+                                <Input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={leavePolicy.leave_policy_rules?.casual_leave?.annual_quota ?? 15}
+                                  onChange={(e) => {
+                                    const clean = e.target.value.replace(/[^0-9]/g, '');
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      total_standard_leaves: clean,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        casual_leave: { ...prev.leave_policy_rules?.casual_leave, annual_quota: clean }
+                                      }
+                                    }));
+                                  }}
+                                  placeholder="15"
+                                  className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Max Stretch (Days)</Label>
+                                <Input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={leavePolicy.leave_policy_rules?.casual_leave?.max_stretch_days ?? 3}
+                                  onChange={(e) => {
+                                    const clean = e.target.value.replace(/[^0-9]/g, '');
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        casual_leave: { ...prev.leave_policy_rules?.casual_leave, max_stretch_days: clean }
+                                      }
+                                    }));
+                                  }}
+                                  placeholder="3"
+                                  className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                                />
+                              </div>
                             </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs font-semibold">Max Stretch (Days)</Label>
-                              <Input
-                                type="text"
-                                inputMode="numeric"
-                                value={leavePolicy.leave_policy_rules?.casual_leave?.max_stretch_days ?? 3}
-                                onChange={(e) => {
-                                  const clean = e.target.value.replace(/[^0-9]/g, '');
-                                  setLeavePolicy(prev => ({
-                                    ...prev,
-                                    leave_policy_rules: {
-                                      ...prev.leave_policy_rules,
-                                      casual_leave: { ...prev.leave_policy_rules?.casual_leave, max_stretch_days: clean }
-                                    }
-                                  }));
-                                }}
-                                placeholder="3"
-                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
-                              />
+
+                            <div className="pt-2 border-t border-border/40 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                  <Label className="text-xs font-medium">Allow Half-Day Applications</Label>
+                                  <p className="text-[11px] text-muted-foreground">Permit staff to apply for 0.5 day sessions</p>
+                                </div>
+                                <Switch
+                                  checked={leavePolicy.leave_policy_rules?.casual_leave?.allow_half_day !== false}
+                                  onCheckedChange={(val) => {
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        casual_leave: { ...prev.leave_policy_rules?.casual_leave, allow_half_day: val }
+                                      }
+                                    }));
+                                  }}
+                                />
+                              </div>
+
+                              {leavePolicy.leave_policy_rules?.casual_leave?.allow_half_day !== false && (
+                                <div className="space-y-3 pt-1 border-t border-border/30">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <Label className="text-xs text-muted-foreground">Half-Day Session Rule:</Label>
+                                    <Select
+                                      value={leavePolicy.leave_policy_rules?.casual_leave?.half_day_session || 'afternoon_only'}
+                                      onValueChange={(val) => {
+                                        setLeavePolicy(prev => ({
+                                          ...prev,
+                                          leave_policy_rules: {
+                                            ...prev.leave_policy_rules,
+                                            casual_leave: { ...prev.leave_policy_rules?.casual_leave, half_day_session: val }
+                                          }
+                                        }));
+                                      }}
+                                    >
+                                      <SelectTrigger className="h-7 w-48 text-xs">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="afternoon_only">Afternoon Session Only</SelectItem>
+                                        <SelectItem value="forenoon_only">Morning Session Only</SelectItem>
+                                        <SelectItem value="both">Both Morning & Afternoon</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  <div className="space-y-2.5">
+                                    {/* Custom Timings for Forenoon (if 'forenoon_only' or 'both') */}
+                                    {(leavePolicy.leave_policy_rules?.casual_leave?.half_day_session === 'forenoon_only' ||
+                                      leavePolicy.leave_policy_rules?.casual_leave?.half_day_session === 'both') && (
+                                      <div className="p-2.5 rounded-lg border bg-muted/20 border-border/60 space-y-2.5">
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
+                                            <Clock className="w-3.5 h-3.5 text-primary" />
+                                            Morning (Forenoon) Session Window
+                                          </span>
+                                          <span className="text-[10px] text-muted-foreground font-medium">Morning Half-Day</span>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                          {/* Forenoon Start */}
+                                          {(() => {
+                                            const parts = parseAnyTime12h(
+                                              leavePolicy.leave_policy_rules?.casual_leave?.forenoon_start_time,
+                                              { hour: "09", minute: "00", period: "AM" }
+                                            );
+                                            const update = (key: "hour" | "minute" | "period", val: string) => {
+                                              const updated = { ...parts, [key]: val };
+                                              setLeavePolicy(prev => ({
+                                                ...prev,
+                                                leave_policy_rules: {
+                                                  ...prev.leave_policy_rules,
+                                                  casual_leave: {
+                                                    ...prev.leave_policy_rules?.casual_leave,
+                                                    forenoon_start_time: `${updated.hour}:${updated.minute} ${updated.period}`
+                                                  }
+                                                }
+                                              }));
+                                            };
+                                            return (
+                                              <div className="space-y-1">
+                                                <Label className="text-[10px] font-medium text-muted-foreground">Start Time</Label>
+                                                <div className="flex gap-1 items-center">
+                                                  <Select value={parts.hour} onValueChange={(v) => update("hour", v)}>
+                                                    <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                      <SelectValue placeholder="HH" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                      {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
+                                                    </SelectContent>
+                                                  </Select>
+                                                  <span className="text-muted-foreground font-semibold text-xs">:</span>
+                                                  <Select value={parts.minute} onValueChange={(v) => update("minute", v)}>
+                                                    <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                      <SelectValue placeholder="MM" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                      {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
+                                                    </SelectContent>
+                                                  </Select>
+                                                  <Select value={parts.period} onValueChange={(v) => update("period", v)}>
+                                                    <SelectTrigger className={`h-7 px-1.5 text-xs w-16 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                      <SelectValue placeholder="AM/PM" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                                      <SelectItem value="AM">AM</SelectItem>
+                                                      <SelectItem value="PM">PM</SelectItem>
+                                                    </SelectContent>
+                                                  </Select>
+                                                </div>
+                                              </div>
+                                            );
+                                          })()}
+
+                                          {/* Forenoon End */}
+                                          {(() => {
+                                            const parts = parseAnyTime12h(
+                                              leavePolicy.leave_policy_rules?.casual_leave?.forenoon_end_time,
+                                              { hour: "12", minute: "00", period: "PM" }
+                                            );
+                                            const update = (key: "hour" | "minute" | "period", val: string) => {
+                                              const updated = { ...parts, [key]: val };
+                                              setLeavePolicy(prev => ({
+                                                ...prev,
+                                                leave_policy_rules: {
+                                                  ...prev.leave_policy_rules,
+                                                  casual_leave: {
+                                                    ...prev.leave_policy_rules?.casual_leave,
+                                                    forenoon_end_time: `${updated.hour}:${updated.minute} ${updated.period}`
+                                                  }
+                                                }
+                                              }));
+                                            };
+                                            return (
+                                              <div className="space-y-1">
+                                                <Label className="text-[10px] font-medium text-muted-foreground">End Time (Cut-off)</Label>
+                                                <div className="flex gap-1 items-center">
+                                                  <Select value={parts.hour} onValueChange={(v) => update("hour", v)}>
+                                                    <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                      <SelectValue placeholder="HH" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                      {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
+                                                    </SelectContent>
+                                                  </Select>
+                                                  <span className="text-muted-foreground font-semibold text-xs">:</span>
+                                                  <Select value={parts.minute} onValueChange={(v) => update("minute", v)}>
+                                                    <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                      <SelectValue placeholder="MM" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                      {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
+                                                    </SelectContent>
+                                                  </Select>
+                                                  <Select value={parts.period} onValueChange={(v) => update("period", v)}>
+                                                    <SelectTrigger className={`h-7 px-1.5 text-xs w-16 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                      <SelectValue placeholder="AM/PM" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                                      <SelectItem value="AM">AM</SelectItem>
+                                                      <SelectItem value="PM">PM</SelectItem>
+                                                    </SelectContent>
+                                                  </Select>
+                                                </div>
+                                              </div>
+                                            );
+                                          })()}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Custom Timings for Afternoon (if 'afternoon_only' or 'both') */}
+                                    {(leavePolicy.leave_policy_rules?.casual_leave?.half_day_session === 'afternoon_only' ||
+                                      leavePolicy.leave_policy_rules?.casual_leave?.half_day_session === 'both' ||
+                                      !leavePolicy.leave_policy_rules?.casual_leave?.half_day_session) && (
+                                      <div className="p-2.5 rounded-lg border bg-muted/20 border-border/60 space-y-2.5">
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
+                                            <Clock className="w-3.5 h-3.5 text-primary" />
+                                            Afternoon (PM) Session Window
+                                          </span>
+                                          <span className="text-[10px] text-muted-foreground font-medium">PM Half-Day</span>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                          {/* Afternoon Start */}
+                                          {(() => {
+                                            const parts = parseAnyTime12h(
+                                              leavePolicy.leave_policy_rules?.casual_leave?.afternoon_start_time,
+                                              { hour: "12", minute: "00", period: "PM" }
+                                            );
+                                            const update = (key: "hour" | "minute" | "period", val: string) => {
+                                              const updated = { ...parts, [key]: val };
+                                              setLeavePolicy(prev => ({
+                                                ...prev,
+                                                leave_policy_rules: {
+                                                  ...prev.leave_policy_rules,
+                                                  casual_leave: {
+                                                    ...prev.leave_policy_rules?.casual_leave,
+                                                    afternoon_start_time: `${updated.hour}:${updated.minute} ${updated.period}`
+                                                  }
+                                                }
+                                              }));
+                                            };
+                                            return (
+                                              <div className="space-y-1">
+                                                <Label className="text-[10px] font-medium text-muted-foreground">Start Time (Begins)</Label>
+                                                <div className="flex gap-1 items-center">
+                                                  <Select value={parts.hour} onValueChange={(v) => update("hour", v)}>
+                                                    <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                      <SelectValue placeholder="HH" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                      {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
+                                                    </SelectContent>
+                                                  </Select>
+                                                  <span className="text-muted-foreground font-semibold text-xs">:</span>
+                                                  <Select value={parts.minute} onValueChange={(v) => update("minute", v)}>
+                                                    <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                      <SelectValue placeholder="MM" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                      {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
+                                                    </SelectContent>
+                                                  </Select>
+                                                  <Select value={parts.period} onValueChange={(v) => update("period", v)}>
+                                                    <SelectTrigger className={`h-7 px-1.5 text-xs w-16 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                      <SelectValue placeholder="AM/PM" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                                      <SelectItem value="AM">AM</SelectItem>
+                                                      <SelectItem value="PM">PM</SelectItem>
+                                                    </SelectContent>
+                                                  </Select>
+                                                </div>
+                                              </div>
+                                            );
+                                          })()}
+
+                                          {/* Afternoon End */}
+                                          {(() => {
+                                            const parts = parseAnyTime12h(
+                                              leavePolicy.leave_policy_rules?.casual_leave?.afternoon_end_time,
+                                              { hour: "05", minute: "00", period: "PM" }
+                                            );
+                                            const update = (key: "hour" | "minute" | "period", val: string) => {
+                                              const updated = { ...parts, [key]: val };
+                                              setLeavePolicy(prev => ({
+                                                ...prev,
+                                                leave_policy_rules: {
+                                                  ...prev.leave_policy_rules,
+                                                  casual_leave: {
+                                                    ...prev.leave_policy_rules?.casual_leave,
+                                                    afternoon_end_time: `${updated.hour}:${updated.minute} ${updated.period}`
+                                                  }
+                                                }
+                                              }));
+                                            };
+                                            return (
+                                              <div className="space-y-1">
+                                                <Label className="text-[10px] font-medium text-muted-foreground">End Time (Closes)</Label>
+                                                <div className="flex gap-1 items-center">
+                                                  <Select value={parts.hour} onValueChange={(v) => update("hour", v)}>
+                                                    <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                      <SelectValue placeholder="HH" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                      {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
+                                                    </SelectContent>
+                                                  </Select>
+                                                  <span className="text-muted-foreground font-semibold text-xs">:</span>
+                                                  <Select value={parts.minute} onValueChange={(v) => update("minute", v)}>
+                                                    <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                      <SelectValue placeholder="MM" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                                      {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
+                                                    </SelectContent>
+                                                  </Select>
+                                                  <Select value={parts.period} onValueChange={(v) => update("period", v)}>
+                                                    <SelectTrigger className={`h-7 px-1.5 text-xs w-16 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                                                      <SelectValue placeholder="AM/PM" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                                      <SelectItem value="AM">AM</SelectItem>
+                                                      <SelectItem value="PM">PM</SelectItem>
+                                                    </SelectContent>
+                                                  </Select>
+                                                </div>
+                                              </div>
+                                            );
+                                          })()}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
 
-                          <div className="pt-2 border-t border-border/40 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div className="space-y-0.5">
-                                <Label className="text-xs font-medium">Allow Half-Day Applications</Label>
-                                <p className="text-[11px] text-muted-foreground">Permit staff to apply for 0.5 day sessions</p>
-                              </div>
-                              <Switch
-                                checked={leavePolicy.leave_policy_rules?.casual_leave?.allow_half_day !== false}
-                                onCheckedChange={(val) => {
-                                  setLeavePolicy(prev => ({
-                                    ...prev,
-                                    leave_policy_rules: {
-                                      ...prev.leave_policy_rules,
-                                      casual_leave: { ...prev.leave_policy_rules?.casual_leave, allow_half_day: val }
-                                    }
-                                  }));
-                                }}
-                              />
-                            </div>
-
-                            {leavePolicy.leave_policy_rules?.casual_leave?.allow_half_day !== false && (
-                              <div className="space-y-3 pt-1 border-t border-border/30">
-                                <div className="flex items-center justify-between gap-2">
-                                  <Label className="text-xs text-muted-foreground">Half-Day Session Rule:</Label>
-                                  <Select
-                                    value={leavePolicy.leave_policy_rules?.casual_leave?.half_day_session || 'afternoon_only'}
-                                    onValueChange={(val) => {
-                                      setLeavePolicy(prev => ({
-                                        ...prev,
-                                        leave_policy_rules: {
-                                          ...prev.leave_policy_rules,
-                                          casual_leave: { ...prev.leave_policy_rules?.casual_leave, half_day_session: val }
-                                        }
-                                      }));
-                                    }}
-                                  >
-                                    <SelectTrigger className="h-7 w-48 text-xs">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="afternoon_only">Afternoon Session Only</SelectItem>
-                                      <SelectItem value="forenoon_only">Morning Session Only</SelectItem>
-                                      <SelectItem value="both">Both Morning & Afternoon</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-
-                                <div className="space-y-2.5">
-                                  {/* Custom Timings for Forenoon (if 'forenoon_only' or 'both') */}
-                                  {(leavePolicy.leave_policy_rules?.casual_leave?.half_day_session === 'forenoon_only' ||
-                                    leavePolicy.leave_policy_rules?.casual_leave?.half_day_session === 'both') && (
-                                    <div className="p-2.5 rounded-lg border bg-muted/20 border-border/60 space-y-2.5">
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
-                                          <Clock className="w-3.5 h-3.5 text-primary" />
-                                          Morning (Forenoon) Session Window
-                                        </span>
-                                        <span className="text-[10px] text-muted-foreground font-medium">Morning Half-Day</span>
-                                      </div>
-                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                        {/* Forenoon Start */}
-                                        {(() => {
-                                          const parts = parseAnyTime12h(
-                                            leavePolicy.leave_policy_rules?.casual_leave?.forenoon_start_time,
-                                            { hour: "09", minute: "00", period: "AM" }
-                                          );
-                                          const update = (key: "hour" | "minute" | "period", val: string) => {
-                                            const updated = { ...parts, [key]: val };
-                                            setLeavePolicy(prev => ({
-                                              ...prev,
-                                              leave_policy_rules: {
-                                                ...prev.leave_policy_rules,
-                                                casual_leave: {
-                                                  ...prev.leave_policy_rules?.casual_leave,
-                                                  forenoon_start_time: `${updated.hour}:${updated.minute} ${updated.period}`
-                                                }
-                                              }
-                                            }));
-                                          };
-                                          return (
-                                            <div className="space-y-1">
-                                              <Label className="text-[10px] font-medium text-muted-foreground">Start Time</Label>
-                                              <div className="flex gap-1 items-center">
-                                                <Select value={parts.hour} onValueChange={(v) => update("hour", v)}>
-                                                  <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                                                    <SelectValue placeholder="HH" />
-                                                  </SelectTrigger>
-                                                  <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                                                    {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
-                                                  </SelectContent>
-                                                </Select>
-                                                <span className="text-muted-foreground font-semibold text-xs">:</span>
-                                                <Select value={parts.minute} onValueChange={(v) => update("minute", v)}>
-                                                  <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                                                    <SelectValue placeholder="MM" />
-                                                  </SelectTrigger>
-                                                  <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                                                    {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
-                                                  </SelectContent>
-                                                </Select>
-                                                <Select value={parts.period} onValueChange={(v) => update("period", v)}>
-                                                  <SelectTrigger className={`h-7 px-1.5 text-xs w-16 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                                                    <SelectValue placeholder="AM/PM" />
-                                                  </SelectTrigger>
-                                                  <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                                                    <SelectItem value="AM">AM</SelectItem>
-                                                    <SelectItem value="PM">PM</SelectItem>
-                                                  </SelectContent>
-                                                </Select>
-                                              </div>
-                                            </div>
-                                          );
-                                        })()}
-
-                                        {/* Forenoon End */}
-                                        {(() => {
-                                          const parts = parseAnyTime12h(
-                                            leavePolicy.leave_policy_rules?.casual_leave?.forenoon_end_time,
-                                            { hour: "12", minute: "00", period: "PM" }
-                                          );
-                                          const update = (key: "hour" | "minute" | "period", val: string) => {
-                                            const updated = { ...parts, [key]: val };
-                                            setLeavePolicy(prev => ({
-                                              ...prev,
-                                              leave_policy_rules: {
-                                                ...prev.leave_policy_rules,
-                                                casual_leave: {
-                                                  ...prev.leave_policy_rules?.casual_leave,
-                                                  forenoon_end_time: `${updated.hour}:${updated.minute} ${updated.period}`
-                                                }
-                                              }
-                                            }));
-                                          };
-                                          return (
-                                            <div className="space-y-1">
-                                              <Label className="text-[10px] font-medium text-muted-foreground">End Time (Cut-off)</Label>
-                                              <div className="flex gap-1 items-center">
-                                                <Select value={parts.hour} onValueChange={(v) => update("hour", v)}>
-                                                  <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                                                    <SelectValue placeholder="HH" />
-                                                  </SelectTrigger>
-                                                  <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                                                    {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
-                                                  </SelectContent>
-                                                </Select>
-                                                <span className="text-muted-foreground font-semibold text-xs">:</span>
-                                                <Select value={parts.minute} onValueChange={(v) => update("minute", v)}>
-                                                  <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                                                    <SelectValue placeholder="MM" />
-                                                  </SelectTrigger>
-                                                  <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                                                    {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
-                                                  </SelectContent>
-                                                </Select>
-                                                <Select value={parts.period} onValueChange={(v) => update("period", v)}>
-                                                  <SelectTrigger className={`h-7 px-1.5 text-xs w-16 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                                                    <SelectValue placeholder="AM/PM" />
-                                                  </SelectTrigger>
-                                                  <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                                                    <SelectItem value="AM">AM</SelectItem>
-                                                    <SelectItem value="PM">PM</SelectItem>
-                                                  </SelectContent>
-                                                </Select>
-                                              </div>
-                                            </div>
-                                          );
-                                        })()}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Custom Timings for Afternoon (if 'afternoon_only' or 'both') */}
-                                  {(leavePolicy.leave_policy_rules?.casual_leave?.half_day_session === 'afternoon_only' ||
-                                    leavePolicy.leave_policy_rules?.casual_leave?.half_day_session === 'both' ||
-                                    !leavePolicy.leave_policy_rules?.casual_leave?.half_day_session) && (
-                                  <div className="p-2.5 rounded-lg border bg-muted/20 border-border/60 space-y-2.5">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
-                                        <Clock className="w-3.5 h-3.5 text-primary" />
-                                        Afternoon (PM) Session Window
-                                      </span>
-                                      <span className="text-[10px] text-muted-foreground font-medium">PM Half-Day</span>
-                                    </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                      {/* Afternoon Start */}
-                                      {(() => {
-                                        const parts = parseAnyTime12h(
-                                          leavePolicy.leave_policy_rules?.casual_leave?.afternoon_start_time,
-                                          { hour: "12", minute: "00", period: "PM" }
-                                        );
-                                        const update = (key: "hour" | "minute" | "period", val: string) => {
-                                          const updated = { ...parts, [key]: val };
-                                          setLeavePolicy(prev => ({
-                                            ...prev,
-                                            leave_policy_rules: {
-                                              ...prev.leave_policy_rules,
-                                              casual_leave: {
-                                                ...prev.leave_policy_rules?.casual_leave,
-                                                afternoon_start_time: `${updated.hour}:${updated.minute} ${updated.period}`
-                                              }
-                                            }
-                                          }));
-                                        };
-                                        return (
-                                          <div className="space-y-1">
-                                            <Label className="text-[10px] font-medium text-muted-foreground">Start Time (Begins)</Label>
-                                            <div className="flex gap-1 items-center">
-                                              <Select value={parts.hour} onValueChange={(v) => update("hour", v)}>
-                                                <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                                                  <SelectValue placeholder="HH" />
-                                                </SelectTrigger>
-                                                <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                                                  {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
-                                                </SelectContent>
-                                              </Select>
-                                              <span className="text-muted-foreground font-semibold text-xs">:</span>
-                                              <Select value={parts.minute} onValueChange={(v) => update("minute", v)}>
-                                                <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                                                  <SelectValue placeholder="MM" />
-                                                </SelectTrigger>
-                                                <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                                                  {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
-                                                </SelectContent>
-                                              </Select>
-                                              <Select value={parts.period} onValueChange={(v) => update("period", v)}>
-                                                <SelectTrigger className={`h-7 px-1.5 text-xs w-16 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                                                  <SelectValue placeholder="AM/PM" />
-                                                </SelectTrigger>
-                                                <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                                                  <SelectItem value="AM">AM</SelectItem>
-                                                  <SelectItem value="PM">PM</SelectItem>
-                                                </SelectContent>
-                                              </Select>
-                                            </div>
-                                          </div>
-                                        );
-                                      })()}
-
-                                      {/* Afternoon End */}
-                                      {(() => {
-                                        const parts = parseAnyTime12h(
-                                          leavePolicy.leave_policy_rules?.casual_leave?.afternoon_end_time,
-                                          { hour: "05", minute: "00", period: "PM" }
-                                        );
-                                        const update = (key: "hour" | "minute" | "period", val: string) => {
-                                          const updated = { ...parts, [key]: val };
-                                          setLeavePolicy(prev => ({
-                                            ...prev,
-                                            leave_policy_rules: {
-                                              ...prev.leave_policy_rules,
-                                              casual_leave: {
-                                                ...prev.leave_policy_rules?.casual_leave,
-                                                afternoon_end_time: `${updated.hour}:${updated.minute} ${updated.period}`
-                                              }
-                                            }
-                                          }));
-                                        };
-                                        return (
-                                          <div className="space-y-1">
-                                            <Label className="text-[10px] font-medium text-muted-foreground">End Time (Closes)</Label>
-                                            <div className="flex gap-1 items-center">
-                                              <Select value={parts.hour} onValueChange={(v) => update("hour", v)}>
-                                                <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                                                  <SelectValue placeholder="HH" />
-                                                </SelectTrigger>
-                                                <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                                                  {hoursOptions.map(h => (<SelectItem key={h} value={h}>{h}</SelectItem>))}
-                                                </SelectContent>
-                                              </Select>
-                                              <span className="text-muted-foreground font-semibold text-xs">:</span>
-                                              <Select value={parts.minute} onValueChange={(v) => update("minute", v)}>
-                                                <SelectTrigger className={`h-7 px-1.5 text-xs flex-1 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                                                  <SelectValue placeholder="MM" />
-                                                </SelectTrigger>
-                                                <SelectContent className={`max-h-[180px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                                                  {minutesOptions.map(m => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
-                                                </SelectContent>
-                                              </Select>
-                                              <Select value={parts.period} onValueChange={(v) => update("period", v)}>
-                                                <SelectTrigger className={`h-7 px-1.5 text-xs w-16 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                                                  <SelectValue placeholder="AM/PM" />
-                                                </SelectTrigger>
-                                                <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                                                  <SelectItem value="AM">AM</SelectItem>
-                                                  <SelectItem value="PM">PM</SelectItem>
-                                                </SelectContent>
-                                              </Select>
-                                          </div>
-                                            </div>
-                                        );
-                                      })()}
-                                    </div>
-                                  </div>
-                                )}
-                                </div>
-                              </div>
-                            )}
+                          {/* Individual Save for Casual Leave */}
+                          <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2 mt-auto">
+                            <span className="text-[11px] text-muted-foreground">Save Casual Leave policy rules</span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => handleSaveIndividualLeaveCard('casual_leave', 'Casual Leave')}
+                              disabled={savingCard === 'casual_leave'}
+                              className="h-7 px-3 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                            >
+                              <Save className="w-3 h-3 mr-1.5" />
+                              {savingCard === 'casual_leave' ? 'Saving...' : 'Save CL Policy'}
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
 
                       {/* 2. Earned Leave (EL) Policy Card */}
-                      <Card className={`border ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
@@ -1782,117 +2228,409 @@ export default function PrincipalTimetableSettings() {
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Bi-annual credit distribution and continuous stretch boundaries.</p>
                         </CardHeader>
-                        <CardContent className="p-4 space-y-3">
-                          <div className="grid grid-cols-3 gap-2">
-                            <div className="space-y-1">
-                              <Label className="text-xs font-semibold">Annual Quota</Label>
-                              <Input
-                                type="text"
-                                inputMode="numeric"
-                                value={leavePolicy.leave_policy_rules?.earned_leave?.annual_quota ?? 15}
-                                onChange={(e) => {
-                                  const clean = e.target.value.replace(/[^0-9]/g, '');
-                                  setLeavePolicy(prev => ({
-                                    ...prev,
-                                    leave_policy_rules: {
-                                      ...prev.leave_policy_rules,
-                                      earned_leave: { ...prev.leave_policy_rules?.earned_leave, annual_quota: clean }
-                                    }
-                                  }));
-                                }}
-                                placeholder="15"
-                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
-                              />
+                        <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-3 gap-2">
+                              <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Annual Quota</Label>
+                                <Input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={leavePolicy.leave_policy_rules?.earned_leave?.annual_quota ?? 15}
+                                  onChange={(e) => {
+                                    const clean = e.target.value.replace(/[^0-9]/g, '');
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        earned_leave: { ...prev.leave_policy_rules?.earned_leave, annual_quota: clean }
+                                      }
+                                    }));
+                                  }}
+                                  placeholder="15"
+                                  className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Jan Credit (H1)</Label>
+                                <Input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={leavePolicy.leave_policy_rules?.earned_leave?.jan_credit ?? 7}
+                                  onChange={(e) => {
+                                    const clean = e.target.value.replace(/[^0-9]/g, '');
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        earned_leave: { ...prev.leave_policy_rules?.earned_leave, jan_credit: clean }
+                                      }
+                                    }));
+                                  }}
+                                  placeholder="7"
+                                  className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Jul Credit (H2)</Label>
+                                <Input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={leavePolicy.leave_policy_rules?.earned_leave?.jul_credit ?? 8}
+                                  onChange={(e) => {
+                                    const clean = e.target.value.replace(/[^0-9]/g, '');
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        earned_leave: { ...prev.leave_policy_rules?.earned_leave, jul_credit: clean }
+                                      }
+                                    }));
+                                  }}
+                                  placeholder="8"
+                                  className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                                />
+                              </div>
                             </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs font-semibold">Jan Credit (H1)</Label>
-                              <Input
-                                type="text"
-                                inputMode="numeric"
-                                value={leavePolicy.leave_policy_rules?.earned_leave?.jan_credit ?? 7}
-                                onChange={(e) => {
-                                  const clean = e.target.value.replace(/[^0-9]/g, '');
-                                  setLeavePolicy(prev => ({
-                                    ...prev,
-                                    leave_policy_rules: {
-                                      ...prev.leave_policy_rules,
-                                      earned_leave: { ...prev.leave_policy_rules?.earned_leave, jan_credit: clean }
-                                    }
-                                  }));
-                                }}
-                                placeholder="7"
-                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
-                              />
+
+                            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/40">
+                              <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Min Stretch (Days)</Label>
+                                <Input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={leavePolicy.leave_policy_rules?.earned_leave?.min_stretch_days ?? 2}
+                                  onChange={(e) => {
+                                    const clean = e.target.value.replace(/[^0-9]/g, '');
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        earned_leave: { ...prev.leave_policy_rules?.earned_leave, min_stretch_days: clean }
+                                      }
+                                    }));
+                                  }}
+                                  placeholder="2"
+                                  className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Max Stretch (Days)</Label>
+                                <Input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={leavePolicy.leave_policy_rules?.earned_leave?.max_stretch_days ?? 5}
+                                  onChange={(e) => {
+                                    const clean = e.target.value.replace(/[^0-9]/g, '');
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        earned_leave: { ...prev.leave_policy_rules?.earned_leave, max_stretch_days: clean }
+                                      }
+                                    }));
+                                  }}
+                                  placeholder="5"
+                                  className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                                />
+                              </div>
                             </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs font-semibold">Jul Credit (H2)</Label>
-                              <Input
-                                type="text"
-                                inputMode="numeric"
-                                value={leavePolicy.leave_policy_rules?.earned_leave?.jul_credit ?? 8}
-                                onChange={(e) => {
-                                  const clean = e.target.value.replace(/[^0-9]/g, '');
-                                  setLeavePolicy(prev => ({
-                                    ...prev,
-                                    leave_policy_rules: {
-                                      ...prev.leave_policy_rules,
-                                      earned_leave: { ...prev.leave_policy_rules?.earned_leave, jul_credit: clean }
-                                    }
-                                  }));
-                                }}
-                                placeholder="8"
-                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
-                              />
-                            </div>
+
+                            {/* EL Eligible Roles */}
+                            {renderLeaveRoleSelector(
+                              "Eligible Roles for EL",
+                              leavePolicy.leave_policy_rules?.earned_leave?.eligible_roles || ['hod', 'dean', 'principal', 'coe', 'fees_manager', 'counsellor', 'driver', 'warden', 'librarian', 'lab_assistant', 'office_admin'],
+                              (updated) => {
+                                setLeavePolicy(prev => ({
+                                  ...prev,
+                                  leave_policy_rules: {
+                                    ...prev.leave_policy_rules,
+                                    earned_leave: { ...prev.leave_policy_rules?.earned_leave, eligible_roles: updated }
+                                  }
+                                }));
+                              },
+                              'blue'
+                            )}
                           </div>
 
-                          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/40">
-                            <div className="space-y-1">
-                              <Label className="text-xs font-semibold">Min Stretch (Days)</Label>
-                              <Input
-                                type="text"
-                                inputMode="numeric"
-                                value={leavePolicy.leave_policy_rules?.earned_leave?.min_stretch_days ?? 2}
-                                onChange={(e) => {
-                                  const clean = e.target.value.replace(/[^0-9]/g, '');
-                                  setLeavePolicy(prev => ({
-                                    ...prev,
-                                    leave_policy_rules: {
-                                      ...prev.leave_policy_rules,
-                                      earned_leave: { ...prev.leave_policy_rules?.earned_leave, min_stretch_days: clean }
-                                    }
-                                  }));
-                                }}
-                                placeholder="2"
-                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs font-semibold">Max Stretch (Days)</Label>
-                              <Input
-                                type="text"
-                                inputMode="numeric"
-                                value={leavePolicy.leave_policy_rules?.earned_leave?.max_stretch_days ?? 5}
-                                onChange={(e) => {
-                                  const clean = e.target.value.replace(/[^0-9]/g, '');
-                                  setLeavePolicy(prev => ({
-                                    ...prev,
-                                    leave_policy_rules: {
-                                      ...prev.leave_policy_rules,
-                                      earned_leave: { ...prev.leave_policy_rules?.earned_leave, max_stretch_days: clean }
-                                    }
-                                  }));
-                                }}
-                                placeholder="5"
-                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
-                              />
-                            </div>
+                          {/* Individual Save for Earned Leave */}
+                          <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2 mt-auto">
+                            <span className="text-[11px] text-muted-foreground">Save Earned Leave policy rules</span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => handleSaveIndividualLeaveCard('earned_leave', 'Earned Leave')}
+                              disabled={savingCard === 'earned_leave'}
+                              className="h-7 px-3 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
+                            >
+                              <Save className="w-3 h-3 mr-1.5" />
+                              {savingCard === 'earned_leave' ? 'Saving...' : 'Save EL Policy'}
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
 
-                      {/* 3. Restricted Holiday (RH) Policy Card */}
-                      <Card className={`border ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                      {/* 3. On Duty (OD) Policy Card */}
+                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                        <CardHeader className="p-4 pb-2 border-b border-border/40">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20">
+                                OD
+                              </span>
+                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">On Duty (OD) Policy</CardTitle>
+                            </div>
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 shrink-0 self-start sm:self-auto">
+                              Duty Deputation
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Conferences, Ph.D, statutory committees, valuation & official duties.</p>
+                        </CardHeader>
+                        <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                          <div className="space-y-3">
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                  <Label className="text-xs font-medium">Require Post-OD Attendance Certificate</Label>
+                                  <p className="text-[11px] text-muted-foreground">Staff must submit attendance/participation proof after completion</p>
+                                </div>
+                                <Switch
+                                  checked={leavePolicy.leave_policy_rules?.on_duty?.require_completion_certificate !== false}
+                                  onCheckedChange={(val) => {
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        on_duty: { ...prev.leave_policy_rules?.on_duty, require_completion_certificate: val }
+                                      }
+                                    }));
+                                  }}
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                                <div className="space-y-0.5">
+                                  <Label className="text-xs font-medium">Require Initial Deputation / Invitation Letter</Label>
+                                  <p className="text-[11px] text-muted-foreground">Mandatory attachment when applying for OD</p>
+                                </div>
+                                <Switch
+                                  checked={Boolean(leavePolicy.leave_policy_rules?.on_duty?.require_initial_document)}
+                                  onCheckedChange={(val) => {
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        on_duty: { ...prev.leave_policy_rules?.on_duty, require_initial_document: val }
+                                      }
+                                    }));
+                                  }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* OD Eligible Roles */}
+                            {renderLeaveRoleSelector(
+                              "Eligible Roles for OD",
+                              leavePolicy.leave_policy_rules?.on_duty?.eligible_roles || ['teacher', 'faculty', 'hod', 'dean', 'principal', 'coe'],
+                              (updated) => {
+                                setLeavePolicy(prev => ({
+                                  ...prev,
+                                  leave_policy_rules: {
+                                    ...prev.leave_policy_rules,
+                                    on_duty: { ...prev.leave_policy_rules?.on_duty, eligible_roles: updated }
+                                  }
+                                }));
+                              },
+                              'emerald'
+                            )}
+                          </div>
+
+                          {/* Individual Save for On Duty */}
+                          <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2 mt-auto">
+                            <span className="text-[11px] text-muted-foreground">Save On Duty policy rules</span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => handleSaveIndividualLeaveCard('on_duty', 'On Duty')}
+                              disabled={savingCard === 'on_duty'}
+                              className="h-7 px-3 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                            >
+                              <Save className="w-3 h-3 mr-1.5" />
+                              {savingCard === 'on_duty' ? 'Saving...' : 'Save OD Policy'}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* 4. Vacation Leave Policy Card */}
+                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                        <CardHeader className="p-4 pb-2 border-b border-border/40">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold text-xs flex items-center justify-center border border-teal-500/20">
+                                VL
+                              </span>
+                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Vacation Leave Policy</CardTitle>
+                            </div>
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300 shrink-0 self-start sm:self-auto">
+                              Vacational Staff
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Configurable for vacational teaching staff as per college vacation schedule.</p>
+                        </CardHeader>
+                        <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Annual Quota (Days)</Label>
+                                <Input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={leavePolicy.leave_policy_rules?.vacation_leave?.annual_quota ?? 60}
+                                  onChange={(e) => {
+                                    const clean = e.target.value.replace(/[^0-9]/g, '');
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        vacation_leave: { ...prev.leave_policy_rules?.vacation_leave, annual_quota: clean }
+                                      }
+                                    }));
+                                  }}
+                                  placeholder="60"
+                                  className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                                />
+                              </div>
+                              <div className="flex flex-col justify-end">
+                                <div className="flex items-center justify-between pb-1">
+                                  <Label className="text-xs font-medium">Require Non-Probationary</Label>
+                                  <Switch
+                                    checked={leavePolicy.leave_policy_rules?.vacation_leave?.require_non_probationary !== false}
+                                    onCheckedChange={(val) => {
+                                      setLeavePolicy(prev => ({
+                                        ...prev,
+                                        leave_policy_rules: {
+                                          ...prev.leave_policy_rules,
+                                          vacation_leave: { ...prev.leave_policy_rules?.vacation_leave, require_non_probationary: val }
+                                        }
+                                      }));
+                                    }}
+                                  />
+                                </div>
+                                <p className="text-[10px] text-muted-foreground">Probationary staff cannot avail VL</p>
+                              </div>
+                            </div>
+
+                            {/* Vacation Eligible Roles */}
+                            {renderLeaveRoleSelector(
+                              "Eligible Roles for Vacation Leave",
+                              leavePolicy.leave_policy_rules?.vacation_leave?.eligible_roles || ['teacher', 'faculty'],
+                              (updated) => {
+                                setLeavePolicy(prev => ({
+                                  ...prev,
+                                  leave_policy_rules: {
+                                    ...prev.leave_policy_rules,
+                                    vacation_leave: { ...prev.leave_policy_rules?.vacation_leave, eligible_roles: updated }
+                                  }
+                                }));
+                              },
+                              'teal'
+                            )}
+                          </div>
+
+                          {/* Individual Save for Vacation Leave */}
+                          <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2 mt-auto">
+                            <span className="text-[11px] text-muted-foreground">Save Vacation Leave policy rules</span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => handleSaveIndividualLeaveCard('vacation_leave', 'Vacation Leave')}
+                              disabled={savingCard === 'vacation_leave'}
+                              className="h-7 px-3 text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white shadow-xs"
+                            >
+                              <Save className="w-3 h-3 mr-1.5" />
+                              {savingCard === 'vacation_leave' ? 'Saving...' : 'Save Vacation Policy'}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* 5. Maternity Leave Policy Card */}
+                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                        <CardHeader className="p-4 pb-2 border-b border-border/40">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-pink-500/10 text-pink-600 dark:text-pink-400 font-bold text-xs flex items-center justify-center border border-pink-500/20">
+                                ML
+                              </span>
+                              <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Maternity Leave Policy</CardTitle>
+                            </div>
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-pink-100 text-pink-800 dark:bg-pink-950/50 dark:text-pink-300 shrink-0 self-start sm:self-auto">
+                              Female Staff
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Leave for eligible female employees with medical certificate.</p>
+                        </CardHeader>
+                        <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                          <div className="space-y-3">
+                            <div className="space-y-1">
+                              <Label className="text-xs font-semibold">Annual Quota (Days - Standard 90, Customizable)</Label>
+                              <Input
+                                type="text"
+                                inputMode="numeric"
+                                value={leavePolicy.leave_policy_rules?.maternity_leave?.annual_quota ?? 90}
+                                onChange={(e) => {
+                                  const clean = e.target.value.replace(/[^0-9]/g, '');
+                                  setLeavePolicy(prev => ({
+                                    ...prev,
+                                    leave_policy_rules: {
+                                      ...prev.leave_policy_rules,
+                                      maternity_leave: { ...prev.leave_policy_rules?.maternity_leave, annual_quota: clean }
+                                    }
+                                  }));
+                                }}
+                                placeholder="e.g. 90, 120, 180 (Custom)"
+                                className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
+                              />
+                              <p className="text-[10px] text-muted-foreground">Standard is 90 days. Can be set to any custom number of days per institution policy.</p>
+                            </div>
+
+                            {/* Maternity Eligible Roles */}
+                            {renderLeaveRoleSelector(
+                              "Eligible Roles for Maternity Leave",
+                              leavePolicy.leave_policy_rules?.maternity_leave?.eligible_roles || ['teacher', 'faculty', 'hod', 'counsellor', 'warden', 'office_admin'],
+                              (updated) => {
+                                setLeavePolicy(prev => ({
+                                  ...prev,
+                                  leave_policy_rules: {
+                                    ...prev.leave_policy_rules,
+                                    maternity_leave: { ...prev.leave_policy_rules?.maternity_leave, eligible_roles: updated }
+                                  }
+                                }));
+                              },
+                              'pink'
+                            )}
+                          </div>
+
+                          {/* Individual Save for Maternity Leave */}
+                          <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2 mt-auto">
+                            <span className="text-[11px] text-muted-foreground">Save Maternity Leave policy rules</span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => handleSaveIndividualLeaveCard('maternity_leave', 'Maternity Leave')}
+                              disabled={savingCard === 'maternity_leave'}
+                              className="h-7 px-3 text-xs font-semibold bg-pink-600 hover:bg-pink-700 text-white shadow-xs"
+                            >
+                              <Save className="w-3 h-3 mr-1.5" />
+                              {savingCard === 'maternity_leave' ? 'Saving...' : 'Save Maternity Policy'}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* 6. Restricted Holiday (RH) Policy Card */}
+                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
@@ -1907,7 +2645,7 @@ export default function PrincipalTimetableSettings() {
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Annual entitlement and monthly availing frequency.</p>
                         </CardHeader>
-                        <CardContent className="p-4 space-y-3">
+                        <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                           <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1">
                               <Label className="text-xs font-semibold">Annual Quota (Days)</Label>
@@ -1950,11 +2688,26 @@ export default function PrincipalTimetableSettings() {
                               />
                             </div>
                           </div>
+
+                          {/* Individual Save for Restricted Holiday */}
+                          <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2 mt-auto">
+                            <span className="text-[11px] text-muted-foreground">Save Restricted Holiday policy rules</span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => handleSaveIndividualLeaveCard('restricted_holiday', 'Restricted Holiday')}
+                              disabled={savingCard === 'restricted_holiday'}
+                              className="h-7 px-3 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white shadow-xs"
+                            >
+                              <Save className="w-3 h-3 mr-1.5" />
+                              {savingCard === 'restricted_holiday' ? 'Saving...' : 'Save RH Policy'}
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
 
-                      {/* 4. Short Permission Policy Card */}
-                      <Card className={`border ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                      {/* 7. Short Permission Policy Card */}
+                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
@@ -1969,7 +2722,7 @@ export default function PrincipalTimetableSettings() {
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Short period permission quotas and max duration limit.</p>
                         </CardHeader>
-                        <CardContent className="p-4 space-y-3">
+                        <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                           <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3">
                             <div className="space-y-1.5 flex flex-col justify-end">
                               <Label className="text-xs font-semibold leading-tight">Monthly Quota (Permissions / Month)</Label>
@@ -2014,6 +2767,21 @@ export default function PrincipalTimetableSettings() {
                               />
                             </div>
                           </div>
+
+                          {/* Individual Save for Short Permission */}
+                          <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2 mt-auto">
+                            <span className="text-[11px] text-muted-foreground">Save Short Permission policy rules</span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => handleSaveIndividualLeaveCard('short_permission', 'Short Permission')}
+                              disabled={savingCard === 'short_permission'}
+                              className="h-7 px-3 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white shadow-xs"
+                            >
+                              <Save className="w-3 h-3 mr-1.5" />
+                              {savingCard === 'short_permission' ? 'Saving...' : 'Save SP Policy'}
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                     </div>
@@ -2032,6 +2800,7 @@ export default function PrincipalTimetableSettings() {
                         {[
                           { roleKey: 'teacher', label: 'Faculty / Teacher Leaves', defaultStages: ['hod', 'principal'] },
                           { roleKey: 'hod', label: 'Head of Department (HOD) Leaves', defaultStages: ['dean', 'principal'] },
+                          { roleKey: 'principal', label: 'Principal Leaves', defaultStages: ['dean'] },
                           { roleKey: 'dean', label: 'Dean Leaves', defaultStages: ['principal'] },
                           { roleKey: 'coe', label: 'COE Leaves', defaultStages: ['principal'] },
                           { roleKey: 'fees_manager', label: 'Fees Manager Leaves', defaultStages: ['principal'] },
@@ -2057,23 +2826,39 @@ export default function PrincipalTimetableSettings() {
 
                           // Hide applicant's own role from approver options
                           const availableApprovers = ALL_APPROVER_OPTIONS.filter((opt) => opt.value !== item.roleKey);
-                          const defaultFallbackApprover = availableApprovers.find(a => a.value !== 'principal')?.value || 'principal';
+                          const defaultFallbackApprover = item.roleKey === 'principal' ? 'dean' : (availableApprovers.find(a => a.value === 'principal')?.value || availableApprovers[0]?.value || 'principal');
+
+                          const allowZeroStages = item.roleKey === 'principal' || item.roleKey === 'dean';
 
                           const rawConfig = leavePolicy.leave_approval_routing?.[item.roleKey];
                           let stages: string[] = item.defaultStages;
                           let numStages: number = item.defaultStages.length;
 
-                          if (rawConfig && typeof rawConfig === 'object' && Array.isArray(rawConfig.stages)) {
-                            stages = rawConfig.stages.filter((s: string) => s && s !== 'alternate_duty');
-                            numStages = rawConfig.num_stages || stages.length || item.defaultStages.length;
+                          if (rawConfig && typeof rawConfig === 'object') {
+                            if ((rawConfig.num_stages === 0 || rawConfig.stages?.length === 0) && allowZeroStages) {
+                              stages = [];
+                              numStages = 0;
+                            } else if (Array.isArray(rawConfig.stages) && rawConfig.stages.length > 0) {
+                              stages = rawConfig.stages.filter((s: string) => s && s !== 'alternate_duty');
+                              numStages = rawConfig.num_stages ?? stages.length ?? item.defaultStages.length;
+                            }
                           } else if (typeof rawConfig === 'string' && rawConfig) {
-                            if (rawConfig === 'hod') stages = item.roleKey === 'hod' ? ['dean', 'principal'] : ['hod', 'principal'];
+                            if (['none', 'auto_approve', 'no_approval'].includes(rawConfig) && allowZeroStages) {
+                              stages = [];
+                              numStages = 0;
+                            } else if (rawConfig === 'hod') stages = item.roleKey === 'hod' ? ['dean', 'principal'] : ['hod', 'principal'];
                             else if (rawConfig === 'admission_manager') stages = ['admission_manager', 'principal'];
                             else if (rawConfig === 'hms_admin') stages = ['hms_admin', 'principal'];
                             else if (rawConfig === 'transport_admin') stages = ['transport_admin', 'principal'];
                             else if (rawConfig === 'dean') stages = ['dean'];
                             else stages = [rawConfig];
-                            numStages = stages.length;
+                            if (numStages !== 0) numStages = stages.length;
+                          }
+
+                          // If role is not allowed 0 stages, ensure numStages is at least 1
+                          if (!allowZeroStages && numStages < 1) {
+                            numStages = item.defaultStages.length || 1;
+                            stages = item.defaultStages;
                           }
 
                           // Replace any accidental assignment of own role with a valid fallback
@@ -2081,7 +2866,7 @@ export default function PrincipalTimetableSettings() {
 
                           // Ensure stages array matches numStages length
                           while (stages.length < numStages) {
-                            stages.push('principal');
+                            stages.push(defaultFallbackApprover);
                           }
                           stages = stages.slice(0, numStages);
 
@@ -2089,13 +2874,17 @@ export default function PrincipalTimetableSettings() {
                             const count = parseInt(countStr, 10);
                             let newStages: string[] = [];
 
-                            if (count === 1) {
-                              newStages = ['principal'];
+                            if (count === 0 && allowZeroStages) {
+                              newStages = [];
+                            } else if (count === 1) {
+                              newStages = [defaultFallbackApprover];
                             } else if (count === 2) {
                               if (item.roleKey === 'teacher') {
                                 newStages = ['hod', 'principal'];
                               } else if (item.roleKey === 'hod') {
                                 newStages = ['dean', 'principal'];
+                              } else if (item.roleKey === 'principal') {
+                                newStages = ['dean', 'coe'];
                               } else if (item.roleKey === 'warden') {
                                 newStages = ['hms_admin', 'principal'];
                               } else if (item.roleKey === 'driver') {
@@ -2103,17 +2892,19 @@ export default function PrincipalTimetableSettings() {
                               } else if (item.roleKey === 'counsellor') {
                                 newStages = ['admission_manager', 'principal'];
                               } else {
-                                newStages = [defaultFallbackApprover, 'principal'];
+                                newStages = [defaultFallbackApprover, item.roleKey === 'principal' ? 'coe' : 'principal'];
                               }
                             } else if (count === 3) {
                               if (item.roleKey === 'hod') {
                                 newStages = ['dean', 'coe', 'principal'];
                               } else if (item.roleKey === 'teacher') {
                                 newStages = ['hod', 'dean', 'principal'];
+                              } else if (item.roleKey === 'principal') {
+                                newStages = ['dean', 'coe', 'fees_manager'];
                               } else {
                                 newStages = ['hms_admin', 'dean', 'principal'].filter(r => r !== item.roleKey);
                                 while (newStages.length < 3) {
-                                  newStages.push('principal');
+                                  newStages.push(defaultFallbackApprover);
                                 }
                               }
                             }
@@ -2164,7 +2955,11 @@ export default function PrincipalTimetableSettings() {
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div>
                                   <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{item.label}</span>
-                                  <p className="text-xs text-muted-foreground">Requests will be forwarded through the configured sequential approval stages</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {numStages === 0
+                                      ? 'Leaves applied by this role will be auto-approved immediately for records without requiring approvals'
+                                      : 'Requests will be forwarded through the configured sequential approval stages'}
+                                  </p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Label className="text-xs font-medium text-muted-foreground whitespace-nowrap">Number of Stages:</Label>
@@ -2172,10 +2967,13 @@ export default function PrincipalTimetableSettings() {
                                     value={String(numStages)}
                                     onValueChange={handleStageCountChange}
                                   >
-                                    <SelectTrigger className={`w-28 h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
+                                    <SelectTrigger className={`w-44 h-8 text-xs font-medium ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                      {allowZeroStages && (
+                                        <SelectItem value="0">0 Stages (Auto-Approve)</SelectItem>
+                                      )}
                                       <SelectItem value="1">1 Stage</SelectItem>
                                       <SelectItem value="2">2 Stages</SelectItem>
                                       <SelectItem value="3">3 Stages</SelectItem>
@@ -2184,70 +2982,106 @@ export default function PrincipalTimetableSettings() {
                                 </div>
                               </div>
 
-                              {/* Dynamic Dropdowns for Each Stage */}
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                                {Array.from({ length: numStages }).map((_, idx) => {
-                                  const currentVal = availableApprovers.some(opt => opt.value === stages[idx])
-                                    ? stages[idx]
-                                    : (idx === numStages - 1 ? 'principal' : defaultFallbackApprover);
+                              {/* Dynamic Dropdowns for Each Stage or Auto-Approval Message */}
+                              {numStages === 0 ? (
+                                <div className="flex items-center gap-2.5 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-700 dark:text-emerald-300">
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                  <span>No approval required. Leaves submitted by this role are automatically approved immediately for records.</span>
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                                  {Array.from({ length: numStages }).map((_, idx) => {
+                                    const currentVal = availableApprovers.some(opt => opt.value === stages[idx])
+                                      ? stages[idx]
+                                      : (idx === numStages - 1 ? (item.roleKey === 'principal' ? defaultFallbackApprover : 'principal') : defaultFallbackApprover);
 
-                                  return (
-                                    <div key={idx} className="space-y-1">
-                                      <Label className="text-[11px] font-medium text-muted-foreground">
-                                        Stage {idx + 1} Approver:
-                                      </Label>
-                                      <Select
-                                        value={currentVal}
-                                        onValueChange={(val) => handleStageApproverChange(idx, val)}
-                                      >
-                                        <SelectTrigger className={`w-full h-9 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
-                                          <SelectValue placeholder={`Select stage ${idx + 1} approver`} />
-                                        </SelectTrigger>
-                                        <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                                          {availableApprovers.map((opt) => (
-                                            <SelectItem key={opt.value} value={opt.value}>
-                                              {opt.label}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                  );
-                                })}
-                              </div>
+                                    return (
+                                      <div key={idx} className="space-y-1">
+                                        <Label className="text-[11px] font-medium text-muted-foreground">
+                                          Stage {idx + 1} Approver:
+                                        </Label>
+                                        <Select
+                                          value={currentVal}
+                                          onValueChange={(val) => handleStageApproverChange(idx, val)}
+                                        >
+                                          <SelectTrigger className={`w-full h-9 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
+                                            <SelectValue placeholder={`Select stage ${idx + 1} approver`} />
+                                          </SelectTrigger>
+                                          <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                            {availableApprovers.map((opt) => (
+                                              <SelectItem key={opt.value} value={opt.value}>
+                                                {opt.label}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
 
                               {/* Live Visual Pipeline Preview */}
-                              <div className="flex items-center flex-wrap gap-1.5 pt-1 text-[11px]">
-                                <span className="text-muted-foreground font-medium">Pipeline:</span>
-                                <span className={`px-2 py-0.5 rounded font-mono ${theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
-                                  Alternate Duty
-                                </span>
-                                {stages.map((stg, sIdx) => (
-                                  <div key={sIdx} className="flex items-center gap-1.5">
-                                    <span className="text-muted-foreground font-bold">➔</span>
-                                    <span className={`px-2 py-0.5 rounded font-medium ${
-                                      sIdx === stages.length - 1 
-                                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' 
-                                        : 'bg-primary/10 text-primary border border-primary/20'
-                                    }`}>
-                                      Stage {sIdx + 1}: {APPROVER_LABELS[stg] || stg}
-                                    </span>
-                                  </div>
-                                ))}
-                                <span className="text-muted-foreground font-bold">➔</span>
-                                <span className="px-2 py-0.5 rounded font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                                  Approved
-                                </span>
-                              </div>
+                              {numStages === 0 ? (
+                                <div className="flex items-center flex-wrap gap-1.5 pt-1 text-[11px]">
+                                  <span className="text-muted-foreground font-medium">Pipeline:</span>
+                                  <span className={`px-2 py-0.5 rounded font-mono ${theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
+                                    Leave Applied
+                                  </span>
+                                  <span className="text-muted-foreground font-bold">➔</span>
+                                  <span className="px-2 py-0.5 rounded font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                    ⚡ Auto-Approved (For Records)
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center flex-wrap gap-1.5 pt-1 text-[11px]">
+                                  <span className="text-muted-foreground font-medium">Pipeline:</span>
+                                  <span className={`px-2 py-0.5 rounded font-mono ${theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
+                                    Alternate Duty
+                                  </span>
+                                  {stages.map((stg, sIdx) => (
+                                    <div key={sIdx} className="flex items-center gap-1.5">
+                                      <span className="text-muted-foreground font-bold">➔</span>
+                                      <span className={`px-2 py-0.5 rounded font-medium ${
+                                        sIdx === stages.length - 1 
+                                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' 
+                                          : 'bg-primary/10 text-primary border border-primary/20'
+                                      }`}>
+                                        Stage {sIdx + 1}: {APPROVER_LABELS[stg] || stg}
+                                      </span>
+                                    </div>
+                                  ))}
+                                  <span className="text-muted-foreground font-bold">➔</span>
+                                  <span className="px-2 py-0.5 rounded font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                                    Approved
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           );
                         })}
                       </div>
                     </div>
 
-                    <div className="flex justify-end pt-2">
-                      <Button onClick={handleSaveLeavePolicy} disabled={leavePolicySaving} className="shadow-sm">
-                        <Save className="w-4 h-4 mr-2" /> {leavePolicySaving ? 'Saving...' : 'Save Leave Policy'}
+                    {/* Dedicated Save Button for Role-Based Leave Approval Routing */}
+                    <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border ${theme === 'dark' ? 'bg-card/50 border-border/80' : 'bg-white border-slate-200 shadow-sm'}`}>
+                      <div className="space-y-0.5">
+                        <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5 text-primary" />
+                          Save Role-Based Approval Routing
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          Save multi-stage approval sequences and reviewer chains for each staff role.
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={handleSaveLeaveRouting}
+                        disabled={leaveRoutingSaving}
+                        className="h-8 px-4 text-xs font-semibold shadow-sm shrink-0 bg-primary text-white hover:bg-primary/90"
+                      >
+                        <Save className="w-3.5 h-3.5 mr-1.5" />
+                        {leaveRoutingSaving ? 'Saving Approval Routing...' : 'Save Approval Routing'}
                       </Button>
                     </div>
                   </div>

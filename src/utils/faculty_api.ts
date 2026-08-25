@@ -216,6 +216,9 @@ export interface ApplyLeaveRequest {
   is_half_day?: boolean;
   half_day_session?: 'forenoon' | 'afternoon';
   alternate_faculty_id?: number | string | null;
+  od_purpose_category?: string;
+  document?: File;
+  initial_document_url?: string;
 }
 
 interface ApplyLeaveResponse {
@@ -278,6 +281,14 @@ export interface ProctorStudent {
     subject_code: string | null;
     total_obtained: number;
     max_marks: number;
+  }>;
+  parent_phone: string | null;
+  student_contact: string | null;
+  email: string | null;
+  attendance_history: Array<{
+    date: string;
+    status: string;
+    subject: string;
   }>;
   certificates: Array<{
     title: string;
@@ -348,6 +359,122 @@ export interface FacultyAssignment {
   branch_id: number;
   has_timetable: boolean;
   lab_batches?: Array<{ id: number | string; name: string }>;
+}
+
+export interface FacultyLeaveRequest {
+  id: string | number;
+  title?: string;
+  branch?: string;
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  is_half_day?: boolean;
+  half_day_session?: string | null;
+  reason: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  current_stage?: string;
+  configured_stages?: string[];
+  od_purpose_category?: string;
+  initial_document_url?: string | null;
+  completion_document_url?: string | null;
+  od_completion_verified?: boolean;
+  od_completion_verified_by?: string | null;
+  od_completion_verified_at?: string | null;
+  od_completion_remarks?: string;
+  alternate_faculty_name?: string | null;
+  alternate_duty_status?: string;
+  alternate_duty_remarks?: string;
+  alternate_duty_acted_at?: string | null;
+  hod_approval_status?: string;
+  hod_remarks?: string;
+  hod_reviewed_by?: string | null;
+  hod_reviewed_at?: string | null;
+  intermediate_approval_status?: string;
+  intermediate_remarks?: string;
+  intermediate_reviewed_by?: string | null;
+  intermediate_reviewed_at?: string | null;
+  principal_approval_status?: string;
+  principal_remarks?: string;
+  principal_reviewed_by?: string | null;
+  principal_reviewed_at?: string | null;
+  applied_on?: string;
+}
+
+export interface LeaveQuota {
+  // Backward compatible fields
+  total_standard_leaves: number;
+  used_standard_leaves: number;
+  remaining_standard_leaves: number;
+  monthly_short_permission_limit: number;
+  used_short_permissions_this_month: number;
+  remaining_short_permissions_this_month: number;
+  short_permission_max_hours: number;
+  approver_role?: string;
+  approver_label?: string;
+  workflow_pipeline?: string[];
+
+  // 9.8 Rule Specific Quotas
+  cl_total?: number;
+  cl_annual_limit?: number;
+  cl_used?: number;
+  cl_remaining?: number;
+  cl_max_stretch?: number;
+
+  el_total_annual?: number;
+  el_annual_limit?: number;
+  el_accrued_to_date?: number;
+  el_credited_so_far?: number;
+  el_used?: number;
+  el_remaining?: number;
+  el_min_stretch?: number;
+  el_max_stretch?: number;
+  el_jan_credit?: number;
+  el_jul_credit?: number;
+  el_half_year_period?: string;
+  is_el_eligible?: boolean;
+
+  rh_total?: number;
+  rh_annual_limit?: number;
+  rh_used?: number;
+  rh_remaining?: number;
+  rh_used_this_month?: number;
+  rh_monthly_limit?: number;
+  rh_remaining_this_month?: number;
+
+  sp_monthly_limit?: number;
+  short_permission_limit_monthly?: number;
+  sp_used_this_month?: number;
+  short_permission_used_this_month?: number;
+  sp_remaining_this_month?: number;
+  short_permission_remaining_this_month?: number;
+  sp_max_hours?: number;
+  short_permission_max_hours?: number;
+
+  vacation_total?: number;
+  vacation_annual_limit?: number;
+  vacation_used?: number;
+  vacation_remaining?: number;
+  is_vacation_eligible?: boolean;
+  is_probationary?: boolean;
+
+  maternity_total?: number;
+  maternity_annual_limit?: number;
+  maternity_used?: number;
+  maternity_remaining?: number;
+  is_maternity_eligible?: boolean;
+
+  od_total_approved_days?: number;
+  od_pending_certificates_count?: number;
+  od_require_initial_proof?: boolean;
+  od_require_attendance_certificate?: boolean;
+  is_od_eligible?: boolean;
+
+  policy_rules?: any;
+  num_stages?: number;
+  workflow_stages?: string[];
+  require_alternate_duty?: boolean;
 }
 
 interface GetFacultyAssignmentsResponse {
@@ -424,6 +551,12 @@ interface GetAttendanceRecordsWithSummaryResponse {
 }
 
 export interface LeaveQuota {
+  // Academic Year Cycle
+  academic_year_label?: string;
+  academic_year_start_date?: string;
+  academic_year_end_date?: string;
+  academic_year_start_month?: number;
+
   // Backward compatible fields
   total_standard_leaves: number;
   used_standard_leaves: number;
@@ -440,10 +573,28 @@ export interface LeaveQuota {
   cl_annual_limit?: number;
   cl_used?: number;
   cl_remaining?: number;
+  cl_max_stretch?: number;
   el_annual_limit?: number;
   el_credited_so_far?: number;
   el_used?: number;
   el_remaining?: number;
+  el_min_stretch?: number;
+  el_max_stretch?: number;
+  el_jan_credit?: number;
+  el_jul_credit?: number;
+  el_half_year_period?: string;
+  is_el_eligible?: boolean;
+  od_total_approved_days?: number;
+  od_pending_certificates_count?: number;
+  is_od_eligible?: boolean;
+  vacation_annual_limit?: number;
+  vacation_used?: number;
+  vacation_remaining?: number;
+  is_vacation_eligible?: boolean;
+  maternity_annual_limit?: number;
+  maternity_used?: number;
+  maternity_remaining?: number;
+  is_maternity_eligible?: boolean;
   rh_annual_limit?: number;
   rh_used?: number;
   rh_remaining?: number;
@@ -452,6 +603,7 @@ export interface LeaveQuota {
   short_permission_limit_monthly?: number;
   short_permission_used_this_month?: number;
   short_permission_remaining_this_month?: number;
+  policy_rules?: any;
 }
 
 export interface ColleagueOption {
@@ -469,7 +621,8 @@ export interface GetApplyLeaveBootstrapResponse {
   data?: {
     assignments: FacultyAssignment[];
     leave_requests: FacultyLeaveRequest[];
-    branches: {id: number;name: string;}[];
+    branches: { id: number; name: string; branch_code?: string; }[];
+    faculty_branch?: { id: number; name: string; branch_code?: string; } | null;
     leave_quota?: LeaveQuota;
     available_colleagues?: ColleagueOption[];
   };
@@ -624,7 +777,10 @@ export interface AlternateDutyRequestItem {
 export interface GetAlternateDutyRequestsResponse {
   success: boolean;
   message?: string;
-  data?: AlternateDutyRequestItem[];
+  data?: AlternateDutyRequestItem[] | {
+    requests?: AlternateDutyRequestItem[];
+    pending_count?: number;
+  };
   pending_count?: number;
 }
 
@@ -771,21 +927,65 @@ data: UploadMarksRequest)
 };
 
 export const applyLeave = async (
-data: ApplyLeaveRequest)
-: Promise<ApplyLeaveResponse> => {
+  data: ApplyLeaveRequest | FormData
+): Promise<ApplyLeaveResponse> => {
   try {
+    let body: any;
+    let headers: Record<string, string> = {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
+    };
+
+    if (data instanceof FormData) {
+      body = data;
+    } else if (data.document) {
+      const formData = new FormData();
+      Object.entries(data).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) {
+          if (Array.isArray(v)) {
+            v.forEach((item) => formData.append(k, String(item)));
+          } else {
+            formData.append(k, v as any);
+          }
+        }
+      });
+      body = formData;
+    } else {
+      headers["Content-Type"] = "application/json";
+      body = JSON.stringify(data);
+    }
+
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/apply-leave/`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(data)
+      headers,
+      body
     });
     return await response.json();
   } catch (error) {
+    return { success: false, message: "Network error submitting leave application" };
+  }
+};
 
-    return { success: false, message: "Network error" };
+export const uploadOdCompletionCertificate = async (data: {
+  leave_id: string | number;
+  file?: File;
+  completion_document_url?: string;
+}): Promise<{ success: boolean; message?: string; data?: any }> => {
+  try {
+    const formData = new FormData();
+    formData.append("leave_id", String(data.leave_id));
+    if (data.file) formData.append("completion_document", data.file);
+    if (data.completion_document_url) formData.append("completion_document_url", data.completion_document_url);
+
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/leaves/od-completion-certificate/upload/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
+      },
+      body: formData
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error uploading OD completion certificate" };
   }
 };
 
