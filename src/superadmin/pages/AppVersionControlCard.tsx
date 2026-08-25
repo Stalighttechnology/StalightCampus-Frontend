@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/ca
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
+import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "../../utils/sweetalert";
 import { Save } from "lucide-react";
 
 export const AppVersionControlCard = () => {
@@ -66,6 +66,17 @@ export const AppVersionControlCard = () => {
     }
     if (compareVersions(config.web_minimum_version, config.web_latest_version) > 0) {
       return showErrorAlert("Validation Error", "Web Minimum version cannot be greater than Latest version");
+    }
+
+    const confirmResult = await showConfirmAlert(
+      "Confirm Version Settings",
+      `Are you sure you want to enforce these versions?\n\nAndroid: ${config.android_latest_version} (Min: ${config.android_minimum_version})\niOS: ${config.ios_latest_version} (Min: ${config.ios_minimum_version})\nWeb: ${config.web_latest_version} (Min: ${config.web_minimum_version})`,
+      "Yes, Save changes",
+      "warning"
+    );
+
+    if (!confirmResult.isConfirmed) {
+      return;
     }
 
     try {
