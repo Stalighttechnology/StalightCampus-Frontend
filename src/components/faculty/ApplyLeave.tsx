@@ -2665,6 +2665,41 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </div>
                 </div>
 
+                {/* Attached Documents / Cloudflare R2 Proofs */}
+                {(selectedLeaveForFlow.initial_document_url || selectedLeaveForFlow.completion_document_url) && (
+                  <div className="space-y-2">
+                    <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Attached Documents & Certificates
+                    </h5>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedLeaveForFlow.initial_document_url && (
+                        <a
+                          href={selectedLeaveForFlow.initial_document_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary text-xs font-medium transition-all"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>View Attached Proof / Order</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                      {selectedLeaveForFlow.completion_document_url && (
+                        <a
+                          href={selectedLeaveForFlow.completion_document_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium transition-all"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>View OD Attendance Certificate</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Footer Controls */}
                 <div className="flex justify-end pt-2 border-t border-border">
                   <Button
