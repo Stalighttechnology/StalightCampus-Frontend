@@ -123,10 +123,11 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         try {
           const res = await getAlternateDutyRequests();
           if (res && res.success) {
-            const count = typeof res.pending_count === 'number'
-              ? res.pending_count
-              : (Array.isArray(res.data) ? res.data.filter((d: any) => d.alternate_duty_status === 'PENDING').length : 0);
-            setPendingSubstituteCount(count);
+            const rawList = Array.isArray(res.data)
+              ? res.data
+              : (Array.isArray(res.data?.requests) ? res.data.requests : []);
+            const count = res.pending_count ?? (res.data?.pending_count ?? rawList.filter((d: any) => d.alternate_duty_status === 'PENDING').length);
+            setPendingSubstituteCount(typeof count === 'number' ? count : 0);
           }
         } catch (err) {
           console.error("Error checking substitute requests in sidebar:", err);
