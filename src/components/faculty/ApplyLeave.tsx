@@ -691,20 +691,20 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       requestData.document = initialDocFile;
     }
 
-    const typeLabel = 
+    const typeLabel =
       leaveType === 'short_permission' ? 'Short Permission' :
-      leaveType === 'earned' ? 'Earned Leave (EL)' :
-      leaveType === 'od' ? `On Duty (OD) - ${odPurposeCategory.replace('_', ' ').toUpperCase()}` :
-      leaveType === 'vacation' ? 'Vacation Leave' :
-      leaveType === 'maternity' ? 'Maternity Leave' :
-      leaveType === 'rh' ? 'Restricted Holiday (RH)' :
-      (isHalfDay ? `Casual Leave (CL) - Half Day (${halfDaySession === 'forenoon' ? 'Morning' : 'Afternoon'})` : 'Casual Leave (CL)');
+        leaveType === 'earned' ? 'Earned Leave (EL)' :
+          leaveType === 'od' ? `On Duty (OD) - ${odPurposeCategory.replace('_', ' ').toUpperCase()}` :
+            leaveType === 'vacation' ? 'Vacation Leave' :
+              leaveType === 'maternity' ? 'Maternity Leave' :
+                leaveType === 'rh' ? 'Restricted Holiday (RH)' :
+                  (isHalfDay ? `Casual Leave (CL) - Half Day (${halfDaySession === 'forenoon' ? 'Morning' : 'Afternoon'})` : 'Casual Leave (CL)');
 
     const dateDisplay = leaveType === 'short_permission'
       ? `${format(permissionDate!, 'MMM dd, yyyy')} (${startTimeParts.hour}:${startTimeParts.minute} ${startTimeParts.period} - ${endTimeParts.hour}:${endTimeParts.minute} ${endTimeParts.period})`
       : (isSameDay(dateRange!.from!, dateRange!.to!)
-          ? format(dateRange!.from!, 'MMM dd, yyyy')
-          : `${format(dateRange!.from!, 'MMM dd, yyyy')} to ${format(dateRange!.to!, 'MMM dd, yyyy')}`);
+        ? format(dateRange!.from!, 'MMM dd, yyyy')
+        : `${format(dateRange!.from!, 'MMM dd, yyyy')} to ${format(dateRange!.to!, 'MMM dd, yyyy')}`);
 
     const alternateFacultyObj = availableColleagues.find(c => c.id.toString() === selectedAlternateFaculty);
 
@@ -802,30 +802,83 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
     return (
       <div
-        className="flex flex-col gap-1 items-start cursor-pointer group"
+        className="flex flex-col gap-0.5 items-start cursor-pointer group"
         onClick={() => setSelectedLeaveForFlow(leave)}
         title="Click to view complete approval workflow pipeline"
       >
-        <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full inline-flex items-center gap-1.5 transition-transform group-hover:scale-105 ${bgClass}`}>
-          {status === 'Approved' && <CheckCircle2 className="w-3.5 h-3.5" />}
-          {status === 'Rejected' && <XCircle className="w-3.5 h-3.5" />}
-          {status === 'Pending' && <Clock className="w-3.5 h-3.5" />}
+        <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full inline-flex items-center gap-1 transition-transform group-hover:scale-105 ${bgClass} shrink-0 whitespace-nowrap`}>
+          {status === 'Approved' && <CheckCircle2 className="w-3 h-3" />}
+          {status === 'Rejected' && <XCircle className="w-3 h-3" />}
+          {status === 'Pending' && <Clock className="w-3 h-3" />}
           <span>{status}</span>
         </span>
 
         {/* Workflow Stage Tracker Pill */}
         {status === 'Pending' && (
-          <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1 group-hover:text-primary transition-colors">
-            {leave.current_stage === 'alternate_duty' && '⏳ Colleague Duty Acceptance'}
+          <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1 group-hover:text-primary transition-colors whitespace-nowrap">
+            {leave.current_stage === 'alternate_duty' && '⏳ Colleague Duty'}
             {leave.current_stage === 'hod' && '⏳ HoD Endorsement'}
             {leave.current_stage === 'dean' && '⏳ Dean Endorsement'}
-            {leave.current_stage === 'admission_manager' && '⏳ Admission Manager'}
+            {leave.current_stage === 'admission_manager' && '⏳ Admission Mgr'}
             {leave.current_stage === 'hms_admin' && '⏳ HMS Admin'}
             {leave.current_stage === 'transport_admin' && '⏳ Transport Admin'}
             {leave.current_stage === 'coe' && '⏳ COE Endorsement'}
             {leave.current_stage === 'fees_manager' && '⏳ Fees Manager'}
             {leave.current_stage === 'principal' && '⏳ Principal Sanction'}
           </span>
+        )}
+      </div>
+    );
+  };
+
+  const renderCategoryBadge = (leave: LeaveRequestDisplay) => {
+    const type = leave.leave_type?.toLowerCase() || '';
+    let name = 'Leave';
+    let style = 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+
+    if (type === 'casual' || type === 'cl') {
+      name = 'Casual Leave (CL)';
+      style = 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+    } else if (type === 'od' || type === 'on_duty') {
+      name = 'On Duty (OD)';
+      style = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+    } else if (type === 'earned' || type === 'el') {
+      name = 'Earned Leave (EL)';
+      style = 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800';
+    } else if (type === 'vacation') {
+      name = 'Vacation Leave';
+      style = 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+    } else if (type === 'rh' || type === 'restricted_holiday') {
+      name = 'Restricted Holiday (RH)';
+      style = 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+    } else if (type === 'maternity' || type === 'ml') {
+      name = 'Maternity Leave (ML)';
+      style = 'bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300 border-pink-200 dark:border-pink-800';
+    } else if (type === 'short_permission') {
+      name = 'Short Permission';
+      style = 'bg-cyan-50 text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800';
+    } else {
+      name = type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+
+    return (
+      <div className="space-y-1">
+        <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-md border ${style} whitespace-nowrap`}>
+          {name}
+        </span>
+        {leave.od_purpose_category && (
+          <div>
+            <span className="inline-flex text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-50/80 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 whitespace-nowrap">
+              OD: {leave.od_purpose_category.replace(/_/g, ' ').toUpperCase()}
+            </span>
+          </div>
+        )}
+        {leave.is_half_day && (
+          <div>
+            <span className="inline-flex text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-50/80 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 whitespace-nowrap">
+              Half-Day ({leave.half_day_session?.toLowerCase() === 'forenoon' || leave.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
+            </span>
+          </div>
         )}
       </div>
     );
@@ -1001,17 +1054,15 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
         {/* Top Header Tab Switcher (Apply Leave vs Substitute Requests) */}
         <div className="flex items-center w-full border-b border-border pb-3">
-          <div className={`flex items-center p-1 rounded-xl border w-full ${
-            theme === 'dark' ? 'bg-background/80 border-border' : 'bg-muted/40 border-border/60'
-          }`}>
+          <div className={`flex items-center p-1 rounded-xl border w-full ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-muted/40 border-border/60'
+            }`}>
             <button
               type="button"
               onClick={() => setActiveMainTab('apply')}
-              className={`flex-1 justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${
-                activeMainTab === 'apply'
+              className={`flex-1 justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${activeMainTab === 'apply'
                   ? 'bg-primary text-white shadow-sm'
                   : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-              }`}
+                }`}
             >
               <CalendarCheck2 className="w-4 h-4 shrink-0" />
               <span className="whitespace-nowrap">Apply Leave & History</span>
@@ -1019,20 +1070,18 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             <button
               type="button"
               onClick={() => setActiveMainTab('substitute_requests')}
-              className={`flex-1 justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 relative ${
-                activeMainTab === 'substitute_requests'
+              className={`flex-1 justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 relative ${activeMainTab === 'substitute_requests'
                   ? 'bg-primary text-white shadow-sm'
                   : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-              }`}
+                }`}
             >
               <Users className="w-4 h-4 shrink-0" />
               <span className="whitespace-nowrap">Substitute Requests</span>
               {pendingSubstituteCount > 0 && (
-                <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] rounded-full font-bold leading-none ${
-                  activeMainTab === 'substitute_requests'
+                <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] rounded-full font-bold leading-none ${activeMainTab === 'substitute_requests'
                     ? 'bg-white text-primary'
                     : 'bg-rose-500 text-white animate-pulse'
-                }`}>
+                  }`}>
                   {pendingSubstituteCount}
                 </span>
               )}
@@ -1173,7 +1222,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       <Label htmlFor="leave-category-select" className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                         Leave Category <span className="text-red-500">*</span>
                       </Label>
-                      
+
                       <Select
                         value={leaveType}
                         onValueChange={(val: any) => {
@@ -1202,9 +1251,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                               <SelectItem
                                 key={cat.id}
                                 value={cat.id}
-                                className={`text-xs font-medium py-2 rounded-md transition-colors cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:font-semibold ${
-                                  isSelected ? 'bg-primary text-primary-foreground font-semibold' : ''
-                                }`}
+                                className={`text-xs font-medium py-2 rounded-md transition-colors cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:font-semibold ${isSelected ? 'bg-primary text-primary-foreground font-semibold' : ''
+                                  }`}
                               >
                                 {cat.label}
                               </SelectItem>
@@ -1257,10 +1305,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                 {/* File / Image Attachment Section (Exclusively for On Duty and Maternity Leaves) */}
                 {(leaveType === 'od' || leaveType === 'maternity') && (
-                  <div className={`p-3.5 rounded-xl border space-y-3 ${
-                    leaveType === 'od' ? 'border-emerald-500/30 bg-emerald-500/5' :
-                    'border-pink-500/30 bg-pink-500/5'
-                  }`}>
+                  <div className={`p-3.5 rounded-xl border space-y-3 ${leaveType === 'od' ? 'border-emerald-500/30 bg-emerald-500/5' :
+                      'border-pink-500/30 bg-pink-500/5'
+                    }`}>
                     {/* OD Purpose Category */}
                     {leaveType === 'od' && (
                       <div className="space-y-2 pb-2 border-b border-emerald-500/20">
@@ -1291,7 +1338,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           <Paperclip className={`w-3.5 h-3.5 ${leaveType === 'maternity' ? 'text-pink-500' : 'text-primary'}`} />
                           <span>
                             {leaveType === 'od' ? 'Invitation / Deputation Letter / Duty Order' :
-                             'Medical Certificate / Doctor Endorsement'}
+                              'Medical Certificate / Doctor Endorsement'}
                           </span>
                           {leaveType === 'maternity' && <span className="text-red-500">*</span>}
                           {leaveType === 'od' && <span className="text-[10px] text-muted-foreground font-normal">(Required for OD)</span>}
@@ -1332,26 +1379,23 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                       {/* Selected File Preview Card OR Clean Upload Dropzone */}
                       {initialDocFile ? (
-                        <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${
-                          initialDocFile.size > 1024 * 1024
+                        <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${initialDocFile.size > 1024 * 1024
                             ? 'bg-rose-500/5 border-rose-500/40'
                             : theme === 'dark' ? 'bg-background/90 border-primary/30' : 'bg-white border-primary/30 shadow-sm'
-                        }`}>
+                          }`}>
                           <div className="flex items-center gap-3 min-w-0">
                             {docPreviewUrl ? (
                               <img
                                 src={docPreviewUrl}
                                 alt="Preview"
-                                className={`w-12 h-12 rounded-lg object-cover border shrink-0 bg-muted ${
-                                  initialDocFile.size > 1024 * 1024 ? 'border-rose-500/40' : 'border-primary/20'
-                                }`}
+                                className={`w-12 h-12 rounded-lg object-cover border shrink-0 bg-muted ${initialDocFile.size > 1024 * 1024 ? 'border-rose-500/40' : 'border-primary/20'
+                                  }`}
                               />
                             ) : (
-                              <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border ${
-                                initialDocFile.size > 1024 * 1024
+                              <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border ${initialDocFile.size > 1024 * 1024
                                   ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
                                   : 'bg-primary/10 text-primary border-primary/20'
-                              }`}>
+                                }`}>
                                 <FileText className="w-6 h-6" />
                               </div>
                             )}
@@ -1406,9 +1450,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       ) : (
                         <div
                           onClick={() => fileInputRef.current?.click()}
-                          className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 ${
-                            theme === 'dark' ? 'border-border/60 bg-background/50' : 'border-gray-200 bg-white/80'
-                          }`}
+                          className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 ${theme === 'dark' ? 'border-border/60 bg-background/50' : 'border-gray-200 bg-white/80'
+                            }`}
                         >
                           <div className="flex flex-col items-center justify-center gap-1.5">
                             <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
@@ -1513,9 +1556,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                   {/* Step 2: Assign To (Hidden when Direct is selected) */}
                   {targetRole === 'none' ? (
-                    <div className={`p-3 rounded-lg border text-xs flex items-center gap-2 ${
-                      theme === 'dark' ? 'bg-muted/40 border-border text-muted-foreground' : 'bg-slate-100 border-slate-200 text-slate-600'
-                    }`}>
+                    <div className={`p-3 rounded-lg border text-xs flex items-center gap-2 ${theme === 'dark' ? 'bg-muted/40 border-border text-muted-foreground' : 'bg-slate-100 border-slate-200 text-slate-600'
+                      }`}>
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                       <span>Direct Review enabled: Request will be sent directly for approval without substitute duty assignment.</span>
                     </div>
@@ -2081,8 +2123,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 flex flex-col p-4 pt-2 sm:pt-4 overflow-y-auto custom-scrollbar">
-                <div className="flex-1 flex flex-col overflow-x-auto thin-scrollbar min-h-[360px] sm:min-h-[420px]">
+              <CardContent className="flex-1 flex flex-col p-3 sm:p-4 pt-2 sm:pt-4 overflow-y-auto custom-scrollbar">
+                <div className="flex-1 flex flex-col min-h-[360px] sm:min-h-[420px] w-full">
                   {/* Mobile View */}
                   <div className="md:hidden flex-1 flex flex-col space-y-3">
                     {loading ? (
@@ -2095,7 +2137,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       </div>
                     ) : (
                       filteredLeaveList.map((leave) => (
-                          <div key={leave.id} className={`p-3.5 rounded-xl border space-y-2.5 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200 shadow-sm'}`}>
+                        <div key={leave.id} className={`p-3.5 rounded-xl border space-y-2.5 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200 shadow-sm'}`}>
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
                               <div className="font-semibold text-sm text-foreground">{leave.title || 'Leave Application'}</div>
@@ -2105,21 +2147,11 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   <span className="font-mono text-[11px] ml-1">({leave.start_time} - {leave.end_time})</span>
                                 )}
                               </div>
-                              <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                                <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
-                                  {leave.leave_type?.replace('_', ' ')}
-                                </span>
-                                {leave.od_purpose_category && (
-                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
-                                    OD: {leave.od_purpose_category.replace('_', ' ').toUpperCase()}
-                                  </span>
-                                )}
-                                {leave.is_half_day && (
-                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0">
-                                    Half-Day ({leave.half_day_session?.toLowerCase() === 'forenoon' || leave.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
-                                  </span>
-                                )}
-                                {leave.initial_document_url && (
+                              <div className="mt-2">
+                                {renderCategoryBadge(leave)}
+                              </div>
+                              {leave.initial_document_url && (
+                                <div className="mt-1.5">
                                   <a
                                     href={leave.initial_document_url}
                                     target="_blank"
@@ -2131,19 +2163,18 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                     <span>Attachment</span>
                                     <ExternalLink className="w-2.5 h-2.5 opacity-70" />
                                   </a>
-                                )}
-                              </div>
+                                </div>
+                              )}
                               {leave.alternate_faculty_name && (
                                 <div className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1.5 flex-wrap">
                                   <span>Substitute:</span>
                                   <span className="text-foreground font-medium">{leave.alternate_faculty_name}</span>
-                                  <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded border ${
-                                    leave.alternate_duty_status === 'ACCEPTED'
+                                  <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded border ${leave.alternate_duty_status === 'ACCEPTED'
                                       ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400'
                                       : leave.alternate_duty_status === 'DECLINED'
                                         ? 'text-rose-700 bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400'
                                         : 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400'
-                                  }`}>
+                                    }`}>
                                     {leave.alternate_duty_status || 'PENDING'}
                                   </span>
                                 </div>
@@ -2165,11 +2196,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   >
                                     <FileText className="w-3 h-3" /> Attendance Certificate <ExternalLink className="w-2.5 h-2.5" />
                                   </a>
-                                  <span className={`text-[9px] px-1.5 py-0.2 rounded font-semibold ${
-                                    leave.od_completion_verified
+                                  <span className={`text-[9px] px-1.5 py-0.2 rounded font-semibold ${leave.od_completion_verified
                                       ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400'
                                       : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400'
-                                  }`}>
+                                    }`}>
                                     {leave.od_completion_verified ? 'Verified by HoD' : 'Pending Verification'}
                                   </span>
                                 </div>
@@ -2212,154 +2242,149 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       <p className="text-xs text-muted-foreground text-center max-w-[280px]">Your leave application records will appear here.</p>
                     </div>
                   ) : (
-                    <table className="hidden md:table w-full text-sm text-left border-collapse">
-                      <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50/80'}`}>
-                        <tr>
-                          <th className="py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Category / Title</th>
-                          <th className="py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Period</th>
-                          <th className="py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Substitute</th>
-                          <th className="py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Status & Pipeline</th>
-                          <th className="py-3 px-3 text-right font-semibold text-xs text-muted-foreground uppercase tracking-wider">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {loading ? (
+                    <div className="hidden md:block w-full overflow-x-auto custom-scrollbar">
+                      <table className="w-full min-w-[840px] table-fixed text-sm text-left border-collapse">
+                        <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50/80'}`}>
                           <tr>
-                            <td colSpan={5} className="p-4"><SkeletonList count={3} /></td>
+                            <th className="w-[20%] py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Title</th>
+                            <th className="w-[18%] py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Category</th>
+                            <th className="w-[18%] py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Period</th>
+                            <th className="w-[14%] py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Substitute</th>
+                            <th className="w-[18%] py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Status & Pipeline</th>
+                            <th className="w-[12%] py-3 px-3 text-right font-semibold text-xs text-muted-foreground uppercase tracking-wider">Action</th>
                           </tr>
-                        ) : (
-                          filteredLeaveList.map((leave) => (
-                            <tr
-                              key={leave.id}
-                              className={`border-b transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/40' : 'border-gray-200 hover:bg-gray-50/80'}`}
-                            >
-                              {/* Category / Title */}
-                              <td className="py-3.5 px-3 align-top min-w-[200px]">
-                                <div className="font-semibold text-sm text-foreground max-w-[240px] truncate" title={leave.title}>
-                                  {leave.title || 'Leave Application'}
-                                </div>
-                                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                                  <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0 whitespace-nowrap">
-                                    {leave.leave_type?.replace('_', ' ')}
-                                  </span>
-                                  {leave.od_purpose_category && (
-                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0 whitespace-nowrap">
-                                      OD: {leave.od_purpose_category.replace('_', ' ').toUpperCase()}
-                                    </span>
-                                  )}
-                                  {leave.is_half_day && (
-                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0 whitespace-nowrap">
-                                      Half-Day ({leave.half_day_session?.toLowerCase() === 'forenoon' || leave.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
-                                    </span>
-                                  )}
-                                  {leave.initial_document_url && (
-                                    <a
-                                      href={leave.initial_document_url}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-900/60 transition-colors shrink-0 whitespace-nowrap"
-                                      title="View Attached Duty Order / Document Proof"
-                                    >
-                                      <FileText className="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0" />
-                                      <span>Attachment</span>
-                                      <ExternalLink className="w-2.5 h-2.5 opacity-70 shrink-0" />
-                                    </a>
-                                  )}
-                                </div>
-                              </td>
-
-                              {/* Period */}
-                              <td className="py-3.5 px-3 align-top text-xs whitespace-nowrap">
-                                <div className="font-medium text-foreground">
-                                  {leave.from === leave.to ? leave.from : `${leave.from} → ${leave.to}`}
-                                </div>
-                                {leave.start_time && leave.end_time && (
-                                  <div className="text-muted-foreground text-[11px] font-mono mt-0.5">
-                                    {leave.start_time} - {leave.end_time}
-                                  </div>
-                                )}
-                              </td>
-
-                              {/* Substitute */}
-                              <td className="py-3.5 px-3 align-top text-xs min-w-[130px]">
-                                {leave.alternate_faculty_name ? (
-                                  <div className="space-y-1">
-                                    <div className="font-medium text-foreground leading-tight">{leave.alternate_faculty_name}</div>
-                                    <span className={`inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded border ${
-                                      leave.alternate_duty_status === 'ACCEPTED'
-                                        ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800'
-                                        : leave.alternate_duty_status === 'DECLINED'
-                                          ? 'text-rose-700 bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800'
-                                          : 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800'
-                                    }`}>
-                                      {leave.alternate_duty_status || 'PENDING'}
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <span className="text-muted-foreground italic text-xs">None nominated</span>
-                                )}
-                              </td>
-
-                              {/* Status & Pipeline */}
-                              <td className="py-3.5 px-3 align-top min-w-[160px]">
-                                {renderStatus(leave)}
-
-                                {/* OD Post-Completion Certificate Actions in Table */}
-                                {leave.leave_type === 'od' && leave.status === 'Approved' && (
-                                  <div className="mt-2 space-y-1">
-                                    {leave.completion_document_url ? (
-                                      <div className="flex items-center gap-1.5 flex-wrap">
-                                        <a
-                                          href={leave.completion_document_url}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
-                                        >
-                                          <FileText className="w-3 h-3" /> Attendance Cert <ExternalLink className="w-2.5 h-2.5" />
-                                        </a>
-                                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-semibold border ${
-                                          leave.od_completion_verified
-                                            ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
-                                            : 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800'
-                                        }`}>
-                                          {leave.od_completion_verified ? 'Verified' : 'Pending Verification'}
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => {
-                                          setTargetOdLeave(leave);
-                                          setUploadCertModalOpen(true);
-                                          setCompletionCertFile(null);
-                                        }}
-                                        className="text-[10px] h-6 px-2 font-semibold text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 flex items-center gap-1 shadow-none"
-                                      >
-                                        <Upload className="w-3 h-3" /> Upload Attendance Cert
-                                      </Button>
-                                    )}
-                                  </div>
-                                )}
-                              </td>
-
-                              {/* Action */}
-                              <td className="py-3.5 px-3 align-top text-right whitespace-nowrap">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-xs h-8 px-3 inline-flex items-center gap-1.5 ml-auto border-primary/30 text-primary hover:bg-primary/10 shadow-none font-medium"
-                                  onClick={() => setSelectedLeaveForFlow(leave)}
-                                >
-                                  <Eye className="w-3.5 h-3.5" />
-                                  <span>View Flow</span>
-                                </Button>
-                              </td>
+                        </thead>
+                        <tbody>
+                          {loading ? (
+                            <tr>
+                              <td colSpan={6} className="p-4"><SkeletonList count={3} /></td>
                             </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
+                          ) : (
+                            filteredLeaveList.map((leave) => (
+                              <tr
+                                key={leave.id}
+                                className={`border-b transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/40' : 'border-gray-200 hover:bg-gray-50/80'}`}
+                              >
+                                {/* Title */}
+                                <td className="py-3.5 px-3 align-top text-left">
+                                  <div className="font-semibold text-xs sm:text-sm text-foreground truncate" title={leave.title}>
+                                    {leave.title || 'Leave Application'}
+                                  </div>
+                                  {leave.initial_document_url && (
+                                    <div className="mt-1.5">
+                                      <a
+                                        href={leave.initial_document_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors shrink-0 whitespace-nowrap"
+                                        title="View Attached Duty Order / Document Proof"
+                                      >
+                                        <FileText className="w-2.5 h-2.5 text-sky-600 dark:text-sky-400 shrink-0" />
+                                        <span>Attachment</span>
+                                        <ExternalLink className="w-2 h-2 opacity-70 shrink-0" />
+                                      </a>
+                                    </div>
+                                  )}
+                                </td>
+
+                                {/* Category */}
+                                <td className="py-3.5 px-3 align-top text-left">
+                                  {renderCategoryBadge(leave)}
+                                </td>
+
+                                {/* Period */}
+                                <td className="py-3.5 px-3 align-top text-left text-xs">
+                                  <div className="font-medium text-foreground leading-tight whitespace-nowrap">
+                                    {leave.from === leave.to ? leave.from : `${leave.from} → ${leave.to}`}
+                                  </div>
+                                  {leave.start_time && leave.end_time && (
+                                    <div className="text-muted-foreground text-[10px] font-mono mt-0.5 whitespace-nowrap">
+                                      {leave.start_time} - {leave.end_time}
+                                    </div>
+                                  )}
+                                </td>
+
+                                {/* Substitute */}
+                                <td className="py-3.5 px-3 align-top text-left text-xs">
+                                  {leave.alternate_faculty_name ? (
+                                    <div className="space-y-0.5">
+                                      <div className="font-medium text-foreground leading-tight truncate" title={leave.alternate_faculty_name}>
+                                        {leave.alternate_faculty_name}
+                                      </div>
+                                      <span className={`inline-block text-[9px] font-semibold px-1.5 py-0.2 rounded border ${leave.alternate_duty_status === 'ACCEPTED'
+                                          ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800'
+                                          : leave.alternate_duty_status === 'DECLINED'
+                                            ? 'text-rose-700 bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800'
+                                            : 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800'
+                                        }`}>
+                                        {leave.alternate_duty_status || 'PENDING'}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-muted-foreground italic text-xs">None nominated</span>
+                                  )}
+                                </td>
+
+                                {/* Status & Pipeline */}
+                                <td className="py-3.5 px-3 align-top text-left">
+                                  {renderStatus(leave)}
+
+                                  {/* OD Post-Completion Certificate Actions in Table */}
+                                  {leave.leave_type === 'od' && leave.status === 'Approved' && (
+                                    <div className="mt-1.5 space-y-1">
+                                      {leave.completion_document_url ? (
+                                        <div className="flex items-center gap-1 flex-wrap">
+                                          <a
+                                            href={leave.completion_document_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] text-emerald-700 dark:text-emerald-300 font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
+                                          >
+                                            <FileText className="w-2.5 h-2.5" /> Cert <ExternalLink className="w-2 h-2" />
+                                          </a>
+                                          <span className={`text-[8px] px-1 py-0.2 rounded font-semibold border ${leave.od_completion_verified
+                                              ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
+                                              : 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800'
+                                            }`}>
+                                            {leave.od_completion_verified ? 'Verified' : 'Pending'}
+                                          </span>
+                                        </div>
+                                      ) : (
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => {
+                                            setTargetOdLeave(leave);
+                                            setUploadCertModalOpen(true);
+                                            setCompletionCertFile(null);
+                                          }}
+                                          className="text-[9px] h-6 px-1.5 font-semibold text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 flex items-center gap-1 shadow-none"
+                                        >
+                                          <Upload className="w-2.5 h-2.5" /> Upload Cert
+                                        </Button>
+                                      )}
+                                    </div>
+                                  )}
+                                </td>
+
+                                {/* Action */}
+                                <td className="py-3.5 px-3 align-top text-right">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs h-7 px-2.5 inline-flex items-center justify-center gap-1 ml-auto border-primary/30 text-primary hover:bg-primary/10 shadow-none font-medium whitespace-nowrap"
+                                    onClick={() => setSelectedLeaveForFlow(leave)}
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    <span>View</span>
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -2636,72 +2661,72 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         const isApproved = statusBadge === 'APPROVED' || statusBadge === 'Approved' || selectedLeaveForFlow.status === 'Approved';
                         const isRejected = statusBadge === 'REJECTED' || statusBadge === 'Rejected';
 
-                      return (
-                        <div key={stageKey} className="relative group">
-                          <div className={`absolute -left-6 top-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold ${isApproved
-                            ? 'bg-emerald-500 text-white'
-                            : isRejected
-                              ? 'bg-rose-500 text-white'
-                              : isCurrentStage
-                                ? 'bg-amber-500 text-white ring-4 ring-amber-500/20 animate-pulse'
-                                : 'bg-muted text-muted-foreground'
-                            }`}>
-                            {isApproved ? <Check className="w-3 h-3" /> : stageNumber}
-                          </div>
-                          <div className={`p-3 rounded-lg border text-xs ${isCurrentStage
-                            ? 'border-amber-500/50 bg-amber-500/5 shadow-sm'
-                            : theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
-                            }`}>
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-semibold text-foreground flex items-center gap-1.5">
-                                <span>{stageTitle}</span>
-                                {isCurrentStage && (
-                                  <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                                    Current Stage
-                                  </span>
-                                )}
-                              </span>
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${isApproved
-                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
-                                : isRejected
-                                  ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
-                                  : isCurrentStage
-                                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
-                                    : 'bg-muted text-muted-foreground'
-                                }`}>
-                                {isApproved ? 'APPROVED' : isRejected ? 'REJECTED' : 'PENDING'}
-                              </span>
+                        return (
+                          <div key={stageKey} className="relative group">
+                            <div className={`absolute -left-6 top-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold ${isApproved
+                              ? 'bg-emerald-500 text-white'
+                              : isRejected
+                                ? 'bg-rose-500 text-white'
+                                : isCurrentStage
+                                  ? 'bg-amber-500 text-white ring-4 ring-amber-500/20 animate-pulse'
+                                  : 'bg-muted text-muted-foreground'
+                              }`}>
+                              {isApproved ? <Check className="w-3 h-3" /> : stageNumber}
                             </div>
+                            <div className={`p-3 rounded-lg border text-xs ${isCurrentStage
+                              ? 'border-amber-500/50 bg-amber-500/5 shadow-sm'
+                              : theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
+                              }`}>
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-semibold text-foreground flex items-center gap-1.5">
+                                  <span>{stageTitle}</span>
+                                  {isCurrentStage && (
+                                    <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                                      Current Stage
+                                    </span>
+                                  )}
+                                </span>
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${isApproved
+                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                                  : isRejected
+                                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
+                                    : isCurrentStage
+                                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
+                                      : 'bg-muted text-muted-foreground'
+                                  }`}>
+                                  {isApproved ? 'APPROVED' : isRejected ? 'REJECTED' : 'PENDING'}
+                                </span>
+                              </div>
 
-                            {reviewerName && (
-                              <p className="text-muted-foreground mt-1">
-                                Reviewed by: <span className="font-medium text-foreground">{reviewerName}</span>
-                              </p>
-                            )}
+                              {reviewerName && (
+                                <p className="text-muted-foreground mt-1">
+                                  Reviewed by: <span className="font-medium text-foreground">{reviewerName}</span>
+                                </p>
+                              )}
 
-                            {reviewTime && (
-                              <p className="text-[10px] text-muted-foreground mt-0.5">
-                                Reviewed on: {reviewTime}
-                              </p>
-                            )}
+                              {reviewTime && (
+                                <p className="text-[10px] text-muted-foreground mt-0.5">
+                                  Reviewed on: {reviewTime}
+                                </p>
+                              )}
 
-                            {remarks && (
-                              <p className="text-[11px] mt-1 p-1.5 rounded bg-muted/30 italic">
-                                "{remarks}"
-                              </p>
-                            )}
+                              {remarks && (
+                                <p className="text-[11px] mt-1 p-1.5 rounded bg-muted/30 italic">
+                                  "{remarks}"
+                                </p>
+                              )}
 
-                            {isCurrentStage && (
-                              <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
-                                <Clock className="w-3 h-3 animate-spin" />
-                                Application is currently awaiting action from this authority.
-                              </p>
-                            )}
+                              {isCurrentStage && (
+                                <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
+                                  <Clock className="w-3 h-3 animate-spin" />
+                                  Application is currently awaiting action from this authority.
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    });
-                  })()}
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
 
@@ -2850,26 +2875,23 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                   {/* Selected Certificate Preview Card OR Clean Upload Dropzone */}
                   {completionCertFile ? (
-                    <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${
-                      completionCertFile.size > 1024 * 1024
+                    <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${completionCertFile.size > 1024 * 1024
                         ? 'bg-rose-500/5 border-rose-500/40'
                         : theme === 'dark' ? 'bg-background/90 border-primary/30' : 'bg-white border-primary/30 shadow-sm'
-                    }`}>
+                      }`}>
                       <div className="flex items-center gap-3 min-w-0">
                         {certPreviewUrl ? (
                           <img
                             src={certPreviewUrl}
                             alt="Certificate Preview"
-                            className={`w-12 h-12 rounded-lg object-cover border shrink-0 bg-muted ${
-                              completionCertFile.size > 1024 * 1024 ? 'border-rose-500/40' : 'border-primary/20'
-                            }`}
+                            className={`w-12 h-12 rounded-lg object-cover border shrink-0 bg-muted ${completionCertFile.size > 1024 * 1024 ? 'border-rose-500/40' : 'border-primary/20'
+                              }`}
                           />
                         ) : (
-                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border ${
-                            completionCertFile.size > 1024 * 1024
+                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border ${completionCertFile.size > 1024 * 1024
                               ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
                               : 'bg-primary/10 text-primary border-primary/20'
-                          }`}>
+                            }`}>
                             <FileText className="w-6 h-6" />
                           </div>
                         )}
@@ -2924,9 +2946,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   ) : (
                     <div
                       onClick={() => certFileInputRef.current?.click()}
-                      className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 ${
-                        theme === 'dark' ? 'border-border/60 bg-background/50' : 'border-gray-200 bg-white/80'
-                      }`}
+                      className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 ${theme === 'dark' ? 'border-border/60 bg-background/50' : 'border-gray-200 bg-white/80'
+                        }`}
                     >
                       <div className="flex flex-col items-center justify-center gap-1.5">
                         <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">

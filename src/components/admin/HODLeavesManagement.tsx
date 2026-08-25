@@ -2,7 +2,7 @@ import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
-import { CheckCircle, XCircle, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { CheckCircle, XCircle, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Filter, FileText, ExternalLink } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +42,10 @@ interface LeaveRequest {
   to: string;
   reason: string;
   status: string;
+  initial_document_url?: string | null;
+  completion_document_url?: string | null;
+  od_purpose_category?: string | null;
+  od_completion_verified?: boolean;
   current_stage?: string;
   alternate_faculty_name?: string | null;
   alternate_duty_status?: string;
@@ -72,6 +76,55 @@ const getStatusBadge = (status: string, theme: string) => {
     default:
       return <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>Unknown</span>;
   }
+};
+
+const renderLeaveCategoryBadge = (leaveType: string, isHalfDay?: boolean, halfDaySession?: string | null, odCategory?: string | null) => {
+  const normalizedType = (leaveType || 'casual').toLowerCase();
+  
+  let label = 'Casual (CL)';
+  let colorClass = 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300';
+  
+  if (normalizedType === 'od' || normalizedType === 'on_duty') {
+    label = 'On Duty (OD)';
+    colorClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300';
+  } else if (normalizedType === 'short_permission') {
+    label = 'Short Permission';
+    colorClass = 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300';
+  } else if (normalizedType === 'earned' || normalizedType === 'el') {
+    label = 'Earned (EL)';
+    colorClass = 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300';
+  } else if (normalizedType === 'vacation') {
+    label = 'Vacation Leave';
+    colorClass = 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300';
+  } else if (normalizedType === 'rh' || normalizedType === 'restricted_holiday') {
+    label = 'Holiday (RH)';
+    colorClass = 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300';
+  } else if (normalizedType === 'maternity' || normalizedType === 'ml') {
+    label = 'Maternity (ML)';
+    colorClass = 'bg-pink-100 text-pink-800 dark:bg-pink-950/40 dark:text-pink-300';
+  }
+
+  const showHalfDay = Boolean(isHalfDay || normalizedType === 'half_day');
+  const sessionNormalized = (halfDaySession || '').toLowerCase();
+  const sessionText = (sessionNormalized === 'forenoon' || sessionNormalized === 'morning') ? 'Morning' : 'Afternoon';
+
+  return (
+    <div className="flex flex-wrap items-center gap-1 mt-1">
+      <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded w-fit ${colorClass}`}>
+        {label}
+      </span>
+      {odCategory && (
+        <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 w-fit">
+          OD: {odCategory.replace(/_/g, ' ').toUpperCase()}
+        </span>
+      )}
+      {showHalfDay && (
+        <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 w-fit">
+          Half-Day ({sessionText})
+        </span>
+      )}
+    </div>
+  );
 };
 
 const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementProps) => {
@@ -195,6 +248,10 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
             from: leave.start_date || "N/A",
             to: leave.end_date || "N/A",
             reason: leave.reason || "N/A",
+            initial_document_url: leave.initial_document_url || null,
+            completion_document_url: leave.completion_document_url || null,
+            od_purpose_category: leave.od_purpose_category || null,
+            od_completion_verified: Boolean(leave.od_completion_verified),
             current_stage: leave.current_stage,
             alternate_faculty_name: leave.alternate_faculty_name,
             alternate_duty_status: leave.alternate_duty_status,
@@ -605,10 +662,34 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
 
                       <div className="mt-2.5">
                         <div className="text-sm font-semibold text-foreground">{leave.title}</div>
-                        {leave.leave_type === 'short_permission' && (
-                          <span className={`inline-block mt-0.5 text-[10px] font-medium px-1.5 py-0.2 rounded ${theme === 'dark' ? 'bg-purple-950/40 text-purple-300' : 'bg-purple-50 text-purple-700'}`}>
-                            Short Permission
-                          </span>
+                        {renderLeaveCategoryBadge(leave.leave_type, leave.is_half_day, leave.half_day_session, leave.od_purpose_category)}
+                        {(leave.initial_document_url || leave.completion_document_url) && (
+                          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                            {leave.initial_document_url && (
+                              <a
+                                href={leave.initial_document_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors"
+                              >
+                                <FileText className="w-3 h-3 text-sky-600 dark:text-sky-400" />
+                                <span>Attachment</span>
+                                <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                              </a>
+                            )}
+                            {leave.completion_document_url && (
+                              <a
+                                href={leave.completion_document_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
+                              >
+                                <FileText className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                <span>Attendance Cert</span>
+                                <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                              </a>
+                            )}
+                          </div>
                         )}
                         {leave.hod_approval_status === "APPROVED" && (
                           <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-1 font-medium">
@@ -690,134 +771,155 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
               </div>
 
               {/* Desktop / Tablet: table */}
-              <table className="hidden md:table w-full text-sm text-left border-collapse">
-                <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-border bg-card shadow-sm' : 'border-gray-200 bg-gray-50 shadow-sm'}`}>
-                  <tr>
-                    <th className={`py-3 px-2 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Applicant</th>
-                    <th className={`py-3 px-2 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Category / Title</th>
-                    <th className={`py-3 px-4 md:px-6 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period & Time</th>
-                    <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
-                    <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
-                    <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {Array.isArray(filteredLeaveRequests) && filteredLeaveRequests.length > 0 ?
-                    filteredLeaveRequests.map((leave) =>
-                      <tr
-                        key={leave.id}
-                        className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
-
-                        <td className="py-4 px-2 md:px-4 text-left">
-                          <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.name}</div>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
-                              {leave.role?.replace('_', ' ')}
-                            </span>
-                            {(['teacher', 'faculty', 'hod'].includes(leave.role?.toLowerCase()) && leave.department && leave.department !== 'General' && leave.department !== 'N/A') && (
-                              <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.department}</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-4 px-2 md:px-4 text-left">
-                          <div className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</div>
-                          <div className="flex flex-col items-start gap-1 mt-1">
-                            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded w-fit ${
-                              leave.leave_type === 'short_permission' ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300' :
-                              leave.leave_type === 'earned' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' :
-                              leave.leave_type === 'rh' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300' :
-                              'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
-                            }`}>
-                              {leave.leave_type === 'casual' ? 'Casual (CL)' :
-                               leave.leave_type === 'earned' ? 'Earned (EL)' :
-                               leave.leave_type === 'rh' ? 'Holiday (RH)' :
-                               leave.leave_type === 'short_permission' ? 'Short Permission' :
-                               leave.leave_type}
-                            </span>
-                            {leave.is_half_day && (
-                              <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 w-fit">
-                                Half-Day ({leave.half_day_session?.toLowerCase() === 'forenoon' || leave.half_day_session?.toLowerCase() === 'morning' ? 'Morning' : 'Afternoon'})
-                              </span>
-                            )}
-                          </div>
-                          {leave.alternate_faculty_name && (
-                            <div className="text-[11px] text-muted-foreground mt-1">
-                              Sub: <span className="font-medium text-foreground">{leave.alternate_faculty_name}</span> ({leave.alternate_duty_status})
-                            </div>
-                          )}
-                          {leave.hod_approval_status === "APPROVED" && (
-                            <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-0.5 font-medium flex items-center gap-1">
-                              <span>✓ Endorsed by HOD{leave.hod_reviewed_by_name ? ` (${leave.hod_reviewed_by_name})` : ''}</span>
-                            </div>
-                          )}
-                          {leave.intermediate_approval_status === "APPROVED" && (
-                            <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-0.5 font-medium flex items-center gap-1">
-                              <span>✓ Endorsed by Section Head{leave.intermediate_reviewed_by_name ? ` (${leave.intermediate_reviewed_by_name})` : ''}</span>
-                            </div>
-                          )}
-                        </td>
-                        <td className={`py-4 px-2 md:px-4 text-sm text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                          <div>{formatDateString(leave.from)} {leave.from !== leave.to && <><span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {formatDateString(leave.to)}</>}</div>
-                          {leave.start_time && leave.end_time && (
-                            <div className="text-xs font-semibold text-primary mt-0.5">
-                              {leave.start_time} - {leave.end_time}
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-4 px-2 md:px-4 text-sm text-center">
-                          <button
-                            onClick={() => setViewReason(leave.reason)}
-                            className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${theme === 'dark'
-                                ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
-                                : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
-                              }`}
-                          >
-                            View
-                          </button>
-                        </td>
-                        <td className="py-4 px-2 md:px-4 text-center">{getStatusBadge(leave.status, theme)}</td>
-                        <td className="py-4 px-2 md:px-4 text-center">
-                          {canTakeAction(leave) ?
-                            <div className="flex flex-col md:flex-row justify-center gap-2">
-                              <Button
-                                variant="outline"
-                                className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
-                                  'text-green-400 border-green-400 hover:bg-green-900/20' :
-                                  'text-green-700 border-green-600 hover:bg-green-100'}`
-                                }
-                                onClick={() => handleApprove(leave.id)}
-                                disabled={loading}>
-
-                                <CheckCircle size={16} /> Approve
-                              </Button>
-                              <Button
-                                variant="outline"
-                                className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
-                                  'text-red-400 border-red-400 hover:bg-red-900/20' :
-                                  'text-red-700 border-red-600 hover:bg-red-100'}`
-                                }
-                                onClick={() => handleReject(leave.id)}
-                                disabled={loading}>
-
-                                <XCircle size={16} /> Reject
-                              </Button>
-                            </div> :
-
-                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                              {getActionPendingLabel(leave) || "No action needed"}
-                            </span>
-                          }
-                        </td>
-                      </tr>
-                    ) :
-
+              <div className="hidden md:block overflow-x-auto custom-scrollbar">
+                <table className="w-full text-sm text-left border-collapse">
+                  <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-border bg-card shadow-sm' : 'border-gray-200 bg-gray-50 shadow-sm'}`}>
                     <tr>
-                      <td colSpan={6} className="py-20 px-4">
-                        <div className="flex flex-col items-center justify-center">
-                          <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                            <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
-                          </div>
-                          <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests</h3>
+                      <th className={`py-3 px-2 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Applicant</th>
+                      <th className={`py-3 px-2 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Category / Title</th>
+                      <th className={`py-3 px-4 md:px-6 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period & Time</th>
+                      <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attachments</th>
+                      <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
+                      <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
+                      <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {Array.isArray(filteredLeaveRequests) && filteredLeaveRequests.length > 0 ?
+                      filteredLeaveRequests.map((leave) =>
+                        <tr
+                          key={leave.id}
+                          className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
+
+                          <td className="py-4 px-2 md:px-4 text-left">
+                            <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.name}</div>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
+                                {leave.role?.replace('_', ' ')}
+                              </span>
+                              {(['teacher', 'faculty', 'hod'].includes(leave.role?.toLowerCase()) && leave.department && leave.department !== 'General' && leave.department !== 'N/A') && (
+                                <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.department}</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-4 px-2 md:px-4 text-left">
+                            <div className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</div>
+                            {renderLeaveCategoryBadge(leave.leave_type, leave.is_half_day, leave.half_day_session, leave.od_purpose_category)}
+                            {leave.alternate_faculty_name && (
+                              <div className="text-[11px] text-muted-foreground mt-1">
+                                Sub: <span className="font-medium text-foreground">{leave.alternate_faculty_name}</span> ({leave.alternate_duty_status})
+                              </div>
+                            )}
+                            {leave.hod_approval_status === "APPROVED" && (
+                              <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-0.5 font-medium flex items-center gap-1">
+                                <span>✓ Endorsed by HOD{leave.hod_reviewed_by_name ? ` (${leave.hod_reviewed_by_name})` : ''}</span>
+                              </div>
+                            )}
+                            {leave.intermediate_approval_status === "APPROVED" && (
+                              <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-0.5 font-medium flex items-center gap-1">
+                                <span>✓ Endorsed by Section Head{leave.intermediate_reviewed_by_name ? ` (${leave.intermediate_reviewed_by_name})` : ''}</span>
+                              </div>
+                            )}
+                          </td>
+                          <td className={`py-4 px-2 md:px-4 text-sm text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            <div>{formatDateString(leave.from)} {leave.from !== leave.to && <><span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {formatDateString(leave.to)}</>}</div>
+                            {leave.start_time && leave.end_time && (
+                              <div className="text-xs font-semibold text-primary mt-0.5">
+                                {leave.start_time} - {leave.end_time}
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Attachments Column */}
+                          <td className="py-4 px-2 md:px-4 text-sm text-center">
+                            {leave.initial_document_url || leave.completion_document_url ? (
+                              <div className="flex flex-col items-center justify-center gap-1.5">
+                                {leave.initial_document_url && (
+                                  <a
+                                    href={leave.initial_document_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors shrink-0 whitespace-nowrap"
+                                    title="View Attached Order / Document Proof"
+                                  >
+                                    <FileText className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                                    <span>Attachment</span>
+                                    <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                                  </a>
+                                )}
+                                {leave.completion_document_url && (
+                                  <a
+                                    href={leave.completion_document_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors shrink-0 whitespace-nowrap"
+                                    title="View Attendance Certificate"
+                                  >
+                                    <FileText className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                    <span>Attendance Cert</span>
+                                    <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                                  </a>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground text-xs italic">—</span>
+                            )}
+                          </td>
+
+                          <td className="py-4 px-2 md:px-4 text-sm text-center">
+                            <button
+                              onClick={() => setViewReason(leave.reason)}
+                              className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${theme === 'dark'
+                                  ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                  : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                                }`}
+                            >
+                              View
+                            </button>
+                          </td>
+                          <td className="py-4 px-2 md:px-4 text-center">{getStatusBadge(leave.status, theme)}</td>
+                          <td className="py-4 px-2 md:px-4 text-center">
+                            {canTakeAction(leave) ?
+                              <div className="flex flex-col md:flex-row justify-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
+                                    'text-green-400 border-green-400 hover:bg-green-900/20' :
+                                    'text-green-700 border-green-600 hover:bg-green-100'}`
+                                  }
+                                  onClick={() => handleApprove(leave.id)}
+                                  disabled={loading}>
+
+                                  <CheckCircle size={16} /> Approve
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
+                                    'text-red-400 border-red-400 hover:bg-red-900/20' :
+                                    'text-red-700 border-red-600 hover:bg-red-100'}`
+                                  }
+                                  onClick={() => handleReject(leave.id)}
+                                  disabled={loading}>
+
+                                  <XCircle size={16} /> Reject
+                                </Button>
+                              </div> :
+
+                              <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                                {getActionPendingLabel(leave) || "No action needed"}
+                              </span>
+                            }
+                          </td>
+                        </tr>
+                      ) :
+
+                      <tr>
+                        <td colSpan={7} className="py-20 px-4">
+                          <div className="flex flex-col items-center justify-center">
+                            <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                              <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
+                            </div>
+                            <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests</h3>
                           <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                             There are currently no leave requests available for the selected period.
                           </p>
@@ -828,7 +930,8 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                 </tbody>
               </table>
             </div>
-          </CardContent>
+          </div>
+        </CardContent>
 
           {totalPages > 1 && (
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
