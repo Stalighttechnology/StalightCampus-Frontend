@@ -663,34 +663,6 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                       <div className="mt-2.5">
                         <div className="text-sm font-semibold text-foreground">{leave.title}</div>
                         {renderLeaveCategoryBadge(leave.leave_type, leave.is_half_day, leave.half_day_session, leave.od_purpose_category)}
-                        {(leave.initial_document_url || leave.completion_document_url) && (
-                          <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                            {leave.initial_document_url && (
-                              <a
-                                href={leave.initial_document_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors"
-                              >
-                                <FileText className="w-3 h-3 text-sky-600 dark:text-sky-400" />
-                                <span>Attachment</span>
-                                <ExternalLink className="w-2.5 h-2.5 opacity-70" />
-                              </a>
-                            )}
-                            {leave.completion_document_url && (
-                              <a
-                                href={leave.completion_document_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
-                              >
-                                <FileText className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                                <span>Attendance Cert</span>
-                                <ExternalLink className="w-2.5 h-2.5 opacity-70" />
-                              </a>
-                            )}
-                          </div>
-                        )}
                         {leave.hod_approval_status === "APPROVED" && (
                           <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-1 font-medium">
                             ✓ Endorsed by HOD{leave.hod_reviewed_by_name ? ` (${leave.hod_reviewed_by_name})` : ''}
@@ -717,16 +689,55 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                           )}
                         </div>
 
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={`leave-view-btn w-full h-9 font-semibold transition border ${theme === 'dark'
-                              ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
-                              : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
-                            }`}
-                          onClick={() => setViewReason(leave.reason)}>
-                          View Reason
-                        </Button>
+                        <div className="flex flex-col gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={`leave-view-btn w-full h-9 font-semibold transition border ${theme === 'dark'
+                                ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                              }`}
+                            onClick={() => setViewReason(leave.reason)}>
+                            View Reason
+                          </Button>
+
+                          {(leave.initial_document_url || leave.completion_document_url) && (
+                            <>
+                              {leave.initial_document_url && (
+                                <a
+                                  href={leave.initial_document_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md border shadow-sm transition-all ${
+                                    theme === 'dark'
+                                      ? 'border-sky-500/30 bg-sky-950/30 text-sky-300 hover:bg-sky-950/50'
+                                      : 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100'
+                                  }`}
+                                >
+                                  <FileText className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                                  <span>View Attachment</span>
+                                  <ExternalLink className="w-3 h-3 opacity-70" />
+                                </a>
+                              )}
+                              {leave.completion_document_url && (
+                                <a
+                                  href={leave.completion_document_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md border shadow-sm transition-all ${
+                                    theme === 'dark'
+                                      ? 'border-emerald-500/30 bg-emerald-950/30 text-emerald-300 hover:bg-emerald-950/50'
+                                      : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                  }`}
+                                >
+                                  <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                  <span>View Attendance Certificate</span>
+                                  <ExternalLink className="w-3 h-3 opacity-70" />
+                                </a>
+                              )}
+                            </>
+                          )}
+                        </div>
 
                         {canTakeAction(leave) ?
                           <div className="grid grid-cols-2 gap-3 mt-2">

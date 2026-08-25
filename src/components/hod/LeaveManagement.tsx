@@ -646,34 +646,6 @@ const LeaveManagement = () => {
                           </span>
                         )}
                       </div>
-                      {(row.initial_document_url || row.completion_document_url) && (
-                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                          {row.initial_document_url && (
-                            <a
-                              href={row.initial_document_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors"
-                            >
-                              <FileText className="w-3 h-3 text-sky-600 dark:text-sky-400" />
-                              <span>Attachment</span>
-                              <ExternalLink className="w-2.5 h-2.5 opacity-70" />
-                            </a>
-                          )}
-                          {row.completion_document_url && (
-                            <a
-                              href={row.completion_document_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
-                            >
-                              <FileText className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                              <span>Attendance Cert</span>
-                              <ExternalLink className="w-2.5 h-2.5 opacity-70" />
-                            </a>
-                          )}
-                        </div>
-                      )}
                       {row.alternate_faculty_name && (
                         <div className="text-[11px] text-muted-foreground mt-1">
                           Sub: <span className="font-medium text-foreground">{row.alternate_faculty_name}</span> ({row.alternate_duty_status})
@@ -681,17 +653,53 @@ const LeaveManagement = () => {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-center mb-4">
+                    <div className="flex flex-col gap-2 mb-4">
                       <button
                         onClick={() => setViewReason(row.reason)}
-                        className={`w-full sm:w-32 h-8 text-sm font-semibold flex items-center justify-center rounded-lg shadow-sm transition-all duration-200
+                        className={`w-full h-9 text-sm font-semibold flex items-center justify-center rounded-lg shadow-sm transition-all duration-200
                         ${theme === 'dark' ?
                             'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' :
                             'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10'}`
                         }>
-
                         View Reason
                       </button>
+
+                      {(row.initial_document_url || row.completion_document_url) && (
+                        <>
+                          {row.initial_document_url && (
+                            <a
+                              href={row.initial_document_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-lg border shadow-sm transition-all ${
+                                theme === 'dark'
+                                  ? 'border-sky-500/30 bg-sky-950/30 text-sky-300 hover:bg-sky-950/50'
+                                  : 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100'
+                              }`}
+                            >
+                              <FileText className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                              <span>View Attachment</span>
+                              <ExternalLink className="w-3 h-3 opacity-70" />
+                            </a>
+                          )}
+                          {row.completion_document_url && (
+                            <a
+                              href={row.completion_document_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-lg border shadow-sm transition-all ${
+                                theme === 'dark'
+                                  ? 'border-emerald-500/30 bg-emerald-950/30 text-emerald-300 hover:bg-emerald-950/50'
+                                  : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                              }`}
+                            >
+                              <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                              <span>View Attendance Certificate</span>
+                              <ExternalLink className="w-3 h-3 opacity-70" />
+                            </a>
+                          )}
+                        </>
+                      )}
                     </div>
 
                     {row.canApprove ?

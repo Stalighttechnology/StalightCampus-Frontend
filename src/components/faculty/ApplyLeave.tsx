@@ -2150,21 +2150,6 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                               <div className="mt-2">
                                 {renderCategoryBadge(leave)}
                               </div>
-                              {leave.initial_document_url && (
-                                <div className="mt-1.5">
-                                  <a
-                                    href={leave.initial_document_url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors shrink-0"
-                                    title="View Attached Duty Order / Document Proof"
-                                  >
-                                    <FileText className="w-3 h-3 text-sky-600 dark:text-sky-400" />
-                                    <span>Attachment</span>
-                                    <ExternalLink className="w-2.5 h-2.5 opacity-70" />
-                                  </a>
-                                </div>
-                              )}
                               {leave.alternate_faculty_name && (
                                 <div className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1.5 flex-wrap">
                                   <span>Substitute:</span>
@@ -2220,14 +2205,32 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             </div>
                           )}
 
-                          <div className="mt-3 flex gap-2">
+                          <div className="mt-3 flex flex-col gap-2">
                             <button
                               onClick={() => setSelectedLeaveForFlow(leave)}
-                              className="w-full text-center text-xs font-medium py-1.5 px-3 rounded-lg border border-primary/20 text-primary bg-primary/5 hover:bg-primary/10 flex items-center justify-center gap-1.5"
+                              className="w-full text-center text-xs font-medium py-2 px-3 rounded-lg border border-primary/20 text-primary bg-primary/5 hover:bg-primary/10 flex items-center justify-center gap-1.5"
                             >
                               <Eye className="w-3.5 h-3.5" />
                               View Approval Flow & Reason
                             </button>
+
+                            {leave.initial_document_url && (
+                              <a
+                                href={leave.initial_document_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={`w-full h-8 text-xs font-medium flex items-center justify-center gap-1.5 rounded-lg border shadow-sm transition-all ${
+                                  theme === 'dark'
+                                    ? 'border-sky-500/30 bg-sky-950/30 text-sky-300 hover:bg-sky-950/50'
+                                    : 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100'
+                                }`}
+                                title="View Attached Duty Order / Document Proof"
+                              >
+                                <FileText className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                                <span>View Attachment</span>
+                                <ExternalLink className="w-3 h-3 opacity-70" />
+                              </a>
+                            )}
                           </div>
                         </div>
                       ))
