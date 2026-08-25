@@ -29,6 +29,12 @@ export interface Announcement {
   latitude?: number | null;
   longitude?: number | null;
   incident_id?: number | null;
+  is_circular?: boolean;
+  circular_number?: string | null;
+  circular_category?: string | null;
+  file_url?: string | null;
+  file_name?: string | null;
+  file_size?: number | null;
 }
 
 export interface AnnouncementListResponse {
@@ -52,6 +58,12 @@ export interface CreateAnnouncementRequest {
   section?: number | null;
   expires_at?: string;
   priority?: "low" | "normal" | "high" | "urgent";
+  is_circular?: boolean;
+  circular_number?: string;
+  circular_category?: string;
+  file_url?: string | null;
+  file_name?: string | null;
+  file_size?: number | null;
 }
 
 export interface AnnouncementStats {
@@ -74,6 +86,9 @@ export const fetchAnnouncements = async (
   let receivedPage: any;
   let includeInactive = false;
   let includeExpired = false;
+  let isCircular: any = undefined;
+  let circularCategory: any = undefined;
+  let search: any = undefined;
 
   // Handle both legacy positional arguments and modern options object
   if (typeof options === 'object' && options !== null && !Array.isArray(options)) {
@@ -87,6 +102,9 @@ export const fetchAnnouncements = async (
       receivedPage = options.receivedPage;
       includeInactive = options.includeInactive ?? false;
       includeExpired = options.includeExpired ?? false;
+      isCircular = options.is_circular ?? options.isCircular;
+      circularCategory = options.circular_category ?? options.circularCategory;
+      search = options.search ?? options.q;
     }
   } else if (typeof options === 'number') {
     page = options;
@@ -112,6 +130,9 @@ export const fetchAnnouncements = async (
 
     if (myPage !== undefined && myPage !== null) params.append("my_page", String(myPage));
     if (receivedPage !== undefined && receivedPage !== null) params.append("received_page", String(receivedPage));
+    if (isCircular !== undefined && isCircular !== null) params.append("is_circular", String(isCircular));
+    if (circularCategory && circularCategory !== 'all') params.append("circular_category", String(circularCategory));
+    if (search) params.append("search", String(search));
 
     const response = await fetchWithTokenRefresh(
       `${API_ENDPOINT}/announcements/?${params.toString()}`,
@@ -134,6 +155,23 @@ export const fetchAnnouncements = async (
       message: error.message || "Failed to fetch announcements"
     };
   }
+};
+
+// Fetch official circulars with category filtering and indexing
+export const fetchCirculars = async (options: {
+  page?: number;
+  pageSize?: number;
+  myPage?: number;
+  receivedPage?: number;
+  circular_category?: string;
+  search?: string;
+  includeInactive?: boolean;
+  includeExpired?: boolean;
+} = {}) => {
+  return fetchAnnouncements({
+    ...options,
+    is_circular: true,
+  });
 };
 
 // Create announcement
