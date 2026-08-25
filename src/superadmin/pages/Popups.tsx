@@ -26,6 +26,8 @@ interface Popup {
   target_roles: string[];
 }
 
+import { AppVersionControlCard } from "./AppVersionControlCard";
+
 const Popups = () => {
   const { theme } = useTheme();
   const [popups, setPopups] = useState<Popup[]>([]);
@@ -167,6 +169,8 @@ const Popups = () => {
 
   return (
     <div className="space-y-6">
+      {!showForm && <AppVersionControlCard />}
+
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">In-App Popups</h2>

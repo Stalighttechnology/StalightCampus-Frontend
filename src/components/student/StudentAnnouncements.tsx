@@ -809,6 +809,31 @@ const StudentAnnouncements = () => {
                                   </h3>
                                 </div>
 
+                                {announcement.is_circular && (
+                                  <div className="flex flex-wrap items-center gap-2 p-2 rounded-lg bg-primary/5 border border-primary/15">
+                                    <Badge variant="outline" className="text-[10px] font-semibold px-2 py-0.5 bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border-purple-300">
+                                      <FileDown className="w-3 h-3 mr-1" />
+                                      {announcement.circular_category ? `${announcement.circular_category.toUpperCase()} Circular` : 'Official Circular'}
+                                    </Badge>
+                                    {announcement.circular_number && (
+                                      <span className="text-[10px] font-mono text-muted-foreground font-medium">
+                                        Ref: {announcement.circular_number}
+                                      </span>
+                                    )}
+                                    {announcement.file_url && (
+                                      <a
+                                        href={announcement.file_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline ml-auto flex items-center gap-1"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <FileDown className="w-3.5 h-3.5" /> Download Doc
+                                      </a>
+                                    )}
+                                  </div>
+                                )}
+
                                 <div className="flex flex-wrap items-center gap-y-2 gap-x-4 pt-2">
                                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                     <User size={14} className="opacity-70" />
@@ -834,6 +859,17 @@ const StudentAnnouncements = () => {
                               </div>
 
                               <div className="flex flex-row md:flex-col items-center md:items-end gap-2 w-full md:w-auto">
+                                {announcement.is_circular && announcement.file_url && (
+                                  <a
+                                    href={announcement.file_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex-1 md:flex-none w-full md:w-auto h-9 px-3 gap-1.5 inline-flex items-center justify-center rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm transition-colors"
+                                  >
+                                    <FileDown size={15} />
+                                    <span>PDF</span>
+                                  </a>
+                                )}
                                 {!announcement.is_read && (
                                   <Button
                                     variant="outline"
@@ -919,6 +955,11 @@ const StudentAnnouncements = () => {
                   <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-medium">
                     {formatRoleLabel(selectedAnnouncement.created_by_role)}
                   </Badge>
+                  {selectedAnnouncement.is_circular && (
+                    <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border-purple-300">
+                      {selectedAnnouncement.circular_category ? `${selectedAnnouncement.circular_category.toUpperCase()} Circular` : 'Official Circular'}
+                    </Badge>
+                  )}
                 </div>
                 <DialogTitle className="text-lg font-semibold leading-snug mt-1">
                   {selectedAnnouncement.title}
@@ -942,6 +983,32 @@ const StudentAnnouncements = () => {
                   </div>
                 </DialogDescription>
               </DialogHeader>
+
+              {selectedAnnouncement.is_circular && (
+                <div className="p-4 mx-5 mt-4 rounded-xl border border-primary/20 bg-primary/5 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-foreground">
+                      {selectedAnnouncement.circular_number ? `Ref: ${selectedAnnouncement.circular_number}` : 'Official Circular'}
+                    </span>
+                    {selectedAnnouncement.file_url && (
+                      <a
+                        href={selectedAnnouncement.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="h-8 px-3 text-xs inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm transition-colors"
+                      >
+                        <FileDown className="w-3.5 h-3.5" /> Download Doc
+                      </a>
+                    )}
+                  </div>
+                  {selectedAnnouncement.file_name && (
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      File: <strong className="text-foreground">{selectedAnnouncement.file_name}</strong>
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="p-5">
                 <p className={`text-sm leading-relaxed whitespace-pre-wrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>
                   {selectedAnnouncement.message}

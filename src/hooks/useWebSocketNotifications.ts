@@ -135,6 +135,14 @@ export const useWebSocketNotifications = () => {
             ws.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
+                    
+                    const isDeactivationOrDeletion = 
+                        data.event === 'announcement.deleted' || 
+                        data.event === 'announcement.deactivated' || 
+                        data.is_active === false || 
+                        data.status === 'deactivated' || 
+                        data.status === 'inactive';
+
                     const isNotification = data.event === 'notification' || 
                                            data.notification_type === 'announcement' || 
                                            data.type === 'announcement' || 
@@ -148,27 +156,26 @@ export const useWebSocketNotifications = () => {
                         const currentUserId = parsedUser?.id || parsedUser?.user_id || null;
                         const isSelf = data.sender_id != null && currentUserId != null && String(data.sender_id) === String(currentUserId);
 
-                        if (!isSelf) {
-                            // Play audio notification chime for incoming WebSocket alerts
+                        // Only play sound chime and show toast popup for NEW active alerts/announcements, NEVER on deactivations or deletions
+                        if (!isSelf && !isDeactivationOrDeletion && data.event !== 'announcement.updated') {
+                            // Play audio notification chime for incoming active WebSocket alerts
                             playNotificationSound();
 
                             // Show toast notification
-                            if (data.event !== 'announcement.deleted') {
-                                toast(data.title || "New Notification", {
-                                    description: data.message,
-                                });
-                            }
+                            toast(data.title || "New Notification", {
+                                description: data.message,
+                            });
                             // Update the navbar badge count
                             window.dispatchEvent(new CustomEvent('refresh-unread-count'));
                         }
                         
-                        // Invalidate queries & dispatch refresh events
+                        // Invalidate queries & dispatch refresh events silently
                         queryClient.invalidateQueries({ queryKey: ['studentNotifications'] });
                         queryClient.invalidateQueries({ queryKey: ['notifications'] });
                         queryClient.invalidateQueries({ queryKey: ['announcements'] });
                         queryClient.invalidateQueries({ queryKey: ['campusMonitoring'] });
                         queryClient.invalidateQueries({ queryKey: ['pendingLeaveCounts'] });
-                        if (!isSelf) {
+                        if (!isSelf && !isDeactivationOrDeletion) {
                             queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
                         }
                         window.dispatchEvent(new CustomEvent('leaves-updated'));

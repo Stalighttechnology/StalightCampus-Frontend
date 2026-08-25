@@ -7,6 +7,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(CampusGeofencePlugin.class);
+        registerPlugin(StoreRedirectPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }
