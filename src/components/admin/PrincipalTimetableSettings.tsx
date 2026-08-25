@@ -473,11 +473,14 @@ export default function PrincipalTimetableSettings() {
     total_standard_leaves: number | string;
     short_permission_max_hours: number | string;
     leave_policy_rules: {
+      academic_year?: {
+        start_month?: number | string;
+      };
       casual_leave?: {
         annual_quota?: number | string;
         max_stretch_days?: number | string;
         allow_half_day?: boolean;
-        half_day_session?: string;
+        half_day_session?: 'afternoon_only' | 'forenoon_only' | 'both';
         forenoon_start_time?: string;
         forenoon_end_time?: string;
         afternoon_start_time?: string;
@@ -520,6 +523,9 @@ export default function PrincipalTimetableSettings() {
     total_standard_leaves: 15,
     short_permission_max_hours: 2,
     leave_policy_rules: {
+      academic_year: {
+        start_month: 6
+      },
       casual_leave: {
         annual_quota: 15,
         max_stretch_days: 3,
@@ -1500,6 +1506,103 @@ export default function PrincipalTimetableSettings() {
                   <SkeletonTable rows={3} cols={2} />
                 ) : (
                   <div className="space-y-6">
+                    {/* Academic Year Cycle & Leave Reset Configuration Banner Card */}
+                    {(() => {
+                      const startMonthVal = Number(leavePolicy.leave_policy_rules?.academic_year?.start_month ?? 6);
+                      const today = new Date();
+                      const curYear = today.getFullYear();
+                      const curMonth = today.getMonth() + 1;
+                      const cycleStartYear = curMonth >= startMonthVal ? curYear : curYear - 1;
+                      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                      const startMonthName = months[startMonthVal - 1] || "Jun";
+                      const endMonthVal = startMonthVal === 1 ? 12 : startMonthVal - 1;
+                      const endMonthName = months[endMonthVal - 1] || "May";
+                      const cycleEndYear = startMonthVal === 1 ? cycleStartYear : cycleStartYear + 1;
+                      const lastDay = new Date(cycleEndYear, endMonthVal, 0).getDate();
+                      const cycleLabel = startMonthVal === 1 ? `${cycleStartYear}` : `${cycleStartYear} - ${cycleEndYear}`;
+                      const cyclePeriodStr = `${startMonthName} 01, ${cycleStartYear} to ${endMonthName} ${lastDay}, ${cycleEndYear}`;
+
+                      return (
+                        <Card className={`border shadow-sm ${theme === 'dark' ? 'bg-background/90 border-border' : 'bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 border-indigo-100'}`}>
+                          <CardHeader className="p-4 pb-2 border-b border-border/40">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="w-7 h-7 shrink-0 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-xs flex items-center justify-center border border-indigo-500/20">
+                                  <CalendarCheck2 className="w-4 h-4" />
+                                </span>
+                                <div>
+                                  <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Academic Year Leave Cycle & Reset Configuration</CardTitle>
+                                  <CardDescription className="text-[11px]">
+                                    Configure the annual reset month and active 12-month cycle for all staff leave quotas (CL, EL, Vacation, RH, Maternity).
+                                  </CardDescription>
+                                </div>
+                              </div>
+                              <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 shrink-0 self-start sm:self-auto border border-indigo-200 dark:border-indigo-800">
+                                Active Cycle: AY {cycleLabel}
+                              </span>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="p-4 space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                              {/* 1. Academic Cycle Start / Reset Month */}
+                              <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Academic Cycle Reset Month</Label>
+                                <Select
+                                  value={String(startMonthVal)}
+                                  onValueChange={(val) => {
+                                    const parsed = parseInt(val, 10);
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        academic_year: {
+                                          ...prev.leave_policy_rules?.academic_year,
+                                          start_month: parsed
+                                        }
+                                      }
+                                    }));
+                                  }}
+                                >
+                                  <SelectTrigger className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
+                                    <SelectValue placeholder="Select Reset Month" />
+                                  </SelectTrigger>
+                                  <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                                    <SelectItem value="1">January 1 (Jan - Dec • Calendar Year)</SelectItem>
+                                    <SelectItem value="4">April 1 (Apr - Mar • Financial Year)</SelectItem>
+                                    <SelectItem value="6">June 1 (Jun - May • Standard Higher Ed)</SelectItem>
+                                    <SelectItem value="7">July 1 (Jul - Jun • University Academic Year)</SelectItem>
+                                    <SelectItem value="8">August 1 (Aug - Jul • Fall Session)</SelectItem>
+                                    <SelectItem value="9">September 1 (Sep - Aug • Autumn Session)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <p className="text-[10px] text-muted-foreground">All annual balances are calculated and automatically reset on this month.</p>
+                              </div>
+
+                              {/* 2. Active Cycle Period Preview */}
+                              <div className="space-y-1">
+                                <Label className="text-xs font-semibold">Current Active 12-Month Window</Label>
+                                <div className={`h-8 px-2.5 rounded-md border text-xs font-medium flex items-center justify-between ${theme === 'dark' ? 'bg-muted/20 border-border text-foreground' : 'bg-white border-slate-200 text-slate-800'}`}>
+                                  <span className="truncate">{cyclePeriodStr}</span>
+                                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold shrink-0 ml-1">12M</span>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground">Leave requests count strictly towards the academic cycle of their date.</p>
+                              </div>
+
+                              {/* 3. Strict Reset Enforcement Status */}
+                              <div className="space-y-1 sm:col-span-2 lg:col-span-1">
+                                <Label className="text-xs font-semibold">Cycle Reset Policy</Label>
+                                <div className="h-8 px-2.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                  <span className="text-[11px] font-medium truncate">Zero-accumulation & annual reset strictly enforced.</span>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground">EL semester credits (H1 vs H2) synchronize with this cycle.</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })()}
+
                     {/* Granular Leave Type Policies Configuration (CL, EL, RH, Short Permission) */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* 1. Casual Leave (CL) Policy Card */}

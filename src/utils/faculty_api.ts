@@ -546,6 +546,12 @@ interface GetAttendanceRecordsWithSummaryResponse {
 }
 
 export interface LeaveQuota {
+  // Academic Year Cycle
+  academic_year_label?: string;
+  academic_year_start_date?: string;
+  academic_year_end_date?: string;
+  academic_year_start_month?: number;
+
   // Backward compatible fields
   total_standard_leaves: number;
   used_standard_leaves: number;
@@ -562,10 +568,28 @@ export interface LeaveQuota {
   cl_annual_limit?: number;
   cl_used?: number;
   cl_remaining?: number;
+  cl_max_stretch?: number;
   el_annual_limit?: number;
   el_credited_so_far?: number;
   el_used?: number;
   el_remaining?: number;
+  el_min_stretch?: number;
+  el_max_stretch?: number;
+  el_jan_credit?: number;
+  el_jul_credit?: number;
+  el_half_year_period?: string;
+  is_el_eligible?: boolean;
+  od_total_approved_days?: number;
+  od_pending_certificates_count?: number;
+  is_od_eligible?: boolean;
+  vacation_annual_limit?: number;
+  vacation_used?: number;
+  vacation_remaining?: number;
+  is_vacation_eligible?: boolean;
+  maternity_annual_limit?: number;
+  maternity_used?: number;
+  maternity_remaining?: number;
+  is_maternity_eligible?: boolean;
   rh_annual_limit?: number;
   rh_used?: number;
   rh_remaining?: number;
@@ -574,6 +598,7 @@ export interface LeaveQuota {
   short_permission_limit_monthly?: number;
   short_permission_used_this_month?: number;
   short_permission_remaining_this_month?: number;
+  policy_rules?: any;
 }
 
 export interface ColleagueOption {

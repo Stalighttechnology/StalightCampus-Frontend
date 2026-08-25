@@ -788,6 +788,26 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
       <div ref={ref} className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
 
+        {/* Academic Year Cycle Header Banner */}
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <CalendarCheck2 className="w-4 h-4 text-primary" />
+              Academic Leave Cycle:
+            </span>
+            <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+              AY {leaveQuota?.academic_year_label || `${new Date().getFullYear()} - ${new Date().getFullYear() + 1}`}
+            </span>
+          </div>
+          <span className="text-[11px] text-muted-foreground font-medium">
+            {leaveQuota?.academic_year_start_date && leaveQuota?.academic_year_end_date ? (
+              <>Cycle Window: {leaveQuota.academic_year_start_date} to {leaveQuota.academic_year_end_date} (12 Months)</>
+            ) : (
+              <>Annual leave balances reset per Institutional Academic Cycle</>
+            )}
+          </span>
+        </div>
+
         {/* 9.8 Rule Quota Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* CL Card */}
@@ -1137,15 +1157,43 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         ))}
                       </div>
 
-                      {/* 9.8 Rule Tip */}
-                      <div className="text-[11px] text-muted-foreground pt-0.5">
-                        {leaveType === 'casual' && 'ℹ️ Rule 9.8.1: Max 3 days at a stretch. Cannot combine with other leave. Advance sanction required.'}
-                        {leaveType === 'od' && 'ℹ️ Rule 9.8.2: For conferences, workshops, Ph.D, statutory/exam duties. Attendance certificate required post-completion.'}
-                        {leaveType === 'earned' && 'ℹ️ Rule 9.8.3: 15 days/yr (7 Jan, 8 Jul). Min 2 days, max 5 days at a stretch. Non-accumulative.'}
-                        {leaveType === 'vacation' && 'ℹ️ Rule 9.8.4: For non-probationary vacational teaching staff as per college vacation schedule.'}
-                        {leaveType === 'maternity' && 'ℹ️ Rule 9.8.5: Up to 90 days for eligible female employees. Attach medical certificate.'}
-                        {leaveType === 'rh' && 'ℹ️ Rule 9.8.7: Max 2 days per year, limited to 1 day per calendar month.'}
-                        {leaveType === 'short_permission' && 'ℹ️ Rule 9.8.8: Max 2 hours per permission, allowed up to 5 times per month.'}
+                      {/* Dynamic Rule Tip from Organization Policy */}
+                      <div className="text-[11px] text-muted-foreground pt-0.5 leading-relaxed">
+                        {leaveType === 'casual' && (
+                          <span>
+                            ℹ️ <strong>Casual Leave (CL):</strong> Max <strong>{leaveQuota?.cl_max_stretch ?? leaveQuota?.policy_rules?.casual_leave?.max_stretch_days ?? 3} days</strong> at a stretch ({leaveQuota?.cl_annual_limit ?? leaveQuota?.cl_total ?? 15}d/academic year). {leaveQuota?.policy_rules?.casual_leave?.allow_half_day === false ? 'Half-day not permitted.' : (leaveQuota?.policy_rules?.casual_leave?.half_day_session === 'forenoon_only' ? 'Morning half-day only.' : (leaveQuota?.policy_rules?.casual_leave?.half_day_session === 'both' ? 'Morning & afternoon half-day permitted.' : 'Afternoon half-day only.'))} Anti-clubbing & advance sanction enforced.
+                          </span>
+                        )}
+                        {leaveType === 'od' && (
+                          <span>
+                            ℹ️ <strong>On Duty (OD):</strong> For conferences, workshops, Ph.D, statutory & institutional duties. {leaveQuota?.policy_rules?.on_duty?.require_initial_document ? 'Initial duty order/invitation attachment is mandatory.' : 'Supporting proof attachment recommended.'} {leaveQuota?.policy_rules?.on_duty?.require_completion_certificate !== false ? 'Attendance certificate required post-completion.' : ''}
+                          </span>
+                        )}
+                        {leaveType === 'earned' && (
+                          <span>
+                            ℹ️ <strong>Earned Leave (EL):</strong> <strong>{leaveQuota?.el_annual_limit ?? leaveQuota?.el_total_annual ?? 15} days/yr</strong> ({leaveQuota?.el_jan_credit ?? 7}d H1, {leaveQuota?.el_jul_credit ?? 8}d H2 credit). Min <strong>{leaveQuota?.el_min_stretch ?? 2}</strong> to max <strong>{leaveQuota?.el_max_stretch ?? 5} days</strong> at a stretch. Non-accumulative.
+                          </span>
+                        )}
+                        {leaveType === 'vacation' && (
+                          <span>
+                            ℹ️ <strong>Vacation Leave:</strong> <strong>{leaveQuota?.vacation_annual_limit ?? leaveQuota?.vacation_total ?? 20} days</strong> per academic year. {leaveQuota?.policy_rules?.vacation_leave?.allow_probation ? 'Available for all teaching faculty.' : 'Applicable for confirmed (non-probationary) teaching staff only.'}
+                          </span>
+                        )}
+                        {leaveType === 'maternity' && (
+                          <span>
+                            ℹ️ <strong>Maternity Leave (ML):</strong> Up to <strong>{leaveQuota?.maternity_annual_limit ?? leaveQuota?.maternity_total ?? 90} days</strong> for eligible staff. Medical certificate attachment required.
+                          </span>
+                        )}
+                        {leaveType === 'rh' && (
+                          <span>
+                            ℹ️ <strong>Restricted Holiday (RH):</strong> Max <strong>{leaveQuota?.rh_annual_limit ?? leaveQuota?.rh_total ?? 2} days</strong> per academic year, limited to <strong>{leaveQuota?.policy_rules?.restricted_holiday?.monthly_limit ?? leaveQuota?.rh_monthly_limit ?? 1} day</strong> per calendar month.
+                          </span>
+                        )}
+                        {leaveType === 'short_permission' && (
+                          <span>
+                            ℹ️ <strong>Short Permission:</strong> Max <strong>{leaveQuota?.short_permission_max_hours ?? leaveQuota?.sp_max_hours ?? 2} hours</strong> per permission, allowed up to <strong>{leaveQuota?.monthly_short_permission_limit ?? leaveQuota?.short_permission_limit_monthly ?? 5} times</strong> per calendar month.
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
