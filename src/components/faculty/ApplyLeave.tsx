@@ -2297,48 +2297,82 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       </div>
                     )}
 
-                    {/* Sequential Stages (HOD / Dean / Section Head / Principal) */}
-                    {(selectedLeaveForFlow.configured_stages && selectedLeaveForFlow.configured_stages.length > 0
-                      ? selectedLeaveForFlow.configured_stages.filter(s => s !== 'alternate_duty')
-                      : ['hod', 'principal']
-                    ).map((stageKey, idx) => {
-                      const stageNumber = (selectedLeaveForFlow.alternate_faculty_name ? 2 : 1) + idx;
-                      const isCurrentStage = selectedLeaveForFlow.current_stage === stageKey && selectedLeaveForFlow.status === 'Pending';
+                    {/* Sequential Stages or Auto-Approved 0-Stage Record */}
+                    {(() => {
+                      const reviewerStages = (selectedLeaveForFlow.configured_stages ?? []).filter((s: string) => s && s !== 'alternate_duty');
+                      const isAutoApprovedZeroStage = (selectedLeaveForFlow.status === 'Approved' || selectedLeaveForFlow.current_stage === 'completed') && reviewerStages.length === 0;
 
-                      let stageTitle = stageKey === 'hod' ? 'Head of Department (HOD)' :
-                        stageKey === 'dean' ? 'Dean' :
-                          stageKey === 'principal' ? 'Principal (Final Sanction)' :
-                            stageKey === 'admission_manager' ? 'Admission Manager' :
-                              stageKey === 'hms_admin' ? 'HMS Admin' :
-                                stageKey === 'transport_admin' ? 'Transport Admin' :
-                                  stageKey === 'coe' ? 'Controller of Examination (COE)' :
-                                    stageKey === 'fees_manager' ? 'Fees Manager' :
-                                      stageKey.replace('_', ' ').toUpperCase();
-
-                      let statusBadge = 'PENDING';
-                      let reviewerName = null;
-                      let reviewTime = null;
-                      let remarks = null;
-
-                      if (stageKey === 'hod') {
-                        statusBadge = selectedLeaveForFlow.hod_approval_status || 'PENDING';
-                        reviewerName = selectedLeaveForFlow.hod_reviewed_by;
-                        reviewTime = selectedLeaveForFlow.hod_reviewed_at;
-                        remarks = selectedLeaveForFlow.hod_remarks;
-                      } else if (stageKey === 'principal') {
-                        statusBadge = selectedLeaveForFlow.principal_approval_status || 'PENDING';
-                        reviewerName = selectedLeaveForFlow.principal_reviewed_by;
-                        reviewTime = selectedLeaveForFlow.principal_reviewed_at;
-                        remarks = selectedLeaveForFlow.principal_remarks;
-                      } else {
-                        statusBadge = selectedLeaveForFlow.intermediate_approval_status || 'PENDING';
-                        reviewerName = selectedLeaveForFlow.intermediate_reviewed_by;
-                        reviewTime = selectedLeaveForFlow.intermediate_reviewed_at;
-                        remarks = selectedLeaveForFlow.intermediate_remarks;
+                      if (isAutoApprovedZeroStage) {
+                        return (
+                          <div className="relative group">
+                            <div className="absolute -left-6 top-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold bg-emerald-500 text-white">
+                              <Check className="w-3 h-3" />
+                            </div>
+                            <div className={`p-3.5 rounded-lg border text-xs ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-emerald-50 border-emerald-200'}`}>
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                  Auto-Approved for Records
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                                  APPROVED
+                                </span>
+                              </div>
+                              <p className="text-muted-foreground mt-1.5 text-[11px]">
+                                This staff role is configured with 0 approval stages. The leave request was recorded and approved immediately upon submission.
+                              </p>
+                              {selectedLeaveForFlow.appliedOn && (
+                                <p className="text-[10px] text-muted-foreground mt-1">
+                                  Recorded at: {selectedLeaveForFlow.appliedOn}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
                       }
 
-                      const isApproved = statusBadge === 'APPROVED' || statusBadge === 'Approved';
-                      const isRejected = statusBadge === 'REJECTED' || statusBadge === 'Rejected';
+                      const stagesToRender = reviewerStages.length > 0
+                        ? reviewerStages
+                        : (selectedLeaveForFlow.status === 'Approved' ? [] : ['hod', 'principal']);
+
+                      return stagesToRender.map((stageKey, idx) => {
+                        const stageNumber = (selectedLeaveForFlow.alternate_faculty_name ? 2 : 1) + idx;
+                        const isCurrentStage = selectedLeaveForFlow.current_stage === stageKey && selectedLeaveForFlow.status === 'Pending';
+
+                        let stageTitle = stageKey === 'hod' ? 'Head of Department (HOD)' :
+                          stageKey === 'dean' ? 'Dean' :
+                            stageKey === 'principal' ? 'Principal (Final Sanction)' :
+                              stageKey === 'admission_manager' ? 'Admission Manager' :
+                                stageKey === 'hms_admin' ? 'HMS Admin' :
+                                  stageKey === 'transport_admin' ? 'Transport Admin' :
+                                    stageKey === 'coe' ? 'Controller of Examination (COE)' :
+                                      stageKey === 'fees_manager' ? 'Fees Manager' :
+                                        stageKey.replace('_', ' ').toUpperCase();
+
+                        let statusBadge = 'PENDING';
+                        let reviewerName = null;
+                        let reviewTime = null;
+                        let remarks = null;
+
+                        if (stageKey === 'hod') {
+                          statusBadge = selectedLeaveForFlow.hod_approval_status || 'PENDING';
+                          reviewerName = selectedLeaveForFlow.hod_reviewed_by;
+                          reviewTime = selectedLeaveForFlow.hod_reviewed_at;
+                          remarks = selectedLeaveForFlow.hod_remarks;
+                        } else if (stageKey === 'principal') {
+                          statusBadge = selectedLeaveForFlow.principal_approval_status || 'PENDING';
+                          reviewerName = selectedLeaveForFlow.principal_reviewed_by;
+                          reviewTime = selectedLeaveForFlow.principal_reviewed_at;
+                          remarks = selectedLeaveForFlow.principal_remarks;
+                        } else {
+                          statusBadge = selectedLeaveForFlow.intermediate_approval_status || 'PENDING';
+                          reviewerName = selectedLeaveForFlow.intermediate_reviewed_by;
+                          reviewTime = selectedLeaveForFlow.intermediate_reviewed_at;
+                          remarks = selectedLeaveForFlow.intermediate_remarks;
+                        }
+
+                        const isApproved = statusBadge === 'APPROVED' || statusBadge === 'Approved' || selectedLeaveForFlow.status === 'Approved';
+                        const isRejected = statusBadge === 'REJECTED' || statusBadge === 'Rejected';
 
                       return (
                         <div key={stageKey} className="relative group">
@@ -2404,7 +2438,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           </div>
                         </div>
                       );
-                    })}
+                    });
+                  })()}
                   </div>
                 </div>
 
