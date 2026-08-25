@@ -1170,6 +1170,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           value={leaveType}
                           onValueChange={(val: any) => {
                             setLeaveType(val);
+                            if (val !== 'od' && val !== 'maternity') {
+                              setInitialDocFile(null);
+                              if (fileInputRef.current) fileInputRef.current.value = '';
+                            }
                             if (val === 'short_permission') {
                               const liveTimes = getInitialTimes();
                               setStartTimeParts(liveTimes.start);
@@ -1199,6 +1203,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             type="button"
                             onClick={() => {
                               setLeaveType(cat.id as any);
+                              if (cat.id !== 'od' && cat.id !== 'maternity') {
+                                setInitialDocFile(null);
+                                if (fileInputRef.current) fileInputRef.current.value = '';
+                              }
                               if (cat.id === 'short_permission') {
                                 const liveTimes = getInitialTimes();
                                 setStartTimeParts(liveTimes.start);
@@ -1260,206 +1268,177 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   );
                 })()}
 
-                {/* Universal File / Image Attachment Section */}
-                <div className={`p-3.5 rounded-xl border space-y-3 ${
-                  leaveType === 'od' ? 'border-emerald-500/30 bg-emerald-500/5' :
-                  leaveType === 'maternity' ? 'border-pink-500/30 bg-pink-500/5' :
-                  theme === 'dark' ? 'border-border/60 bg-muted/10' : 'border-slate-200 bg-slate-50/70'
-                }`}>
-                  {/* OD Purpose Category */}
-                  {leaveType === 'od' && (
-                    <div className="space-y-2 pb-2 border-b border-emerald-500/20">
-                      <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        OD Purpose Category <span className="text-red-500">*</span>
-                      </Label>
-                      <Select value={odPurposeCategory} onValueChange={setOdPurposeCategory}>
-                        <SelectTrigger className={`w-full text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                          <SelectValue placeholder="Select OD Purpose..." />
-                        </SelectTrigger>
-                        <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                          <SelectItem value="conference">Conference / Symposia</SelectItem>
-                          <SelectItem value="workshop">Workshop / FDP</SelectItem>
-                          <SelectItem value="seminar">Seminar / Panel</SelectItem>
-                          <SelectItem value="meeting">Official Meeting</SelectItem>
-                          <SelectItem value="phd_work">Ph.D Research / Thesis Works</SelectItem>
-                          <SelectItem value="statutory_work">VTU / AICTE / Statutory Committee Duty</SelectItem>
-                          <SelectItem value="exam_work">Paper Valuation / Examination Duty</SelectItem>
-                          <SelectItem value="management_assigned">Institute / Management Assigned Duty</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+                {/* File / Image Attachment Section (Exclusively for On Duty and Maternity Leaves) */}
+                {(leaveType === 'od' || leaveType === 'maternity') && (
+                  <div className={`p-3.5 rounded-xl border space-y-3 ${
+                    leaveType === 'od' ? 'border-emerald-500/30 bg-emerald-500/5' :
+                    'border-pink-500/30 bg-pink-500/5'
+                  }`}>
+                    {/* OD Purpose Category */}
+                    {leaveType === 'od' && (
+                      <div className="space-y-2 pb-2 border-b border-emerald-500/20">
+                        <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          OD Purpose Category <span className="text-red-500">*</span>
+                        </Label>
+                        <Select value={odPurposeCategory} onValueChange={setOdPurposeCategory}>
+                          <SelectTrigger className={`w-full text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                            <SelectValue placeholder="Select OD Purpose..." />
+                          </SelectTrigger>
+                          <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
+                            <SelectItem value="conference">Conference / Symposia</SelectItem>
+                            <SelectItem value="workshop">Workshop / FDP</SelectItem>
+                            <SelectItem value="seminar">Seminar / Panel</SelectItem>
+                            <SelectItem value="meeting">Official Meeting</SelectItem>
+                            <SelectItem value="phd_work">Ph.D Research / Thesis Works</SelectItem>
+                            <SelectItem value="statutory_work">VTU / AICTE / Statutory Committee Duty</SelectItem>
+                            <SelectItem value="exam_work">Paper Valuation / Examination Duty</SelectItem>
+                            <SelectItem value="management_assigned">Institute / Management Assigned Duty</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
 
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-semibold flex items-center gap-1.5">
-                        <Paperclip className={`w-3.5 h-3.5 ${leaveType === 'maternity' ? 'text-pink-500' : 'text-primary'}`} />
-                        <span>
-                          {leaveType === 'od' ? 'Invitation / Deputation Letter / Duty Order' :
-                           leaveType === 'maternity' ? 'Medical Certificate / Doctor Endorsement' :
-                           'Supporting Document / Image Proof'}
-                        </span>
-                        {leaveType === 'maternity' && <span className="text-red-500">*</span>}
-                        {leaveType !== 'maternity' && <span className="text-[10px] text-muted-foreground font-normal">(Optional)</span>}
-                      </Label>
-                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-semibold flex items-center gap-1.5">
+                          <Paperclip className={`w-3.5 h-3.5 ${leaveType === 'maternity' ? 'text-pink-500' : 'text-primary'}`} />
+                          <span>
+                            {leaveType === 'od' ? 'Invitation / Deputation Letter / Duty Order' :
+                             'Medical Certificate / Doctor Endorsement'}
+                          </span>
+                          {leaveType === 'maternity' && <span className="text-red-500">*</span>}
+                          {leaveType === 'od' && <span className="text-[10px] text-muted-foreground font-normal">(Required for OD)</span>}
+                        </Label>
+                      </div>
 
-                    {/* Hidden Native File Input */}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      className="hidden"
-                      accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0] || null;
-                        if (!file) return;
+                      {/* Hidden Native File Input */}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        className="hidden"
+                        accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0] || null;
+                          if (!file) return;
 
-                        const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
-                        const ext = file.name.split('.').pop()?.toLowerCase() || '';
+                          const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
+                          const ext = file.name.split('.').pop()?.toLowerCase() || '';
 
-                        if (!allowedExtensions.includes(ext) && !file.type.startsWith('image/')) {
-                          if (fileInputRef.current) fileInputRef.current.value = '';
-                          setInitialDocFile(null);
-                          await MySwal.fire({
-                            title: 'Unsupported File Format',
-                            text: 'For images, only JPG and PNG formats are allowed (documents: PDF, DOC, DOCX).',
-                            icon: 'warning',
-                            confirmButtonColor: '#f59e0b',
-                            background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
-                            color: currentTheme === 'dark' ? '#ffffff' : '#000000'
-                          });
-                          return;
-                        }
+                          if (!allowedExtensions.includes(ext) && !file.type.startsWith('image/')) {
+                            if (fileInputRef.current) fileInputRef.current.value = '';
+                            setInitialDocFile(null);
+                            await MySwal.fire({
+                              title: 'Unsupported File Format',
+                              text: 'For images, only JPG and PNG formats are allowed (documents: PDF, DOC, DOCX).',
+                              icon: 'warning',
+                              confirmButtonColor: '#f59e0b',
+                              background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+                              color: currentTheme === 'dark' ? '#ffffff' : '#000000'
+                            });
+                            return;
+                          }
 
-                        // Allow file to be chosen, submit will block if > 1MB
-                        setInitialDocFile(file);
-                      }}
-                    />
+                          // Allow file to be chosen, submit will block if > 1MB
+                          setInitialDocFile(file);
+                        }}
+                      />
 
-                    {/* Selected File Preview Card OR Clean Upload Dropzone */}
-                    {initialDocFile ? (
-                      <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${
-                        initialDocFile.size > 1024 * 1024
-                          ? 'bg-rose-500/5 border-rose-500/40'
-                          : theme === 'dark' ? 'bg-background/90 border-primary/30' : 'bg-white border-primary/30 shadow-sm'
-                      }`}>
-                        <div className="flex items-center gap-3 min-w-0">
-                          {docPreviewUrl ? (
-                            <img
-                              src={docPreviewUrl}
-                              alt="Preview"
-                              className={`w-12 h-12 rounded-lg object-cover border shrink-0 bg-muted ${
-                                initialDocFile.size > 1024 * 1024 ? 'border-rose-500/40' : 'border-primary/20'
-                              }`}
-                            />
-                          ) : (
-                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border ${
-                              initialDocFile.size > 1024 * 1024
-                                ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
-                                : 'bg-primary/10 text-primary border-primary/20'
-                            }`}>
-                              <FileText className="w-6 h-6" />
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <p className="font-semibold text-xs text-foreground truncate max-w-[200px] sm:max-w-[280px]">
-                              {initialDocFile.name}
-                            </p>
-                            <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                              <span>{(initialDocFile.size / (1024 * 1024)).toFixed(2)} MB</span>
-                              <span>•</span>
-                              {initialDocFile.size > 1024 * 1024 ? (
-                                <span className="text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-0.5">
-                                  <AlertCircle className="w-3 h-3" /> Exceeds 1 MB Limit
-                                </span>
-                              ) : (
-                                <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-0.5">
-                                  <CheckCircle2 className="w-3 h-3" /> Ready
-                                </span>
-                              )}
-                            </p>
-                            {initialDocFile.size > 1024 * 1024 && (
-                              <p className="text-[10px] text-rose-500 font-medium mt-0.5">
-                                Attachment must be under 1 MB to submit.
-                              </p>
+                      {/* Selected File Preview Card OR Clean Upload Dropzone */}
+                      {initialDocFile ? (
+                        <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${
+                          initialDocFile.size > 1024 * 1024
+                            ? 'bg-rose-500/5 border-rose-500/40'
+                            : theme === 'dark' ? 'bg-background/90 border-primary/30' : 'bg-white border-primary/30 shadow-sm'
+                        }`}>
+                          <div className="flex items-center gap-3 min-w-0">
+                            {docPreviewUrl ? (
+                              <img
+                                src={docPreviewUrl}
+                                alt="Preview"
+                                className={`w-12 h-12 rounded-lg object-cover border shrink-0 bg-muted ${
+                                  initialDocFile.size > 1024 * 1024 ? 'border-rose-500/40' : 'border-primary/20'
+                                }`}
+                              />
+                            ) : (
+                              <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border ${
+                                initialDocFile.size > 1024 * 1024
+                                  ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                                  : 'bg-primary/10 text-primary border-primary/20'
+                              }`}>
+                                <FileText className="w-6 h-6" />
+                              </div>
                             )}
+                            <div className="min-w-0">
+                              <p className="font-semibold text-xs text-foreground truncate max-w-[200px] sm:max-w-[280px]">
+                                {initialDocFile.name}
+                              </p>
+                              <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                                <span>{(initialDocFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                                <span>•</span>
+                                {initialDocFile.size > 1024 * 1024 ? (
+                                  <span className="text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-0.5">
+                                    <AlertCircle className="w-3 h-3" /> Exceeds 1 MB Limit
+                                  </span>
+                                ) : (
+                                  <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-0.5">
+                                    <CheckCircle2 className="w-3 h-3" /> Ready
+                                  </span>
+                                )}
+                              </p>
+                              {initialDocFile.size > 1024 * 1024 && (
+                                <p className="text-[10px] text-rose-500 font-medium mt-0.5">
+                                  Attachment must be under 1 MB to submit.
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="text-[11px] h-7 px-2.5"
-                          >
-                            Change
-                          </Button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (fileInputRef.current) fileInputRef.current.value = '';
-                              setInitialDocFile(null);
-                            }}
-                            className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all"
-                            title="Remove attachment"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        onClick={() => fileInputRef.current?.click()}
-                        className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 ${
-                          theme === 'dark' ? 'border-border/60 bg-background/50' : 'border-gray-200 bg-white/80'
-                        }`}
-                      >
-                        <div className="flex flex-col items-center justify-center gap-1.5">
-                          <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                            <Upload className="w-4 h-4" />
-                          </div>
-                          <div className="text-xs font-medium text-foreground">
-                            Click to upload image or document
-                          </div>
-                          <div className="text-[10px] text-muted-foreground">
-                            Supports: JPG, PNG images, PDF, Word DOC (Max 1 MB)
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="text-[11px] h-7 px-2.5"
+                            >
+                              Change
+                            </Button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (fileInputRef.current) fileInputRef.current.value = '';
+                                setInitialDocFile(null);
+                              }}
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all"
+                              title="Remove attachment"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div
+                          onClick={() => fileInputRef.current?.click()}
+                          className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5 ${
+                            theme === 'dark' ? 'border-border/60 bg-background/50' : 'border-gray-200 bg-white/80'
+                          }`}
+                        >
+                          <div className="flex flex-col items-center justify-center gap-1.5">
+                            <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                              <Upload className="w-4 h-4" />
+                            </div>
+                            <div className="text-xs font-medium text-foreground">
+                              Click to upload {leaveType === 'od' ? 'Duty Order / Letter' : 'Medical Certificate'}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">
+                              Supports: JPG, PNG images, PDF, Word DOC (Max 1 MB)
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-
-                {/* Department / Branch */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="applicant-branch" className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      Department / Branch <span className="text-red-500">*</span>
-                    </Label>
-                    {userBranch && (
-                      <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                        Assigned: {userBranch.name}
-                      </span>
-                    )}
-                  </div>
-                  <Select
-                    value={selectedBranch || undefined}
-                    onValueChange={(val) => setSelectedBranch(val)}
-                  >
-                    <SelectTrigger id="applicant-branch" className={`apply-leave-input w-full text-xs font-semibold ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300'}`}>
-                      <SelectValue placeholder="Select Department / Branch..." />
-                    </SelectTrigger>
-                    <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                      {branches.map((b) => (
-                        <SelectItem key={b.id} value={b.id.toString()}>
-                          {b.name} {userBranch && userBranch.id === b.id ? ' (Your Department)' : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                )}
 
                 {/* Title */}
                 <div className="space-y-2">
