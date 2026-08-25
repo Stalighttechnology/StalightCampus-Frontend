@@ -570,10 +570,12 @@ export interface LeaveQuota {
   workflow_pipeline?: string[];
 
   // 9.8 Rule Specific Quotas
+  cl_is_enabled?: boolean;
   cl_annual_limit?: number;
   cl_used?: number;
   cl_remaining?: number;
   cl_max_stretch?: number;
+  el_is_enabled?: boolean;
   el_annual_limit?: number;
   el_credited_so_far?: number;
   el_used?: number;
@@ -584,22 +586,27 @@ export interface LeaveQuota {
   el_jul_credit?: number;
   el_half_year_period?: string;
   is_el_eligible?: boolean;
+  od_is_enabled?: boolean;
   od_total_approved_days?: number;
   od_pending_certificates_count?: number;
   is_od_eligible?: boolean;
+  vacation_is_enabled?: boolean;
   vacation_annual_limit?: number;
   vacation_used?: number;
   vacation_remaining?: number;
   is_vacation_eligible?: boolean;
+  maternity_is_enabled?: boolean;
   maternity_annual_limit?: number;
   maternity_used?: number;
   maternity_remaining?: number;
   is_maternity_eligible?: boolean;
+  rh_is_enabled?: boolean;
   rh_annual_limit?: number;
   rh_used?: number;
   rh_remaining?: number;
   rh_used_this_month?: number;
   rh_remaining_this_month?: number;
+  sp_is_enabled?: boolean;
   short_permission_limit_monthly?: number;
   short_permission_used_this_month?: number;
   short_permission_remaining_this_month?: number;

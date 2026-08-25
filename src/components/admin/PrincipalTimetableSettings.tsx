@@ -472,11 +472,12 @@ export default function PrincipalTimetableSettings() {
     monthly_short_permission_limit: number | string;
     total_standard_leaves: number | string;
     short_permission_max_hours: number | string;
-    leave_policy_rules: {
+    leave_policy_rules?: {
       academic_year?: {
         start_month?: number | string;
       };
       casual_leave?: {
+        is_enabled?: boolean;
         annual_quota?: number | string;
         max_stretch_days?: number | string;
         allow_half_day?: boolean;
@@ -487,6 +488,7 @@ export default function PrincipalTimetableSettings() {
         afternoon_end_time?: string;
       };
       earned_leave?: {
+        is_enabled?: boolean;
         annual_quota?: number | string;
         jan_credit?: number | string;
         jul_credit?: number | string;
@@ -495,24 +497,29 @@ export default function PrincipalTimetableSettings() {
         eligible_roles?: string[];
       };
       on_duty?: {
+        is_enabled?: boolean;
         eligible_roles?: string[];
         require_initial_document?: boolean;
         require_completion_certificate?: boolean;
       };
       vacation_leave?: {
+        is_enabled?: boolean;
         annual_quota?: number | string;
         eligible_roles?: string[];
         require_non_probationary?: boolean;
       };
       maternity_leave?: {
+        is_enabled?: boolean;
         annual_quota?: number | string;
         eligible_roles?: string[];
       };
       restricted_holiday?: {
+        is_enabled?: boolean;
         annual_quota?: number | string;
         monthly_limit?: number | string;
       };
       short_permission?: {
+        is_enabled?: boolean;
         monthly_limit?: number | string;
         max_hours?: number | string;
       };
@@ -527,12 +534,14 @@ export default function PrincipalTimetableSettings() {
         start_month: 6
       },
       casual_leave: {
+        is_enabled: true,
         annual_quota: 15,
         max_stretch_days: 3,
         allow_half_day: true,
         half_day_session: 'afternoon_only'
       },
       earned_leave: {
+        is_enabled: true,
         annual_quota: 15,
         jan_credit: 7,
         jul_credit: 8,
@@ -541,24 +550,29 @@ export default function PrincipalTimetableSettings() {
         eligible_roles: ['hod', 'dean', 'principal', 'coe', 'fees_manager', 'counsellor', 'driver', 'warden', 'librarian', 'lab_assistant', 'office_admin']
       },
       on_duty: {
+        is_enabled: true,
         eligible_roles: ['teacher', 'faculty', 'hod', 'dean', 'principal', 'coe'],
         require_initial_document: false,
         require_completion_certificate: true
       },
       vacation_leave: {
+        is_enabled: true,
         annual_quota: 60,
         eligible_roles: ['teacher', 'faculty'],
         require_non_probationary: true
       },
       maternity_leave: {
+        is_enabled: true,
         annual_quota: 90,
         eligible_roles: ['teacher', 'faculty', 'hod', 'counsellor', 'warden', 'office_admin']
       },
       restricted_holiday: {
+        is_enabled: true,
         annual_quota: 2,
         monthly_limit: 1
       },
       short_permission: {
+        is_enabled: true,
         monthly_limit: 5,
         max_hours: 2
       }
@@ -726,6 +740,7 @@ export default function PrincipalTimetableSettings() {
 
         const defaultRules = {
           casual_leave: {
+            is_enabled: rules.casual_leave?.is_enabled !== false,
             annual_quota: rules.casual_leave?.annual_quota ?? data.total_standard_leaves ?? 15,
             max_stretch_days: rules.casual_leave?.max_stretch_days ?? 3,
             allow_half_day: rules.casual_leave?.allow_half_day !== false,
@@ -736,6 +751,7 @@ export default function PrincipalTimetableSettings() {
             afternoon_end_time: rules.casual_leave?.afternoon_end_time || '05:00 PM'
           },
           earned_leave: {
+            is_enabled: rules.earned_leave?.is_enabled !== false,
             annual_quota: rules.earned_leave?.annual_quota ?? 15,
             jan_credit: rules.earned_leave?.jan_credit ?? 7,
             jul_credit: rules.earned_leave?.jul_credit ?? 8,
@@ -744,24 +760,29 @@ export default function PrincipalTimetableSettings() {
             eligible_roles: rules.earned_leave?.eligible_roles || ['hod', 'dean', 'principal', 'coe', 'fees_manager', 'counsellor', 'driver', 'warden', 'librarian', 'lab_assistant', 'office_admin']
           },
           on_duty: {
+            is_enabled: rules.on_duty?.is_enabled !== false,
             eligible_roles: rules.on_duty?.eligible_roles || ['teacher', 'faculty', 'hod', 'dean', 'principal', 'coe'],
             require_initial_document: Boolean(rules.on_duty?.require_initial_document),
             require_completion_certificate: rules.on_duty?.require_completion_certificate !== false
           },
           vacation_leave: {
+            is_enabled: rules.vacation_leave?.is_enabled !== false,
             annual_quota: rules.vacation_leave?.annual_quota ?? 60,
             eligible_roles: rules.vacation_leave?.eligible_roles || ['teacher', 'faculty'],
             require_non_probationary: rules.vacation_leave?.require_non_probationary !== false
           },
           maternity_leave: {
+            is_enabled: rules.maternity_leave?.is_enabled !== false,
             annual_quota: rules.maternity_leave?.annual_quota ?? 90,
             eligible_roles: rules.maternity_leave?.eligible_roles || ['teacher', 'faculty', 'hod', 'counsellor', 'warden', 'office_admin']
           },
           restricted_holiday: {
+            is_enabled: rules.restricted_holiday?.is_enabled !== false,
             annual_quota: rules.restricted_holiday?.annual_quota ?? 2,
             monthly_limit: rules.restricted_holiday?.monthly_limit ?? 1
           },
           short_permission: {
+            is_enabled: rules.short_permission?.is_enabled !== false,
             monthly_limit: rules.short_permission?.monthly_limit ?? data.monthly_short_permission_limit ?? 5,
             max_hours: rules.short_permission?.max_hours ?? data.short_permission_max_hours ?? 2
           }
@@ -804,6 +825,7 @@ export default function PrincipalTimetableSettings() {
       if (cardKey === 'casual_leave') {
         const cl = rules.casual_leave || {};
         cleanedCardRule = {
+          is_enabled: cl.is_enabled !== false,
           annual_quota: cl.annual_quota === '' ? 15 : Number(cl.annual_quota),
           max_stretch_days: cl.max_stretch_days === '' ? 3 : Number(cl.max_stretch_days),
           allow_half_day: Boolean(cl.allow_half_day),
@@ -817,6 +839,7 @@ export default function PrincipalTimetableSettings() {
       } else if (cardKey === 'earned_leave') {
         const el = rules.earned_leave || {};
         cleanedCardRule = {
+          is_enabled: el.is_enabled !== false,
           annual_quota: el.annual_quota === '' ? 15 : Number(el.annual_quota),
           jan_credit: el.jan_credit === '' ? 7 : Number(el.jan_credit),
           jul_credit: el.jul_credit === '' ? 8 : Number(el.jul_credit),
@@ -827,6 +850,7 @@ export default function PrincipalTimetableSettings() {
       } else if (cardKey === 'on_duty') {
         const od = rules.on_duty || {};
         cleanedCardRule = {
+          is_enabled: od.is_enabled !== false,
           eligible_roles: od.eligible_roles || ['teacher', 'faculty', 'hod', 'dean', 'principal', 'coe'],
           require_initial_document: Boolean(od.require_initial_document),
           require_completion_certificate: od.require_completion_certificate !== false
@@ -834,6 +858,7 @@ export default function PrincipalTimetableSettings() {
       } else if (cardKey === 'vacation_leave') {
         const vac = rules.vacation_leave || {};
         cleanedCardRule = {
+          is_enabled: vac.is_enabled !== false,
           annual_quota: vac.annual_quota === '' ? 60 : Number(vac.annual_quota),
           eligible_roles: vac.eligible_roles || ['teacher', 'faculty'],
           require_non_probationary: vac.require_non_probationary !== false
@@ -841,18 +866,21 @@ export default function PrincipalTimetableSettings() {
       } else if (cardKey === 'maternity_leave') {
         const mat = rules.maternity_leave || {};
         cleanedCardRule = {
+          is_enabled: mat.is_enabled !== false,
           annual_quota: mat.annual_quota === '' ? 90 : Number(mat.annual_quota),
           eligible_roles: mat.eligible_roles || ['teacher', 'faculty', 'hod', 'counsellor', 'warden', 'office_admin']
         };
       } else if (cardKey === 'restricted_holiday') {
         const rh = rules.restricted_holiday || {};
         cleanedCardRule = {
+          is_enabled: rh.is_enabled !== false,
           annual_quota: rh.annual_quota === '' ? 2 : Number(rh.annual_quota),
           monthly_limit: rh.monthly_limit === '' ? 1 : Number(rh.monthly_limit)
         };
       } else if (cardKey === 'short_permission') {
         const sp = rules.short_permission || {};
         cleanedCardRule = {
+          is_enabled: sp.is_enabled !== false,
           monthly_limit: sp.monthly_limit === '' ? 5 : Number(sp.monthly_limit),
           max_hours: sp.max_hours === '' ? 2 : Number(sp.max_hours)
         };
@@ -887,6 +915,7 @@ export default function PrincipalTimetableSettings() {
       setLeaveRulesSaving(true);
       const cleanRules = {
         casual_leave: {
+          is_enabled: leavePolicy.leave_policy_rules?.casual_leave?.is_enabled !== false,
           annual_quota: leavePolicy.leave_policy_rules?.casual_leave?.annual_quota === '' ? 15 : Number(leavePolicy.leave_policy_rules?.casual_leave?.annual_quota),
           max_stretch_days: leavePolicy.leave_policy_rules?.casual_leave?.max_stretch_days === '' ? 3 : Number(leavePolicy.leave_policy_rules?.casual_leave?.max_stretch_days),
           allow_half_day: Boolean(leavePolicy.leave_policy_rules?.casual_leave?.allow_half_day),
@@ -897,6 +926,7 @@ export default function PrincipalTimetableSettings() {
           afternoon_end_time: leavePolicy.leave_policy_rules?.casual_leave?.afternoon_end_time || '05:00 PM'
         },
         earned_leave: {
+          is_enabled: leavePolicy.leave_policy_rules?.earned_leave?.is_enabled !== false,
           annual_quota: leavePolicy.leave_policy_rules?.earned_leave?.annual_quota === '' ? 15 : Number(leavePolicy.leave_policy_rules?.earned_leave?.annual_quota),
           jan_credit: leavePolicy.leave_policy_rules?.earned_leave?.jan_credit === '' ? 7 : Number(leavePolicy.leave_policy_rules?.earned_leave?.jan_credit),
           jul_credit: leavePolicy.leave_policy_rules?.earned_leave?.jul_credit === '' ? 8 : Number(leavePolicy.leave_policy_rules?.earned_leave?.jul_credit),
@@ -905,24 +935,29 @@ export default function PrincipalTimetableSettings() {
           eligible_roles: leavePolicy.leave_policy_rules?.earned_leave?.eligible_roles || ['hod', 'dean', 'principal', 'coe', 'fees_manager', 'counsellor', 'driver', 'warden', 'librarian', 'lab_assistant', 'office_admin']
         },
         on_duty: {
+          is_enabled: leavePolicy.leave_policy_rules?.on_duty?.is_enabled !== false,
           eligible_roles: leavePolicy.leave_policy_rules?.on_duty?.eligible_roles || ['teacher', 'faculty', 'hod', 'dean', 'principal', 'coe'],
           require_initial_document: Boolean(leavePolicy.leave_policy_rules?.on_duty?.require_initial_document),
           require_completion_certificate: leavePolicy.leave_policy_rules?.on_duty?.require_completion_certificate !== false
         },
         vacation_leave: {
+          is_enabled: leavePolicy.leave_policy_rules?.vacation_leave?.is_enabled !== false,
           annual_quota: leavePolicy.leave_policy_rules?.vacation_leave?.annual_quota === '' ? 60 : Number(leavePolicy.leave_policy_rules?.vacation_leave?.annual_quota),
           eligible_roles: leavePolicy.leave_policy_rules?.vacation_leave?.eligible_roles || ['teacher', 'faculty'],
           require_non_probationary: leavePolicy.leave_policy_rules?.vacation_leave?.require_non_probationary !== false
         },
         maternity_leave: {
+          is_enabled: leavePolicy.leave_policy_rules?.maternity_leave?.is_enabled !== false,
           annual_quota: leavePolicy.leave_policy_rules?.maternity_leave?.annual_quota === '' ? 90 : Number(leavePolicy.leave_policy_rules?.maternity_leave?.annual_quota),
           eligible_roles: leavePolicy.leave_policy_rules?.maternity_leave?.eligible_roles || ['teacher', 'faculty', 'hod', 'counsellor', 'warden', 'office_admin']
         },
         restricted_holiday: {
+          is_enabled: leavePolicy.leave_policy_rules?.restricted_holiday?.is_enabled !== false,
           annual_quota: leavePolicy.leave_policy_rules?.restricted_holiday?.annual_quota === '' ? 2 : Number(leavePolicy.leave_policy_rules?.restricted_holiday?.annual_quota),
           monthly_limit: leavePolicy.leave_policy_rules?.restricted_holiday?.monthly_limit === '' ? 1 : Number(leavePolicy.leave_policy_rules?.restricted_holiday?.monthly_limit)
         },
         short_permission: {
+          is_enabled: leavePolicy.leave_policy_rules?.short_permission?.is_enabled !== false,
           monthly_limit: leavePolicy.leave_policy_rules?.short_permission?.monthly_limit === '' ? 5 : Number(leavePolicy.leave_policy_rules?.short_permission?.monthly_limit),
           max_hours: leavePolicy.leave_policy_rules?.short_permission?.max_hours === '' ? 2 : Number(leavePolicy.leave_policy_rules?.short_permission?.max_hours)
         }
@@ -1834,7 +1869,7 @@ export default function PrincipalTimetableSettings() {
                     {/* Granular Leave Type Policies Configuration (CL, EL, RH, Short Permission) */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* 1. Casual Leave (CL) Policy Card */}
-                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                      <Card className={`border flex flex-col justify-between transition-all ${leavePolicy.leave_policy_rules?.casual_leave?.is_enabled === false ? (theme === 'dark' ? 'bg-muted/20 border-border/80 border-dashed' : 'bg-slate-100/60 border-gray-300 border-dashed') : (theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200')}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
@@ -1843,14 +1878,34 @@ export default function PrincipalTimetableSettings() {
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Casual Leave (CL) Policy</CardTitle>
                             </div>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 shrink-0 self-start sm:self-auto">
-                              Personal / Urgent
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                                Personal / Urgent
+                              </span>
+                              <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
+                                <span className={`text-[11px] font-semibold ${leavePolicy.leave_policy_rules?.casual_leave?.is_enabled !== false ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+                                  {leavePolicy.leave_policy_rules?.casual_leave?.is_enabled !== false ? 'Enabled' : 'Disabled'}
+                                </span>
+                                <Switch
+                                  checked={leavePolicy.leave_policy_rules?.casual_leave?.is_enabled !== false}
+                                  onCheckedChange={(val) => {
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        casual_leave: { ...prev.leave_policy_rules?.casual_leave, is_enabled: val }
+                                      }
+                                    }));
+                                  }}
+                                  className="scale-90"
+                                />
+                              </div>
+                            </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Configure standard annual casual leaves and stretch parameters.</p>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                          <div className="space-y-3">
+                          <div className={`space-y-3 transition-opacity ${leavePolicy.leave_policy_rules?.casual_leave?.is_enabled === false ? 'opacity-50 pointer-events-none select-none' : ''}`}>
                             <div className="grid grid-cols-2 gap-3">
                               <div className="space-y-1">
                                 <Label className="text-xs font-semibold">Annual Quota (Days)</Label>
@@ -2213,7 +2268,7 @@ export default function PrincipalTimetableSettings() {
                       </Card>
 
                       {/* 2. Earned Leave (EL) Policy Card */}
-                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                      <Card className={`border flex flex-col justify-between transition-all ${leavePolicy.leave_policy_rules?.earned_leave?.is_enabled === false ? (theme === 'dark' ? 'bg-muted/20 border-border/80 border-dashed' : 'bg-slate-100/60 border-gray-300 border-dashed') : (theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200')}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
@@ -2222,14 +2277,34 @@ export default function PrincipalTimetableSettings() {
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Earned Leave (EL) Policy</CardTitle>
                             </div>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 shrink-0 self-start sm:self-auto">
-                              Service Accrued
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300">
+                                Service Accrued
+                              </span>
+                              <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
+                                <span className={`text-[11px] font-semibold ${leavePolicy.leave_policy_rules?.earned_leave?.is_enabled !== false ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`}>
+                                  {leavePolicy.leave_policy_rules?.earned_leave?.is_enabled !== false ? 'Enabled' : 'Disabled'}
+                                </span>
+                                <Switch
+                                  checked={leavePolicy.leave_policy_rules?.earned_leave?.is_enabled !== false}
+                                  onCheckedChange={(val) => {
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        earned_leave: { ...prev.leave_policy_rules?.earned_leave, is_enabled: val }
+                                      }
+                                    }));
+                                  }}
+                                  className="scale-90"
+                                />
+                              </div>
+                            </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Bi-annual credit distribution and continuous stretch boundaries.</p>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                          <div className="space-y-3">
+                          <div className={`space-y-3 transition-opacity ${leavePolicy.leave_policy_rules?.earned_leave?.is_enabled === false ? 'opacity-50 pointer-events-none select-none' : ''}`}>
                             <div className="grid grid-cols-3 gap-2">
                               <div className="space-y-1">
                                 <Label className="text-xs font-semibold">Annual Quota</Label>
@@ -2371,7 +2446,7 @@ export default function PrincipalTimetableSettings() {
                       </Card>
 
                       {/* 3. On Duty (OD) Policy Card */}
-                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                      <Card className={`border flex flex-col justify-between transition-all ${leavePolicy.leave_policy_rules?.on_duty?.is_enabled === false ? (theme === 'dark' ? 'bg-muted/20 border-border/80 border-dashed' : 'bg-slate-100/60 border-gray-300 border-dashed') : (theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200')}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
@@ -2380,14 +2455,34 @@ export default function PrincipalTimetableSettings() {
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">On Duty (OD) Policy</CardTitle>
                             </div>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 shrink-0 self-start sm:self-auto">
-                              Duty Deputation
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                                Duty Deputation
+                              </span>
+                              <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
+                                <span className={`text-[11px] font-semibold ${leavePolicy.leave_policy_rules?.on_duty?.is_enabled !== false ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+                                  {leavePolicy.leave_policy_rules?.on_duty?.is_enabled !== false ? 'Enabled' : 'Disabled'}
+                                </span>
+                                <Switch
+                                  checked={leavePolicy.leave_policy_rules?.on_duty?.is_enabled !== false}
+                                  onCheckedChange={(val) => {
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        on_duty: { ...prev.leave_policy_rules?.on_duty, is_enabled: val }
+                                      }
+                                    }));
+                                  }}
+                                  className="scale-90"
+                                />
+                              </div>
+                            </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Conferences, Ph.D, statutory committees, valuation & official duties.</p>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                          <div className="space-y-3">
+                          <div className={`space-y-3 transition-opacity ${leavePolicy.leave_policy_rules?.on_duty?.is_enabled === false ? 'opacity-50 pointer-events-none select-none' : ''}`}>
                             <div className="space-y-2">
                               <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
@@ -2463,7 +2558,7 @@ export default function PrincipalTimetableSettings() {
                       </Card>
 
                       {/* 4. Vacation Leave Policy Card */}
-                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                      <Card className={`border flex flex-col justify-between transition-all ${leavePolicy.leave_policy_rules?.vacation_leave?.is_enabled === false ? (theme === 'dark' ? 'bg-muted/20 border-border/80 border-dashed' : 'bg-slate-100/60 border-gray-300 border-dashed') : (theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200')}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
@@ -2472,14 +2567,34 @@ export default function PrincipalTimetableSettings() {
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Vacation Leave Policy</CardTitle>
                             </div>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300 shrink-0 self-start sm:self-auto">
-                              Vacational Staff
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300">
+                                Vacational Staff
+                              </span>
+                              <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
+                                <span className={`text-[11px] font-semibold ${leavePolicy.leave_policy_rules?.vacation_leave?.is_enabled !== false ? 'text-teal-600 dark:text-teal-400' : 'text-muted-foreground'}`}>
+                                  {leavePolicy.leave_policy_rules?.vacation_leave?.is_enabled !== false ? 'Enabled' : 'Disabled'}
+                                </span>
+                                <Switch
+                                  checked={leavePolicy.leave_policy_rules?.vacation_leave?.is_enabled !== false}
+                                  onCheckedChange={(val) => {
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        vacation_leave: { ...prev.leave_policy_rules?.vacation_leave, is_enabled: val }
+                                      }
+                                    }));
+                                  }}
+                                  className="scale-90"
+                                />
+                              </div>
+                            </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Configurable for vacational teaching staff as per college vacation schedule.</p>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                          <div className="space-y-3">
+                          <div className={`space-y-3 transition-opacity ${leavePolicy.leave_policy_rules?.vacation_leave?.is_enabled === false ? 'opacity-50 pointer-events-none select-none' : ''}`}>
                             <div className="grid grid-cols-2 gap-3">
                               <div className="space-y-1">
                                 <Label className="text-xs font-semibold">Annual Quota (Days)</Label>
@@ -2556,7 +2671,7 @@ export default function PrincipalTimetableSettings() {
                       </Card>
 
                       {/* 5. Maternity Leave Policy Card */}
-                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                      <Card className={`border flex flex-col justify-between transition-all ${leavePolicy.leave_policy_rules?.maternity_leave?.is_enabled === false ? (theme === 'dark' ? 'bg-muted/20 border-border/80 border-dashed' : 'bg-slate-100/60 border-gray-300 border-dashed') : (theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200')}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
@@ -2565,14 +2680,34 @@ export default function PrincipalTimetableSettings() {
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Maternity Leave Policy</CardTitle>
                             </div>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-pink-100 text-pink-800 dark:bg-pink-950/50 dark:text-pink-300 shrink-0 self-start sm:self-auto">
-                              Female Staff
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-pink-100 text-pink-800 dark:bg-pink-950/50 dark:text-pink-300">
+                                Female Staff
+                              </span>
+                              <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
+                                <span className={`text-[11px] font-semibold ${leavePolicy.leave_policy_rules?.maternity_leave?.is_enabled !== false ? 'text-pink-600 dark:text-pink-400' : 'text-muted-foreground'}`}>
+                                  {leavePolicy.leave_policy_rules?.maternity_leave?.is_enabled !== false ? 'Enabled' : 'Disabled'}
+                                </span>
+                                <Switch
+                                  checked={leavePolicy.leave_policy_rules?.maternity_leave?.is_enabled !== false}
+                                  onCheckedChange={(val) => {
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        maternity_leave: { ...prev.leave_policy_rules?.maternity_leave, is_enabled: val }
+                                      }
+                                    }));
+                                  }}
+                                  className="scale-90"
+                                />
+                              </div>
+                            </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Leave for eligible female employees with medical certificate.</p>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                          <div className="space-y-3">
+                          <div className={`space-y-3 transition-opacity ${leavePolicy.leave_policy_rules?.maternity_leave?.is_enabled === false ? 'opacity-50 pointer-events-none select-none' : ''}`}>
                             <div className="space-y-1">
                               <Label className="text-xs font-semibold">Annual Quota (Days - Standard 90, Customizable)</Label>
                               <Input
@@ -2630,7 +2765,7 @@ export default function PrincipalTimetableSettings() {
                       </Card>
 
                       {/* 6. Restricted Holiday (RH) Policy Card */}
-                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                      <Card className={`border flex flex-col justify-between transition-all ${leavePolicy.leave_policy_rules?.restricted_holiday?.is_enabled === false ? (theme === 'dark' ? 'bg-muted/20 border-border/80 border-dashed' : 'bg-slate-100/60 border-gray-300 border-dashed') : (theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200')}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
@@ -2639,14 +2774,34 @@ export default function PrincipalTimetableSettings() {
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Restricted Holiday (RH) Policy</CardTitle>
                             </div>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300 shrink-0 self-start sm:self-auto">
-                              Optional Holiday
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300">
+                                Optional Holiday
+                              </span>
+                              <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
+                                <span className={`text-[11px] font-semibold ${leavePolicy.leave_policy_rules?.restricted_holiday?.is_enabled !== false ? 'text-purple-600 dark:text-purple-400' : 'text-muted-foreground'}`}>
+                                  {leavePolicy.leave_policy_rules?.restricted_holiday?.is_enabled !== false ? 'Enabled' : 'Disabled'}
+                                </span>
+                                <Switch
+                                  checked={leavePolicy.leave_policy_rules?.restricted_holiday?.is_enabled !== false}
+                                  onCheckedChange={(val) => {
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        restricted_holiday: { ...prev.leave_policy_rules?.restricted_holiday, is_enabled: val }
+                                      }
+                                    }));
+                                  }}
+                                  className="scale-90"
+                                />
+                              </div>
+                            </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Annual entitlement and monthly availing frequency.</p>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className={`grid grid-cols-2 gap-3 transition-opacity ${leavePolicy.leave_policy_rules?.restricted_holiday?.is_enabled === false ? 'opacity-50 pointer-events-none select-none' : ''}`}>
                             <div className="space-y-1">
                               <Label className="text-xs font-semibold">Annual Quota (Days)</Label>
                               <Input
@@ -2687,7 +2842,7 @@ export default function PrincipalTimetableSettings() {
                                 className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
                               />
                             </div>
-                          </div>
+                            </div>
 
                           {/* Individual Save for Restricted Holiday */}
                           <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2 mt-auto">
@@ -2707,7 +2862,7 @@ export default function PrincipalTimetableSettings() {
                       </Card>
 
                       {/* 7. Short Permission Policy Card */}
-                      <Card className={`border flex flex-col justify-between ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200'}`}>
+                      <Card className={`border flex flex-col justify-between transition-all ${leavePolicy.leave_policy_rules?.short_permission?.is_enabled === false ? (theme === 'dark' ? 'bg-muted/20 border-border/80 border-dashed' : 'bg-slate-100/60 border-gray-300 border-dashed') : (theme === 'dark' ? 'bg-background/80 border-border' : 'bg-slate-50/70 border-gray-200')}`}>
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
@@ -2716,14 +2871,34 @@ export default function PrincipalTimetableSettings() {
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Short Permission Policy</CardTitle>
                             </div>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 shrink-0 self-start sm:self-auto">
-                              Hourly Window
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                                Hourly Window
+                              </span>
+                              <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
+                                <span className={`text-[11px] font-semibold ${leavePolicy.leave_policy_rules?.short_permission?.is_enabled !== false ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'}`}>
+                                  {leavePolicy.leave_policy_rules?.short_permission?.is_enabled !== false ? 'Enabled' : 'Disabled'}
+                                </span>
+                                <Switch
+                                  checked={leavePolicy.leave_policy_rules?.short_permission?.is_enabled !== false}
+                                  onCheckedChange={(val) => {
+                                    setLeavePolicy(prev => ({
+                                      ...prev,
+                                      leave_policy_rules: {
+                                        ...prev.leave_policy_rules,
+                                        short_permission: { ...prev.leave_policy_rules?.short_permission, is_enabled: val }
+                                      }
+                                    }));
+                                  }}
+                                  className="scale-90"
+                                />
+                              </div>
+                            </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Short period permission quotas and max duration limit.</p>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                          <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3">
+                          <div className={`flex flex-col sm:grid sm:grid-cols-2 gap-3 transition-opacity ${leavePolicy.leave_policy_rules?.short_permission?.is_enabled === false ? 'opacity-50 pointer-events-none select-none' : ''}`}>
                             <div className="space-y-1.5 flex flex-col justify-end">
                               <Label className="text-xs font-semibold leading-tight">Monthly Quota (Permissions / Month)</Label>
                               <Input
@@ -2766,7 +2941,7 @@ export default function PrincipalTimetableSettings() {
                                 className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}
                               />
                             </div>
-                          </div>
+                            </div>
 
                           {/* Individual Save for Short Permission */}
                           <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2 mt-auto">

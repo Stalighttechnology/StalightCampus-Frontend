@@ -267,6 +267,27 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               setHalfDaySession('afternoon');
             }
 
+            // Auto-switch current leaveType if disabled
+            const isClOn = leave_quota.cl_is_enabled !== false && leave_quota.policy_rules?.casual_leave?.is_enabled !== false;
+            const isOdOn = leave_quota.od_is_enabled !== false && leave_quota.policy_rules?.on_duty?.is_enabled !== false && leave_quota.is_od_eligible !== false;
+            const isElOn = leave_quota.el_is_enabled !== false && leave_quota.policy_rules?.earned_leave?.is_enabled !== false && leave_quota.is_el_eligible !== false;
+            const isVacOn = leave_quota.vacation_is_enabled !== false && leave_quota.policy_rules?.vacation_leave?.is_enabled !== false && leave_quota.is_vacation_eligible === true;
+            const isRhOn = leave_quota.rh_is_enabled !== false && leave_quota.policy_rules?.restricted_holiday?.is_enabled !== false;
+            const isMatOn = leave_quota.maternity_is_enabled !== false && leave_quota.policy_rules?.maternity_leave?.is_enabled !== false && leave_quota.is_maternity_eligible === true;
+            const isSpOn = leave_quota.sp_is_enabled !== false && leave_quota.policy_rules?.short_permission?.is_enabled !== false;
+
+            setLeaveType((prevType: any) => {
+              if (prevType === 'casual' && !isClOn) {
+                if (isSpOn) return 'short_permission';
+                if (isOdOn) return 'od';
+                if (isElOn) return 'earned';
+                if (isVacOn) return 'vacation';
+                if (isRhOn) return 'rh';
+                if (isMatOn) return 'maternity';
+              }
+              return prevType;
+            });
+
             const isZero = leave_quota.num_stages === 0 ||
               (Array.isArray(leave_quota.workflow_stages) && (
                 leave_quota.workflow_stages.length === 0 ||
@@ -992,24 +1013,26 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         {/* 9.8 Rule Quota Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* CL Card */}
-          <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Casual Leave (CL)</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 font-semibold whitespace-nowrap shrink-0">
-                Max {leaveQuota?.cl_max_stretch ?? leaveQuota?.policy_rules?.casual_leave?.max_stretch_days ?? 3}d Stretch
-              </span>
+          {leaveQuota?.cl_is_enabled !== false && leaveQuota?.policy_rules?.casual_leave?.is_enabled !== false && (
+            <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Casual Leave (CL)</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 font-semibold whitespace-nowrap shrink-0">
+                  Max {leaveQuota?.cl_max_stretch ?? leaveQuota?.policy_rules?.casual_leave?.max_stretch_days ?? 3}d Stretch
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="text-2xl font-semibold text-primary">{leaveQuota?.cl_remaining ?? (leaveQuota?.cl_annual_limit ?? leaveQuota?.cl_total ?? leaveQuota?.policy_rules?.casual_leave?.annual_quota ?? 15)}</span>
+                <span className="text-xs text-muted-foreground">/ {leaveQuota?.cl_annual_limit ?? leaveQuota?.cl_total ?? leaveQuota?.policy_rules?.casual_leave?.annual_quota ?? 15} left</span>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Used: {leaveQuota?.cl_used ?? 0} days | {leaveQuota?.policy_rules?.casual_leave?.allow_half_day === false ? 'No Half-Day' : (leaveQuota?.policy_rules?.casual_leave?.half_day_session === 'forenoon_only' ? 'Half-day (Morning only)' : (leaveQuota?.policy_rules?.casual_leave?.half_day_session === 'both' ? 'Half-day (Morning / Afternoon)' : 'Half-day (Afternoon only)'))}
+              </p>
             </div>
-            <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl font-semibold text-primary">{leaveQuota?.cl_remaining ?? (leaveQuota?.cl_annual_limit ?? leaveQuota?.cl_total ?? leaveQuota?.policy_rules?.casual_leave?.annual_quota ?? 15)}</span>
-              <span className="text-xs text-muted-foreground">/ {leaveQuota?.cl_annual_limit ?? leaveQuota?.cl_total ?? leaveQuota?.policy_rules?.casual_leave?.annual_quota ?? 15} left</span>
-            </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Used: {leaveQuota?.cl_used ?? 0} days | {leaveQuota?.policy_rules?.casual_leave?.allow_half_day === false ? 'No Half-Day' : (leaveQuota?.policy_rules?.casual_leave?.half_day_session === 'forenoon_only' ? 'Half-day (Morning only)' : (leaveQuota?.policy_rules?.casual_leave?.half_day_session === 'both' ? 'Half-day (Morning / Afternoon)' : 'Half-day (Afternoon only)'))}
-            </p>
-          </div>
+          )}
 
           {/* On Duty (OD) Card */}
-          {leaveQuota?.is_od_eligible !== false && (
+          {leaveQuota?.od_is_enabled !== false && leaveQuota?.policy_rules?.on_duty?.is_enabled !== false && leaveQuota?.is_od_eligible !== false && (
             <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">On Duty (OD)</span>
@@ -1030,7 +1053,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           )}
 
           {/* EL Card (if eligible) */}
-          {leaveQuota?.is_el_eligible !== false && (
+          {leaveQuota?.el_is_enabled !== false && leaveQuota?.policy_rules?.earned_leave?.is_enabled !== false && leaveQuota?.is_el_eligible !== false && (
             <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Earned Leave (EL)</span>
@@ -1047,7 +1070,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           )}
 
           {/* Vacation Leave Card (if eligible) */}
-          {leaveQuota?.is_vacation_eligible === true && (
+          {leaveQuota?.vacation_is_enabled !== false && leaveQuota?.policy_rules?.vacation_leave?.is_enabled !== false && leaveQuota?.is_vacation_eligible === true && (
             <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Vacation Leave</span>
@@ -1064,7 +1087,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           )}
 
           {/* Maternity Leave Card (if eligible) */}
-          {leaveQuota?.is_maternity_eligible === true && (
+          {leaveQuota?.maternity_is_enabled !== false && leaveQuota?.policy_rules?.maternity_leave?.is_enabled !== false && leaveQuota?.is_maternity_eligible === true && (
             <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Maternity Leave</span>
@@ -1081,34 +1104,38 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           )}
 
           {/* RH Card */}
-          <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Restricted Holiday (RH)</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 font-semibold whitespace-nowrap shrink-0">
-                Max {leaveQuota?.rh_monthly_limit ?? leaveQuota?.policy_rules?.restricted_holiday?.monthly_limit ?? 1} / mo
-              </span>
+          {leaveQuota?.rh_is_enabled !== false && leaveQuota?.policy_rules?.restricted_holiday?.is_enabled !== false && (
+            <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Restricted Holiday (RH)</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 font-semibold whitespace-nowrap shrink-0">
+                  Max {leaveQuota?.rh_monthly_limit ?? leaveQuota?.policy_rules?.restricted_holiday?.monthly_limit ?? 1} / mo
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="text-2xl font-semibold text-rose-600 dark:text-rose-400">{leaveQuota?.rh_remaining ?? (leaveQuota?.rh_annual_limit ?? leaveQuota?.rh_total ?? leaveQuota?.policy_rules?.restricted_holiday?.annual_quota ?? 2)}</span>
+                <span className="text-xs text-muted-foreground">/ {leaveQuota?.rh_annual_limit ?? leaveQuota?.rh_total ?? leaveQuota?.policy_rules?.restricted_holiday?.annual_quota ?? 2} left</span>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">Used this month: {leaveQuota?.rh_used_this_month ?? 0}/{leaveQuota?.rh_monthly_limit ?? leaveQuota?.policy_rules?.restricted_holiday?.monthly_limit ?? 1}</p>
             </div>
-            <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl font-semibold text-rose-600 dark:text-rose-400">{leaveQuota?.rh_remaining ?? (leaveQuota?.rh_annual_limit ?? leaveQuota?.rh_total ?? leaveQuota?.policy_rules?.restricted_holiday?.annual_quota ?? 2)}</span>
-              <span className="text-xs text-muted-foreground">/ {leaveQuota?.rh_annual_limit ?? leaveQuota?.rh_total ?? leaveQuota?.policy_rules?.restricted_holiday?.annual_quota ?? 2} left</span>
-            </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">Used this month: {leaveQuota?.rh_used_this_month ?? 0}/{leaveQuota?.rh_monthly_limit ?? leaveQuota?.policy_rules?.restricted_holiday?.monthly_limit ?? 1}</p>
-          </div>
+          )}
 
           {/* Short Permission Card */}
-          <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Short Permission</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 font-semibold whitespace-nowrap shrink-0">
-                Max {leaveQuota?.short_permission_max_hours ?? leaveQuota?.sp_max_hours ?? leaveQuota?.policy_rules?.short_permission?.max_hours ?? 2}h / time
-              </span>
+          {leaveQuota?.sp_is_enabled !== false && leaveQuota?.policy_rules?.short_permission?.is_enabled !== false && (
+            <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Short Permission</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 font-semibold whitespace-nowrap shrink-0">
+                  Max {leaveQuota?.short_permission_max_hours ?? leaveQuota?.sp_max_hours ?? leaveQuota?.policy_rules?.short_permission?.max_hours ?? 2}h / time
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="text-2xl font-semibold text-purple-600 dark:text-purple-400">{leaveQuota?.short_permission_remaining_this_month ?? leaveQuota?.sp_remaining_this_month ?? (leaveQuota?.short_permission_limit_monthly ?? leaveQuota?.sp_monthly_limit ?? leaveQuota?.policy_rules?.short_permission?.monthly_limit ?? 5)}</span>
+                <span className="text-xs text-muted-foreground">/ {leaveQuota?.short_permission_limit_monthly ?? leaveQuota?.sp_monthly_limit ?? leaveQuota?.policy_rules?.short_permission?.monthly_limit ?? 5} left</span>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">Used this month: {leaveQuota?.short_permission_used_this_month ?? leaveQuota?.sp_used_this_month ?? 0}</p>
             </div>
-            <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl font-semibold text-purple-600 dark:text-purple-400">{leaveQuota?.short_permission_remaining_this_month ?? leaveQuota?.sp_remaining_this_month ?? (leaveQuota?.short_permission_limit_monthly ?? leaveQuota?.sp_monthly_limit ?? leaveQuota?.policy_rules?.short_permission?.monthly_limit ?? 5)}</span>
-              <span className="text-xs text-muted-foreground">/ {leaveQuota?.short_permission_limit_monthly ?? leaveQuota?.sp_monthly_limit ?? leaveQuota?.policy_rules?.short_permission?.monthly_limit ?? 5} left</span>
-            </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">Used this month: {leaveQuota?.short_permission_used_this_month ?? leaveQuota?.sp_used_this_month ?? 0}</p>
-          </div>
+          )}
         </div>
 
         {/* Top Header Tab Switcher (Apply Leave vs Substitute Requests) */}
@@ -1267,13 +1294,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 {/* Leave Category Select Option */}
                 {(() => {
                   const availableCategories = [
-                    { id: 'casual', label: 'Casual Leave (CL)', visible: true },
-                    { id: 'od', label: 'On Duty (OD)', visible: leaveQuota?.is_od_eligible !== false },
-                    { id: 'earned', label: 'Earned Leave (EL)', visible: leaveQuota?.is_el_eligible !== false },
-                    { id: 'vacation', label: 'Vacation Leave', visible: leaveQuota?.is_vacation_eligible === true },
-                    { id: 'rh', label: 'Restricted Holiday (RH)', visible: true },
-                    { id: 'maternity', label: 'Maternity Leave (ML)', visible: leaveQuota?.is_maternity_eligible === true },
-                    { id: 'short_permission', label: 'Short Permission', visible: true },
+                    { id: 'casual', label: 'Casual Leave (CL)', visible: leaveQuota?.cl_is_enabled !== false && leaveQuota?.policy_rules?.casual_leave?.is_enabled !== false },
+                    { id: 'od', label: 'On Duty (OD)', visible: leaveQuota?.od_is_enabled !== false && leaveQuota?.policy_rules?.on_duty?.is_enabled !== false && leaveQuota?.is_od_eligible !== false },
+                    { id: 'earned', label: 'Earned Leave (EL)', visible: leaveQuota?.el_is_enabled !== false && leaveQuota?.policy_rules?.earned_leave?.is_enabled !== false && leaveQuota?.is_el_eligible !== false },
+                    { id: 'vacation', label: 'Vacation Leave', visible: leaveQuota?.vacation_is_enabled !== false && leaveQuota?.policy_rules?.vacation_leave?.is_enabled !== false && leaveQuota?.is_vacation_eligible === true },
+                    { id: 'rh', label: 'Restricted Holiday (RH)', visible: leaveQuota?.rh_is_enabled !== false && leaveQuota?.policy_rules?.restricted_holiday?.is_enabled !== false },
+                    { id: 'maternity', label: 'Maternity Leave (ML)', visible: leaveQuota?.maternity_is_enabled !== false && leaveQuota?.policy_rules?.maternity_leave?.is_enabled !== false && leaveQuota?.is_maternity_eligible === true },
+                    { id: 'short_permission', label: 'Short Permission', visible: leaveQuota?.sp_is_enabled !== false && leaveQuota?.policy_rules?.short_permission?.is_enabled !== false },
                   ].filter(c => c.visible);
 
                   return (
