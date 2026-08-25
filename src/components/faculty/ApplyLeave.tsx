@@ -865,7 +865,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         onClick={() => setSelectedLeaveForFlow(leave)}
         title="Click to view complete approval workflow pipeline"
       >
-        <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full inline-flex items-center gap-1 transition-transform group-hover:scale-105 ${bgClass} shrink-0 whitespace-nowrap`}>
+        <span className={`px-2.5 py-0.5 text-[11px] font-semibold rounded-full inline-flex items-center justify-center gap-1 transition-transform group-hover:scale-105 ${bgClass} shrink-0 whitespace-nowrap min-w-[86px]`}>
           {status === 'Approved' && <CheckCircle2 className="w-3 h-3" />}
           {status === 'Rejected' && <XCircle className="w-3 h-3" />}
           {status === 'Pending' && <Clock className="w-3 h-3" />}
@@ -2279,12 +2279,6 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   >
                                     <FileText className="w-3 h-3" /> Attendance Certificate <ExternalLink className="w-2.5 h-2.5" />
                                   </a>
-                                  <span className={`text-[9px] px-1.5 py-0.2 rounded font-semibold ${leave.od_completion_verified
-                                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400'
-                                      : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400'
-                                    }`}>
-                                    {leave.od_completion_verified ? 'Verified by HoD' : 'Pending Verification'}
-                                  </span>
                                 </div>
                               ) : (
                                 <Button
@@ -2432,23 +2426,17 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                                   {/* OD Post-Completion Certificate Actions in Table */}
                                   {leave.leave_type === 'od' && leave.status === 'Approved' && (
-                                    <div className="mt-1.5 space-y-1">
+                                    <div className="mt-1 space-y-1">
                                       {leave.completion_document_url ? (
-                                        <div className="flex items-center gap-1 flex-wrap">
+                                        <div className="flex items-center">
                                           <a
                                             href={leave.completion_document_url}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] text-emerald-700 dark:text-emerald-300 font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
+                                            className="inline-flex items-center justify-center gap-1 min-w-[86px] px-2.5 py-0.5 rounded-full text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 transition-colors whitespace-nowrap"
                                           >
-                                            <FileText className="w-2.5 h-2.5" /> Cert <ExternalLink className="w-2 h-2" />
+                                            <FileText className="w-2.5 h-2.5" /> <span>Cert</span> <ExternalLink className="w-2 h-2 opacity-80" />
                                           </a>
-                                          <span className={`text-[8px] px-1 py-0.2 rounded font-semibold border ${leave.od_completion_verified
-                                              ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
-                                              : 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800'
-                                            }`}>
-                                            {leave.od_completion_verified ? 'Verified' : 'Pending'}
-                                          </span>
                                         </div>
                                       ) : (
                                         <Button
@@ -2459,7 +2447,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                             setUploadCertModalOpen(true);
                                             setCompletionCertFile(null);
                                           }}
-                                          className="text-[9px] h-6 px-1.5 font-semibold text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 flex items-center gap-1 shadow-none"
+                                          className="text-[9px] h-6 px-2 min-w-[86px] rounded-full font-semibold text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 flex items-center justify-center gap-1 shadow-none"
                                         >
                                           <Upload className="w-2.5 h-2.5" /> Upload Cert
                                         </Button>
