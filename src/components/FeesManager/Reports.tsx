@@ -54,8 +54,6 @@ import {
 } from
   '@/components/ui/skeleton';
 import { DateTimePicker } from '@/components/ui/datetime-picker';
-import { TodayAttendanceState } from "@/types/attendance";
-import { getCheckpointDisplay } from "@/utils/attendance_helpers";
 
 
 interface AttendanceSummary {
@@ -864,20 +862,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                           {record.status === 'not_marked' ? 'Not Marked' : (record.status === 'on_leave' ? (leaveTypes[dateStr] ? `On Leave (${leaveTypes[dateStr]})` : 'On Leave') : record.status.charAt(0).toUpperCase() + record.status.slice(1))}
                         </div>
                         
-                        {record.today_attendance_state ? (
-                          <div className={`space-y-2 p-4 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                            {Object.entries((record.today_attendance_state as TodayAttendanceState).checkpoints).map(([key, details], idx) => {
-                              const delayMinutes = record.delays?.[idx] || 0;
-                              const displayName = key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ').replace('First', '1st').replace('Second', '2nd');
-                              return (
-                                <div key={key} className={`flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0 ${isDark ? 'border-white/5' : 'border-gray-200'}`}>
-                                  <span className="font-semibold text-gray-500">{displayName}</span>
-                                  {getCheckpointDisplay(details.state, details.timestamp, delayMinutes, isDark ? 'dark' : 'light')}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : record.checkin_timestamps && record.checkin_timestamps.length > 0 ? (
+                        {record.checkin_timestamps && record.checkin_timestamps.length > 0 ? (
                           <div className={`space-y-2 p-4 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                             {record.checkin_timestamps.map((ts: any, idx: number) => (
                               <div key={idx} className={`flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0 ${isDark ? 'border-white/5' : 'border-gray-200'}`}>
@@ -943,7 +928,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                           </div>
                         )}
 
-                        {((record as any).today_attendance_state?.off_campus_duty === true || record.notes?.includes('[Off-Campus Check-in]')) && (
+                        {record.notes?.includes('[Off-Campus Check-in]') && (
                           <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 font-semibold leading-relaxed">
                             <span className="block text-xs uppercase tracking-wider font-black mb-1 opacity-70">Off-Campus Duty</span>
                             {record.notes.replace('[Off-Campus Check-in] Reason:', '').trim()}
