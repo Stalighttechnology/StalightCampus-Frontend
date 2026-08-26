@@ -1,3 +1,5 @@
+import { TodayAttendanceState } from "@/types/attendance";
+import { getCheckpointDisplay } from "@/utils/attendance_helpers";
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect } from "react";
 import { API_ENDPOINT } from "../../utils/config";
