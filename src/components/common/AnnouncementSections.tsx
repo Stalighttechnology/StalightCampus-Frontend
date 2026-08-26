@@ -574,7 +574,9 @@ export const AnnouncementSections = ({
                   variant="outline"
                   size="sm"
                   onClick={() => setShowExpired(!showExpired)}
-                  className={`ann-archive-btn shrink-0 text-xs font-semibold transition-all h-9 px-3 sm:px-4 rounded-xl border-dashed hover:border-solid ${showExpired
+                  className={`ann-archive-btn text-xs font-semibold transition-all h-9 px-3 sm:px-4 rounded-xl border-dashed hover:border-solid ${
+                    isAnnouncementMode ? "w-full sm:w-auto" : "shrink-0"
+                  } ${showExpired
                     ? "bg-primary/5 border-primary text-primary hover:bg-primary/10"
                     : "text-muted-foreground hover:text-foreground border-muted-foreground/20 hover:border-foreground/30"
                     }`}
