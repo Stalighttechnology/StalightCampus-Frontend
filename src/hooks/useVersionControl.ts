@@ -42,8 +42,8 @@ export const useVersionControl = () => {
           url = config.ios.store_url;
         }
       } else {
-        // For web, we assume package version is managed via an env var or a global config.
-        installedVersion = process.env.REACT_APP_VERSION || import.meta.env.VITE_APP_VERSION || "1.0.0";
+        // For web, we assume package version is managed via Vite env var or a global config.
+        installedVersion = import.meta.env.VITE_APP_VERSION || (typeof process !== 'undefined' ? process.env?.REACT_APP_VERSION : undefined) || "1.0.0";
         minimumVersion = config.web.minimum_supported_version;
       }
 

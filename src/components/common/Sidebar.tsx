@@ -12,6 +12,7 @@ import { API_BASE_URL } from "../../utils/config";
 import { fetchParentChildrenCached } from "../../utils/student_api";
 import { getAlternateDutyRequests } from "../../utils/faculty_api";
 import { manageHODLeaves } from "../../utils/admin_api";
+import { getHodStudentLeaves } from "../../utils/hod_api";
 import {
   LayoutDashboard,
   Users,
@@ -138,10 +139,23 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         if (!canApproveLeaves) return;
         try {
           const res = await manageHODLeaves({ status: 'PENDING', page_size: 1 });
+          let count = 0;
           if (res) {
-            const count = (res as any).pending_count ?? (res as any).count ?? (res as any).total_records ?? res.pagination?.total_records ?? (res.leaves?.filter((l: any) => l.status === 'PENDING').length ?? 0);
-            setPendingApprovalCount(typeof count === 'number' ? count : 0);
+            count = (res as any).pending_count ?? (res as any).count ?? (res as any).total_records ?? res.pagination?.total_records ?? (res.leaves?.filter((l: any) => l.status === 'PENDING').length ?? 0);
           }
+          if (roleLower === 'hod') {
+            try {
+              const studentRes = await getHodStudentLeaves({ status: 'FORWARDED_TO_HOD', page_size: 1 });
+              if (studentRes && studentRes.pending_count !== undefined) {
+                count += Number(studentRes.pending_count);
+              } else if (studentRes && studentRes.pagination?.total_count !== undefined) {
+                count += Number(studentRes.pagination.total_count);
+              }
+            } catch (studentErr) {
+              console.error("Error checking student leave pending approvals in sidebar:", studentErr);
+            }
+          }
+          setPendingApprovalCount(typeof count === 'number' ? count : 0);
         } catch (err) {
           console.error("Error checking pending approvals in sidebar:", err);
         }

@@ -2795,3 +2795,86 @@ export const getPromotionHistory = async (params?: {
     return { success: false, message: "Network error" };
   }
 };
+
+export interface HodStudentLeave {
+  id: string;
+  student_name: string;
+  usn: string;
+  proctor_name?: string;
+  semester?: string;
+  section?: string;
+  start_date: string | null;
+  end_date: string | null;
+  reason: string;
+  status: "FORWARDED_TO_HOD" | "APPROVED" | "REJECTED" | string;
+  proctor_remarks?: string;
+  forwarded_at?: string | null;
+  forwarded_by?: string | null;
+  hod_remarks?: string;
+  hod_reviewed_at?: string | null;
+  hod_reviewed_by?: string | null;
+  submitted_at: string | null;
+  submitted_at_raw: string | null;
+}
+
+export interface GetHodStudentLeavesResponse {
+  success: boolean;
+  message?: string;
+  data?: HodStudentLeave[];
+  pending_count?: number;
+  pagination?: {
+    page: number;
+    page_size: number;
+    total_pages: number;
+    total_count: number;
+  };
+}
+
+export const getHodStudentLeaves = async (params?: {
+  page?: number;
+  page_size?: number;
+  search?: string;
+  status?: string;
+}): Promise<GetHodStudentLeavesResponse> => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.page_size) queryParams.append("page_size", params.page_size.toString());
+    if (params?.search) queryParams.append("search", params.search);
+    if (params?.status) queryParams.append("status", params.status);
+
+    const url = `${API_ENDPOINT}/hod/student-leaves/${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+
+    const response = await fetchWithTokenRefresh(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const manageHodStudentLeave = async (data: {
+  leave_id: string;
+  action: "APPROVE" | "REJECT";
+  remarks?: string;
+  rejection_reason?: string;
+}): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/manage-student-leave/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};

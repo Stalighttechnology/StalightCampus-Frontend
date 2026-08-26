@@ -1950,7 +1950,9 @@ export const getUploadMarksBootstrap = async (params: {
 
 interface ManageStudentLeaveRequest {
   leave_id: string;
-  action: "APPROVE" | "REJECT";
+  action: "APPROVE" | "REJECT" | "FORWARD" | "FORWARD_TO_HOD";
+  remarks?: string;
+  rejection_reason?: string;
 }
 
 interface ManageStudentLeaveResponse {
@@ -1984,7 +1986,13 @@ export interface ProctorStudentLeave {
   start_date: string | null;
   end_date: string | null;
   reason: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  status: "PENDING" | "FORWARDED_TO_HOD" | "APPROVED" | "REJECTED" | string;
+  proctor_remarks?: string;
+  forwarded_at?: string | null;
+  forwarded_by?: string | null;
+  hod_remarks?: string;
+  hod_reviewed_at?: string | null;
+  hod_reviewed_by?: string | null;
   submitted_at: string | null;
   submitted_at_raw: string | null;
   reviewed_at_raw: string | null;

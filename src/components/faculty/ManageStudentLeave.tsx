@@ -3,7 +3,7 @@ import { manageStudentLeave, getProctorStudentLeaves, ProctorStudentLeave } from
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { CheckCircle, XCircle, CalendarCheck2, Filter } from "lucide-react";
+import { CheckCircle, XCircle, CalendarCheck2, Filter, Send } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 import Swal from 'sweetalert2';
@@ -18,12 +18,13 @@ const ManageStudentLeave = () => {
   const queryClient = useQueryClient();
   const { value: search, debouncedValue: debouncedSearch, setValue: setSearch } = useDebouncedSearch('', 500);
 
-  const statusOptions = ["All", "PENDING", "APPROVED", "REJECTED"];
+  const statusOptions = ["All", "PENDING", "FORWARDED_TO_HOD", "APPROVED", "REJECTED"];
   const [filterStatus, setFilterStatus] = useState("All");
   const [page, setPage] = useState(1);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [viewReason, setViewReason] = useState<string | null>(null);
+  const [viewDetailsLeave, setViewDetailsLeave] = useState<ProctorStudentLeave | null>(null);
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
+  const [showForwardModal, setShowForwardModal] = useState<string | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
   const mobileFilterRef = useRef<HTMLDivElement>(null);
@@ -48,7 +49,8 @@ const ManageStudentLeave = () => {
   }, [showFilter]);
 
   // Format date range to "MMM DD, YYYY to MMM DD, YYYY"
-  const formatPeriod = (startDate: string, endDate: string): string => {
+  const formatPeriod = (startDate: string | null, endDate: string | null): string => {
+    if (!startDate || !endDate) return "N/A";
     try {
       const start = new Date(startDate);
       const end = new Date(endDate);
@@ -83,16 +85,18 @@ const ManageStudentLeave = () => {
     totalItems: paginationRaw.total_count,
   } : undefined;
 
-  const getStatusBadge = (status: "PENDING" | "APPROVED" | "REJECTED") => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "PENDING":
         return <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700'}`}>Pending</span>;
+      case "FORWARDED_TO_HOD":
+        return <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-purple-900/60 text-purple-200 border border-purple-700/50' : 'bg-purple-100 text-purple-800 border border-purple-200'}`}>Forwarded to HoD</span>;
       case "APPROVED":
         return <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700'}`}>Approved</span>;
       case "REJECTED":
         return <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`}>Rejected</span>;
       default:
-        return <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>Unknown</span>;
+        return <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>{status}</span>;
     }
   };
 
@@ -102,7 +106,27 @@ const ManageStudentLeave = () => {
       const res = await manageStudentLeave({ leave_id: leaveId, action: "APPROVE" });
       if (res.success) {
         queryClient.invalidateQueries({ queryKey: ['proctorStudentLeaves'] });
+        window.dispatchEvent(new CustomEvent('leaves-updated'));
         Swal.fire({ title: 'Approved!', text: 'Leave request approved successfully.', icon: 'success', confirmButtonColor: '#22c55e' });
+      } else {
+        throw new Error(res.message || "Action failed");
+      }
+    } catch (e: unknown) {
+      Swal.fire({ title: 'Error!', text: e instanceof Error ? e.message : "An unexpected error occurred.", icon: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleForward = async (leaveId: string, remarks: string) => {
+    setActionLoading(leaveId + "FORWARD");
+    try {
+      const res = await manageStudentLeave({ leave_id: leaveId, action: "FORWARD", remarks });
+      if (res.success) {
+        queryClient.invalidateQueries({ queryKey: ['proctorStudentLeaves'] });
+        setShowForwardModal(null);
+        window.dispatchEvent(new CustomEvent('leaves-updated'));
+        Swal.fire({ title: 'Forwarded!', text: 'Leave request forwarded to HoD for final review.', icon: 'success', confirmButtonColor: '#8b5cf6' });
       } else {
         throw new Error(res.message || "Action failed");
       }
@@ -120,6 +144,7 @@ const ManageStudentLeave = () => {
       if (res.success) {
         queryClient.invalidateQueries({ queryKey: ['proctorStudentLeaves'] });
         setShowRejectModal(null);
+        window.dispatchEvent(new CustomEvent('leaves-updated'));
         Swal.fire({ title: 'Rejected!', text: 'Leave request rejected.', icon: 'info', confirmButtonColor: '#ef4444' });
       } else {
         throw new Error(res.message || "Action failed");
@@ -289,40 +314,58 @@ const ManageStudentLeave = () => {
                     </div>
 
                     <Button
-                      onClick={() => setViewReason(leave.reason)}
+                      onClick={() => setViewDetailsLeave(leave)}
                       className={`w-full mb-3 h-10 rounded-xl font-medium transition-all duration-200 ${theme === 'dark'
                         ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
                         : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
                         }`}
                       variant="outline"
                     >
-                      View Reason
+                      View Details
                     </Button>
 
                     {leave.status === "PENDING" ? (
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-3 gap-2">
                         <Button
                           variant="outline"
-                          className={`flex items-center justify-center gap-1.5 h-10 rounded-xl font-medium ${theme === 'dark'
+                          className={`flex items-center justify-center gap-1 h-10 rounded-xl font-medium text-xs ${theme === 'dark'
                             ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
                             : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
                             }`}
                           onClick={() => handleApprove(leave.id)}
                           disabled={!!actionLoading}
                         >
-                          <CheckCircle size={16} /> Approve
+                          <CheckCircle size={14} /> Approve
                         </Button>
                         <Button
                           variant="outline"
-                          className={`flex items-center justify-center gap-1.5 h-10 rounded-xl font-medium ${theme === 'dark'
+                          className={`flex items-center justify-center gap-1 h-10 rounded-xl font-medium text-xs ${theme === 'dark'
+                            ? 'bg-purple-950/20 text-purple-400 border-purple-500/30 hover:bg-purple-950/40'
+                            : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
+                            }`}
+                          onClick={() => setShowForwardModal(leave.id)}
+                          disabled={!!actionLoading}
+                        >
+                          <Send size={14} /> Forward
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className={`flex items-center justify-center gap-1 h-10 rounded-xl font-medium text-xs ${theme === 'dark'
                             ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/40'
                             : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
                             }`}
                           onClick={() => setShowRejectModal(leave.id)}
                           disabled={!!actionLoading}
                         >
-                          <XCircle size={16} /> Reject
+                          <XCircle size={14} /> Reject
                         </Button>
+                      </div>
+                    ) : leave.status === "FORWARDED_TO_HOD" ? (
+                      <div className="flex flex-col items-start gap-1 pt-2 border-t mt-2">
+                        <span className="text-xs text-purple-600 dark:text-purple-400 font-medium">Forwarded to HoD (Pending HoD Approval)</span>
+                        {leave.forwarded_at && (
+                          <span className="text-[11px] text-muted-foreground">at {leave.forwarded_at}</span>
+                        )}
                       </div>
                     ) : (
                       <div className="flex items-center justify-between pt-2 border-t mt-2">
@@ -365,14 +408,14 @@ const ManageStudentLeave = () => {
                         </td>
                         <td className="px-4 py-3">
                           <Button
-                            onClick={() => setViewReason(leave.reason)}
+                            onClick={() => setViewDetailsLeave(leave)}
                             className={`text-xs font-semibold px-3 py-1 rounded-lg transition-colors ${theme === 'dark'
                               ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
                               : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
                               }`}
                             variant="outline"
                           >
-                            View
+                            View Details
                           </Button>
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -385,28 +428,46 @@ const ManageStudentLeave = () => {
                                 onClick={() => handleApprove(leave.id)}
                                 size="sm"
                                 variant="outline"
-                                className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
+                                className={`px-2.5 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
                                   ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
                                   : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
                                   }`}
                                 disabled={!!actionLoading}
                               >
-                                {actionLoading === leave.id + "APPROVE" ? "..." : <CheckCircle size={16} />}
+                                {actionLoading === leave.id + "APPROVE" ? "..." : <CheckCircle size={15} />}
                                 <span className="ml-1 hidden sm:inline">Approve</span>
+                              </Button>
+                              <Button
+                                onClick={() => setShowForwardModal(leave.id)}
+                                size="sm"
+                                variant="outline"
+                                className={`px-2.5 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
+                                  ? 'bg-purple-950/20 text-purple-400 border-purple-500/30 hover:bg-purple-950/40'
+                                  : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
+                                  }`}
+                                disabled={!!actionLoading}
+                              >
+                                {actionLoading === leave.id + "FORWARD" ? "..." : <Send size={14} />}
+                                <span className="ml-1 hidden sm:inline">Forward to HoD</span>
                               </Button>
                               <Button
                                 onClick={() => setShowRejectModal(leave.id)}
                                 size="sm"
                                 variant="outline"
-                                className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
+                                className={`px-2.5 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
                                   ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/40'
                                   : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
                                   }`}
                                 disabled={!!actionLoading}
                               >
-                                {actionLoading === leave.id + "REJECT" ? "..." : <XCircle size={16} />}
+                                {actionLoading === leave.id + "REJECT" ? "..." : <XCircle size={15} />}
                                 <span className="ml-1 hidden sm:inline">Reject</span>
                               </Button>
+                            </div>
+                          ) : leave.status === "FORWARDED_TO_HOD" ? (
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className="text-xs text-purple-600 dark:text-purple-400 font-medium">Forwarded to HoD</span>
+                              <span className="text-[11px] text-muted-foreground italic">Pending HoD Review</span>
                             </div>
                           ) : (
                             <div className="flex flex-col items-end gap-0.5">
@@ -461,26 +522,99 @@ const ManageStudentLeave = () => {
         )}
       </Card>
 
-      {/* View Reason Dialog */}
-      <Dialog open={!!viewReason} onOpenChange={() => setViewReason(null)}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6`}>
+      {/* View Reason / Details Dialog */}
+      <Dialog open={!!viewDetailsLeave} onOpenChange={() => setViewDetailsLeave(null)}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[90%] sm:max-w-lg mx-auto rounded-2xl p-4 sm:p-6`}>
           <DialogHeader>
-            <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Reason</DialogTitle>
+            <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Request Details</DialogTitle>
           </DialogHeader>
 
-          <div
-            className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
-                      max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}
-          >
-            {viewReason}
-          </div>
+          {viewDetailsLeave && (
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+              <div className="grid grid-cols-2 gap-2 text-sm p-3 rounded-xl bg-muted/40 border border-border">
+                <div>
+                  <span className="text-xs text-muted-foreground block">Student:</span>
+                  <span className="font-semibold">{viewDetailsLeave.student_name}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block">USN:</span>
+                  <span className="font-medium">{viewDetailsLeave.usn}</span>
+                </div>
+                <div className="col-span-2 mt-1">
+                  <span className="text-xs text-muted-foreground block">Period:</span>
+                  <span className="font-medium">{formatPeriod(viewDetailsLeave.start_date, viewDetailsLeave.end_date)}</span>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">Student Reason:</span>
+                <div className={`p-3 text-sm leading-relaxed whitespace-pre-wrap break-words rounded-xl border ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-gray-50 border-gray-200 text-gray-900'}`}>
+                  {viewDetailsLeave.reason}
+                </div>
+              </div>
+
+              {viewDetailsLeave.proctor_remarks && (
+                <div>
+                  <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider block mb-1">Proctor Remarks / Note:</span>
+                  <div className={`p-3 text-sm leading-relaxed whitespace-pre-wrap break-words rounded-xl border ${theme === 'dark' ? 'bg-purple-950/20 border-purple-800/40 text-purple-200' : 'bg-purple-50 border-purple-200 text-purple-900'}`}>
+                    {viewDetailsLeave.proctor_remarks}
+                  </div>
+                </div>
+              )}
+
+              {viewDetailsLeave.hod_remarks && (
+                <div>
+                  <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider block mb-1">HoD Review Remarks:</span>
+                  <div className={`p-3 text-sm leading-relaxed whitespace-pre-wrap break-words rounded-xl border ${theme === 'dark' ? 'bg-blue-950/20 border-blue-800/40 text-blue-200' : 'bg-blue-50 border-blue-200 text-blue-900'}`}>
+                    {viewDetailsLeave.hod_remarks}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <DialogFooter>
             <Button
-              className="bg-primary hover:bg-primary/90 text-white font-semibold transition-all duration-200 shadow-lg shadow-primary/20 px-6"
-              onClick={() => setViewReason(null)}
+              className="bg-primary hover:bg-primary/90 text-white font-semibold transition-all duration-200 px-6"
+              onClick={() => setViewDetailsLeave(null)}
             >
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Forward to HoD Dialog */}
+      <Dialog open={!!showForwardModal} onOpenChange={() => setShowForwardModal(null)}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} rounded-2xl`}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              Forward to Department HoD
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Forward this student leave application to your department HoD for final decision and sanction.
+            </p>
+            <label className="text-sm font-medium block">Proctor Recommendation / Note (Optional)</label>
+            <textarea
+              id="forward-remarks"
+              className={`w-full p-3 border rounded-xl text-sm min-h-[100px] outline-none focus:ring-2 focus:ring-purple-500/20 ${theme === 'dark' ? 'bg-background border-border text-foreground focus:border-purple-500' : 'bg-white border-gray-200 text-gray-900 focus:border-purple-500'
+                }`}
+              placeholder="e.g., Medical certificate verified; requires HoD approval for absence during tests..."
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowForwardModal(null)}>Cancel</Button>
+            <Button
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              onClick={() => {
+                const remarks = (document.getElementById('forward-remarks') as HTMLTextAreaElement)?.value || '';
+                if (showForwardModal) handleForward(showForwardModal, remarks);
+              }}
+            >
+              Forward to HoD
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -496,7 +630,7 @@ const ManageStudentLeave = () => {
             <label className="text-sm font-medium">Rejection Reason (Optional)</label>
             <textarea
               id="rejection-reason"
-              className={`w-full p-3 border rounded-lg text-sm min-h-[100px] outline-none focus:ring-2 focus:ring-primary/20 ${theme === 'dark' ? 'bg-background border-border text-foreground focus:border-primary' : 'bg-white border-gray-200 text-gray-900 focus:border-primary'
+              className={`w-full p-3 border rounded-xl text-sm min-h-[100px] outline-none focus:ring-2 focus:ring-primary/20 ${theme === 'dark' ? 'bg-background border-border text-foreground focus:border-primary' : 'bg-white border-gray-200 text-gray-900 focus:border-primary'
                 }`}
               placeholder="Provide a reason for rejection..."
             />
@@ -506,7 +640,7 @@ const ManageStudentLeave = () => {
             <Button
               variant="destructive"
               onClick={() => {
-                const reason = (document.getElementById('rejection-reason') as HTMLTextAreaElement).value;
+                const reason = (document.getElementById('rejection-reason') as HTMLTextAreaElement)?.value || '';
                 if (showRejectModal) handleReject(showRejectModal, reason);
               }}
             >

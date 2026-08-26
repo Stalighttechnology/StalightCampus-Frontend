@@ -6,8 +6,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { CheckCircle, XCircle, Filter, FileText, ExternalLink } from "lucide-react";
 import { SkeletonTable, SkeletonCard } from "../ui/skeleton";
 import Swal from 'sweetalert2';
-import { manageLeaves, manageProfile, getFacultyLeavesBootstrap } from "../../utils/hod_api";
+import { manageLeaves, manageProfile, getFacultyLeavesBootstrap, getHodStudentLeaves } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
+import { DepartmentStudentLeaves } from "./DepartmentStudentLeaves";
 import {
   Select,
   SelectContent,
@@ -88,6 +89,8 @@ interface FacultyLeavesBootstrapResponse {
 }
 
 const LeaveManagement = () => {
+  const [activeTab, setActiveTab] = useState<"faculty" | "student">("faculty");
+  const [studentPendingCount, setStudentPendingCount] = useState<number>(0);
   const [search, setSearch] = useState("");
   const [localSearch, setLocalSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<"All" | "Pending" | "Approved" | "Rejected">("All");
@@ -125,6 +128,28 @@ const LeaveManagement = () => {
   const hasFetchedRef = useRef(false);
   const initialLoadRef = useRef(true);
   const isSilentOperationRef = useRef(false);
+
+  const pendingFacultyLeavesCount = leaveRequests.filter(r => r.status === "Pending" || r.canApprove).length;
+
+  useEffect(() => {
+    const fetchStudentPendingCount = async () => {
+      try {
+        const res = await getHodStudentLeaves({ status: 'FORWARDED_TO_HOD', page_size: 1 });
+        if (res && res.pending_count !== undefined) {
+          setStudentPendingCount(Number(res.pending_count));
+        } else if (res && res.pagination?.total_count !== undefined) {
+          setStudentPendingCount(Number(res.pagination.total_count));
+        }
+      } catch (err) {
+        console.error("Error fetching student pending count:", err);
+      }
+    };
+    fetchStudentPendingCount();
+    window.addEventListener('leaves-updated', fetchStudentPendingCount);
+    return () => {
+      window.removeEventListener('leaves-updated', fetchStudentPendingCount);
+    };
+  }, []);
 
   // Format date range to "MMM DD, YYYY to MMM DD, YYYY" (or single date if same day)
   const formatPeriod = (startDate: string, endDate: string): string => {
@@ -530,96 +555,134 @@ const LeaveManagement = () => {
       <Card className={`${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
         <div id="hod-leave-approvals-header-section">
           <CardHeader className="border-b pb-4">
-            <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Approvals</CardTitle>
-            <CardDescription className="text-sm text-muted-foreground mt-1">Review and manage department faculty leave requests.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-2 sm:p-4">
-            {/* Search Bar */}
-            <div className="flex flex-row items-center gap-2 mb-6 w-full">
-              <Input
-                placeholder="Search faculty..."
-                value={localSearch}
-                onChange={(e) => setLocalSearch(e.target.value)}
-                className={`flex-1 text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`} />
-
-              <div className="relative shrink-0" ref={filterRef}>
-                <Button
-                  onClick={() => setShowFilter(!showFilter)}
-                  className="h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90 px-3 sm:px-4">
-                  <Filter className="w-4 h-4" />
-                  <span className="hidden sm:inline">{filterStatus === "All" ? "Filter" : filterStatus}</span>
-                </Button>
-                {showFilter &&
-                  <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-md shadow-lg z-20`}>
-                    <div className="py-1">
-                      {(["All", "Pending", "Approved", "Rejected"] as const).map((status) => (
-                        <button
-                          key={status}
-                          type="button"
-                          className={`block w-full text-left px-4 py-2 text-sm hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-100'} ${filterStatus === status ? (theme === 'dark' ? 'bg-accent text-accent-foreground' : 'bg-gray-100 text-gray-900') : (theme === 'dark' ? 'text-foreground' : 'text-gray-700')}`}
-                          onClick={() => {
-                            setFilterStatus(status);
-                            setShowFilter(false);
-                          }}>
-                          {status === "All" ? "All Status" : status}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                }
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Approvals</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground mt-1">Review and manage department faculty and student leave requests.</CardDescription>
+              </div>
+              <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl border border-border w-full sm:w-auto shrink-0 mt-1 sm:mt-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("faculty")}
+                  className={`flex-1 sm:flex-initial justify-center px-3.5 py-2 sm:py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-1.5 ${activeTab === "faculty"
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Faculty Leaves
+                  {pendingFacultyLeavesCount > 0 && (
+                    <span className={`px-1.5 py-0.2 rounded-full text-[11px] ${activeTab === "faculty" ? "bg-white text-primary font-bold" : "bg-primary text-white"}`}>
+                      {pendingFacultyLeavesCount}
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("student")}
+                  className={`flex-1 sm:flex-initial justify-center px-3.5 py-2 sm:py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-1.5 ${activeTab === "student"
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Student Leaves
+                  {studentPendingCount > 0 && (
+                    <span className={`px-1.5 py-0.2 rounded-full text-[11px] ${activeTab === "student" ? "bg-white text-primary font-bold" : "bg-purple-600 text-white"}`}>
+                      {studentPendingCount}
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
-          </CardContent>
-        </div>
-        <CardContent >
-          {/* Errors */}
-          {errors.length > 0 &&
-            <div className={`mb-4 p-3 rounded-md ${theme === 'dark' ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'}`}>
-              <ul className={`text-sm list-disc list-inside ${theme === 'dark' ? 'text-red-300' : 'text-red-700'}`}>
-                {errors.map((err, idx) =>
-                  <li key={idx}>{err}</li>
-                )}
-              </ul>
-            </div>
-          }
+          </CardHeader>
+          {activeTab === "faculty" ? (
+            <CardContent className="p-2 sm:p-4">
+              {/* Search Bar */}
+              <div className="flex flex-row items-center gap-2 mb-6 w-full">
+                <Input
+                  placeholder="Search faculty..."
+                  value={localSearch}
+                  onChange={(e) => setLocalSearch(e.target.value)}
+                  className={`flex-1 text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`} />
 
-          {/* Mobile: Stacked Cards View */}
-          <div className="md:hidden space-y-3">
-            {isLoading ?
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) =>
-                  <SkeletonCard key={i} className="h-[200px]" />
-                )}
-              </div> :
-              leaveRequests.length === 0 ?
-                <div className={`border-2 border-dashed flex flex-col items-center justify-center p-8 text-center space-y-4 rounded-lg ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                  <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
-                    <Filter className={`w-8 h-8 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
-                  </div>
-                  <div className="max-w-xs mx-auto">
-                    <h3 className={`text-md font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      No Leave Requests Found
-                    </h3>
-                    <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      There are no leave requests matching the selected status or filters.
-                    </p>
-                  </div>
-                </div> :
-
-                leaveRequests.map((row, index) =>
-                  <div key={row.id} className={`p-3 sm:p-4 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <div>
-                        <div className="font-medium text-base">{row.name}</div>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
-                            {row.role?.replace('_', ' ')}
-                          </span>
-                          {row.dept && row.dept !== 'N/A' && (
-                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{row.dept}</span>
-                          )}
-                        </div>
+                <div className="relative shrink-0" ref={filterRef}>
+                  <Button
+                    onClick={() => setShowFilter(!showFilter)}
+                    className="h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90 px-3 sm:px-4">
+                    <Filter className="w-4 h-4" />
+                    <span className="hidden sm:inline">{filterStatus === "All" ? "Filter" : filterStatus}</span>
+                  </Button>
+                  {showFilter &&
+                    <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-md shadow-lg z-20`}>
+                      <div className="py-1">
+                        {(["All", "Pending", "Approved", "Rejected"] as const).map((status) => (
+                          <button
+                            key={status}
+                            type="button"
+                            className={`block w-full text-left px-4 py-2 text-sm hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-100'} ${filterStatus === status ? (theme === 'dark' ? 'bg-accent text-accent-foreground' : 'bg-gray-100 text-gray-900') : (theme === 'dark' ? 'text-foreground' : 'text-gray-700')}`}
+                            onClick={() => {
+                              setFilterStatus(status);
+                              setShowFilter(false);
+                            }}>
+                          {status === "All" ? "All Status" : status}
+                          </button>
+                        ))}
                       </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </CardContent>
+          ) : null}
+        </div>
+        {activeTab === "faculty" ? (
+          <CardContent >
+            {/* Errors */}
+            {errors.length > 0 &&
+              <div className={`mb-4 p-3 rounded-md ${theme === 'dark' ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'}`}>
+                <ul className={`text-sm list-disc list-inside ${theme === 'dark' ? 'text-red-300' : 'text-red-700'}`}>
+                  {errors.map((err, idx) =>
+                    <li key={idx}>{err}</li>
+                  )}
+                </ul>
+              </div>
+            }
+
+            {/* Mobile: Stacked Cards View */}
+            <div className="md:hidden space-y-3">
+              {isLoading ?
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[...Array(6)].map((_, i) =>
+                    <SkeletonCard key={i} className="h-[200px]" />
+                  )}
+                </div> :
+                leaveRequests.length === 0 ?
+                  <div className={`border-2 border-dashed flex flex-col items-center justify-center p-8 text-center space-y-4 rounded-lg ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                    <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
+                      <Filter className={`w-8 h-8 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+                    </div>
+                    <div className="max-w-xs mx-auto">
+                      <h3 className={`text-md font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        No Leave Requests Found
+                      </h3>
+                      <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        There are no leave requests matching the selected status or filters.
+                      </p>
+                    </div>
+                  </div> :
+                  leaveRequests.map((row) => (
+                    <div key={row.id} className={`p-3 sm:p-4 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div>
+                          <div className="font-medium text-base">{row.name}</div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
+                              {row.role?.replace('_', ' ')}
+                            </span>
+                            {row.dept && row.dept !== 'N/A' && (
+                              <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{row.dept}</span>
+                            )}
+                          </div>
+                        </div>
                       <div className="shrink-0">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-medium ${row.status === "Pending" ?
@@ -737,7 +800,7 @@ const LeaveManagement = () => {
                       </div>
                     }
                   </div>
-                )
+                ))
             }
           </div>
 
@@ -938,6 +1001,11 @@ const LeaveManagement = () => {
             </div>
           }
         </CardContent>
+      ) : (
+        <CardContent className="p-4 sm:p-6">
+          <DepartmentStudentLeaves onPendingCountChange={setStudentPendingCount} />
+        </CardContent>
+      )}
       </Card>
 
       {/* View Reason Dialog */}
