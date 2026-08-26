@@ -5,10 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
-import { Loader2, Plus, Edit, Users, BookOpen, Award } from 'lucide-react';
+import { Loader2, Plus, Edit, Users, BookOpen, Award, FileText, Printer, ExternalLink } from 'lucide-react';
 import { SkeletonCard } from '../ui/skeleton';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function AdmissionSeatMatrix() {
@@ -24,6 +24,11 @@ export default function AdmissionSeatMatrix() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Report state
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportHtml, setReportHtml] = useState<string | null>(null);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+
   // Form fields
   const [formBranchId, setFormBranchId] = useState('');
   const [formBatchId, setFormBatchId] = useState('');
@@ -33,6 +38,11 @@ export default function AdmissionSeatMatrix() {
 
   // Filter
   const [selectedBatchFilter, setSelectedBatchFilter] = useState<string>('all');
+  const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>('all');
+
+  // Report filters (inside modal)
+  const [reportBatchFilter, setReportBatchFilter] = useState<string>('all');
+  const [reportBranchFilter, setReportBranchFilter] = useState<string>('all');
 
   useEffect(() => {
     fetchSeatMatrix();
@@ -130,6 +140,63 @@ export default function AdmissionSeatMatrix() {
     }
   };
 
+  const fetchReportData = async (batchId: string, branchId: string) => {
+    setReportLoading(true);
+    try {
+      const url = `${API_ENDPOINT}/admission/manager/seat-matrix/caste-report/?batch_id=${batchId}&branch_id=${branchId}`;
+      const res = await fetchWithTokenRefresh(url);
+      if (res.ok) {
+        const data = await res.json();
+        setReportHtml(data.html);
+      } else {
+        toast.error('Failed to generate admission caste details report');
+      }
+    } catch (e) {
+      toast.error('Error generating report');
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const handleOpenReportModal = () => {
+    setReportBatchFilter(selectedBatchFilter);
+    setReportBranchFilter(selectedBranchFilter);
+    setReportModalOpen(true);
+    fetchReportData(selectedBatchFilter, selectedBranchFilter);
+  };
+
+  const handleReportBatchChange = (newBatch: string) => {
+    setReportBatchFilter(newBatch);
+    fetchReportData(newBatch, reportBranchFilter);
+  };
+
+  const handleReportBranchChange = (newBranch: string) => {
+    setReportBranchFilter(newBranch);
+    fetchReportData(reportBatchFilter, newBranch);
+  };
+
+  const handlePrintReport = () => {
+    if (!reportHtml) return;
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(reportHtml);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 300);
+    }
+  };
+
+  const handleOpenInNewTab = () => {
+    if (!reportHtml) return;
+    const newWindow = window.open('', '_blank');
+    if (newWindow) {
+      newWindow.document.write(reportHtml);
+      newWindow.document.close();
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -139,9 +206,11 @@ export default function AdmissionSeatMatrix() {
     );
   }
 
-  const filteredMatrix = selectedBatchFilter === 'all' 
-    ? seatMatrix 
-    : seatMatrix.filter(m => String(m.batch) === selectedBatchFilter);
+  const filteredMatrix = seatMatrix.filter(m => {
+    const matchBatch = selectedBatchFilter === 'all' || String(m.batch) === selectedBatchFilter;
+    const matchBranch = selectedBranchFilter === 'all' || String(m.branch) === selectedBranchFilter;
+    return matchBatch && matchBranch;
+  });
 
   return (
     <>
@@ -153,7 +222,7 @@ export default function AdmissionSeatMatrix() {
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
             <Select value={selectedBatchFilter} onValueChange={setSelectedBatchFilter}>
-              <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectTrigger className="w-full sm:w-[170px]">
                 <SelectValue placeholder="Filter by Batch" />
               </SelectTrigger>
               <SelectContent>
@@ -163,6 +232,27 @@ export default function AdmissionSeatMatrix() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
+              <SelectTrigger className="w-full sm:w-[170px]">
+                <SelectValue placeholder="Filter by Branch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Branches</SelectItem>
+                {branches.map((br: any) => (
+                  <SelectItem key={br.id} value={br.id.toString()}>{br.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shadow-sm w-full sm:w-auto whitespace-nowrap gap-1.5 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50"
+              onClick={handleOpenReportModal}
+              disabled={reportLoading}
+            >
+              {reportLoading ? <Loader2 size={15} className="animate-spin" /> : <FileText size={15} />}
+              Admission Details Report
+            </Button>
             <Button size="sm" className="shadow-sm w-full sm:w-auto whitespace-nowrap" onClick={openAllocateModal}>
               <Plus size={16} className="mr-2" /> Allocate Seats
             </Button>
@@ -292,6 +382,86 @@ export default function AdmissionSeatMatrix() {
             <Button onClick={handleSave} disabled={isSaving || !formBranchId || !formBatchId}>
               {isSaving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : editingId ? 'Save Changes' : 'Allocate Seats'}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Caste-wise Admission Details Report Preview Modal */}
+      <Dialog open={reportModalOpen} onOpenChange={setReportModalOpen}>
+        <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-4 sm:p-6 overflow-hidden">
+          <DialogHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b">
+            <div>
+              <DialogTitle className="text-lg font-semibold flex items-center gap-2">
+                Admission Details Report
+                {reportLoading && <Loader2 size={16} className="animate-spin text-purple-600" />}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Official Caste-wise & Department-wise Admission Statistics
+              </DialogDescription>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <Select value={reportBatchFilter} onValueChange={handleReportBatchChange}>
+                <SelectTrigger className="h-8 text-xs w-[140px]">
+                  <SelectValue placeholder="Batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Batches</SelectItem>
+                  {batches.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={reportBranchFilter} onValueChange={handleReportBranchChange}>
+                <SelectTrigger className="h-8 text-xs w-[140px]">
+                  <SelectValue placeholder="Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {branches.map((br: any) => (
+                    <SelectItem key={br.id} value={br.id.toString()}>{br.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1.5 text-xs"
+                onClick={handleOpenInNewTab}
+                disabled={!reportHtml || reportLoading}
+              >
+                <ExternalLink size={13} /> New Tab
+              </Button>
+              <Button
+                size="sm"
+                className="h-8 gap-1.5 text-xs bg-purple-600 hover:bg-purple-700 text-white"
+                onClick={handlePrintReport}
+                disabled={!reportHtml || reportLoading}
+              >
+                <Printer size={13} /> Print / Save PDF
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-auto bg-neutral-100 dark:bg-neutral-900 rounded-lg p-2 sm:p-4 my-2 border relative">
+            {reportLoading && (
+              <div className="absolute inset-0 bg-background/50 backdrop-blur-xs flex items-center justify-center z-10">
+                <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+              </div>
+            )}
+            {reportHtml ? (
+              <div 
+                className="bg-white text-black shadow-lg mx-auto rounded overflow-auto"
+                style={{ width: '100%', minWidth: '900px' }}
+                dangerouslySetInnerHTML={{ __html: reportHtml }} 
+              />
+            ) : !reportLoading ? (
+              <div className="p-8 text-center text-muted-foreground text-sm">
+                No report data found for the selected filters.
+              </div>
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>

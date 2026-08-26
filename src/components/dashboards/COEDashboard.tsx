@@ -53,10 +53,10 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
 
     // Map URL paths to page names
     const pathMap: {[key: string]: string;} = {
+      'coe': 'dashboard',
       'my-payroll': 'my-payroll',
       'fee-settings': 'fee-settings',
       'dashboard': 'dashboard',
-      'holiday-calendar': '/coe/holiday-calendar',
       'holiday-calendar': 'holiday-calendar',
       'student-status': 'student-status',
       'course-statistics': 'course-statistics',

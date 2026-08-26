@@ -386,19 +386,23 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                     <div
                                         key={day.toString()}
                                         onClick={() => handleDayClick(day)}
-                                        className={`h-full min-h-0 p-1.5 hover:bg-primary/5 transition-colors relative flex flex-col justify-between ${hasHoliday || hasExam || hasLeave || (!readOnly && isEditModeActive) ? 'cursor-pointer' : ''
+                                        className={`h-full min-h-[72px] sm:min-h-[85px] p-1.5 sm:p-2 hover:bg-primary/5 transition-all relative flex flex-col justify-between ${hasHoliday || hasExam || hasLeave || (!readOnly && isEditModeActive) ? 'cursor-pointer' : ''
                                             } ${!isCurrentMonth ? (theme === 'dark' ? 'bg-muted/10 text-muted-foreground/30' : 'bg-gray-50/50 text-gray-400') : (
                                                 hasHoliday ? (
                                                     dayHolidays[0].holiday_type === 'event'
-                                                        ? (theme === 'dark' ? 'bg-primary/20' : 'bg-primary/10')
-                                                        : (theme === 'dark' ? 'bg-rose-500/20' : 'bg-rose-100/40')
-                                                ) : hasExam ? (theme === 'dark' ? 'bg-amber-500/20' : 'bg-amber-100/45') : hasLeave ? getLeaveStatusStyles(dayLeaves[0]?.status, theme).bg : (theme === 'dark' ? 'bg-card' : 'bg-white')
-                                            )} ${isToday ? 'ring-1 ring-primary/30' : ''} ${isCurrentMonth && (hasHoliday || hasExam || hasLeave) ? 'rounded-xl m-1 border border-border/40 shadow-sm' : ''}`}
+                                                        ? (theme === 'dark' ? 'bg-primary/15' : 'bg-primary/10')
+                                                        : (theme === 'dark' ? 'bg-rose-500/15' : 'bg-rose-50')
+                                                ) : hasExam ? (theme === 'dark' ? 'bg-amber-500/15' : 'bg-amber-50') : hasLeave ? (theme === 'dark' ? 'bg-teal-500/15' : 'bg-teal-50/70') : (theme === 'dark' ? 'bg-card' : 'bg-white')
+                                            )}`}
                                     >
+                                        {/* Today Highlight Indicator */}
+                                        {isToday && (
+                                            <div className="absolute inset-1 rounded-xl border-2 border-primary/70 bg-primary/[0.03] shadow-[0_0_12px_rgba(99,102,241,0.18)] dark:shadow-[0_0_12px_rgba(129,140,248,0.25)] pointer-events-none z-10" />
+                                        )}
 
                                         {/* Day header: number and star */}
-                                        <div className="flex justify-between items-center w-full">
-                                            <span className={`text-xs md:text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-primary text-white shadow-sm' : (theme === 'dark' ? 'text-foreground' : 'text-gray-800')}`}>
+                                        <div className="flex justify-between items-center w-full relative z-20">
+                                            <span className={`text-xs md:text-sm font-semibold w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full transition-transform ${isToday ? 'bg-primary text-white shadow-md ring-2 ring-primary/25 ring-offset-1 dark:ring-offset-card font-bold scale-105' : (theme === 'dark' ? 'text-foreground' : 'text-gray-800')}`}>
                                                 {isCurrentMonth ? format(day, 'dd') : ''}
                                             </span>
                                             {isCurrentMonth && hasHoliday && (
@@ -407,15 +411,15 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                         </div>
 
                                         {/* Holiday details text & Pill */}
-                                        <div className="mt-1 px-1.5 flex-1 flex-col gap-1 hidden sm:flex overflow-y-auto overflow-x-hidden custom-scrollbar">
+                                        <div className="mt-1 flex-1 flex-col gap-1 hidden sm:flex justify-center overflow-y-auto overflow-x-hidden custom-scrollbar relative z-20">
                                             {isCurrentMonth && hasHoliday && (
-                                                <div className="flex flex-col gap-1 items-center w-full text-center">
-                                                    <span className={`text-[10px] md:text-xs font-medium leading-tight line-clamp-1 break-all w-full text-center ${theme === 'dark' ? 'text-primary' : 'text-rose-500'}`} title={dayHolidays[0].description}>
+                                                <div className="flex flex-col gap-0.5 items-center w-full text-center">
+                                                    <span className={`text-[10px] md:text-xs font-medium leading-tight line-clamp-1 break-all w-full text-center ${theme === 'dark' ? 'text-primary' : 'text-rose-600'}`} title={dayHolidays[0].description}>
                                                         {dayHolidays[0].description}
                                                     </span>
                                                     <span
                                                         onClick={(e) => handleEventClick(e, dayHolidays[0])}
-                                                        className={`text-[8px] md:text-[9px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider cursor-pointer ${dayHolidays[0].holiday_type === 'event' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20'}`}
+                                                        className={`text-[8px] md:text-[9px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider cursor-pointer ${dayHolidays[0].holiday_type === 'event' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-rose-500/10 text-rose-600 hover:bg-rose-500/20'}`}
                                                     >
                                                         {!readOnly && isEditModeActive ? 'Tap to Edit' : 'View Details'}
                                                     </span>
@@ -425,12 +429,12 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                             {/* Exam chips */}
                                             {isCurrentMonth && !hasLeave && dayExams.slice(0, 2).map(exam => (
                                                 <div key={exam.id} className="flex flex-col gap-0.5 items-center w-full text-center">
-                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 break-all w-full text-center text-amber-600 dark:text-amber-400" title={exam.subject}>
+                                                    <span className="text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 break-all w-full text-center text-amber-700 dark:text-amber-400" title={exam.subject}>
                                                         {exam.subject}
                                                     </span>
                                                     <span
                                                         onClick={(e) => handleExamClick(e, exam)}
-                                                        className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider cursor-pointer bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
+                                                        className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider cursor-pointer bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20"
                                                     >
                                                         Exam
                                                     </span>
@@ -444,7 +448,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                             {isCurrentMonth && dayLeaves.slice(0, 1).map(leave => {
                                                 const styles = getLeaveStatusStyles(leave.status, theme);
                                                 return (
-                                                    <div key={leave.id} className="flex flex-col gap-0.5 items-center w-full text-center">
+                                                    <div key={leave.id} className="flex flex-col gap-0.5 items-center w-full text-center py-0.5">
                                                         <span className={`text-[10px] md:text-xs font-semibold leading-tight line-clamp-1 break-all w-full text-center ${styles.text}`} title={leave.leave_type}>
                                                             {leave.leave_type?.replace(/_/g, ' ')}
                                                         </span>
@@ -462,7 +466,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                             )}
 
                                             {isCurrentMonth && !hasHoliday && !hasExam && !hasLeave && !readOnly && isEditModeActive && (
-                                                <div className="flex justify-start items-end h-full">
+                                                <div className="flex justify-center items-end h-full">
                                                     <span className="text-[8px] md:text-[9px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-gray-100 text-gray-500 border border-gray-200 animate-pulse">
                                                         Tap to Add
                                                     </span>

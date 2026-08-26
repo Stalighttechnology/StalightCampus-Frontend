@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { manageRooms, manageHostels, manageHostelStudents, getFloorsByHostel, getRoomsByHostelId } from '../../utils/hms_api';
+import { manageRooms, manageHostels, manageHostelStudents, getFloorsByHostel, getRoomsByHostelId, getRoomDetail } from '../../utils/hms_api';
 import { useToast } from '../../hooks/use-toast';
 import { Edit2, Trash2, Plus, LayoutGrid, Users as UsersIcon, Info, Eye, Loader2 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
-import { SkeletonCard } from '../ui/skeleton';
+import { Skeleton, SkeletonCard } from '../ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 import Swal from 'sweetalert2';
 
@@ -65,6 +65,7 @@ const RoomManagement: React.FC = () => {
   const [isFloorOpen, setIsFloorOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [viewingRoom, setViewingRoom] = useState<Room | null>(null);
+  const [isLoadingResidents, setIsLoadingResidents] = useState(false);
   const [isFetchingHostels, setIsFetchingHostels] = useState(false);
   const { toast } = useToast();
   const { theme } = useTheme();
@@ -177,7 +178,21 @@ const RoomManagement: React.FC = () => {
     }
   };
 
-
+  const handleViewRoom = async (room: Room) => {
+    setViewingRoom(room);
+    setIsViewDialogOpen(true);
+    setIsLoadingResidents(true);
+    try {
+      const response = await getRoomDetail(room.id);
+      if (response.success && response.data) {
+        setViewingRoom(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching room details:", error);
+    } finally {
+      setIsLoadingResidents(false);
+    }
+  };
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -678,8 +693,7 @@ const RoomManagement: React.FC = () => {
                                 if (isEditMode) {
                                   handleEdit(room);
                                 } else {
-                                  setViewingRoom(room);
-                                  setIsViewDialogOpen(true);
+                                  handleViewRoom(room);
                                 }
                               }}
                               className={`group relative p-4 rounded-xl border-2 transition-all hover:shadow-md cursor-pointer overflow-hidden ${getRoomColorClasses(status.color)}`}
@@ -759,12 +773,27 @@ const RoomManagement: React.FC = () => {
               Room {viewingRoom?.name} Residents
             </DialogTitle>
             <span className="text-sm text-muted-foreground mt-1 block">
-              {viewingRoom ? roomStudentCounts[viewingRoom.id] || 0 : 0} of {viewingRoom ? getRoomCapacity(viewingRoom.room_type) : 0} beds occupied.
+              {viewingRoom ? (viewingRoom.residents ? viewingRoom.residents.length : (roomStudentCounts[viewingRoom.id] || 0)) : 0} of {viewingRoom ? getRoomCapacity(viewingRoom.room_type) : 0} beds occupied.
             </span>
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
-            {viewingRoom?.residents && viewingRoom.residents.length > 0 ? (
+            {isLoadingResidents ? (
+              <div className="grid gap-3">
+                {Array.from({ length: viewingRoom ? (roomStudentCounts[viewingRoom.id] || 2) : 2 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-xl border bg-muted/20">
+                    <div className="flex items-center gap-3 flex-1">
+                      <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+                      <div className="space-y-1.5 flex-1 max-w-[160px]">
+                        <Skeleton className="h-3.5 w-3/4 rounded" />
+                        <Skeleton className="h-2.5 w-1/2 rounded" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-5 w-16 rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : viewingRoom?.residents && viewingRoom.residents.length > 0 ? (
               <div className="grid gap-3">
                 {viewingRoom.residents.map((resident) => (
                   <div
@@ -773,12 +802,12 @@ const RoomManagement: React.FC = () => {
 
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                        {resident.name.charAt(0)}
+                        {resident.name?.charAt(0) || '?'}
                       </div>
                       <div>
                         <div className="text-sm font-semibold">{resident.name}</div>
                         <div className="text-[10px] text-muted-foreground uppercase tracking-tight">
-                          {resident.branch_name}
+                          {resident.branch_name || 'Student'}
                         </div>
                       </div>
                     </div>

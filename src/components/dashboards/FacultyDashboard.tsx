@@ -65,8 +65,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
 
     // Map URL paths to page names
     const pathMap: {[key: string]: string;} = {
+      'faculty': 'dashboard',
       'dashboard': 'dashboard',
-      'holiday-calendar': '/faculty/holiday-calendar',
       'holiday-calendar': 'holiday-calendar',
       'take-attendance': 'take-attendance',
       'upload-marks': 'upload-marks',
