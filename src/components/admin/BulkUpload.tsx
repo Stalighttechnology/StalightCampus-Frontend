@@ -5,6 +5,7 @@ import { Input } from "../ui/input";
 import { Upload, X } from "lucide-react";
 import clsx from "clsx";
 import { bulkUploadFaculty } from "../../utils/admin_api";
+import { downloadFile } from "../../utils/downloadHelper";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -184,15 +185,15 @@ const BulkUpload = ({ setError, toast }: BulkUploadProps) => {
     }
   };
 
-  const handleDownloadTemplate = () => {
-    const csvContent = `name,email,phone,designation
-    John Doe,john@example.com,9876543210,Assistant Professor`; // Updated template with phone and designation
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "faculty_template.csv");
-    link.click();
+  const handleDownloadTemplate = async () => {
+    try {
+      const csvContent = `name,email,phone,designation
+John Doe,john@example.com,9876543210,Assistant Professor`;
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      await downloadFile(blob, "faculty_template.csv");
+    } catch (err) {
+      console.error("Failed to download template:", err);
+    }
   };
 
   return (

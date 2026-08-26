@@ -9,6 +9,14 @@ import {
   CardTitle,
   CardFooter } from
 "../ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../ui/dialog";
 
 import {
   Select,
@@ -74,6 +82,7 @@ const TakeAttendance = () => {
   const [labBatchId, setLabBatchId] = useState<number | null>(null);
   const [lastBootstrapParams, setLastBootstrapParams] = useState<any>(null);
   const [attendanceDate, setAttendanceDate] = useState<string>(new Date().toLocaleDateString('sv-SE'));
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const isLabSubject = subjectType === 'lab';
   const currentAssignment = normalizedAssignments.find((a) => a.subject_id === subjectId);
@@ -537,7 +546,12 @@ const TakeAttendance = () => {
     setAttendance((prev) => ({ ...prev, [studentId]: present }));
   };
 
-  const handleSubmit = async () => {
+  const totalCount = students.length;
+  const presentCount = students.filter((s) => attendance[s.id] === true).length;
+  const absentCount = students.filter((s) => attendance[s.id] === false).length;
+  const notMarkedCount = students.filter((s) => attendance[s.id] === undefined).length;
+
+  const handleOpenConfirm = () => {
     // Validation:
     // - regular: require branch, semester, section
     // - elective / lab: require branch, semester (section optional)
@@ -557,13 +571,11 @@ const TakeAttendance = () => {
       if (!branchId || !semesterId) return;
     }
 
-    const confirmRes = await showConfirmAlert(
-      "Confirm Submission",
-      "Are you sure you want to submit the student attendance for this class?",
-      "Yes, Submit"
-    );
-    if (!confirmRes.isConfirmed) return;
+    setIsConfirmOpen(true);
+  };
 
+  const handleConfirmSubmit = async () => {
+    setIsConfirmOpen(false);
     setSubmitting(true);
     setErrorMsg("");
     try {
@@ -846,13 +858,24 @@ const TakeAttendance = () => {
                 {/* Fixed controls outside scroll area */}
                 <div className="p-3 sm:p-4 space-y-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
-                    <div className={`text-sm sm:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      {Object.keys(attendance).filter((key) => attendance[Number(key)] === true).length} Present,{" "}
-                      {Object.keys(attendance).filter((key) => attendance[Number(key)] === false).length} Absent
+                    <div className={`text-sm sm:text-base font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      <span>{totalCount} Total</span>
+                      <span className="mx-2 text-muted-foreground/40">|</span>
+                      <span className="text-green-600 dark:text-green-400">{presentCount} Present</span>
+                      <span className="mx-2 text-muted-foreground/40">|</span>
+                      <span className="text-red-600 dark:text-red-400">{absentCount} Absent</span>
+                      <span className="mx-2 text-muted-foreground/40">|</span>
+                      <span className="text-amber-600 dark:text-amber-500">{notMarkedCount} Not Marked</span>
+                      {notMarkedCount > 0 && (
+                        <>
+                          <span className="mx-2 text-red-500">→</span>
+                          <span className="text-red-500 font-bold animate-pulse">{notMarkedCount} will be marked Absent.</span>
+                        </>
+                      )}
                     </div>
                     <Button
                       id="take-attendance-submit"
-                      onClick={handleSubmit}
+                      onClick={handleOpenConfirm}
                       disabled={submitting || recentRecords.filter((r) => r.date === attendanceDate).length >= 3}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm sm:text-base font-medium px-4 py-2 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-md"
                     >
@@ -914,6 +937,60 @@ const TakeAttendance = () => {
           </CardFooter>
         )}
       </Card>
+
+      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <DialogContent className={`w-[90%] max-h-[80vh] overflow-y-auto rounded-lg sm:w-full sm:max-w-md ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+          <DialogHeader className="text-center sm:text-center flex flex-col items-center">
+            <div className="w-16 h-16 rounded-full border-4 border-amber-300 dark:border-amber-700/50 flex items-center justify-center mb-2">
+              <span className="text-amber-500 dark:text-amber-400 text-3xl font-bold font-sans">!</span>
+            </div>
+            <DialogTitle className="text-xl font-bold tracking-tight">Confirm Submission</DialogTitle>
+            <DialogDescription className="mt-2 text-center text-sm text-muted-foreground">
+              Are you sure you want to submit the student attendance for this class?
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="py-3 px-4 bg-muted/30 dark:bg-muted/10 rounded-lg border border-border/80 text-sm md:text-base font-semibold leading-relaxed text-center">
+              <span>{totalCount} Total</span>
+              <span className="mx-2 text-muted-foreground/40">|</span>
+              <span className="text-green-600 dark:text-green-400">{presentCount} Present</span>
+              <span className="mx-2 text-muted-foreground/40">|</span>
+              <span className="text-red-600 dark:text-red-400">{absentCount} Absent</span>
+              <span className="mx-2 text-muted-foreground/40">|</span>
+              <span className="text-amber-600 dark:text-amber-500">{notMarkedCount} Not Marked</span>
+              
+              {notMarkedCount > 0 && (
+                <div className="mt-2.5 text-red-500 dark:text-red-400 text-sm font-semibold flex items-center justify-center gap-1.5 animate-pulse">
+                  <span>⚠️</span>
+                  <span>{notMarkedCount} will be marked Absent.</span>
+                </div>
+              )}
+            </div>
+            {notMarkedCount > 0 && (
+              <p className="text-xs text-amber-600 dark:text-amber-500 italic text-center mt-2.5">
+                * Unmarked students are automatically recorded as Absent on submission.
+              </p>
+            )}
+          </div>
+          
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-center sm:space-x-2 gap-2 mt-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsConfirmOpen(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmSubmit}
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white"
+            >
+              Yes, Submit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -22,18 +22,20 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
 };
 
 /**
- * Reusable utility to handle file downloads (specifically PDFs) across
- * web browsers, PWAs, and mobile app webviews.
+ * Reusable utility to handle file downloads (specifically PDFs, CSVs, etc.) across
+ * web browsers, PWAs, and mobile app webviews (Capacitor).
  * 
- * @param source The Response object or string URL to download
+ * @param source The Response object, Blob, or string URL to download
  * @param defaultFilename The filename to save the document as
  */
-export const downloadFile = async (source: Response | string, defaultFilename: string) => {
+export const downloadFile = async (source: Response | string | Blob, defaultFilename: string) => {
   try {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    let response: Response;
+    let blob: Blob;
 
-    if (typeof source === 'string') {
+    if (source instanceof Blob) {
+      blob = source;
+    } else if (typeof source === 'string') {
       let finalUrl = source;
       if (source.startsWith('/')) {
         finalUrl = `${API_BASE_URL}${source}`;
@@ -48,24 +50,49 @@ export const downloadFile = async (source: Response | string, defaultFilename: s
         finalUrl = `${API_ENDPOINT}/r2/download/?file_url=${encodeURIComponent(finalUrl)}`;
       }
       
-      response = await fetchWithTokenRefresh(finalUrl);
+      const response = await fetchWithTokenRefresh(finalUrl);
+      if (!response.ok) {
+        throw new Error("Failed to download file");
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (contentType && (contentType.includes('text/html') || contentType.includes('application/json'))) {
+        throw new Error("Received error response instead of document binary");
+      }
+
+      blob = await response.blob();
     } else {
-      response = source;
-    }
+      if (!source.ok) {
+        throw new Error("Failed to download file");
+      }
 
-    if (!response.ok) {
-      throw new Error("Failed to download file");
-    }
+      const contentType = source.headers.get('content-type');
+      if (contentType && (contentType.includes('text/html') || contentType.includes('application/json'))) {
+        throw new Error("Received error response instead of document binary");
+      }
 
-    const contentType = response.headers.get('content-type');
-    if (contentType && (contentType.includes('text/html') || contentType.includes('application/json'))) {
-      throw new Error("Received error response instead of document binary");
+      blob = await source.blob();
     }
-
-    const blob = await response.blob();
     
-    // Enforce correct application/pdf MIME type if downloading a PDF
-    const mimeType = defaultFilename.toLowerCase().endsWith('.pdf') ? 'application/pdf' : blob.type;
+    // Resolve proper MIME type based on filename and blob
+    let mimeType = blob.type;
+    const lowerFilename = defaultFilename.toLowerCase();
+    if (lowerFilename.endsWith('.pdf')) {
+      mimeType = 'application/pdf';
+    } else if (lowerFilename.endsWith('.csv')) {
+      mimeType = 'text/csv';
+    } else if (lowerFilename.endsWith('.xlsx')) {
+      mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    } else if (lowerFilename.endsWith('.xls')) {
+      mimeType = 'application/vnd.ms-excel';
+    } else if (lowerFilename.endsWith('.png')) {
+      mimeType = 'image/png';
+    } else if (lowerFilename.endsWith('.jpg') || lowerFilename.endsWith('.jpeg')) {
+      mimeType = 'image/jpeg';
+    } else if (!mimeType) {
+      mimeType = 'application/octet-stream';
+    }
+
     const file = new Blob([blob], { type: mimeType });
 
     // Handle Capacitor Native Platform download
