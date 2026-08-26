@@ -100,6 +100,19 @@ export const DepartmentStudentLeaves = ({ onPendingCountChange }: DepartmentStud
   };
 
   const handleApprove = async (leaveId: string) => {
+    const result = await Swal.fire({
+      title: 'Approve Student Leave?',
+      text: 'Are you sure you want to grant final HoD approval for this student leave request?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Approve',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#22c55e',
+      cancelButtonColor: '#6b7280',
+    });
+
+    if (!result.isConfirmed) return;
+
     setActionLoading(leaveId + "APPROVE");
     try {
       const res = await manageHodStudentLeave({ leave_id: leaveId, action: "APPROVE" });

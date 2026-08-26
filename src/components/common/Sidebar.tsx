@@ -10,7 +10,7 @@ import { Card } from "../ui/card";
 import { isPageAllowed, PLAN_TIERS } from "../../utils/planGating";
 import { API_BASE_URL } from "../../utils/config";
 import { fetchParentChildrenCached } from "../../utils/student_api";
-import { getAlternateDutyRequests } from "../../utils/faculty_api";
+import { getAlternateDutyRequests, getProctorStudentLeaves } from "../../utils/faculty_api";
 import { manageHODLeaves } from "../../utils/admin_api";
 import { getHodStudentLeaves } from "../../utils/hod_api";
 import {
@@ -116,7 +116,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   useEffect(() => {
     const roleLower = (role || '').toLowerCase();
     const canHaveSubstituteRequests = ['teacher', 'faculty', 'hod'].includes(roleLower);
-    const canApproveLeaves = ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe'].includes(roleLower);
+    const canApproveLeaves = ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe', 'teacher', 'faculty'].includes(roleLower);
 
     if (canHaveSubstituteRequests || canApproveLeaves) {
       const checkSubstituteRequests = async () => {
@@ -138,21 +138,34 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       const checkPendingApprovals = async () => {
         if (!canApproveLeaves) return;
         try {
-          const res = await manageHODLeaves({ status: 'PENDING', page_size: 1 });
           let count = 0;
-          if (res) {
-            count = (res as any).pending_count ?? (res as any).count ?? (res as any).total_records ?? res.pagination?.total_records ?? (res.leaves?.filter((l: any) => l.status === 'PENDING').length ?? 0);
-          }
-          if (roleLower === 'hod') {
+          if (roleLower === 'teacher' || roleLower === 'faculty') {
             try {
-              const studentRes = await getHodStudentLeaves({ status: 'FORWARDED_TO_HOD', page_size: 1 });
-              if (studentRes && studentRes.pending_count !== undefined) {
-                count += Number(studentRes.pending_count);
-              } else if (studentRes && studentRes.pagination?.total_count !== undefined) {
-                count += Number(studentRes.pagination.total_count);
+              const proctorRes = await getProctorStudentLeaves({ status: 'PENDING', page_size: 1 });
+              if (proctorRes && (proctorRes as any).pending_count !== undefined) {
+                count = Number((proctorRes as any).pending_count);
+              } else if (proctorRes && proctorRes.pagination?.total_count !== undefined) {
+                count = Number(proctorRes.pagination.total_count);
               }
-            } catch (studentErr) {
-              console.error("Error checking student leave pending approvals in sidebar:", studentErr);
+            } catch (err) {
+              console.error("Error checking proctor student leave pending count in sidebar:", err);
+            }
+          } else {
+            const res = await manageHODLeaves({ status: 'PENDING', page_size: 1 });
+            if (res) {
+              count = (res as any).pending_count ?? (res as any).count ?? (res as any).total_records ?? res.pagination?.total_records ?? (res.leaves?.filter((l: any) => l.status === 'PENDING').length ?? 0);
+            }
+            if (roleLower === 'hod') {
+              try {
+                const studentRes = await getHodStudentLeaves({ status: 'FORWARDED_TO_HOD', page_size: 1 });
+                if (studentRes && studentRes.pending_count !== undefined) {
+                  count += Number(studentRes.pending_count);
+                } else if (studentRes && studentRes.pagination?.total_count !== undefined) {
+                  count += Number(studentRes.pagination.total_count);
+                }
+              } catch (studentErr) {
+                console.error("Error checking student leave pending approvals in sidebar:", studentErr);
+              }
             }
           }
           setPendingApprovalCount(typeof count === 'number' ? count : 0);
